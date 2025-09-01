@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if out tensor is provided, it must have a compatible dtype with the input tensor (Rule 5)
+# Prevent casting error: output tensor must have a data type that can accommodate the input tensor's data type. (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 7, Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), If(v["arg1_dtype"] == 8, Or(Or(v["arg2_dtype"] == 8, v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), If(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9, If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, False))))) if n else
-          If(v["arg1_dtype"] == 7, Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), If(v["arg1_dtype"] == 8, Or(Or(v["arg2_dtype"] == 8, v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), If(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9, If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, False)))))
+    s.add(Not(v["arg2_dtype"] >= v["arg1_dtype"]) if n else
+          v["arg2_dtype"] >= v["arg1_dtype"])
 )
 
 def rule_5_func(arg1, arg2, solver=None, neg=False):

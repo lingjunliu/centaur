@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor and max tensor should have same dtype (Rule 2)
+# Data type of input and output tensors should match (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
     s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else

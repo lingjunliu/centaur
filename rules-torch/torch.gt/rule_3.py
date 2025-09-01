@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# out tensor dtype should be boolean to store comparison results (Rule 3)
+# Input tensor cannot be complex when 'gt_cpu' is not implemented (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == 0) if n else
-          v["arg1_dtype"] == 0)
+    s.add(Not(And(v["arg1_dtype"] != 10, v["arg1_dtype"] != 11)) if n else
+          And(v["arg1_dtype"] != 10, v["arg1_dtype"] != 11))
 )
 
 def rule_3_func(arg1, solver=None, neg=False):

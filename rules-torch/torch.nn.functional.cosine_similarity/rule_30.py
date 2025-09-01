@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the dtypes of the tensors are different then they need to be floating point numbers. (Rule 30)
+# if the tensors do not both have floating point type, then they must have the same dtype (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] != v["arg2_dtype"], And((And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 8)), (And(v["arg2_dtype"] >= 6, v["arg2_dtype"] <= 8))), False)) if n else
-          If(v["arg1_dtype"] != v["arg2_dtype"], And((And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 8)), (And(v["arg2_dtype"] >= 6, v["arg2_dtype"] <= 8))), False))
+    s.add(Not(If(And((Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9)), (Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9))), True, v["arg1_dtype"] == v["arg2_dtype"])) if n else
+          If(And((Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9)), (Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9))), True, v["arg1_dtype"] == v["arg2_dtype"]))
 )
 
 def rule_30_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The tensor's first dimension must be equal to given integer and must be a power of 2 (Rule 96)
+# If the type requires cuda, pin memory needs to be set to true (Rule 96)
 
 rule_96 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_shape"], 0) == v["arg2_value"], (Or(Or(Or(v["arg2_value"] == 1, v["arg2_value"] == 2), v["arg2_value"] == 4), v["arg2_value"] == 8)))) if n else
-          And(Select(v["arg1_shape"], 0) == v["arg2_value"], (Or(Or(Or(v["arg2_value"] == 1, v["arg2_value"] == 2), v["arg2_value"] == 4), v["arg2_value"] == 8))))
+    s.add(Not(If(And(v["arg1_value"] > 5, v["arg1_value"] < 11), v["arg2_value"], True)) if n else
+          If(And(v["arg1_value"] > 5, v["arg1_value"] < 11), v["arg2_value"], True))
 )
 
 def rule_96_func(arg1, arg2, solver=None, neg=False):
@@ -18,25 +18,24 @@ def rule_96_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_value = Int('arg2_value')
+        arg1_value = Int('arg1_value')
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 96
-        rule_96(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_96(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_96(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_96(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

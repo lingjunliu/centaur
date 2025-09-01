@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor's dtype must be a valid type for relu_ (Rule 22)
+# input tensor dtype must not be boolean or complex (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 0, False, If(v["arg1_dtype"] == 9, False, If(v["arg1_dtype"] == 10, False, False)))) if n else
-          If(v["arg1_dtype"] == 0, False, If(v["arg1_dtype"] == 9, False, If(v["arg1_dtype"] == 10, False, False))))
+    s.add(Not(If(v["arg1_dtype"] == 0, False, If(v["arg1_dtype"] == 9, False, If(v["arg1_dtype"] == 10, False, True)))) if n else
+          If(v["arg1_dtype"] == 0, False, If(v["arg1_dtype"] == 9, False, If(v["arg1_dtype"] == 10, False, True))))
 )
 
 def rule_22_func(arg1, solver=None, neg=False):

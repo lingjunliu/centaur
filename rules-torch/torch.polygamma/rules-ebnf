@@ -1,42 +1,90 @@
 >>
-Rule 2 (n must be non-negative)
+Rule 1 (n should be a non-negative integer to avoid RuntimeError: polygamma(n, x) does not support negative n.)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 3 (input tensor cannot have complex dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+Rule 3 (input dtype should not be ComplexDouble to avoid RuntimeError: "polygamma" not implemented for 'ComplexDouble')
+{v_2 : tensor} |= dtype_(v_2) ≠ 11
 >>
-Rule 4 (output tensor cannot be bool if input is complex)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) then dtype_(v_2) ≠ 0
+Rule 4 (output dtype should not be Bool if the result type is ComplexDouble to avoid RuntimeError: result type ComplexDouble can't be cast to the desired output type Bool)
+{v_2 : tensor, v_3 : tensor} |= if dtype_(v_2) = 11 then dtype_(v_3) ≠ 0
 >>
-Rule 8 (out parameter must be a Tensor, checks for correct tensor dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 11 (input dtype should not be ComplexDouble to avoid RuntimeError: "polygamma" not implemented for 'ComplexDouble')
+{v_2 : tensor} |= dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11
 >>
-Rule 11 (if input is double, output must be double)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) = 8
+Rule 12 (If input is complex, out must be complex)
+{v_2 : tensor, v_3 : tensor} |= if dtype_(v_2) = 10 ∨ dtype_(v_2) = 11 then dtype_(v_3) = 10 ∨ dtype_(v_3) = 11
 >>
-Rule 19 (Input and Output tensors must have compatible dtypes when input is complex to avoid casting issues)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 10 else if dtype_(v_1) = 11 then dtype_(v_2) = 11
+Rule 16 (If input is complex, out must be complex and the same type)
+{v_2 : tensor, v_3 : tensor} |= if dtype_(v_2) = 10 then dtype_(v_3) = 10 else if dtype_(v_2) = 11 then dtype_(v_3) = 11
 >>
-Rule 23 (If input is ComplexDouble, out must also be ComplexDouble)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 10 ∧ if dtype_(v_1) = 11 then dtype_(v_2) = 11
+Rule 20 (If input is complex, out must be complex)
+{v_2 : tensor, v_3 : tensor} |= if (dtype_(v_2) = 10 ∨ dtype_(v_2) = 11) then (dtype_(v_3) = 10 ∨ dtype_(v_3) = 11)
 >>
-Rule 27 (If input is ComplexDouble, out must also be ComplexDouble, or input cannot be ComplexDouble)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 10 else if dtype_(v_1) = 11 then dtype_(v_2) = 11 else dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+Rule 21 (If out is provided, it has to have the same shape as the input)
+{v_2 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then (ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i))
 >>
-Rule 31 (If input is ComplexDouble, out must also be ComplexDouble, otherwise input cannot be complex)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 10 else if dtype_(v_1) = 11 then dtype_(v_2) = 11 else (dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11)
+Rule 26 (If out is provided, it has to have the same shape as the input. Also, it must be float.)
+{v_2 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then (ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i) ∧ (dtype_(v_3) = 7 ∨ dtype_(v_3) = 8))
 >>
-Rule 73 (Out must be a tensor: Using comparison instead of type check)
-{v_1 : tensor ⊎ float} |= (v_1 = v_1)
+Rule 31 (If out is provided, it has to have the same shape as the input. And if input is float16, out should be float16)
+{v_2 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then (ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)) ∧ if dtype_(v_2) = 6 then dtype_(v_3) = 6
 >>
-Rule 77 (Out must be a tensor)
-{v_1 : tensor ⊎ float} |= if (v_1 = v_1) then true else false
+Rule 35 (If input is complex, out must be complex and same precision)
+{v_2 : tensor, v_3 : tensor} |= if (dtype_(v_2) = 10) then (dtype_(v_3) = 10) else if (dtype_(v_2) = 11) then (dtype_(v_3) = 11)
 >>
-Rule 81 (Out must be a tensor, using equality to itself)
-{v_1 : tensor ⊎ float} |= (v_1 = v_1) ∨ false
+Rule 36 (If out is provided, it has to have the same shape as the input, and compatible dtype)
+{v_2 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then (ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i) ∧ ((dtype_(v_2) = 6 ∧ dtype_(v_3) = 6) ∨ (dtype_(v_2) = 7 ∧ dtype_(v_3) = 7) ∨ (dtype_(v_2) = 8 ∧ dtype_(v_3) = 8) ∨ (dtype_(v_2) = 10 ∧ dtype_(v_3) = 10) ∨ (dtype_(v_2) = 11 ∧ dtype_(v_3) = 11)))
 >>
-Rule 93 (Enforce that out is a Tensor by comparing to itself. If it is float then comparison will be false)
-{v_1 : tensor ⊎ float} |= if v_1 = v_1 then true else false
+Rule 40 (If out is provided, its dtype should be compatible with input and must be float if input is float)
+{v_2 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then if (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) then (dtype_(v_3) = 6 ∨ dtype_(v_3) = 7 ∨ dtype_(v_3) = 8)
 >>
-Rule 97 (Out should be a tensor)
-{v_1 : tensor ⊎ float} |= (v_1 = v_1) ∨ (v_1 = "constant")
+Rule 45 (If out is provided, its dtype should be compatible with input and must be float/complex if input is float/complex)
+{v_2 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then if (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11) then (dtype_(v_3) = 6 ∨ dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 10 ∨ dtype_(v_3) = 11)
+>>
+Rule 46 (If out is provided, it has to have the same shape as the input and same dtype when the input is not a complex number.)
+{v_2 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then (ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)) ∧ if (dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11) then dtype_(v_2) = dtype_(v_3)
+>>
+Rule 50 (out's dtype must be compatible with input)
+{v_2 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then ((dtype_(v_2) = 6 ∧ dtype_(v_3) = 6) ∨ (dtype_(v_2) = 7 ∧ dtype_(v_3) = 7) ∨ (dtype_(v_2) = 8 ∧ dtype_(v_3) = 8) ∨ (dtype_(v_2) = 10 ∧ dtype_(v_3) = 10) ∨ (dtype_(v_2) = 11 ∧ dtype_(v_3) = 11))
+>>
+Rule 60 (If input and out are both provided, out's shape must be the same as input's)
+{v_2 : tensor, v_3 : tensor} |= if ndim(v_2) > 0 ∧ ndim(v_3) > 0 then (ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i))
+>>
+Rule 71 (Input must be a floating point number if n > 0)
+{v_1 : int, v_2 : tensor} |= if v_1 > 0 then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 80 (Input must be a floating or complex number if n > 0)
+{v_1 : int, v_2 : tensor} |= if v_1 > 0 then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11)
+>>
+Rule 83 (Input must be a floating or complex number if n >= 0)
+{v_1 : int, v_2 : tensor} |= if v_1 ≥ 0 then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11)
+>>
+Rule 86 (Input must be a floating or complex number)
+{v_2 : tensor} |= (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11)
+>>
+Rule 89 (Input must be a floating or complex number)
+{v_2 : tensor} |= dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11
+>>
+Rule 101 (If input is complex, output must also be complex)
+{v_2 : tensor, v_3 : tensor} |= if (dtype_(v_2) = 10 ∨ dtype_(v_2) = 11) then dtype_(v_3) = 10 ∨ dtype_(v_3) = 11
+>>
+Rule 104 (If result type is ComplexDouble, out must not be Bool.)
+{v_3 : tensor} |= if true then dtype_(v_3) ≠ 0
+>>
+Rule 110 (Input must have floating or complex dtype)
+{v_2 : tensor} |= dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 10
+>>
+Rule 113 (Input must not be ComplexDouble)
+{v_2 : tensor} |= dtype_(v_2) ≠ 11 ∧ dtype_(v_2) ≠ 10
+>>
+Rule 116 (Input must not be ComplexDouble. If it is, out must be ComplexDouble.)
+{v_2 : tensor, v_3 : tensor} |= if dtype_(v_2) = 11 then dtype_(v_3) = 11 else dtype_(v_2) ≠ 11
+>>
+Rule 119 (If input is complex, out must also be complex; else input must be numerical)
+{v_2 : tensor, v_3 : tensor} |= (if dtype_(v_2) = 11 then dtype_(v_3) = 11 else if dtype_(v_2) = 10 then dtype_(v_3) = 10 else (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8))
+>>
+Rule 122 (If input is complex, out must also be complex; else input and out must be numerical)
+{v_2 : tensor, v_3 : tensor} |= (dtype_(v_2) = 11 ∧ dtype_(v_3) = 11) ∨ (dtype_(v_2) = 10 ∧ dtype_(v_3) = 10) ∨ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∧ dtype_(v_3) = 6 ∨ dtype_(v_3) = 7 ∨ dtype_(v_3) = 8)
+>>
+Rule 131 (If input is ComplexDouble and out is given, they must match in shape)
+{v_2 : tensor, v_3 : tensor} |= if dtype_(v_2) = 11 ∧ ndim(v_3) > 0 then (ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i))

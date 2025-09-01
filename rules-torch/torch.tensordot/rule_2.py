@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# dims should be non-negative (Rule 2)
+# dims should be non-negative integer when dims is an integer (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
     s.add(Not(v["arg1_value"] >= 0) if n else

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Dimension should not be less than minimum possible value given ndim (Rule 15)
+# dimension can't be larger than maximum dimension (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not((0 - v["arg1_ndim"]) <= v["arg2_value"]) if n else
-          (0 - v["arg1_ndim"]) <= v["arg2_value"])
+    s.add(Not(And(v["arg1_ndim"] > 0, v["arg2_value"] < v["arg1_ndim"])) if n else
+          And(v["arg1_ndim"] > 0, v["arg2_value"] < v["arg1_ndim"]))
 )
 
 def rule_15_func(arg1, arg2, solver=None, neg=False):

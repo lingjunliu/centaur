@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If autocast_xla_enabled is true, then other conditions must be met, represented by a dummy boolean (Rule 2)
+# If enabled is true, then disable_torch_function must be false. (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, v["arg2_value"] == True, v["arg2_value"] == True)) if n else
-          If(v["arg1_value"] == True, v["arg2_value"] == True, v["arg2_value"] == True))
+    s.add(Not(If(v["arg1_value"], v["arg2_value"] == False, True)) if n else
+          If(v["arg1_value"], v["arg2_value"] == False, True))
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):

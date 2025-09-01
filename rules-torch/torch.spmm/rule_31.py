@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check compatibility of dimensions for matmul and mat2 has positive dimensions and valid type (Rule 31)
+# if v_1 is a vector or matrix ensure compatibility and dimensions of v_2  (Rule 31)
 
 rule_31 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(And(And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 2), Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 0)), Select(v["arg2_shape"], 0) > 0), Select(v["arg2_shape"], 1) > 0), (Or(Or(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10)))) if n else
-          And(And(And(And(And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 2), Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 0)), Select(v["arg2_shape"], 0) > 0), Select(v["arg2_shape"], 1) > 0), (Or(Or(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10))))
+    s.add(Not(If(v["arg1_ndim"] == 1, (And(v["arg2_ndim"] == 2, Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0))), If(v["arg1_ndim"] == 2, Or((And(v["arg2_ndim"] == 1, Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 0))), (And(v["arg2_ndim"] == 2, Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 0)))), True))) if n else
+          If(v["arg1_ndim"] == 1, (And(v["arg2_ndim"] == 2, Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0))), If(v["arg1_ndim"] == 2, Or((And(v["arg2_ndim"] == 1, Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 0))), (And(v["arg2_ndim"] == 2, Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 0)))), True)))
 )
 
 def rule_31_func(arg1, arg2, solver=None, neg=False):
@@ -29,7 +29,6 @@ def rule_31_func(arg1, arg2, solver=None, neg=False):
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg2_ndim = Int('arg2_ndim')
         arg2_shape = Array('arg2_shape', IntSort(), IntSort())
-        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
@@ -38,12 +37,11 @@ def rule_31_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_ndim == arg2.ndim)
         for i in range(arg2.ndim):
             arg2_shape = Store(arg2_shape, i, arg2.shape[i])
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 31
-        rule_31(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype, 'arg2_shape': arg2_shape})
+        rule_31(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_31(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype'], 'arg2_shape': arg2['shape']}, neg)
+        rule_31(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim']}, neg)

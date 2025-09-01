@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If requires_grad is true then input tensor must be float or complex or bool dtype, or integer dtype, or uint8 (Rule 90)
+# If the input tensor has integer data type, requires_grad should be false. (Rule 90)
 
 rule_90 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == True, (Or(Or((v["arg1_dtype"] == 0), (And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 10))), (And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 6)))), False)) if n else
-          If(v["arg2_value"] == True, (Or(Or((v["arg1_dtype"] == 0), (And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 10))), (And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 6)))), False))
+    s.add(Not(If(Or(Or(Or(Or((v["arg1_dtype"] == 1), (v["arg1_dtype"] == 2)), (v["arg1_dtype"] == 3)), (v["arg1_dtype"] == 4)), (v["arg1_dtype"] == 5)), v["arg2_value"] == False, True)) if n else
+          If(Or(Or(Or(Or((v["arg1_dtype"] == 1), (v["arg1_dtype"] == 2)), (v["arg1_dtype"] == 3)), (v["arg1_dtype"] == 4)), (v["arg1_dtype"] == 5)), v["arg2_value"] == False, True))
 )
 
 def rule_90_func(arg1, arg2, solver=None, neg=False):

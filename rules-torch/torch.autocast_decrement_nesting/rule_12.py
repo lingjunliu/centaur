@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The input should be a positive integer less than a maximum value (Rule 12)
+# Nesting level should not exceed the maximum permissible value (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] > 0, v["arg1_value"] < 10000)) if n else
-          And(v["arg1_value"] > 0, v["arg1_value"] < 10000))
+    s.add(Not(v["arg1_value"] <= 64) if n else
+          v["arg1_value"] <= 64)
 )
 
 def rule_12_func(arg1, solver=None, neg=False):

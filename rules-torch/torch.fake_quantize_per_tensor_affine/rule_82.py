@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input values are small, the quant min and max should reflect this to prevent precision loss (Rule 82)
+# If minimum is zero, and maximum is 255, then every element of the input must be within the range. (Rule 82)
 
 rule_82 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_range"], 1) < 1, And(v["arg3_value"] < 100, v["arg2_value"] > -100), False)) if n else
-          If(Select(v["arg1_range"], 1) < 1, And(v["arg3_value"] < 100, v["arg2_value"] > -100), False))
+    s.add(Not(If(And(v["arg2_value"] == 0, v["arg3_value"] == 255), And(Select(v["arg1_range"], 1) <= 255, Select(v["arg1_range"], 0) >= 0), True)) if n else
+          If(And(v["arg2_value"] == 0, v["arg3_value"] == 255), And(Select(v["arg1_range"], 1) <= 255, Select(v["arg1_range"], 0) >= 0), True))
 )
 
 def rule_82_func(arg1, arg2, arg3, solver=None, neg=False):

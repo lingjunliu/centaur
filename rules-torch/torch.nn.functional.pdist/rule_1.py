@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor must be 2D (Rule 1)
+# input tensor must be 2-dimensional to avoid RuntimeError: pdist only supports 2D tensors, got: 1D (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
     s.add(Not(v["arg1_ndim"] == 2) if n else

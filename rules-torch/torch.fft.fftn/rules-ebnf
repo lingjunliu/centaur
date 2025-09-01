@@ -1,54 +1,141 @@
 >>
-Rule 1 (Signal size must be non-negative, triggering "Invalid number of data points (0) specified")
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 1 (Signal size should be positive, suppressing "Invalid number of data points (0) specified" error)
+{s : tuple(int)} |= ∀i ∈ [0, s.len - 1] : s[i] > 0
 >>
-Rule 2 (input tensor must have a complex dtype, triggering "fftn expects a complex output tensor, but got Double")
-{v_1 : tensor} |= dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 2 (Input tensor must be complex to prevent "fftn expects a complex output tensor, but got Double")
+{input : tensor} |= dtype_(input) = 10 ∨ dtype_(input) = 11
 >>
-Rule 3 (input tensor cannot have half dtype on CPU, triggering "Unsupported dtype Half")
-{v_1 : tensor} |= dtype_(v_1) ≠ 6
+Rule 3 (Input tensor cannot be half type on CPU, suppressing "Unsupported dtype Half" on CPU)
+{input : tensor} |= dtype_(input) ≠ 7
 >>
-Rule 6 (FFT dimensions must be unique, suppressing "FFT dims must be unique")
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i + 1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+Rule 6 (FFT dims must be unique, suppressing "FFT dims must be unique")
+{dim : tuple(int)} |= ∀i ∈ [0, dim.len - 1] : ∀j ∈ [i + 1, dim.len - 1] : dim[i] ≠ dim[j]
 >>
-Rule 7 (When given, dim and shape arguments must have the same length)
-{v_1 : tuple(int), v_2 : tuple(int)} |= v_1.len = v_2.len
+Rule 7 (dim and s arguments must have the same length, preventing "When given, dim and shape arguments must have the same length")
+{s : tuple(int), dim : tuple(int)} |= s.len = dim.len
 >>
-Rule 17 (Dimension must be within range of input tensor, triggering "Dimension out of range")
-{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+Rule 8 (norm parameter must be one of the allowed strings)
+{norm : str} |= norm = "forward" ∨ norm = "backward" ∨ norm = "ortho"
 >>
-Rule 18 (FFT dimensions must be unique, suppressing "FFT dims must be unique")
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i + 1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+Rule 14 (Dimension indices must be within the valid range of the input tensor, preventing "Dimension out of range")
+{input : tensor, dim : tuple(int)} |= ∀i ∈ [0, dim.len - 1] : dim[i] ≥ 0 - ndim(input) ∧ dim[i] < ndim(input)
 >>
-Rule 24 (norm must be a valid string)
-{v_1 : str} |= v_1 = "forward" ∨ v_1 = "backward" ∨ v_1 = "ortho"
+Rule 18 (If s is provided, the number of dimensions must match the length of s, alternative formulation)
+{s : tuple(int), dim : tuple(int)} |= if s.len > 0 then dim.len = s.len
 >>
-Rule 35 (If input is on CUDA, the signal length must be powers of 2 when dtype is half)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then shape(v_1, 0) = 2 ∨ shape(v_1, 0) = 4 ∨ shape(v_1, 0) = 8 ∨ shape(v_1, 0) = 16
+Rule 19 (out argument must have the same dtype as input)
+{input : tensor, out : tensor} |= dtype_(input) = dtype_(out)
 >>
-Rule 39 (Check if norm is valid, if defined.)
-{v_1: str} |= v_1 = "forward" ∨ v_1 = "backward" ∨ v_1 = "ortho"
+Rule 20 (out argument must have the same shape as expected output based on input and s)
+{input : tensor, out : tensor, s : tuple(int)} |= if s.len > 0 then out.len = s.len else out.len = input.len
 >>
-Rule 43 (Half dtype tensors on CUDA architecture SM53 or greater must have power of 2 sizes)
-{v_1: tensor} |= if dtype_(v_1) = 6 then shape(v_1, ndim(v_1) - 1) = 2 ∨ shape(v_1, ndim(v_1) - 1) = 4 ∨ shape(v_1, ndim(v_1) - 1) = 8 ∨ shape(v_1, ndim(v_1) - 1) = 16
+Rule 21 (If s is provided, each element should be greater than -2)
+{s : tuple(int)} |= ∀i ∈ [0, s.len - 1] : s[i] > -2
 >>
-Rule 46 (Check for out parameter being tensor to avoid type error)
-{v_1: tensor} |= ndim(v_1) > 0
+Rule 22 (If dim is provided, each element should be in a valid range)
+{input : tensor, dim : tuple(int)} |= ∀i ∈ [0, dim.len - 1] : dim[i] >= (0 - ndim(input)) ∧ dim[i] < ndim(input)
 >>
-Rule 48 (Half dtype not supported. Force complex or float)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 24 (Check that output tensor is complex type.)
+{out : tensor} |= dtype_(out) = 10 ∨ dtype_(out) = 11
 >>
-Rule 54 (If s and dim are both given, then they must have the same length.)
-{v_1: tuple(int), v_2: tuple(int)} |= v_1.len = v_2.len
+Rule 25 (If dim is None and s is given, ensure s has valid dimension based on input)
+{input : tensor, s: tuple(int)} |= s.len <= ndim(input)
 >>
-Rule 58 (Check if the input is half, then at least the last dim should be power of 2.)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then shape(v_1, ndim(v_1) - 1) = 2 ∨ shape(v_1, ndim(v_1) - 1) = 4 ∨ shape(v_1, ndim(v_1) - 1) = 8 ∨ shape(v_1, ndim(v_1) - 1) = 16
+Rule 27 (Check norm is a valid string to suppress any error)
+{norm: str} |= norm = "forward" ∨ norm = "backward" ∨ norm = "ortho"
 >>
-Rule 60 (Check the input is complex.)
-{v_1: tensor} |= dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 28 (If s has -1 value, the dim value must be in the range)
+{input : tensor, s : tuple(int), dim : tuple(int)} |= ∀i ∈ [0, s.len - 1] : if s[i] = -1 then dim[i] >= (0 - ndim(input)) ∧ dim[i] < ndim(input)
 >>
-Rule 63 (Check is the input dtype is supported for fftn)
-{v_1: tensor} |= dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 29 (The dimensions specified in dim should be a subset of the dimensions of input)
+{input : tensor, dim : tuple(int)} |= ∀i ∈ [0, dim.len - 1] : ∃j ∈ [0, ndim(input) - 1] : dim[i] = j - ndim(input) ∨ dim[i] = j
 >>
-Rule 65 (If input is half then last dim must be power of 2)
-{v_1: tensor} |= if dtype_(v_1) = 6 then (shape(v_1, ndim(v_1) - 1) = 2 ∨ shape(v_1, ndim(v_1) - 1) = 4 ∨ shape(v_1, ndim(v_1) - 1) = 8 ∨ shape(v_1, ndim(v_1) - 1) = 16)
+Rule 30 (If norm is given, and s is also specified, then the product of s must be positive if norm == 'forward' or 'ortho')
+{s : tuple(int), norm : str} |= if norm = "forward" ∨ norm = "ortho" then ∃i ∈ [0, s.len - 1] : s[i] > 0
+>>
+Rule 31 (If norm is given and is forward/ortho, all elements in s must be greater than 0, accounting for -1)
+{s : tuple(int), norm : str} |= if norm = "forward" ∨ norm = "ortho" then ∀i ∈ [0, s.len - 1] : s[i] > 0 ∨ s[i] = -1
+>>
+Rule 32 (If s is none then dim must be none)
+{s : tuple(int), dim : tuple(int)} |= if s.len = 0 then dim.len = 0
+>>
+Rule 33 (If dim is specified, its length must be less than or equal to the input's number of dimensions.)
+{input : tensor, dim : tuple(int)} |= dim.len <= ndim(input)
+>>
+Rule 35 (If input dtype is half, the device must be cuda - alternative expression without .device)
+{input : tensor} |= if dtype_(input) = 7 then true
+>>
+Rule 36 (If input dtype is half, then we should have CUDA available.)
+{input : tensor} |= if dtype_(input) = 7 then ∃v_cuda ∈ [0,0] : true
+>>
+Rule 37 (If any element of s is not -1, input must be complex)
+{input : tensor, s : tuple(int)} |= if ∃i ∈ [0, s.len - 1] : s[i] ≠ -1 then dtype_(input) = 10 ∨ dtype_(input) = 11
+>>
+Rule 38 (Ensure s is not empty to prevent issues with calculating the FFT size)
+{s : tuple(int)} |= s.len > 0
+>>
+Rule 39 (If s is provided, ensure its length does not exceed 3, for practical memory reasons)
+{s : tuple(int)} |= s.len <= 3
+>>
+Rule 40 (If the length of dim is not zero, each dim[i] is unique)
+{dim: tuple(int)} |= if dim.len > 0 then ∀i ∈ [0, dim.len - 1] : ∀j ∈ [i + 1, dim.len - 1] : dim[i] ≠ dim[j]
+>>
+Rule 41 (dim values should be sorted ascending to ensure correctness.)
+{dim : tuple(int)} |= if dim.len > 1 then ∀i ∈ [0, dim.len - 2] : dim[i] < dim[i+1]
+>>
+Rule 42 (When s is present, each element of dim must be in the range [0, s.len -1])
+{s: tuple(int), dim: tuple(int)} |= if s.len > 0 then ∀i ∈ [0, dim.len - 1] : dim[i] ≥ 0 ∧ dim[i] < s.len
+>>
+Rule 44 (If a length `-1` is specified in s, then corresponding shape(input, dim[i]) should be power of 2)
+{input : tensor, s : tuple(int), dim : tuple(int)} |= ∀i ∈ [0, s.len - 1] : if s[i] = -1 then shape(input, dim[i]) = 2
+>>
+Rule 46 (When s[i] != -1, then shape of input along dim[i] should be equal to s[i])
+{input : tensor, s : tuple(int), dim : tuple(int)} |= ∀i ∈ [0, s.len - 1] : if s[i] ≠ -1 then shape(input, dim[i]) = s[i]
+>>
+Rule 47 (if input.dtype is half, CUDA support power of 2 or not, if not throw an error)
+{input : tensor, s : tuple(int), dim : tuple(int)} |= if dtype_(input) = 7 then ∀i ∈ [0, dim.len -1] : shape(input, dim[i]) = 2 ∨ shape(input, dim[i]) = 4 ∨ shape(input, dim[i]) = 8 ∨ shape(input, dim[i]) = 16 ∨ shape(input, dim[i]) = 32 ∨ shape(input, dim[i]) = 64 ∨ shape(input, dim[i]) = 128 ∨ shape(input, dim[i]) = 256 ∨ shape(input, dim[i]) = 512 ∨ shape(input, dim[i]) = 1024 ∨ shape(input, dim[i]) = 2048
+>>
+Rule 48 (if s is present, check for each dimension: shape of input along dim[i] > 0 for data point reason)
+{input : tensor, s : tuple(int), dim : tuple(int)} |= ∀i ∈ [0, s.len - 1] : shape(input, dim[i]) > 0
+>>
+Rule 51 (when dim and s are present, make sure for all elements that: if s[i] = -1 then input shape is not -1)
+{input : tensor, s : tuple(int), dim: tuple(int)} |= ∀i ∈ [0, dim.len - 1] : if s[i] = -1 then shape(input, dim[i]) > 0
+>>
+Rule 52 (If input is complex and out is specified, then the dtype should be complex)
+{input : tensor, out : tensor} |= if dtype_(input) = 10 ∨ dtype_(input) = 11 then dtype_(out) = 10 ∨ dtype_(out) = 11
+>>
+Rule 53 (If the length of s is greater than zero then for all dim, dim[i] must be greater than or equal to -1 * ndim(input).)
+{input : tensor, s: tuple(int), dim: tuple(int)} |= if s.len > 0 then ∀i ∈ [0, dim.len - 1] : dim[i] >= (-1 * ndim(input))
+>>
+Rule 54 (If input has half dtype, the shape should be the power of 2)
+{input : tensor, dim : tuple(int)} |= if dtype_(input) = 7 then ∀i ∈ [0, dim.len -1] : shape(input, dim[i]) = 2 ∨ shape(input, dim[i]) = 4 ∨ shape(input, dim[i]) = 8 ∨ shape(input, dim[i]) = 16 ∨ shape(input, dim[i]) = 32 ∨ shape(input, dim[i]) = 64 ∨ shape(input, dim[i]) = 128 ∨ shape(input, dim[i]) = 256 ∨ shape(input, dim[i]) = 512 ∨ shape(input, dim[i]) = 1024 ∨ shape(input, dim[i]) = 2048
+>>
+Rule 55 (If s[i] is not -1 and input is complex, out needs to be complex)
+{input : tensor, s : tuple(int), out: tensor} |= if dtype_(input) = 10 ∨ dtype_(input) = 11 ∧ ∀i ∈ [0, s.len - 1] : s[i] ≠ -1 then dtype_(out) = 10 ∨ dtype_(out) = 11
+>>
+Rule 56 (if norm is not none, at least one element from s has to be present)
+{s: tuple(int), norm: str} |= if norm ≠ "none" then s.len > 0
+>>
+Rule 59 (If norm=="forward" or norm=="ortho", then prod(s) must not equal zero)
+{s : tuple(int), norm : str} |= if norm = "forward" ∨ norm = "ortho" then ∃i ∈ [0, s.len - 1] : s[i] ≠ 0
+>>
+Rule 60 (if norm=="forward" or norm=="ortho" and if any element of s is not -1, prod(s) must not equal zero)
+{s : tuple(int), norm : str} |= if norm = "forward" ∨ norm = "ortho" then ∀i ∈ [0, s.len - 1] : if s[i] ≠ -1 then ∃j ∈ [0, s.len - 1] : s[j] ≠ 0
+>>
+Rule 62 (If the norm is forward or ortho and one dim is 0, report an error)
+{norm: str, s: tuple(int)} |= if norm = "forward" ∨ norm = "ortho" then ∀i ∈ [0, s.len - 1] : s[i] > 0
+>>
+Rule 63 (Ensure at least one dimension has length > 0 to avoid data point issues)
+{input: tensor} |= ∃i ∈ [0, ndim(input) - 1] : shape(input, i) > 0
+>>
+Rule 64 (if s and dim are not none, each dim index is less than s.len, each element in s should be larger than 0.)
+{s: tuple(int), dim: tuple(int)} |=  ∀i ∈ [0, dim.len - 1] : if s.len > 0 then ∀j ∈ [0, s.len - 1] : s[j] > 0
+>>
+Rule 65 (Combine conditions on s and dim)
+{s : tuple(int), dim : tuple(int)} |= if s.len > 0 then dim.len = s.len ∧ ∀i ∈ [0, s.len - 1] : dim[i] >= 0 ∧ dim[i] < s.len
+>>
+Rule 66 (If s is provided, then every shape dim needs to be > 0 and can not be 0)
+{input : tensor, s : tuple(int), dim : tuple(int)} |= if s.len > 0 then ∀i ∈ [0, dim.len - 1] : shape(input, dim[i]) > 0
+>>
+Rule 68 (If s is not None, and dim is None, default to s being the last len(s) dimensions)
+{input : tensor, s : tuple(int)} |= if s.len > 0 then s.len <= ndim(input)

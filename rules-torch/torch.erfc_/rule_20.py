@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor dtype should not be a complex type (Rule 20)
+# If input tensor is complex128, then it is invalid. (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10), v["arg1_dtype"] != 11)) if n else
-          And(And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10), v["arg1_dtype"] != 11))
+    s.add(Not(v["arg1_dtype"] != 10) if n else
+          v["arg1_dtype"] != 10)
 )
 
 def rule_20_func(arg1, solver=None, neg=False):

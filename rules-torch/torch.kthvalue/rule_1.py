@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# k should be within the range of the dimension size (Rule 1)
+# k must be within the valid range for the input tensor's dimension to prevent RuntimeError (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
     s.add(Not(And(v["arg2_value"] >= 1, v["arg2_value"] <= Select(v["arg1_shape"], v["arg3_value"]))) if n else

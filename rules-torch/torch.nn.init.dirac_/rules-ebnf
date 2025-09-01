@@ -1,75 +1,150 @@
 >>
-Rule 1 (tensor dimension must be 3, 4, or 5)
+Rule 1 (tensor must have 3, 4, or 5 dimensions)
 {v_1 : tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4 ∨ ndim(v_1) = 5
 >>
-Rule 2 (first dimension of tensor must be divisible by groups)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) % v_2 = 0 ∧ v_2 > 0
+Rule 2 (the first dimension of the tensor must be divisible by groups)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 0) % v_2 = 0
 >>
-Rule 3 (tensor has supported dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 3 ∧ ndim(v_1) ≤ 5
+Rule 3 (groups must be greater than zero)
+{v_2 : int} |= v_2 > 0
 >>
-Rule 4 (groups must be a positive integer)
-{v_1 : int} |= v_1 > 0
+Rule 4 (the number of dimensions of tensor must be int)
+{v_1 : tensor} |= if ndim(v_1) = 3 then true else if ndim(v_1) = 4 then true else if ndim(v_1) = 5 then true else false
 >>
-Rule 5 (first dimension is divisible by groups when groups is not 1)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ 1 then shape(v_1, 0) % v_2 = 0
+Rule 5 (groups must be an integer)
+{v_1 : tensor, v_2 : int ⊎ float} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then true else v_2 = 0
 >>
-Rule 7 (group divisibility check)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) % v_2 = 0 ∨ v_2 = 1
+Rule 6 (groups must be an integer and greater than zero)
+{v_1 : tensor, v_2 : int} |= v_2 > 0 ∧ shape(v_1, 0) % v_2 = 0
 >>
-Rule 10 (compatibility between tensor's first dimension and groups)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) ≥ 1 then shape(v_1, 0) % v_2 = 0 ∨ v_2 = 1
+Rule 7 (groups must be an integer, greater than zero and less than or equal to the first dimension of the tensor)
+{v_1 : tensor, v_2 : int} |= v_2 > 0 ∧ v_2 ≤ shape(v_1, 0) ∧ shape(v_1, 0) % v_2 = 0
 >>
-Rule 18 (divisibility by groups)
-{v_1 : tensor, v_2 : int} |= (ndim(v_1) ≥ 1 ∧ shape(v_1, 0) % v_2 = 0) ∨ v_2 = 1
+Rule 8 (tensor dimension check)
+{v_1 : tensor} |= ∃i ∈ [3, 5] : ndim(v_1) = i
 >>
-Rule 21 (The first dimension of tensor should be divisible by groups)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) % v_2 = 0 ∨ v_2 = 1 ∨ ndim(v_1) < 1
+Rule 9 (check on the dimension of the input tensor)
+{v_1 : tensor} |= if ndim(v_1) = 3 then true else if ndim(v_1) = 4 then true else ndim(v_1) = 5
 >>
-Rule 24 (divisibility of first dimension by groups)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then shape(v_1, 0) % v_2 = 0 ∨ v_2 = 1
+Rule 10 (first dimension of the tensor is divisible by groups if groups are provided)
+{v_1 : tensor, v_2 : int} |= if v_2 > 0 then shape(v_1, 0) % v_2 = 0
 >>
-Rule 27 (groups constraints)
-{v_1 : tensor, v_2 : int} |= (shape(v_1, 0) % v_2 = 0) ∨ (ndim(v_1) < 1) ∨ (v_2 = 1)
+Rule 11 (Valid groups value)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 3 ∨ ndim(v_1) = 4 ∨ ndim(v_1) = 5 then if v_2 ≥ 1 then shape(v_1, 0) % v_2 = 0 else false else false
 >>
-Rule 30 (groups is valid)
-{v_1 : tensor, v_2 : int} |= (ndim(v_1) < 1) ∨ (v_2 = 1) ∨ (shape(v_1, 0) % v_2 = 0)
+Rule 12 (groups should be 1 if the input is not 3, 4, or 5 dimensional)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 ∨ ndim(v_1) = 4 ∨ ndim(v_1) = 5 then true else v_2 = 1
 >>
-Rule 33 (divisibility condition)
-{v_1 : tensor, v_2 : int} |= (ndim(v_1) < 1) ∨ (v_2 = 1) ∨ ((ndim(v_1) ≥ 1) ∧ (shape(v_1, 0) % v_2 = 0))
+Rule 13 (Either groups is 1, or if it's not, then dim 0 must be divisible by groups and the dimensions must be correct)
+{v_1: tensor, v_2: int} |= (v_2 = 1) ∨ (ndim(v_1) = 3 ∨ ndim(v_1) = 4 ∨ ndim(v_1) = 5) ∧ shape(v_1, 0) % v_2 = 0
 >>
-Rule 36 (check for divisibility by groups if applicable)
-{v_1 : tensor, v_2 : int} |= (ndim(v_1) < 1) ∨ (v_2 = 1) ∨ ((shape(v_1, 0) % v_2 = 0) ∧ (ndim(v_1) ≥ 1))
+Rule 14 (Dimension of tensor must be 3, 4 or 5, and if groups > 1, then dim 0 must be divisible by groups.)
+{v_1: tensor, v_2: int} |= (ndim(v_1) = 3 ∨ ndim(v_1) = 4 ∨ ndim(v_1) = 5) ∧ (if v_2 > 1 then shape(v_1, 0) % v_2 = 0)
 >>
-Rule 42 (groups is either 1, or divides the first dimension if the tensor is at least 1D)
-{v_1 : tensor, v_2 : int} |= (v_2 = 1) ∨ (ndim(v_1) ≥ 1 ∧ shape(v_1, 0) % v_2 = 0) ∨ (ndim(v_1) < 1)
+Rule 15 (Combined check for dimensions and divisibility)
+{v_1: tensor, v_2: int} |= ((ndim(v_1) = 3) ∨ (ndim(v_1) = 4) ∨ (ndim(v_1) = 5)) ∧ ((v_2 = 1) ∨ (shape(v_1, 0) % v_2 = 0))
 >>
-Rule 45 (first dimension must be divisible by groups if groups is not 1)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ 1 then (ndim(v_1) > 0 ∧ shape(v_1, 0) % v_2 = 0)
+Rule 16 (Correct dimensions or groups is 1)
+{v_1 : tensor, v_2 : int} |= (ndim(v_1) = 3 ∨ ndim(v_1) = 4 ∨ ndim(v_1) = 5) ∨ (v_2 = 1)
 >>
-Rule 48 (dimension 0 divisible by groups)
-{v_1 : tensor, v_2 : int} |= (v_2 = 1) ∨ ((ndim(v_1) ≥ 1) ∧ (shape(v_1, 0) % v_2 = 0))
+Rule 17 (If tensor has 3,4, or 5 dimensions, and groups is specified, then the 0th dimension must be divisible by groups.)
+{v_1: tensor, v_2: int} |= if (ndim(v_1) = 3 ∨ ndim(v_1) = 4 ∨ ndim(v_1) = 5) ∧ (v_2 ≠ 1) then shape(v_1, 0) % v_2 = 0
 >>
-Rule 51 (If groups is not 1, the first dimension of the tensor should be divisible by groups)
-{v_1 : tensor, v_2 : int} |= (v_2 = 1) ∨ (ndim(v_1) > 0 ∧ shape(v_1, 0) % v_2 = 0)
+Rule 18 (Enforce dimension constraint and group divisibility)
+{v_1 : tensor, v_2 : int} |= (ndim(v_1) = 3 ∨ ndim(v_1) = 4 ∨ ndim(v_1) = 5) ∧ (if v_2 > 1 then (shape(v_1, 0) % v_2 = 0))
 >>
-Rule 54 (groups must divide the first dimension, if tensor at least 1D and groups != 1)
-{v_1 : tensor, v_2 : int} |= (ndim(v_1) = 0) ∨ (v_2 = 1) ∨ (shape(v_1, 0) % v_2 = 0)
+Rule 19 (Correct number of dimensions and divisible by groups constraint)
+{v_1 : tensor, v_2 : int} |= if (ndim(v_1) = 3) ∨ (ndim(v_1) = 4) ∨ (ndim(v_1) = 5) then (if v_2 > 0 then (shape(v_1, 0) % v_2 = 0)) else false
 >>
-Rule 57 (First dimension divisible by groups if groups is not one and tensor is at least 1D)
-{v_1 : tensor, v_2 : int} |= (ndim(v_1) = 0) ∨ (v_2 = 1) ∨ (ndim(v_1) > 0 ∧ shape(v_1, 0) % v_2 = 0)
+Rule 20 (Comprehensive dimension and groups check)
+{v_1 : tensor, v_2 : int} |= ((ndim(v_1) ≥ 3) ∧ (ndim(v_1) ≤ 5)) ∧ (if v_2 > 1 then ((shape(v_1, 0) % v_2) = 0) else (v_2 = 1))
 >>
-Rule 60 (groups must be positive, and if the tensor has at least one dimension then dimension 0 must be divisible by groups)
-{v_1 : tensor, v_2 : int} |= (v_2 = 1) ∨ (ndim(v_1) = 0) ∨ (ndim(v_1) > 0 ∧ shape(v_1, 0) % v_2 = 0)
+Rule 21 (Correct number of dimensions and valid groups value, if specified)
+{v_1: tensor, v_2: int} |= ((ndim(v_1) = 3) ∨ (ndim(v_1) = 4) ∨ (ndim(v_1) = 5)) ∧ (if v_2 > 1 then ((shape(v_1, 0) % v_2) = 0))
 >>
-Rule 63 (If groups is not one, then dim 0 must be divisible by groups)
-{v_1 : tensor, v_2 : int} |= (ndim(v_1) = 0) ∨ (v_2 = 1) ∨ (shape(v_1, 0) % v_2 = 0 ∧ ndim(v_1) > 0)
+Rule 22 (If the number of groups is specified, it must be greater than zero and the first dimension of the tensor must be divisible by it)
+{v_1 : tensor, v_2 : int} |= (v_2 = 1) ∨ ((v_2 > 0) ∧ ((ndim(v_1) = 3) ∨ (ndim(v_1) = 4) ∨ (ndim(v_1) = 5)) ∧ ((shape(v_1, 0) % v_2) = 0))
 >>
-Rule 72 (If the tensor is at least 1D and groups is not 1, then shape[0] must be divisible by groups)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) ≥ 1 then (shape(v_1, 0) % v_2 = 0) ∨ (v_2 = 1)
+Rule 23 (Dimensions are valid and groups are valid and divisible by dim 0)
+{v_1 : tensor, v_2 : int} |= ((ndim(v_1) = 3) ∨ (ndim(v_1) = 4) ∨ (ndim(v_1) = 5)) ∧ ((v_2 = 1) ∨ ((v_2 > 0) ∧ ((shape(v_1, 0) % v_2) = 0)))
 >>
-Rule 87 (if groups != 1, dimension 0 must be divisible by groups)
-{v_1 : tensor, v_2 : int} |= (v_2 = 1) ∨ (ndim(v_1) < 1) ∨ (shape(v_1, 0) % v_2 = 0)
+Rule 24 (Combined dimension and groups validity check)
+{v_1 : tensor, v_2 : int} |= (((ndim(v_1) = 3) ∨ (ndim(v_1) = 4) ∨ (ndim(v_1) = 5)) ∧ (v_2 ≥ 1) ∧ ((shape(v_1, 0) % v_2) = 0)) ∨ ((ndim(v_1) < 3) ∨ (ndim(v_1) > 5)) ∧ (v_2 = 1)
 >>
-Rule 93 (If tensor has one or more dimensions, shape[0] % groups == 0 unless groups == 1)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then (shape(v_1, 0) % v_2 = 0) ∨ (v_2 = 1)
+Rule 25 (The number of dimensions of tensor must be 3, 4, or 5)
+{v_1: tensor} |= (ndim(v_1) = 3) ∨ (ndim(v_1) = 4) ∨ (ndim(v_1) = 5)
+>>
+Rule 26 (tensor with valid dimensions, and if groups > 1, then shape[0] must be divisible by groups.)
+{v_1: tensor, v_2: int} |= ((ndim(v_1) ≥ 3) ∧ (ndim(v_1) ≤ 5)) ∧ if v_2 > 1 then ((shape(v_1, 0) % v_2) = 0)
+>>
+Rule 27 (The first dimension of the tensor must be divisible by the number of groups if the number of groups is greater than 1)
+{v_1 : tensor, v_2 : int} |= if v_2 > 1 then (shape(v_1, 0) % v_2) = 0
+>>
+Rule 28 (Tensor dimension must be 3, 4, or 5, otherwise groups must be 1 and there are no restrictions on dim 0)
+{v_1: tensor, v_2: int} |= if (ndim(v_1) = 3 ∨ ndim(v_1) = 4 ∨ ndim(v_1) = 5) then (if v_2 > 1 then ((shape(v_1, 0) % v_2) = 0)) else v_2 = 1
+>>
+Rule 30 (If number of groups is specified, it must be greater than zero, and if the number of dimensions of the tensor is 3, 4, or 5, then the first dimension must be divisible by the number of groups)
+{v_1: tensor, v_2: int} |= if v_2 > 0 then if (ndim(v_1) = 3 ∨ ndim(v_1) = 4 ∨ ndim(v_1) = 5) then ((shape(v_1, 0) % v_2) = 0)
+>>
+Rule 31 (If number of groups is specified, it must be greater than zero, and if the number of dimensions of the tensor is 3, 4, or 5, then the first dimension must be divisible by the number of groups)
+{v_1: tensor, v_2: int} |= if v_2 > 0 then if (ndim(v_1) = 3) ∨ (ndim(v_1) = 4) ∨ (ndim(v_1) = 5) then (shape(v_1, 0) % v_2) = 0
+>>
+Rule 32 (If the tensor has a dimension of 3, 4, or 5, then groups must be 1 or greater than 1 and the first dimension of the tensor must be divisible by the number of groups)
+{v_1: tensor, v_2: int} |= if ((ndim(v_1) = 3) ∨ (ndim(v_1) = 4) ∨ (ndim(v_1) = 5)) then (v_2 = 1 ∨ (v_2 > 1 ∧ ((shape(v_1, 0) % v_2) = 0)))
+>>
+Rule 33 (The number of groups must be 1 if the tensor dimension is not in range [3, 5])
+{v_1 : tensor, v_2 : int} |= if (ndim(v_1) < 3) ∨ (ndim(v_1) > 5) then v_2 = 1
+>>
+Rule 34 (If groups is greater than 1, then the 0th dimension of v_1 must be divisible by groups)
+{v_1: tensor, v_2: int} |= if v_2 > 1 then (shape(v_1, 0) % v_2) = 0
+>>
+Rule 35 (If groups is provided, it must be greater than zero and the first dimension of the tensor, if it has 3, 4, or 5 dimensions, must be divisible by groups.)
+{v_1: tensor, v_2: int} |= if v_2 > 0 then (if (ndim(v_1) = 3) ∨ (ndim(v_1) = 4) ∨ (ndim(v_1) = 5) then ((shape(v_1, 0) % v_2) = 0)) else false
+>>
+Rule 36 (dimension check combined with groups divisibility check)
+{v_1 : tensor, v_2 : int} |= ((ndim(v_1) = 3) ∨ (ndim(v_1) = 4) ∨ (ndim(v_1) = 5)) ∧ (if v_2 > 1 then (shape(v_1, 0) % v_2) = 0)
+>>
+Rule 37 (Dimensions of tensor must be 3,4, or 5, and number of groups must be greater than 0 and shape(0) must be divisible by num_groups)
+{v_1: tensor, v_2: int} |= ((ndim(v_1) = 3) ∨ (ndim(v_1) = 4) ∨ (ndim(v_1) = 5)) ∧ ((v_2 > 0) ∧ ((shape(v_1, 0) % v_2) = 0))
+>>
+Rule 39 (If groups is provided and the tensor is 3D, 4D, or 5D, then shape(0) % groups must be 0)
+{v_1: tensor, v_2: int} |= if (v_2 > 1) ∧ ((ndim(v_1) = 3) ∨ (ndim(v_1) = 4) ∨ (ndim(v_1) = 5)) then (shape(v_1, 0) % v_2) = 0
+>>
+Rule 40 (Enforce either 3, 4, or 5 dimensions, OR enforce that if groups are provided, that it's valid)
+{v_1: tensor, v_2: int} |= ((ndim(v_1) = 3) ∨ (ndim(v_1) = 4) ∨ (ndim(v_1) = 5)) ∨ (v_2 = 1 ∨ (v_2 > 0 ∧ ((shape(v_1, 0) % v_2) = 0)))
+>>
+Rule 41 (The groups parameter must be valid given the tensor's dimension)
+{v_1: tensor, v_2: int} |= if (ndim(v_1) = 3) ∨ (ndim(v_1) = 4) ∨ (ndim(v_1) = 5) then ((v_2 > 0) ∧ ((shape(v_1, 0) % v_2) = 0)) else (v_2 = 1)
+>>
+Rule 43 (Enforce dimensions or groups, but not both)
+{v_1: tensor, v_2: int} |= ((ndim(v_1) = 3) ∨ (ndim(v_1) = 4) ∨ (ndim(v_1) = 5)) ≠ (v_2 = 1 ∨ (v_2 > 0 ∧ ((shape(v_1, 0) % v_2) = 0)))
+>>
+Rule 44 (Either valid tensor dimension, or valid groups for that dimension)
+{v_1: tensor, v_2: int} |= (ndim(v_1) = 3) ∨ (ndim(v_1) = 4) ∨ (ndim(v_1) = 5) ∨ (v_2 = 1) ∨ ((v_2 > 0) ∧ ((shape(v_1, 0) % v_2) = 0))
+>>
+Rule 45 (tensor must be of dimension 3,4, or 5 and if groups is given, dimension 0 must be divisible by the group size)
+{v_1: tensor, v_2: int} |= ((ndim(v_1) = 3) ∨ (ndim(v_1) = 4) ∨ (ndim(v_1) = 5)) ∧ ((v_2 ≤ 1) ∨ (shape(v_1, 0) % v_2 = 0))
+>>
+Rule 46 (Dimensions must be 3, 4, or 5 AND if groups is given and > 1, shape(0) % groups == 0)
+{v_1: tensor, v_2: int} |= ((ndim(v_1) = 3) ∨ (ndim(v_1) = 4) ∨ (ndim(v_1) = 5)) ∧ if v_2 > 1 then ((shape(v_1, 0) % v_2) = 0)
+>>
+Rule 47 (Combination of dimension check with groups divisibility condition)
+{v_1: tensor, v_2: int} |= if ((ndim(v_1) = 3) ∨ (ndim(v_1) = 4) ∨ (ndim(v_1) = 5)) then ((v_2 = 1) ∨ ((shape(v_1, 0) % v_2) = 0 ∧ v_2 > 0)) else (v_2=1)
+>>
+Rule 48 (Tensor dimension in [3,5] and groups are valid, or tensor dimension not in [3,5] and groups == 1)
+{v_1: tensor, v_2: int} |= (((ndim(v_1) ≥ 3) ∧ (ndim(v_1) ≤ 5)) ∧ (v_2 > 0) ∧ ((shape(v_1, 0) % v_2) = 0)) ∨ (((ndim(v_1) < 3) ∨ (ndim(v_1) > 5)) ∧ (v_2 = 1))
+>>
+Rule 49 (If groups is other than 1, then dimension is restricted to be 3,4,5 and shape(0) is divisible by it)
+{v_1: tensor, v_2: int} |= if (v_2 ≠ 1) then (((ndim(v_1) ≥ 3) ∧ (ndim(v_1) ≤ 5)) ∧ ((shape(v_1, 0) % v_2) = 0))
+>>
+Rule 50 (dimensions must be 3, 4, or 5; and if groups > 1, shape(0) must be divisible by groups. if groups is not specified, it defaults to 1 which is always valid)
+{v_1: tensor, v_2: int} |= ((ndim(v_1) = 3) ∨ (ndim(v_1) = 4) ∨ (ndim(v_1) = 5)) ∧ (if v_2 > 1 then ((shape(v_1, 0) % v_2) = 0) else (v_2 ≥ 1))
+>>
+Rule 51 (The input tensor dimension must be in [3, 5] and if groups is specified, it must be positive and divisible by first dimension of the input)
+{v_1: tensor, v_2: int} |= ((ndim(v_1) ≥ 3) ∧ (ndim(v_1) ≤ 5)) ∧ (if v_2 > 0 then (shape(v_1, 0) % v_2) = 0)
+>>
+Rule 52 (Either correct dimension, or correct group size and divisibility condition if groups are provided and dimension is not in the range)
+{v_1: tensor, v_2: int} |= ((ndim(v_1) ≥ 3) ∧ (ndim(v_1) ≤ 5)) ∨ ( if v_2>1 then  (shape(v_1, 0) % v_2 = 0) else (v_2=1))
+>>
+Rule 53 (If tensor dimension is one of 3, 4, 5 then if group size is specified, it has to divide the first dimension, if it isnt then group size must be one)
+{v_1: tensor, v_2: int} |= if ((ndim(v_1) ≥ 3) ∧ (ndim(v_1) ≤ 5)) then (if v_2 > 1 then (shape(v_1, 0) % v_2 = 0)) else (v_2=1)

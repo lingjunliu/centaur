@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Bool input: if true, it has to be the boolean constant true, if false it has to be the boolean constant false (Rule 10)
+# mode should remain unchanged after a double negation (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, v["arg1_value"] == True, v["arg1_value"] == False)) if n else
-          If(v["arg1_value"] == True, v["arg1_value"] == True, v["arg1_value"] == False))
+    s.add(Not(And(Or((v["arg1_value"] == True), (v["arg1_value"] == False)), Or(((v["arg1_value"] == True) == True), ((v["arg1_value"] == False) == False)))) if n else
+          And(Or((v["arg1_value"] == True), (v["arg1_value"] == False)), Or(((v["arg1_value"] == True) == True), ((v["arg1_value"] == False) == False))))
 )
 
 def rule_10_func(arg1, solver=None, neg=False):

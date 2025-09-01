@@ -1,90 +1,123 @@
 >>
-Rule 1 (Output tensor's dtype should be able to accommodate the input tensor's dtype)
+Rule 1 (output tensor's dtype must be compatible with the input tensor's dtype to avoid casting errors)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_2) = dtype_(v_1)
 >>
-Rule 2 (Input tensor must be of a floating-point or complex dtype)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 2 (input tensor should contain only values within the domain of arcsin, which is [-1, 1])
+{v_1 : tensor} |= min(v_1) ≥ -1 ∧ max(v_1) ≤ 1
 >>
-Rule 3 (If out is specified, its shape must match the input's shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 3 (output tensor's shape must match the input tensor's shape)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ ndim(v_1) = ndim(v_2)
 >>
-Rule 4 (Input tensor cannot be boolean)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 4 (If an output tensor is provided, its dtype should be at least as precise as the input tensor's dtype.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 then dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 2 then dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 3 then dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 4 then dtype_(v_2) = 4 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 6 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 8 then dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 9 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 10 then dtype_(v_2) = 10
 >>
-Rule 5 (Output tensor dtype must be at least as precise as the input tensor dtype)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 8 then dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 9 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 10 then dtype_(v_2) = 10
+Rule 6 (If an output tensor is provided, its dtype should be a floating point or complex type to accommodate the arcsin result)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 6 (Input tensor elements must be within the domain [-1, 1] for real dtypes)
-{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then ∀i ∈ [0, shape(v_1, 0) - 1] : min(v_1) ≥ -1 ∧ max(v_1) ≤ 1
+Rule 7 (input tensor's dtype cannot be a type that would cause the arcsin result to be cast to a smaller type in the output tensor)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 1 then dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
 >>
-Rule 7 (If input tensor is complex, then the output tensor must also be complex)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+Rule 8 (If an output tensor of integer type is provided, the input tensor must have values that can be represented without loss of precision)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 then (min(v_1) ≥ -1 ∧ max(v_1) ≤ 1)
 >>
-Rule 9 (If input is of type float16, output must be at least float16)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) ≥ 6
+Rule 9 (If an output tensor is provided and has a floating point dtype, the output dtype precision must be greater than or equal to the input tensor)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 7 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 else if dtype_(v_2) = 8 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6
 >>
-Rule 10 (If input is of type float32, output must be at least float32)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) ≥ 7
+Rule 10 (The output tensor should have a floating or complex dtype if the input tensor does not have an exact representation in short.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
 >>
-Rule 12 (If the input tensor's dtype is int8, int16 or int32, the output dtype cannot be bool)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 then dtype_(v_2) ≠ 0
+Rule 11 (If output tensor dtype is Short, input tensor should have dtype that can be safely cast to Float without loss of precision)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 13 (If the input tensor's dtype is int8, int16, int32 or int64, the output dtype must be at least float32)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then dtype_(v_2) ≥ 7
+Rule 12 (If the input tensor has integer type and the output tensor has type Short, ensure that the input values are within the valid range for arcsin and can be represented in Short.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then min(v_1) ≥ -1 ∧ max(v_1) ≤ 1
 >>
-Rule 14 (If the input tensor's dtype is uint8, the output dtype must be at least float32)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 5 then dtype_(v_2) ≥ 7
+Rule 13 (If the input tensor has values outside [-1, 1] and the output tensor is of integer type, this may lead to a casting error as the result of arcsin is undefined and would likely result in NaN or Inf which cannot be represented in integer tensors.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 then min(v_1) ≥ -1 ∧ max(v_1) ≤ 1
 >>
-Rule 15 (If the input tensor's dtype is int64, the output dtype must be at least float32)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 4 then dtype_(v_2) ≥ 7
+Rule 14 (If the input tensor has an integer dtype that cannot precisely represent floating-point values and the output tensor is Short, a casting error can occur as the arcsin result will be a floating point number and Short is not sufficient.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then if dtype_(v_1) = 1 then false
 >>
-Rule 16 (If the input tensor's dtype is bool, the output dtype must be at least float32)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) ≥ 7
+Rule 15 (If the output tensor has type Short and the input has a complex dtype, this will result in type casting errors as complex values cannot be represented as short.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
 >>
-Rule 17 (If the input tensor's dtype is float16, the output dtype cannot be bool, int8, int16, int32, int64, uint8)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4 ∧ dtype_(v_2) ≠ 5
+Rule 16 (The input tensor cannot be boolean if the output tensor is Short)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then dtype_(v_1) ≠ 0
 >>
-Rule 18 (If the input tensor's dtype is float32, the output dtype cannot be bool, int8, int16, int32, int64, uint8, float16)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4 ∧ dtype_(v_2) ≠ 5 ∧ dtype_(v_2) ≠ 6
+Rule 18 (If output tensor is Short and input tensor is floating point, ensure input is float16 to allow conversion to Short.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then dtype_(v_1) = 6
 >>
-Rule 19 (If the input tensor's dtype is float64, the output dtype cannot be bool, int8, int16, int32, int64, uint8, float16, float32)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4 ∧ dtype_(v_2) ≠ 5 ∧ dtype_(v_2) ≠ 6 ∧ dtype_(v_2) ≠ 7
+Rule 21 (If the output tensor is of Short type, then the input tensor must be such that arcsin(input) can be represented without loss of precision when converting to Float.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ min(v_1) >= -1 ∧ max(v_1) <= 1
 >>
-Rule 20 (If the input tensor's dtype is complex64, the output dtype cannot be bool, int8, int16, int32, int64, uint8, float16, float32, float64)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 then dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4 ∧ dtype_(v_2) ≠ 5 ∧ dtype_(v_2) ≠ 6 ∧ dtype_(v_2) ≠ 7 ∧ dtype_(v_2) ≠ 8
+Rule 24 (If the output tensor is of Short type, the input tensor must have values between -1 and 1)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then min(v_1) ≥ -1 ∧ max(v_1) ≤ 1
 >>
-Rule 21 (If the input tensor's dtype is complex128, the output dtype cannot be bool, int8, int16, int32, int64, uint8, float16, float32, float64, complex64)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4 ∧ dtype_(v_2) ≠ 5 ∧ dtype_(v_2) ≠ 6 ∧ dtype_(v_2) ≠ 7 ∧ dtype_(v_2) ≠ 8 ∧ dtype_(v_2) ≠ 9
+Rule 25 (if the output tensor is specified and its type is short, then the input type cannot be a type that will be promoted to double)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then dtype_(v_1) ≠ 8
 >>
-Rule 22 (If out tensor is specified, its dtype should be able to accommodate the result of arcsin)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 6 then dtype_(v_2) ≥ 7 else if dtype_(v_1) < 9 then dtype_(v_2) ≥ dtype_(v_1) else dtype_(v_2) ≥ dtype_(v_1)
+Rule 26 (if the output tensor is specified to be Short, ensure that any potential NaN or inf values resulting from arcsin on values outside [-1, 1] in the input, will not cause a cast exception)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then ∀i ∈ [0, ndim(v_1)-1] : (min(v_1) >= -1) ∧ (max(v_1) <= 1)
 >>
-Rule 23 (If out tensor is specified and input is float, then out tensor cannot be integer)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≥ 6 ∧ dtype_(v_1) < 9 then dtype_(v_2) < 1 ∨ dtype_(v_2) > 5
+Rule 27 (if out is of type Short, the input tensor needs to be either float16 or all values must be between -1 and 1 and be of integral type.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then dtype_(v_1) = 6 ∨ (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ min(v_1) >= -1 ∧ max(v_1) <= 1
 >>
-Rule 24 (If out tensor is specified and input is complex, then out tensor cannot be bool, integer, or float)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≥ 9 then dtype_(v_2) ≥ 9
+Rule 28 (If the output tensor is Short, then the input should be such that the values can be represented accurately with a Float. Specifically if the input is integer, make sure it is 0.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then min(v_1) = 0 ∧ max(v_1) = 0
 >>
-Rule 26 (If out tensor is specified and input is floating point, then out also cannot be short)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≥ 6 ∧ dtype_(v_1) < 9 then dtype_(v_2) ≠ 2
+Rule 29 (If the output is short, then the input tensor should be such that the result of the operation can be represented by a short, or it should be float16)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then dtype_(v_1) = 6 ∨ ((dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ min(v_1) >= -1 ∧ max(v_1) <=1)
 >>
-Rule 27 (If out tensor is specified and input is complex, then out also cannot be short)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≥ 9 then dtype_(v_2) ≠ 2
+Rule 30 (if the output tensor is of Short dtype, it must be possible to perform the calculation and accurately represent the result, accounting for limits of the range [-1,1] and the properties of Short)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then (dtype_(v_1) = 6 ∨ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∨ ((dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ min(v_1) >= -1 ∧ max(v_1) <= 1))
 >>
-Rule 29 (If out tensor is specified and input is a floating point number, then out dtype must be a floating point number as well)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) > 5 ∧ dtype_(v_1) < 9 then dtype_(v_2) > 5 ∧ dtype_(v_2) < 9
+Rule 31 (If the output tensor is Short, then the input tensor needs to be of a suitable type, preferably float16 or if the input is int, it must represent values for which arcsin result can be converted to short without loss of precision)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then dtype_(v_1) = 6 ∨ (dtype_(v_1) = 1 ∧ min(v_1) = 0 ∧ max(v_1) = 0)
 >>
-Rule 30 (If the input tensor is complex64 and out is specified, then out dtype must be at least complex64)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 then dtype_(v_2) ≥ 9
+Rule 32 (if the output tensor is specified as Short, the input tensor's dtype must allow for a safe casting to Float without loss of precision)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
 >>
-Rule 31 (If the input tensor is complex128 and out is specified, then out dtype must be at least complex128)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) ≥ 10
+Rule 33 (If output dtype is Short, make sure input tensor dtype allows lossless conversion to Float and is in the range of [-1, 1]. Otherwise arcsin could produce Nan which cannot be stored in Short)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then ((dtype_(v_1) = 6) ∨ ((dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ min(v_1) ≥ -1 ∧ max(v_1) ≤ 1))
 >>
-Rule 32 (If out tensor is specified, and input is a short number, the out tensor dtype cannot be bool)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 2 then dtype_(v_2) ≠ 0
+Rule 34 (If output dtype is short and input is also of an integral type, ensure that the values are either 0 or the result can be safely and accurately represented when converted to a float (arcsin will be calculated on float) and then casted to short )
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then (dtype_(v_1) = 6) ∨ ((dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ min(v_1) ≥ 0 ∧ max(v_1) ≤ 0)
 >>
-Rule 33 (If input is short and out is specified, then out dtype can't be bool, int8, uint8)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 2 then dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 5
+Rule 35 (if the output tensor is specified as Short and the input tensor is an integer type, the result of arcsin needs to be zero for a lossless cast to short and the valid input range [-1,1])
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then (min(v_1) = 0 ∧ max(v_1) = 0)
 >>
-Rule 34 (If input is short and out is specified, then out dtype must be at least short)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 2 then dtype_(v_2) ≥ 2
+Rule 36 (If output tensor is of Short type, the input tensor cannot contain values outside the domain [-1,1], otherwise the resulting NaN value will result in cast exception during conversion to Short)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0 ∧ min(v_1) >= -1 ∧ max(v_1) <= 1
+>>
+Rule 37 (If the output tensor's dtype is Short, the input tensor should be float16 or any integer type, the range has to be between -1 and 1 and the result type Float, can be cast to Short without overflowing it)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then ((dtype_(v_1) = 6) ∨ ((dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (min(v_1) >= -1 ∧ max(v_1) <= 1) ))
+>>
+Rule 38 (If the output tensor is Short, the input must either be float16 or a suitable int type with values only representable within short)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then (dtype_(v_1) = 6) ∨ ((dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ min(v_1) = 0 ∧ max(v_1) = 0)
+>>
+Rule 39 (If the output is short, either the input should be float16, or if integer then it has to be either 0, or if it has to be a floating point then it needs to have a range between -1 and 1)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then (dtype_(v_1) = 6) ∨ ((dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (min(v_1) = 0 ∧ max(v_1) = 0)) ∨ ((dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (min(v_1) >= -1 ∧ max(v_1) <= 1))
+>>
+Rule 40 (If the output tensor is Short, check the values of the input to ensure that they can be converted to float and arcsin value does not overflow Short range)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then (dtype_(v_1) = 6) ∨ ((dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ min(v_1) >= -1 ∧ max(v_1) <= 1) ∨ ((dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (min(v_1) = 0 ∧ max(v_1) = 0))
+>>
+Rule 41 (If the output tensor is Short, and the input tensor is not complex, check if lossless conversion is possible to Short)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 ∧ ((dtype_(v_1) = 6) ∨ ((dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ min(v_1) >= -1 ∧ max(v_1) <= 1) ∨ ((dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (min(v_1) = 0 ∧ max(v_1) = 0)))
+>>
+Rule 42 (If the output tensor's dtype is short, the input tensor has to be such that arcsin can convert and represent values accurately and without overflows)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then ((dtype_(v_1) = 6) ∨ ((dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (min(v_1) ≥ -1 ∧ max(v_1) ≤ 1)) ∨ ((dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (min(v_1) = 0 ∧ max(v_1) = 0)))
+>>
+Rule 43 (If output is short, then it's either float16 or the ranges need to be as such to allow lossless conversion)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then (dtype_(v_1) = 6) ∨ ((dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (min(v_1) = 0 ∧ max(v_1) = 0)) ∨ ((dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (min(v_1) ≥ -1 ∧ max(v_1) ≤ 1))
+>>
+Rule 44 (arcsin on values outside [-1,1] result in NaN which can't be converted to short if the out tensor is short)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) > 0) ∧ (min(v_1) >= -1) ∧ (max(v_1) <= 1)
+>>
+Rule 45 (When the output is short, values from the input tensor after arcsin operation must be representable without loss of precision in Short)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then (dtype_(v_1) = 6) ∨ (((dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)) ∧ (min(v_1) >= -1 ∧ max(v_1) <= 1) ) ∨ ((dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (min(v_1) = 0 ∧ max(v_1) = 0))
+>>
+Rule 46 (arcsin on values outside [-1, 1] leads to NaN which if cast to Short leads to error, therefore the values needs to be bounded between -1 and 1 inclusive)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0 ∧ (min(v_1) >= -1 ∧ max(v_1) <= 1)
+>>
+Rule 47 (if the output tensor is of short dtype, ensure it's possible to perform all calculations accurately, also account for inputs between -1 and 1, the resulting arc sin must not overflow)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then (dtype_(v_1) = 6) ∨ ((dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (min(v_1) ≥ -1 ∧ max(v_1) ≤ 1)) ∨ ((dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (min(v_1) = 0 ∧ max(v_1) = 0))

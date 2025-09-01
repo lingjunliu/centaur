@@ -1,81 +1,27 @@
 >>
-Rule 1 (dtype of out tensor should be the same as the input tensor)
+Rule 1 (output tensor's dtype must match input tensor's dtype)
+{input : tensor, out : tensor} |= dtype_(input) = dtype_(out)
+>>
+Rule 8 (output tensor's dtype must match input tensor's dtype)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 2 (out argument must be a tensor)
+Rule 13 (out must be a tensor)
+{v_1: tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 19 (input tensor and out tensor must have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 30 (If input is float, nan should be a number)
+{v_1 : tensor} |= if (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then true
+>>
+Rule 65 (nan argument must be a float or int if the input is a floating point tensor)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then true
+>>
+Rule 73 (nan, posinf, and neginf must be of compatible type with input)
+{v_1 : tensor} |= if (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) then true
+>>
+Rule 101 (out must be a Tensor with same shape as input)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i)
+>>
+Rule 107 (out must be a Tensor)
 {v_1 : tensor} |= ndim(v_1) ≥ 0
->>
-Rule 12 (out tensor must be the same shape as input tensor)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
->>
-Rule 13 (if nan is not None, its dtype should be compatible with input's dtype)
-{v_1 : tensor, v_2 : float ⊎ int} |= if dtype_(v_1) = 7 then dtype_(v_1) = dtype_(v_2) else if dtype_(v_1) = 8 then dtype_(v_1) = dtype_(v_2)
->>
-Rule 14 (if posinf is not None, its dtype should be compatible with input's dtype)
-{v_1 : tensor, v_2 : float ⊎ int} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7 else if dtype_(v_1) = 8 then dtype_(v_2) = 8
->>
-Rule 20 (If nan, posinf, or neginf are specified and the input is complex, then they must also be complex)
-{v_1 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then true
->>
-Rule 24 (If the input tensor is an integer type, then nan, posinf and neginf must be integers.)
-{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then true
->>
-Rule 26 (If the dtype of input is int8, int16, int32, int64 or uint8 then nan, posinf and neginf has to be of the same type.)
-{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 then true
->>
-Rule 27 (If dtype of the input tensor is complex64 or complex128 and out is specified, then out must be of the same dtype.)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) then dtype_(v_1) = dtype_(v_2)
->>
-Rule 28 (If the dtype of the input tensor is float16, float32, or float64 and out is specified, then out must be of the same dtype.)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6) then dtype_(v_1) = dtype_(v_2)
->>
-Rule 29 (If the dtype of the input tensor is int8, int16, int32, int64 or uint8 and out is specified, then out must be of the same dtype.)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6) then dtype_(v_1) = dtype_(v_2)
->>
-Rule 31 (The out argument can not be a boolean tensor)
-{v_1: tensor} |= dtype_(v_1) ≠ 0
->>
-Rule 33 (If nan, posinf, or neginf are specified when the input tensor's dtype is bool then an error will be raised)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
->>
-Rule 34 (The 'out' tensor argument, if given, must have a dtype that can accommodate the values of the 'input' tensor after replacement.)
-{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
->>
-Rule 39 (If the 'out' tensor is specified it must have at least the same number of dimensions as the 'input' tensor.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≥ ndim(v_1)
->>
-Rule 40 (If the 'out' tensor is specified its shape must be broadcastable to the shape of the 'input' tensor.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)
->>
-Rule 41 (If the 'input' tensor has a floating point dtype then nan, posinf, and neginf must have a floating point dtype or be None)
-{v_1 : tensor} |= if (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6) then true
->>
-Rule 42 (If the 'input' tensor has an integer dtype then nan, posinf, and neginf must have an integer dtype or be None)
-{v_1 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6) then true
->>
-Rule 43 (If the 'input' tensor has a complex dtype then nan, posinf, and neginf must have a complex dtype or be None)
-{v_1 : tensor} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) then true
->>
-Rule 46 (If input tensor dtype is float16 then nan,posinf and neginf must be float16)
-{v_1 : tensor} |= if (dtype_(v_1) = 6) then true
->>
-Rule 47 (If input tensor dtype is float32 then nan,posinf and neginf must be float32)
-{v_1 : tensor} |= if (dtype_(v_1) = 7) then true
->>
-Rule 48 (If input tensor dtype is float64 then nan,posinf and neginf must be float64)
-{v_1 : tensor} |= if (dtype_(v_1) = 8) then true
->>
-Rule 49 (If input tensor dtype is complex64 then nan,posinf and neginf must be complex64)
-{v_1 : tensor} |= if (dtype_(v_1) = 10) then true
->>
-Rule 50 (If input tensor dtype is complex128 then nan,posinf and neginf must be complex128)
-{v_1 : tensor} |= if (dtype_(v_1) = 11) then true
->>
-Rule 51 (If input tensor dtype is int8 then nan,posinf and neginf must be int8)
-{v_1 : tensor} |= if (dtype_(v_1) = 1) then true
->>
-Rule 52 (If input tensor dtype is int16 then nan,posinf and neginf must be int16)
-{v_1 : tensor} |= if (dtype_(v_1) = 2) then true
->>
-Rule 53 (If input tensor dtype is int32 then nan,posinf and neginf must be int32)
-{v_1 : tensor} |= if (dtype_(v_1) = 3) then true

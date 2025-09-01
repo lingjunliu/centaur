@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input and output tensors need to have the same number of batch dimensions if any (Rule 31)
+# If out tensor is provided, number of batch dimensions of out and A must match (Rule 31)
 
 rule_31 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 2, v["arg1_ndim"] == v["arg2_ndim"], False)) if n else
-          If(v["arg1_ndim"] > 2, v["arg1_ndim"] == v["arg2_ndim"], False))
+    s.add(Not(If(v["arg2_ndim"] > 0, And(And((v["arg1_ndim"] > 1), (v["arg2_ndim"] > 1)), ((v["arg1_ndim"] - 2) == (v["arg2_ndim"] - 2))), True)) if n else
+          If(v["arg2_ndim"] > 0, And(And((v["arg1_ndim"] > 1), (v["arg2_ndim"] > 1)), ((v["arg1_ndim"] - 2) == (v["arg2_ndim"] - 2))), True))
 )
 
 def rule_31_func(arg1, arg2, solver=None, neg=False):

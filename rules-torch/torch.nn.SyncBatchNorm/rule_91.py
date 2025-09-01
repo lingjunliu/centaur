@@ -5,35 +5,42 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Prevent Storage size calculation overflowed, limit total elements (Rule 91)
+# With process group enabled the num_features should be within certain bound. (Rule 91)
 
 rule_91 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] < 1, True, If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) < 1000000000, If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) < 1000000000, If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) < 1000000000, False))))) if n else
-          If(v["arg1_ndim"] < 1, True, If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) < 1000000000, If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) < 1000000000, If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) < 1000000000, False)))))
+    s.add(Not(If(v["arg1_length"] > 1, And(v["arg2_value"] < 2048, v["arg3_value"] < 0.5), True)) if n else
+          If(v["arg1_length"] > 1, And(v["arg2_value"] < 2048, v["arg3_value"] < 0.5), True))
 )
 
-def rule_91_func(arg1, solver=None, neg=False):
+def rule_91_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+            return False
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+            return False
+        if not isinstance(arg3, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_length = Int('arg1_length')
+        arg2_value = Int('arg2_value')
+        arg3_value = Real('arg3_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_length == len(arg1))
+        solver.add(arg2_value == int(arg2))
+        solver.add(arg3_value == arg3)
 
         # Constraints for rule 91
-        rule_91(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_91(solver, {'arg1_length': arg1_length, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_91(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_91(solver, {'arg1_length': arg1['length'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)

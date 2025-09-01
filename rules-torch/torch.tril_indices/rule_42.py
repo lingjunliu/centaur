@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If using complex dtypes, ensure row and col aren't excessively large, and promote the use of default dtype for large matrices to avoid memory errors related to the device. (Rule 42)
+# combined row and col must be positive if offset is non-zero (Rule 42)
 
 rule_42 = lambda s, v, n=False: (
-    s.add(Not(If((Or(v["arg3_value"] == 9, v["arg3_value"] == 10)), (v["arg1_value"] * v["arg2_value"] < 100000), If((v["arg1_value"] * v["arg2_value"] > 1000000000), v["arg3_value"] == 4, False))) if n else
-          If((Or(v["arg3_value"] == 9, v["arg3_value"] == 10)), (v["arg1_value"] * v["arg2_value"] < 100000), If((v["arg1_value"] * v["arg2_value"] > 1000000000), v["arg3_value"] == 4, False)))
+    s.add(Not(Or((v["arg3_value"] == 0), (And(v["arg1_value"] > 0, v["arg2_value"] > 0)))) if n else
+          Or((v["arg3_value"] == 0), (And(v["arg1_value"] > 0, v["arg2_value"] > 0))))
 )
 
 def rule_42_func(arg1, arg2, arg3, solver=None, neg=False):

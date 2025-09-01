@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# requires_grad is allowed only for float or complex or if dtype is none (Rule 38)
+# If dtype is specified, and requires_grad is true, the specified dtype must be a float or complex. No out tensor case (Rule 38)
 
 rule_38 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"], (Or(Or(Or(Or(v["arg1_value"] == 7, v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10), v["arg1_value"] == 12)), False)) if n else
-          If(v["arg2_value"], (Or(Or(Or(Or(v["arg1_value"] == 7, v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10), v["arg1_value"] == 12)), False))
+    s.add(Not(If(v["arg2_value"] == True, (Or(Or(Or(v["arg1_value"] == 7, v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10)), True)) if n else
+          If(v["arg2_value"] == True, (Or(Or(Or(v["arg1_value"] == 7, v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10)), True))
 )
 
 def rule_38_func(arg1, arg2, solver=None, neg=False):

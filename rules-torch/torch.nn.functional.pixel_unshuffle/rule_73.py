@@ -5,40 +5,35 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the number of dimensions of the input tensor is at least 3, then channel number must be greater than 0 and unshuffle channel number must be less than max channel size (Rule 73)
+# If the input has less than 3 dimensions, require positivity of all dimensions and at least 2 dimensions exist (Rule 73)
 
 rule_73 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] >= 3, And(Select(v["arg1_shape"], v["arg1_ndim"] - 3) > 0, (Select(v["arg1_shape"], v["arg1_ndim"] - 3) * v["arg2_value"] * v["arg2_value"]) < 2048), False)) if n else
-          If(v["arg1_ndim"] >= 3, And(Select(v["arg1_shape"], v["arg1_ndim"] - 3) > 0, (Select(v["arg1_shape"], v["arg1_ndim"] - 3) * v["arg2_value"] * v["arg2_value"]) < 2048), False))
+    s.add(Not(If(v["arg1_ndim"] < 3, (And(And(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) > 0), Select(v["arg1_shape"], 1) > 0)), True)) if n else
+          If(v["arg1_ndim"] < 3, (And(And(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) > 0), Select(v["arg1_shape"], 1) > 0)), True))
 )
 
-def rule_73_func(arg1, arg2, solver=None, neg=False):
+def rule_73_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
-            return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_value = Int('arg2_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 73
-        rule_73(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_73(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_73(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)
+        rule_73(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

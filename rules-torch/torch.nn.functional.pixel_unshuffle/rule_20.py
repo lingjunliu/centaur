@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The height and width of the input tensor must be multiples of the downscale factor (Rule 20)
+# downscale_factor should not be too large compared to the input height/width (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(And((Select(v["arg1_shape"], v["arg1_ndim"] - 2) % v["arg2_value"] == 0), (Select(v["arg1_shape"], v["arg1_ndim"] - 1) % v["arg2_value"] == 0))) if n else
-          And((Select(v["arg1_shape"], v["arg1_ndim"] - 2) % v["arg2_value"] == 0), (Select(v["arg1_shape"], v["arg1_ndim"] - 1) % v["arg2_value"] == 0)))
+    s.add(Not(If(v["arg1_ndim"] >= 2, And(v["arg2_value"] <= Select(v["arg1_shape"], v["arg1_ndim"] - 2), v["arg2_value"] <= Select(v["arg1_shape"], v["arg1_ndim"] - 1)), True)) if n else
+          If(v["arg1_ndim"] >= 2, And(v["arg2_value"] <= Select(v["arg1_shape"], v["arg1_ndim"] - 2), v["arg2_value"] <= Select(v["arg1_shape"], v["arg1_ndim"] - 1)), True))
 )
 
 def rule_20_func(arg1, arg2, solver=None, neg=False):

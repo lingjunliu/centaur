@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If out is provided, its dtype should be able to contain the result of asinh(input (Rule 11)
+# If the desired output type is Short, the input should either be a floating point number within a representable range, or the out tensor should not be defined. (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 1, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 2, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 3, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 4, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 5, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 6, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 7, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 8, v["arg2_dtype"] >= 8, If(v["arg1_dtype"] == 9, v["arg2_dtype"] >= 9, If(v["arg1_dtype"] == 10, v["arg2_dtype"] >= 10, False))))))))))) if n else
-          If(v["arg1_dtype"] == 1, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 2, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 3, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 4, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 5, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 6, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 7, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 8, v["arg2_dtype"] >= 8, If(v["arg1_dtype"] == 9, v["arg2_dtype"] >= 9, If(v["arg1_dtype"] == 10, v["arg2_dtype"] >= 10, False)))))))))))
+    s.add(Not(If(v["arg2_dtype"] == 2, Or((And(And(v["arg1_dtype"] == 7, Select(v["arg1_range"], 0) > -7.62E4), Select(v["arg1_range"], 1) < 7.62E4)), (And(And(v["arg1_dtype"] == 8, Select(v["arg1_range"], 0) > -7.62E4), Select(v["arg1_range"], 1) < 7.62E4))), True)) if n else
+          If(v["arg2_dtype"] == 2, Or((And(And(v["arg1_dtype"] == 7, Select(v["arg1_range"], 0) > -7.62E4), Select(v["arg1_range"], 1) < 7.62E4)), (And(And(v["arg1_dtype"] == 8, Select(v["arg1_range"], 0) > -7.62E4), Select(v["arg1_range"], 1) < 7.62E4))), True))
 )
 
 def rule_11_func(arg1, arg2, solver=None, neg=False):
@@ -26,16 +26,19 @@ def rule_11_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
         arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 11
-        rule_11(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_11(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_11(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_11(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range'], 'arg2_dtype': arg2['dtype']}, neg)

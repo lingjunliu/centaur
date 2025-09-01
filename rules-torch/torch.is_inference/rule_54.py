@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Tensor should have at least one element (Rule 54)
+# Tensor should not be a string, list, or a tuple (Rule 54)
 
 rule_54 = lambda s, v, n=False: (
-    s.add(Not(Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])) if n else
-          Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]))
+    s.add(Not(And(v["arg1_dtype"] != 12, True)) if n else
+          And(v["arg1_dtype"] != 12, True))
 )
 
 def rule_54_func(arg1, solver=None, neg=False):
@@ -22,18 +22,15 @@ def rule_54_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 54
-        rule_54(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_54(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_54(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_54(solver, {'arg1_dtype': arg1['dtype']}, neg)

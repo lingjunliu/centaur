@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# output_size dimensions should be within required range -2 and 2 (Rule 93)
+# output_size[1] must be in a reasonable range to avoid overflow (Rule 93)
 
 rule_93 = lambda s, v, n=False: (
-    s.add(Not(Or([And(i < (v["arg1_length"] - 1 + 1), And(-2 <= Select(v["arg1_values"], i), Select(v["arg1_values"], i) <= 2)) for i in range(6)])) if n else
-          Or([And(i < (v["arg1_length"] - 1 + 1), And(-2 <= Select(v["arg1_values"], i), Select(v["arg1_values"], i) <= 2)) for i in range(6)]))
+    s.add(Not(And(And(v["arg1_length"] > 1, Select(v["arg1_values"], 1) > -5000), Select(v["arg1_values"], 1) < 5000)) if n else
+          And(And(v["arg1_length"] > 1, Select(v["arg1_values"], 1) > -5000), Select(v["arg1_values"], 1) < 5000))
 )
 
 def rule_93_func(arg1, solver=None, neg=False):

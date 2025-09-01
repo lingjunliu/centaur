@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# split_sizes should sum to the size of the input tensor at dimension 0 (Rule 5)
+# Dimension must be within valid range (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(And(And((And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) >= 0) for i in range(6)])), (v["arg2_length"] > 0)), (If(Select(v["arg1_shape"], 0) > 0, (Or([And(i < (v["arg2_length"] - 1 + 1), True) for i in range(6)])), (And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) == 0) for i in range(6)])))))) if n else
-          And(And((And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) >= 0) for i in range(6)])), (v["arg2_length"] > 0)), (If(Select(v["arg1_shape"], 0) > 0, (Or([And(i < (v["arg2_length"] - 1 + 1), True) for i in range(6)])), (And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) == 0) for i in range(6)]))))))
+    s.add(Not(And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"])) if n else
+          And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"]))
 )
 
 def rule_5_func(arg1, arg2, solver=None, neg=False):
@@ -20,26 +20,22 @@ def rule_5_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_length = Int('arg2_length')
-        arg2_values = Array('arg2_values', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_length == len(arg2))
-        for i in range(len(arg2)):
-            arg2_values = Store(arg2_values, i, arg2[i])
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 5
-        rule_5(solver, {'arg1_shape': arg1_shape, 'arg2_length': arg2_length, 'arg2_values': arg2_values})
+        rule_5(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_5(solver, {'arg1_shape': arg1['shape'], 'arg2_length': arg2['length'], 'arg2_values': arg2['values']}, neg)
+        rule_5(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

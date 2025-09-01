@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Ensuring that it is within bound. (Rule 94)
+# window_length cannot be negative (Rule 94)
 
 rule_94 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] > -1) if n else
-          v["arg1_value"] > -1)
+    s.add(Not(v["arg1_value"] >= 0) if n else
+          v["arg1_value"] >= 0)
 )
 
 def rule_94_func(arg1, solver=None, neg=False):

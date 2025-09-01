@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# tau.shape[-1] should be less than or equal to A.shape[-2] (Rule 8)
+# A's batch dimensions match tau's batch dimensions (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg2_shape"], v["arg2_ndim"] - 1) <= Select(v["arg1_shape"], v["arg1_ndim"] - 2)) if n else
-          Select(v["arg2_shape"], v["arg2_ndim"] - 1) <= Select(v["arg1_shape"], v["arg1_ndim"] - 2))
+    s.add(Not(If(And(v["arg1_ndim"] > 2, v["arg2_ndim"] > 1), And([Implies(i < (v["arg1_ndim"] - 2 + 1), If(i < v["arg2_ndim"] - 1, Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), True)) for i in range(6)]), True)) if n else
+          If(And(v["arg1_ndim"] > 2, v["arg2_ndim"] > 1), And([Implies(i < (v["arg1_ndim"] - 2 + 1), If(i < v["arg2_ndim"] - 1, Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), True)) for i in range(6)]), True))
 )
 
 def rule_8_func(arg1, arg2, solver=None, neg=False):

@@ -1,147 +1,102 @@
 >>
-Rule 3 (Input and out dtypes must match)
-{v_1 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_3)
+Rule 3 (Input and Output tensors must have matching dtypes to avoid RuntimeError)
+{input : tensor, out : tensor} |= dtype_(input) = dtype_(out)
 >>
-Rule 5 (Reduction dimension size must be non-zero)
-{v_1 : tensor, v_2 : int} |= shape(v_1, v_2) > 0
+Rule 5 (Expected reduction dim to have non-zero size - Input tensor should have non-zero size in dimension dim)
+{input : tensor, dim : int} |= shape(input, dim) > 0
 >>
-Rule 6 (Reduction dimension size must be non-zero for tuples)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : shape(v_1, v_2[i]) > 0
+Rule 24 (Expected reduction dim to have non-zero size - Input tensor should have non-zero size in dimensions specified in tuple dim)
+{input : tensor, dim : tuple(int)} |= ∀i ∈ [0, shape(dim, 0) - 1] : shape(input, dim[i]) > 0
 >>
-Rule 7 (No duplicate dimensions in reduction tuple)
-{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i + 1, v_2.len - 1] : v_2[i] ≠ v_2[j]
+Rule 25 (dim cannot appear multiple times in the list of dims)
+{dim : tuple(int)} |= ∀i ∈ [0, shape(dim, 0) - 1] : ∀j ∈ [i + 1, shape(dim, 0) - 1] : dim[i] ≠ dim[j]
 >>
-Rule 10 (Dimension within range - non-negative check)
-{v_1 : tensor, v_2 : int} |= 0 ≤ v_2 ∧ v_2 < ndim(v_1)
+Rule 35 (Dimension is within valid range when using negative indexing)
+{input : tensor, dim : int} |= dim ≥ (0 - ndim(input))
 >>
-Rule 12 (Tuple dimensions within range)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+Rule 36 (Dimensions in tuple are within valid range when using negative indexing)
+{input : tensor, dim : tuple(int)} |= ∀i ∈ [0, shape(dim, 0) - 1] : dim[i] ≥ (0 - ndim(input))
 >>
-Rule 18 (Keepdim is boolean)
-{v_3 : bool} |= v_3 = true ∨ v_3 = false
+Rule 37 (Dimension out of range - dim must be within the valid range of dimensions for the input tensor.)
+{input : tensor, dim : int} |= (0 - ndim(input)) < dim ∧ dim < ndim(input)
 >>
-Rule 21 (Dimension within range - negative equivalent)
-{v_1 : tensor, v_2 : int} |= v_2 + ndim(v_1) ≥ 0 ∧ v_2 < 0
+Rule 38 (Dimension out of range for tuple of dims - each dim in tuple must be within the valid range of dimensions for the input tensor.)
+{input : tensor, dim : tuple(int)} |= ∀i ∈ [0, shape(dim, 0) - 1] : (0 - ndim(input)) < dim[i] ∧ dim[i] < ndim(input)
 >>
-Rule 23 (Tuple dimensions within range - negative equivalent)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] + ndim(v_1) ≥ 0 ∧ v_2[i] < 0
+Rule 46 (Dimension out of range - dim must be within the valid range of dimensions for the input tensor.  Covers positive range)
+{input : tensor, dim : int} |=  dim < ndim(input)
 >>
-Rule 30 (Dimension within range)
-{v_1 : tensor, v_2 : int} |= v_2 + ndim(v_1) ≥ 0 ∧ v_2 < ndim(v_1)
+Rule 48 (Dimension out of range for tuple of dims - each dim in tuple must be within the valid range of dimensions for the input tensor. Covers positive range)
+{input : tensor, dim : tuple(int)} |= ∀i ∈ [0, shape(dim, 0) - 1] : dim[i] < ndim(input)
 >>
-Rule 31 (Tuple dimensions within range)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] + ndim(v_1) ≥ 0 ∧ v_2[i] < ndim(v_1)
+Rule 55 (Dimension must be less than number of dimensions in the input tensor, addresses positive range IndexError)
+{input : tensor, dim : int} |= dim < ndim(input)
 >>
-Rule 37 (Check if tensor has at least one dimension)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 56 (Dimension must be greater than or equal to zero, addresses negative range IndexError when combined with Rule 56)
+{dim : int} |= dim ≥ 0
 >>
-Rule 38 (Check that the tuple is not empty if it is provided)
-{v_2 : tuple(int)} |= v_2.len > 0
+Rule 58 (All dimensions in tuple must be valid: dim[i] must be greater or equal to zero, addresses negative range IndexError for tuple when combined with Rule 58)
+{dim : tuple(int)} |= ∀i ∈ [0, shape(dim, 0) - 1] : dim[i] ≥ 0
 >>
-Rule 52 (Valid dimension for reduction - Negative index)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < 0
+Rule 61 (Input tensor should have non-zero size in dimension dim, to avoid IndexError)
+{input : tensor, dim : int} |= ndim(input) > 0 ∧ shape(input, dim) > 0
 >>
-Rule 54 (Valid tuple dimensions for reduction - Negative indices)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] :  v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < 0
+Rule 62 (All Input tensor should have non-zero size in dimensions specified in tuple dim, to avoid IndexError)
+{input : tensor, dim : tuple(int)} |= ∀i ∈ [0, shape(dim, 0) - 1] : ndim(input) > 0 ∧ shape(input, dim[i]) > 0
 >>
-Rule 56 (Non-zero size for reduced dimension - integer dim)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then shape(v_1, v_2) > 0 else shape(v_1, ndim(v_1) + v_2) > 0
+Rule 80 (Dimension must be within number of dimensions, addresses positive range IndexError for int. Also enforces dim >= 0)
+{input : tensor, dim : int} |= 0 ≤ dim ∧ dim < ndim(input)
 >>
-Rule 57 (Non-zero size for reduced dimension - tuple dim)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : if v_2[i] ≥ 0 then shape(v_1, v_2[i]) > 0 else shape(v_1, ndim(v_1) + v_2[i]) > 0
+Rule 81 (All dimensions in tuple must be valid: ensures each dim is in range. Combines positive range, negative range, and dim >=0)
+{input : tensor, dim : tuple(int)} |= ∀i ∈ [0, shape(dim, 0) - 1] : 0 ≤ dim[i] ∧ dim[i] < ndim(input)
 >>
-Rule 62 (Dimension within range)
-{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
+Rule 94 (Single dimension must be non-negative)
+{dim: int} |= dim ≥ 0
 >>
-Rule 66 (No duplicate dimensions in tuple)
-{v_2 : tuple(int)} |= v_2.len = v_2.len
+Rule 95 (Single dimension must be less than the number of dimensions of the tensor)
+{input: tensor, dim: int} |= dim < ndim(input)
 >>
-Rule 70 (Non-zero size for reduction)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then shape(v_1, v_2) > 0
+Rule 96 (All dimensions in the tuple must be non-negative)
+{dim: tuple(int)} |= ∀i ∈ [0, shape(dim, 0) - 1] : dim[i] ≥ 0
 >>
-Rule 72 (Dimension within range)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then v_2 < ndim(v_1) else ndim(v_1) + v_2 > -1
+Rule 97 (All Dimensions in tuple must be less than the number of dimension of the tensor)
+{input: tensor, dim: tuple(int)} |= ∀i ∈ [0, shape(dim, 0) - 1] : dim[i] < ndim(input)
 >>
-Rule 86 (No duplicate dimensions in reduction tuple when dimension is a tuple)
-{v_2 : tuple(int)} |=  v_2.len < 5
+Rule 98 (Input and Output tensors must have matching dtypes)
+{input: tensor, out: tensor} |= dtype_(input) = dtype_(out)
 >>
-Rule 91 (No duplicate dimensions in reduction tuple when tuple length is short)
-{v_2 : tuple(int)} |=  v_2.len < 3
+Rule 100 (Shape in single dimension must be greater than zero)
+{input: tensor, dim: int} |= shape(input, dim) > 0
 >>
-Rule 92 (Dimension must be non negative)
-{v_2 : int} |= v_2 ≥ 0
+Rule 101 (All shapes in tuple must be greater than 0)
+{input: tensor, dim: tuple(int)} |= ∀i ∈ [0, shape(dim, 0) - 1] : shape(input, dim[i]) > 0
 >>
-Rule 95 (If dimension is within valid range shape at v2 should be > 0)
-{v_1 : tensor, v_2 : int} |= if v_2 < ndim(v_1) then shape(v_1, v_2) > 0
+Rule 102 (Dimensions in the tuple must be unique)
+{dim: tuple(int)} |= ∀i ∈ [0, shape(dim, 0) - 1] : ∀j ∈ [i + 1, shape(dim, 0) - 1] : dim[i] ≠ dim[j]
 >>
-Rule 97 (Dimension must be valid for at least small tensors)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) < 3 then v_2 ≥ 0
+Rule 112 (If all dimension in tuple are not negative)
+{dim: tuple(int)} |= ∀i ∈ [0, shape(dim, 0) - 1] : if dim[i] ≥ 0 then true else false
 >>
-Rule 99 (Keepdim is a boolean with if statement)
-{v_3 : bool} |= if v_3 = true then true
+Rule 113 (Dimension in bounds)
+{input: tensor, dim: int} |= if dim < ndim(input) then true else false
 >>
-Rule 101 (If tuple, then the first dimension is not duplicated in the tuple)
-{v_2 : tuple(int)} |= v_2[0] ≠ 1
+Rule 114 (All Dimensions in tuple within bounds)
+{input: tensor, dim: tuple(int)} |= ∀i ∈ [0, shape(dim, 0) - 1] : if dim[i] < ndim(input) then true else false
 >>
-Rule 103 (Dtype of the tensor must be float to be reduced)
-{v_1: tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+Rule 115 (Dtypes match)
+{input: tensor, out:tensor} |= if dtype_(input) = dtype_(out) then true else false
 >>
-Rule 104 (The 0th element cannot be repeated, if its a tuple)
-{v_2 : tuple(int)} |= ∀i ∈ [1, v_2.len - 1] : v_2[0] ≠ v_2[i]
+Rule 116 (Check non zero dimension of int)
+{input: tensor, dim: int} |= if shape(input, dim) > 0 then true else false
 >>
-Rule 105 (If the dimension is an int, it must be non negative.)
-{v_1 : tensor, v_2 : int} |= v_2 > 0 ∨ ndim(v_1) > 5
+Rule 117 (Check non zero dimension of tuple)
+{input: tensor, dim : tuple(int)} |= ∀i ∈ [0, shape(dim, 0) - 1] : if shape(input, dim[i]) > 0 then true else false
 >>
-Rule 106 (Input tensor should be a 2d Matrix)
-{v_1 : tensor} |= ndim(v_1) = 2
+Rule 118 (Check unique dim in tuple)
+{dim: tuple(int)} |= ∀i ∈ [0, shape(dim, 0) - 1] : ∀j ∈ [i+1, shape(dim, 0) -1]: if dim[i] ≠ dim[j] then true else false
 >>
-Rule 107 (If the dimension is an int, it must be within range of the tensor, assuming ndim > 0)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then v_2 < ndim(v_1)
+Rule 119 (Single dimension must be non-negative AND less than ndim.)
+{input: tensor, dim: int} |= dim ≥ 0 ∧ dim < ndim(input)
 >>
-Rule 111 (If the length of tuple is greater than 1, first and second element can't be same)
-{v_2 : tuple(int)} |= if v_2.len > 1 then v_2[0] ≠ v_2[1]
->>
-Rule 112 (If the dimension is an int, it must be within range of the tensor.)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then v_2 < ndim(v_1) else v_2 = 0
->>
-Rule 114 (Keepdim property is enforced on small shape only)
-{v_1 : tensor, v_3 : bool} |= if shape(v_1, 0) < 5 then v_3 = true ∨ v_3 = false
->>
-Rule 116 (If the tuple has more than two elements, element 0 should be different from element 2)
-{v_2 : tuple(int)} |= if v_2.len > 2 then v_2[0] ≠ v_2[2]
->>
-Rule 119 (If keepdim is false then the shape[0] must be < 10)
-{v_1 : tensor, v_3 : bool} |= if v_3 = false then shape(v_1,0) < 10
->>
-Rule 122 (If the reduction dimension is specified as int, then make sure dimension is always less than 4 if the tensor has more than 2 dimensions)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 2 then v_2 < 4
->>
-Rule 124 (Only if we keep dim then shape[0] of tensor must be less than 10)
-{v_1:tensor, v_3 : bool} |= if v_3 = true then shape(v_1, 0) < 10
->>
-Rule 126 (The max value of the dimension tuple must be less then five if the tuple has less than 5 elements)
-{v_2 : tuple(int)} |= if v_2.len < 5 then max(v_2) < 5
->>
-Rule 131 (If the first tuple element and second tuple element are non zero if there is less than two elements in the tensor)
-{v_1: tensor, v_2 : tuple(int)} |= if ndim(v_1) < 2 then v_2[0] > 0 ∧ v_2[1] > 0
->>
-Rule 132 (Combine int and tuple to check max in tuple is not above number of dimensions.)
-{v_1 : tensor, v_2 : int, v_3 : tuple(int)} |= if ndim(v_1) < 3 then true else if v_3.len > 0 then max(v_3) < ndim(v_1) else v_2 < ndim(v_1)
->>
-Rule 133 (If we keep dim then the first shape[0] and dtype must have specific properties)
-{v_1:tensor, v_3 : bool} |= if v_3 = true then shape(v_1, 0) < 10 ∧ dtype_(v_1) > 5
->>
-Rule 138 (Non-zero size for reduction dimension and check if all are float)
-{v_1 : tensor} |=  6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
->>
-Rule 139 (No duplicate dimensions in reduction tuple)
-{v_2 : tuple(int)} |= v_2.len < 1
->>
-Rule 140 (If dim is a valid int, then it should be 1 for at least smaller tensors)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) < 5 then v_2 = 1
->>
-Rule 142 (Keepdim only if tensor has first dimension <10)
-{v_1:tensor, v_3 : bool} |= if shape(v_1, 0) < 10 then v_3 = true ∨ v_3 = false
->>
-Rule 144 (Tensor must have floating type if it is not 2 dim)
-{v_1 : tensor} |= if ndim(v_1) ≠ 2 then dtype_(v_1) > 5
+Rule 120 (All dimensions in the tuple must be non-negative AND less than ndim.)
+{input: tensor, dim: tuple(int)} |= ∀i ∈ [0, shape(dim, 0) - 1] : dim[i] ≥ 0 ∧ dim[i] < ndim(input)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input is float, expect parameter to have scalar type of Float (Rule 23)
+# input tensor's dtype must be float to avoid RuntimeError: mixed dtype (CPU (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), True, False)) if n else
-          If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), True, False))
+    s.add(Not(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)) if n else
+          Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8))
 )
 
 def rule_23_func(arg1, solver=None, neg=False):

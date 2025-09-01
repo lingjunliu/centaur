@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the tensor is 3D, all dimensions should be less than or equal to 1024. (Rule 40)
+# The size (number of elements (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 3, (And(And(Select(v["arg1_shape"], 0) <= 1024, Select(v["arg1_shape"], 1) <= 1024), Select(v["arg1_shape"], 2) <= 1024)), False)) if n else
-          If(v["arg1_ndim"] == 3, (And(And(Select(v["arg1_shape"], 0) <= 1024, Select(v["arg1_shape"], 1) <= 1024), Select(v["arg1_shape"], 2) <= 1024)), False))
+    s.add(Not(Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])) if n else
+          Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]))
 )
 
 def rule_40_func(arg1, solver=None, neg=False):

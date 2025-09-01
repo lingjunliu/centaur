@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Double precision is enabled if the input type is float64 or complex128 (Rule 46)
+# Input cannot be a numpy.float64 (Rule 46)
 
 rule_46 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 8, v["arg1_dtype"] == 10), True, False)) if n else
-          If(Or(v["arg1_dtype"] == 8, v["arg1_dtype"] == 10), True, False))
+    s.add(Not((v["arg1_dtype"] != 12)) if n else
+          (v["arg1_dtype"] != 12))
 )
 
 def rule_46_func(arg1, solver=None, neg=False):

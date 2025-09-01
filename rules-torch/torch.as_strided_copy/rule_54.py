@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Storage size needs to be positive (Rule 54)
+# Valid storage offset compared to one shape (Rule 54)
 
 rule_54 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * v["arg2_value"] > 0) if n else
-          Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * v["arg2_value"] > 0)
+    s.add(Not(Select(v["arg1_shape"], 0) > v["arg2_value"]) if n else
+          Select(v["arg1_shape"], 0) > v["arg2_value"])
 )
 
 def rule_54_func(arg1, arg2, solver=None, neg=False):

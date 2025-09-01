@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If type1 is complex128, type2 must be complex128 (Rule 26)
+# If type1 is dtype and type2 is dtype, and both are not valid (out of range [0,12] (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 10, v["arg2_value"] == 10, False)) if n else
-          If(v["arg1_value"] == 10, v["arg2_value"] == 10, False))
+    s.add(Not(And((And(v["arg1_value"] >= 0, v["arg1_value"] <= 12)), (And(v["arg2_value"] >= 0, v["arg2_value"] <= 12)))) if n else
+          And((And(v["arg1_value"] >= 0, v["arg1_value"] <= 12)), (And(v["arg2_value"] >= 0, v["arg2_value"] <= 12))))
 )
 
 def rule_26_func(arg1, arg2, solver=None, neg=False):

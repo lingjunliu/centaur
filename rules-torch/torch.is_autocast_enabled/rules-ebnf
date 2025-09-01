@@ -1,321 +1,300 @@
 >>
-Rule 1 (autocast_enabled must be a boolean value)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 1 (Autocast enabled if an environment variable `AUTOCAST_ENABLED` is set to "true")
+{v_1 : str} |= v_1 = "true"
 >>
-Rule 2 (Check the shape of a tensor is greater than zero)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 2 (Autocast disabled if an environment variable `AUTOCAST_ENABLED` is set to "false")
+{v_1 : str} |= v_1 = "false"
 >>
-Rule 3 (Check if a tensor is of floating point type)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 3 (Autocast enabled if an environment variable `AUTOCAST_PRECISION` is greater than 0)
+{v_1 : int} |= v_1 > 0
 >>
-Rule 4 (If a tensor has more than 1 dimension, its shape must be larger than 1)
-{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, 0) > 1
+Rule 4 (Autocast disabled if an environment variable `AUTOCAST_PRECISION` is less than 0)
+{v_1 : int} |= v_1 < 0
 >>
-Rule 5 (A float variable must be within a reasonable range)
-{v_1 : float} |= v_1 > -1000000.0 ∧ v_1 < 1000000.0
+Rule 5 (Autocast enabled if `AUTOCAST_DEVICE` equals `cuda`)
+{v_1 : str} |= v_1 = "cuda"
 >>
-Rule 6 (An integer variable should be non-negative)
-{v_1 : int} |= v_1 ≥ 0
+Rule 6 (Autocast disabled if `AUTOCAST_DEVICE` equals `cpu`)
+{v_1 : str} |= v_1 = "cpu"
 >>
-Rule 7 (Two tensors should have the same number of dimensions if the first dimension of v_1 is equal to the first dimension of v_2)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) = shape(v_2, 0) then ndim(v_1) = ndim(v_2)
+Rule 7 (Autocast is enabled if `float16` is the preferred dtype for autocast)
+{v_1 : dtype} |= v_1 = 7
 >>
-Rule 8 (A string should not be empty)
-{v_1 : str} |= v_1 ≠ ""
+Rule 8 (Autocast is disabled if `float32` is the preferred dtype for autocast)
+{v_1 : dtype} |= v_1 = 8
 >>
-Rule 9 (The length of a list of integers must be greater than 0)
-{v_1 : list(int)} |= v_1.len > 0
+Rule 9 (Autocast enabled in bfloat16 is available (hardware support assumed))
+{v_1: bool} |= v_1 = true
 >>
-Rule 11 (A tensor's dimension cannot be negative)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : i ≥ 0
+Rule 10 (Autocast disabled when bfloat16 is unavailable)
+{v_1: bool} |= v_1 = false
 >>
-Rule 12 (If a tensor has a dimension size of 1, the next dimension size must be greater than 0)
-{v_1 : tensor} |= if shape(v_1, 0) = 1 ∧ ndim(v_1) > 1 then shape(v_1, 1) > 0
+Rule 11 (Autocast enabled if autocast level is 1)
+{v_1 : int} |= v_1 = 1
 >>
-Rule 13 (A string must be a valid option from the string list)
-{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "constant" ∨ v_1 = "tanh"
+Rule 12 (Autocast disabled if autocast level is 0)
+{v_1 : int} |= v_1 = 0
 >>
-Rule 14 (If one tensor's dtype is float16, another should be float16 or float32 or float64)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+Rule 13 (If a specific black list of operations is defined (as a string), then it affects whether autocast is enabled)
+{v_1 : str} |= v_1 ≠ "none"
 >>
-Rule 15 (The length of a tuple of integers must be less than or equal to 5)
-{v_1 : tuple(int)} |= v_1.len ≤ 5
+Rule 15 (If autocast is enabled and gradient scaling is also activated, the effective enabling may depend on the scale value.)
+{v_1 : bool, v_2 : float} |= if v_1 = true then v_2 > 0 else false
 >>
-Rule 16 (Tensor dimension should be less than or equal to 10)
-{v_1 : tensor} |= ndim(v_1) ≤ 10
+Rule 16 (Autocast depends on the active device type)
+{v_1 : str} |= v_1 = "cuda" ∨ v_1 = "cpu" ∨ v_1 = "mps"
 >>
-Rule 17 (If tensor dimension is greater than 0, the first shape should be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) > 0
+Rule 17 (Autocast enabled when a certain precision is requested.)
+{v_1: int} |= v_1 = 7 ∨ v_1 = 8
 >>
-Rule 18 (A list of tensors should have at least one tensor)
-{v_1 : list(tensor)} |= v_1.len > 0
+Rule 18 (If memory format matches channels last format, autocast is more likely to be beneficial on CUDA)
+{v_1 : str} |= v_1 = "channels_last"
 >>
-Rule 19 (If dtype is complex64, then tensor must have at least one dimension)
-{v_1 : dtype, v_2 : tensor} |= if v_1 = 9 then ndim(v_2) > 0
+Rule 19 (If memory format does NOT match channels last format, autocast benefits may be reduced on CUDA)
+{v_1 : str} |= v_1 ≠ "channels_last"
 >>
-Rule 20 (If one of the tensors has more than 2 dimensions, the other one must have more than 1 dimension)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 2 then ndim(v_2) > 1
+Rule 20 (If using a specific cuDNN version, autocast might be enabled or disabled based on known compatibility issues)
+{v_1 : int} |= v_1 > 8000
 >>
-Rule 21 (If a tensor's dtype is int, its minimum value must be greater than -100)
-{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then min(v_1) > -100
+Rule 22 (Number of GPUs impacts the impact of autocasting (enabled or disabled))
+{v_1: int} |= v_1 > 1
 >>
-Rule 22 (If a tensor has a dimension with size 0, the tensor must be empty)
-{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then true
+Rule 23 (Autocast behavior changes if AMP is enabled at the process level)
+{v_1 : bool} |= v_1 = true
 >>
-Rule 23 (If a string is 'none', another integer should be zero)
-{v_1 : str, v_2 : int} |= if v_1 = "none" then v_2 = 0
+Rule 24 (The effective device type affects autocast)
+{v_1 : str} |= v_1 = "cuda" ∨ v_1 = "cpu"
 >>
-Rule 25 (If the number of dimensions of a tensor is greater than 2, the first two dimensions should not be equal)
-{v_1 : tensor} |= if ndim(v_1) > 2 then shape(v_1, 0) ≠ shape(v_1, 1)
+Rule 27 (Check if using mixed precision (fp16 and fp32))
+{v_1: dtype, v_2: dtype} |= (v_1 = 7 ∧ v_2 = 8) ∨ (v_1 = 8 ∧ v_2 = 7)
 >>
-Rule 27 (If a tensor's dtype is bool, its values must be true or false)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then ∀i ∈ [0, shape(v_1,0)-1] : (v_1[i] = true ∨ v_1[i] = false)
+Rule 28 (Gradient scaling is used, which relies on autocast)
+{v_1: float} |= v_1 > 1.0
 >>
-Rule 28 (The elements in a list of int should be greater than 0 and less than 10)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0 ∧ v_1[i] < 10
+Rule 29 (If autocast is enabled for CPU, then inference is likely faster.)
+{v_1: str} |= v_1 = "cpu"
 >>
-Rule 29 (If the dimension of a tensor is 0, then any integer input should be 0)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then v_2 = 0
+Rule 30 (Combined condition relating two environment variables: autocast enabled only if precision level > 0 and device is cuda)
+{v_1: int, v_2: str} |= v_1 > 0 ∧ v_2 = "cuda"
 >>
-Rule 30 (A tuple of strings is valid only if all strings are in the approved list)
-{v_1 : tuple(str)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] = "ii" ∨ v_1[i] = "ii->i" ∨ v_1[i] = "i,j->ij" ∨ v_1[i] = "bij,bjk->bik" ∨ v_1[i] = "...ij->...ji" ∨ v_1[i] = "bn,anm,bm->ba" ∨ v_1[i] = "none" ∨ v_1[i] = "mean" ∨ v_1[i] = "sum" ∨ v_1[i] = "max" ∨ v_1[i] = "constant" ∨ v_1[i] = "tanh"
+Rule 31 (If autocast enabled for specific device, ensure device exists)
+{v_1: str} |= v_1 = "cuda" ∨ v_1 = "cpu" ∨ v_1 = "mps"
 >>
-Rule 32 (If a tensor's dtype is bool, all elements should be true)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = true
+Rule 32 (If the device is MPS and autocast is enabled, operations must be supported on MPS)
+{v_1: str, v_2: str} |= if v_1 = "mps" then v_2 ≠ "unsupported_op"
 >>
-Rule 33 (If a list of strings is provided, all string should not be empty)
-{v_1 : list(str)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ ""
+Rule 33 (Check if the data type used in the operations is in the autocast-supported data types.)
+{v_1: dtype} |= v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 10
 >>
-Rule 34 (If a tensor has one dimension, the shape value on the dimension cannot be negative)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) ≥ 0
+Rule 34 (If both FP16 and TF32 are enabled, autcasting is effectively enabled.)
+{v_1: bool, v_2: bool} |= v_1 = true ∧ v_2 = true
 >>
-Rule 35 (The size of a tuple of int should be equal to tensor's dimension)
-{v_1 : tensor, v_2 : tuple(int)} |= v_2.len = ndim(v_1)
+Rule 35 (Blacklist or not, autocast has an effect, so include the configuration)
+{v_1: str} |= v_1 = "none" ∨ v_1 = "op1,op2"
 >>
-Rule 37 (The shape of a tensor should be greater than 0)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 36 (Autocast affects if memory format is set, so include the configuration)
+{v_1: str} |= v_1 = "contiguous_format" ∨ v_1 = "channels_last"
 >>
-Rule 38 (If a string is "tanh", its tensor must be float type)
-{v_1 : str, v_2 : tensor} |= if v_1 = "tanh" then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+Rule 37 (Autocast is disabled if the data type is complex)
+{v_1 : dtype} |= v_1 = 10 ∨ v_1 = 11
 >>
-Rule 40 (The number of dimensions of a tensor can't exceed the length of a tuple)
-{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) ≤ v_2.len
+Rule 38 (If autocast is enabled, the minimum floating point value should be greater than 0)
+{v_1: float} |= v_1 > 0
 >>
-Rule 41 (If a list of dtypes is provided, all dtypes must be valid)
-{v_1 : list(dtype)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] = 0 ∨ v_1[i] = 1 ∨ v_1[i] = 2 ∨ v_1[i] = 3 ∨ v_1[i] = 4 ∨ v_1[i] = 5 ∨ v_1[i] = 6 ∨ v_1[i] = 7 ∨ v_1[i] = 8 ∨ v_1[i] = 9 ∨ v_1[i] = 10 ∨ v_1[i] = 11 ∨ v_1[i] = 12
+Rule 39 (The number of threads should be more than 0 for multicore processor to enable Autocast)
+{v_1: int} |= v_1 > 0
 >>
-Rule 42 (The max value of a tensor should be greater than the min value)
-{v_1 : tensor} |= max(v_1) ≥ min(v_1)
+Rule 40 (If the architecture of GPU is greater than specific value, then only Autocast can be enabled)
+{v_1 : int} |= v_1 > 70
 >>
-Rule 43 (if a string is not none, the tensor's dtype should not be bool)
-{v_1 : str, v_2 : tensor} |= if v_1 ≠ "none" then dtype_(v_2) ≠ 0
+Rule 41 (Autocast disabled for specific loss functions.)
+{v_1: str} |= v_1 = "cross_entropy" ∨ v_1 = "binary_cross_entropy"
 >>
-Rule 45 (If the dtype is float16, the tensor should have at least one dimension whose shape is larger than 1)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1
+Rule 43 (The CUDA version should be greater than the specific value for Autocast to be effective)
+{v_1 : int} |= v_1 > 11000
 >>
-Rule 47 (The minimum value of a tensor must be less than or equal to its maximum value)
-{v_1 : tensor} |= min(v_1) ≤ max(v_1)
+Rule 45 (If both CPU and CUDA are available then device matters for Autocast)
+{v_1 : str, v_2: str} |= v_1 = "cpu" ∨ v_2 = "cuda"
 >>
-Rule 48 (If the length of tuple of int is 2, then the first value should be greater than 0)
-{v_1 : tuple(int)} |= if v_1.len = 2 then v_1[0] > 0
+Rule 47 (Autocast performs better with larger batch sizes)
+{v_1 : int} |= v_1 > 32
 >>
-Rule 49 (If a tensor is provided, and its dimension is not zero, then the result of min function should be positive)
-{v_1 : tensor} |= if ndim(v_1) ≠ 0 then min(v_1) ≥ 0
+Rule 48 (For recurrent models Autocast may be enabled, if the sequence length is a particular value)
+{v_1 : int} |= v_1 < 200
 >>
-Rule 50 (If there is one tensor whose dtype is float, then any integer should not be greater than 1000)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then v_2 ≤ 1000
+Rule 49 (If there is a data type that has lower memory footprint is involved then it can change effect of Autocast)
+{v_1: dtype} |= v_1 = 1
 >>
-Rule 52 (The number of dimensions of a tensor must be positive if its dtype is not equal to bool)
-{v_1 : tensor} |= if dtype_(v_1) ≠ 0 then ndim(v_1) > 0
+Rule 50 (If the input data has a particular range, it can trigger usage of Autocast)
+{v_1 : float, v_2 : float} |= v_1 > 0 ∧ v_2 < 1
 >>
-Rule 53 (If a tuple of strings is provided, it should contain at least one element)
-{v_1 : tuple(str)} |= v_1.len > 0
+Rule 51 (if using mixed precision, autocast enabled if the loss scaling factor is greater than 1)
+{v_1: dtype, v_2: float} |= (v_1 = 7 ∨ v_1 = 8) ∧ v_2 > 1.0
 >>
-Rule 54 (If an integer is provided, and a tensor dimension is zero, then the integer must be zero)
-{v_1 : int, v_2 : tensor} |= if shape(v_2, 0) = 0 then v_1 = 0
+Rule 52 (If a model is small, autocast helps more.)
+{v_1: int} |= v_1 < 1000000
 >>
-Rule 55 (If the length of tuple of int is greater than 0, then the sum of all int in tuple should be greater than 0)
-{v_1 : tuple(int)} |= if v_1.len > 0 then ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 53 (If many matrix multiplies are happening, autocast might be automatically enabled)
+{v_1 : int} |= v_1 > 5
 >>
-Rule 57 (A string should be one of the selected operations)
-{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "constant" ∨ v_1 = "tanh"
+Rule 54 (if the data type of the parameters is same but the data type of the operations are different, it affects autocast)
+{v_1: dtype, v_2: dtype} |= v_1 = v_2
 >>
-Rule 58 (If a tuple of int is not empty, then values should not be negative.)
-{v_1 : tuple(int)} |= if v_1.len > 0 then ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+Rule 55 (If the amount of CPU memory is greater than GPU memory then Autocast will be effective)
+{v_1 : int, v_2 : int} |= v_1 > v_2
 >>
-Rule 59 (The number of dimension should be less than size of shape)
-{v_1 : tensor} |= ndim(v_1) ≤ shape(v_1, 0)
+Rule 56 (if input has a large dynamic range autocast helps so ensure that range is greater than 1)
+{v_1 : float, v_2 : float} |= (v_1 - v_2) > 1
 >>
-Rule 60 (If a tensor is bool, it should not contain negative values)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then min(v_1) ≥ 0
+Rule 57 (Check the number of bits for a datatype if less than 32 Autocast does something.)
+{v_1: int} |= v_1 < 32
 >>
-Rule 62 (The result of the max function should be less than 1000)
-{v_1 : tensor} |= max(v_1) < 1000
+Rule 59 (If memory bandwidth is low, Autocast will provide greater benefits)
+{v_1: int} |= v_1 < 100
 >>
-Rule 64 (if there is one tensor whose dtype is int, then any float input should not be zero)
-{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then v_2 ≠ 0.0
+Rule 60 (Check if inputs has a large number of elements, if yes it impacts effect of Autocast.)
+{v_1: int} |= v_1 > 1000000
 >>
-Rule 65 (If the length of tuple of int is greater than 0, then the product of all int in tuple should be greater than 0)
-{v_1 : tuple(int)} |= if v_1.len > 0 then ∀i ∈ [0, v_1.len - 1] : v_1[i] * v_1[0] > 0
+Rule 61 (check number of elements and data type if combined memory usage is high it impacts Autocast)
+{v_1 : int, v_2 : dtype} |= v_1 > 100000 ∧ (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8)
 >>
-Rule 67 (If the dtype is a float, then the result of max function should not be a string)
-{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then max(v_1) ≠ "inf"
+Rule 62 (Model depth impact on Autocast: if model is very deep autocast becomes beneficial)
+{v_1: int} |= v_1 > 100
 >>
-Rule 68 (If a string is none, then the tensor's number of dimensions should be 0)
-{v_1 : str, v_2 : tensor} |= if v_1 = "none" then ndim(v_2) = 0
+Rule 63 (If Autocast is enabled at specific optimization level impacts output.)
+{v_1: int} |= v_1 > 2
 >>
-Rule 69 (If a dtype is complex, then tensor's min and max should not be 0)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) ≠ 0 ∧ max(v_1) ≠ 0
+Rule 64 (Operation with both float and integer needs Autocast.)
+{v_1 : dtype, v_2: dtype} |= (v_1 > 5 ∧ v_1 < 9) ∧ (v_2 > 0 ∧ v_2 < 6)
 >>
-Rule 70 (If the length of a tuple of int is less than 3, then its all values must be greater than 5)
-{v_1 : tuple(int)} |= if v_1.len < 3 then ∀i ∈ [0, v_1.len - 1] : v_1[i] > 5
+Rule 65 (If there is a particular layer needs casting then Autocast has impact.)
+{v_1: str} |= v_1 = "lstm" ∨ v_1 = "transformer"
 >>
-Rule 72 (If the dtype is a float, then the result of max function should not be a number that is greater than 10000)
-{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then max(v_1) ≤ 10000
+Rule 68 (If the precision requirements for back propagation are low Autocast can be enabled or disabled depending on other flags)
+{v_1: float} |= v_1 < 0.001
 >>
-Rule 73 (If the string is 'mean', then the dimension of the tensor must be greater than 0)
-{v_1 : str, v_2 : tensor} |= if v_1 = "mean" then ndim(v_2) > 0
+Rule 70 (The hardware platform of the CPU has an impact on the effectiveness of Autocast)
+{v_1: str} |= v_1 = "AVX512" ∨ v_1 = "AVX2" ∨ v_1 = "AVX"
 >>
-Rule 74 (If the number of dimension is equal to 2, then the first shape must be equal to the second)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) = shape(v_1, 1)
+Rule 71 (More number of different floating point operations in model impact effect of Autocast)
+{v_1: int} |= v_1 > 50
 >>
-Rule 75 (If the length of a tuple of int is greater than 0, then at least one value in the tuple must be greater than zero)
-{v_1 : tuple(int)} |= if v_1.len > 0 then ∃i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 74 (If mixed precision level is defined then we need a precision value to turn Autocast off)
+{v_1: int, v_2: int} |= v_1 > 0 ∧ v_2 < 16
 >>
-Rule 77 (If the dtype is a float, then the result of min function should be less than 100)
-{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) < 100
+Rule 75 (Type of optimizer used in the deep learning model impacts Autocast results)
+{v_1: str} |= v_1 = "AdamW" ∨ v_1 = "SGD"
 >>
-Rule 78 (If the string is sum, max or mean, then the dtype cannot be bool)
-{v_1 : str, v_2 : tensor} |= if v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "mean" then dtype_(v_2) ≠ 0
+Rule 76 (With high gradient norm clipping autocast can be enabled)
+{v_1: float} |= v_1 > 10
 >>
-Rule 79 (If the number of dimension is equal to 2, then one shape must be greater than the other)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > shape(v_1, 1) ∨ shape(v_1, 0) < shape(v_1, 1)
+Rule 80 (Autocast affects results that contain a specific operation if it's set True)
+{v_1 : str} |= v_1 = "matmul" ∨ v_1 = "conv2d"
 >>
-Rule 80 (If a tuple of int has a dimension of 1, then its only value cannot be negative)
-{v_1 : tuple(int)} |= if v_1.len = 1 then v_1[0] ≥ 0
+Rule 83 (If the loss function requires high precision during training affects autcasting.)
+{v_1: str} |= v_1 = "mse"
 >>
-Rule 82 (If the dtype is an integer and the minimum of a tensor is not greater than zero, the the maximum value must be less than 10)
-{v_1 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ min(v_1) ≤ 0 then max(v_1) < 10
+Rule 84 (It is important to know the version of the Cuda as it may affect autcasting setting depending on version.)
+{v_1: int} |= v_1 > 11000
 >>
-Rule 83 (If the string is "max" or "min", then the dimension of the tensor must be positive)
-{v_1 : str, v_2 : tensor} |= if v_1 = "max" ∨ v_1 = "min" then ndim(v_2) > 0
+Rule 85 (If graph is very deep Autocast performance improves)
+{v_1 : int} |= v_1 > 500
 >>
-Rule 84 (If number of dimension is greater than zero, its first dimension should be less than 10)
-{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) < 10
+Rule 87 (Type of CPU affects Autocast because each CPU has own memory and computation)
+{v_1: str} |= v_1 = "Intel" ∨ v_1 = "AMD" ∨ v_1 = "ARM"
 >>
-Rule 85 (If a tuple of int has a dimension of 1, the the value must be greater than 1)
-{v_1 : tuple(int)} |= if v_1.len = 1 then v_1[0] > 1
+Rule 88 (It needs low time Autocast can affect system operations.)
+{v_1 : float} |= v_1 < 0.01
 >>
-Rule 87 (If the dtype is a float and it has at least one dimension, then the result of min function should not be zero)
-{v_1 : tensor} |= if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ ndim(v_1) > 0 then min(v_1) ≠ 0
+Rule 89 (If specific compiler optimization is applied it impacts autcasting.)
+{v_1: str} |= v_1 = "O3" ∨ v_1 = "Ofast"
 >>
-Rule 88 (If the string is "constant", then the number of dimension should be less than 3)
-{v_1 : str, v_2 : tensor} |= if v_1 = "constant" then ndim(v_2) < 3
+Rule 90 (Precision loss for the model more it impacts the API effect)
+{v_1: float} |= v_1 > 0.0001
 >>
-Rule 89 (If the number of dimension is equal to 1, then dtype should not be complex number)
-{v_1 : tensor} |= if ndim(v_1) = 1 then dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+Rule 91 (Multi-GPU environment, GPU inter-connect (e.g., NVLink) type has effect on need of autcasting)
+{v_1: str} |= v_1 = "NVLink" ∨ v_1 = "PCIe"
 >>
-Rule 90 (If a tuple of int has a dimension of 2, then the product of all values cannot be zero)
-{v_1 : tuple(int)} |= if v_1.len = 2 then v_1[0] * v_1[1] ≠ 0
+Rule 93 (Version of operating system (Windows, linux) setting affects the need for autcasting because memory operation is different)
+{v_1: str} |= v_1 = "Windows" ∨ v_1 = "Linux"
 >>
-Rule 92 (If the dtype is an integer and has more than 2 dimensions, then the minimum and maximum values should not be equal.)
-{v_1 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ ndim(v_1) > 2 then min(v_1) ≠ max(v_1)
+Rule 94 (Check specific precision is present for particular operations that has impact Autocast)
+{v_1 : str} |= v_1 = "fp16" ∨ v_1 = "tf32" ∨ v_1 = "bf16"
 >>
-Rule 93 (If the string is in list, the shape of a tensor on index 0 should be positive)
-{v_1 : str, v_2 : tensor} |= if v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" then shape(v_2, 0) > 0
+Rule 95 (Model trained if there is pre-training happens on larger data then we need Autocast otherwise we do not.)
+{v_1 : bool} |= v_1 = false
 >>
-Rule 94 (If the number of dimension is equal to 3, the product of two random dimension cannot be negative)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) > 0 ∨ shape(v_1, 1) * shape(v_1, 2) > 0 ∨ shape(v_1, 0) * shape(v_1, 2) > 0
+Rule 96 (type of data augmentation will be used)
+{v_1: str} |= v_1 = "cutmix" ∨ v_1 = "mixup"
 >>
-Rule 95 (If tuple of int is not empty, then average of values of int in tuple should not be negative)
-{v_1 : tuple(int)} |= if v_1.len > 0 then ∀i ∈ [0, v_1.len - 1] : v_1[i]/v_1.len ≥ 0
+Rule 97 (Using external library for operations and their versions.)
+{v_1: int} |= v_1 > 3
 >>
-Rule 97 (If the dtype is an integer and number of dimensions is greater than 1, then first shape value cannot be negative)
-{v_1 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ ndim(v_1) > 1 then shape(v_1, 0) ≥ 0
+Rule 99 (Memory Access pattern it affects autcasting.)
+{v_1: str} |= v_1 = "strided" ∨ v_1 = "random"
 >>
-Rule 98 (If the string is "mean", then the first shape value of a tensor should not be zero)
-{v_1 : str, v_2 : tensor} |= if v_1 = "mean" then shape(v_2, 0) ≠ 0
+Rule 100 (Training or Inference or both)
+{v_1: str} |= v_1 = "training" ∨ v_1 = "inference" ∨ v_1 = "both"
 >>
-Rule 99 (If the number of dimension is less than 2, then minimum shape must be less than 100)
-{v_1 : tensor} |= if ndim(v_1) < 2 then min(v_1) < 100
+Rule 104 (Version of the cuDNN which is used affects API flags and its value related to specific layers )
+{v_1: int} |= v_1 > 8000
 >>
-Rule 100 (If a tuple of int has at least 1 element, and element 0 has a value, then all the values should be same with element 0's)
-{v_1 : tuple(int)} |= if v_1.len > 0 ∧ ∃i ∈ [0, v_1.len-1] : v_1[0] > 0 then ∀j ∈ [0, v_1.len-1] : v_1[j] = v_1[0]
+Rule 105 (Precision required for normalization layers affect autocast decision.)
+{v_1 : float} |= v_1 < 0.001
 >>
-Rule 102 (If the dtype is a bool and max value is equal to false, then min value should be equal to false)
-{v_1 : tensor} |= if dtype_(v_1) = 0 ∧ max(v_1) = false then min(v_1) = false
+Rule 106 (Number of experts if we are using Mixture of Experts models, it affects the memory and the time that will take for API side to process the command affect if API should use autcasting and how it is set.)
+{v_1: int} |= v_1 > 8
 >>
-Rule 103 (If string is not none then shape of a tensor should be greater than 1 on index 0)
-{v_1 : str, v_2 : tensor} |= if v_1 ≠ "none" then shape(v_2, 0) > 1
+Rule 109 (Type if graph optimization technique influence API setting such as torch.compile)
+{v_1: str} |= v_1 = "eager" ∨ v_1 = "fx" ∨ v_1 = "dynamo"
 >>
-Rule 104 (If number of dimension is equal to zero, min and max must be equal to zero)
-{v_1 : tensor} |= if ndim(v_1) = 0 then min(v_1) = 0 ∧ max(v_1) = 0
+Rule 110 (Regularization strength affects, small data, large reg needs larger precision so turns API.)
+{v_1 : float} |= v_1 > 0.1
 >>
-Rule 105 (If tuple of int has a len of 2, then it must be greater than or equal to 0)
-{v_1 : tuple(int)} |= if v_1.len = 2 then v_1[0] ≥ 0 ∧ v_1[1] ≥ 0
+Rule 111 (Model size is very large model size.)
+{v_1: int} |= v_1 > 1000000000
 >>
-Rule 108 (If the string is not "none", the dtype should not be bool or str)
-{v_1 : str, v_2 : tensor} |= if v_1 ≠ "none" then dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 11
+Rule 112 (Data type is not a basic/common type, so it does not impact API flag)
+{v_1: dtype} |= v_1 = 12
 >>
-Rule 109 (If the number of dimension is greater than zero, minimum and maximum should not be different)
-{v_1 : tensor} |= if ndim(v_1) > 0 then min(v_1) = max(v_1)
+Rule 113 (The system uses container it affects API for Autocast)
+{v_1 : str} |= v_1 = "docker" ∨ v_1 = "singularity"
 >>
-Rule 110 (If a tuple of int has more than zero elements, one of them can't be 0)
-{v_1 : tuple(int)} |= if v_1.len > 0 then ∃i ∈ [0, v_1.len - 1] : v_1[i] ≠ 0
+Rule 115 (Hardware acceleration used and its type for performance it impacts autcasting)
+{v_1 : str} |= v_1 = "TPU" ∨ v_1 = "GPU"
 >>
-Rule 112 (If dtype is string and the product of shape values is 0, string is not tanh)
-{v_1 : tensor, v_2 : str} |= if dtype_(v_1) = 11 ∧ shape(v_1, 0) * shape(v_1, 1) = 0 then v_2 ≠ "tanh"
+Rule 116 (Level of model parallelism it impacts communication overhead which relates autcasting performance changes )
+{v_1 : int} |= v_1 > 1
 >>
-Rule 113 (If the string is "sum" or "max", the maximum must be positive)
-{v_1 : str, v_2 : tensor} |= if v_1 = "sum" ∨ v_1 = "max" then max(v_2) > 0
+Rule 117 (Type of distributed communication affects performance.)
+{v_1: str} |= v_1 = "NCCL" ∨ v_1 = "MPI"
 >>
-Rule 114 (If the number of dimensions is less than 10 and one dimension value is greater than zero, all shape values should be greater than zero)
-{v_1 : tensor} |= if ndim(v_1) < 10 ∧ (∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0) then ∀j ∈ [0, ndim(v_1)-1] : shape(v_1, j) > 0
+Rule 118 (Check model convergence to see if Autocast needs adjustment in precision to speedup.)
+{v_1: float} |= v_1 > 0.9
 >>
-Rule 115 (If a tuple of int has length > 0 and is not equal to 0, the product of all int in tuple must not be zero)
-{v_1 : tuple(int)} |= if v_1.len > 0 then ∀i ∈ [0, v_1.len - 1] : if v_1[i] ≠ 0 then true else false
+Rule 119 (It is very small micro batch when processing)
+{v_1 : int} |= v_1 < 8
 >>
-Rule 117 (If dtype is string then minimum and maximum shape value must be positive and less than 1000)
-{v_1 : tensor} |= if dtype_(v_1) = 11 then (∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0 ∧ shape(v_1, i) < 1000)
+Rule 120 (Check data range and if this is same in all data then high precision is used )
+{v_1 : float, v_2: float} |= v_1 = v_2
 >>
-Rule 118 (If the string is "sum", "mean", "max", the dimension value should be positive, then min value has to be less than max value)
-{v_1 : str, v_2 : tensor} |= if (v_1 = "sum" ∨ v_1 = "mean" ∨ v_1 = "max") ∧ ndim(v_2) > 0 then min(v_2) < max(v_2)
+Rule 121 (Autocast needed when using a larger world size in distributed training)
+{v_1: int} |= v_1 > 4
 >>
-Rule 119 (If the number of dimension is between 1 and 4 and dtype is not int, the min value has to be less than 100)
-{v_1 : tensor} |= if ndim(v_1) > 1 ∧ ndim(v_1) < 5 ∧ (dtype_(v_1) ≠ 1 ∨ dtype_(v_1) ≠ 2 ∨ dtype_(v_1) ≠ 3 ∨ dtype_(v_1) ≠ 4 ∨ dtype_(v_1) ≠ 5) then min(v_1) < 100
+Rule 122 (Hardware is Apple silicon with M1)
+{v_1 : str} |= v_1 = "M1" ∨ v_1 = "M2" ∨ v_1 = "M3"
 >>
-Rule 120 (If a tuple of int has length > 0 then the sum of elements should be less than 1000)
-{v_1 : tuple(int)} |= if v_1.len > 0 then ∀i ∈ [0, v_1.len-1] : v_1[i] < 1000
+Rule 123 (Type if data is small such as test dataset then high precision will have affect then API flag change.)
+{v_1: int} |= v_1 < 1000
 >>
-Rule 122 (If dtype is a string and one of the shape is 0, then str must be "none")
-{v_1 : tensor, v_2 : str} |= if dtype_(v_1) = 11 ∧ (∃i ∈ [0, ndim(v_1) -1 ] : shape(v_1, i) = 0) then v_2 = "none"
+Rule 124 (Gradient is more than 1)
+{v_1 : float} |= v_1 > 1
 >>
-Rule 123 (If the string is "sum" then result of min function must be positive or zero)
-{v_1 : str, v_2 : tensor} |= if v_1 = "sum" then min(v_2) ≥ 0
+Rule 127 (Precision loss if using activation functions has a negative impact for performance, the autcasting API needs to know.)
+{v_1: str} |= v_1 = "relu" ∨ v_1 = "sigmoid" ∨ v_1 = "tanh"
 >>
-Rule 125 (If a tuple of int has a dimension of 0 and value is not 0, the result should be false)
-{v_1 : tuple(int)} |= if v_1.len = 0 then false
+Rule 129 (The more memory is occupied, more impact from Autocast and the API values may change.)
+{v_1: int} |= v_1 > 100000
 >>
-Rule 127 (If dtype is string and first shape value of tensor is greater than second shape, string must be equal to "tanh")
-{v_1 : tensor, v_2 : str} |= if dtype_(v_1) = 11 ∧ ndim(v_1) > 1 ∧ shape(v_1, 0) > shape(v_1, 1) then v_2 = "tanh"
->>
-Rule 128 (If the string is "tanh" then max value must be greater than zero and less than 1)
-{v_1 : str, v_2 : tensor} |= if v_1 = "tanh" then max(v_2) > 0 ∧ max(v_2) < 1
->>
-Rule 129 (If the number of dimensions is less than 3, the sum of shape values on each dimension must be less than 1000)
-{v_1 : tensor} |= if ndim(v_1) < 3 then ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) < 1000
->>
-Rule 130 (If a tuple of int has a dimension length greater than 0 and first value is not zero, product of max and min must be positive)
-{v_1 : tuple(int)} |= if v_1.len > 0 ∧ v_1[0] ≠ 0 then max(v_1) * min(v_1) > 0
->>
-Rule 132 (If dtype of tensor is complex and at least on dimension is larger than zero, then sum of dimension cannot be zero)
-{v_1 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ ndim(v_1) > 0 then ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
->>
-Rule 133 (If a string is chosen that is not "none" then the sum of shape of tensor must be less than 10000)
-{v_1 : str, v_2 : tensor} |= if v_1 ≠ "none" then ∀i ∈ [0, ndim(v_2)-1] : shape(v_2, i) < 10000
->>
-Rule 134 (If number of dimensions is 1 then maximum value should be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) = 1 then max(v_1) > 0
->>
-Rule 135 (If a tuple of int has at least 2 elements then result of the sum should not be zero)
-{v_1 : tuple(int)} |= if v_1.len > 1 then (v_1[0] + v_1[1]) ≠ 0
+Rule 130 (Amount of data small so we want high precision)
+{v_1 : float} |= v_1 < 100000

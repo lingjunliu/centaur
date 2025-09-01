@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Dummy boolean parameter must be true (Rule 3)
+# Dummy integer parameter must be positive (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] == True) if n else
-          v["arg1_value"] == True)
+    s.add(Not(v["arg1_value"] > 0) if n else
+          v["arg1_value"] > 0)
 )
 
 def rule_3_func(arg1, solver=None, neg=False):
@@ -17,15 +17,15 @@ def rule_3_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 3
         rule_3(solver, {'arg1_value': arg1_value})

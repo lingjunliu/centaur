@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If out is provided then input and other should have the same shape if no broadcasting is happening. (Rule 52)
+# If out is provided, its shape must be equal to the broadcasted shape of the inputs, and must be a tensor. (Rule 52)
 
 rule_52 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg3_ndim"] > 0, (And(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]))), False)) if n else
-          If(v["arg3_ndim"] > 0, (And(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]))), False))
+    s.add(Not(And(And(And((v["arg1_ndim"] >= 0), (v["arg2_ndim"] >= 0)), (v["arg3_ndim"] >= 0)), (And([Implies(i < (If(v["arg1_ndim"] >= v["arg2_ndim"], If(v["arg1_ndim"] >= v["arg3_ndim"], v["arg1_ndim"], v["arg3_ndim"]), If(v["arg2_ndim"] >= v["arg3_ndim"], v["arg2_ndim"], v["arg3_ndim"] - 1)) + 1), (Or(Or(Or(Or(Or(Or(Or(Or(i >= v["arg1_ndim"], i >= v["arg2_ndim"]), i >= v["arg3_ndim"]), Select(v["arg1_shape"], v["arg1_ndim"] - 1 - i) == Select(v["arg2_shape"], v["arg2_ndim"] - 1 - i)), Select(v["arg1_shape"], v["arg1_ndim"] - 1 - i) == Select(v["arg3_shape"], v["arg3_ndim"] - 1 - i)), Select(v["arg2_shape"], v["arg2_ndim"] - 1 - i) == Select(v["arg3_shape"], v["arg3_ndim"] - 1 - i)), Select(v["arg1_shape"], v["arg1_ndim"] - 1 - i) == 1), Select(v["arg2_shape"], v["arg2_ndim"] - 1 - i) == 1), Select(v["arg3_shape"], v["arg3_ndim"] - 1 - i) == 1))) for i in range(6)])))) if n else
+          And(And(And((v["arg1_ndim"] >= 0), (v["arg2_ndim"] >= 0)), (v["arg3_ndim"] >= 0)), (And([Implies(i < (If(v["arg1_ndim"] >= v["arg2_ndim"], If(v["arg1_ndim"] >= v["arg3_ndim"], v["arg1_ndim"], v["arg3_ndim"]), If(v["arg2_ndim"] >= v["arg3_ndim"], v["arg2_ndim"], v["arg3_ndim"] - 1)) + 1), (Or(Or(Or(Or(Or(Or(Or(Or(i >= v["arg1_ndim"], i >= v["arg2_ndim"]), i >= v["arg3_ndim"]), Select(v["arg1_shape"], v["arg1_ndim"] - 1 - i) == Select(v["arg2_shape"], v["arg2_ndim"] - 1 - i)), Select(v["arg1_shape"], v["arg1_ndim"] - 1 - i) == Select(v["arg3_shape"], v["arg3_ndim"] - 1 - i)), Select(v["arg2_shape"], v["arg2_ndim"] - 1 - i) == Select(v["arg3_shape"], v["arg3_ndim"] - 1 - i)), Select(v["arg1_shape"], v["arg1_ndim"] - 1 - i) == 1), Select(v["arg2_shape"], v["arg2_ndim"] - 1 - i) == 1), Select(v["arg3_shape"], v["arg3_ndim"] - 1 - i) == 1))) for i in range(6)]))))
 )
 
 def rule_52_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -33,6 +33,7 @@ def rule_52_func(arg1, arg2, arg3, solver=None, neg=False):
         arg2_ndim = Int('arg2_ndim')
         arg2_shape = Array('arg2_shape', IntSort(), IntSort())
         arg3_ndim = Int('arg3_ndim')
+        arg3_shape = Array('arg3_shape', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
@@ -42,11 +43,13 @@ def rule_52_func(arg1, arg2, arg3, solver=None, neg=False):
         for i in range(arg2.ndim):
             arg2_shape = Store(arg2_shape, i, arg2.shape[i])
         solver.add(arg3_ndim == arg3.ndim)
+        for i in range(arg3.ndim):
+            arg3_shape = Store(arg3_shape, i, arg3.shape[i])
 
         # Constraints for rule 52
-        rule_52(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape, 'arg3_ndim': arg3_ndim})
+        rule_52(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg3_shape': arg3_shape, 'arg3_ndim': arg3_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_52(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape'], 'arg3_ndim': arg3['ndim']}, neg)
+        rule_52(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_shape': arg3['shape'], 'arg3_ndim': arg3['ndim']}, neg)

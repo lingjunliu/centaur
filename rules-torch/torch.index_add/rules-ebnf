@@ -1,138 +1,195 @@
 >>
-Rule 1 (input and source tensors must have the same scalar type)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 1 (input and source tensors must have the same data type)
+{v_1 : tensor, v_4 : tensor} |= dtype_(v_1) = dtype_(v_4)
 >>
-Rule 2 (index tensor must have int32 or int64 dtype)
-{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 2 (index tensor must have int32 or int64 data type)
+{v_3 : tensor} |= dtype_(v_3) = 3 ∨ dtype_(v_3) = 4
 >>
-Rule 3 (index values must be within the bounds of the dimension)
-{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∀i ∈ [0, shape(v_3, 0) - 1] : min(v_1) ≥ 0 ∧ max(v_1) < shape(v_2, v_2)
+Rule 5 (alpha must be a non-negative number)
+{v_5 : float ⊎ int} |= v_5 ≥ 0
 >>
-Rule 5 (alpha must be greater than zero)
-{v_1 : float ⊎ int} |= v_1 > 0
+Rule 6 (index tensor must be a 1-D tensor)
+{v_3 : tensor} |= ndim(v_3) = 1
 >>
-Rule 8 (index values must be within the bounds of the dimension, corrected max)
-{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∀i ∈ [0, shape(v_3, 0) - 1] : v_1 ≥ 0 ∧ v_1 < shape(v_2, v_2)
+Rule 8 (The shape of source tensor must be the same as input tensor except for the dimension to add at)
+{v_1 : tensor, v_2 : int, v_4 : tensor} |= (∀i ∈ [0, ndim(v_1) -1] : (i = v_2 ∨ shape(v_1, i) = shape(v_4, i))) ∧ ndim(v_1) = ndim(v_4)
 >>
-Rule 9 (dimension must be within the valid range, corrected)
-{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
+Rule 10 (input and output tensor types must be the same, if output is provided)
+{v_1 : tensor, v_6 : tensor} |= dtype_(v_1) = dtype_(v_6)
 >>
-Rule 11 (index values must be non-negative)
-{v_1 : tensor} |= min(v_1) ≥ 0
+Rule 11 (if out tensor is provided, its shape must be identical to the shape of the input tensor)
+{v_1 : tensor, v_6 : tensor} |= (ndim(v_1) = ndim(v_6)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_6, i))
 >>
-Rule 12 (dimension must be less than the number of dimensions in input tensor)
-{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
+Rule 14 (dim must be within the valid range of dimensions for the input tensor)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 13 (dimension must be greater than or equal to the negative number of dimensions in input tensor)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1))
+Rule 15 (index tensor values must be within the bounds of the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∀i ∈ [0, shape(v_3, 0) - 1] : v_3[i] ≥ (0 - shape(v_1, v_2)) ∧ v_3[i] < shape(v_1, v_2)
 >>
-Rule 14 (index tensor must be one dimensional)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 18 (The number of elements in source tensor should match the number of elements pointed by index tensor)
+{v_3 : tensor, v_4 : tensor} |= shape(v_3,0) = shape(v_4, 0)
 >>
-Rule 15 (alpha cannot be zero)
-{v_1 : int ⊎ float} |= v_1 ≠ 0
+Rule 23 (dim must be a non-negative integer)
+{v_2 : int} |= v_2 ≥ 0
 >>
-Rule 16 (source tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 24 (index tensor elements must be within valid range of dimension size)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∀i ∈ [0, shape(v_3, 0) - 1] : v_3[i] < shape(v_1, v_2)
 >>
-Rule 20 (index values must be less than the size of the dimension in input tensor)
+Rule 25 (input and source tensors must have the same number of dimensions after accounting for broadcasting)
+{v_1 : tensor, v_4 : tensor} |= ndim(v_1) = ndim(v_4)
+>>
+Rule 26 (Shape of source must match shape of input except dim)
+{v_1 : tensor, v_2 : int, v_4 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : (i = v_2) ∨ (shape(v_1, i) = shape(v_4, i))
+>>
+Rule 30 (the length of index must match the first dimension of source)
+{v_3 : tensor, v_4 : tensor} |= shape(v_3, 0) = shape(v_4, 0)
+>>
+Rule 32 (if out is provided, out must have the same shape as input)
+{v_1 : tensor, v_6 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_6, i)) ∧ (ndim(v_1) = ndim(v_6))
+>>
+Rule 34 (dim must be a valid dimension for source tensor, accounting for potential broadcasting)
+{v_2 : int, v_4 : tensor} |= v_2 ≥ (0 - ndim(v_4)) ∧ v_2 < ndim(v_4)
+>>
+Rule 35 (if input and output are provided, they should match on their data layouts)
+{v_1: tensor, v_6: tensor} |= v_1.len = v_6.len
+>>
+Rule 36 (if index tensor has the shape greater than 0.)
+{v_3 : tensor} |= shape(v_3, 0) > 0
+>>
+Rule 37 (the source tensor dimension v_2 should match the size of index tensor)
+{v_2 : int, v_3 : tensor, v_4 : tensor} |= shape(v_4, v_2) = shape(v_3, 0)
+>>
+Rule 38 (the number of elements in the index tensor must be reasonable, specifically less than the maximum possible value)
+{v_3 : tensor} |= max(v_3) < 2147483647
+>>
+Rule 39 (source should have at least one element)
+{v_4 : tensor} |= (∃i ∈ [0, ndim(v_4) - 1] : shape(v_4, i) > 0)
+>>
+Rule 40 (alpha must be a number greater or equal to 0 and less than 1000)
+{v_5 : int ⊎ float} |= v_5 >= 0 ∧ v_5 < 1000
+>>
+Rule 41 (if input and output are defined, shape should be the same)
+{v_1 : tensor, v_6 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_6, i))
+>>
+Rule 42 (source must be non-empty)
+{v_4 : tensor} |= ndim(v_4) > 0
+>>
+Rule 45 (When source and index are defined, index length should be smaller than the input tensor length)
+{v_1 : tensor, v_3 : tensor} |= shape(v_3, 0) < shape(v_1, 0)
+>>
+Rule 47 (Index values must be within bounds of dimension dim)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∀i ∈ [0, shape(v_3, 0) - 1] : v_3[i] ≥ 0 ∧ v_3[i] < shape(v_1, v_2)
+>>
+Rule 48 (The source tensor's shape should match input tensor's shape at all dimensions except dim)
+{v_1 : tensor, v_2 : int, v_4 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : (i = v_2) ∨ shape(v_1, i) = shape(v_4, i)
+>>
+Rule 49 (if input tensor has shape, index tensor should not be empty)
+{v_1 : tensor, v_3 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∨ (shape(v_3, 0) = 0)
+>>
+Rule 54 (The size of index tensor must be less than input size)
+{v_1 : tensor, v_3 : tensor, v_2 : int} |= shape(v_3, 0) ≤ shape(v_1, v_2)
+>>
+Rule 61 (The size of the dimension `dim` in `input` must match the number of rows in `source`.)
+{v_1 : tensor, v_2 : int, v_4 : tensor} |= shape(v_1, v_2) = shape(v_4, 0)
+>>
+Rule 62 (the maximum value in index must be within the bounds of input dim)
 {v_1 : tensor, v_2 : int, v_3 : tensor} |= max(v_3) < shape(v_1, v_2)
 >>
-Rule 21 (index tensor's shape[0] equals source tensor's shape[dim], given dim is non-negative.)
-{v_1: int, v_2: tensor, v_3: tensor} |= if v_1 ≥ 0 then shape(v_2, 0) = shape(v_3, v_1)
+Rule 66 (Index elements must be greater or equal to zero)
+{v_3 : tensor} |= min(v_3) >= 0
 >>
-Rule 22 (index tensor's shape[0] equals source tensor's shape[dim], given dim is negative.)
-{v_1: int, v_2: tensor, v_3: tensor} |= if v_1 < 0 then shape(v_2, 0) = shape(v_3, ndim(v_3) + v_1)
+Rule 68 (The dimension to index add must be within the input tensor rank's range)
+{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1) ∧ v_2 ≥ (0 - ndim(v_1))
 >>
-Rule 23 (source tensor and index tensor must have compatible shapes)
-{v_1 : tensor, v_2 : int, v_3 : tensor} |= shape(v_3, 0) = shape(v_1, v_2)
+Rule 69 (If the destination dimension is less than 0, it should be greater than negative ndim)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then v_2 >= (0-ndim(v_1))
 >>
-Rule 24 (input and source tensors must have the same number of dimensions)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Rule 71 (If the index elements are in valid dimension.)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∀i ∈ [0, shape(v_3, 0) - 1] : v_3[i] < shape(v_1, v_2) ∧ v_3[i] ≥ 0
 >>
-Rule 27 (shape compatibility between input and source tensors along dim)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_1, v_3) = shape(v_2, v_3)
+Rule 72 (If the index elements are in valid range.)
+{v_3 : tensor} |= (min(v_3) > -2147483648) ∧ (max(v_3) < 2147483647)
 >>
-Rule 31 (Source tensor must have the same dtype as the input tensor.)
-{v_1 : tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 75 (If source and input are defined, the source must have the same number of dimensions.)
+{v_1: tensor, v_4: tensor} |= ndim(v_1) = ndim(v_4)
 >>
-Rule 33 (index values cannot exceed the size of the specified dimension)
-{v_1: tensor, v_2: tensor, v_3: int} |= max(v_2) < shape(v_1, v_3)
+Rule 77 (If the destination dimension is greater than the number of input dimensions, that's incorrect.)
+{v_1 : tensor, v_2 : int} |= if v_2 >= 0 then v_2 < ndim(v_1)
 >>
-Rule 35 (index values are within the bounds)
-{v_1: tensor, v_2: int, v_3: tensor} |= ∀i ∈ [0, shape(v_3,0)-1] : v_3[i] ≥ (0 - shape(v_1, v_2)) ∧ v_3[i] < shape(v_1,v_2)
+Rule 84 (If input.ndim is N, dim must be in range [-N, N-1])
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0-ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 37 (index values are within the bounds)
-{v_1: tensor, v_2: int, v_3: tensor} |= ∀i ∈ [0, shape(v_3,0)-1] : (0 - shape(v_1, v_2)) ≤ v_3[i] ∧ v_3[i] < shape(v_1,v_2)
+Rule 85 (The specified dim is valid in source.)
+{v_4 : tensor, v_2 : int} |= v_2 < ndim(v_4) ∧ v_2 ≥ (0 - ndim(v_4))
 >>
-Rule 39 (index values must be within the valid range for the specified dimension)
-{v_1: tensor, v_2: int, v_3: tensor} |= ∀i ∈ [0, shape(v_3, 0) - 1] : (0 - shape(v_1, v_2)) ≤ v_3[i] ∧ v_3[i] < shape(v_1, v_2)
+Rule 88 (if dim < 0 then absolute value of dim must be less than or equal to number of dims in input)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then (0-v_2) <= ndim(v_1)
 >>
-Rule 41 (index values must be within the valid range for the specified dimension, checking for positive dim)
-{v_1: tensor, v_2: int, v_3: tensor} |= if v_2 >=0 then ∀i ∈ [0, shape(v_3, 0) - 1] : (0 - shape(v_1, v_2)) ≤ v_3[i] ∧ v_3[i] < shape(v_1, v_2)
+Rule 89 (Size of index should be less than input size)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= shape(v_3, 0) < shape(v_1, v_2)
 >>
-Rule 43 (index values must be within the valid range for the specified dimension, checking for negative dim)
-{v_1: tensor, v_2: int, v_3: tensor} |= if v_2 < 0 then ∀i ∈ [0, shape(v_3, 0) - 1] : (0 - shape(v_1, (ndim(v_1) + v_2))) ≤ v_3[i] ∧ v_3[i] < shape(v_1, (ndim(v_1) + v_2))
+Rule 97 (Index must have a reasonable min and max value)
+{v_3 : tensor} |= min(v_3) > -2147483648 ∧ max(v_3) < 2147483647
 >>
-Rule 45 (index values must be within valid range, checking both positive and negative dim)
-{v_1: tensor, v_2: int, v_3: tensor} |= if v_2 ≥ 0 then ∀i ∈ [0, shape(v_3, 0) - 1] : (0 - shape(v_1, v_2)) ≤ v_3[i] ∧ v_3[i] < shape(v_1, v_2) else ∀i ∈ [0, shape(v_3, 0) - 1] : (0 - shape(v_1, (ndim(v_1) + v_2))) ≤ v_3[i] ∧ v_3[i] < shape(v_1, (ndim(v_1) + v_2))
+Rule 98 (if input is non-empty, all values in index must be in the correct range)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 ∨ (∀i ∈ [0, shape(v_3, 0) - 1] : v_3[i] ≥ 0 ∧ v_3[i] < shape(v_1, v_2))
 >>
-Rule 51 (index values must be within valid range, considering both positive and negative dimension indices simultaneously.)
-{v_1: tensor, v_2: int, v_3: tensor} |= ∀i ∈ [0, shape(v_3, 0) - 1] : if v_2 ≥ 0 then (0 - shape(v_1, v_2)) ≤ v_3[i] ∧ v_3[i] < shape(v_1, v_2) else (0 - shape(v_1, (ndim(v_1) + v_2))) ≤ v_3[i] ∧ v_3[i] < shape(v_1, (ndim(v_1) + v_2))
+Rule 102 (If the input dimension is less than zero, it must be within the rank.)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then v_2 >= (0 - ndim(v_1))
 >>
-Rule 55 (dimension index must be within range)
-{v_1: tensor, v_2: int} |= (v_2 >= (0 - ndim(v_1))) ∧ (v_2 < ndim(v_1))
+Rule 107 (The shape in input and source on the indices needs to be the same, also for a non-empty source)
+{v_1 : tensor, v_2 : int, v_4 : tensor} |= (∃i ∈ [0, ndim(v_4) - 1] : shape(v_4, i) > 0) ∨ shape(v_1, v_2) = shape(v_4, 0)
 >>
-Rule 57 (dimension index must be within range)
-{v_1: tensor, v_2: int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
+Rule 108 (if the index refers to the actual tensor)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∀i ∈ [0, shape(v_3, 0) - 1] : v_3[i] < shape(v_1, v_2) ∧ v_3[i] >= (0 - shape(v_1, v_2))
 >>
-Rule 63 (index tensor values cannot be negative when used as indices)
-{v_1: tensor} |= min(v_1) >= 0
+Rule 109 (Index values should result in valid indexing after the addition is performed.)
+{v_3 : tensor, v_1 : tensor, v_2 : int} |= max(v_3) <= shape(v_1, v_2)
 >>
-Rule 71 (index out of bounds high)
-{v_1: tensor, v_2: int, v_3: tensor} |= max(v_3) < shape(v_1, v_2)
+Rule 110 (Index can't be a bool)
+{v_3 : tensor} |= dtype_(v_3) ≠ 0
 >>
-Rule 72 (index out of bounds low)
-{v_1: tensor, v_2: int, v_3: tensor} |= min(v_3) >= (0 - shape(v_1, v_2))
+Rule 112 (If source tensor has shape, input tensor needs to exist)
+{v_4 : tensor, v_1: tensor} |= ndim(v_1) > 0 ∧ ndim(v_4) > 0
 >>
-Rule 74 (index out of bounds for large positive indices)
-{v_1: tensor, v_2: int, v_3: tensor} |= ∃i ∈ [0, shape(v_3,0) -1] : v_3[i] >= shape(v_1, v_2)
+Rule 113 (Index entries must be valid indices)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= (min(v_3) ≥ 0) ∧ (max(v_3) < shape(v_1, v_2))
 >>
-Rule 75 (index out of bounds for large negative indices)
-{v_1: tensor, v_2: int, v_3: tensor} |= ∃i ∈ [0, shape(v_3,0) -1] : v_3[i] < (0 - shape(v_1, v_2))
+Rule 114 (The elements of the index can not be a string)
+{v_3 : tensor} |= dtype_(v_3) ≠ 11
 >>
-Rule 77 (index value exists which is too large for dim)
-{v_1: tensor, v_2: int, v_3: tensor} |= ∃i ∈ [0, shape(v_3, 0) - 1] : v_3[i] >= shape(v_1, v_2)
+Rule 115 (The dim needs to be valid for the input)
+{v_2 : int, v_1 : tensor} |= v_2 < ndim(v_1) ∧ v_2 >= (0 - ndim(v_1))
 >>
-Rule 78 (index value exists which is too small for dim)
-{v_1: tensor, v_2: int, v_3: tensor} |= ∃i ∈ [0, shape(v_3, 0) - 1] : v_3[i] < (0 - shape(v_1, v_2))
+Rule 119 (Dim must not be larger than number of dimensions of the input tensor)
+{v_2 : int, v_1 : tensor} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 80 (index out of bounds for too large positive indices)
-{v_1: tensor, v_2: int, v_3: tensor} |= ∃i ∈ [0, shape(v_3, 0) - 1] : v_3[i] ≥ shape(v_1, v_2)
+Rule 120 (Ensure index values are within proper limits for a given dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∀i ∈ [0, shape(v_3, 0) - 1] : v_3[i] >= (0 - shape(v_1, v_2)) ∧ v_3[i] < shape(v_1, v_2)
 >>
-Rule 86 (at least one index is too large for dim)
-{v_1: tensor, v_2: int, v_3: tensor} |= ∃i ∈ [0, shape(v_3, 0) - 1] : if v_2 >= 0 then v_3[i] >= shape(v_1, v_2) else false
+Rule 121 (If input and source exist, their memory layouts has to match)
+{v_1 : tensor, v_4 : tensor} |= v_1.len = v_4.len
 >>
-Rule 87 (at least one index is too small for dim)
-{v_1: tensor, v_2: int, v_3: tensor} |= ∃i ∈ [0, shape(v_3, 0) - 1] : if v_2 < 0 then v_3[i] < (0 - shape(v_1, v_2)) else false
+Rule 125 (If index tensor exists, ensure it has a valid number of elements, less than max int)
+{v_3 : tensor} |= shape(v_3, 0) < 2147483647
 >>
-Rule 89 (at least one index is too large for a non-negative dim)
-{v_1: tensor, v_2: int, v_3: tensor} |= if v_2 ≥ 0 then ∃i ∈ [0, shape(v_3, 0) - 1] : v_3[i] ≥ shape(v_1, v_2)
+Rule 129 (Index's dtype must not be a float to be a valid tensor for index)
+{v_3 : tensor} |= dtype_(v_3) ≠ 6 ∧ dtype_(v_3) ≠ 7 ∧ dtype_(v_3) ≠ 8
 >>
-Rule 90 (at least one index is too small for a negative dim)
-{v_1: tensor, v_2: int, v_3: tensor} |= if v_2 < 0 then ∃i ∈ [0, shape(v_3, 0) - 1] : v_3[i] < (0 - shape(v_1, (ndim(v_1) + v_2)))
+Rule 130 (Index tensor, max value should be less than minimum limit due to hardware limitation)
+{v_3 : tensor} |= max(v_3) < 2147483647 ∧ max(v_3) > -2147483648
 >>
-Rule 92 (at least one index is too large for dim (positive))
-{v_1: tensor, v_2: int, v_3: tensor} |= if v_2 >= 0 then ∃i ∈ [0, shape(v_3, 0) - 1] : v_3[i] >= shape(v_1, v_2)
+Rule 135 (To avoid an index out of bounds error, we require that the max index value be less than the size of the indexed dimension, but only if index and source aren't empty)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |=  shape(v_3, 0) = 0 ∨ max(v_3) < shape(v_1, v_2)
 >>
-Rule 96 (dimension range must be valid)
-{v_1: tensor, v_2: int} |= (0 - ndim(v_1)) <= v_2 ∧ v_2 < ndim(v_1)
+Rule 137 (index must be int32 or int64 if input is defined)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_1) > 0 then dtype_(v_3) = 3 ∨ dtype_(v_3) = 4
 >>
-Rule 98 (at least one index is too large for dim (positive or negative))
-{v_1: tensor, v_2: int, v_3: tensor} |= ∃i ∈ [0, shape(v_3, 0) - 1] : (if v_2 >= 0 then v_3[i] >= shape(v_1, v_2) else if v_2 < 0 then v_3[i] < (0 - shape(v_1, (ndim(v_1) + v_2))) else false)
+Rule 138 (The number of elements indexed must be within valid bound when not empty)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |=  (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∀i ∈ [0, shape(v_3, 0) - 1] : v_3[i] < shape(v_1, v_2) ∧ v_3[i] >= (0-shape(v_1, v_2)))
 >>
-Rule 101 (dimension out of range (high))
-{v_1: tensor, v_2: int} |= v_2 >= ndim(v_1)
+Rule 143 (To ensure alignment, input and source dimensions, other than the one being added to, have to match.)
+{v_1 : tensor, v_2 : int, v_4 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_2 then shape(v_1, i) = shape(v_4, i)
 >>
-Rule 104 (dimension is too low)
-{v_1: tensor, v_2: int} |= v_2 < (0 - ndim(v_1))
+Rule 145 (If the index tensor is defined, it should result in an indexing, where each value refers to a memory position on the target)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∀i ∈ [0, shape(v_3, 0) - 1] : (v_3[i] < shape(v_1, v_2))

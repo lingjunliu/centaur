@@ -1,45 +1,108 @@
 >>
-Rule 1 (batch1 and batch2 must be 3-D tensors)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 3 ∧ ndim(v_2) = 3
+Rule 1 (batch1 and batch2 should have the same number of batches)
+{batch1 : tensor, batch2 : tensor} |= shape(batch1, 0) = shape(batch2, 0)
 >>
-Rule 2 (batch1 and batch2 must have the same number of matrices (batch dimension))
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 2 (batch1 and batch2 must be 3-dimensional)
+{batch1 : tensor, batch2 : tensor} |= ndim(batch1) = 3 ∧ ndim(batch2) = 3
 >>
-Rule 3 (batch1's m dimension must match batch2's m dimension)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 2) = shape(v_2, 1)
+Rule 3 (inner dimension of batch1 should match first inner dimension of batch2)
+{batch1 : tensor, batch2 : tensor} |= shape(batch1, 2) = shape(batch2, 1)
 >>
-Rule 4 (input must be broadcastable to n x p, where batch1 is b x n x m and batch2 is b x m x p. Check the final dimensions.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_1, 1) = shape(v_3, 0) ∧ shape(v_2, 2) = shape(v_3, 1)
+Rule 4 (input tensor should be 2-dimensional if batch1 and batch2 follow specified shapes)
+{input : tensor, batch1 : tensor, batch2 : tensor} |= if ndim(batch1) = 3 ∧ ndim(batch2) = 3 ∧ shape(batch1, 2) = shape(batch2, 1) then ndim(input) = 2
 >>
-Rule 7 (batch1, batch2, and input should have the same dtype)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3)
+Rule 5 (dimensions of input and output should match dimensions derived from batch1 and batch2 when out is given.)
+{input : tensor, batch1 : tensor, batch2 : tensor, out : tensor} |= if ndim(batch1) = 3 ∧ ndim(batch2) = 3 ∧ shape(batch1, 2) = shape(batch2, 1) then shape(input, 0) = shape(batch1, 1) ∧ shape(input, 1) = shape(batch2, 2) ∧ shape(out, 0) = shape(batch1, 1) ∧ shape(out, 1) = shape(batch2, 2)
 >>
-Rule 8 (out must be a tensor)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
+Rule 8 (input, batch1, batch2 and out should have the same dtype)
+{input : tensor, batch1 : tensor, batch2 : tensor, out : tensor} |= dtype_(input) = dtype_(batch1) ∧ dtype_(input) = dtype_(batch2) ∧ dtype_(input) = dtype_(out)
 >>
-Rule 15 (input must be broadcastable to n x p, where batch1 is b x n x m and batch2 is b x m x p. Check the final dimensions.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 3 ∧ ndim(v_3) = 3 ∧ shape(v_2, 1) = shape(v_1, 0) ∧ shape(v_3, 2) = shape(v_1, 1)
+Rule 9 (input, batch1 and batch2 should have the same dtype)
+{input : tensor, batch1 : tensor, batch2 : tensor} |= dtype_(input) = dtype_(batch1) ∧ dtype_(input) = dtype_(batch2)
 >>
-Rule 20 (output tensor's shape should match the expected shape)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 3 ∧ ndim(v_3) = 3 ∧ shape(v_1, 0) = shape(v_2, 1) ∧ shape(v_1, 1) = shape(v_3, 2)
+Rule 10 (beta and alpha are non-negative)
+{beta : float, alpha : float} |= beta ≥ 0 ∧ alpha ≥ 0
 >>
-Rule 23 (tensor's ndim cannot exceed 5 for expand error)
-{v_1 : tensor} |= ndim(v_1) ≤ 5
+Rule 16 (beta and alpha should be real numbers if input is float or double tensor)
+{input : tensor} |= if dtype_(input) = 7 ∨ dtype_(input) = 8 then true
 >>
-Rule 33 (A tensor should not have any dimension of size 0)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+Rule 17 (If input dtype is bool then beta and alpha should be int)
+{input : tensor} |= if dtype_(input) = 0 then true
 >>
-Rule 45 (input tensor cannot have fewer dimensions than the expanded size)
-{v_1: tensor} |= ndim(v_1) ≥ 2
+Rule 20 (out should be tensor)
+{out : tensor} |= ndim(out) ≥ 0
 >>
-Rule 46 (batch1 and batch2 must have same dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 28 (input, batch1, batch2 and out should have the same dtype if out is given)
+{input : tensor, batch1 : tensor, batch2 : tensor, out : tensor} |= if ndim(out) > -1 then dtype_(input) = dtype_(batch1) ∧ dtype_(input) = dtype_(batch2) ∧ dtype_(input) = dtype_(out)
 >>
-Rule 60 (Index cannot be out of range for a tensor)
-{v_1 : tensor, v_2 : int} |= (0 ≤ v_2) ∧ (v_2 < ndim(v_1))
+Rule 31 (shape dimensions must be positive)
+{input : tensor} |= ∀i ∈ [0, ndim(input) - 1] : shape(input, i) > 0
 >>
-Rule 73 (Dimension should be in the valid range)
-{v_1 : tensor, v_2 : int} |= (v_2 ≥ (0 - ndim(v_1))) ∧ (v_2 < ndim(v_1))
+Rule 32 (batch1 shape dimensions must be positive)
+{batch1 : tensor} |= ∀i ∈ [0, ndim(batch1) - 1] : shape(batch1, i) > 0
 >>
-Rule 116 (if input tensor is of bool type, the number of dimensions must be greater than 2)
-{v_1: tensor} |= if dtype_(v_1) = 0 then ndim(v_1) > 2
+Rule 33 (batch2 shape dimensions must be positive)
+{batch2 : tensor} |= ∀i ∈ [0, ndim(batch2) - 1] : shape(batch2, i) > 0
+>>
+Rule 34 (out shape dimensions must be positive)
+{out : tensor} |= ∀i ∈ [0, ndim(out) - 1] : shape(out, i) > 0
+>>
+Rule 35 (input tensor has valid number of dimensions)
+{input : tensor} |= ndim(input) ≥ 1
+>>
+Rule 36 (batch1 tensor has valid number of dimensions)
+{batch1 : tensor} |= ndim(batch1) ≥ 1
+>>
+Rule 37 (batch2 tensor has valid number of dimensions)
+{batch2 : tensor} |= ndim(batch2) ≥ 1
+>>
+Rule 39 (batch size must be the same)
+{batch1 : tensor, batch2 : tensor} |= if ndim(batch1) = 3 ∧ ndim(batch2) = 3 then shape(batch1, 0) = shape(batch2, 0)
+>>
+Rule 40 (Matrix dimensions must align)
+{batch1 : tensor, batch2 : tensor} |= if ndim(batch1) = 3 ∧ ndim(batch2) = 3 then shape(batch1, 2) = shape(batch2, 1)
+>>
+Rule 41 (Check if input dimensions match batch1 and batch2 if they are 3D)
+{input : tensor, batch1 : tensor, batch2 : tensor} |= if ndim(batch1) = 3 ∧ ndim(batch2) = 3 then ndim(input) = 2 ∧ shape(input, 0) = shape(batch1, 1) ∧ shape(input, 1) = shape(batch2, 2)
+>>
+Rule 42 (Check if out dimensions match input, batch1 and batch2 if they are 3D)
+{input : tensor, batch1 : tensor, batch2 : tensor, out : tensor} |= if ndim(batch1) = 3 ∧ ndim(batch2) = 3 then ndim(out) = 2 ∧ shape(out, 0) = shape(batch1, 1) ∧ shape(out, 1) = shape(batch2, 2) ∧ shape(input, 0) = shape(batch1, 1) ∧ shape(input, 1) = shape(batch2, 2)
+>>
+Rule 44 (If input is not a floating point type, beta and alpha can be integers, represented as floats)
+{input : tensor} |= if dtype_(input) ≠ 7 ∧ dtype_(input) ≠ 8 then true
+>>
+Rule 51 (input tensor must be a 2D tensor when batch1 and batch2 are 3D)
+{input : tensor, batch1 : tensor, batch2 : tensor} |= if ndim(batch1) = 3 ∧ ndim(batch2) = 3 then ndim(input) = 2
+>>
+Rule 52 (dimensions of input and output should match dimensions derived from batch1 and batch2 when batch1 and batch2 are 3D)
+{input : tensor, batch1 : tensor, batch2 : tensor, out : tensor} |= if ndim(batch1) = 3 ∧ ndim(batch2) = 3 then shape(input, 0) = shape(batch1, 1) ∧ shape(input, 1) = shape(batch2, 2) ∧ shape(out, 0) = shape(batch1, 1) ∧ shape(out, 1) = shape(batch2, 2)
+>>
+Rule 54 (batch1 and batch2 and input must have same dtype)
+{input : tensor, batch1 : tensor, batch2 : tensor} |= dtype_(batch1) = dtype_(input) ∧ dtype_(batch2) = dtype_(input)
+>>
+Rule 55 (batch1, batch2, input and out must have same dtype when out is present)
+{input : tensor, batch1 : tensor, batch2 : tensor, out : tensor} |= dtype_(batch1) = dtype_(input) ∧ dtype_(batch2) = dtype_(input) ∧ dtype_(out) = dtype_(input)
+>>
+Rule 61 (Check dimensions of the input and batch1 and batch2)
+{input : tensor, batch1 : tensor, batch2 : tensor} |= ndim(input) ≥ 1 ∧ ndim(batch1) ≥ 1 ∧ ndim(batch2) ≥ 1
+>>
+Rule 69 (batch1, batch2, input and out must have same dtype when out is present)
+{input : tensor, batch1 : tensor, batch2 : tensor, out : tensor} |= if ndim(out) > 0 then dtype_(batch1) = dtype_(input) ∧ dtype_(batch2) = dtype_(input) ∧ dtype_(out) = dtype_(input)
+>>
+Rule 72 (If ndim(batch1) > 0 all shape(batch1, i) should be greater than 0)
+{batch1 : tensor} |= if ndim(batch1) > 0 then ∀i ∈ [0, ndim(batch1) - 1] : shape(batch1, i) > 0
+>>
+Rule 73 (If ndim(batch2) > 0 all shape(batch2, i) should be greater than 0)
+{batch2 : tensor} |= if ndim(batch2) > 0 then ∀i ∈ [0, ndim(batch2) - 1] : shape(batch2, i) > 0
+>>
+Rule 74 (If ndim(out) > 0 all shape(out, i) should be greater than 0)
+{out : tensor} |= if ndim(out) > 0 then ∀i ∈ [0, ndim(out) - 1] : shape(out, i) > 0
+>>
+Rule 87 (shape of input must be broadcastable to the result of bmm)
+{input : tensor, batch1 : tensor, batch2 : tensor} |= if ndim(batch1) = 3 ∧ ndim(batch2) = 3 then (shape(input,0) = shape(batch1, 1) ∨ shape(input,0) = 1) ∧ (shape(input,1) = shape(batch2, 2) ∨ shape(input,1) = 1)
+>>
+Rule 88 (shape of output must be broadcastable to the result of bmm)
+{out : tensor, batch1 : tensor, batch2 : tensor} |= if ndim(batch1) = 3 ∧ ndim(batch2) = 3 then (shape(out,0) = shape(batch1, 1) ∨ shape(out,0) = 1) ∧ (shape(out,1) = shape(batch2, 2) ∨ shape(out,1) = 1)
+>>
+Rule 130 (If input has at least one dimension with size 0 then batch1 and batch2 should also have at least one dimension with size 0)
+{input : tensor, batch1 : tensor, batch2 : tensor} |= if ∃i ∈ [0, ndim(input) - 1] : shape(input, i) = 0 then (∃j ∈ [0, ndim(batch1) - 1] : shape(batch1, j) = 0) ∧ (∃k ∈ [0, ndim(batch2) - 1] : shape(batch2, k) = 0)

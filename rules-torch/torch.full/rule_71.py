@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# shape product must be less than max int (Rule 71)
+# all dimensions in size tuple must be representable as int32 and non-negative and less than certain limit to prevent overflow (Rule 71)
 
 rule_71 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_length"] > 0, Or([And(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) < 1000000) for i in range(6)]), False)) if n else
-          If(v["arg1_length"] > 0, Or([And(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) < 1000000) for i in range(6)]), False))
+    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), And(And(Select(v["arg1_values"], i) >= -10000, Select(v["arg1_values"], i) <= 10000), Select(v["arg1_values"], i) >= 0)) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_length"] - 1 + 1), And(And(Select(v["arg1_values"], i) >= -10000, Select(v["arg1_values"], i) <= 10000), Select(v["arg1_values"], i) >= 0)) for i in range(6)]))
 )
 
 def rule_71_func(arg1, solver=None, neg=False):

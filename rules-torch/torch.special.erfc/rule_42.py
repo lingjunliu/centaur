@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Disallow ComplexDouble input OR require Complex128 output OR disallow Bool output (Rule 42)
+# If the input is complex, the output must be complex, and same type (Rule 42)
 
 rule_42 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(v["arg1_dtype"] != 10, v["arg2_dtype"] == 11), v["arg2_dtype"] != 0)) if n else
-          Or(Or(v["arg1_dtype"] != 10, v["arg2_dtype"] == 11), v["arg2_dtype"] != 0))
+    s.add(Not(If((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (v["arg2_dtype"] == v["arg1_dtype"]), True)) if n else
+          If((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (v["arg2_dtype"] == v["arg1_dtype"]), True))
 )
 
 def rule_42_func(arg1, arg2, solver=None, neg=False):

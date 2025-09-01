@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# dtype cannot be bool or complex; if float, it has to be double (Rule 28)
+# input tensor must not have bool type (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(And((And(v["arg1_dtype"] > 0, v["arg1_dtype"] < 9)), (If(v["arg1_dtype"] == 7, False, False)))) if n else
-          And((And(v["arg1_dtype"] > 0, v["arg1_dtype"] < 9)), (If(v["arg1_dtype"] == 7, False, False))))
+    s.add(Not(v["arg1_dtype"] != 0) if n else
+          v["arg1_dtype"] != 0)
 )
 
 def rule_28_func(arg1, solver=None, neg=False):

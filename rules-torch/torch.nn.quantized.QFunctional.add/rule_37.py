@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The two tensors should have different number of dimensions (Rule 37)
+# If both have ndim > 0, they should have the same ndim (Rule 37)
 
 rule_37 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] != v["arg2_ndim"]) if n else
-          v["arg1_ndim"] != v["arg2_ndim"])
+    s.add(Not(If((And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0)), (v["arg1_ndim"] == v["arg2_ndim"]), True)) if n else
+          If((And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0)), (v["arg1_ndim"] == v["arg2_ndim"]), True))
 )
 
 def rule_37_func(arg1, arg2, solver=None, neg=False):

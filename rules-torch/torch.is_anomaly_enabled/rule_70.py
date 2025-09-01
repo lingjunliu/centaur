@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The sum of a tuple of ints must be less than the size of a tensor dimension (Rule 70)
+# If anomaly detection is enabled, require that there is at least one shape dimension greater than provided number if the value of the first dimension is zero (Rule 70)
 
 rule_70 = lambda s, v, n=False: (
-    s.add(Not(And(And((And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) >= 0) for i in range(6)])), (And(v["arg3_value"] >= 0, v["arg3_value"] < v["arg2_ndim"]))), (Or([And(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) < Select(v["arg2_shape"], v["arg3_value"])) for i in range(6)])))) if n else
-          And(And((And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) >= 0) for i in range(6)])), (And(v["arg3_value"] >= 0, v["arg3_value"] < v["arg2_ndim"]))), (Or([And(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) < Select(v["arg2_shape"], v["arg3_value"])) for i in range(6)]))))
+    s.add(Not(If(v["arg1_value"] == True, Or([And(i < (v["arg2_ndim"] - 1 + 1), If(Select(v["arg2_shape"], 0) == 0, Select(v["arg2_shape"], i) > v["arg3_value"], True)) for i in range(6)]), True)) if n else
+          If(v["arg1_value"] == True, Or([And(i < (v["arg2_ndim"] - 1 + 1), If(Select(v["arg2_shape"], 0) == 0, Select(v["arg2_shape"], i) > v["arg3_value"], True)) for i in range(6)]), True))
 )
 
 def rule_70_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -19,7 +19,7 @@ def rule_70_func(arg1, arg2, arg3, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not isinstance(arg1, bool):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
@@ -28,25 +28,22 @@ def rule_70_func(arg1, arg2, arg3, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
-        arg1_values = Array('arg1_values', IntSort(), IntSort())
+        arg1_value = Bool('arg1_value')
         arg2_ndim = Int('arg2_ndim')
         arg2_shape = Array('arg2_shape', IntSort(), IntSort())
         arg3_value = Int('arg3_value')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
+        solver.add(arg1_value == arg1)
         solver.add(arg2_ndim == arg2.ndim)
         for i in range(arg2.ndim):
             arg2_shape = Store(arg2_shape, i, arg2.shape[i])
         solver.add(arg3_value == int(arg3))
 
         # Constraints for rule 70
-        rule_70(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape, 'arg3_value': arg3_value})
+        rule_70(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_70(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape'], 'arg3_value': arg3['value']}, neg)
+        rule_70(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_value': arg3['value']}, neg)

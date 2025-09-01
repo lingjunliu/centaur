@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# output_size and the last dimension of input tensor should be compatible (Rule 19)
+# When output_size is an integer, it must be less than the input size (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 2, v["arg2_value"] < Select(v["arg1_shape"], 1) + 1, If(v["arg1_ndim"] == 3, v["arg2_value"] < Select(v["arg1_shape"], 2) + 1, False))) if n else
-          If(v["arg1_ndim"] == 2, v["arg2_value"] < Select(v["arg1_shape"], 1) + 1, If(v["arg1_ndim"] == 3, v["arg2_value"] < Select(v["arg1_shape"], 2) + 1, False)))
+    s.add(Not(Select(v["arg1_shape"], v["arg1_ndim"] - 1) > v["arg2_value"]) if n else
+          Select(v["arg1_shape"], v["arg1_ndim"] - 1) > v["arg2_value"])
 )
 
 def rule_19_func(arg1, arg2, solver=None, neg=False):
@@ -36,9 +36,9 @@ def rule_19_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 19
-        rule_19(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_19(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_19(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_19(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

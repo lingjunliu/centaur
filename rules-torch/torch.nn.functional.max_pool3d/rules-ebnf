@@ -1,39 +1,144 @@
 >>
-Rule 1 (input tensor must be 4D or 5D)
-{v_1 : tensor} |= ndim(v_1) = 4 ∨ ndim(v_1) = 5
->>
-Rule 2 (padding must be non-negative)
-{v_1 : int} |= v_1 ≥ 0
->>
-Rule 3 (dilation must be greater than zero)
+Rule 1 (kernel_size should be greater than zero)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 7 (kernel size must be greater than zero when kernel size is tuple(int))
+Rule 2 (kernel_size tuple elements should be greater than zero)
 {v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 9 (padding must be smaller than or equal to half of kernel size when kernel size is tuple(int) and padding is tuple(int))
-{v_1 : tuple(int), v_2 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_2[i] ≤ v_1[i] / 2
+Rule 5 (padding must be non-negative)
+{v_1 : int} |= v_1 ≥ 0
 >>
-Rule 10 (kernel_size must be tuple of length 3 or int if input tensor has 5 dimensions)
-{v_1: tensor, v_2 : int ⊎ tuple(int)} |= if ndim(v_1) = 5 then (v_2.len = 3 ∨ v_2.len = 1)
->>
-Rule 14 (stride must not be zero)
-{v_1 : int} |= v_1 ≠ 0
->>
-Rule 16 (padding must be at most half of kernel size when kernel_size and padding are int)
-{v_1 : int, v_2 : int} |= v_1 ≤ v_2 / 2
->>
-Rule 18 (padding tuple length must be 3)
-{v_1 : tuple(int)} |= v_1.len = 3
->>
-Rule 47 (Padding components must be non-negative when padding is tuple)
+Rule 6 (padding tuple elements must be non-negative)
 {v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 56 (If padding is tuple, each component must be smaller or equal to half of corresponding kernel size)
-{v_1 : tuple(int), v_2: int} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] <= v_2 / 2
+Rule 11 (input tensor should be 4D or 5D)
+{v_1 : tensor} |= ndim(v_1) = 4 ∨ ndim(v_1) = 5
 >>
-Rule 75 (kernel_size and stride dimensions must match if both are tuples)
-{v_1 : tuple(int), v_2 : tuple(int)} |= v_1.len = v_2.len
+Rule 20 (pad should be at most half of kernel size for int input)
+{v_1 : int, v_2 : int} |= v_1 ≤ (v_2 / 2)
 >>
-Rule 95 (If kernel and dilation are int, then padding should be less than kernel/2+dilation/2-dilation*kernel/2)
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 <= v_2 / 2 + v_3 / 2 - v_3*v_2/2
+Rule 21 (pad should be at most half of kernel size for tuple input)
+{v_1 : tuple(int), v_2 : tuple(int)} |= (v_1[0] ≤ (v_2[0] / 2)) ∧ (v_1[1] ≤ (v_2[1] / 2)) ∧ (v_1[2] ≤ (v_2[2] / 2))
+>>
+Rule 23 (kernel size tuple must have length 3)
+{v_1 : tuple(int)} |= v_1.len = 3
+>>
+Rule 27 (stride should not be zero, int)
+{v_1 : int} |= v_1 ≠ 0
+>>
+Rule 28 (stride tuple elements should not be zero)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ 0
+>>
+Rule 29 (pad should be smaller than or equal to half of kernel size when dilation is not 1 for int input)
+{v_1 : int, v_2 : int, v_3 : int} |= if v_3 = 1 then true else v_1 ≤ (v_2 / 2)
+>>
+Rule 30 (pad should be smaller than or equal to half of kernel size when dilation is not 1 for tuple input)
+{v_1 : tuple(int), v_2 : tuple(int), v_3 : tuple(int)} |= if (v_3[0] = 1 ∧ v_3[1] = 1 ∧ v_3[2] = 1) then true else (v_1[0] ≤ (v_2[0] / 2)) ∧ (v_1[1] ≤ (v_2[1] / 2)) ∧ (v_1[2] ≤ (v_2[2] / 2))
+>>
+Rule 36 (pad should be smaller than or equal to half of kernel size when dilation is not 1 for int input)
+{v_1 : int, v_2 : int, v_3 : int} |= if v_3 = 1 then v_1 ≥ 0 ∧ v_2 > 0 else v_1 ≤ (v_2 / 2)
+>>
+Rule 37 (pad should be smaller than or equal to half of kernel size when dilation is not 1 for tuple input)
+{v_1 : tuple(int), v_2 : tuple(int), v_3 : tuple(int)} |= if (v_3[0] = 1 ∧ v_3[1] = 1 ∧ v_3[2] = 1) then (∀i ∈ [0, 2] : v_1[i] ≥ 0 ∧ v_2[i] > 0) else (v_1[0] ≤ (v_2[0] / 2)) ∧ (v_1[1] ≤ (v_2[1] / 2)) ∧ (v_1[2] ≤ (v_2[2] / 2))
+>>
+Rule 38 (input tensor cannot have shape with zero)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 39 (dilation must be either a single int, or a tuple of three ints)
+{v_1 : int, v_2 : tuple(int)} |= (v_1 = v_1) ∨ (v_2.len = 3)
+>>
+Rule 44 (pad should be smaller than or equal to half of kernel size)
+{v_1 : int, v_2 : int, v_3: int} |= v_1 >=0 ∧ v_2 > 0 ∧ v_3 > 0 ∧ v_1 <= v_2 / 2
+>>
+Rule 46 (padding less than or equal to kernel size / 2, considering dilation, when kernel size is int)
+{v_1 : int, v_2 : int, v_3: int} |= v_1 >= 0 ∧ v_2 > 0 ∧ v_3 > 0 ∧ v_1 <= (v_2 / 2)
+>>
+Rule 47 (padding less than or equal to kernel size / 2, considering dilation, when kernel size is tuple)
+{v_1 : tuple(int), v_2 : tuple(int), v_3: tuple(int)} |= ∀i ∈ [0,2] : v_1[i] >= 0 ∧ v_2[i] > 0 ∧ v_3[i] > 0 ∧ v_1[i] <= (v_2[i] / 2)
+>>
+Rule 49 (padding less than or equal to kernel size / 2, when kernel size is int)
+{v_1 : int, v_2 : int} |= v_1 >= 0 ∧ v_2 > 0 ∧ v_1 <= (v_2 / 2)
+>>
+Rule 50 (padding less than or equal to kernel size / 2, when kernel size is tuple)
+{v_1 : tuple(int), v_2 : tuple(int)} |= ∀i ∈ [0,2] : v_1[i] >= 0 ∧ v_2[i] > 0 ∧ v_1[i] <= (v_2[i] / 2)
+>>
+Rule 53 (Valid dilation parameter)
+{v_1 : int, v_2 : tuple(int)} |= (v_1 = 1) ∨ (v_2.len = 3)
+>>
+Rule 63 (Valid dilation parameter)
+{v_1 : int ⊎ tuple(int)} |= (v_1 = 1) ∨ (v_1.len = 3)
+>>
+Rule 64 (padding less than or equal to kernel size / 2, when kernel size is int and dilation is int)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 >= 0 ∧ v_2 > 0 ∧ v_3 > 0 ∧ v_1 <= (v_2 / 2)
+>>
+Rule 65 (padding less than or equal to kernel size / 2, when kernel size is tuple and dilation is tuple)
+{v_1 : tuple(int), v_2 : tuple(int), v_3 : tuple(int)} |= ∀i ∈ [0,2] : v_1[i] >= 0 ∧ v_2[i] > 0 ∧  v_3[i] > 0 ∧ v_1[i] <= (v_2[i] / 2)
+>>
+Rule 67 (pad must be non-negative, int)
+{v_1 : int} |= v_1 >= 0
+>>
+Rule 70 (padding less than or equal to kernel size / 2, when kernel size is tuple and dilation is tuple)
+{v_1 : tuple(int), v_2 : tuple(int), v_3 : tuple(int)} |= ∀i ∈ [0,2] : v_1[i] >= 0 ∧ v_2[i] > 0 ∧ v_3[i] > 0 ∧ v_1[i] <= (v_2[i] / 2)
+>>
+Rule 71 (Stride must be non-negative, int)
+{v_1 : int} |= v_1 >= 1
+>>
+Rule 74 (padding less than or equal to kernel size / 2, when kernel size is int and dilation is int)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 >= 0 ∧ v_2 >= 1 ∧ v_3 >= 1 ∧ v_1 <= (v_2 / 2)
+>>
+Rule 75 (padding less than or equal to kernel size / 2, when kernel size is tuple and dilation is tuple)
+{v_1 : tuple(int), v_2 : tuple(int), v_3 : tuple(int)} |= ∀i ∈ [0,2] : v_1[i] >= 0 ∧ v_2[i] >= 1 ∧ v_3[i] >= 1 ∧ v_1[i] <= (v_2[i] / 2)
+>>
+Rule 77 (Input tensor must be 4D or 5D)
+{v_1: tensor} |= ndim(v_1) = 4 ∨ ndim(v_1) = 5
+>>
+Rule 81 (Input tensor must be 4D or 5D with positive dimensions)
+{v_1: tensor} |= (ndim(v_1) = 4 ∨ ndim(v_1) = 5) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 86 (Input tensor must be non-empty, 4D or 5D)
+{v_1: tensor} |= (ndim(v_1) = 4 ∨ ndim(v_1) = 5) ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 87 (If padding is tuple, the length must be 3)
+{v_1: tuple(int)} |= v_1.len = 3
+>>
+Rule 89 (padding less than or equal to kernel size / 2, when kernel size is int and dilation is int)
+{v_1 : int, v_2 : int} |= v_1 >= 0 ∧ v_2 >= 1 ∧ v_1 <= (v_2 / 2)
+>>
+Rule 90 (padding less than or equal to kernel size / 2, when kernel size is tuple and dilation is tuple)
+{v_1 : tuple(int), v_2 : tuple(int)} |= ∀i ∈ [0,2] : v_1[i] >= 0 ∧ v_2[i] >= 1 ∧ v_1[i] <= (v_2[i] / 2)
+>>
+Rule 91 (Input tensor must be non-empty, 4D or 5D)
+{v_1: tensor} |= (ndim(v_1) = 4 ∨ ndim(v_1) = 5) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 92 (If padding is int, it must be non-negative)
+{v_1: int} |= v_1 >= 0
+>>
+Rule 97 (Kernel size must be greater than 0 when padding is used, when int)
+{v_1 : int, v_2 : int} |= if v_1 > 0 then v_2 > 0
+>>
+Rule 99 (padding less than or equal to kernel size / 2, when kernel size is int and dilation is int)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 >= 0 ∧ v_2 >= 1 ∧ v_1 <= (v_2 / 2) ∧ v_3 >= 1
+>>
+Rule 100 (padding less than or equal to kernel size / 2, when kernel size is tuple and dilation is tuple)
+{v_1 : tuple(int), v_2 : tuple(int), v_3 : tuple(int)} |= ∀i ∈ [0,2] : v_1[i] >= 0 ∧ v_2[i] >= 1 ∧ v_1[i] <= (v_2[i] / 2)  ∧ v_3[i] >= 1
+>>
+Rule 112 (If kernel_size is negative, then padding cannot be positive, when int)
+{v_1 : int, v_2 : int} |= if v_2 < 0 then v_1 <= 0
+>>
+Rule 117 (If padding is tuple, it must be non-negative)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] >= 0
+>>
+Rule 122 (If padding is tuple, all elements must be non-negative and kernel size must be positive)
+{v_1 : tuple(int), v_2 : tuple(int)} |= ∀i ∈ [0, 2] : v_1[i] >= 0 ∧ v_2[i] >= 1
+>>
+Rule 132 (If kernel_size is negative, then padding cannot be positive)
+{v_1 : int, v_2 : int} |= if v_2 < 0 then v_1 = 0
+>>
+Rule 142 (Kernel_size must be non-negative, int version)
+{v_1: int} |= v_1 > 0
+>>
+Rule 146 (If kernel_size is negative, then padding must be non-negative)
+{v_1 : int, v_2 : int} |= if v_2 < 0 then v_1 = 0 else v_1 >=0
+>>
+Rule 147 (Kernel size and stride should not be zero, int)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0

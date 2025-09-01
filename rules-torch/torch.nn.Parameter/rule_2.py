@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Parameter tensor must have a floating point or complex dtype or not require gradients (Rule 2)
+# if requires_grad is true, data tensor dtype must be float or complex (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(Or((And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 10)), (v["arg2_value"] == False))) if n else
-          Or((And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 10)), (v["arg2_value"] == False)))
+    s.add(Not(If(v["arg2_value"] == True, Or(Or(Or(Or((v["arg1_dtype"] == 7), (v["arg1_dtype"] == 8)), (v["arg1_dtype"] == 9)), (v["arg1_dtype"] == 10)), (v["arg1_dtype"] == 11)), True)) if n else
+          If(v["arg2_value"] == True, Or(Or(Or(Or((v["arg1_dtype"] == 7), (v["arg1_dtype"] == 8)), (v["arg1_dtype"] == 9)), (v["arg1_dtype"] == 10)), (v["arg1_dtype"] == 11)), True))
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):

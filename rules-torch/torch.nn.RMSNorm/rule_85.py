@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# prevent large lists (Rule 85)
+# eps should not be excessively small to avoid division by zero (Rule 85)
 
 rule_85 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_length"] < 15) if n else
-          v["arg1_length"] < 15)
+    s.add(Not(v["arg1_value"] > 1e-7) if n else
+          v["arg1_value"] > 1e-7)
 )
 
 def rule_85_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_85_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not isinstance(arg1, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
+        arg1_value = Real('arg1_value')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 85
-        rule_85(solver, {'arg1_length': arg1_length})
+        rule_85(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_85(solver, {'arg1_length': arg1['length']}, neg)
+        rule_85(solver, {'arg1_value': arg1['value']}, neg)

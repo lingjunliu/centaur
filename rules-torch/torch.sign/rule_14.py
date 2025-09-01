@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if input is float and out is given, out should be of same type or promote to Double (Rule 14)
+# If input is float type, out is not double (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 7, (Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8)), False)) if n else
-          If(v["arg1_dtype"] == 7, (Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8)), False))
+    s.add(Not(If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg2_dtype"] != 9, True)) if n else
+          If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg2_dtype"] != 9, True))
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):

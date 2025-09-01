@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If n is greater than 1, the input tensor must be floating point or complex (Rule 28)
+# If n > 1, then input must have valid dtype (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] > 1, Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 11), False)) if n else
-          If(v["arg2_value"] > 1, Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 11), False))
+    s.add(Not(If(v["arg2_value"] > 1, (And(And(1 <= v["arg1_dtype"], Or(v["arg1_dtype"] <= 5, 7 <= v["arg1_dtype"])), v["arg1_dtype"] <= 11)), True)) if n else
+          If(v["arg2_value"] > 1, (And(And(1 <= v["arg1_dtype"], Or(v["arg1_dtype"] <= 5, 7 <= v["arg1_dtype"])), v["arg1_dtype"] <= 11)), True))
 )
 
 def rule_28_func(arg1, arg2, solver=None, neg=False):

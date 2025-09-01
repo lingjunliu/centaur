@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Enforce floating or complex dtype for both tensors (Rule 28)
+# If input's dtype is uint8, mat2's dtype should be uint8 (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(And((And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 10)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 10)))) if n else
-          And((And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 10)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 10))))
+    s.add(Not(If(v["arg1_dtype"] == 5, v["arg2_dtype"] == 5, True)) if n else
+          If(v["arg1_dtype"] == 5, v["arg2_dtype"] == 5, True))
 )
 
 def rule_28_func(arg1, arg2, solver=None, neg=False):

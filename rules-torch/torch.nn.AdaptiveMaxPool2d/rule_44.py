@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The input tensor must have dimension 3 or 4 (Rule 44)
+# Input tensor must be 3D or 4D, its dimensions must be positive, and dimension must be at least 2 (Rule 44)
 
 rule_44 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_ndim"] == 3, v["arg1_ndim"] == 4)) if n else
-          Or(v["arg1_ndim"] == 3, v["arg1_ndim"] == 4))
+    s.add(Not(And((Or(v["arg1_ndim"] == 3, v["arg1_ndim"] == 4)), And([Implies(v_2 < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], v_2) > 0, v["arg1_ndim"] >= 2)) for v_2 in range(6)]))) if n else
+          And((Or(v["arg1_ndim"] == 3, v["arg1_ndim"] == 4)), And([Implies(v_2 < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], v_2) > 0, v["arg1_ndim"] >= 2)) for v_2 in range(6)])))
 )
 
 def rule_44_func(arg1, solver=None, neg=False):
@@ -23,14 +23,17 @@ def rule_44_func(arg1, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 44
-        rule_44(solver, {'arg1_ndim': arg1_ndim})
+        rule_44(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_44(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_44(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Limit product of dimension and N (Rule 56)
+# When x is very small, reject functions with N > 10. This aims to prevent wasted computation. (Rule 56)
 
 rule_56 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) * v["arg2_value"] < 5000000) if n else
-          Select(v["arg1_shape"], 0) * v["arg2_value"] < 5000000)
+    s.add(Not(If(Select(v["arg1_shape"], 0) < 5, v["arg2_value"] <= 10, True)) if n else
+          If(Select(v["arg1_shape"], 0) < 5, v["arg2_value"] <= 10, True))
 )
 
 def rule_56_func(arg1, arg2, solver=None, neg=False):

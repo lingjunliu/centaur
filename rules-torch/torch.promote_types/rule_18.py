@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If type1 is uint8 and type2 is complex, it is not allowed (Rule 18)
+# if type1 is complex64, type2 should be at least float32 (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 5, And(v["arg2_value"] != 9, v["arg2_value"] != 10), False)) if n else
-          If(v["arg1_value"] == 5, And(v["arg2_value"] != 9, v["arg2_value"] != 10), False))
+    s.add(Not(If(v["arg1_value"] == 9, Or(v["arg2_value"] >= 7, v["arg2_value"] == 0), True)) if n else
+          If(v["arg1_value"] == 9, Or(v["arg2_value"] >= 7, v["arg2_value"] == 0), True))
 )
 
 def rule_18_func(arg1, arg2, solver=None, neg=False):

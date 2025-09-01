@@ -1,75 +1,93 @@
 >>
-Rule 1 (input and target tensors must have the same shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 1 (input and target tensors should have the same shape to avoid deprecation warning)
+{input : tensor, target : tensor} |= ndim(input) = ndim(target) ∧ ∀i ∈ [0, ndim(input) - 1] : shape(input, i) = shape(target, i)
 >>
-Rule 2 (target tensor values should be between 0 and 1)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [0, shape(v_1, 1) -1] : 0 ≤ min(v_1) ∧ max(v_1) ≤ 1
+Rule 2 (reduction should be a valid string from the given options)
+{reduction : str} |= reduction = "none" ∨ reduction = "mean" ∨ reduction = "sum"
 >>
-Rule 3 (reduction should be a valid string)
-{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
+Rule 3 (weight tensor should be able to match input tensor's shape if provided)
+{input : tensor, weight : tensor} |= ndim(weight) = ndim(input) ∧ ∀i ∈ [0, ndim(input) - 1] : shape(weight, i) = shape(input, i)
 >>
-Rule 4 (weight tensor should be able to broadcast to input tensor)
-{v_1 : tensor, v_2 : tensor} |=  ndim(v_1) ≥ ndim(v_2) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_2, i) = 1
+Rule 5 (If size_average and reduce are not None, then reduction must be valid string)
+{size_average : bool, reduce : bool, reduction : str} |= (size_average = true ∨ size_average = false) ∧ (reduce = true ∨ reduce = false) ∧ (reduction = "none" ∨ reduction = "mean" ∨ reduction = "sum")
 >>
-Rule 5 (input tensor should be float type)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 12 (weight tensor must be non-negative)
+{weight : tensor} |= min(weight) >= 0
 >>
-Rule 7 (input and target tensors should have non-zero dimensions)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ shape(v_2, i) > 0
+Rule 13 (Deprecated parameters size_average and reduce should not both be defined with reduction)
+{size_average : bool, reduce : bool, reduction : str} |= (size_average = true ∨ size_average = false) ∨ (reduce = true ∨ reduce = false) ∨ (reduction = "none" ∨ reduction = "mean" ∨ reduction = "sum")
 >>
-Rule 8 (input and target tensors should have compatible shapes)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)
+Rule 18 (weight tensor must be non-negative)
+{weight : tensor} |= min(weight) ≥ 0
 >>
-Rule 9 (input and target tensors should have the same number of elements)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 19 (If size_average or reduce is specified then reduction must be chosen from available options)
+{size_average : bool, reduce : bool, reduction : str} |= if size_average = true ∨ size_average = false ∨ reduce = true ∨ reduce = false then reduction = "none" ∨ reduction = "mean" ∨ reduction = "sum"
 >>
-Rule 10 (input and target tensors should have compatible shapes, or one is a scalar)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)) ∨ (ndim(v_1) = 0 ∨ ndim(v_2) = 0)
+Rule 25 (If size_average or reduce is specified then reduction must be chosen from available options)
+{size_average : bool, reduce : bool, reduction : str} |= if size_average = true ∨ reduce = true then reduction = "none" ∨ reduction = "mean" ∨ reduction = "sum"
 >>
-Rule 11 (input and target tensors shapes should be equal, or both have zero elements)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 0 ∧ ∃j ∈ [0, ndim(v_2)-1] : shape(v_2, j) = 0)
+Rule 34 (If only one of size_average or reduce is specified, then reduction must be chosen from available options)
+{size_average : bool, reduce : bool, reduction : str} |= if (size_average = true ∨ size_average = false) ∧ (reduce = true ∨ reduce = false) then (reduction = "none" ∨ reduction = "mean" ∨ reduction = "sum")
 >>
-Rule 13 (input and target tensors should either have the same shape or be broadcastable to a common shape)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∨ ndim(v_2) = 0 then true else (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))
+Rule 40 (If only one of size_average or reduce is specified, then reduction must be chosen from available options and must be valid)
+{size_average : bool, reduce : bool, reduction : str} |= if (size_average = true) ∨ (reduce = true) then (reduction = "none" ∨ reduction = "mean" ∨ reduction = "sum")
 >>
-Rule 14 (To avoid the deprecation warning, ensure that the number of elements in input and target are equal or dimensions are the same.)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 0 ∧ ∃j ∈ [0, ndim(v_2)-1] : shape(v_2, j) = 0) ∨ (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1)-1]: shape(v_1,i) > 0) ∧ (∀j ∈ [0, ndim(v_2)-1]: shape(v_2,j) > 0))
+Rule 42 (If size_average is specified then reduction should be a valid string)
+{size_average : bool, reduction : str} |= if (size_average = true) then (reduction = "none" ∨ reduction = "mean" ∨ reduction = "sum")
 >>
-Rule 15 (Ensure input and target have same number of dimensions and all their dimensions are non-zero.)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ (∀i ∈ [0, ndim(v_1)-1]: shape(v_1,i) > 0) ∧ (∀j ∈ [0, ndim(v_2)-1]: shape(v_2,j) > 0) ∧ (∀k ∈ [0, ndim(v_1)-1]: shape(v_1,k) = shape(v_2, k))
+Rule 43 (If reduce is specified then reduction should be a valid string)
+{reduce : bool, reduction : str} |= if (reduce = true) then (reduction = "none" ∨ reduction = "mean" ∨ reduction = "sum")
 >>
-Rule 16 (Either shapes are equal or one of the tensors contains zero elements)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (∃i ∈ [0, ndim(v_1) -1] : shape(v_1, i) = 0) ∨ (∃j ∈ [0, ndim(v_2) -1] : shape(v_2, j) = 0)
+Rule 48 (reduction is valid when size_average or reduce is used)
+{size_average : bool, reduce: bool, reduction:str} |= if size_average = true ∨ reduce = true then reduction = "mean" ∨ reduction = "sum" ∨ reduction = "none"
 >>
-Rule 17 (The shapes of input and target tensors should match, or at least one of them is a scalar, or their shapes are broadcastable)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0 ∨ ndim(v_2) = 0) ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))
+Rule 51 (target tensor values should be between 0 and 1)
+{target : tensor} |= min(target) ≥ 0 ∧ max(target) ≤ 1
 >>
-Rule 18 (The input and target should have same size OR one of them has at least one dimension that is zero)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ ∃i ∈ [0, ndim(v_1) -1] : shape(v_1, i) = 0 ∨ ∃j ∈ [0, ndim(v_2) -1] : shape(v_2, j) = 0
+Rule 55 (input and target tensors should have same data type)
+{input: tensor, target: tensor} |= dtype_(input) = dtype_(target)
 >>
-Rule 19 (If sizes are different, shapes should be broadcastable to avoid the error.)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))
+Rule 56 (input and target should have same shape)
+{input: tensor, target: tensor} |= ndim(input) = ndim(target) ∧ ∀i ∈ [0, ndim(input) - 1] : shape(input, i) = shape(target, i)
 >>
-Rule 20 (Either input/target shapes are equal, their number of elements are the same, or they are broadcastable)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (if ndim(v_1) - i - 1 ≥ 0 then (shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))) ∧ (if ndim(v_2) - i - 1 ≥ 0 then (shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = shape(v_1, ndim(v_1) - i - 1))))
+Rule 59 (reduction parameter should be chosen from available option strings)
+{reduction: str} |= reduction = "none" ∨ reduction = "mean" ∨ reduction = "sum"
 >>
-Rule 21 (Ensure same shapes OR that multiplication of shape values are the same)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀j ∈ [0, ndim(v_2) - 1]: shape(v_2, j) > 0) else false)
+Rule 60 (weight tensor should have float data type if present)
+{weight: tensor} |= dtype_(weight) = 6 ∨ dtype_(weight) = 7 ∨ dtype_(weight) = 8
 >>
-Rule 22 (Either the shapes are equal, the tensors are broadcastable or have zero dimension)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0 ∧ ∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2) - 1] : (if (ndim(v_1) - 1 - i) ≥ 0 then shape(v_1, ndim(v_1) - 1 - i) = 1 ∨ (if (ndim(v_2) - 1 - i) ≥ 0 then shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i) )) ∧ (if (ndim(v_2) - 1 - i) ≥ 0 then shape(v_2, ndim(v_2) - 1 - i) = 1 ∨ (if (ndim(v_1) - 1 - i) ≥ 0 then shape(v_2, ndim(v_2) - 1 - i) = shape(v_1, ndim(v_1) - 1 - i)))) ∨ (ndim(v_1) = 0) ∨ (ndim(v_2) = 0)
+Rule 62 (If weight is present then it must be of same shape as input)
+{input: tensor, weight: tensor} |= ndim(input) = ndim(weight) ∧ ∀i ∈ [0, ndim(input)-1] : shape(input, i) = shape(weight, i)
 >>
-Rule 23 (Input and Target tensors should have either same shape or should follow broadcasting rules or they should have at least one element equal to zero)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2) - 1] : (if (ndim(v_1) - 1 - i) ≥ 0 then shape(v_1, ndim(v_1) - 1 - i) = 1 ∨ (if (ndim(v_2) - 1 - i) ≥ 0 then shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i) )) ∧ (if (ndim(v_2) - 1 - i) ≥ 0 then shape(v_2, ndim(v_2) - 1 - i) = 1 ∨ (if (ndim(v_1) - 1 - i) ≥ 0 then shape(v_2, ndim(v_2) - 1 - i) = shape(v_1, ndim(v_1) - 1 - i)))) ∨ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0)
+Rule 63 (target values must be between 0 and 1)
+{target: tensor} |= min(target) ≥ 0 ∧ max(target) ≤ 1
 >>
-Rule 24 (If the input and target don't have the same shape, ensure either one is scalar OR they are broadcastable per numpy rules.)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_2) = 0) ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1)-1 else ndim(v_2) - 1] : (if ndim(v_1) - i - 1 ≥ 0 then (shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))) ∧ (if ndim(v_2) - i - 1 ≥ 0 then (shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = shape(v_1, ndim(v_1) - i - 1))))
+Rule 64 (If weight is present then it must be of same shape as input)
+{input: tensor, weight: tensor} |= if weight ≠ true ∧ weight ≠ false then ndim(input) = ndim(weight) ∧ ∀i ∈ [0, ndim(input)-1] : shape(input, i) = shape(weight, i)
 >>
-Rule 25 (Shapes are either equal, or input and target tensors can be broadcasted)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1)-1 else ndim(v_2) - 1] : (if (ndim(v_1) - 1 - i) ≥ 0 then shape(v_1, ndim(v_1) - 1 - i) = 1 ∨ shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i)) ∧ (if (ndim(v_2) - 1 - i) ≥ 0 then shape(v_2, ndim(v_2) - 1 - i) = 1 ∨ shape(v_2, ndim(v_2) - 1 - i) = shape(v_1, ndim(v_1) - 1 - i))
+Rule 70 (If weight is present then it must be a tensor)
+{weight: tensor} |= weight = weight
 >>
-Rule 26 (If input and target tensors are not equal, their number of elements is same or they should follow broadcasting rules )
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1)-1 else ndim(v_2) - 1] : (if (ndim(v_1) - 1 - i) ≥ 0 then shape(v_1, ndim(v_1) - 1 - i) = 1 ∨ shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i)) ∧ (if (ndim(v_2) - 1 - i) ≥ 0 then shape(v_2, ndim(v_2) - 1 - i) = 1 ∨ shape(v_2, ndim(v_2) - 1 - i) = shape(v_1, ndim(v_1) - 1 - i)))) ∨ (min(v_1) > 0 ∧ min(v_2) > 0)
+Rule 74 (If weight is present then its elements should be non-negative)
+{weight: tensor} |= if weight ≠ true ∧ weight ≠ false then min(weight) ≥ 0
 >>
-Rule 27 (Enforce the dimensions to match, or enable broadcasting, or have at least one zero dimension)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1)-1 else ndim(v_2) - 1] : (if (ndim(v_1) - 1 - i) ≥ 0 then shape(v_1, ndim(v_1) - 1 - i) = 1 ∨ shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i)) ∧ (if (ndim(v_2) - 1 - i) ≥ 0 then shape(v_2, ndim(v_2) - 1 - i) = 1 ∨ shape(v_2, ndim(v_2) - 1 - i) = shape(v_1, ndim(v_1) - 1 - i))) ∨ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0)
+Rule 75 (If size_average is present then it must be a boolean)
+{size_average: bool} |= size_average = true ∨ size_average = false
+>>
+Rule 77 (If reduce is present then it must be a boolean)
+{reduce: bool} |= reduce = true ∨ reduce = false
+>>
+Rule 81 (If weight is present then it must be a tensor with float data type)
+{weight: tensor} |= if weight ≠ true ∧ weight ≠ false then dtype_(weight) = 6 ∨ dtype_(weight) = 7 ∨ dtype_(weight) = 8
+>>
+Rule 83 (If weight is present then its elements should be non-negative and have same dtype as input and target)
+{weight: tensor, input: tensor, target: tensor} |= if weight ≠ true ∧ weight ≠ false then min(weight) ≥ 0 ∧ dtype_(weight) = dtype_(input) ∧ dtype_(weight) = dtype_(target)
+>>
+Rule 88 (if size_average and reduce are defined, then only valid reduction values are permitted)
+{size_average: bool, reduce: bool, reduction: str} |= if size_average = true ∨ size_average = false ∨ reduce = true ∨ reduce = false then reduction = "mean" ∨ reduction = "sum" ∨ reduction = "none"
+>>
+Rule 92 (Either size_average or reduce should be defined, but not both)
+{size_average: bool, reduce: bool} |= (size_average = true ∨ size_average = false) ≠ (reduce = true ∨ reduce = false)
+>>
+Rule 98 (size_average and reduce must be valid booleans)
+{size_average: bool, reduce: bool} |= (size_average = true ∨ size_average = false) ∧ (reduce = true ∨ reduce = false)

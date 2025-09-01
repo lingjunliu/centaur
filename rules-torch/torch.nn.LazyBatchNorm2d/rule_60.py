@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor's dtype must be float to avoid RuntimeError: Only Tensors of floating point and complex dtype can require gradients (Rule 60)
+# if input tensor requires grad, it must be float or complex (Rule 60)
 
 rule_60 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)) if n else
-          Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8))
+    s.add(Not(If(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), False, True)) if n else
+          If(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), False, True))
 )
 
 def rule_60_func(arg1, solver=None, neg=False):

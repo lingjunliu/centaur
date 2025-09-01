@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If n is 0, then m must also be 0 (Rule 33)
+# n and m should be smaller than max int to prevent overflow. (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 0, v["arg2_value"] == 0, False)) if n else
-          If(v["arg1_value"] == 0, v["arg2_value"] == 0, False))
+    s.add(Not(And(v["arg1_value"] < 2147483647, v["arg2_value"] < 2147483647)) if n else
+          And(v["arg1_value"] < 2147483647, v["arg2_value"] < 2147483647))
 )
 
 def rule_33_func(arg1, arg2, solver=None, neg=False):

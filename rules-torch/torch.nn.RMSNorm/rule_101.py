@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If dimension one is large, set the next dim to be sane amount to reduce dimension overflow (Rule 101)
+# The normalized shape tuple can not contain zero values (Rule 101)
 
 rule_101 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_shape"], 1) > 1000, Select(v["arg1_shape"], 2) < 100, False)) if n else
-          If(Select(v["arg1_shape"], 1) > 1000, Select(v["arg1_shape"], 2) < 100, False))
+    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) > 0) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) > 0) for i in range(6)]))
 )
 
 def rule_101_func(arg1, solver=None, neg=False):
@@ -17,21 +17,23 @@ def rule_101_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_length = Int('arg1_length')
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_length == len(arg1))
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 101
-        rule_101(solver, {'arg1_shape': arg1_shape})
+        rule_101(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_101(solver, {'arg1_shape': arg1['shape']}, neg)
+        rule_101(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values']}, neg)

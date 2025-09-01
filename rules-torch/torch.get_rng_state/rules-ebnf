@@ -1,282 +1,171 @@
 >>
-Rule 1 (The returned tensor must be a ByteTensor which means its dtype is int.)
-{v_1 : tensor} |= dtype_(v_1) = 5
+Rule 4 (Using returned state in a function that expects a tensor)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ dtype_(v_1) = "uint8"
 >>
-Rule 2 (The returned tensor must have at least one dimension.)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 5 (Shape of a tensor v_1 should be same as the returned rng state)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) = 2944
 >>
-Rule 3 (The shape of the returned tensor should be greater than zero.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 6 (Another tensor's dtype should be the same as the rng state tensor)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = "uint8") = (dtype_(v_2) = "uint8")
 >>
-Rule 4 (Check the data type to be either float16 or float32 or float64)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 8 (Tensor for setting rng state must be compatible)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ dtype_(v_1) = "uint8" ∧ shape(v_1, 0) = 2944
 >>
-Rule 5 (Compare two floating point numbers)
-{v_1 : float, v_2 : float} |= v_1 < v_2
+Rule 10 (If one tensor is uint8, the other must be as well)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "uint8" then dtype_(v_2) = "uint8"
 >>
-Rule 6 (Check the string value to be equal)
-{v_1 : str} |= v_1 = "none"
+Rule 11 (Shape compatibility with a ByteTensor using OR and NOT - Corrected)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≠ 1 ∨ dtype_(v_1) ≠ "uint8") ∨ (ndim(v_2) = 1 ∧ shape(v_2,0) = shape(v_1, 0))
 >>
-Rule 7 (Check the data type to be either bool or int or float)
-{v_1 : tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 12 (If one tensor is uint8, the other must be as well - Using AND)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = "uint8" ∧ dtype_(v_2) = "uint8") ∨ (dtype_(v_1) ≠ "uint8")
 >>
-Rule 8 (Check the data type to be either complex64 or complex128)
-{v_1 : tensor} |= dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 13 (If tensor v_1 is a ByteTensor, then another tensor v_2 used in conjunction must be 1D)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "uint8" then ndim(v_2) = 1
 >>
-Rule 9 (The returned tensor's elements should be in the range of byte)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : min(v_1) ≥ 0 ∧ max(v_1) ≤ 255
+Rule 14 (If tensor v_1 is a ByteTensor with the correct size, v_2 must have same dtype.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "uint8" ∧ shape(v_1, 0) = 2944) then dtype_(v_2) = dtype_(v_1)
 >>
-Rule 10 (Check whether the shape of the tensor is a tuple)
-{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len
+Rule 15 (Tensor `v_2` is compatible for setting the RNG state of tensor `v_1`)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "float" ∨ dtype_(v_1) = "int") then (dtype_(v_2) = "uint8" ∧ ndim(v_2) = 1 ∧ shape(v_2, 0) = 2944)
 >>
-Rule 11 (Check if a dimension of the tensor is equal to an integer value)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) = v_2
+Rule 16 (If tensor v_1 has certain shape, then another tensor v_2 used in conjunction should have the same shape and be of uint8)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 2 ∧ shape(v_1, 0) = 5 ∧ shape(v_1, 1) = 7) then (ndim(v_2) = 1 ∧ dtype_(v_2) = "uint8" ∧ shape(v_2, 0) = 2944)
 >>
-Rule 12 (Ensure the tensor's dtype is not a string)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11
+Rule 17 (If `v_1` is used to set the RNG state, its size must be correct.)
+{v_1 : tensor} |= dtype_(v_1) = "uint8" ∧ ndim(v_1) = 1 ∧ shape(v_1, 0) = 2944
 >>
-Rule 13 (Ensure the tensor's dtype is not a bool)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 18 (Relationship between `v_1` and another tensor `v_2` if `v_1` is a RNG state tensor)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "uint8" ∧ ndim(v_1) = 1 ∧ shape(v_1, 0) = 2944) then (ndim(v_2) ≥ 1 ∧ shape(v_2, 0) > 0)
 >>
-Rule 14 (Check the length of the shape)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 20 (If tensor v_2 has certain shape, then another tensor v_1 used in conjunction must be of uint8 or int or float )
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_2) = 1 ∧ shape(v_2, 0) = 2944) then (dtype_(v_1) = "uint8" ∨ dtype_(v_1) = "int" ∨ dtype_(v_1) = "float")
 >>
-Rule 15 (A dimension in a tensor shape must be a positive integer)
-{v_1 : tensor, v_2 : int} |= shape(v_1, v_2) > 0
+Rule 22 (Tensor to have certain properties to used for operations with ByteTensor)
+{v_1 : tensor} |=  (dtype_(v_1) = "uint8" ∨ dtype_(v_1) = "int" ∨ dtype_(v_1) = "float")
 >>
-Rule 16 (Check shape[0] of the ByteTensor is a multiple of 4.)
-{v_1 : tensor} |= shape(v_1, 0) / 4 = shape(v_1, 0) / 4
+Rule 23 (If tensor is uint8 and ndim is 1 then shape must be some positive integer)
+{v_1 : tensor} |= if (dtype_(v_1) = "uint8" ∧ ndim(v_1) = 1) then shape(v_1, 0) > 0
 >>
-Rule 17 (If tensor has more than one dimension, all shape dimensions must be positive)
-{v_1 : tensor} |= if ndim(v_1) > 1 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 24 (If a tensor v_1 needs to be of size 2944, then another tensor should have some dimension greater than zero)
+{v_1 : tensor, v_2: tensor} |= if shape(v_1, 0) = 2944 then ndim(v_2) > 0
 >>
-Rule 18 (The tensor must have a certain number of elements based on its shape.)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then shape(v_1, 0) = v_2 else false
+Rule 25 (If v_1 is a tensor whose shape is (2944,), then tensor v_2's element should be less than 256)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 1 ∧ shape(v_1, 0) = 2944) then max(v_2) < 256
 >>
-Rule 19 (The shape of the returned tensor should not be greater than maximum value)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1024
+Rule 27 (A bool tensor v_1 and another tensor should not have the same shape if the later one would be used as ByteTensor for RNG)
+{v_1 : tensor, v_2: tensor} |= if dtype_(v_1) = "bool" then (ndim(v_2) = 1 ∧ shape(v_2, 0) = 2944) = false
 >>
-Rule 20 (The number of dimensions should be less than a limit)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) < v_2
+Rule 28 (If tensor v_1 is meant to be a RNG state, then another tensor v_2 should not be an empty tensor)
+{v_1 : tensor, v_2: tensor} |= if (dtype_(v_1) = "uint8" ∧ ndim(v_1) = 1 ∧ shape(v_1, 0) = 2944) then (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0) = false
 >>
-Rule 21 (The byte tensor should have a minimum size.)
-{v_1 : tensor} |= shape(v_1, 0) ≥ 1024
+Rule 29 (If tensor v_1's shape has a value of 2944, then another tensor v_2 must be a primitive type)
+{v_1 : tensor, v_2: tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 2944 then (dtype_(v_2) = "int" ∨ dtype_(v_2) = "float" ∨ dtype_(v_2) = "bool")
 >>
-Rule 22 (Check if tensor is one dimensional and its elements are non-negative.)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ min(v_1) ≥ 0
+Rule 30 (If tensor v_1 has a certain property, v_2 cannot be that kind of tensor)
+{v_1 : tensor, v_2: tensor} |= if (dtype_(v_1) = "uint8" ∧ ndim(v_1) = 1) then (dtype_(v_2) = "uint8" ∧ ndim(v_2) = 1) = false
 >>
-Rule 23 (Check whether the tensor is two dimensional)
-{v_1 : tensor} |= ndim(v_1) = 2
+Rule 31 (If tensor v_1 has certain properties, v_2 can not be a tensor)
+{v_1 : tensor, v_2: tensor} |= if (dtype_(v_1) = "uint8" ∧ ndim(v_1) = 1 ∧ shape(v_1, 0) = 2944) then (dtype_(v_2) = "tensor") = false
 >>
-Rule 25 (Check that at least one of the dimensions is greater than zero.)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 32 (If the 0th element of tensor v_1 has a value of something, tensor v_2 should also be the same.)
+{v_1 : tensor, v_2 : tensor, p_1 : int} |= if shape(v_1, 0) = p_1 then shape(v_2, 0) = p_1
 >>
-Rule 26 (The tensor cannot have a dimension of size zero)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+Rule 33 (If a tensor is a 1D ByteTensor, then any other tensor should be able to be added to a float)
+{v_1: tensor, v_2: float} |= if (dtype_(v_1) = "uint8" ∧ ndim(v_1) = 1) then v_2 + 1 > 0
 >>
-Rule 27 (Check the tensor's dimension to be less than or equals to 3)
-{v_1 : tensor} |= ndim(v_1) ≤ 3
+Rule 34 (A list and a tensor cannot have the same length of dimensions if the other tensor is going to be a bytetensor used for setting RNG)
+{v_1 : tensor, v_2 : list(int)} |= if (dtype_(v_1) = "uint8" ∧ ndim(v_1) = 1) then v_2.len ≠ ndim(v_1)
 >>
-Rule 28 (Check all the dimension size of the tensor to be greater than 1)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1
+Rule 35 (if a tensor's first dimension matches 2944, then the other tensor's last dimension must also match 2944)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) = 2944 then shape(v_2, ndim(v_2)-1) = 2944
 >>
-Rule 29 (The sum of the dimensions must be greater than a given integer.)
-{v_1 : tensor, v_2 : int} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i)) > v_2
+Rule 36 (if a tensor's dtype is "uint8" and ndim is one, then another tensor can't have a minimum value less than 0)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "uint8" ∧ ndim(v_1) = 1) then min(v_2) ≥ 0
 >>
-Rule 30 (If the number of dimensions is 2, then both dimensions should be positive.)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+Rule 37 (If v_1 is ByteTensor used to set RNG state, the number of elements in v_2 should be greater than zero)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "uint8" ∧ ndim(v_1) = 1 ∧ shape(v_1, 0) = 2944) then ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
 >>
-Rule 31 (Check the data type to be either np.int8, np.int16, np.int32, np.int64)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 41 (If v_1 is a ByteTensor used to set the RNG state, then another tensor v_2 must be used with it)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "uint8" ∧ ndim(v_1) = 1 ∧ shape(v_1, 0) = 2944) then ndim(v_2) > 0
 >>
-Rule 33 (The tensor shape must be a multiple of a certain number)
-{v_1 : tensor, v_2 : int} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) / v_2) = (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) / v_2)
+Rule 42 (If v_1 has dtype of uint8, another tensor v_2 used in conjunction must have positive elements for shape)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "uint8" ∧ ndim(v_1) = 1) then  ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
 >>
-Rule 34 (If tensor is empty, the number of dimensions must be zero.)
-{v_1 : tensor} |= if shape(v_1, 0) = 0 then ndim(v_1) = 0
+Rule 43 (If v_1 is a bytetensor and to be used for the RNG, then v_2 must be 1-d)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "uint8" ∧ shape(v_1, 0) = 2944) then ndim(v_2) = 1
 >>
-Rule 35 (The max value is less than a constant value)
-{v_1 : tensor} |= max(v_1) < 256
+Rule 44 (If v_2 is a 1-d bytetensor, then for v_1, minimum of v_1 should be less than 256.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) = "uint8" ∧ ndim(v_2) = 1) then min(v_1) < 256
 >>
-Rule 36 (Compare the first two shapes with the first dimension)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1,0) = shape(v_2, 0)
+Rule 45 (If v_1 is a bytetensor with a certain shape, then the max of another tensor v_2 should be less than 256)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "uint8" ∧ shape(v_1, 0) = 2944) then max(v_2) < 256
 >>
-Rule 39 (The mean of the elements must be less than a value)
-{v_1 : tensor, v_2 : float} |= min(v_1) < v_2
+Rule 46 (If v_1 has the correct shape and is a bytetensor used for setting RNG state, v_2 can't have 0 dimensions.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "uint8" ∧ ndim(v_1) = 1 ∧ shape(v_1, 0) = 2944) then ndim(v_2) ≠ 0
 >>
-Rule 46 (The shape of the tensor should be non-decreasing)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) ≤ shape(v_1, i + 1)
+Rule 47 (if v_1 is a bytetensor, then tensor v_2 cannot have a maximum which is less than 0.)
+{v_1 : tensor, v_2: tensor} |= if dtype_(v_1) = "uint8" then max(v_2) ≥ 0
 >>
-Rule 48 (The minimum value of tensor is above a constant)
-{v_1 : tensor, v_2 : float} |= min(v_1) > v_2
+Rule 48 (If v_1 is a ByteTensor with the state data, then v_2 shape is 2x something)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "uint8" ∧ shape(v_1, 0) = 2944) then (ndim(v_2) = 2)
 >>
-Rule 50 (The number of elements in the tensor must be a power of 2)
-{v_1 : tensor} |= ∃i ∈ [0, 10] : shape(v_1, 0) = 2 * i
+Rule 49 (Tensor v1 used as ByteTensor with state data implies v2 should have more elements than the state itself)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "uint8" ∧ shape(v_1, 0) = 2944) then  ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > shape(v_1, 0)
 >>
-Rule 51 (If the dtype is a complex number, the tensor's dimension must be greater than 1.)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ndim(v_1) > 1
+Rule 50 (If v1 will be used as a state data, the min of another tensor has to be less than 256 and larger than 0)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "uint8" ∧ shape(v_1, 0) = 2944) then 0 ≤ min(v_2) ∧ min(v_2) < 256
 >>
-Rule 52 (Check tensor element is less than given integer)
-{v_1 : tensor, v_2 : int} |= min(v_1) < v_2
+Rule 51 (If tensor v_1 is used as byte tensor to set RNG and another one's max is greater than 100, all elements needs to be less than 256)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "uint8" ∧ shape(v_1, 0) = 2944 ∧ max(v_2) > 100) then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) < 256
 >>
-Rule 53 (Check string length is more than the value)
-{v_1 : str, v_2 : int} |= v_1.len > v_2
+Rule 52 (The dimensions for v_2 have to be less than dimensions for another tensor, v_1, if it were to be used for ByteTensor for setting the RNG)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "uint8" ∧ shape(v_1, 0) = 2944) then ndim(v_2) < ndim(v_1)
 >>
-Rule 54 (The shape of the tensor should be increasing order or equal)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) <= shape(v_1, i + 1)
+Rule 53 (If tensor v_1 is of a certain type, then tensor v_2 has to have some element that are positive in shape)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "uint8" then ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
 >>
-Rule 59 (The sum of the elements in the shape should be less than constant value)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i)) < v_2
+Rule 54 (If one tensor was meant for RNG data, the other one has to be of dimension one.)
+{v_1 : tensor, v_2 : tensor} |= if (shape(v_1, 0) = 2944) then ndim(v_2) = 1
 >>
-Rule 60 (Compare the minimum value to the maximum value)
-{v_1 : tensor} |= min(v_1) ≤ max(v_1)
+Rule 55 (If we have v1 as ByteTensor to store RNG data, it has to have at least 1 element and max value has to be less than 256 and larger than 0)
+{v_1 : tensor} |= dtype_(v_1) = "uint8" ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ max(v_1) < 256 ∧ min(v_1) ≥ 0
 >>
-Rule 61 (If the tensor has one dimension, its shape must match a constant value)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then shape(v_1, 0) = v_2
+Rule 58 (If v_1 is a tensor whose values are similar, it shouldn't be a shape of bytetensor because that value of data won't be useful)
+{v_1 : tensor} |= if (min(v_1) = max(v_1)) then (dtype_(v_1) = "uint8" ∧ shape(v_1, 0) = 2944 ∧ ndim(v_1) = 1) = false
 >>
-Rule 62 (The maximum value of the tensor should be a non-negative value)
-{v_1 : tensor} |= max(v_1) ≥ 0
+Rule 59 (If v_1 and v_2 are tensors with similar shapes, they cannot both be used as bytetensor)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = ndim(v_2) ∧ shape(v_1, 0) = shape(v_2, 0)) then (dtype_(v_1) = "uint8" ∧ dtype_(v_2) = "uint8") = false
 >>
-Rule 64 (Check that all shape dimensions are less than a certain value.)
-{v_1 : tensor, v_2 : int} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < v_2
+Rule 60 (If v_1 is 1-d and ByteTensor then all elements of v_2 should be used for certain usage like indexing)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 1 ∧ dtype_(v_1) = "uint8") then ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) ≠ 0
 >>
-Rule 65 (If shape(v_1,0) is larger than a constant, then shape(v_1,1) should also be larger than a constant.)
-{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) > v_2 then shape(v_1, 1) > v_2
+Rule 61 (If v_1 has a shape such that the shape first value equals to the shape last value, that shouldn't affect another tensor shape if v_1 could be used for setting a RNG value)
+{v_1 : tensor, v_2 : tensor} |= if (shape(v_1, 0) = shape(v_1, ndim(v_1) - 1)) then (dtype_(v_2) = "uint8" ∧ shape(v_2, 0) = 2944) = false
 >>
-Rule 66 (Tensor shape matches a constant)
-{v_1 : tensor, v_2 : int} |= shape(v_1,0) = v_2
+Rule 62 (If ByteTensor is used and it needs more elements, then for other tensor elements have to be 255 and more.)
+{v_1 : tensor, v_2: tensor} |= if (dtype_(v_1) = "uint8" ∧ shape(v_1, 0) = 2944) then  ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) ≥ 255
 >>
-Rule 68 (The shape of tensor can only be 1024, 2048, 4096)
-{v_1 : tensor} |= shape(v_1, 0) = 1024 ∨ shape(v_1, 0) = 2048 ∨ shape(v_1, 0) = 4096
+Rule 63 (All tensor dimensions have to be same if they are ByteTensor)
+{v_1 : tensor, v_2: tensor} |= if dtype_(v_1) = "uint8" ∧ dtype_(v_2) = "uint8" then shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 72 (The maximum value of the tensor should be greater than the minimum value plus a constant.)
-{v_1 : tensor, v_2 : int} |= max(v_1) > min(v_1) + v_2
+Rule 64 (If one tensor has shape 2944 and dtype uint8, then another tensor cannot have dimension 0)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "uint8" ∧ shape(v_1, 0) = 2944) then ndim(v_2) ≠ 0
 >>
-Rule 74 (Check that if tensor has two dimensions, then sum of these two dimensions is larger than given integer.)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then shape(v_1, 0) + shape(v_1, 1) > v_2
+Rule 65 (If one tensor has shape 2944 and dtype uint8, then max of the other tensor can't be a very huge number)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "uint8" ∧ shape(v_1, 0) = 2944) then max(v_2) < 10000
 >>
-Rule 75 (The tensor must be square if it has two dimensions)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) = shape(v_1, 1)
+Rule 67 (Shape of v2 at any dimension, if another is ByteTensor, then cannot be a huge number)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "uint8" then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) < 5000
 >>
-Rule 76 (If the tensor shape is 0, the tensor is empty)
-{v_1 : tensor} |= if shape(v_1, 0) = 0 then true else false
+Rule 70 (If v_1 is an RNG state tensor then another tensor cannot have very different size elements.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "uint8" then max(v_2) - min(v_2) < 1000
 >>
-Rule 78 (Tensor must have number of elements same with constant value)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then shape(v_1,0) = v_2 else false
+Rule 72 (if v_1 can be used for RNG state, it implies v_2's 0th dimension should be a small number. This tests numbers.)
+{v_1 : tensor, v_2: tensor} |= if dtype_(v_1) = "uint8" ∧ ndim(v_1) = 1 then shape(v_2, 0) < 100
 >>
-Rule 82 (The maximum value of the tensor should be greater than or equal to the minimum value multiplied by a positive number)
-{v_1 : tensor, v_2 : int} |= max(v_1) ≥ min(v_1) * v_2
+Rule 73 (If v_1 is RNG and dimension 0 is some number, then other's last dim can be the same)
+{v_1 : tensor, v_2: tensor, p_1 : int} |= if (dtype_(v_1) = "uint8" ∧ shape(v_1, 0) = 2944 ∧ shape(v_1, 0) = p_1) then shape(v_2, ndim(v_2) - 1) = p_1
 >>
-Rule 85 (If the tensor has more than 1 dimensions, the dimensions cannot be the same)
-{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, 0) ≠ shape(v_1, 1)
->>
-Rule 86 (The minimum value of the tensor is 0)
-{v_1 : tensor} |= min(v_1) = 0
->>
-Rule 87 (If max value is larger than a constant, dtype should be one of float types)
-{v_1 : tensor, v_2 : int} |= if max(v_1) > v_2 then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
->>
-Rule 88 (String length is less than the specified maximum length)
-{v_1 : str, v_2 : int} |= v_1.len < v_2
->>
-Rule 89 (Check that the sum of the squares of the shape is less than a constant.)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) * shape(v_1, i)) < v_2
->>
-Rule 94 (The product of all shape values of the tensor must be less than or equal to constant)
-{v_1 : tensor, v_2 : int} |=  (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i)) ≤ v_2
->>
-Rule 95 (Check that the tensor shape is larger than a constant number)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) > v_2
->>
-Rule 96 (If the max value of a tensor is equal to a number, the min value must also be this number)
-{v_1 : tensor, v_2 : int} |= if max(v_1) = v_2 then min(v_1) = v_2
->>
-Rule 97 (The minimum shape value is greater than the maximum shape value)
-{v_1 : tensor} |= min(v_1) > max(v_1)
->>
-Rule 98 (The String value is not contained in this list ["ii", "ii->i", "i,j->ij"])
-{v_1 : str} |= v_1 ≠ "ii" ∧ v_1 ≠ "ii->i" ∧ v_1 ≠ "i,j->ij"
->>
-Rule 100 (If the first shape dimension of the tensor is 0, then the minimum value of the tensor is 0)
-{v_1 : tensor} |= if shape(v_1, 0) = 0 then min(v_1) = 0
->>
-Rule 102 (The maximum value should be divisible by two)
-{v_1 : tensor} |= max(v_1) / 2 = max(v_1) / 2
->>
-Rule 103 (The String value cannot be equal to this string "tanh")
-{v_1 : str} |= v_1 ≠ "tanh"
->>
-Rule 104 (Check that if the shape of tensor is larger than given value and has only one dimension)
-{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) > v_2 ∧ ndim(v_1) = 1 then true else false
->>
-Rule 106 (The dimension cannot be larger than 10)
-{v_1 : tensor} |= ndim(v_1) < 10
->>
-Rule 111 (The shape must have same value for all dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_1, 0)
->>
-Rule 112 (The minimum value is within this range [-10,10])
-{v_1 : tensor} |= min(v_1) ≥ -10 ∧ min(v_1) ≤ 10
->>
-Rule 113 (The String value must be one of value in this list ["none", "mean", "sum", "max"])
-{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max"
->>
-Rule 114 (If the tensor has more than one dimension, check that the sum of the shape is not equal to zero.)
-{v_1 : tensor} |= if ndim(v_1) > 1 then  (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i)) ≠ 0
->>
-Rule 117 (If the maximum value is 255, its dtype should be np.uint8)
-{v_1 : tensor} |= if max(v_1) = 255 then dtype_(v_1) = 5
->>
-Rule 120 (The product of its dimensions must not be a prime number.)
-{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i)) = 1
->>
-Rule 121 (The minimum shape must be more than given value)
-{v_1 : tensor, v_2 : int} |= min(v_1) > v_2
->>
-Rule 123 (The String value must be one of value in this list ["constant", "tanh"])
-{v_1 : str} |= v_1 = "constant" ∨ v_1 = "tanh"
->>
-Rule 124 (Check if the dimensions of the tensor are equal to an integer or float value.)
-{v_1 : tensor, v_2 : int ⊎ float} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i)) = v_2
->>
-Rule 128 (The String value must be one of value in this list ["constant", "tanh", "none", "mean", "sum", "max", "bn,anm,bm->ba"])
-{v_1 : str} |= v_1 = "constant" ∨ v_1 = "tanh" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "bn,anm,bm->ba"
->>
-Rule 130 (If all tensor elements are the same, then the min and max values are equal.)
-{v_1 : tensor} |= if (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[0] = v_1[i]) then min(v_1) = max(v_1)
->>
-Rule 131 (If a dimension has same length as another tensor)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
->>
-Rule 133 (The String value must be one of value in this list ["constant", "tanh", "none", "mean", "sum", "max", "bn,anm,bm->ba", "ii", "ii->i", "i,j->ij", "...ij->...ji"])
-{v_1 : str} |= v_1 = "constant" ∨ v_1 = "tanh" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "...ij->...ji"
->>
-Rule 134 (Check if the dimensions of the tensor are greater than or equal to an integer.)
-{v_1 : tensor, v_2 : int} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i)) ≥ v_2
->>
-Rule 137 (Check whether the shape of tensor is equal to another tensor ndim)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = ndim(v_2)
->>
-Rule 138 (The String value must be one of value in this list ["constant", "tanh", "none", "mean", "sum", "max", "bn,anm,bm->ba", "ii", "ii->i", "i,j->ij", "...ij->...ji", "bij,bjk->bik"])
-{v_1 : str} |= v_1 = "constant" ∨ v_1 = "tanh" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bij,bjk->bik"
->>
-Rule 140 (The number of dimensions of tensor is either 1 or 2)
-{v_1 : tensor} |= ndim(v_1) = 1 ∨ ndim(v_1) = 2
->>
-Rule 142 (Check whether the shape of tensor's elements are only 1, 2, 3, 4, 5)
-{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1 ∨ shape(v_1, i) = 2 ∨ shape(v_1, i) = 3 ∨ shape(v_1, i) = 4 ∨ shape(v_1, i) = 5)
->>
-Rule 144 (Check that each dimensions are larger than an integer)
-{v_1 : tensor, v_2 : int} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > v_2
->>
-Rule 146 (If a dimension has same length as another list)
-{v_1 : tensor, v_2 : list(int)} |= shape(v_1, 0) = v_2.len
->>
-Rule 147 (If the shape matches constant value, then the minimum value must be positive)
-{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) = v_2 then min(v_1) > 0
->>
-Rule 148 (The String value cannot contains these strings ["none", "mean", "sum", "max", "bn,anm,bm->ba"])
-{v_1 : str} |= v_1 ≠ "none" ∧ v_1 ≠ "mean" ∧ v_1 ≠ "sum" ∧ v_1 ≠ "max" ∧ v_1 ≠ "bn,anm,bm->ba"
->>
-Rule 150 (Check if all of the tensor element's value are equal)
-{v_1 : tensor} |= ∀i ∈ [1, shape(v_1, 0) - 1] : v_1[0] = v_1[i]
+Rule 74 (If RNG, then dimension sum is greater than some number)
+{v_1 : tensor, p_1 : int} |= if dtype_(v_1) = "uint8" then shape(v_1, 0) > p_1

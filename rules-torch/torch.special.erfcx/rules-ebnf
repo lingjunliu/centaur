@@ -1,66 +1,138 @@
 >>
-Rule 1 (input tensor should not be Half (float16))
-{v_1 : tensor} |= dtype_(v_1) ≠ 7
+Rule 1 (input tensor should not have Half (float16) dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ "float16"
 >>
-Rule 2 (input tensor dtype should be float or double)
-{v_1 : tensor} |= dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
+Rule 2 (input tensor must have a floating-point dtype)
+{v_1 : tensor} |= dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64"
 >>
-Rule 3 (output tensor dtype should be float if input is float)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) = 8 else if dtype_(v_1) = 9 then dtype_(v_2) = 9
+Rule 3 (input tensor must have at least one element)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 4 (out tensor must have same shape as input tensor)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 4 (output tensor dtype must be the same as input tensor's dtype, if provided)
+{v_1 : tensor, v_2 : tensor} |= if v_2 = none then true else dtype_(v_1) = dtype_(v_2)
 >>
-Rule 6 (if out tensor is provided, it must have floating point dtype)
-{v_1 : tensor} |= if v_1.len > 0 then (dtype_(v_1) = 8 ∨ dtype_(v_1) = 9)
+Rule 5 (if out tensor is provided, its shape should be the same as input tensor's shape)
+{v_1 : tensor, v_2 : tensor} |= if v_2 = none then true else (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 7 (if out tensor is provided, it must have the same dtype as input tensor)
-{v_1 : tensor, v_2 : tensor} |= if v_2.len > 0 then dtype_(v_2) = dtype_(v_1)
+Rule 7 (output tensor, if provided, should have a compatible dtype)
+{v_1 : tensor, v_2 : tensor} |= if v_2 = none then true else (dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" ∨ dtype_(v_2) = dtype_(v_1))
 >>
-Rule 8 (input tensor cannot have complex dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+Rule 9 (if output tensor is provided, its shape must match the input tensor's shape)
+{v_1 : tensor, v_2 : tensor} |= if v_2 = none then true else (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)))
 >>
-Rule 9 (input tensor should have dimension greater than 0)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 11 (input tensor dtype must be float32, float64, or complex types)
+{v_1 : tensor} |= dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128"
 >>
-Rule 10 (shape of input tensor must be greater than 0 for all dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 13 (If out is provided, the data type should be the same as input)
+{v_1: tensor, v_2: tensor} |= if v_2 = none then true else dtype_(v_1) = dtype_(v_2)
 >>
-Rule 11 (if out tensor is specified, its dtype must be same as the input's dtype)
-{v_1: tensor, v_2: tensor} |= if v_2.len > 0 then dtype_(v_1) = dtype_(v_2)
+Rule 14 (Input tensor's values should be in a reasonable range to avoid overflow)
+{v_1 : tensor} |= min(v_1) > -100 ∧ max(v_1) < 100
 >>
-Rule 12 (if out tensor is specified, it must have same storage as the input)
-{v_1 : tensor, v_2 : tensor} |= if v_2.len > 0 then ndim(v_1) = ndim(v_2)
+Rule 17 (If the 'out' tensor is provided, it needs to be of floating point dtype.)
+{v_1 : tensor} |= if v_1 = none then true else (dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64")
 >>
-Rule 13 (if out tensor is specified, all shape dimensions must be positive)
-{v_1: tensor} |= if v_1.len > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+Rule 18 (Input values should not be too large.)
+{v_1 : tensor} |= max(v_1) < 1000
 >>
-Rule 14 (if out tensor is specified, its shape must be same as the input's shape)
-{v_1: tensor, v_2: tensor} |= if v_2.len > 0 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 19 (Input values should not be too small.)
+{v_1 : tensor} |= min(v_1) > -1000
 >>
-Rule 17 (Input must be a floating point tensor)
-{v_1 : tensor} |= (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9)
+Rule 20 (If output tensor is provided, it should have the same number of dimensions as the input tensor.)
+{v_1 : tensor, v_2 : tensor} |= if v_2 = none then true else ndim(v_1) = ndim(v_2)
 >>
-Rule 18 (Input tensor dtype must be float32 or float64)
-{v_1: tensor} |= (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9)
+Rule 22 (If an output tensor is provided, ensure its dtype is appropriate)
+{v_2 : tensor} |= if v_2 = none then true else (dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" ∨ dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128")
 >>
-Rule 20 (input tensor cannot be of dtype bool, int8, int16, int32, int64, uint8)
-{v_1 : tensor} |= (dtype_(v_1) ≠ 0) ∧ (dtype_(v_1) ≠ 1) ∧ (dtype_(v_1) ≠ 2) ∧ (dtype_(v_1) ≠ 3) ∧ (dtype_(v_1) ≠ 4) ∧ (dtype_(v_1) ≠ 5)
+Rule 23 (Prevent overflow by limiting the maximum absolute value of input)
+{v_1 : tensor} |= max(v_1) < 500 ∧ min(v_1) > -500
 >>
-Rule 28 (Input tensor must be either float32 or float64)
-{v_1 : tensor} |= ∃ dtype ∈ [8, 9] : dtype_(v_1) = dtype
+Rule 25 (Input tensor should not be empty)
+{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
 >>
-Rule 32 (If out tensor is specified, both input and output must be float32 or float64)
-{v_1: tensor, v_2: tensor} |= if v_2.len > 0 then ((dtype_(v_1) = 8 ∨ dtype_(v_1) = 9) ∧ (dtype_(v_2) = 8 ∨ dtype_(v_2) = 9)) else (dtype_(v_1) = 8 ∨ dtype_(v_1) = 9)
+Rule 27 (Limit the absolute value of the smallest element in the input to avoid underflow)
+{v_1 : tensor} |= min(v_1) > -500
 >>
-Rule 33 (If the input tensor is not a Half tensor, the rule holds)
-{v_1: tensor} |= if (dtype_(v_1) = 7) then false
+Rule 28 (Limit the absolute value of the largest element in the input to prevent overflow.)
+{v_1 : tensor} |= max(v_1) < 500
 >>
-Rule 35 (If input has more than 2 dimensions, it cannot be float16)
-{v_1 : tensor} |= if ndim(v_1) > 2 then dtype_(v_1) ≠ 7
+Rule 32 (The absolute values of the elements in the input tensor should not exceed a threshold to prevent potential overflow or underflow issues)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1] : min(v_1) > -500 ∧ max(v_1) < 500
 >>
-Rule 37 (The minimum value of the input tensor cannot be less than itself if the dtype is Half, and must always be greater than -inf)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then min(v_1) ≥ min(v_1) else min(v_1) > -1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0
+Rule 33 (If an output tensor is provided, ensure that it's of the same shape and dtype of the input tensor)
+{v_1 : tensor, v_2 : tensor} |= if v_2 = none then true else (dtype_(v_1) = dtype_(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)))
 >>
-Rule 38 (Ensuring the input tensor is not Half by including a dummy check)
-{v_1 : tensor, v_dummy : int} |= dtype_(v_1) ≠ 7 ∨ v_dummy = 0
+Rule 37 (Handle extreme values in input tensor to prevent potential overflow during computation.)
+{v_1 : tensor} |= min(v_1) > -600 ∧ max(v_1) < 600
+>>
+Rule 40 (The number of dimensions in output if provided should match the input tensor)
+{v_1: tensor, v_2: tensor} |= if v_2 = none then true else ndim(v_1) = ndim(v_2)
+>>
+Rule 43 (Values of input tensor should be within reasonable bounds)
+{v_1 : tensor} |= min(v_1) > -700 ∧ max(v_1) < 700
+>>
+Rule 47 (To avoid potential overflow, input values should be reasonably bounded.)
+{v_1 : tensor} |= min(v_1) > -800 ∧ max(v_1) < 800
+>>
+Rule 52 (The minimum and maximum values of the input should be within reasonable limits.)
+{v_1 : tensor} |= min(v_1) > -900 ∧ max(v_1) < 900
+>>
+Rule 55 (Input must be a floating point or complex tensor)
+{v_1: tensor} |= dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128"
+>>
+Rule 57 (Ensure input values are within reasonable bounds for numerical stability.)
+{v_1 : tensor} |= min(v_1) > -1000 ∧ max(v_1) < 1000
+>>
+Rule 62 (Input tensor's elements shouldn't cause overflow; absolute values should be within a limit.)
+{v_1 : tensor} |= (min(v_1) > -1100) ∧ (max(v_1) < 1100)
+>>
+Rule 67 (Limit maximum and minimum values of the input tensor to prevent potential overflows.)
+{v_1 : tensor} |= (min(v_1) > -1200) ∧ (max(v_1) < 1200)
+>>
+Rule 73 (Handle large input values, to prevent overflow errors in calculation)
+{v_1 : tensor} |= (min(v_1) > -1300) ∧ (max(v_1) < 1300)
+>>
+Rule 77 (Input tensor values must not be excessively large to prevent numerical instability.)
+{v_1 : tensor} |= max(v_1) < 1400 ∧ min(v_1) > -1400
+>>
+Rule 82 (Limit input tensor values to avoid overflow.)
+{v_1 : tensor} |= max(v_1) < 1500 ∧ min(v_1) > -1500
+>>
+Rule 87 (To prevent potential overflows or underflows, limit the range of input values.)
+{v_1 : tensor} |= min(v_1) > -1600 ∧ max(v_1) < 1600
+>>
+Rule 92 (Ensure input tensor values are within appropriate limits to avoid potential overflow.)
+{v_1 : tensor} |= max(v_1) < 1700 ∧ min(v_1) > -1700
+>>
+Rule 97 (The values in input should be bounded to avoid overflow)
+{v_1 : tensor} |= max(v_1) < 1800 ∧ min(v_1) > -1800
+>>
+Rule 102 (To prevent numerical overflow, the values of the input tensor should be within a reasonable bound)
+{v_1 : tensor} |= (min(v_1) > -1900) ∧ (max(v_1) < 1900)
+>>
+Rule 107 (Handle potentially large inputs to prevent overflows)
+{v_1 : tensor} |= max(v_1) < 2000 ∧ min(v_1) > -2000
+>>
+Rule 112 (Prevent overflow by ensuring input values are within reasonable bounds)
+{v_1 : tensor} |= min(v_1) > -2000 ∧ max(v_1) < 2000
+>>
+Rule 117 (Limit input values range to avoid overflow/underflow)
+{v_1 : tensor} |= min(v_1) > -2100 ∧ max(v_1) < 2100
+>>
+Rule 122 (Input tensor should not contain extremely large values that lead to overflows)
+{v_1 : tensor} |= min(v_1) > -2200 ∧ max(v_1) < 2200
+>>
+Rule 123 (If an output tensor is passed to the erfcx, it must be of a compatible type)
+{v_2: tensor} |= if v_2 = none then true else (dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" ∨ dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128")
+>>
+Rule 127 (Limit input values to prevent potential overflow during computation)
+{v_1 : tensor} |= max(v_1) < 2300 ∧ min(v_1) > -2300
+>>
+Rule 132 (Limit input values to a safe range to prevent potential overflow during the computation)
+{v_1 : tensor} |= max(v_1) < 2400 ∧ min(v_1) > -2400
+>>
+Rule 137 (To avoid overflow during the exponentiation, the element values of the input should be limited)
+{v_1 : tensor} |= min(v_1) > -2500 ∧ max(v_1) < 2500
+>>
+Rule 142 (Input tensor must not contain extremely large or small values that will lead to overflow during the computation of `erfcx`)
+{v_1 : tensor} |= min(v_1) > -2600 ∧ max(v_1) < 2600

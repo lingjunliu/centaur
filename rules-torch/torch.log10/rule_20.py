@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Output tensor must be at least float if input is float16, int8, int16, int32, int64 or uint8 (Rule 20)
+# The output tensor's dtype should be at least float16 if the input tensor's dtype is int8, int16, int32, int64, uint8 (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(If((Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6)), v["arg2_dtype"] >= 7, False)) if n else
-          If((Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6)), v["arg2_dtype"] >= 7, False))
+    s.add(Not(If(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg2_dtype"] >= 6, True)) if n else
+          If(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg2_dtype"] >= 6, True))
 )
 
 def rule_20_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The combined result of all, ensure to have a non-negative value (Rule 108)
+# If kernel_size, stride, dilation, padding are of type tuple, then their lengths should match (Rule 108)
 
 rule_108 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 2) + (2 * v["arg2_value"]) > v["arg3_value"]) if n else
-          Select(v["arg1_shape"], 2) + (2 * v["arg2_value"]) > v["arg3_value"])
+    s.add(Not(And(v["arg1_length"] == v["arg2_length"], v["arg1_length"] == v["arg3_length"])) if n else
+          And(v["arg1_length"] == v["arg2_length"], v["arg1_length"] == v["arg3_length"]))
 )
 
 def rule_108_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -19,29 +19,28 @@ def rule_108_func(arg1, arg2, arg3, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
-        if not (isinstance(arg3, (int, np.integer)) and not isinstance(arg3, bool)):
+        if not (isinstance(arg3, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg3)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_value = Int('arg2_value')
-        arg3_value = Int('arg3_value')
+        arg1_length = Int('arg1_length')
+        arg2_length = Int('arg2_length')
+        arg3_length = Int('arg3_length')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_value == int(arg2))
-        solver.add(arg3_value == int(arg3))
+        solver.add(arg1_length == len(arg1))
+        solver.add(arg2_length == len(arg2))
+        solver.add(arg3_length == len(arg3))
 
         # Constraints for rule 108
-        rule_108(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
+        rule_108(solver, {'arg1_length': arg1_length, 'arg2_length': arg2_length, 'arg3_length': arg3_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_108(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)
+        rule_108(solver, {'arg1_length': arg1['length'], 'arg2_length': arg2['length'], 'arg3_length': arg3['length']}, neg)

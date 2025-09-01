@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The dimension indices must be valid for the given tensor and cannot be equal (Rule 40)
+# combined constraint for valid dimensions and avoids duplicate dims (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
     s.add(Not(And(And(And(And((0 - v["arg1_ndim"]) <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"]), (0 - v["arg1_ndim"]) <= v["arg3_value"]), v["arg3_value"] < v["arg1_ndim"]), v["arg2_value"] != v["arg3_value"])) if n else

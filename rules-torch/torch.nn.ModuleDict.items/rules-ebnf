@@ -1,252 +1,162 @@
 >>
-Rule 1 (key should be a non-empty string)
-{v_1 : str} |= v_1.len > 0
->>
-Rule 3 (Check that the returned module is a valid torch module)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
->>
-Rule 4 (module dict key is not null.)
+Rule 4 (ModuleDict should not contain modules with empty strings as names.)
 {v_1 : str} |= v_1 ≠ ""
 >>
-Rule 5 (check the module in module dict is not None)
-{v_1 : tensor} |= v_1 ≠ false ∧ v_1 ≠ true
->>
-Rule 7 (module should have a non-zero number of parameters)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 8 (Check that the returned module is a valid torch module, has at least one dimension)
+Rule 7 (ModuleDict values must be tensors with non-zero dimensions)
 {v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 10 (check the module in module dict is not None, valid boolean check)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 8 (Values inside the ModuleDict should have floating point dtypes)
+{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
 >>
-Rule 11 (module should have a specific dtype)
-{v_1 : tensor} |= dtype_(v_1) = 7
+Rule 9 (ModuleDict values must be non-null (not None))
+{v_1 : bool} |= v_1 = true
 >>
-Rule 12 (key string should not be one of the reserved words)
-{v_1 : str} |= v_1 ≠ "none" ∧ v_1 ≠ "mean" ∧ v_1 ≠ "sum" ∧ v_1 ≠ "max"
+Rule 10 (ModuleDict values, if tensors, must have compatible dtypes with a given dtype_)
+{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) = v_2
 >>
-Rule 13 (module has minimum number of dimension)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) ≥ v_2
+Rule 12 (If the ModuleDict contains a submodule with a specific name, it must have at least one parameter.)
+{v_1 : str, v_2 : tensor} |= if v_1 = "weight" then ndim(v_2) > 0
 >>
-Rule 14 (the dtype of the tensor in ModuleDict should be an int or float)
-{v_1: tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 13 (ModuleDict values, if tensors, must have valid shapes.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 15 (module's dtype should be within a valid range)
-{v_1: tensor} |= 0 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 12
+Rule 14 (If a submodule has a parameter named 'bias', it should be a 1D tensor.)
+{v_1 : str, v_2 : tensor} |= if v_1 = "bias" then ndim(v_2) = 1
 >>
-Rule 19 (Check key in module dict starts with a letter)
-{v_1: str} |= "a" ≤ v_1[0] ∧ v_1[0] ≤ "z" ∨ "A" ≤ v_1[0] ∧ v_1[0] ≤ "Z"
+Rule 16 (ModuleDict values, if tensors, must have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 20 (key string should be a valid identifier)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : ("a" ≤ v_1[i] ∧ v_1[i] ≤ "z") ∨ ("A" ≤ v_1[i] ∧ v_1[i] ≤ "Z") ∨ ("0" ≤ v_1[i] ∧ v_1[i] ≤ "9") ∨ v_1[i] = "_"
+Rule 17 (ModuleDict values, if tensors, should have a supported dtype.)
+{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11
 >>
-Rule 21 (tensor must have at least two dimensions)
-{v_1 : tensor} |= ndim(v_1) ≥ 2
+Rule 18 (If a submodule has a parameter named 'weight', it should have more than one element.)
+{v_1 : str, v_2 : tensor} |= if v_1 = "weight" then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 1
 >>
-Rule 22 (The first dimension of the tensor should be greater than 10)
-{v_1: tensor} |= shape(v_1, 0) > 10
+Rule 19 (Keys in the ModuleDict must be valid variable names.)
+{v_1 : str} |= v_1 ≠ "" ∧ ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = "_"
 >>
-Rule 23 (key string length should be greater than 3)
-{v_1: str} |= v_1.len > 3
+Rule 20 (If the module has a parameter 'weight', its shape must be at least rank 2)
+{v_1 : str, v_2 : tensor} |= if v_1 = "weight" then ndim(v_2) ≥ 2
 >>
-Rule 24 (module's dtype should not be a complex number)
-{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+Rule 21 (Keys in the ModuleDict must be valid variable names, starting with a letter or underscore.)
+{v_1 : str} |= v_1 ≠ "" ∧ ((v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z") ∨ v_1[0] = "_")
 >>
-Rule 25 (Check key in module dict does not contain special characters)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : ("a" ≤ v_1[i] ∧ v_1[i] ≤ "z") ∨ ("A" ≤ v_1[i] ∧ v_1[i] ≤ "Z") ∨ ("0" ≤ v_1[i] ∧ v_1[i] ≤ "9")
+Rule 22 (If the module has a parameter 'weight', its dtype must be floating point)
+{v_1 : str, v_2 : tensor} |= if v_1 = "weight" then 6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8
 >>
-Rule 26 (tensor must have a shape dimension that is one)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1
+Rule 23 (Keys in the ModuleDict must be valid variable names.)
+{v_1 : str} |= v_1 ≠ "" ∧ ((v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z") ∨ v_1[0] = "_") ∧ ∀i ∈ [1, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = "_"
 >>
-Rule 27 (module's dtype must be a boolean or string.)
-{v_1 : tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 11
+Rule 24 (If a submodule has a parameter 'weight', it should have positive values.)
+{v_1 : str, v_2 : tensor} |= if v_1 = "weight" then min(v_2) > 0
 >>
-Rule 28 (tensor dimension should be less than a threshold.)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) < v_2
+Rule 26 (If a submodule has a parameter 'weight', it should not have NaN values.)
+{v_1 : str, v_2 : tensor} |= if v_1 = "weight" then min(v_2) ≥ -10000 ∧ max(v_2) <= 10000
 >>
-Rule 29 (key string must contain a number)
-{v_1: str} |= ∃i ∈ [0, v_1.len - 1]: "0" ≤ v_1[i] ∧ v_1[i] ≤ "9"
+Rule 28 (If a submodule has a parameter 'weight', it should not have NaN values or infinite values. )
+{v_1 : str, v_2 : tensor} |= if v_1 = "weight" then min(v_2) > -10000 ∧ max(v_2) < 10000
 >>
-Rule 30 (module should have non-negative elements)
-{v_1 : tensor} |= min(v_1) ≥ 0
+Rule 29 (Keys in the ModuleDict must be valid variable names. Checks first character only. Checks other characters.)
+{v_1 : str} |= v_1 ≠ "" ∧ ((v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z") ∨ v_1[0] = "_") ∧ v_1.len < 256
 >>
-Rule 31 (key cannot be a reserved python keyword)
-{v_1 : str} |= v_1 ≠ "for" ∧ v_1 ≠ "while" ∧ v_1 ≠ "if" ∧ v_1 ≠ "else" ∧ v_1 ≠ "def" ∧ v_1 ≠ "class"
+Rule 33 (If 'weight' and 'bias' exist, bias must have one less dimension than weight)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "weight" then if ∃k ∈ [0, 0] : true then if ∃l ∈ [0, 0] : true then ndim(v_2) = ndim(v_3) + 1
 >>
-Rule 32 (tensor elements should have a max value lower than certain threshold)
-{v_1 : tensor, v_2 : int} |= max(v_1) < v_2
+Rule 34 (If 'weight' and 'bias' exist, bias must have one less dimension than weight)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "weight" then if ∃k ∈ [0, 0] : v_2 = v_2 then if ∃l ∈ [0, 0] : v_3 = v_3 then ndim(v_2) = ndim(v_3) + 1
 >>
-Rule 33 (Key string needs to end with _module)
-{v_1 : str} |= v_1[v_1.len - 6] = "_" ∧ v_1[v_1.len - 5] = "m" ∧ v_1[v_1.len - 4] = "o" ∧ v_1[v_1.len - 3] = "d" ∧ v_1[v_1.len - 2] = "u" ∧ v_1[v_1.len - 1] = "l"
+Rule 36 (If a bias exists, and its called bias it needs at least one element)
+{v_1: str, v_2: tensor} |= if v_1 = "bias" then ndim(v_2) > 0
 >>
-Rule 37 (Key string needs to end with _module)
-{v_1 : str} |= if v_1.len > 5 then v_1[v_1.len - 6] = "_" ∧ v_1[v_1.len - 5] = "m" ∧ v_1[v_1.len - 4] = "o" ∧ v_1[v_1.len - 3] = "d" ∧ v_1[v_1.len - 2] = "u" ∧ v_1[v_1.len - 1] = "l" ∧ v_1[v_1.len - 0] = "e" else false
+Rule 38 (If a submodule has a parameter 'weight', the shape should have positive values and the type is correct)
+{v_1 : str, v_2 : tensor} |= if v_1 = "weight" then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0  ∧ 6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8
 >>
-Rule 39 (Module's name should not be in string value list)
-{v_1 : str} |= v_1 ≠ "ii" ∧ v_1 ≠ "ii->i" ∧ v_1 ≠ "i,j->ij" ∧ v_1 ≠ "bij,bjk->bik" ∧ v_1 ≠ "...ij->...ji" ∧ v_1 ≠ "bn,anm,bm->ba" ∧ v_1 ≠ "none" ∧ v_1 ≠ "mean" ∧ v_1 ≠ "sum" ∧ v_1 ≠ "max" ∧ v_1 ≠ "constant" ∧ v_1 ≠ "tanh"
+Rule 40 (If a submodule has a parameter 'weight' and a parameter 'bias', then their last dimension must match, when bias exists and is not empty)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "weight" then if ∃k ∈ [0, 0] : true then if ∃l ∈ [0,0] : true then shape(v_2, ndim(v_2)-1) = shape(v_3, ndim(v_3)-1)
 >>
-Rule 40 (Tensor can only has dimension up to a certain amount)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) ≤ v_2
+Rule 41 (ModuleDict Keys cannot have whitespaces.)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ " "
 >>
-Rule 41 (Key string must be a lowercase string)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : "a" ≤ v_1[i] ∧ v_1[i] ≤ "z"
+Rule 42 (If a submodule has a parameter 'weight' and a parameter 'bias', then their last dimension must match.)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "weight" then if ∃k ∈ [0, 0] : true then if v_1 = "bias" then shape(v_2, ndim(v_2)-1) = shape(v_3, ndim(v_3)-1)
 >>
-Rule 42 (Module's dtype needs to be a float)
-{v_1: tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 43 (Keys in the ModuleDict must be valid names - AlphaNumeric and underscore)
+{v_1 : str} |=  v_1.len > 0  ∧ ((v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z") ∨ v_1[0] = "_")
 >>
-Rule 43 (Module's max value should be less than a specific number if the tensor is of type int)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then max(v_1) < v_2
+Rule 44 (If a submodule has parameters 'weight' and 'bias', and weight rank is > 1 then the bias must have one dimension less)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "weight" then if ∃k ∈ [0, 0] : true then if v_1 = "bias" then if ndim(v_2) > 1 then ndim(v_3) = ndim(v_2) - 1
 >>
-Rule 46 (dtype should be either float or int.)
-{v_1 : tensor} |= (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5) ∨ (dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 8)
+Rule 47 (ModuleDict Keys cannot have whitespaces, and Key Length has to be less than 50 Char )
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ " " ∧ v_1.len < 50
 >>
-Rule 48 (Each dimensions should have at least one element)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 1
+Rule 48 (If a submodule is weight exists then it's dimension must be greater than 0 .)
+{v_1 : str, v_2 : tensor} |= if v_1 = "weight" then  ndim(v_2) > 0
 >>
-Rule 49 (The shape tuple should have positive values)
-{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 50 (If submodule has weight then it's shape must exist)
+{v_1 : str, v_2 : tensor} |= if v_1 = "weight" then ∃i ∈ [0, ndim(v_2) - 1] : true
 >>
-Rule 51 (Key should not contain consecutive underscores)
-{v_1 : str} |= ∀i ∈ [0, if v_1.len > 1 then v_1.len - 2 else 0] : v_1[i] ≠ "_" ∨ v_1[i+1] ≠ "_"
+Rule 51 (ModuleDict Keys should not have characters other than alphanumeric or Underscore , has to be less than 50 Char)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = "_" ∧ v_1.len < 50
 >>
-Rule 52 (Each dimension of the tensor should be smaller than a constant)
-{v_1: tensor, v_2: int} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < v_2
+Rule 52 (If submodule has parameter name is weight and also has parameter named bias exists then weight and bias should have same dtype.)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "weight" then if ∃k ∈ [0, 0] : true then if v_1 = "bias" then dtype_(v_2) = dtype_(v_3)
 >>
-Rule 53 (The product of the shape's dimensions should be less than certain threshold)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then 1 < v_2 else if ndim(v_1) = 1 then shape(v_1, 0) < v_2 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < v_2 else if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < v_2
+Rule 53 (Valid Key Names for parameters - alphanumeric and less than 50)
+{v_1 : str} |=   ((v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z") ∨ v_1[0] = "_") ∧ v_1.len < 50
 >>
-Rule 54 (Key should contain at least one uppercase letter)
-{v_1: str} |= ∃i ∈ [0, v_1.len - 1]: "A" ≤ v_1[i] ∧ v_1[i] ≤ "Z"
+Rule 54 (If Weight, Bias, are defined then Weight's last dimension has to be same as Bias First Dimension)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "weight" then if ∃k ∈ [0, 0] : true then if v_1 = "bias" then shape(v_2, ndim(v_2)-1) = shape(v_3, 0)
 >>
-Rule 55 (If ndim of the tensor is larger than 2, then at least one of its dimensions needs to be 1)
-{v_1 : tensor} |= if ndim(v_1) > 2 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1
+Rule 55 (Keys conform valid names)
+{v_1 : str} |=   ((v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z") ∨ v_1[0] = "_")
 >>
-Rule 56 (If the tensor has dtype bool, then its minimum value needs to be false)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then min(v_1) = false
+Rule 56 (If weight, bias exists, bias must be 1D. if weight exists it must have at least 2 Dimensions)
+{v_1 : str, v_2 : tensor} |=  if v_1 = "weight" then ndim(v_2) > 1 else if v_1 = "bias" then ndim(v_2) = 1
 >>
-Rule 57 (Key cannot start with a digit)
-{v_1: str} |= if v_1.len > 0 then "0" > v_1[0] ∨ v_1[0] > "9"
+Rule 57 ( Keys must start with a letter or underscore and the length should be less than 30.)
+{v_1 : str} |=   ((v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z") ∨ v_1[0] = "_") ∧ v_1.len < 30
 >>
-Rule 58 (Tensors need to be at least rank 1 or has more)
-{v_1 : tensor} |= ndim(v_1) >= 1
+Rule 59 (Keys are alphanumeric and cannot be longer than 20 characters.)
+{v_1 : str} |=   v_1.len > 0 ∧ v_1.len < 20 ∧ ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9")
 >>
-Rule 59 (If the tensor has dtype bool, then its max value needs to be true)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then max(v_1) = true
+Rule 60 (Weight/Bias are submodules and their dimension must agree in a certain way. If Bias is not there, there is not check)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "weight" then if ∃k ∈ [0, 0] : true then if ∃i ∈ [0, 0] : v_1 = "bias" then shape(v_2, ndim(v_2)-1) = shape(v_3, 0)
 >>
-Rule 60 (Key should not contain a space)
-{v_1: str} |= ∀i ∈ [0, v_1.len - 1]: v_1[i] ≠ " "
+Rule 61 (Alphanumeric/Underscore keys with length < 20 are allowed in ModuleDicts)
+{v_1 : str} |=   v_1.len > 0 ∧ v_1.len < 20 ∧ ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9")  ∨  v_1[i] = "_"
 >>
-Rule 61 (tensor element value should be in a specific range)
-{v_1: tensor, v_2: int, v_3: int} |= min(v_1) ≥ v_2 ∧ max(v_1) ≤ v_3
+Rule 62 (If module has weight, and if it has Bias, the number of features has to match)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "weight" then if ∃k ∈ [0, 0] : v_1 = "bias" then shape(v_2, ndim(v_2)-1) = shape(v_3, 0)
 >>
-Rule 62 (If a key contains a module's name, it must end with '_module')
-{v_1 : str, v_2 : str} |= if v_1 = v_2 then v_1[v_1.len - 6] = "_" ∧ v_1[v_1.len - 5] = "m" ∧ v_1[v_1.len - 4] = "o" ∧ v_1[v_1.len - 3] = "d" ∧ v_1[v_1.len - 2] = "u" ∧ v_1[v_1.len - 1] = "l" ∧ v_1[v_1.len - 0] = "e"
+Rule 63 (Keys conform to valid naming )
+{v_1 : str} |=   v_1.len > 0 ∧ v_1.len < 20 ∧ ((v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z") ∨ (v_1[0] = "_"))
 >>
-Rule 63 (If a key is a number, then the module should not be a tensor)
-{v_1 : str, v_2 : tensor} |= if "0" ≤ v_1[0] ∧ v_1[0] ≤ "9" then ndim(v_2) = 0
+Rule 64 (If module has weight, and if it has Bias, the number of features has to match. And the bias must be one dimension)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "weight" then if ∃k ∈ [0, 0] : v_1 = "bias" then shape(v_2, ndim(v_2)-1) = shape(v_3, 0) ∧ ndim(v_3) = 1
 >>
-Rule 64 (key should start with module type, e.g., conv2d_)
-{v_1: str} |= v_1[0] = "c" ∧ v_1[1] = "o" ∨ v_1[0] = "l" ∧ v_1[1] = "i" ∨ v_1[0] = "b" ∧ v_1[1] = "n"
+Rule 67 (Keys should be short alphanumeric/underscore names)
+{v_1 : str} |=   v_1.len > 0 ∧ v_1.len < 15 ∧ ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9")  ∨  v_1[i] = "_"
 >>
-Rule 65 (Module needs to be 2D, if the module's key starts with 'conv2d')
-{v_1 : str, v_2 : tensor} |= if v_1[0] = "c" ∧ v_1[1] = "o" then ndim(v_2) = 2
+Rule 68 (If both weight and bias exist, require compatible dtypes or at least floating point)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "weight" then if ∃k ∈ [0, 0] : v_1 = "bias" then (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8) ∧ (6 ≤ dtype_(v_3) ∧ dtype_(v_3) ≤ 8)
 >>
-Rule 66 (Module cannot be bool if its key starts with a letter.)
-{v_1:str, v_2: tensor} |= if "a" <= v_1[0] ∧ v_1[0] <= "z" then dtype_(v_2) != 0
+Rule 70 (If weight, bias and weight last dim equal to bias, the bias dtype has to be a float.)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "weight" then if ∃k ∈ [0, 0] : v_1 = "bias" then if shape(v_2, ndim(v_2)-1) = shape(v_3, 0) then (6 ≤ dtype_(v_3) ∧ dtype_(v_3) ≤ 8)
 >>
-Rule 67 (If key length is less than 4, module should have only 1 dimension)
-{v_1: str, v_2:tensor} |= if v_1.len < 4 then ndim(v_2) = 1
+Rule 71 (Good naming conventions for parameters ModuleDict)
+{v_1 : str} |=   v_1.len > 0 ∧ v_1.len < 15 ∧ ((v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z") ∨ (v_1[0] = "_"))
 >>
-Rule 68 (Keys should not contain two same characters in a row)
-{v_1 : str} |= ∀i ∈ [0, if v_1.len > 1 then v_1.len - 2 else 0] : v_1[i] ≠ v_1[i+1]
+Rule 72 (If weight, bias and weight last dimension equal to bias dim then the Bias should be of type float, and less the number of weights)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "weight" then if ∃k ∈ [0, 0] : v_1 = "bias" then if shape(v_2, ndim(v_2)-1) = shape(v_3, 0) then (6 ≤ dtype_(v_3) ∧ dtype_(v_3) ≤ 8 ∧ ndim(v_3) < ndim(v_2))
 >>
-Rule 69 (Modules cannot be less than a certain number of shape dimensions)
-{v_1 : tensor, v_2: int} |= ndim(v_1) > v_2
+Rule 74 (Ensure bias dtype makes sense with weight shape and param exists.)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "weight" then if ∃k ∈ [0, 0] : v_1 = "bias" then (6 ≤ dtype_(v_3) ∧ dtype_(v_3) ≤ 8) ∧ shape(v_2, ndim(v_2)-1) = shape(v_3, 0)
 >>
-Rule 70 (If a module's key contains 'weight' then the module must have dtype float)
-{v_1:str, v_2: tensor} |= if ∃i ∈ [0, if v_1.len > 5 then v_1.len - 5 else 0]: v_1[i] = "w" ∧ v_1[i+1] = "e" ∧ v_1[i+2] = "i" ∧ v_1[i+3] = "g" ∧ v_1[i+4] = "h" ∧ v_1[i+5] = "t" then dtype_(v_2) >= 6 ∧ dtype_(v_2) <= 8
+Rule 75 (Enforce valid key names for easier debugging and compat)
+{v_1 : str} |=   v_1.len > 0 ∧ v_1.len < 15 ∧ ((v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z") ∨ (v_1[0] = "_")) ∧ (∀i ∈ [1, v_1.len-1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] = "_"))
 >>
-Rule 72 (Keys should not start with a number if it's length is less than 5)
-{v_1: str} |= if v_1.len < 5 then "0" > v_1[0] ∨ v_1[0] > "9"
+Rule 76 (Weight and Bias shape should only if there are both these submodule and it has only one dimension)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "weight" then if ∃k ∈ [0, 0] : v_1 = "bias" then if ndim(v_2) < 3 then if ndim(v_3) = 1 then shape(v_2, ndim(v_2)-1) = shape(v_3, 0)
 >>
-Rule 73 (Key cannot contain special characters if a module's shape dimension is only 2)
-{v_1:str, v_2: tensor} |= if ndim(v_2) = 2 then ∀i ∈ [0, v_1.len - 1] : ("a" <= v_1[i] ∧ v_1[i] <= "z") ∨ ("A" <= v_1[i] ∧ v_1[i] <= "Z") ∨ ("0" <= v_1[i] ∧ v_1[i] <= "9")
->>
-Rule 74 (Each element of tensors with shape 1 needs to be greater than zero)
-{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1 then min(v_1) > 0
->>
-Rule 75 (Module with even shape dimension must be greater than 10)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, if ndim(v_1) - 1 >= 0 then ndim(v_1) - 1 else 0] : if i / 2 * 2 = i then shape(v_1,i) > 10
->>
-Rule 79 (if the key contains 'bias', the minimum value should less than 0)
-{v_1: str, v_2: tensor} |= if ∃i ∈ [0, if v_1.len > 3 then v_1.len - 3 else 0]: v_1[i] = "b" ∧ v_1[i+1] = "i" ∧ v_1[i+2] = "a" ∧ v_1[i+3] = "s" then min(v_2) < 0
->>
-Rule 80 (All dimensions of a tensor must not equal 1, if its dimension is greater than 1)
-{v_1:tensor} |= if ndim(v_1) > 1 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 1
->>
-Rule 81 (the max of the shape must be greater than the min of the shape)
-{v_1 : tensor} |= if ndim(v_1) > 0 then (∃i ∈ [0, ndim(v_1) - 1]: (∃j ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > shape(v_1, j)))
->>
-Rule 82 (Every Key string need to end with module if a tensor has dimension greater than 3)
-{v_1 : str, v_2 : tensor} |= if ndim(v_2) > 3 then v_1[v_1.len - 6] = "_" ∧ v_1[v_1.len - 5] = "m" ∧ v_1[v_1.len - 4] = "o" ∧ v_1[v_1.len - 3] = "d" ∧ v_1[v_1.len - 2] = "u" ∧ v_1[v_1.len - 1] = "l" ∧ v_1[v_1.len - 0] = "e"
->>
-Rule 83 (If the key contains 'norm' the maximum value should be smaller than 10)
-{v_1: str, v_2: tensor} |= if ∃i ∈ [0, if v_1.len > 3 then v_1.len - 3 else 0]: v_1[i] = "n" ∧ v_1[i+1] = "o" ∧ v_1[i+2] = "r" ∧ v_1[i+3] = "m" then max(v_2) < 10
->>
-Rule 84 (Tensors are either all int, or all float)
-{v_1:tensor, v_2: tensor} |= (dtype_(v_1) >= 1 ∧ dtype_(v_1) <= 5 ∧ dtype_(v_2) >= 1 ∧ dtype_(v_2) <= 5) ∨ (dtype_(v_1) >= 6 ∧ dtype_(v_1) <= 8 ∧ dtype_(v_2) >= 6 ∧ dtype_(v_2) <= 8)
->>
-Rule 85 (Tensors needs to be smaller than a given constant if it is named 'weight' or 'bias')
-{v_1:str, v_2: tensor, v_3: int} |= if ∃i ∈ [0, if v_1.len > 5 then v_1.len - 5 else 0]: v_1[i] = "w" ∧ v_1[i+1] = "e" ∧ v_1[i+2] = "i" ∧ v_1[i+3] = "g" ∧ v_1[i+4] = "h" ∧ v_1[i+5] = "t" ∨ ∃i ∈ [0, if v_1.len > 3 then v_1.len - 3 else 0]: v_1[i] = "b" ∧ v_1[i+1] = "i" ∧ v_1[i+2] = "a" ∧ v_1[i+3] = "s" then max(v_2) < v_3
->>
-Rule 86 (if tensor's number of dimension is less than 4, then each shape element must be smaller than 100)
-{v_1 : tensor} |= if ndim(v_1) < 4 then ∀i ∈ [0, if ndim(v_1) - 1 >= 0 then ndim(v_1) - 1 else 0] : shape(v_1, i) < 100
->>
-Rule 87 (If the module name contains "batchnorm", at least one shape dimension must be greater than 1)
-{v_1: str, v_2: tensor} |= if ∃i ∈ [0, if v_1.len > 8 then v_1.len - 8 else 0]: v_1[i] = "b" ∧ v_1[i+1] = "a" ∧ v_1[i+2] = "t" ∧ v_1[i+3] = "c" ∧ v_1[i+4] = "h" ∧ v_1[i+5] = "n" ∧ v_1[i+6] = "o" ∧ v_1[i+7] = "r" ∧ v_1[i+8] = "m" then ∃j ∈ [0, ndim(v_2) - 1]: shape(v_2, j) > 1
->>
-Rule 88 (If module's name starts with a 'l', it's dimensions are not a float)
-{v_1:str, v_2: tensor} |= if v_1[0] = "l" then dtype_(v_2) < 6
->>
-Rule 89 (Key needs to be at least 5 in length, if the shape has more than 2 dimensions)
-{v_1 : str, v_2: tensor} |= if ndim(v_2) > 2 then v_1.len >= 5
->>
-Rule 90 (Check the minimum values of a module if a key starts with a number)
-{v_1: str, v_2: tensor} |= if "0" <= v_1[0] ∧ v_1[0] <= "9" then min(v_2) > 5
->>
-Rule 91 (If a string key starts with "res", then the tensor dimension needs to be greater than a number)
-{v_1: str, v_2: tensor, v_3: int} |= if v_1[0] = "r" ∧ v_1[1] = "e" ∧ v_1[2] = "s" then ndim(v_2) > v_3
->>
-Rule 93 (if module dict has a “running” inside key string, then its tensor needs to be floating tensors)
-{v_1: str, v_2: tensor} |= if ∃i ∈ [0, if v_1.len > 6 then v_1.len - 6 else 0]: v_1[i] = "r" ∧ v_1[i+1] = "u" ∧ v_1[i+2] = "n" ∧ v_1[i+3] = "n" ∧ v_1[i+4] = "i" ∧ v_1[i+5] = "n" ∧ v_1[i+6] = "g" then dtype_(v_2) >= 6 ∧ dtype_(v_2) <= 8
->>
-Rule 94 (Key cannot contain "weight" if the tensor module has 1 dimension)
-{v_1: str, v_2: tensor} |= if ndim(v_2) = 1 then ∀i ∈ [0, if v_1.len > 5 then v_1.len - 5 else 0]: v_1[i] ≠ "w" ∨ v_1[i+1] ≠ "e" ∨ v_1[i+2] ≠ "i" ∨ v_1[i+3] ≠ "g" ∨ v_1[i+4] ≠ "h" ∨ v_1[i+5] ≠ "t"
->>
-Rule 96 (tensor, has dimension, which needs to be true)
-{v_1: tensor} |= if ndim(v_1) > 0 then ∃j ∈ [0, ndim(v_1) - 1] : shape(v_1, j) > 0
->>
-Rule 99 (if the key doesn't contain anything, the tensor must have 0 dimensions)
-{v_1: str, v_2: tensor} |= if v_1.len = 0 then ndim(v_2) = 0
->>
-Rule 100 (Tensor cannot has different values, when it has dimensions, which has value 1)
-{v_1: tensor} |= if ∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = 1 then max(v_1) = min(v_1)
->>
-Rule 101 (if Key starts with 'conv', the module has only int type values)
-{v_1:str, v_2: tensor} |= if v_1[0] = "c" ∧ v_1[1] = "o" ∧ v_1[2] = "n" ∧ v_1[3] = "v" then dtype_(v_2) >= 1 ∧ dtype_(v_2) <= 5
->>
-Rule 102 (String with module is equal to batch, then dimensions needs to be divisible of 3)
-{v_1 : str, v_2 : tensor} |= if ∃i ∈ [0, if v_1.len > 5 then v_1.len - 5 else 0]: v_1[i] = "b" ∧ v_1[i+1] = "a" ∧ v_1[i+2] = "t" ∧ v_1[i+3] = "c" ∧ v_1[i+4] = "h" ∧ v_1[i+5] = "h" then shape(v_2, 0) / 3 * 3 = shape(v_2, 0)
->>
-Rule 103 (key does not end with two digits.)
-{v_1: str} |= if v_1.len >= 2 then "0" > v_1[v_1.len - 1] ∨ v_1[v_1.len - 1] > "9" ∨ "0" > v_1[v_1.len - 2] ∨ v_1[v_1.len - 2] > "9"
->>
-Rule 104 (tensor dimension should be smaller than 5, to avoid too much calculation.)
-{v_1: tensor} |= ndim(v_1) <= 5
->>
-Rule 105 (if the key's first character is 'g', then module must have more than a certain value)
-{v_1:str, v_2: tensor, v_3: int} |= if v_1[0] = "g" then min(v_2) > v_3
->>
-Rule 106 (If string Key has norm, and module does not has dimensions of 3, and 4, the module needs to be boolean type.)
-{v_1 : str, v_2 : tensor} |= if ∃i ∈ [0, if v_1.len > 3 then v_1.len - 3 else 0]: v_1[i] = "n" ∧ v_1[i+1] = "o" ∧ v_1[i+2] = "r" ∧ v_1[i+3] = "m" then ndim(v_2) ≠ 3 ∧ ndim(v_2) ≠ 4 ∧ dtype_(v_2) = 0
+Rule 77 (Valid keys : 1-15 alphanumeric/underscore chars, can start with a letter or underscore)
+{v_1 : str} |=   v_1.len > 0 ∧ v_1.len < 16 ∧ ((v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z") ∨ ( v_1[0] = "_")) ∧ ∀i ∈ [1, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] = "_")

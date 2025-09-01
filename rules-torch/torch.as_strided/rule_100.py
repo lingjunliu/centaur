@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Sizes elements must be non-negative, prevents storage calculation overflow, reasonably bound, and not too many dimensions (max 5 (Rule 100)
+# If size is more than 3 dimensions, at least one of those dimensions has to be positive (Rule 100)
 
 rule_100 = lambda s, v, n=False: (
-    s.add(Not(And((v["arg1_length"] <= 5), And([Implies(i < (v["arg1_length"] - 1 + 1), And(Select(v["arg1_values"], i) >= 0, Select(v["arg1_values"], i) < 1000)) for i in range(6)]))) if n else
-          And((v["arg1_length"] <= 5), And([Implies(i < (v["arg1_length"] - 1 + 1), And(Select(v["arg1_values"], i) >= 0, Select(v["arg1_values"], i) < 1000)) for i in range(6)])))
+    s.add(Not(If(v["arg1_length"] > 3, Or([And(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) > 0) for i in range(6)]), True)) if n else
+          If(v["arg1_length"] > 3, Or([And(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) > 0) for i in range(6)]), True))
 )
 
 def rule_100_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If hidden_size is a power of two, then input size must also be power of two (Rule 123)
+# The input size must be a positive integer and less than some max reasonable number and greater than hidden size (Rule 123)
 
 rule_123 = lambda s, v, n=False: (
-    s.add(Not(Or((And(v["arg1_value"] > 0, ((And(v["arg1_value"], (v["arg1_value"] - 1))) == 0))), (And(v["arg2_value"] > 0, ((And(v["arg2_value"], (v["arg2_value"] - 1))) == 0))))) if n else
-          Or((And(v["arg1_value"] > 0, ((And(v["arg1_value"], (v["arg1_value"] - 1))) == 0))), (And(v["arg2_value"] > 0, ((And(v["arg2_value"], (v["arg2_value"] - 1))) == 0)))))
+    s.add(Not(And(And(v["arg1_value"] > 0, v["arg1_value"] < 10000), v["arg1_value"] > v["arg2_value"])) if n else
+          And(And(v["arg1_value"] > 0, v["arg1_value"] < 10000), v["arg1_value"] > v["arg2_value"]))
 )
 
 def rule_123_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# A must be batches of square matrices, n by n (Rule 2)
+# A must be batches of square matrices (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2))) if n else
-          And(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2)))
+    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 2 + 1), Select(v["arg1_shape"], v["arg1_ndim"] - 2) == Select(v["arg1_shape"], v["arg1_ndim"] - 1)) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_ndim"] - 2 + 1), Select(v["arg1_shape"], v["arg1_ndim"] - 2) == Select(v["arg1_shape"], v["arg1_ndim"] - 1)) for i in range(6)]))
 )
 
 def rule_2_func(arg1, solver=None, neg=False):

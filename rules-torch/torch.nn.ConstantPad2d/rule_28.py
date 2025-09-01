@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Integer Padding Value Size Restriction (Rule 28)
+# If padding is an integer, it should be small relative to the tensor size (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 4, And(Select(v["arg1_shape"], 2) + 2 * v["arg2_value"] > -10000, Select(v["arg1_shape"], 3) + 2 * v["arg2_value"] > -10000), False)) if n else
-          If(v["arg1_ndim"] == 4, And(Select(v["arg1_shape"], 2) + 2 * v["arg2_value"] > -10000, Select(v["arg1_shape"], 3) + 2 * v["arg2_value"] > -10000), False))
+    s.add(Not(If(v["arg1_ndim"] == 3, And(v["arg2_value"] < Select(v["arg1_shape"], 1), v["arg2_value"] < Select(v["arg1_shape"], 2)), And(v["arg2_value"] < Select(v["arg1_shape"], 2), v["arg2_value"] < Select(v["arg1_shape"], 3)))) if n else
+          If(v["arg1_ndim"] == 3, And(v["arg2_value"] < Select(v["arg1_shape"], 1), v["arg2_value"] < Select(v["arg1_shape"], 2)), And(v["arg2_value"] < Select(v["arg1_shape"], 2), v["arg2_value"] < Select(v["arg1_shape"], 3))))
 )
 
 def rule_28_func(arg1, arg2, solver=None, neg=False):

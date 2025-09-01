@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input is of type float16, output must be at least float16 (Rule 9)
+# If an output tensor is provided and has a floating point dtype, the output dtype precision must be greater than or equal to the input tensor (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, v["arg2_dtype"] >= 6, False)) if n else
-          If(v["arg1_dtype"] == 6, v["arg2_dtype"] >= 6, False))
+    s.add(Not(If(v["arg2_dtype"] == 7, Or(Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 1), v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 6), If(v["arg2_dtype"] == 8, Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 1), v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 6), True))) if n else
+          If(v["arg2_dtype"] == 7, Or(Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 1), v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 6), If(v["arg2_dtype"] == 8, Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 1), v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 6), True)))
 )
 
 def rule_9_func(arg1, arg2, solver=None, neg=False):

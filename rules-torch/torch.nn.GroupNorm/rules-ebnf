@@ -1,87 +1,354 @@
 >>
-Rule 1 (Input tensor must have at least 2 dimensions)
-{v_1 : tensor} |= ndim(v_1) ≥ 2
->>
-Rule 2 (num_groups must be greater than 0)
+Rule 1 (num_groups must be greater than 0)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 4 (Shape should be non-negative)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Rule 2 (num_channels must be divisible by num_groups)
+{v_1 : int, v_2 : int} |= v_2 % v_1 = 0
 >>
-Rule 5 (weight should have number of channel shape)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) = shape(v_1, 1)
+Rule 3 (input tensor must have at least 2 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
 >>
-Rule 6 (affine is boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
->>
-Rule 8 (Epsilon is non-negative)
+Rule 4 (epsilon must be a non-negative float)
 {v_1 : float} |= v_1 ≥ 0
 >>
-Rule 9 (Input tensor should have floating point dtype)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 5 (weight size equals number of channels if affine is true)
+{v_1 : tensor, v_2 : bool, v_3: int} |= if v_2 then shape(v_1, 1) = v_3
 >>
-Rule 10 (The dimension of the input tensor should not be negative)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > -1
+Rule 6 (prevent negative dimension sizes)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 13 (num_channels must be divisible by num_groups)
-{v_1 : int, v_2 : int} |= v_2 > 0 ∧ v_1 > 0 ∧ (∃i ∈ [0, v_2]: v_1 * i = v_2)
+Rule 7 (input dtype must be floating point for GroupNormKernelImpl)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
 >>
-Rule 15 (weight should have number of channel shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_1, 1)
+Rule 8 (input tensor must have the same data type)
+{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) = v_2
 >>
-Rule 22 (number of channels is less than or equal to the number of elements in the input tensor's channel dimension)
-{v_1 : tensor, v_2 : int} |= shape(v_1,1) ≥ v_2
+Rule 12 (ensure channel is not negative)
+{v_1 : int} |= v_1 ≥ 0
 >>
-Rule 23 (Input tensor should not have Char dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 12
->>
-Rule 24 (num_groups should be less or equal than num_channels)
+Rule 13 (group size must not exceed the number of channels)
 {v_1 : int, v_2 : int} |= v_1 ≤ v_2
 >>
-Rule 25 (if affine is true, weight and bias must have the same dtype)
-{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then dtype_(v_2) = dtype_(v_3)
+Rule 14 (if affine is true, weight tensor should exist)
+{v_1 : bool, v_2 : tensor} |= if v_1 then ndim(v_2) > 0
 >>
-Rule 26 (num_groups and num_channels should be positive)
-{v_1: int, v_2: int} |= v_1 > 0 ∧ v_2 > 0
+Rule 15 (input tensor should not have zero channels)
+{v_1 : tensor} |= shape(v_1, 1) > 0
 >>
-Rule 27 (input tensor must have a valid dtype)
-{v_1: tensor} |= dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 11
+Rule 16 (data type cannot be character)
+{v_1 : dtype} |= v_1 ≠ 11
 >>
-Rule 28 (The product of all dimensions of a tensor should be a non-negative number)
-{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+Rule 17 (input tensor's shape should be reasonable)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 29 (num_groups should be less than or equal to input channels)
-{v_1 : int, v_2 : tensor} |= v_1 ≤ shape(v_2, 1)
+Rule 18 (Check for valid type)
+{v_1: dtype} |= v_1 ≥ 0 ∧ v_1 ≤ 12
 >>
-Rule 30 (If num_channels = 1, num_groups must be 1.)
-{v_1 : int, v_2 : int} |= if v_2 = 1 then v_1 = 1
+Rule 23 (affine must be boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 46 (Check that num_channel * some number is equal to input tensor's channel size)
-{v_1 : tensor, v_2 : int} |=  ∃i ∈ [0, shape(v_1, 1)] : v_2 * i = shape(v_1, 1)
+Rule 24 (ensure num_channels and num_groups are compatible)
+{v_1 : int, v_2 : int} |= if v_2 > 0 then v_1 % v_2 = 0
 >>
-Rule 57 (weight tensor shape must match the number of input channels when affine is set to true)
-{v_1 : bool, v_2 : tensor, v_3 : int} |= if v_1 = true then shape(v_2,0) = v_3
+Rule 25 (weight dimension check when affine is enabled)
+{v_1 : bool, v_2 : tensor, v_3 : int} |= if v_1 then ndim(v_2) = 1 ∧ shape(v_2, 0) = v_3
 >>
-Rule 68 (Input tensor must be of the same datatype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 28 (Prevent division by zero)
+{v_1 : int} |= v_1 ≠ 0
 >>
-Rule 71 (num_channels and num_groups should not be equal to zero simultaneously)
-{v_1 : int, v_2 : int} |= (v_1 = 0 ∧ v_2 = 0) = false
+Rule 33 (If num_channels is 0, then num_groups must be 1 to avoid division by zero)
+{v_1 : int, v_2 : int} |= if v_1 = 0 then v_2 = 1
 >>
-Rule 79 (Sum of num_groups and num_channels should not be zero.)
-{v_1 : int, v_2 : int} |= v_1 + v_2 ≠ 0
+Rule 34 (input dtype should not be complex)
+{v_1 : dtype} |= v_1 ≠ 9 ∧ v_1 ≠ 10
 >>
-Rule 88 (Input tensor must be of the same datatype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 12
+Rule 35 (When affine is True, input and weight dtype must match)
+{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 then dtype_(v_2) = dtype_(v_3)
 >>
-Rule 109 (If the number of channels is not divisible by the number of groups, then it should not happen)
-{v_1 : int, v_2 : int} |= ∃i ∈ [0, v_2] : v_2 = v_1 * i
+Rule 36 (Channel size consistency between input and weight)
+{v_1: tensor, v_2: tensor, v_3: bool, v_4: int} |= if v_3 then shape(v_1, 1) = shape(v_2, 0) ∧ shape(v_2, 0) = v_4
 >>
-Rule 120 (if input tensor has less than 2 dimensions, all good)
-{v_1 : tensor} |= if ndim(v_1) < 2 then true else false
+Rule 37 (Shape of input tensor must be at least (N, C))
+{v_1: tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
 >>
-Rule 121 (num_channels and num_groups should not be equal to zero simultaneously)
-{v_1 : int, v_2 : int} |= (v_1 = 0) ∧ (v_2 = 0) = false
+Rule 38 (If num_channels is 0, num_groups must not be 0)
+{v_1 : int, v_2 : int} |= if v_1 = 0 then v_2 ≠ 0
 >>
-Rule 128 (The input tensor's channel dimension size must be divisible by number of groups)
-{v_1 : int, v_2 : tensor} |=  ∃i ∈ [0, shape(v_2, 1)] : v_1 * i = shape(v_2, 1)
+Rule 39 (num_channels must be a multiple of num_groups or num_groups must be 1)
+{v_1 : int, v_2 : int} |= (v_1 % v_2 = 0) ∨ (v_2 = 1)
+>>
+Rule 40 (input dtype should be one of the allowed dtypes)
+{v_1 : dtype} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10
+>>
+Rule 41 (Prevent creating tensor with zero sized dimension.)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0
+>>
+Rule 42 (Check for empty tensor)
+{v_1: tensor} |= ndim(v_1) > 0
+>>
+Rule 43 (If num_groups is greater than 1, num_channels must be greater than or equal to num_groups)
+{v_1 : int, v_2 : int} |= if v_1 > 1 then v_2 ≥ v_1
+>>
+Rule 44 (input tensor shape must have positive values)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 45 (If affine is true, weight tensor must have correct dtype.)
+{v_1 : bool, v_2 : tensor} |= if v_1 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 47 (Avoid integer overflow for large channel numbers)
+{v_1 : int, v_2 : int} |= v_1 * v_2 < 2147483647
+>>
+Rule 48 (num_channels should be within a valid range, prevents excessive memory allocation)
+{v_1 : int} |= v_1 < 65536
+>>
+Rule 49 (If num_groups is not 1, then num_channels must be divisible by num_groups)
+{v_1 : int, v_2 : int} |= if v_1 ≠ 1 then v_2 % v_1 = 0
+>>
+Rule 50 (If affine is true, bias tensor must have shape equal to num_channels)
+{v_1 : bool, v_2 : tensor, v_3 : int} |= if v_1 then shape(v_2, 0) = v_3
+>>
+Rule 52 (Input tensor should have a shape with positive number of Channels)
+{v_1: tensor} |= shape(v_1, 1) > 0
+>>
+Rule 53 (Num_channels must be less than a maximum value to avoid memory issues)
+{v_1: int} |= v_1 < 2048
+>>
+Rule 54 (Avoid zero groups leading to divide by zero)
+{v_1 : int, v_2 : int} |= if v_2 = 0 then v_1 = 1
+>>
+Rule 56 (The dimension of weight must be one when affine is True)
+{v_1 : bool, v_2 : tensor} |= if v_1 then ndim(v_2) = 1
+>>
+Rule 57 (if affine, bias and weight shape should coincide.)
+{v_1: bool, v_2: tensor, v_3: tensor} |= if v_1 then shape(v_2, 0) = shape(v_3, 0)
+>>
+Rule 58 (Number of channels must not be zero.)
+{v_1: int} |= v_1 != 0
+>>
+Rule 59 (If num_groups is 1, then num_channels can be anything.)
+{v_1 : int, v_2 : int} |= if v_1 = 1 then true else v_2 % v_1 = 0
+>>
+Rule 63 (if affine is True, then bias must have a value.)
+{v_1: bool, v_2: tensor} |= if v_1 then ndim(v_2) > 0
+>>
+Rule 64 (Zero check for num_groups against num_channels)
+{v_1 : int, v_2 : int} |= if v_1 = 0 then v_2 = 0
+>>
+Rule 65 (Ensure no zero-sized dimensions for input.)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0
+>>
+Rule 66 (Check valid range for dtype)
+{v_1 : dtype} |= v_1 ≥ 0 ∧ v_1 ≤ 12
+>>
+Rule 69 (If num_groups is zero, the number of channels cannot be zero)
+{v_1: int, v_2: int} |= if v_1 = 0 then v_2 = 0
+>>
+Rule 71 (Num Groups must be one or less than or equal to num channels)
+{v_1 : int, v_2: int} |= (v_1=1) ∨ (v_1 <= v_2)
+>>
+Rule 72 (The dtype must be a number within the range)
+{v_1 : dtype} |= v_1 > -1 ∧ v_1 < 13
+>>
+Rule 73 (If num_channels is non zero, num_groups also must be non-zero.)
+{v_1 : int, v_2 : int} |= if v_1 != 0 then v_2!=0
+>>
+Rule 74 (If num_channels is zero, the number of groups should be 1)
+{v_1: int, v_2: int} |= if v_1 = 0 then v_2 = 1
+>>
+Rule 75 (Eps should be smaller than a reasonable value to prevent overflow)
+{v_1 : float} |= v_1 < 1
+>>
+Rule 76 (Check valid dtype range)
+{v_1 : dtype} |= v_1 ≥ 0 ∧ v_1 < 13
+>>
+Rule 77 (If num_groups is non-zero, then num_channels cannot be zero.)
+{v_1 : int, v_2 : int} |= if v_1 != 0 then true else v_2=0
+>>
+Rule 78 (num_channels must be a multiple of num_groups or num_groups is 1)
+{v_1: int, v_2: int} |= (v_2 % v_1 = 0) ∨ (v_1 = 1)
+>>
+Rule 79 (Eps should be greater than zero)
+{v_1 : float} |= v_1 > 0
+>>
+Rule 80 (If the number of channels is zero, the input tensor should be empty)
+{v_1 : int, v_2 : tensor} |= if v_1 = 0 then (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0)
+>>
+Rule 83 (num_group must not be greater than number of channels.)
+{v_1: int, v_2: int} |= v_1 <= v_2
+>>
+Rule 87 (The input must have at least two dimensions.)
+{v_1: tensor} |= ndim(v_1) >= 2
+>>
+Rule 88 (Number of groups cannot be a negative number.)
+{v_1 : int} |= v_1 >=0
+>>
+Rule 89 (Number of channels cannot be less than num_groups)
+{v_1 : int, v_2 : int} |= v_2 ≥ v_1
+>>
+Rule 90 (If Number of channels is equal to zero then number of groups is also zero)
+{v_1 : int, v_2 : int} |= if v_2 = 0 then v_1=0
+>>
+Rule 91 (Check the dtypes should be same in input and parameter tensors)
+{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 92 (If num_channels is 0, the number of groups can be 1 or 0.)
+{v_1 : int, v_2 : int} |= if v_1 = 0 then v_2=0 ∨ v_2 = 1
+>>
+Rule 94 (If num_groups is one then num_channels must be greater than or equal to 1)
+{v_1 : int, v_2 : int} |= if v_1 = 1 then v_2 ≥ 1
+>>
+Rule 96 (If number of channels is zero then number of groups can only be zero)
+{v_1: int, v_2: int} |= if v_1 = 0 then v_2=0
+>>
+Rule 98 (Must have at least one channel.)
+{v_1: int} |= v_1 > 0
+>>
+Rule 100 (If affine is True then weights must have a floating point dtype)
+{v_1: bool, v_2: dtype} |= if v_1 then v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8
+>>
+Rule 101 (Input tensor cannot be empty)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 105 (weight shape and channels must match)
+{v_1 : tensor, v_2 : int, v_3 : bool} |= if v_3 then shape(v_1, 0) = v_2
+>>
+Rule 108 (Avoid near zero epsilon)
+{v_1 : float} |= v_1 > 1e-10
+>>
+Rule 110 (If using affine, weight tensor dimensions and channels dimensions are same)
+{v_1: bool, v_2: tensor, v_3: int} |= if v_1 then shape(v_2, 0) = v_3
+>>
+Rule 111 (To avoid zero division, if num_channels is not 0, num_groups must not be 0)
+{v_1: int, v_2 : int} |= if v_1 != 0 then v_2 != 0
+>>
+Rule 112 (Number of groups and Number of channels should be same)
+{v_1 : int, v_2: int} |= v_1 != v_2
+>>
+Rule 113 (eps can not be negative)
+{v_1: float} |= v_1 >= 0
+>>
+Rule 114 (If affine is True and weight is defined, then weight should be 1D)
+{v_1: bool, v_2: tensor} |= if v_1 then ndim(v_2) = 1
+>>
+Rule 116 (If num_channels is multiple of num_groups and not zero)
+{v_1: int, v_2 : int} |= if v_1 != 0 then (v_2 % v_1) = 0
+>>
+Rule 118 (Number of channels must not exceed max int size to ensure division wont overflow)
+{v_1: int} |= v_1 < 2147483647
+>>
+Rule 119 (If affine is True then require weights with the same data type as input.)
+{v_1: bool, v_2: tensor, v_3: tensor} |= if v_1 then dtype_(v_2) = dtype_(v_3)
+>>
+Rule 120 (If num_groups is 1, num_channels has to be a positive int)
+{v_1 : int, v_2 : int} |= if v_1 = 1 then v_2 > 0
+>>
+Rule 121 (Input tensor dimension should be reasonable)
+{v_1 : tensor} |= ndim(v_1) >= 2
+>>
+Rule 123 (num_channels must not be zero)
+{v_1 : int} |= v_1 != 0
+>>
+Rule 124 (When the affine is enabled, the weight and bias shapes match the number of channels)
+{v_1: bool, v_2: tensor, v_3: tensor, v_4: int} |= if v_1 then shape(v_2, 0) = v_4 ∧ shape(v_3, 0) = v_4
+>>
+Rule 126 (if there are groups then epsilon has to be greater than 0)
+{v_1: int, v_2: float} |= if v_1 != 0 then v_2>0
+>>
+Rule 129 (To avoid divide by zero, prevent epsilon from being too small)
+{v_1 : float} |= v_1 > 1e-12
+>>
+Rule 130 (if there are groups, prevent number of channels being zero)
+{v_1: int, v_2 : int} |= if v_1 != 0 then v_2 !=0
+>>
+Rule 131 (number of channels has to be less than max tensor size, prevents memory overflow)
+{v_1 : int} |= v_1 < 100000
+>>
+Rule 132 (if number of groups is not 1, prevent zero number of channels and makes sure is divisible)
+{v_1 : int, v_2: int} |= if v_1 != 1 then (v_2 % v_1 = 0)
+>>
+Rule 135 (If affine is true, then the input and bias should have the same dimensions.)
+{v_1: bool, v_2: tensor, v_3: tensor} |= if v_1 then ndim(v_2) = ndim(v_3)
+>>
+Rule 136 (Weights must have correct dtype if affine is True)
+{v_1: bool, v_2: tensor} |= if v_1 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 137 (num_channels has to be multiple of num_groups)
+{v_1: int, v_2 : int} |= (v_2 % v_1) = 0
+>>
+Rule 138 (num_channels can not be negative)
+{v_1: int} |= v_1 >= 0
+>>
+Rule 144 (If num_channels is less than num_groups, set num_channels equals to num_groups)
+{v_1 : int, v_2 : int} |= if v_1 < v_2 then v_1 = v_2
+>>
+Rule 146 (number of channels must be devisible by number of groups, or at least one of them has to be)
+{v_1 : int, v_2 : int} |= (v_1 % v_2 = 0) ∨ (v_2 % v_1 = 0)
+>>
+Rule 147 (The dtype should only be allowed dtypes)
+{v_1 : dtype} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 12
+>>
+Rule 149 (Number of groups should be less than the maximum value of integer to prevent overflow errors)
+{v_1 : int} |= v_1 < 2147483647
+>>
+Rule 153 (If num_groups is greater than 1, num_channels should also greater than or equal to 1)
+{v_1: int, v_2: int} |= if v_1 > 1 then v_2 >= 1
+>>
+Rule 155 (If channel is more than 0, group must have a valid positive int value to prevent inf)
+{v_1 : int, v_2 : int} |= if v_1 > 0 then v_2 > 0
+>>
+Rule 156 (prevent num groups from exceeding num channels)
+{v_1: int, v_2 : int} |= v_1 <= v_2
+>>
+Rule 157 (Weight, if defined, has the same precision/type as input)
+{v_1 : tensor, v_2: tensor, v_3: bool} |= if v_3 then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 158 (Data type has to be other than the character to prevent datatype error)
+{v_1: dtype} |= v_1 != 11
+>>
+Rule 159 (Avoid integer division by zero)
+{v_1: int} |= v_1 ≠ 0
+>>
+Rule 160 (If the number of channels is very low, must ensure the number of groups is not excessive)
+{v_1: int, v_2: int} |= if v_2 < 4 then v_1 <= v_2
+>>
+Rule 161 (If channel is less than the number of groups, automatically adjust the number of groups, prevent wrong values for normalization)
+{v_1 : int, v_2 : int} |= if v_1 < v_2 then v_2 = v_1
+>>
+Rule 162 (Weight has the right datatype if we are affine.)
+{v_1 : bool, v_2 : tensor, v_3: dtype} |= if v_1 then dtype_(v_2) = v_3
+>>
+Rule 163 (num_channels needs to be smaller than maximum tensor size)
+{v_1: int} |= v_1 < 1000000
+>>
+Rule 164 (Weight dimension needs to match the number of channels to prevent dimension mismatch)
+{v_1 : tensor, v_2: int, v_3: bool} |= if v_3 then shape(v_1, 0) = v_2
+>>
+Rule 165 (Make sure Number of channels is greater than or equals to the num_group)
+{v_1 : int, v_2 : int} |= v_2 >= v_1
+>>
+Rule 166 (weight and bias need to have a floating point)
+{v_1: bool, v_2: tensor, v_3: dtype} |= if v_1 then dtype_(v_2) = v_3
+>>
+Rule 167 (to avoid math range related error set the number of groups to be less than 5000)
+{v_1 : int} |= v_1 < 5000
+>>
+Rule 168 (Prevent a floating point with high precision)
+{v_1: float} |= v_1 < 1000
+>>
+Rule 170 (Prevent a negative group size, which causes an error during calculations)
+{v_1: int} |= v_1 >= 1
+>>
+Rule 172 (Number of channels needs to be within the size of the tensor, to prevent issues when processing)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 1) = v_2
+>>
+Rule 173 (We need to prevent channels or weights from being smaller to handle edge cases.)
+{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 then shape(v_1, 1) = shape(v_2, 0)
+>>
+Rule 174 (num_channels must be divisible by num_groups when num_groups is not zero)
+{v_1: int, v_2: int} |= if v_2 ≠ 0 then v_1 % v_2 = 0
+>>
+Rule 175 (to avoid overflow, keep epsilon smaller than 1000)
+{v_1 : float} |= v_1 < 1000
+>>
+Rule 176 (if we have channels, the data type must support the number of channels specified.)
+{v_1: int, v_2 : tensor} |= if v_1 > 0 then dtype_(v_2) ≠ 11

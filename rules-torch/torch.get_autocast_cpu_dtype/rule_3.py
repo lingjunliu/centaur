@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The autocast_cpu_dtype can't be an int8 (Rule 3)
+# autocast_cpu_dtype should be either float32, float64, complex64, or complex128. (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] != 1) if n else
-          v["arg1_value"] != 1)
+    s.add(Not(Or(Or(Or(v["arg1_value"] == 8, v["arg1_value"] == 9), v["arg1_value"] == 10), v["arg1_value"] == 11)) if n else
+          Or(Or(Or(v["arg1_value"] == 8, v["arg1_value"] == 9), v["arg1_value"] == 10), v["arg1_value"] == 11))
 )
 
 def rule_3_func(arg1, solver=None, neg=False):

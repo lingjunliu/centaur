@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# lower_bound must be less than or equal to upper_bound (Rule 1)
+# min_val must be less than or equal to max_val (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
     s.add(Not(v["arg1_value"] <= v["arg2_value"]) if n else

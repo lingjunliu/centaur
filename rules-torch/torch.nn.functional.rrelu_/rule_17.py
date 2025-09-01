@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Upper bound must be greater than or equal to lower bound (Rule 17)
+# The lower bound is not greater than the upper bound (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_value"] >= v["arg1_value"]) if n else
-          v["arg2_value"] >= v["arg1_value"])
+    s.add(Not(v["arg1_value"] <= v["arg2_value"]) if n else
+          v["arg1_value"] <= v["arg2_value"])
 )
 
 def rule_17_func(arg1, arg2, solver=None, neg=False):

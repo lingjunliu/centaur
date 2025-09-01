@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the offset is close to the row or column size, at least one has to be large (Rule 56)
+# row and col must be non-negative, and if offset is positive, both must be greater than zero (Rule 56)
 
 rule_56 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_value"] - v["arg3_value"] < 5, v["arg2_value"] - v["arg3_value"] < 5), Or(v["arg1_value"] > 100, v["arg2_value"] > 100), False)) if n else
-          If(Or(v["arg1_value"] - v["arg3_value"] < 5, v["arg2_value"] - v["arg3_value"] < 5), Or(v["arg1_value"] > 100, v["arg2_value"] > 100), False))
+    s.add(Not(And(And(v["arg1_value"] >= 0, v["arg2_value"] >= 0), If(v["arg3_value"] > 0, And(v["arg1_value"] > 0, v["arg2_value"] > 0), True))) if n else
+          And(And(v["arg1_value"] >= 0, v["arg2_value"] >= 0), If(v["arg3_value"] > 0, And(v["arg1_value"] > 0, v["arg2_value"] > 0), True)))
 )
 
 def rule_56_func(arg1, arg2, arg3, solver=None, neg=False):

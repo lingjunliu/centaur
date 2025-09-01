@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The input tensor v_1 must have a non-boolean dtype and standard deviation v_2 must be non-negative (Rule 14)
+# If the dtype is complex64 or complex128, then std must be greater than or equal to zero (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] != 0, v["arg2_value"] >= 0.0)) if n else
-          And(v["arg1_dtype"] != 0, v["arg2_value"] >= 0.0))
+    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg2_value"] >= 0.0, True)) if n else
+          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg2_value"] >= 0.0, True))
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):

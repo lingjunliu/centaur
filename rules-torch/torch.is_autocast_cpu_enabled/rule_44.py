@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# torch.is_autocast_cpu_enabled: if len of a tuple is not 0, function returns boolean. (Rule 44)
+# Autocast flag must equal the current precision level being used if precision is float (Rule 44)
 
 rule_44 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_length"] != 0, Or(v["arg1_value"] == True, v["arg1_value"] == False), Or(v["arg1_value"] == True, v["arg1_value"] == False))) if n else
-          If(v["arg2_length"] != 0, Or(v["arg1_value"] == True, v["arg1_value"] == False), Or(v["arg1_value"] == True, v["arg1_value"] == False)))
+    s.add(Not(If(v["arg2_value"] == 0.5, v["arg1_value"] == True, True)) if n else
+          If(v["arg2_value"] == 0.5, v["arg1_value"] == True, True))
 )
 
 def rule_44_func(arg1, arg2, solver=None, neg=False):
@@ -20,22 +20,22 @@ def rule_44_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, bool):
             return False
-        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not isinstance(arg2, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = Bool('arg1_value')
-        arg2_length = Int('arg2_length')
+        arg2_value = Real('arg2_value')
 
         # Value assignments
         solver.add(arg1_value == arg1)
-        solver.add(arg2_length == len(arg2))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 44
-        rule_44(solver, {'arg1_value': arg1_value, 'arg2_length': arg2_length})
+        rule_44(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_44(solver, {'arg1_value': arg1['value'], 'arg2_length': arg2['length']}, neg)
+        rule_44(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

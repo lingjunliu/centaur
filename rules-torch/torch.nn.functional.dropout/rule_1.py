@@ -8,8 +8,8 @@ from z3 import *
 # dropout probability has to be between 0 and 1 (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] >= 0, v["arg1_value"] <= 1)) if n else
-          And(v["arg1_value"] >= 0, v["arg1_value"] <= 1))
+    s.add(Not(And(0 <= v["arg1_value"], v["arg1_value"] <= 1)) if n else
+          And(0 <= v["arg1_value"], v["arg1_value"] <= 1))
 )
 
 def rule_1_func(arg1, solver=None, neg=False):

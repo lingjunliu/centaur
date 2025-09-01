@@ -5,35 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Tuple padding must not contain excessively large values that result in integer overflow during output shape calculation, v2 (Rule 21)
+# Padding length should be less than or equal to two times the input dimension but got padding length 6 and input of dimension 1 (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_length"] == 6, And(And(And(And(And(Select(v["arg1_values"], 0) < 1000, Select(v["arg1_values"], 1) < 1000), Select(v["arg1_values"], 2) < 1000), Select(v["arg1_values"], 3) < 1000), Select(v["arg1_values"], 4) < 1000), Select(v["arg1_values"], 5) < 1000), False)) if n else
-          If(v["arg1_length"] == 6, And(And(And(And(And(Select(v["arg1_values"], 0) < 1000, Select(v["arg1_values"], 1) < 1000), Select(v["arg1_values"], 2) < 1000), Select(v["arg1_values"], 3) < 1000), Select(v["arg1_values"], 4) < 1000), Select(v["arg1_values"], 5) < 1000), False))
+    s.add(Not(If(v["arg1_ndim"] == 1, v["arg2_length"] > 2 * v["arg1_ndim"], True)) if n else
+          If(v["arg1_ndim"] == 1, v["arg2_length"] > 2 * v["arg1_ndim"], True))
 )
 
-def rule_21_func(arg1, solver=None, neg=False):
+def rule_21_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not isinstance(arg1, np.ndarray):
+            return False
+        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
-        arg1_values = Array('arg1_values', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg2_length = Int('arg2_length')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_length == len(arg2))
 
         # Constraints for rule 21
-        rule_21(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values})
+        rule_21(solver, {'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_21(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values']}, neg)
+        rule_21(solver, {'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length']}, neg)

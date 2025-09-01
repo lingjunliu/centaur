@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# first dimension of tensor must be divisible by groups (Rule 2)
+# the first dimension of the tensor must be divisible by groups (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_shape"], 0) % v["arg2_value"] == 0, v["arg2_value"] > 0)) if n else
-          And(Select(v["arg1_shape"], 0) % v["arg2_value"] == 0, v["arg2_value"] > 0))
+    s.add(Not(Select(v["arg1_shape"], 0) % v["arg2_value"] == 0) if n else
+          Select(v["arg1_shape"], 0) % v["arg2_value"] == 0)
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):

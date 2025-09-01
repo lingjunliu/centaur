@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If requires_grad is true, the input tensor must have a floating point or complex dtype (Rule 1)
+# Only Tensors of floating point and complex dtype can require gradients (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == True, (Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)), False)) if n else
-          If(v["arg2_value"] == True, (Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)), False))
+    s.add(Not(Or(Or(Or(Or(v["arg2_value"] == False, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)) if n else
+          Or(Or(Or(Or(v["arg2_value"] == False, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10))
 )
 
 def rule_1_func(arg1, arg2, solver=None, neg=False):

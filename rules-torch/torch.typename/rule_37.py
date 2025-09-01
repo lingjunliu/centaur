@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the dtype of tensor is int64, then its minimum value should be greater than 0 (Rule 37)
+# If input tensor is uint8, all the values should be between 0 and 255 (Rule 37)
 
 rule_37 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 4, Select(v["arg1_range"], 0) > 0, False)) if n else
-          If(v["arg1_dtype"] == 4, Select(v["arg1_range"], 0) > 0, False))
+    s.add(Not(If(v["arg1_dtype"] == 5, And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 255), True)) if n else
+          If(v["arg1_dtype"] == 5, And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 255), True))
 )
 
 def rule_37_func(arg1, solver=None, neg=False):

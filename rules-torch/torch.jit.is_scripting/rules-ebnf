@@ -1,144 +1,294 @@
 >>
-Rule 10 (is_scripting returns boolean values - dummy variable constraint)
+Rule 6 (Compilation context is a boolean value)
 {v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 19 (v_1 is a bool and has a complement)
-{v_1 : bool} |= ∃x ∈ [0,1] : if v_1 = true then x = 0 else x = 1
+Rule 7 (TorchScript mode affects control flow based on compilation context)
+{v_1 : bool} |= if v_1 = true then true else false
 >>
-Rule 21 (v_1 is a boolean, and if it is true, it's not equal to false)
-{v_1 : bool} |= if v_1 = true then v_1 ≠ false
+Rule 8 (The unused decorator's behavior depends on compilation context)
+{v_1 : bool} |= if v_1 = true then false
 >>
-Rule 22 (v_1 is a boolean, and if it is false, it's not equal to true)
-{v_1 : bool} |= if v_1 = false then v_1 ≠ true
+Rule 9 (Certain ops have different implementations in TorchScript based on compilation context)
+{v_1 : bool} |= if v_1 = true then true
 >>
-Rule 23 (v_1 and v_2 are booleans, and if v_1 is true, then v_2 is also true)
-{v_1 : bool, v_2 : bool} |= if v_1 = true then v_2 = true
+Rule 12 (TorchScript enables specific operations)
+{v_1 : bool, v_2: tensor} |= if v_1 = true then ndim(v_2) > 0 else false
 >>
-Rule 24 (If v_1 is true, then there exists no number that satisfies that it is both 0 and 1)
-{v_1 : bool} |= if v_1 = true then ∀x ∈ [0,1] : x = 0 ∨ x = 1
+Rule 14 (TorchScript affects the shape of a tensor)
+{v_1 : bool, v_2: tensor, v_3: int} |= if v_1 = true then shape(v_2, 0) > v_3
 >>
-Rule 25 (v_1 and v_2 are booleans, and they are either both true or both false)
-{v_1 : bool, v_2 : bool} |= (v_1 = true ∧ v_2 = true) ∨ (v_1 = false ∧ v_2 = false)
+Rule 15 (The result dtype depends on the compilation context)
+{v_1 : bool, v_2: tensor} |= if v_1 = true then dtype_(v_2) = 7
 >>
-Rule 27 (If a boolean v_1 is false, then 1 is greater than 0)
-{v_1 : bool} |= if v_1 = false then 1 > 0
+Rule 17 (Compilation context affects control flow using an if statement with the boolean value)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 > 0 else v_2 < 0
 >>
-Rule 34 (If string v_1 is "test", the length of the string should be greater than 0)
-{v_1 : str} |= if v_1 = "test" then v_1.len > 0
+Rule 18 (When scripting, enforce tensor dimension requirements, when not, relax)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then ndim(v_2) > 0
 >>
-Rule 36 (if integer v_1 is 0 then every number is greater than 0)
-{v_1 : int} |= if v_1 = 0 then ∀x ∈ [0,1] : x > 0
+Rule 19 (Compilation context affects the data type enforced during runtime)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then dtype_(v_2) = 7
 >>
-Rule 37 (if integer v_1 is 0 then every number is greater than or equal to zero)
-{v_1 : int} |= if v_1 = 0 then ∀x ∈ [0,1] : x ≥ 0
+Rule 21 (Compilation context affects type of variable during if statement in scripting mode)
+{v_1 : bool, v_2 : int ⊎ float} |= if v_1 = true then v_2 > 0
 >>
-Rule 40 (If string v_1 is "test", the length of the string should be greater than 0 and a bool v_2 should be true)
-{v_1 : str, v_2 : bool} |= if v_1 = "test" then v_1.len > 0 ∧ v_2 = true
+Rule 22 (Compilation context ensures that divisor is not zero in scripting mode)
+{v_1 : bool, v_2 : float} |= if v_1 = true then v_2 ≠ 0
 >>
-Rule 41 (If integer v_1 is 0 then every number is greater than or equal to zero and if v_2 is true then v_3 must be true )
-{v_1 : int, v_2 : bool, v_3 : bool} |= if v_1 = 0 then ∀x ∈ [0,1] : x ≥ 0 ∧ if v_2 = true then v_3 = true
+Rule 23 (Enforce list has elements when in scripting mode)
+{v_1 : bool, v_2 : list(int)} |= if v_1 = true then v_2.len > 0
 >>
-Rule 42 (if integer v_1 is not equal to zero then a float v_2 should be greater than v_1)
-{v_1: int, v_2:float} |= if v_1 ≠ 0 then v_2 > v_1
+Rule 24 (Tensor must have positive dimensions when in scripting mode)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
 >>
-Rule 43 (If a float v_1 is 0, then 1 is greater than 0 or boolean v_2 is equal to false)
-{v_1 : float, v_2:bool} |= if v_1 = 0.0 then 1 > 0 ∨ v_2 = false
+Rule 25 (Compilation context affects the minimum value when in scripting mode)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then min(v_2) > -1000
 >>
-Rule 44 (v_1 and v_2 are tensors and their number of dimensions should at least be 1 and shape of v1 at dim 0 should be equal to 1)
-{v_1 : tensor, v_2: tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1 ∧ shape(v_1, 0) = 1
+Rule 26 (The compilation context affects the allowed minimum tensor dimension when in scripting mode.)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then ndim(v_2) > 1
 >>
-Rule 45 (if a float v_1 is greater than 0 and less than 1 and then all numbers are either zero or one)
-{v_1 : float} |= if v_1 > 0 ∧ v_1 < 1 then ∀x ∈ [0,1] : x = 0 ∨ x = 1
+Rule 27 (When scripting, ensure specific string is used for a parameter.)
+{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 = "linear" ∨ v_2 = "relu"
 >>
-Rule 46 (if a tensor v_1 has ndim = 0 then every number in range [0,1] is greater than equal to zero)
-{v_1 : tensor} |= if ndim(v_1) = 0 then  ∀x ∈ [0,1] : x ≥ 0
+Rule 28 (When scripting, ensure a list of floats does not contain NaN values)
+{v_1 : bool, v_2 : list(float)} |= if v_1 = true then ∀i ∈ [0, v_2.len - 1]: v_2[i] = v_2[i]
 >>
-Rule 47 (If an int v_1 is positive then the square of v_1 is also positive and greater than v_1 )
-{v_1 : int} |= if v_1 > 0 then v_1 * v_1 > 0 ∧ v_1 * v_1 > v_1
+Rule 29 (The compilation context enforces that a tensor's dtype is a float)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
 >>
-Rule 48 (If a string v_1 and a boolean v_2, where v_1 equal to empty string then v_2 equals false)
-{v_1 : str, v_2 : bool} |= if v_1 = "" then v_2 = false
+Rule 30 (The compilation context requires number of elements in tuple to match a dimension when scripting)
+{v_1 : bool, v_2 : tensor, v_3 : tuple(int)} |= if v_1 = true then v_3.len = shape(v_2,0)
 >>
-Rule 49 (If a string v1 and v2 and if v1 is equal to v2, then their lengths are equal)
-{v_1: str, v_2: str} |= if v_1 = v_2 then v_1.len = v_2.len
+Rule 32 (When scripting a tensor of shape, dimensions have to be the same)
+{v_1 : bool, v_2 : tensor, v_3: tensor} |= if v_1 = true then shape(v_2, 0) = shape(v_3, 0)
 >>
-Rule 50 (if a float v_1 is greater than 0 and less than 1 and a boolean v_2 is true then all numbers are either zero or one)
-{v_1 : float, v_2 : bool} |= if v_1 > 0 ∧ v_1 < 1 ∧ v_2 = true then ∀x ∈ [0,1] : x = 0 ∨ x = 1
+Rule 33 (Compilation context validates that only a permitted string is in use, like 'relu')
+{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 = "relu"
 >>
-Rule 51 (if a tensor v_1 has ndim = 0 and an int v_2 is equal to 1 then every number in range [0,1] is greater than equal to zero)
-{v_1 : tensor, v_2: int} |= if ndim(v_1) = 0 ∧ v_2 = 1 then  ∀x ∈ [0,1] : x ≥ 0
+Rule 34 (Compilation context makes a comparison between a tensor shape and an integer greater or equal)
+{v_1 : bool, v_2: tensor, v_3 : int} |= if v_1 = true then shape(v_2, 0) ≥ v_3
 >>
-Rule 52 (If an int v_1 is positive and string v_2 is not empty string then the square of v_1 is also positive and greater than v_1 )
-{v_1 : int, v_2: str} |= if v_1 > 0 ∧ v_2 ≠ "" then v_1 * v_1 > 0 ∧ v_1 * v_1 > v_1
+Rule 35 (Compilation context will validate a list to contain valid dtypes, assuming that they are either bool or int)
+{v_1 : bool, v_2 : list(dtype)} |= if v_1 = true then ∀i ∈ [0, v_2.len - 1] : v_2[i] = 0 ∨ v_2[i] = 1 ∨ v_2[i] = 2 ∨ v_2[i] = 3 ∨ v_2[i] = 4
 >>
-Rule 53 (If a string v_1 and a boolean v_2, and integer v_3 where v_1 equal to empty string then v_2 equals false and v_3 is greater than 0)
-{v_1 : str, v_2 : bool, v_3 : int} |= if v_1 = "" then v_2 = false ∧ v_3 > 0
+Rule 36 (Compilation context affects whether a tensor's minimum value must be positive when scripting.)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then min(v_2) ≥ 0
 >>
-Rule 54 (If a string v1 and v2, tensors v3 and v4 and if v1 is equal to v2, then their lengths are equal, number of dimensions of v3 should be greater than v4)
-{v_1: str, v_2: str, v_3: tensor, v_4: tensor} |= if v_1 = v_2 then v_1.len = v_2.len ∧ ndim(v_3) > ndim(v_4)
+Rule 37 (When scripting, require tensor to have at least two dimensions.)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then ndim(v_2) ≥ 2
 >>
-Rule 55 (if a float v_1 is greater than 0 and less than 1 and a boolean v_2 is true, then a string v_3 is not "test")
-{v_1 : float, v_2 : bool, v_3 : str} |= if v_1 > 0 ∧ v_1 < 1 ∧ v_2 = true then v_3 ≠ "test"
+Rule 39 (Compilation context ensures a specific list of strings contains a valid entry when scripting)
+{v_1 : bool, v_2 : list(str)} |= if v_1 = true then ∃i ∈ [0, v_2.len - 1] : v_2[i] = "relu" ∨ v_2[i] = "tanh"
 >>
-Rule 56 (if a tensor v_1 has ndim = 0 and an int v_2 is equal to 1 then ∃x ∈ [0,1] such that x is 0)
-{v_1 : tensor, v_2: int} |= if ndim(v_1) = 0 ∧ v_2 = 1 then  ∃x ∈ [0,1] : x = 0
+Rule 42 (Compilation context enforces that a string parameter matches from a specific list.)
+{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 = "relu" ∨ v_2 = "linear" ∨ v_2 = "tanh"
 >>
-Rule 57 (If an int v_1 is positive and string v_2 is not empty string then v_1 + 1 > v_1 )
-{v_1 : int, v_2: str} |= if v_1 > 0 ∧ v_2 ≠ "" then v_1 + 1 > v_1
+Rule 44 (Scripting enforces a stricter constraint than otherwise required.)
+{v_1 : bool, v_2 : list(int), v_3 : int} |= if v_1 = true then v_2.len = v_3
 >>
-Rule 58 (If a string v_1 is "A", a boolean v_2, and an integer v_3, where v_3 is greater than 0, then v_2 equals false )
-{v_1 : str, v_2 : bool, v_3 : int} |= if v_1 = "A" ∧ v_3 > 0 then v_2 = false
+Rule 45 (If in script mode, validate a certain shape is not 0)
+{v_1 : bool, v_2: tensor} |= if v_1 = true then shape(v_2,0) ≠ 0
 >>
-Rule 59 (If a string v1 has length 0 and float v2 is 0.0)
-{v_1: str, v_2: float} |= if v_1.len = 0 then v_2 = 0.0
+Rule 46 (Compilation Context validates that list of numbers does not contain any zero.)
+{v_1 : bool, v_2 : list(int ⊎ float)} |= if v_1 = true then ∀i ∈ [0, v_2.len - 1] : v_2[i] ≠ 0
 >>
-Rule 60 (if a float v_1 is greater than 0 and less than 1 and a boolean v_2 is true, then int v_3 will be 1)
-{v_1 : float, v_2 : bool, v_3 : int} |= if v_1 > 0 ∧ v_1 < 1 ∧ v_2 = true then v_3 = 1
+Rule 47 (In scripting require that tensor is of complex data type)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
 >>
-Rule 61 (if a tensor v_1 has ndim = 0 and an int v_2 is equal to 1 then ∃x ∈ [0,1] such that x is 0 and string v3 is not "test")
-{v_1 : tensor, v_2: int, v_3: str} |= if ndim(v_1) = 0 ∧ v_2 = 1 then  ∃x ∈ [0,1] : x = 0 ∧ v_3 ≠ "test"
+Rule 48 (Compilation context enforces greater min value if in script mode)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then min(v_2) > 0
 >>
-Rule 62 (If an int v_1 is positive and string v_2 is not empty string then shape of tensor v_3 at dimension 0 is greater than 0)
-{v_1 : int, v_2: str, v_3: tensor} |= if v_1 > 0 ∧ v_2 ≠ "" then shape(v_3, 0) > 0
+Rule 49 (In scripting mode, enforce tensor has more than one dimension and equal to a certain size)
+{v_1 : bool, v_2 : tensor, v_3 : int} |= if v_1 = true then ndim(v_2) > 1 ∧ ndim(v_2) = v_3
 >>
-Rule 64 (If a string v1 has length 0 and float v2 is 0.0 and boolean v3 is false)
-{v_1: str, v_2: float, v_3: bool} |= if v_1.len = 0 then v_2 = 0.0 ∧ v_3 = false
+Rule 50 (Compilation context affects a constraint to only accept a specific shape)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then shape(v_2, 0) = 4 ∧ shape(v_2, 1) = 5
 >>
-Rule 68 (If a string v_1 is "A" and an integer v_2, where v_2 is greater than 0, then float v3 is greater than 0)
-{v_1 : str, v_2 : int, v_3: float} |= if v_1 = "A" ∧ v_2 > 0 then v_3 > 0
+Rule 51 (In scripting, require string parameter to be in the given list and not empty.)
+{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 = "linear" ∨ v_2 = "relu" ∧ v_2 ≠ ""
 >>
-Rule 69 (If a string v1 has length 0 and float v2 is 0.0 and boolean v3 is false and int v4 is equal to 0)
-{v_1: str, v_2: float, v_3: bool, v_4: int} |= if v_1.len = 0 then v_2 = 0.0 ∧ v_3 = false ∧ v_4 = 0
+Rule 52 (Scripting checks if first tensor is larger than the second using max/min)
+{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then max(v_2) > min(v_3)
 >>
-Rule 70 (if a float v_1 is greater than 0 and less than 1 and a boolean v_2 is true, then int v_3 will be not equal to 0)
-{v_1 : float, v_2 : bool, v_3 : int} |= if v_1 > 0 ∧ v_1 < 1 ∧ v_2 = true then v_3 ≠ 0
+Rule 54 (The compilation context enforces tensors to be square matrix.)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then shape(v_2, 0) = shape(v_2, 1)
 >>
-Rule 71 (if a tensor v_1 has ndim = 0 and an int v_2 is equal to 1 then ∃x ∈ [0,1] such that x is 1 and string v3 has a length of 0)
-{v_1 : tensor, v_2: int, v_3: str} |= if ndim(v_1) = 0 ∧ v_2 = 1 then  ∃x ∈ [0,1] : x = 1 ∧ v_3.len = 0
+Rule 55 (Require all elements of list of strings must be from a certain valid list if scripting is enabled)
+{v_1 : bool, v_2 : list(str)} |= if v_1 = true then ∀i ∈ [0, v_2.len - 1] : v_2[i] = "linear" ∨ v_2[i] = "relu" ∨ v_2[i] = "tanh" ∨ v_2[i] = "sigmoid"
 >>
-Rule 72 (If an int v_1 is positive and string v_2 is not empty string then max function call applied to the tesnor v_3 should be greater than zero)
-{v_1 : int, v_2: str, v_3: tensor} |= if v_1 > 0 ∧ v_2 ≠ "" then max(v_3) > 0
+Rule 56 (When scripting, dimension of a given tensor must not be equal to a number.)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then ndim(v_2) ≠ 5
 >>
-Rule 73 (If a string v_1 is "A" and an integer v_2, where v_2 is greater than 0, then float v3 is not equal to 0)
-{v_1 : str, v_2 : int, v_3: float} |= if v_1 = "A" ∧ v_2 > 0 then v_3 ≠ 0
+Rule 58 (Compilation context effects whether a certain element in list meets requirements when scripting is enabled.)
+{v_1 : bool, v_2 : list(int ⊎ float)} |= if v_1 = true then v_2[0] > 5
 >>
-Rule 74 (If a string v1 has length 0 and float v2 is 0.0 and boolean v3 is false and int v4 is greater than v2)
-{v_1: str, v_2: float, v_3: bool, v_4: int} |= if v_1.len = 0 then v_2 = 0.0 ∧ v_3 = false ∧ v_4 > v_2
+Rule 59 (Script mode force stricter limits to size of tensor)
+{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then shape(v_2, ndim(v_2) - 1) > shape(v_3, 0)
 >>
-Rule 75 (if a float v_1 is greater than 0 and less than 1 and a boolean v_2 is true, then a tuple v_3 of int will have a length of 1)
-{v_1 : float, v_2 : bool, v_3 : tuple(int)} |= if v_1 > 0 ∧ v_1 < 1 ∧ v_2 = true then v_3.len = 1
+Rule 60 (Compilation context enforce all strings of list contains the string when in scripting mode)
+{v_1 : bool, v_2 : list(str)} |= if v_1 = true then ∀i ∈ [0, v_2.len - 1] : v_2[i] = "relu" ∨ v_2[i] = "tanh" ∨ v_2[i] = "linear"
 >>
-Rule 76 (if a tensor v_1 has ndim = 0 and an int v_2 is equal to 1 then ∃x ∈ [0,1] such that x is 1 and a list v3 of boolean has a length of 1)
-{v_1 : tensor, v_2: int, v_3: list(bool)} |= if ndim(v_1) = 0 ∧ v_2 = 1 then  ∃x ∈ [0,1] : x = 1 ∧ v_3.len = 1
+Rule 61 (Scripting mode enforce the min values for both tensor must add up more than certain criteria.)
+{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then min(v_2) + min(v_3) > 20
 >>
-Rule 77 (If an int v_1 is positive and string v_2 is not empty string then a bool v3 is true)
-{v_1 : int, v_2: str, v_3: bool} |= if v_1 > 0 ∧ v_2 ≠ "" then v_3 = true
+Rule 62 (In scripting, max of a tensor must be more than min.)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then max(v_2) > min(v_2)
 >>
-Rule 78 (If a string v_1 is "A" and an integer v_2, where v_2 is greater than 0, then the ndim of a tensor v3 is 1)
-{v_1 : str, v_2 : int, v_3: tensor} |= if v_1 = "A" ∧ v_2 > 0 then ndim(v_3) = 1
+Rule 63 (Script mode enforce the list cannot be empty)
+{v_1 : bool, v_2 : list(int ⊎ float)} |= if v_1 = true then v_2.len > 0
 >>
-Rule 79 (If a string v1 has length 0 and float v2 is 0.0 and boolean v3 is false and int v4 is not equal to 0, then tensor v5 has dimension greater than 0)
-{v_1: str, v_2: float, v_3: bool, v_4: int, v_5:tensor} |= if v_1.len = 0 then v_2 = 0.0 ∧ v_3 = false ∧ v_4 ≠ 0 ∧ ndim(v_5) > 0
+Rule 65 (Compilation enforce string value to only come from given selection.)
+{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 = "nearest" ∨ v_2 = "bilinear" ∨ v_2 = "bicubic"
 >>
-Rule 111 (if a tensor v_1 has ndim = 0 and an int v_2 is equal to 1 then ∃x ∈ [0,1] such that x is 1 and a list v3 of boolean has a length of 1)
-{v_1 : tensor, v_2: int, v_3: list(bool)} |= if ndim(v_1) = 0 ∧ v_2 = 1 then ∃x ∈ [0,1] : x = 1 ∧ v_3.len = 1
+Rule 67 (Compilation changes the max size to allow more when scripting)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then max(v_2) < 10000
+>>
+Rule 68 (In script mode, checks that all values within a list are the same size)
+{v_1 : bool, v_2 : list(int)} |= if v_1 = true then ∀i ∈ [0, v_2.len - 1] : v_2[i] = 1
+>>
+Rule 70 (While scripting, compare two tensors and must be of the exact same shape)
+{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then shape(v_2, 0) = shape(v_3, 0) ∧ shape(v_2, 1) = shape(v_3, 1)
+>>
+Rule 71 (Compilation forces a check for list to be a tuple and is of valid size)
+{v_1 : bool, v_2 : list(int), v_3 : tuple(int)} |= if v_1 = true then v_2.len = v_3.len
+>>
+Rule 72 (While in scriptMode, last dimension must be divisible by integer value.)
+{v_1 : bool, v_2 : tensor, v_3 : int} |= if v_1 = true then shape(v_2, ndim(v_2) - 1) % v_3 = 0
+>>
+Rule 73 (Ensure list's element meets all specified valid size in script mode)
+{v_1 : bool, v_2 : list(int ⊎ float)} |= if v_1 = true then ∀i ∈ [0, v_2.len - 1] : v_2[i] < 5
+>>
+Rule 74 (Complication enforcement for correct string selection value)
+{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 = "none" ∨ v_2 = "mean" ∨ v_2 = "sum" ∨ v_2 = "max" ∨ v_2 = "min"
+>>
+Rule 75 (Enforce tensors are always the same dtype and shape when in scripting.)
+{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then dtype_(v_2) = dtype_(v_3) ∧ shape(v_2, 0) = shape(v_3, 0)
+>>
+Rule 76 (Script requires tuple to have minimum size and the dimension to be a set number.)
+{v_1 : bool, v_2 : tuple(int), v_3 : tensor} |= if v_1 = true then v_2.len > 2 ∧ ndim(v_3) = 2
+>>
+Rule 77 (Compilation enable and comparison of two variables, enforce higher minimum for floats)
+{v_1 : bool, v_2 : float, v_3 : float} |= if v_1 = true then v_2 < v_3 ∧ v_2 > 10
+>>
+Rule 78 (Tensor must have a floating point dtype and all shape values needs to be consistent when in script.)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 10
+>>
+Rule 79 (Compilation checks if any dimensions within tensors contain odd sizes when is script is enabled.)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) % 2 ≠ 0
+>>
+Rule 80 (In ScriptMode, validate the tuple must meet a specific number value.)
+{v_1 : bool, v_2 : tuple(int)} |= if v_1 = true then v_2.len = 2 ∧ v_2[0] = 5 ∧ v_2[1] = 5
+>>
+Rule 81 (Force both tensor’s dimensions must be exact same length in Script)
+{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then ndim(v_2) = ndim(v_3) ∧ ndim(v_2) = 3
+>>
+Rule 82 (Compiliation enforce String parameter values has both ‘bilinear’ and ‘area’)
+{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 = "bilinear" ∨ v_2 = "area"
+>>
+Rule 83 (In scripting, require tensor's data type to be certain int and requires number of dimensions to equal to 10)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3) ∧ ndim(v_2) = 10
+>>
+Rule 85 (Tuple size needs to match size of other element.)
+{v_1 : bool, v_2 : tuple(int), v_3 : int ⊎ float} |= if v_1 = true then v_2.len ≥ 3 ∧ v_3 = 3
+>>
+Rule 86 (Require all dimensions of the given tensor to meet the number under scripting mode.)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 1
+>>
+Rule 87 (Compilation forces that string should not be any empty with length requirement in script is enabled.)
+{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 ≠ "" ∧ v_2.len < 10
+>>
+Rule 88 (Tensor’s values cannot be non number in script mode, aka. Has NaN)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then min(v_2) = min(v_2) ∧ max(v_2) = max(v_2)
+>>
+Rule 89 (Script mode enforce list to have a element that is greater than zero)
+{v_1 : bool, v_2 : list(int ⊎ float)} |= if v_1 = true then ∃i ∈ [0, v_2.len - 1] : v_2[i] > 0
+>>
+Rule 90 (Script mode requires a 5d tensor only under such setting)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then ndim(v_2) = 5
+>>
+Rule 91 (Compilation forces the string length requirement)
+{v_1 : bool, v_2 : str} |= if v_1 = true then v_2.len > 5
+>>
+Rule 92 (Scriptmode force valid list and tensor first shapes must match dimension)
+{v_1 : bool, v_2 : list(int ⊎ float), v_3: tensor} |= if v_1 = true then v_2.len = shape(v_3,0)
+>>
+Rule 93 (When scriptmode is on, string length size comparison between 2)
+{v_1 : bool, v_2 : str, v_3 : str} |= if v_1 = true then v_2.len > v_3.len
+>>
+Rule 94 (Require certain value to match first 4 of dtype list if on script.)
+{v_1 : bool, v_2 : dtype} |= if v_1 = true then v_2 = 0 ∨ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3
+>>
+Rule 95 (Comparison based on tensor’s size against a number.)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then shape(v_2,0) ≥ 256
+>>
+Rule 96 (String needs to be a single alphabet value. only a,b,c valid when script)
+{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 = "a" ∨ v_2 = "b" ∨ v_2 = "c"
+>>
+Rule 97 (Different tensors value for min and max value must meet this when script is enable.)
+{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then max(v_2) < min(v_3)
+>>
+Rule 98 (Enable Script Mode to require string start with a specific letter.)
+{v_1 : bool, v_2 : str} |= if v_1 = true then v_2[0] = "t"
+>>
+Rule 99 (Requires dtype cannot be a few of them to ensure only specific types is enabled, during script)
+{v_1 : bool, v_2 : dtype} |= if v_1 = true then v_2 ≠ 9 ∧ v_2 ≠ 10 ∧ v_2 ≠ 11 ∧ v_2 ≠ 12
+>>
+Rule 100 (Dimension size has requirements under certain requirements in compile/script mode)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then ndim(v_2) = 2 ∧ shape(v_2, 0) > shape(v_2, 1)
+>>
+Rule 101 (Enforce script mode to check the last letter of the string for consistency)
+{v_1 : bool, v_2 : str} |= if v_1 = true then v_2[v_2.len - 1] = "x"
+>>
+Rule 102 (During compiliation process, tensor is validated under positive number.)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 5
+>>
+Rule 103 (Compiliation force requires data type cannot be such selection list under scripting)
+{v_1 : bool, v_2 : dtype} |= if v_1 = true then v_2 ≠ 5 ∧ v_2 ≠ 6 ∧ v_2 ≠ 7 ∧ v_2 ≠ 8 ∧ v_2 ≠ 9
+>>
+Rule 104 (In script mode, require the first tensor’s min value and the second’s to be more than certain value.)
+{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then min(v_2) > 10 ∧ min(v_3) > 20
+>>
+Rule 105 (In script require element of the last letter must contains lower and upper to ensure encoding has a special format.)
+{v_1 : bool, v_2 : str} |= if v_1 = true then v_2[v_2.len - 1] = "a" ∨ v_2[v_2.len - 1] = "A"
+>>
+Rule 106 (Certain Tensor value to conform, specific for this one)
+{v_1 : bool, v_2 : tensor, v_3 : float} |= if v_1 = true then min(v_2) > v_3
+>>
+Rule 107 (While Scripting, Validate only certain length)
+{v_1 : bool, v_2 : list(int ⊎ float)} |= if v_1 = true then v_2.len = 4
+>>
+Rule 108 (Compiliation check on the first and second tensor and see the condition is validated and shape are compared)
+{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then ndim(v_2) > 2 ∧ ndim(v_3) > 2 ∧ shape(v_2, 0) > shape(v_3,0)
+>>
+Rule 110 (In script force the tuple needs contain less data)
+{v_1 : bool, v_2 : tuple(int), v_3 : int ⊎ float} |= if v_1 = true then v_2.len < v_3
+>>
+Rule 111 (Requires a number meet this when scripting is on under certain circumstance with 2 numbers)
+{v_1 : bool, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 = true then v_2 + v_3 > 0
+>>
+Rule 112 (Compilation must have value string element if script enabled)
+{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 = "linear"
+>>
+Rule 113 (Comparison on a very certain value with a very big jump using tensor)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then max(v_2) - min(v_2) > 1000
+>>
+Rule 114 (In script, require length tuple size to be same with certain number or have to check this requirement.)
+{v_1 : bool, v_2 : tuple(int), v_3 : int ⊎ float} |= if v_1 = true then v_2.len = 2 ∧ v_3 = 5
+>>
+Rule 115 (When in script force, require certain relationship exist in the equation.)
+{v_1 : bool, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 = true then v_2 * v_3 > 0
+>>
+Rule 116 (When enabling scripting validate that string value must come from this format.)
+{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 = "i,j->ij" ∨ v_2 = "ii->i" ∨ v_2 = "ii"
+>>
+Rule 117 (In Script requires more strict dimension relation for this equation.)
+{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then ndim(v_2) ≥ ndim(v_3)
+>>
+Rule 118 (Compilation Requires number can only contain a set value if we use scripting.)
+{v_1 : bool, v_2 : int ⊎ float} |= if v_1 = true then v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 4 ∨ v_2 = 8
+>>
+Rule 119 (For script, need valid String contains name in it.)
+{v_1 : bool, v_2 : str} |= if v_1 = true then ∃i ∈ [0, v_2.len - 1] : v_2[i] = "e" ∨ v_2[i] = "l" ∨ v_2[i] = "u"
+>>
+Rule 120 (Compilation validation of certain tensor and requires to be in certain validation point and has all positive in all d)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then min(v_2) > 0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0

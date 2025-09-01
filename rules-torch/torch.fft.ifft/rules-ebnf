@@ -1,69 +1,102 @@
 >>
-Rule 2 (input tensor should be complex)
-{v_1 : tensor} |= dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+Rule 2 (input tensor should be complex for ifft)
+{v_1 : tensor} |= dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 3 (input tensor should not be Half)
-{v_1 : tensor} |= dtype_(v_1) ≠ 7
+Rule 3 (input tensor should not have Half dtype for ifft)
+{v_1 : tensor} |= dtype_(v_1) ≠ 6
 >>
 Rule 4 (Dimension should be in valid range)
-{v_1 : tensor, v_2 : int} |= 0 ≤ v_2 + ndim(v_1) ∧ v_2 < ndim(v_1)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 10 (norm should be from the valid list)
+Rule 8 (input tensor should have valid dtype for ifft)
+{v_1 : tensor} |= dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+>>
+Rule 9 (norm should be a valid string)
 {v_1 : str} |= v_1 = "forward" ∨ v_1 = "backward" ∨ v_1 = "ortho" ∨ v_1 = "none"
 >>
-Rule 11 (Dimension should be in valid range)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then v_2 < ndim(v_1) else v_2 + ndim(v_1) ≥ 0
+Rule 10 (Dimension should be in valid range)
+{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
 >>
-Rule 14 (input dtype should not be Bool)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 11 (input tensor should be complex or float for ifft)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 17 (input tensor should be complex and not Bool/Half)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 7 ∧ (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11)
->>
-Rule 18 (norm should be from the valid list or None)
-{v_1 : str} |= v_1 = "forward" ∨ v_1 = "backward" ∨ v_1 = "ortho" ∨ v_1 = "none" ∨ v_1 = ""
->>
-Rule 22 (Signal length should be positive integer)
+Rule 12 (if n is given, it should be positive)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 23 (Dimension should be in valid range)
-{v_1 : tensor, v_2 : int} |= (0 ≤ v_2 + ndim(v_1) ∧ v_2 < ndim(v_1)) ∨ (v_2 = -1)
+Rule 14 (input tensor dtype should be complex or half)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 41 (Signal length is positive integer or None)
-{v_1 : int ⊎ str} |= if v_1 = "none" then true else v_1 > 0
+Rule 15 (if n is given, input tensor must have n elements on dim)
+{v_1 : tensor, v_2 : int, v_3: int} |= if v_2 ≠ 0 then shape(v_1, v_3) = v_2
 >>
-Rule 42 (Signal length can be None, and should be string type "none" rather than None)
-{v_1: int ⊎ str} |= v_1 = "none" ∨ (v_1 ≠ "none" ∧ v_1 > 0)
+Rule 17 (input tensor dtype should be complex, float, or half (and not bool))
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 46 (Signal length is positive integer or "none")
-{v_1 : int ⊎ str} |= v_1 = "none" ∨ (v_1 ≠ "none" ∧ v_1 > 0)
+Rule 23 (input tensor dtype should be complex, float or half)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 50 (Signal length is positive integer or None as a STRING)
-{v_1 : int ⊎ str} |= v_1 = "none" ∨ (v_1 ≠ "none" ∧ if v_1 = "none" then false else v_1 > 0)
+Rule 25 (Dimension should be valid, if dim is provided)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 then (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
 >>
-Rule 55 (Signal length should be integer or None (represented by empty string))
-{v_1 : int ⊎ str} |= v_1 = "" ∨ (v_1 ≠ "" ∧ if v_1 = "" then false else v_1 > 0)
+Rule 27 (If signal length is specified, it must be positive and less than or equal to the dimension size)
+{v_1 : int, v_2: tensor, v_3: int} |= if v_1 ≠ 0 then v_1 > 0 ∧ v_1 ≤ shape(v_2, v_3)
 >>
-Rule 63 (signal length should be positive integer or None string)
-{v_1 : int ⊎ str} |= (v_1 = "none") ∨ (v_1 ≠ "none" ∧ v_1 > 0)
+Rule 31 (Dimension should be valid or default, addressing IndexError)
+{v_1 : tensor, v_2 : int} |= if v_2 = -1 then true else (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
 >>
-Rule 67 (Signal length n should be a positive integer or represented as string "none")
-{v_1 : int ⊎ str} |= (v_1 = "none") ∨ ((v_1 ≠ "none") ∧ (if v_1 = "none" then false else v_1 > 0))
+Rule 33 (Signal length should be valid, if provided)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 ≠ 0 then v_2 > 0 ∧ v_2 ≤ shape(v_1, v_3)
 >>
-Rule 68 (Input Tensor's dtype should not be Bool or Half)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 7
+Rule 37 (Dimension should be valid or default to -1)
+{v_1 : tensor, v_2 : int} |= (v_2 = -1) ∨ ((0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1))
 >>
-Rule 72 (signal length n should be a positive integer or "none")
-{v_1 : int ⊎ str} |= (v_1 = "none") ∨ ((v_1 ≠ "none") ∧ (v_1 > 0))
+Rule 39 (Signal length should be positive and less than or equal to the dimension size, if provided, else any int)
+{v_1 : tensor, v_2 : int, v_3 : int} |= (v_2 = 0) ∨ (v_2 > 0 ∧ v_2 ≤ shape(v_1, v_3))
 >>
-Rule 77 (The first dimension of input should be a power of 2)
-{v_1 : tensor} |= shape(v_1, 0) = 2 ∨ shape(v_1, 0) = 4 ∨ shape(v_1, 0) = 8 ∨ shape(v_1, 0) = 16 ∨ shape(v_1, 0) = 32 ∨ shape(v_1, 0) = 64 ∨ shape(v_1, 0) = 128 ∨ shape(v_1, 0) = 256 ∨ shape(v_1, 0) = 512 ∨ shape(v_1, 0) = 1024 ∨ shape(v_1, 0) = 2048
+Rule 44 (Valid input dtype, addressing both half and bool errors)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 6
 >>
-Rule 81 (the first dimension size of the input tensor should be power of 2 if GPU Arch is SM53 or greater)
-{v_1 : tensor} |= if shape(v_1, 0) = 0 then true else (shape(v_1, 0) = 2 ∨ shape(v_1, 0) = 4 ∨ shape(v_1, 0) = 8 ∨ shape(v_1, 0) = 16 ∨ shape(v_1, 0) = 32 ∨ shape(v_1, 0) = 64 ∨ shape(v_1, 0) = 128 ∨ shape(v_1, 0) = 256 ∨ shape(v_1, 0) = 512 ∨ shape(v_1, 0) = 1024 ∨ shape(v_1, 0) = 2048)
+Rule 47 (Input dtype must be valid: complex, float, or half, addressing dtype errors)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5
 >>
-Rule 95 (The first dimension of input should be a power of 2 if GPU Arch is SM53 or greater, check only for complex64, complex128 and Half)
-{v_1 : tensor} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 ∨ dtype_(v_1) = 7) ∧ shape(v_1, 0) ≠ 0 then (shape(v_1, 0) = 2 ∨ shape(v_1, 0) = 4 ∨ shape(v_1, 0) = 8 ∨ shape(v_1, 0) = 16 ∨ shape(v_1, 0) = 32 ∨ shape(v_1, 0) = 64 ∨ shape(v_1, 0) = 128 ∨ shape(v_1, 0) = 256 ∨ shape(v_1, 0) = 512 ∨ shape(v_1, 0) = 1024 ∨ shape(v_1, 0) = 2048)
+Rule 48 (Signal length should be consistent with the dimension, if dim and signal length are specified, for trimming/padding)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 ≠ 0 ∧ v_3 ≠ 0 then v_2 > 0 ∧ v_2 ≤ shape(v_1, v_3)
 >>
-Rule 100 (signal length n should be a positive integer or represented as string "none")
-{v_1 : int ⊎ str} |= (v_1 = "none") ∨ (v_1 > 0)
+Rule 49 (Valid dimension or default, if provided, addressing IndexError)
+{v_1 : tensor, v_2 : int} |= if v_2 = -1 then true else ((0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1))
+>>
+Rule 51 (Signal length and Dimension must be valid if specified, otherwise defaults)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 = 0 ∨ v_3 = 0 then true else (v_2 > 0 ∧ v_2 ≤ shape(v_1, v_3))
+>>
+Rule 58 (If dim is provided and not default, it must be a valid dimension index, addressing IndexError)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ -1 then (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
+>>
+Rule 72 (Signal length must be positive and less than or equal to the chosen dimension or dimension must be 0 to represent no signal length is passed)
+{v_1 : tensor, v_2 : int, v_3 : int} |= (v_2 = 0 ∧ v_3 = 0) ∨ (v_2 ≠ 0 ∧ v_3 ≠ 0 ∧ v_2 > 0 ∧ v_2 ≤ shape(v_1, v_3)) ∨ (v_2 = 0 ∧ v_3 ≠ 0) ∨ (v_3 = 0 ∧ v_2 ≠ 0)
+>>
+Rule 75 (If a signal length `n` and a dimension `dim` are both provided and not 0, `n` must be a valid shape along that dimension to guarantee proper function)
+{v_1 : tensor, v_2 : int, v_3 : int} |= (v_2 = 0) ∨ (v_3 = 0) ∨ (v_2 > 0 ∧ v_2 ≤ shape(v_1, v_3))
+>>
+Rule 78 (If signal length is provided alongside a dimension, signal length should not exceed dimension)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 = 0 ∨ v_3 = 0 then true else v_2 > 0 ∧ v_2 ≤ shape(v_1, v_3)
+>>
+Rule 87 (If signal length and dimension are specified together as parameters to IFFT, then signal length (n) must be a number > 0 that is less than or equal to the shape along that dimension, for proper zero-padding and correct IFFT computation)
+{v_1 : tensor, v_2 : int, v_3 : int} |= (v_2 = 0 ∧ v_3 = 0) ∨ (v_2 > 0 ∧ v_3 > 0 ∧ v_2 ≤ shape(v_1, v_3)) ∨ (v_2 = 0 ∧ v_3 = -1)
+>>
+Rule 90 (Signal length consistency: dimension is only required if n is specified. Thus check should only happen given these circumstances.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 ≠ 0 ∧ v_3 ≠ 0 then (v_2 > 0 ∧ v_2 ≤ shape(v_1, v_3))
+>>
+Rule 93 (Provide compatible signal length and dimension parameters to support IFFT function, else, by setting to 0, allow default)
+{v_1 : tensor, v_2 : int, v_3 : int} |= (v_2 = 0 ∧ v_3 = 0) ∨ (v_2 > 0 ∧ v_3 > 0 ∧ v_2 ≤ shape(v_1, v_3))
+>>
+Rule 99 (The passed signal length must be valid given the provided dimension, accounting for default parameters)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 = 0 ∨ v_3 = -1 then true else v_2 > 0 ∧ v_2 ≤ shape(v_1, v_3)
+>>
+Rule 102 (If signal length is provided, check if it is valid compared with the given dimension)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 ≠ 0 then (v_2 > 0 ∧ v_2 ≤ shape(v_1, v_3))
+>>
+Rule 105 (Check relation between signal length `n` and `dim` for a tensor to prevent unexpected truncation and function as intended.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 = 0 then true else v_2 > 0 ∧ v_2 ≤ shape(v_1, v_3)
+>>
+Rule 111 (If signal length & dim specified correctly, then n must respect dim, defaults ok)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if (v_2 ≠ 0) ∧ (v_3 ≠ -1) then (v_2 > 0) ∧ (v_2 ≤ shape(v_1, v_3))

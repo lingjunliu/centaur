@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# out tensor dtype should be float (Rule 3)
+# input tensor must have a floating-point dtype: 6–8 to allow erfc operation (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(v["arg1_dtype"] == 8, v["arg1_dtype"] == 7), v["arg1_dtype"] == 6)) if n else
-          Or(Or(v["arg1_dtype"] == 8, v["arg1_dtype"] == 7), v["arg1_dtype"] == 6))
+    s.add(Not(And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)) if n else
+          And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8))
 )
 
 def rule_3_func(arg1, solver=None, neg=False):

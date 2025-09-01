@@ -1,69 +1,51 @@
 >>
-Rule 1 (A and B must have compatible dtypes)
+Rule 1 (The product of the first B.ndim dimensions of A should equal the product of the rest of the dimensions of A)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) > 0 ∧ ∀j ∈ [ndim(v_2), ndim(v_1) - 1] : shape(v_1, j) > 0 ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i)) = (∀j ∈ [ndim(v_2), ndim(v_1) - 1] : shape(v_1, j))
+>>
+Rule 2 (dims tuple should contain valid dimensions for A)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1)
+>>
+Rule 3 (A and B should have compatible dtypes - avoiding casting issues)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 2 (ndim of B must be less than or equal to ndim of A)
+Rule 4 (B's number of dimensions should be valid for A)
 {v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≤ ndim(v_1)
 >>
-Rule 4 (dims must be a tuple of integers if specified.)
-{v_1 : tensor, v_3 : tuple(int)} |= ∀i ∈ [0, v_3.len - 1] : v_3[i] ≥ 0 ∧ v_3[i] < ndim(v_1)
+Rule 5 (output tensor, if provided, needs to have correct shape)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_3) = ndim(v_1) - ndim(v_2) ∧ ∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) = shape(v_1, ndim(v_2) + i)
 >>
-Rule 6 (Check that the output tensor, if provided, has the correct shape based on A and B.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ ndim(v_2)
+Rule 6 (dims tuple should be non-empty tuple of int.)
+{v_1: tuple(int)} |= v_1.len > 0
 >>
-Rule 7 (A and B must have float, double, cfloat, or cdouble dtypes. 7-11)
-{v_1 : tensor, v_2 : tensor} |= (7 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11) ∧ (7 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 11)
+Rule 8 (Check dtype of A to be float, double, cfloat, or cdouble to prevent RuntimeError)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 12 (Handle the "Expected result to be safely castable from Byte dtype, but got result with dtype Bool" error.)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 9 (Check for valid dimensions in dims tuple to avoid IndexError)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len = 0 ∨ (v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : (0 - ndim(v_1)) ≤ v_2[i] ∧ v_2[i] < ndim(v_1))
 >>
-Rule 13 (Check that the dtypes of A and B are supported: float, double, cfloat, or cdouble)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+Rule 12 (Check the shape compatibility of A and B to prevent RuntimeError)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1]: shape(v_1, i) = shape(v_2, i)
 >>
-Rule 14 (If dims is provided, its length should be less than ndim of A)
-{v_1 : tensor, v_3 : tuple(int)} |= v_3.len < ndim(v_1)
+Rule 13 (Check that A and B have compatible dtypes, avoiding the Byte to Bool cast error)
+{v_1 : tensor, v_2 : tensor} |=  (dtype_(v_1) ≠ 5) ∨ (dtype_(v_2) ≠ 0)
 >>
-Rule 15 (A's shape must be valid when dims is not None, focusing on dimension index out of range.)
-{v_1 : tensor, v_3 : tuple(int)} |= ∀i ∈ [0, v_3.len - 1] : (0 ≤ v_3[i] + ndim(v_1)) ∧ (v_3[i] + ndim(v_1) < ndim(v_1) + ndim(v_1))
+Rule 14 (Check the shape compatibility of A and B to prevent RuntimeError)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_2) < ndim(v_1) then ndim(v_2) - 1 else ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 16 (Handle the "Expected result to be safely castable from Byte dtype, but got result with dtype Bool" error. A should not have Bool type)
-{v_1 : tensor} |= dtype_(v_1) ≠ 1
+Rule 15 (A's shape should satisfy the condition based on B's ndim to avoid RuntimeError)
+{v_1 : tensor, v_2 : tensor} |= (∃m ∈ [0, 0] : (∀i ∈ [0, ndim(v_2) - 1]: shape(v_1, i)) = m) ∧ (∃n ∈ [0, 0] : (∀i ∈ [ndim(v_2), ndim(v_1) - 1]: shape(v_1, i)) = n) ∧ m = n
 >>
-Rule 17 (Check that the dtypes of A and B are supported: float, double, cfloat, or cdouble)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11)
+Rule 16 (Check the product of the first B.ndim dimensions of A equals the product of the rest, to avoid RuntimeError.)
+{v_1 : tensor, v_2 : tensor} |= (if ndim(v_1) ≥ ndim(v_2) then ∃prod1 ∈ [0,0] : (prod1 = (∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i))) else false) ∧ (if ndim(v_1) ≥ ndim(v_2) then ∃prod2 ∈ [0,0] : (prod2 = (∀i ∈ [ndim(v_2), ndim(v_1) - 1] : shape(v_1, i))) else false) ∧ (if ndim(v_1) ≥ ndim(v_2) then prod1 = prod2 else false)
 >>
-Rule 19 (Check dims tuple contains unique values.)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i + 1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+Rule 17 (Check that A's shape is valid given B's shape, to avoid RuntimeError, using explicit multiplication instead of forall.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≥ ndim(v_2) then (shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3)) = (shape(v_1, 4) * shape(v_1, 5) * shape(v_1, 6) * shape(v_1, 7))
 >>
-Rule 20 (A's shape must be valid when dims is not None, focusing on dimension index out of range. Ensure dims elements are within the valid range)
-{v_1 : tensor, v_3 : tuple(int)} |= ∀i ∈ [0, v_3.len - 1] : (0 ≤ v_3[i] + ndim(v_1)) ∧ (v_3[i] + ndim(v_1) < ndim(v_1))
+Rule 18 (A's shape should satisfy the condition based on B's ndim to avoid RuntimeError, generalizing to more than 7 dimensions)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≥ ndim(v_2) then (if ndim(v_2) > 0 then ∃prod1 ∈ [0,0] : (prod1 = 1 ∧ ∀i ∈ [0, ndim(v_2) - 1]: prod1 = prod1 * shape(v_1, i))) ∧ (if ndim(v_1) - ndim(v_2) > 0 then ∃prod2 ∈ [0,0] : (prod2 = 1 ∧ ∀i ∈ [ndim(v_2), ndim(v_1) - 1]: prod2 = prod2 * shape(v_1, i))) ∧ (if ndim(v_2) > 0 ∧ ndim(v_1) - ndim(v_2) > 0 then prod1 = prod2)
 >>
-Rule 22 (Check that the dtypes of A and B are supported: float, double, cfloat, or cdouble. A and B should have same dtype)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ dtype_(v_1) = dtype_(v_2)
+Rule 19 (Check that A's shape is valid given B's shape, using recursion and explicit multiplication only for up to 3 dimensions, avoiding overflow for larger tensors)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≥ ndim(v_2) then (if ndim(v_2) = 0 then true else if ndim(v_2) = 1 then shape(v_1, 0) = shape(v_1, ndim(v_1) -1 ) else if ndim(v_2) = 2 then shape(v_1, 0) * shape(v_1, 1) = shape(v_1, ndim(v_1)-2) * shape(v_1, ndim(v_1) -1) else if ndim(v_2) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) = shape(v_1, ndim(v_1) -3) * shape(v_1, ndim(v_1) -2) * shape(v_1, ndim(v_1)-1) )
 >>
-Rule 27 (Check that the dtypes of A and B are supported: float, double, cfloat, or cdouble. A and B should have same dtype, and also both can not be bool)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) ≠ 0
->>
-Rule 29 (A's shape must be valid when dims is not None, focusing on dimension index out of range. Ensure dims elements are within the valid range)
-{v_1 : tensor, v_3 : tuple(int)} |= ∀i ∈ [0, v_3.len - 1] : (0 ≤ (ndim(v_1) + v_3[i])) ∧ ((ndim(v_1) + v_3[i]) < ndim(v_1))
->>
-Rule 32 (If dims is not None then len(dims) must be less than ndim(A))
-{v_1 : tensor, v_3 : tuple(int)} |= if v_3.len > 0 then v_3.len < ndim(v_1)
->>
-Rule 34 (Handle the "Expected result to be safely castable from Byte dtype, but got result with dtype Bool" error. A's dtype can not be bool and np.int8, np.uint8)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 5
->>
-Rule 37 (if dims is provided, elements in dims tuple should be in range of A ndim. abs(dims) < ndim(A))
-{v_1 : tensor, v_3 : tuple(int)} |= if v_3.len > 0 then ∀i ∈ [0, v_3.len - 1] : shape(v_1, i) > 0 ∧ v_3[i] < ndim(v_1)
->>
-Rule 41 (if dims is provided, elements in dims tuple should be in range of A ndim. and len(dims) < ndim(A).  The value v3[i] has to be valid index)
-{v_1 : tensor, v_3 : tuple(int)} |= if v_3.len > 0 then (v_3.len < ndim(v_1) ∧ ∀i ∈ [0, v_3.len - 1] : v_3[i] ≥ (0 - ndim(v_1)) ∧ v_3[i] < ndim(v_1) )
->>
-Rule 43 (if dims is provided, the range of dimensions should be appropriate to prevent index error)
-{v_1 : tensor, v_3 : tuple(int)} |= if v_3.len > 0 then (∀i ∈ [0, v_3.len - 1] : v_3[i] ≥ (0 - ndim(v_1)) ∧ v_3[i] < ndim(v_1) )
->>
-Rule 47 (If dims is provided, elements in dims tuple should be valid indices to avoid dimension out of range error. A and B's dtypes should be supported)
-{v_1 : tensor, v_2 : tensor, v_3 : tuple(int)} |= if v_3.len > 0 then (∀i ∈ [0, v_3.len - 1] : v_3[i] ≥ (0 - ndim(v_1)) ∧ v_3[i] < ndim(v_1))  ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11) else (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11)
->>
-Rule 48 (A's dtype cannot be bool ,np.int8 and  np.uint8 to avoid 'Expected result to be safely castable from Byte dtype, but got result with dtype Bool' error. dtype(A) should be float, double, cfloat, cdouble)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+Rule 20 (Check the shape compatibility of A and B to prevent RuntimeError: Product of dimensions before B.ndim equals product of the rest, handle ndim(v1) < ndim(v2) gracefully)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≥ ndim(v_2) then ∃prod1 ∈ [0,0] : (prod1 = 1 ∧ ∀i ∈ [0, if ndim(v_2) > 0 then ndim(v_2) - 1 else 0]: prod1 = prod1 * shape(v_1, i)) ∧ ∃prod2 ∈ [0,0] : (prod2 = 1 ∧ ∀i ∈ [ndim(v_2), ndim(v_1) - 1]: prod2 = prod2 * shape(v_1, i)) ∧ prod1 = prod2 else if ndim(v_1) < ndim(v_2) then ∃prod1 ∈ [0,0] : (prod1 = 1 ∧ ∀i ∈ [0, ndim(v_1) - 1]: prod1 = prod1 * shape(v_1, i)) ∧ (prod1=1)

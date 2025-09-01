@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If ndim of tensor equals 1, then start_dim must equal end_dim (Rule 25)
+# If end_dim is negative, start_dim must be less than ndim(v1 (Rule 25)
 
 rule_25 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 1, v["arg2_value"] == v["arg3_value"], False)) if n else
-          If(v["arg1_ndim"] == 1, v["arg2_value"] == v["arg3_value"], False))
+    s.add(Not(If(v["arg3_value"] < 0, v["arg2_value"] < v["arg1_ndim"] + v["arg3_value"] + 1, True)) if n else
+          If(v["arg3_value"] < 0, v["arg2_value"] < v["arg1_ndim"] + v["arg3_value"] + 1, True))
 )
 
 def rule_25_func(arg1, arg2, arg3, solver=None, neg=False):

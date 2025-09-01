@@ -5,37 +5,45 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If deterministic is enabled then the index tensor must be int32 or int64 to be supported (Rule 15)
+# The shape of the output tensor, computed from output_size, matches the expected output. (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == True, Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 4), False)) if n else
-          If(v["arg2_value"] == True, Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 4), False))
+    s.add(Not(And(And(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0), Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 1)), Select(v["arg1_shape"], 2) * Select(v["arg1_shape"], 3) * Select(v["arg1_shape"], 4) <= Select(v["arg3_values"], 0) * Select(v["arg3_values"], 1) * Select(v["arg3_values"], 2))) if n else
+          And(And(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0), Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 1)), Select(v["arg1_shape"], 2) * Select(v["arg1_shape"], 3) * Select(v["arg1_shape"], 4) <= Select(v["arg3_values"], 0) * Select(v["arg3_values"], 1) * Select(v["arg3_values"], 2)))
 )
 
-def rule_15_func(arg1, arg2, solver=None, neg=False):
+def rule_15_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, bool):
+        if not isinstance(arg2, np.ndarray):
+            return False
+        if not (isinstance(arg3, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg3)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_value = Bool('arg2_value')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg3_values = Array('arg3_values', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_value == arg2)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        for i in range(len(arg3)):
+            arg3_values = Store(arg3_values, i, arg3[i])
 
         # Constraints for rule 15
-        rule_15(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
+        rule_15(solver, {'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape, 'arg3_values': arg3_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_15(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)
+        rule_15(solver, {'arg1_shape': arg1['shape'], 'arg2_shape': arg2['shape'], 'arg3_values': arg3['values']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The total number of elements doesn't overflow the maximum allowed (Rule 35)
+# Dims cannot be an empty tuple and dims length must be smaller than input dimensions threshold, and tile factors cannot be too small since it's tiled! (Rule 35)
 
 rule_35 = lambda s, v, n=False: (
-    s.add(Not((Select(v["arg1_shape"], 0) * Select(v["arg2_values"], 0)) * (Select(v["arg1_shape"], 1) * Select(v["arg2_values"], 1)) * (Select(v["arg1_shape"], 2) * Select(v["arg2_values"], 2)) * (Select(v["arg1_shape"], 3) * Select(v["arg2_values"], 3)) < 1000000000000) if n else
-          (Select(v["arg1_shape"], 0) * Select(v["arg2_values"], 0)) * (Select(v["arg1_shape"], 1) * Select(v["arg2_values"], 1)) * (Select(v["arg1_shape"], 2) * Select(v["arg2_values"], 2)) * (Select(v["arg1_shape"], 3) * Select(v["arg2_values"], 3)) < 1000000000000)
+    s.add(Not(And(And(v["arg2_length"] > 0, v["arg2_length"] < v["arg1_ndim"] + 5), (And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) > 0) for i in range(6)])))) if n else
+          And(And(v["arg2_length"] > 0, v["arg2_length"] < v["arg1_ndim"] + 5), (And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) > 0) for i in range(6)]))))
 )
 
 def rule_35_func(arg1, arg2, solver=None, neg=False):
@@ -25,19 +25,20 @@ def rule_35_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg2_length = Int('arg2_length')
         arg2_values = Array('arg2_values', IntSort(), IntSort())
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_length == len(arg2))
         for i in range(len(arg2)):
             arg2_values = Store(arg2_values, i, arg2[i])
 
         # Constraints for rule 35
-        rule_35(solver, {'arg1_shape': arg1_shape, 'arg2_values': arg2_values})
+        rule_35(solver, {'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length, 'arg2_values': arg2_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_35(solver, {'arg1_shape': arg1['shape'], 'arg2_values': arg2['values']}, neg)
+        rule_35(solver, {'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length'], 'arg2_values': arg2['values']}, neg)

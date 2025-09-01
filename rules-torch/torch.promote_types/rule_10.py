@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If type1 is float16, type2 should not be int8 (Rule 10)
+# if type1 is str, type2 must also be str (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 6, v["arg2_value"] != 1, False)) if n else
-          If(v["arg1_value"] == 6, v["arg2_value"] != 1, False))
+    s.add(Not(If(v["arg1_value"] == 11, v["arg2_value"] == 11, True)) if n else
+          If(v["arg1_value"] == 11, v["arg2_value"] == 11, True))
 )
 
 def rule_10_func(arg1, arg2, solver=None, neg=False):

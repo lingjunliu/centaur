@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check for a moderate product of tensor dimensions (first 2 (Rule 104)
+# If the input tensor is empty, the shape must be 0 (Rule 104)
 
 rule_104 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) < 2000000) if n else
-          Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) < 2000000)
+    s.add(Not(Or([And(i < (v["arg1_ndim"] - 1 + 1), Or(Select(v["arg1_shape"], i) == 0, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]))) for i in range(6)])) if n else
+          Or([And(i < (v["arg1_ndim"] - 1 + 1), Or(Select(v["arg1_shape"], i) == 0, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]))) for i in range(6)]))
 )
 
 def rule_104_func(arg1, solver=None, neg=False):
@@ -22,16 +22,18 @@ def rule_104_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
+        arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
+        solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 104
-        rule_104(solver, {'arg1_shape': arg1_shape})
+        rule_104(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_104(solver, {'arg1_shape': arg1['shape']}, neg)
+        rule_104(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

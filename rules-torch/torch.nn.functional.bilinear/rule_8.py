@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input feature dimensions must be positive - example (Rule 8)
+# All but the last dimension of input1 and input2 should be the same (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0, Select(v["arg2_shape"], v["arg2_ndim"] - 1) > 0)) if n else
-          And(Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0, Select(v["arg2_shape"], v["arg2_ndim"] - 1) > 0))
+    s.add(Not(If(And(v["arg1_ndim"] > 1, v["arg2_ndim"] > 1), (And([Implies(i < (If(v["arg1_ndim"] - 1 >= v["arg2_ndim"] - 1, v["arg2_ndim"] - 1, v["arg1_ndim"] - 1) + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])), True)) if n else
+          If(And(v["arg1_ndim"] > 1, v["arg2_ndim"] > 1), (And([Implies(i < (If(v["arg1_ndim"] - 1 >= v["arg2_ndim"] - 1, v["arg2_ndim"] - 1, v["arg1_ndim"] - 1) + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])), True))
 )
 
 def rule_8_func(arg1, arg2, solver=None, neg=False):

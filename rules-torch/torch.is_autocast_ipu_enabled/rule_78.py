@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check if v1 equals max and v2 equals min. (Rule 78)
+# A tensor and the first value of the tuple must be different. (Rule 78)
 
 rule_78 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_range"], 1) == Select(v["arg2_range"], 1), Select(v["arg1_range"], 0) == Select(v["arg2_range"], 0))) if n else
-          And(Select(v["arg1_range"], 1) == Select(v["arg2_range"], 1), Select(v["arg1_range"], 0) == Select(v["arg2_range"], 0)))
+    s.add(Not(And(Select(v["arg1_range"], 0) != Select(v["arg2_values"], 0), Select(v["arg1_range"], 1) != Select(v["arg2_values"], 0))) if n else
+          And(Select(v["arg1_range"], 0) != Select(v["arg2_values"], 0), Select(v["arg1_range"], 1) != Select(v["arg2_values"], 0)))
 )
 
 def rule_78_func(arg1, arg2, solver=None, neg=False):
@@ -20,24 +20,24 @@ def rule_78_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg2_values = Array('arg2_values', IntSort(), IntSort())
 
         # Value assignments
         arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        for i in range(len(arg2)):
+            arg2_values = Store(arg2_values, i, arg2[i])
 
         # Constraints for rule 78
-        rule_78(solver, {'arg1_range': arg1_range, 'arg2_range': arg2_range})
+        rule_78(solver, {'arg1_range': arg1_range, 'arg2_values': arg2_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_78(solver, {'arg1_range': arg1['range'], 'arg2_range': arg2['range']}, neg)
+        rule_78(solver, {'arg1_range': arg1['range'], 'arg2_values': arg2['values']}, neg)

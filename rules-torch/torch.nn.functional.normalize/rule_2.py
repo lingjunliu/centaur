@@ -8,8 +8,8 @@ from z3 import *
 # Input tensor should be floating point or complex (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 11)) if n else
-          And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 11))
+    s.add(Not(Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)) if n else
+          Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10))
 )
 
 def rule_2_func(arg1, solver=None, neg=False):

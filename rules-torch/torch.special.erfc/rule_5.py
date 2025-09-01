@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor should have a real dtype, and output tensor should be float if input is int (Rule 5)
+# If the output tensor has a boolean dtype, the input tensor must also have a boolean dtype or a real dtype to avoid "can't be cast" error (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(And((And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10)), If((And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 5)), (Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8)), False))) if n else
-          And((And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10)), If((And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 5)), (Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8)), False)))
+    s.add(Not(If(v["arg2_dtype"] == 0, (Or(v["arg1_dtype"] == 0, (And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)))), True)) if n else
+          If(v["arg2_dtype"] == 0, (Or(v["arg1_dtype"] == 0, (And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)))), True))
 )
 
 def rule_5_func(arg1, arg2, solver=None, neg=False):

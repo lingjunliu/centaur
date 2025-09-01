@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if there is more than 1 channel make sure that N has only one batch. (Rule 83)
+# Limit input dimension, avoid potential memory error, works when ndim=3 (Rule 83)
 
 rule_83 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_shape"], 1) > 1, If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) == 1, False), False)) if n else
-          If(Select(v["arg1_shape"], 1) > 1, If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) == 1, False), False))
+    s.add(Not(If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 2) < 2048, True)) if n else
+          If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 2) < 2048, True))
 )
 
 def rule_83_func(arg1, solver=None, neg=False):

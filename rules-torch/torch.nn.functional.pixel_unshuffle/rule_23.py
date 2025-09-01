@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the input is 3 dimensional, the height must be divisible by the downscale factor (Rule 23)
+# downscale_factor should not be too large compared to the input height/width and is positive (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 1) % v["arg2_value"] == 0, False)) if n else
-          If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 1) % v["arg2_value"] == 0, False))
+    s.add(Not(If(v["arg1_ndim"] >= 2, And(And(0 < v["arg2_value"], v["arg2_value"] <= Select(v["arg1_shape"], v["arg1_ndim"] - 2)), v["arg2_value"] <= Select(v["arg1_shape"], v["arg1_ndim"] - 1)), v["arg2_value"] > 0)) if n else
+          If(v["arg1_ndim"] >= 2, And(And(0 < v["arg2_value"], v["arg2_value"] <= Select(v["arg1_shape"], v["arg1_ndim"] - 2)), v["arg2_value"] <= Select(v["arg1_shape"], v["arg1_ndim"] - 1)), v["arg2_value"] > 0))
 )
 
 def rule_23_func(arg1, arg2, solver=None, neg=False):

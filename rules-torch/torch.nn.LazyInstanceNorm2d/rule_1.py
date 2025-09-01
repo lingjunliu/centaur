@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor must be 3D or 4D to avoid ValueError: expected 3D or 4D input (got 1D input (Rule 1)
+# input tensor must be 3 or 4-dimensional to avoid ValueError: expected 3D or 4D input (got 1D input (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
     s.add(Not(Or(v["arg1_ndim"] == 3, v["arg1_ndim"] == 4)) if n else

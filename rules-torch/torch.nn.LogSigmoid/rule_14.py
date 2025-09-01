@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# tensor should have a valid dtype (Rule 14)
+# The input tensor's dtype cannot be 'np.int8', 'np.int16', 'np.int32', 'np.int64', or 'np.uint8', to avoid the "log_sigmoid_cpu" error. (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] >= 0, v["arg1_dtype"] <= 12)) if n else
-          And(v["arg1_dtype"] >= 0, v["arg1_dtype"] <= 12))
+    s.add(Not(And(And(And(And(v["arg1_dtype"] != 1, v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5)) if n else
+          And(And(And(And(v["arg1_dtype"] != 1, v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5))
 )
 
 def rule_14_func(arg1, solver=None, neg=False):

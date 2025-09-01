@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Size cannot equal infinity. (Rule 109)
+# Size must be small enough to prevent storage overflow (Rule 109)
 
 rule_109 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 1000000000) if n else
-          v["arg1_value"] < 1000000000)
+    s.add(Not(v["arg1_value"] < 100000) if n else
+          v["arg1_value"] < 100000)
 )
 
 def rule_109_func(arg1, solver=None, neg=False):

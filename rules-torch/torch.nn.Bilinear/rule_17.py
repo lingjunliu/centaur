@@ -5,37 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input1 and Input2 must have the same number of dimensions if greater than 1 (Rule 17)
+# in2_features should not be extremely large to prevent memory allocation issues (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 1, v["arg1_ndim"] == v["arg2_ndim"], False)) if n else
-          If(v["arg1_ndim"] > 1, v["arg1_ndim"] == v["arg2_ndim"], False))
+    s.add(Not(v["arg1_value"] < 10000000) if n else
+          v["arg1_value"] < 10000000)
 )
 
-def rule_17_func(arg1, arg2, solver=None, neg=False):
+def rule_17_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
-            return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_ndim = Int('arg2_ndim')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 17
-        rule_17(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
+        rule_17(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_17(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_17(solver, {'arg1_value': arg1['value']}, neg)

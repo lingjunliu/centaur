@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# A float variable must be between -1 and 1 (Rule 58)
+# Percentage of high precision tensors cached should be less than 0.75 (Rule 58)
 
 rule_58 = lambda s, v, n=False: (
-    s.add(Not(And(-1 <= v["arg1_value"], v["arg1_value"] <= 1)) if n else
-          And(-1 <= v["arg1_value"], v["arg1_value"] <= 1))
+    s.add(Not(And(v["arg1_value"] >= 0, v["arg1_value"] <= 0.75)) if n else
+          And(v["arg1_value"] >= 0, v["arg1_value"] <= 0.75))
 )
 
 def rule_58_func(arg1, solver=None, neg=False):

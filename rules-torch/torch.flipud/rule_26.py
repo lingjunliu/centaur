@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the first dimension shape is greater than 1, the second dimension should also be greater than 1 (Rule 26)
+# The product of the input tensor's dimensions must be smaller than a maximum size (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(If(And(Select(v["arg1_shape"], 0) > 1, v["arg1_ndim"] > 1), Select(v["arg1_shape"], 1) > 1, False)) if n else
-          If(And(Select(v["arg1_shape"], 0) > 1, v["arg1_ndim"] > 1), Select(v["arg1_shape"], 1) > 1, False))
+    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], i) < 1000, (If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0), (If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1), (If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2), (If(v["arg1_ndim"] == 4, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) * Select(v["arg1_shape"], 3), 100000000)))))))) < 100000000)) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], i) < 1000, (If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0), (If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1), (If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2), (If(v["arg1_ndim"] == 4, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) * Select(v["arg1_shape"], 3), 100000000)))))))) < 100000000)) for i in range(6)]))
 )
 
 def rule_26_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_26_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 26
-        rule_26(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_26(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_26(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_26(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

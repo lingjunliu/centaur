@@ -1,21 +1,225 @@
 >>
-Rule 1 (n must be non-negative to avoid negative dimension error)
-{v_1 : int} |= v_1 ≥ 0
+Rule 1 (n should be non-negative to avoid negative dimension error)
+{v_1 : int} |= v_1 > 0
 >>
-Rule 4 (d must be positive to avoid upper bound and larger bound inconsistent with step sign)
+Rule 3 (dtype must be float or complex to avoid runtime error)
+{v_4 : dtype} |= 6 <= v_4 ∧ v_4 <= 10
+>>
+Rule 4 (d must be positive to avoid upper bound inconsistent error, indirectly by ensuring no division by zero)
+{v_2 : float} |= v_2 > 0
+>>
+Rule 5 (if out is provided, dtype must match out's dtype)
+{v_3 : tensor, v_4 : dtype} |= if v_3 ≠ false then dtype_(v_3) = v_4
+>>
+Rule 7 (layout must be torch.strided)
+{v_5 : str} |= v_5 = "torch.strided"
+>>
+Rule 9 (combination of n and d to avoid zero frequency spacing, preventing division by zero downstream)
+{v_1 : int, v_2 : float} |= v_1 > 0 ∧ v_2 > 0
+>>
+Rule 12 (dtype must be float or complex to avoid runtime error)
+{v_1 : dtype} |= 6 <= v_1 ∧ v_1 <= 10
+>>
+Rule 13 (d must be positive to avoid upper bound inconsistent error, indirectly by ensuring no division by zero)
 {v_1 : float} |= v_1 > 0
 >>
-Rule 5 (dtype of out parameter matches dtype argument)
-{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ None then dtype_(v_1) = v_2
+Rule 14 (If out is provided, dtype must match out's dtype)
+{v_1 : tensor, v_2 : dtype} |= if v_1 ≠ false then dtype_(v_1) = v_2
 >>
-Rule 18 (If dtype is specified, it must be a floating point or complex dtype)
-{v_1 : dtype} |= v_1 = "float16" ∨ v_1 = "float32" ∨ v_1 = "float64" ∨ v_1 = "complex64" ∨ v_1 = "complex128"
+Rule 15 (If out is given it should have appropriate number of dimensions)
+{v_1 : tensor} |= if v_1 ≠ false then ndim(v_1) = 1
 >>
-Rule 19 (If out is specified, dtype must be compatible with out)
-{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ "none" then dtype_(v_1) = v_2
+Rule 16 (layout must be a specific string value)
+{v_1 : str} |= v_1 = "torch.strided"
 >>
-Rule 25 (out argument must be a tensor, not a float or int)
-{v_1 : tensor ⊎ float} |= if v_1 = v_1 then true else false
+Rule 18 (When providing `out`, its dtype must be compatible)
+{v_1 : tensor, v_2 : dtype} |= if v_1 ≠ false then (6 <= v_2 ∧ v_2 <= 10)
 >>
-Rule 75 (The 'out' argument must be a tensor)
-{v_1: tensor ⊎ float} |= if v_1 = tensor then true else false
+Rule 19 (n should be non-negative to avoid negative dimension error, also d should be positive)
+{v_1 : int, v_2: float} |= v_1 > 0 ∧ v_2 > 0
+>>
+Rule 24 (When providing `out`, its dtype must be compatible and it must be floating point)
+{v_1 : tensor, v_2 : dtype} |= if v_1 ≠ false then (6 <= v_2 ∧ v_2 <= 10) ∧ dtype_(v_1) = v_2
+>>
+Rule 25 (n and d relationship to avoid extremely small frequency spacing)
+{v_1 : int, v_2 : float} |= v_1 > 0 ∧ v_2 < 1000
+>>
+Rule 26 (If out is provided, its dtype cannot be boolean.)
+{v_1 : tensor} |= if v_1 ≠ false then dtype_(v_1) ≠ 0
+>>
+Rule 27 (layout must be strided if device is CUDA)
+{v_1 : str, device:str} |= if device = "cuda" then v_1 = "torch.strided"
+>>
+Rule 28 (Requires grad can be true or false)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 29 (d and n must be compatible to prevent extremely high frequencies)
+{v_1 : int, v_2 : float} |= v_1 < 10000 ∨ v_2 > 0.0001
+>>
+Rule 30 (Output tensor dtype matches input dtype if specified)
+{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ false then dtype_(v_1) = v_2
+>>
+Rule 31 (The real FFT length n must be a positive integer and less than a max value)
+{v_1:int} |= v_1 > 0 ∧ v_1 < 2048
+>>
+Rule 33 (If requires_grad is true, the device should support CUDA)
+{v_1: bool, v_2: str} |= if v_1 = true then v_2 = "cuda"
+>>
+Rule 34 (n cannot be too large relative to machine precision)
+{v_1 : int} |= v_1 < 1000000
+>>
+Rule 35 (If dtype is given it cannot be bool)
+{v_1 : dtype} |= v_1 ≠ 0
+>>
+Rule 36 (n is less than or equal to a large number)
+{v_1 : int} |= v_1 <= 20000
+>>
+Rule 37 (If out is not none, the elements should be finite numbers)
+{v_1 : tensor} |= if v_1 ≠ false then ∀i ∈ [0, shape(v_1, 0) - 1] : min(v_1) ≠ "inf" ∧ max(v_1) ≠ "inf"
+>>
+Rule 38 (requires_grad should always be false or true)
+{v_1: bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 39 (Relationship of n and d to prevent overflow)
+{v_1 : int, v_2 : float} |= v_1 * v_2 < 1000000000
+>>
+Rule 40 (If out is provided, it should have compatible dtype)
+{v_1 : tensor, v_2 : dtype} |= if v_1 ≠ false then (dtype_(v_1) = v_2)
+>>
+Rule 42 (If out is supplied validate the shape)
+{v_1 : int, v_2 : tensor} |= if v_2 ≠ false then shape(v_2, 0) = (v_1 + 1) / 2
+>>
+Rule 43 (If dtype is given, it has to be float or complex)
+{v_1: dtype} |= 6 <= v_1 ∧ v_1 <= 10
+>>
+Rule 46 (n is a positive integer)
+{v_1:int} |= v_1 > 0
+>>
+Rule 49 (n must be a power of 2 or 3, limited set to avoid long runtime)
+{v_1 : int} |= v_1 = 2 ∨ v_1 = 4 ∨ v_1 = 8 ∨ v_1 = 3 ∨ v_1 = 9
+>>
+Rule 50 (If out is supplied, its elements are not NaN)
+{v_1 : tensor} |= if v_1 ≠ false then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ "nan"
+>>
+Rule 51 (d must not be extremely close to zero, preventing numerical instability)
+{v_1 : float} |= v_1 > 0.0000001
+>>
+Rule 52 (if dtype is complex then n should be a multiple of 2 to ensure valid output)
+{v_1: dtype, v_2: int} |= if (v_1 = 9) ∨ (v_1 = 10) then v_2 % 2 = 0
+>>
+Rule 53 (When out is supplied, ensure that it has been allocated)
+{v_1:tensor} |= if v_1 ≠ false then shape(v_1, 0) > 0
+>>
+Rule 54 (If out tensor is given then n and d should have a value which is positive)
+{v_1 : int, v_2 : float, v_3 : tensor} |= if v_3 ≠ false then v_1 > 0 ∧ v_2 > 0
+>>
+Rule 55 (If dtype is complex then out should also be complex)
+{v_1 : dtype, v_2 : tensor} |= if (v_1 = 9 ∨ v_1 = 10) ∧ v_2 ≠ false then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 56 (n must be greater than zero for device type rule to follow)
+{v_1: int, v_2:str} |= if v_1 > 0 then (v_2 = "cpu" ∨ v_2 = "cuda")
+>>
+Rule 57 (When both out and dtype are specified the dtype should be float or complex)
+{v_1 : tensor, v_2: dtype} |= if v_1 ≠ false then (6 <= v_2 ∧ v_2 <= 10)
+>>
+Rule 58 (The layout has to be either 'strided', 'sparse' or 'cuda'.)
+{v_1: str} |= (v_1 = "torch.strided") ∨ (v_1 = "torch.sparse") ∨ (v_1 = "torch.cuda")
+>>
+Rule 59 (If layout is sparse, then n has to be greater than zero)
+{v_1: str, v_2: int} |= if v_1 = "torch.sparse" then v_2 > 0
+>>
+Rule 60 (If layout is sparse, then device cannot be cuda)
+{v_1: str, v_2: str} |= if v_1 = "torch.sparse" then v_2 ≠ "cuda"
+>>
+Rule 61 (if output tensor is given, its dtype must be consistent with the given dtype)
+{v_1:tensor, v_2:dtype} |= if v_1 ≠ false then dtype_(v_1) = v_2
+>>
+Rule 62 (Relationship of n and d, d cannot be too small)
+{v_1:int, v_2:float} |= if v_1 > 0 then v_2 > 0.00001
+>>
+Rule 63 (If the n is large, the d must also be larger to avoid extremely small frequency spacing)
+{v_1 : int, v_2: float} |= if v_1 > 1000 then v_2 > 0.001
+>>
+Rule 64 (If layout is sparse or strided, the n should not be very big)
+{v_1: str, v_2: int} |= if (v_1 = "torch.sparse") ∨ (v_1 = "torch.strided") then v_2 < 10000
+>>
+Rule 65 (If n and d are negative, result will be zero)
+{v_1:int, v_2:float} |= (v_1 > 0) ∧ (v_2 > 0)
+>>
+Rule 66 (The layout has to be a valid choice)
+{v_1: str} |= v_1 = "torch.strided"
+>>
+Rule 67 (If layout is anything other than 'strided', and device is GPU, raise error)
+{v_1 : str, v_2 : str} |= if v_1 ≠ "torch.strided" then v_2 ≠ "cuda"
+>>
+Rule 68 (If n is too large, then the output size is checked)
+{v_1:int, v_2: tensor} |= if v_1 > 1000 then shape(v_2,0) < 500
+>>
+Rule 70 ( d should not have values such that there is a big difference among values)
+{v_1:float} |= min(v_1) > max(v_1)/2
+>>
+Rule 71 (If dtype is given, it has to be either np.float32, np.float64, np.complex64, np.complex128)
+{v_1:dtype} |= (v_1 = 7) ∨ (v_1 = 8) ∨ (v_1 = 9) ∨ (v_1 = 10)
+>>
+Rule 74 (Check if output size matches when a tensor is provided.)
+{v_1: int, v_2: tensor} |= if v_2 ≠ false then shape(v_2, 0) = (v_1 + 1) / 2
+>>
+Rule 75 ( d should not have values such that there is a big difference among values, considering float16 precision limit)
+{v_1:float} |= v_1 < 65500
+>>
+Rule 77 (combination of parameters, n positive, d positive, layout is strided, dtype is float or complex)
+{v_1: int, v_2: float, v_3: str, v_4: dtype} |= (v_1 > 0) ∧ (v_2 > 0) ∧ (v_3 = "torch.strided") ∧ ((v_4 = 7) ∨ (v_4 = 8) ∨ (v_4 = 9) ∨ (v_4 = 10))
+>>
+Rule 78 (if layout is strided, requires_grad can be true or false, d>0)
+{v_1: str, v_2: bool, v_3: float} |= if (v_1 = "torch.strided") then (v_2 = true ∨ v_2 = false) ∧ (v_3 > 0)
+>>
+Rule 80 (if layout is strided, requires_grad is a valid boolean value, d>0)
+{v_1: str, v_2: bool, v_3: float} |= if (v_1 = "torch.strided") then ((v_2 = true) ∨ (v_2 = false)) ∧ (v_3 > 0)
+>>
+Rule 81 (if device is cuda then layout must be strided, and dtype cannot be an integer dtype)
+{v_1: str, v_2: str, v_3: dtype} |= if v_1 = "cuda" then v_2 = "torch.strided" ∧ (v_3 > 5)
+>>
+Rule 82 (If n is small, and d is small, check dtype isn't complex to reduce memory usage)
+{v_1: int, v_2: float, v_3: dtype} |= if (v_1 < 100) ∧ (v_2 < 0.1) then v_3 < 9
+>>
+Rule 83 (If the device is cuda then the layout must be strided and if a tensor is given then it needs to be 1 dimensional)
+{v_1: str, v_2: str, v_3: tensor} |= if v_1 = "cuda" then v_2 = "torch.strided" ∧ if v_3 ≠ false then ndim(v_3) = 1
+>>
+Rule 84 (If n is smaller than 500 and out is not supplied the dtype should be float32)
+{v_1: int, v_2: dtype, v_3: tensor} |= if v_1 < 500 ∧ v_3 = false then v_2 = 7
+>>
+Rule 86 (Relationship of n and d when the layout is strided)
+{v_1: int, v_2: float, v_3: str} |= if v_3 = "torch.strided" then v_1 * v_2 < 1000000000
+>>
+Rule 87 (If n is greater than 100, and layout is strided, the requires grad should not be true)
+{v_1: int, v_2: str, v_3: bool} |= if v_1 > 100 ∧ v_2 = "torch.strided" then v_3 = false
+>>
+Rule 88 (If d is very small, then n also has to be small to avoid extremely sparse values)
+{v_1: float, v_2 : int} |= if v_1 < 0.001 then v_2 < 1000
+>>
+Rule 89 (If n is a power of 2, out is specified and layout is strided.)
+{v_1 : int, v_2 : tensor, v_3 : str} |= if (v_1 = 2 ∨ v_1 = 4 ∨ v_1 = 8 ∨ v_1 = 16 ∨ v_1 = 32 ∨ v_1 = 64 ∨ v_1 = 128 ∨ v_1 = 256 ∨ v_1 = 512 ∨ v_1 = 1024 ∨ v_1 = 2048) ∧ v_2 ≠ false then v_3 = "torch.strided"
+>>
+Rule 90 (If d is very close to 1 then ensure n is not too big as to cause issues)
+{v_1: float, v_2: int} |= if v_1 > 0.99 ∧ v_1 < 1.01 then v_2 < 100000
+>>
+Rule 91 (Relationship of n and d, to make value close to zero when dividing )
+{v_1: int, v_2: float} |=  v_2 > 0 ∧ (v_1 / (v_1 * v_2) < 1000)
+>>
+Rule 92 (Validating n can never be zero)
+{v_1: int} |= v_1 ≠ 0
+>>
+Rule 93 (Relationship of n and d, where d cannot be zero)
+{v_1: int, v_2: float} |= v_1 > 0 ∧ v_2 > 0
+>>
+Rule 94 (If n is not greater than zero and Dtype is not a floating type, result will be zero)
+{v_1: int, v_2: dtype} |= if v_1 > 0 then (6 <= v_2 ∧ v_2 <= 10)
+>>
+Rule 95 (Requires_grad must be false when Dtype is complex)
+{v_1: bool, v_2: dtype} |= if (v_2 = 9 ∨ v_2 = 10) then v_1 = false
+>>
+Rule 96 (if output is given it cannot have an integer dtype)
+{v_1: tensor} |= if v_1 ≠ false then dtype_(v_1) > 5
+>>
+Rule 98 (n must be a positive number, when layout is torch.strided)
+{v_1 : int, v_2: str} |= if v_2 = "torch.strided" then v_1 > 0

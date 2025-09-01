@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# When s is given, the length of s and dim must be the same. (Rule 2)
+# s and dim must have the same length if both are provided (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_length"] == v["arg2_length"]) if n else
-          v["arg1_length"] == v["arg2_length"])
+    s.add(Not(If(And(v["arg1_length"] > 0, v["arg2_length"] > 0), v["arg1_length"] == v["arg2_length"], True)) if n else
+          If(And(v["arg1_length"] > 0, v["arg2_length"] > 0), v["arg1_length"] == v["arg2_length"], True))
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):

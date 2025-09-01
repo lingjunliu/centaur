@@ -8,8 +8,8 @@ from z3 import *
 # zero_point must be between quant_min and quant_max (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] >= v["arg2_value"], v["arg1_value"] <= v["arg3_value"])) if n else
-          And(v["arg1_value"] >= v["arg2_value"], v["arg1_value"] <= v["arg3_value"]))
+    s.add(Not(And(v["arg2_value"] <= v["arg1_value"], v["arg1_value"] <= v["arg3_value"])) if n else
+          And(v["arg2_value"] <= v["arg1_value"], v["arg1_value"] <= v["arg3_value"]))
 )
 
 def rule_2_func(arg1, arg2, arg3, solver=None, neg=False):

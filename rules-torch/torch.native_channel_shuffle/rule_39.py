@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Need shape at dim=1, groups > 0, ndim >= 2, groups <= shape at dim=1, shape at dim=1 can be divided by group without remainder, and dimension is between 2 and 4 inclusive (Rule 39)
+# Channels and Groups Requirements. (Rule 39)
 
 rule_39 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(And(And(0 < Select(v["arg1_shape"], 1), 0 < v["arg2_value"]), v["arg1_ndim"] >= 2), v["arg2_value"] <= Select(v["arg1_shape"], 1)), (Select(v["arg1_shape"], 1) / v["arg2_value"]) * v["arg2_value"] == Select(v["arg1_shape"], 1)), v["arg1_ndim"] <= 4)) if n else
-          And(And(And(And(And(0 < Select(v["arg1_shape"], 1), 0 < v["arg2_value"]), v["arg1_ndim"] >= 2), v["arg2_value"] <= Select(v["arg1_shape"], 1)), (Select(v["arg1_shape"], 1) / v["arg2_value"]) * v["arg2_value"] == Select(v["arg1_shape"], 1)), v["arg1_ndim"] <= 4))
+    s.add(Not(If(v["arg1_ndim"] > 1, (And(v["arg2_value"] > 0, Select(v["arg1_shape"], 1) % v["arg2_value"] == 0)), True)) if n else
+          If(v["arg1_ndim"] > 1, (And(v["arg2_value"] > 0, Select(v["arg1_shape"], 1) % v["arg2_value"] == 0)), True))
 )
 
 def rule_39_func(arg1, arg2, solver=None, neg=False):
@@ -36,9 +36,9 @@ def rule_39_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 39
-        rule_39(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_39(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_39(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_39(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

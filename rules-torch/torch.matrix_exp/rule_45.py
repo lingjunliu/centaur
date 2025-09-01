@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor A must be batches of square matrices, if ndim >= 2. If any dimension has size 0, okay. (Rule 45)
+# Input tensor A must have at least 2 dimensions AND square matrices as its last two dimensions OR ndim < 2 (Rule 45)
 
 rule_45 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(v["arg1_ndim"] < 2, (Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 0) for i in range(6)]))), (Select(v["arg1_shape"], v["arg1_ndim"] - 2) == Select(v["arg1_shape"], v["arg1_ndim"] - 1)))) if n else
-          Or(Or(v["arg1_ndim"] < 2, (Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 0) for i in range(6)]))), (Select(v["arg1_shape"], v["arg1_ndim"] - 2) == Select(v["arg1_shape"], v["arg1_ndim"] - 1))))
+    s.add(Not(Or((And(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2))), v["arg1_ndim"] < 2)) if n else
+          Or((And(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2))), v["arg1_ndim"] < 2))
 )
 
 def rule_45_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_45_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 45
-        rule_45(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_45(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_45(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_45(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

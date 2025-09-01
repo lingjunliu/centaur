@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# kernel_size must not be too large to avoid out of bounds access. (Rule 46)
+# Size must be a positive integer and smaller than a certain threshold to avoid narrow out of bounds and large memory allocation (Rule 46)
 
 rule_46 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 512) if n else
-          v["arg1_value"] < 512)
+    s.add(Not(And(v["arg1_value"] > 0, v["arg1_value"] < 1000)) if n else
+          And(v["arg1_value"] > 0, v["arg1_value"] < 1000))
 )
 
 def rule_46_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# dtype should be real for real inputs if specified (Rule 24)
+# Expected out tensor to have dtype float, but got double instead (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(If((And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10)), (And(v["arg2_value"] != 9, v["arg2_value"] != 10)), False)) if n else
-          If((And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10)), (And(v["arg2_value"] != 9, v["arg2_value"] != 10)), False))
+    s.add(Not(If(v["arg1_dtype"] == 7, v["arg2_value"] == 7, True)) if n else
+          If(v["arg1_dtype"] == 7, v["arg2_value"] == 7, True))
 )
 
 def rule_24_func(arg1, arg2, solver=None, neg=False):

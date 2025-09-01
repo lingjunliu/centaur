@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If requires_grad is True and dtype is not specified, then dtype is 7 or 8 (Rule 50)
+# If size is a list and contains integers, out has to have same shape as list  (Rule 50)
 
 rule_50 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, Or(v["arg2_value"] == 7, v["arg2_value"] == 8), False)) if n else
-          If(v["arg1_value"] == True, Or(v["arg2_value"] == 7, v["arg2_value"] == 8), False))
+    s.add(Not(And(v["arg2_ndim"] == v["arg1_length"], And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg2_shape"], i) == Select(v["arg1_values"], i)) for i in range(6)]))) if n else
+          And(v["arg2_ndim"] == v["arg1_length"], And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg2_shape"], i) == Select(v["arg1_values"], i)) for i in range(6)])))
 )
 
 def rule_50_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,30 @@ def rule_50_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
-        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_value = Int('arg2_value')
+        arg1_length = Int('arg1_length')
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
+        arg2_ndim = Int('arg2_ndim')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
+        solver.add(arg1_length == len(arg1))
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
+        solver.add(arg2_ndim == arg2.ndim)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 50
-        rule_50(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_50(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_50(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_50(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim']}, neg)

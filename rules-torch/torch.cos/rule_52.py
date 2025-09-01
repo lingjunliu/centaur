@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The output tensor must have at least as much precision as a float32 if the input is anything other than float64 (Rule 52)
+# Output cannot be Short if the Input is not Bool, since cos(bool (Rule 52)
 
 rule_52 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] != 8, v["arg2_dtype"] >= 7, False)) if n else
-          If(v["arg1_dtype"] != 8, v["arg2_dtype"] >= 7, False))
+    s.add(Not(If(v["arg2_dtype"] == 2, (v["arg1_dtype"] == 0), True)) if n else
+          If(v["arg2_dtype"] == 2, (v["arg1_dtype"] == 0), True))
 )
 
 def rule_52_func(arg1, arg2, solver=None, neg=False):

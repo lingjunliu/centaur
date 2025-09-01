@@ -5,83 +5,251 @@ Rule 1 (row must be non-negative)
 Rule 2 (col must be non-negative)
 {col : int} |= col ≥ 0
 >>
-Rule 3 (layout must be "torch.strided" which is represented by 0)
-{layout : int} |= layout = 0
+Rule 4 (device must be a string)
+{device : str} |= device = "cpu"
 >>
-Rule 9 (row and col should be positive)
+Rule 5 (layout must be strided, which is not supported in this version. Suppress the error)
+{layout : str} |= layout = "torch.strided"
+>>
+Rule 6 (dtype must be a valid dtype which represented by an integer value)
+{dtype : dtype} |= dtype = 3 ∨ dtype = 4 ∨ dtype = 2 ∨ dtype = 5 ∨ dtype = 6 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10
+>>
+Rule 8 (Row and Col must be greater than 0)
 {row : int, col : int} |= row > 0 ∧ col > 0
 >>
-Rule 10 (row * col within reasonable bounds to prevent overflow on CUDA)
-{row : int, col : int} |= row * col < 4611686018427387904
+Rule 11 (row and col product should not exceed the limit to avoid overflow on CUDA)
+{row : int, col : int} |= row * col < 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2
 >>
-Rule 14 (row and col should not be excessively large to avoid memory issues)
-{row : int, col : int} |= row < 100000 ∧ col < 100000
+Rule 18 (combined row and col non-negativity)
+{row : int, col : int} |= row ≥ 0 ∧ col ≥ 0
 >>
-Rule 15 (dtype must be a valid dtype index - this implicitly covers the pin_memory error since it is related to dtype)
-{dtype : int} |= dtype ≥ 0 ∧ dtype ≤ 12
+Rule 19 (Check device string value)
+{device : str} |= device = "cpu" ∨ device = "cuda"
 >>
-Rule 16 (if dtype is specified, it must be a valid member of the allowed dtypes)
-{dtype : int} |= dtype = 0 ∨ dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4 ∨ dtype = 5 ∨ dtype = 6 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10 ∨ dtype = 11 ∨ dtype = 12
+Rule 20 (Check dtype value)
+{dtype : dtype} |= dtype = 3 ∨ dtype = 4 ∨ dtype = 2 ∨ dtype = 5 ∨ dtype = 6 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10 ∨ dtype = 13
 >>
-Rule 17 (Combined rule for row, col, and dtype)
-{row : int, col : int, dtype : int} |= row > 0 ∧ col > 0 ∧ dtype ≥ 0 ∧ dtype ≤ 12
+Rule 21 (row and col are equal)
+{row : int, col : int} |= row = col
 >>
-Rule 18 (If dtype is specified as "str", then it can only be a string representing an integer type)
-{dtype : int} |= if dtype = 11 then false
+Rule 22 (Row is not too small compared to offset)
+{row : int, offset : int} |= row + offset ≥ 0
 >>
-Rule 19 (row and col cannot be zero)
-{row : int, col : int} |= row ≠ 0 ∧ col ≠ 0
+Rule 23 (Column is not too small compared to offset)
+{col : int, offset : int} |= col - offset ≥ 0
 >>
-Rule 20 (The product of row and col must be representable as an int64)
-{row : int, col : int} |= row * col < 9223372036854775807
+Rule 31 (Ensure valid device strings, more comprehensive)
+{device : str} |= device = "cpu" ∨ device = "cuda" ∨ device = ""
 >>
-Rule 25 (row and col must be greater than or equal to each other)
-{row : int, col : int} |= row ≥ col ∨ col ≥ row
+Rule 32 (dtype is one of the allowed torch.long or None which represented by 13)
+{dtype : dtype} |= dtype = 4 ∨ dtype = 13
 >>
-Rule 26 (If dtype is string, that might cause problems with memory allocation. This is a preventative measure, since I cannot check device string values)
-{dtype : int} |= dtype ≠ 11
+Rule 40 (row or col is zero implies offset must be zero)
+{row : int, col : int, offset : int} |= (row ≠ 0 ∧ col ≠ 0) ∨ offset = 0
 >>
-Rule 30 (A trivially true statement using multiple parameters)
-{row : int, col : int} |= row ≥ 0 ∨ row < 0 ∨ col ≥ 0 ∨ col < 0
+Rule 42 (combined row and col must be positive if offset is non-zero)
+{row : int, col : int, offset : int} |= (offset = 0) ∨ (row > 0 ∧ col > 0)
 >>
-Rule 31 (If dtype is complex, the pin_memory allocator must exist, we can only limit dtypes here.)
-{dtype : int} |= if dtype = 9 then true else if dtype = 10 then true
+Rule 45 (if row equals zero, then col must equal zero)
+{row : int, col : int} |= (row ≠ 0) ∨ (col = 0)
 >>
-Rule 32 (If dtype is complex, then row and col must be equal)
-{row : int, col : int, dtype : int} |= if dtype = 9 then row = col else if dtype = 10 then row = col
+Rule 46 (row or col is zero implies offset must be zero)
+{row : int, col : int, offset : int} |= if (row = 0 ∨ col = 0) then offset = 0
 >>
-Rule 33 (if row and col are equal then offset can't be a large negative number.)
-{row : int, col : int, offset: int} |= if row = col then offset > -1000
+Rule 47 (If row and col are positive, offset must be within row and col)
+{row : int, col : int, offset : int} |= if (row > 0 ∧ col > 0) then (offset ≥ 0 - row ∧ offset ≤ col)
 >>
-Rule 34 (If row and col are small, enforce torch.long dtype)
-{row : int, col : int, dtype : int} |= if row < 10 ∧ col < 10 then dtype = 4
+Rule 48 (combined row and col must be positive if offset is non-zero)
+{row : int, col : int, offset : int} |= if (offset ≠ 0) then (row > 0 ∧ col > 0)
 >>
-Rule 35 (if row * col is big then dtype should be 4 or 5 to make sure that there is int64)
-{row : int, col : int, dtype : int} |= if row * col > 1000000 then dtype = 4 ∨ dtype = 5
+Rule 51 (if row equals zero, then col must equal zero)
+{row : int, col : int} |= if (row = 0) then (col = 0)
 >>
-Rule 36 (If row * col is large, encourage default torch.long dtype)
-{row : int, col : int, dtype : int} |= if row * col > 1000000000 then dtype = 4
+Rule 52 (If row and col are positive, offset must be within row and col)
+{row : int, col : int, offset : int} |= if (row > 0 ∧ col > 0) then (offset + row ≥ 0 ∧ offset ≤ col)
 >>
-Rule 37 (If dtype is complex AND row and col are small, force a specific, valid, default setup)
-{row : int, col : int, dtype : int} |= if (dtype = 9 ∨ dtype = 10) ∧ row < 10 ∧ col < 10 then row > 0 ∧ col > 0 ∧ dtype = 4
+Rule 53 (If row is less than col, then offset has an upper bound)
+{row : int, col : int, offset : int} |= if row < col then offset ≤ col
 >>
-Rule 38 (if matrix is large, do not use bool dtype)
-{row : int, col : int, dtype : int} |= if row * col > 10000 then dtype ≠ 0
+Rule 54 (If col is less than row, then offset has a lower bound)
+{row : int, col : int, offset : int} |= if col < row then offset + row ≥ 0
 >>
-Rule 42 (If using complex dtypes, ensure row and col aren't excessively large, and promote the use of default dtype for large matrices to avoid memory errors related to the device.)
-{row : int, col : int, dtype : int} |= if (dtype = 9 ∨ dtype = 10) then (row * col < 100000) else if (row * col > 1000000000) then dtype = 4
+Rule 55 (If row equals zero, then offset is greater than equal to zero)
+{row : int, offset: int} |= if (row = 0) then offset >= 0
 >>
-Rule 43 (Combined rule for row, col, layout, and dtype with memory considerations)
-{row : int, col : int, layout : int, dtype : int} |= row ≥ 0 ∧ col ≥ 0 ∧ layout = 0 ∧ (if (dtype = 9 ∨ dtype = 10) then (row * col < 100000) else if (row * col > 1000000000) then dtype = 4)
+Rule 57 (dtype must be torch.long which represented by an integer value 4)
+{dtype : dtype} |= dtype = 4
 >>
-Rule 50 (Try again to address layout issue. Dtype and layout should not both be 'str')
-{dtype: int, layout: int} |= if dtype = 11 then layout = 0
+Rule 58 (if col equals zero, then offset is less than or equal to zero)
+{col : int, offset: int} |= if (col = 0) then offset <= 0
 >>
-Rule 51 (If layout is not 0, then dtype cannot be 11.)
-{layout : int, dtype : int} |= if layout ≠ 0 then dtype ≠ 11
+Rule 59 (If row is zero, then offset must be zero or negative)
+{row : int, offset: int} |= if (row = 0) then offset <= 0
 >>
-Rule 52 (row and col need to be the same if the matrix is small)
-{row: int, col:int} |= if row < 10 then row = col
+Rule 60 (If col is zero, then offset must be zero or positive)
+{col : int, offset: int} |= if (col = 0) then offset >= 0
 >>
-Rule 53 (if dtype is string then layout must also not be a string, i.e. 0 )
-{dtype: int, layout:int} |= if dtype=11 then layout=0
+Rule 61 (The row and col needs to be positive)
+{row: int, col:int} |= (row > 0) ∧ (col > 0)
+>>
+Rule 65 (If the offset is zero, either row or col can be zero, but not at the same time)
+{row : int, col : int, offset : int} |= if (offset = 0) then (row > 0 ∨ col > 0)
+>>
+Rule 67 ( If device = "cpu", then the product of row and col needs to be small enough, prevent the overflow during calculation)
+{row : int, col : int, device : str} |= if (device = "cpu") then (row * col < 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 )
+>>
+Rule 70 (device can be either cpu or cuda)
+{device: str} |= device = "cpu" ∨ device = "cuda"
+>>
+Rule 71 (The absolute value of offset must not be greater than the maximum of row and col)
+{row : int, col : int, offset : int} |= if offset ≥ 0 then offset ≤ (if row > col then row else col) else 0 - offset ≤ (if row > col then row else col)
+>>
+Rule 72 (if device is cuda, offset + row >= 0 and col -offset >=0, and row and col product should be less than 2^59 to avoid overflow in GPU, 0- offset does not work.)
+{row : int, col : int, offset : int, device : str} |= if device = "cuda" then (offset + row >= 0 ∧ col - offset >=0 ∧ row * col < 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2)
+>>
+Rule 74 (if row = 0, col needs to be less than or equal to offset)
+{row : int, col:int, offset: int} |= if (row = 0) then (col <= offset)
+>>
+Rule 75 (if col = 0, row needs to be less than or equal to 0- offset, This can not be implemented)
+{col : int, row:int, offset: int} |= if (col = 0) then (row + offset <= 0)
+>>
+Rule 76 (If the offset is positive and row is zero, then the offset must be less than the col)
+{row : int, col : int, offset : int} |= if (offset > 0 ∧ row = 0) then offset <= col
+>>
+Rule 77 (If the offset is negative and the col is zero, then offset+row must be >= 0)
+{row : int, col : int, offset: int} |= if (offset < 0 ∧ col = 0) then offset + row >=0
+>>
+Rule 78 (if the row and col are equal, then offset needs to be in between -row, and col)
+{row: int, col:int, offset: int} |= if (row = col) then offset + row >= 0 ∧ offset <= col
+>>
+Rule 79 (If offset is positive and row is 0, then col must be greater or equal to 0)
+{row: int, col: int, offset: int} |= if (offset > 0 ∧ row = 0) then (col >=0)
+>>
+Rule 80 (If offset is negative and col is 0, then row must be greater or equal to 0)
+{row: int, col: int, offset: int} |= if (offset < 0 ∧ col = 0) then (row >= 0)
+>>
+Rule 81 (A combined check to restrict the range of offset based on a condition of row and col)
+{row: int, col: int, offset: int} |= if row + col = 0 then offset = 0 else if offset > row then offset <= col else if offset < col then offset + row >= 0
+>>
+Rule 82 (combined row and col must be positive if the offset is equal to one of them)
+{row: int, col: int, offset: int} |= if (offset = row ∨ offset = col) then (row > 0 ∧ col > 0)
+>>
+Rule 83 (offset must have the same sign with the difference of row and col)
+{row: int, col: int, offset: int} |= if (row > col ∧ offset < 0) then true else if (row < col ∧ offset > 0) then true else offset = 0
+>>
+Rule 84 (device string can only be cpu or cuda)
+{device:str} |= (device = "cpu") ∨ (device = "cuda")
+>>
+Rule 85 (The layout string value must be equal to torch.strided)
+{layout: str} |= layout = "torch.strided"
+>>
+Rule 86 (The dtype must be equal to torch.long)
+{dtype: dtype} |= dtype = 4
+>>
+Rule 87 (The product of row and col cannot be zero if offset is outside [-1,1])
+{row : int, col : int, offset : int} |= if (offset < -1 ∨ offset > 1) then row * col ≠ 0
+>>
+Rule 88 (The absolute value of row - col must be greater than offset if row*col = 1)
+{row: int, col: int, offset: int} |= if (row * col = 1) then if row > col then (row -col) > offset else (col-row) > offset
+>>
+Rule 90 (row and col are positive)
+{row: int, col: int} |= (row>0) ∧ (col>0)
+>>
+Rule 91 (If the offset is not in the range of row and col, row should be equal to col.)
+{row: int, col: int, offset: int} |= if (offset < row ∧ offset > col) then (row = col)
+>>
+Rule 95 (If row*col > 1, then check if offset is valid)
+{row : int, col : int, offset : int} |= if (row * col > 1) then offset+row >=0 ∧ col-offset >= 0
+>>
+Rule 96 (if the offset is equal to zero, than row and col can not both be zero)
+{row : int, col : int, offset : int} |= if (offset = 0) then (row >0) ∨ (col > 0)
+>>
+Rule 99 (row + col can not be zero if offset is also non-zero)
+{row: int, col: int, offset: int} |= if(offset !=0) then (row+col >0)
+>>
+Rule 104 (Description: Combined condition on row, col, and offset)
+{row : int, col : int, offset : int} |= if row > 5 then col > offset
+>>
+Rule 106 (Description: If offset is a large positive value, then the difference between row and col must be large as well)
+{row: int, col: int, offset: int} |= if offset > 10 then col-row > 5
+>>
+Rule 107 (Description: If offset is a large negative value, then the difference between col and row must be large as well)
+{row: int, col: int, offset: int} |= if offset < -10 then row-col > 5
+>>
+Rule 108 (Description: Relationship between offset and the sum of row and col, to reduce the parameter space, if the offset equals to the sum of row and col, than row + col should not be greater than 100.)
+{row: int, col: int, offset: int} |= if (offset = row + col) then (row + col < 100)
+>>
+Rule 109 (Description: Combined condition on row, col, and offset, check offset <= 0 if row=col)
+{row : int, col : int, offset : int} |= if row = col then offset <= 0
+>>
+Rule 113 (Trivial: If row is greater than zero, then it is greater than -1)
+{row : int} |= if row > 0 then row > -1
+>>
+Rule 114 (Trivial: If col is greater than zero, then it is greater than -1)
+{col : int} |= if col > 0 then col > -1
+>>
+Rule 116 (Row and col are always greater than or equal to zero, individually)
+{row: int, col: int} |= row >= 0 ∧ col >= 0
+>>
+Rule 117 (offset can be zero)
+{offset: int} |= offset=0 ∨ true
+>>
+Rule 121 (If the row = 0 than row+1 >0)
+{row: int} |= if (row=0) then (row+1>0)
+>>
+Rule 122 (If col = 0 than col+1>0)
+{col: int} |= if (col = 0) then (col+1 > 0)
+>>
+Rule 123 (Description: when row + col = 0, the offset must be 0)
+{row: int, col: int, offset: int} |= if (row+col = 0) then (offset = 0)
+>>
+Rule 124 (Description: If row is zero then offset must be non-negative)
+{row: int, offset: int} |= if (row=0) then (offset >= 0)
+>>
+Rule 125 (Description: if the col is zero then the offset needs to be smaller than or equal to zero)
+{col: int, offset:int} |= if (col = 0) then (offset <= 0)
+>>
+Rule 126 (Description: Check if col=0, then row should be >=0)
+{col: int, row: int} |= if (col = 0) then (row >= 0)
+>>
+Rule 127 (Description: Check if row=0, then col should be >=0)
+{row: int, col: int} |= if (row = 0) then (col >= 0)
+>>
+Rule 130 (Description: if offset is a large negative value, then the the sum of row and offset still must be greater than or equal to zero to allow it)
+{row: int, offset: int} |= if offset<-10 then row+offset >=0
+>>
+Rule 131 (Trivial case: Check if row is less than 0)
+{row: int} |= if row <0 then false
+>>
+Rule 132 (Trivial case: check if col is less than 0)
+{col: int} |= if col <0 then false
+>>
+Rule 133 (Description: if device is not cpu and row * col is greater than specific limit, there might be errors)
+{row: int, col:int, device: str} |= if(device != "cpu") then (row * col < 1000000)
+>>
+Rule 134 (Description: if dtype is not long and row * col is greater than specific limit, there might be errors)
+{row: int, col: int, dtype: dtype} |= if (dtype != 4) then (row * col < 1000000)
+>>
+Rule 137 (Device can only be CPU)
+{device: str} |= device = "cpu"
+>>
+Rule 138 (Description: if device is not cpu and row * col is greater than specific limit, and offset is negative)
+{row: int, col:int, offset: int, device: str} |= if(device != "cpu" ∧ offset < 0) then (row * col < 1000000)
+>>
+Rule 139 (Description: if dtype is not long and row * col is greater than specific limit and offset is greater than 0)
+{row: int, col: int, offset: int, dtype: dtype} |= if (dtype != 4 ∧ offset > 0) then (row * col < 1000000)
+>>
+Rule 143 (Description: if device is not cpu and row * col is greater than specific limit, and offset is negative and layout is "torch.strided")
+{row: int, col:int, offset: int, device: str, layout:str} |= if(device != "cpu" ∧ offset < 0 ∧ layout = "torch.strided") then (row * col < 1000000)
+>>
+Rule 144 (Description: if dtype is not long and row * col is greater than specific limit and offset is greater than 0 and layout is "torch.strided")
+{row: int, col: int, offset: int, dtype: dtype, layout: str} |= if (dtype != 4 ∧ offset > 0 ∧ layout = "torch.strided") then (row * col < 1000000)
+>>
+Rule 145 (Dtype must be equal to 4 if row + col > 1000)
+{row: int, col: int, dtype: dtype} |= if row+col > 1000 then dtype = 4
+>>
+Rule 146 (Row and col product must be small if offset is very large)
+{row: int, col:int, offset:int} |= if offset > 100 then row * col < 10000
+>>
+Rule 147 (col and offset product must be small if row is very large)
+{row: int, col: int, offset:int} |= if row > 100 then col * offset < 10000

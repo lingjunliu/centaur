@@ -5,32 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# It can not be tanh. (Rule 110)
+# When any of these transformation are selected, bool must be False (Rule 110)
 
 rule_110 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] != 11) if n else
-          v["arg1_value"] != 11)
+    s.add(Not(If(Or(Or(Or(v["arg2_value"] == 15, v["arg2_value"] == 16), v["arg2_value"] == 17), v["arg2_value"] == 18), v["arg1_value"] == False, True)) if n else
+          If(Or(Or(Or(v["arg2_value"] == 15, v["arg2_value"] == 16), v["arg2_value"] == 17), v["arg2_value"] == 18), v["arg1_value"] == False, True))
 )
 
-def rule_110_func(arg1, solver=None, neg=False):
+def rule_110_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, str):
+        if not isinstance(arg1, bool):
+            return False
+        if not isinstance(arg2, str):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
+        arg1_value = Bool('arg1_value')
+        arg2_value = String('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_value == list_of_string_values_torch.index(arg2))
 
         # Constraints for rule 110
-        rule_110(solver, {'arg1_value': arg1_value})
+        rule_110(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_110(solver, {'arg1_value': arg1['value']}, neg)
+        rule_110(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

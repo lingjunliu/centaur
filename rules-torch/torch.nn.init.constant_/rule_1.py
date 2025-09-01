@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Value should not be greater than the maximum value that the target dtype can hold (Rule 1)
+# Value should be within the valid range of the tensor's dtype to avoid overflow (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, v["arg2_value"] <= 65504, If(v["arg1_dtype"] == 7, v["arg2_value"] <= 3.4028235e+38, If(v["arg1_dtype"] == 8, v["arg2_value"] <= 1.7976931348623157e+308, False)))) if n else
-          If(v["arg1_dtype"] == 6, v["arg2_value"] <= 65504, If(v["arg1_dtype"] == 7, v["arg2_value"] <= 3.4028235e+38, If(v["arg1_dtype"] == 8, v["arg2_value"] <= 1.7976931348623157e+308, False))))
+    s.add(Not(Or(Or(Or(Or(Or(Or(Or((And(And(v["arg1_dtype"] == 7, v["arg2_value"] >= -65500), v["arg2_value"] <= 65500)), (And(And(v["arg1_dtype"] == 8, v["arg2_value"] >= -1e+38), v["arg2_value"] <= 1e+38))), (And(And(v["arg1_dtype"] == 1, v["arg2_value"] >= -128), v["arg2_value"] <= 127))), (And(And(v["arg1_dtype"] == 2, v["arg2_value"] >= -32768), v["arg2_value"] <= 32767))), (And(And(v["arg1_dtype"] == 3, v["arg2_value"] >= -2147483648), v["arg2_value"] <= 2147483647))), (And(And(v["arg1_dtype"] == 4, v["arg2_value"] >= -9223372036854775808), v["arg2_value"] <= 9223372036854775807))), (And(And(v["arg1_dtype"] == 6, v["arg2_value"] >= -65500), v["arg2_value"] <= 65500))), (And(And(v["arg1_dtype"] == 5, v["arg2_value"] >= 0), v["arg2_value"] <= 255)))) if n else
+          Or(Or(Or(Or(Or(Or(Or((And(And(v["arg1_dtype"] == 7, v["arg2_value"] >= -65500), v["arg2_value"] <= 65500)), (And(And(v["arg1_dtype"] == 8, v["arg2_value"] >= -1e+38), v["arg2_value"] <= 1e+38))), (And(And(v["arg1_dtype"] == 1, v["arg2_value"] >= -128), v["arg2_value"] <= 127))), (And(And(v["arg1_dtype"] == 2, v["arg2_value"] >= -32768), v["arg2_value"] <= 32767))), (And(And(v["arg1_dtype"] == 3, v["arg2_value"] >= -2147483648), v["arg2_value"] <= 2147483647))), (And(And(v["arg1_dtype"] == 4, v["arg2_value"] >= -9223372036854775808), v["arg2_value"] <= 9223372036854775807))), (And(And(v["arg1_dtype"] == 6, v["arg2_value"] >= -65500), v["arg2_value"] <= 65500))), (And(And(v["arg1_dtype"] == 5, v["arg2_value"] >= 0), v["arg2_value"] <= 255))))
 )
 
 def rule_1_func(arg1, arg2, solver=None, neg=False):
@@ -20,7 +20,7 @@ def rule_1_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)) or isinstance(arg2, (float, np.floating))):
+        if not (isinstance(arg2, (float, np.floating)) or (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool))):
             return False
 
         # Variable declarations

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The value for bool should not be positive (Rule 98)
+# The product of tuple values should be greater than 100 (Rule 98)
 
 rule_98 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_value"] == True, v["arg1_value"] == False)) if n else
-          Or(v["arg1_value"] == True, v["arg1_value"] == False))
+    s.add(Not(If(v["arg1_length"] == 2, Select(v["arg1_values"], 0) * Select(v["arg1_values"], 1) > 100, True)) if n else
+          If(v["arg1_length"] == 2, Select(v["arg1_values"], 0) * Select(v["arg1_values"], 1) > 100, True))
 )
 
 def rule_98_func(arg1, solver=None, neg=False):
@@ -17,20 +17,23 @@ def rule_98_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
+        arg1_length = Int('arg1_length')
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == arg1)
+        solver.add(arg1_length == len(arg1))
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 98
-        rule_98(solver, {'arg1_value': arg1_value})
+        rule_98(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_98(solver, {'arg1_value': arg1['value']}, neg)
+        rule_98(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values']}, neg)

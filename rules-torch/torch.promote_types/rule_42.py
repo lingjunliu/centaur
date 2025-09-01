@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If type1 is int8, type2 must be int8, int16, int32, int64, float32, float64, complex64, or complex128 (Rule 42)
+# If one of the types is complex64/128, the other must not be bool, int, uint8, float16 (Rule 42)
 
 rule_42 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 1, Or(Or(Or(Or(Or(Or(Or(v["arg2_value"] == 1, v["arg2_value"] == 2), v["arg2_value"] == 3), v["arg2_value"] == 4), v["arg2_value"] == 7), v["arg2_value"] == 8), v["arg2_value"] == 9), v["arg2_value"] == 10), False)) if n else
-          If(v["arg1_value"] == 1, Or(Or(Or(Or(Or(Or(Or(v["arg2_value"] == 1, v["arg2_value"] == 2), v["arg2_value"] == 3), v["arg2_value"] == 4), v["arg2_value"] == 7), v["arg2_value"] == 8), v["arg2_value"] == 9), v["arg2_value"] == 10), False))
+    s.add(Not(If((Or(v["arg1_value"] == 9, v["arg1_value"] == 10)), (And(And(And(And(And(And(v["arg2_value"] != 0, v["arg2_value"] != 1), v["arg2_value"] != 2), v["arg2_value"] != 3), v["arg2_value"] != 4), v["arg2_value"] != 5), v["arg2_value"] != 6)), If((Or(v["arg2_value"] == 9, v["arg2_value"] == 10)), (And(And(And(And(And(And(v["arg1_value"] != 0, v["arg1_value"] != 1), v["arg1_value"] != 2), v["arg1_value"] != 3), v["arg1_value"] != 4), v["arg1_value"] != 5), v["arg1_value"] != 6)), True))) if n else
+          If((Or(v["arg1_value"] == 9, v["arg1_value"] == 10)), (And(And(And(And(And(And(v["arg2_value"] != 0, v["arg2_value"] != 1), v["arg2_value"] != 2), v["arg2_value"] != 3), v["arg2_value"] != 4), v["arg2_value"] != 5), v["arg2_value"] != 6)), If((Or(v["arg2_value"] == 9, v["arg2_value"] == 10)), (And(And(And(And(And(And(v["arg1_value"] != 0, v["arg1_value"] != 1), v["arg1_value"] != 2), v["arg1_value"] != 3), v["arg1_value"] != 4), v["arg1_value"] != 5), v["arg1_value"] != 6)), True)))
 )
 
 def rule_42_func(arg1, arg2, solver=None, neg=False):

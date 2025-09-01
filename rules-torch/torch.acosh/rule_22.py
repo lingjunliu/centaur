@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# out tensor, if given, cannot be of type bool if input tensor is numerical (Rule 22)
+# If out is provided, and input is float, and output is Short, it should error. This can be solved by using a Float output (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_ndim"] > 0, If(And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 10), v["arg2_dtype"] != 0, False), False)) if n else
-          If(v["arg2_ndim"] > 0, If(And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 10), v["arg2_dtype"] != 0, False), False))
+    s.add(Not(If(And(v["arg2_ndim"] > 0, (Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9))), v["arg2_dtype"] != 2, True)) if n else
+          If(And(v["arg2_ndim"] > 0, (Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9))), v["arg2_dtype"] != 2, True))
 )
 
 def rule_22_func(arg1, arg2, solver=None, neg=False):
@@ -35,9 +35,9 @@ def rule_22_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 22
-        rule_22(solver, {'arg1_dtype': arg1_dtype, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype})
+        rule_22(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_22(solver, {'arg1_dtype': arg1['dtype'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_22(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg2_ndim': arg2['ndim']}, neg)

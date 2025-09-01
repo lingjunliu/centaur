@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If tuple and 3D tensor, prevent memory overflow (Rule 39)
+# The sum of input dimensions and padding (tuple (Rule 39)
 
 rule_39 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) * (Select(v["arg1_shape"], 1) + Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1)) * (Select(v["arg1_shape"], 2) + Select(v["arg2_values"], 2) + Select(v["arg2_values"], 3)) < 1000000000, False)) if n else
-          If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) * (Select(v["arg1_shape"], 1) + Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1)) * (Select(v["arg1_shape"], 2) + Select(v["arg2_values"], 2) + Select(v["arg2_values"], 3)) < 1000000000, False))
+    s.add(Not(And(Select(v["arg1_shape"], v["arg1_ndim"] - 1) + Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1) < 2147483647, Select(v["arg1_shape"], v["arg1_ndim"] - 2) + Select(v["arg2_values"], 2) + Select(v["arg2_values"], 3) < 2147483647)) if n else
+          And(Select(v["arg1_shape"], v["arg1_ndim"] - 1) + Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1) < 2147483647, Select(v["arg1_shape"], v["arg1_ndim"] - 2) + Select(v["arg2_values"], 2) + Select(v["arg2_values"], 3) < 2147483647))
 )
 
 def rule_39_func(arg1, arg2, solver=None, neg=False):

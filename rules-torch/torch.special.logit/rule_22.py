@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if eps is not None and tensor contains both values < 0 and > 1, eps should satisfy eps < 0.5 (Rule 22)
+# Ensure input is within [0, 1] if eps is not provided (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(And(Select(v["arg1_range"], 0) < 0, Select(v["arg1_range"], 1) > 1), And(v["arg2_value"] > 0, v["arg2_value"] < 0.5), False)) if n else
-          If(And(Select(v["arg1_range"], 0) < 0, Select(v["arg1_range"], 1) > 1), And(v["arg2_value"] > 0, v["arg2_value"] < 0.5), False))
+    s.add(Not(If(v["arg2_value"] == 0.0, And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 1), True)) if n else
+          If(v["arg2_value"] == 0.0, And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 1), True))
 )
 
 def rule_22_func(arg1, arg2, solver=None, neg=False):

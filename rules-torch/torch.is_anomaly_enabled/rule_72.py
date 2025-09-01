@@ -5,32 +5,45 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The length of the list must be positive (Rule 72)
+# If anomaly detection is enabled and a tensor with one dimension should be equivalent to number of elements in a list (Rule 72)
 
 rule_72 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_length"] > 0) if n else
-          v["arg1_length"] > 0)
+    s.add(Not(If(v["arg1_value"] == True, If(v["arg2_ndim"] == 1, Select(v["arg2_shape"], 0) == v["arg3_length"], True), True)) if n else
+          If(v["arg1_value"] == True, If(v["arg2_ndim"] == 1, Select(v["arg2_shape"], 0) == v["arg3_length"], True), True))
 )
 
-def rule_72_func(arg1, solver=None, neg=False):
+def rule_72_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not isinstance(arg1, bool):
+            return False
+        if not isinstance(arg2, np.ndarray):
+            return False
+        if not (isinstance(arg3, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg3)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
+        arg1_value = Bool('arg1_value')
+        arg2_ndim = Int('arg2_ndim')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg3_length = Int('arg3_length')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_ndim == arg2.ndim)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        solver.add(arg3_length == len(arg3))
 
         # Constraints for rule 72
-        rule_72(solver, {'arg1_length': arg1_length})
+        rule_72(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg3_length': arg3_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_72(solver, {'arg1_length': arg1['length']}, neg)
+        rule_72(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_length': arg3['length']}, neg)

@@ -5,38 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The elements of the input tensor and a constant added to it should be comparable (Rule 26)
+# args can be empty list (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) + v["arg2_value"] == Select(v["arg1_range"], 0) + v["arg2_value"]) if n else
-          Select(v["arg1_range"], 0) + v["arg2_value"] == Select(v["arg1_range"], 0) + v["arg2_value"])
+    s.add(Not(v["arg1_length"] == 0) if n else
+          v["arg1_length"] == 0)
 )
 
-def rule_26_func(arg1, arg2, solver=None, neg=False):
+def rule_26_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
-            return False
-        if not isinstance(arg2, (float, np.floating)):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_value = Real('arg2_value')
+        arg1_length = Int('arg1_length')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        solver.add(arg2_value == arg2)
+        solver.add(arg1_length == len(arg1))
 
         # Constraints for rule 26
-        rule_26(solver, {'arg1_range': arg1_range, 'arg2_value': arg2_value})
+        rule_26(solver, {'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_26(solver, {'arg1_range': arg1['range'], 'arg2_value': arg2['value']}, neg)
+        rule_26(solver, {'arg1_length': arg1['length']}, neg)

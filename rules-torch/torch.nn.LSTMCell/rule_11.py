@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input_size and hidden_size should be different to avoid weight_ih and weight_hh having the same shape (Rule 11)
+# prevent extremely large hidden_size and input_size that lead to allocation errors (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] != v["arg2_value"]) if n else
-          v["arg1_value"] != v["arg2_value"])
+    s.add(Not(v["arg1_value"] * v["arg2_value"] < 1000000000) if n else
+          v["arg1_value"] * v["arg2_value"] < 1000000000)
 )
 
 def rule_11_func(arg1, arg2, solver=None, neg=False):

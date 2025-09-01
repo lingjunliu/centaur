@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor cannot have dtype boolean (Rule 47)
+# The dtype of input must not be boolean to use abs_cpu (Rule 47)
 
 rule_47 = lambda s, v, n=False: (
-    s.add(Not(Or((v["arg1_dtype"] > 1), (v["arg1_dtype"] < 1))) if n else
-          Or((v["arg1_dtype"] > 1), (v["arg1_dtype"] < 1)))
+    s.add(Not(And((v["arg1_dtype"] > 0), (v["arg1_dtype"] != 0))) if n else
+          And((v["arg1_dtype"] > 0), (v["arg1_dtype"] != 0)))
 )
 
 def rule_47_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input tensor is int, the output tensor can't be int8 or uint8. (Rule 14)
+# To avoid potential casting errors when 'out' is specified, ensure the 'input' tensor's data type can be safely and accurately represented in the 'out' tensor after the `asinh` operation. (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] < 6, (And(v["arg2_dtype"] != 1, v["arg2_dtype"] != 5)), False)) if n else
-          If(v["arg1_dtype"] < 6, (And(v["arg2_dtype"] != 1, v["arg2_dtype"] != 5)), False))
+    s.add(Not(If(v["arg2_dtype"] == 2, Or((And(And(v["arg1_dtype"] == 7, Select(v["arg1_range"], 0) > -76294), Select(v["arg1_range"], 1) < 76294)), (And(And(v["arg1_dtype"] == 8, Select(v["arg1_range"], 0) > -76294), Select(v["arg1_range"], 1) < 76294))), If(v["arg2_dtype"] == 1, False, True))) if n else
+          If(v["arg2_dtype"] == 2, Or((And(And(v["arg1_dtype"] == 7, Select(v["arg1_range"], 0) > -76294), Select(v["arg1_range"], 1) < 76294)), (And(And(v["arg1_dtype"] == 8, Select(v["arg1_range"], 0) > -76294), Select(v["arg1_range"], 1) < 76294))), If(v["arg2_dtype"] == 1, False, True)))
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):
@@ -26,16 +26,19 @@ def rule_14_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
         arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 14
-        rule_14(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_14(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_14(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_14(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range'], 'arg2_dtype': arg2['dtype']}, neg)

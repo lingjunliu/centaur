@@ -5,38 +5,42 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check if the tensor's size is smaller than a number (Rule 52)
+# If enable then one tensor is float. else it will be zero (Rule 52)
 
 rule_52 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) < v["arg2_value"]) if n else
-          Select(v["arg1_shape"], 0) < v["arg2_value"])
+    s.add(Not(If(v["arg1_value"] == True, (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8)), v["arg3_dtype"] == 0)) if n else
+          If(v["arg1_value"] == True, (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8)), v["arg3_dtype"] == 0))
 )
 
-def rule_52_func(arg1, arg2, solver=None, neg=False):
+def rule_52_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, bool):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg2, np.ndarray):
+            return False
+        if not isinstance(arg3, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_value = Int('arg2_value')
+        arg1_value = Bool('arg1_value')
+        arg2_dtype = Int('arg2_dtype')
+        arg3_dtype = Int('arg3_dtype')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
 
         # Constraints for rule 52
-        rule_52(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_52(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_52(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_52(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype']}, neg)

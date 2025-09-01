@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# num_channels must be divisible by num_groups (Rule 13)
+# group size must not exceed the number of channels (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg2_value"] > 0, v["arg1_value"] > 0), (Or([And(i < (v["arg2_value"] + 1), v["arg1_value"] * i == v["arg2_value"]) for i in range(6)])))) if n else
-          And(And(v["arg2_value"] > 0, v["arg1_value"] > 0), (Or([And(i < (v["arg2_value"] + 1), v["arg1_value"] * i == v["arg2_value"]) for i in range(6)]))))
+    s.add(Not(v["arg1_value"] <= v["arg2_value"]) if n else
+          v["arg1_value"] <= v["arg2_value"])
 )
 
 def rule_13_func(arg1, arg2, solver=None, neg=False):

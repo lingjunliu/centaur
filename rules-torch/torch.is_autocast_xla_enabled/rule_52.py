@@ -5,35 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# A tuple of ints must all be positive and less than 10 (Rule 52)
+# Either enabled or disabled_torch_function should be explicitly specified (Rule 52)
 
 rule_52 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), And(Select(v["arg1_values"], i) > 0, Select(v["arg1_values"], i) < 10)) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_length"] - 1 + 1), And(Select(v["arg1_values"], i) > 0, Select(v["arg1_values"], i) < 10)) for i in range(6)]))
+    s.add(Not(Or((Or(v["arg1_value"] == True, v["arg1_value"] == False)), (Or(v["arg2_value"] == True, v["arg2_value"] == False)))) if n else
+          Or((Or(v["arg1_value"] == True, v["arg1_value"] == False)), (Or(v["arg2_value"] == True, v["arg2_value"] == False))))
 )
 
-def rule_52_func(arg1, solver=None, neg=False):
+def rule_52_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not isinstance(arg1, bool):
+            return False
+        if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
-        arg1_values = Array('arg1_values', IntSort(), IntSort())
+        arg1_value = Bool('arg1_value')
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 52
-        rule_52(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values})
+        rule_52(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_52(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values']}, neg)
+        rule_52(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

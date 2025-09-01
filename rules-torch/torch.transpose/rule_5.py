@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# dim0 and dim1 must be non-negative if tensor has more than two dimensions (Rule 5)
+# if input is a sparse tensor with compressed layout, dim0 and dim1 must both be batch dimensions, or must both be sparse dimensions. (Simplified (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 2, And(v["arg2_value"] >= 0, v["arg3_value"] >= 0), False)) if n else
-          If(v["arg1_ndim"] > 2, And(v["arg2_value"] >= 0, v["arg3_value"] >= 0), False))
+    s.add(Not(Or(Or(Or((Select(v["arg1_shape"], 0) == 0), (Select(v["arg1_shape"], 0) == 1)), (And(v["arg2_value"] < 0, v["arg3_value"] < 0))), (And(v["arg2_value"] > 1, v["arg3_value"] > 1)))) if n else
+          Or(Or(Or((Select(v["arg1_shape"], 0) == 0), (Select(v["arg1_shape"], 0) == 1)), (And(v["arg2_value"] < 0, v["arg3_value"] < 0))), (And(v["arg2_value"] > 1, v["arg3_value"] > 1))))
 )
 
 def rule_5_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -28,19 +28,20 @@ def rule_5_func(arg1, arg2, arg3, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg2_value = Int('arg2_value')
         arg3_value = Int('arg3_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg2_value == int(arg2))
         solver.add(arg3_value == int(arg3))
 
         # Constraints for rule 5
-        rule_5(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
+        rule_5(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_5(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)
+        rule_5(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)

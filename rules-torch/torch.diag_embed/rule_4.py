@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# dim1 and dim2 should not be identical (Rule 4)
+# dim1 and dim2 cannot be identical (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
     s.add(Not(v["arg1_value"] != v["arg2_value"]) if n else

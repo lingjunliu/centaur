@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# v_1 and v_2 are booleans, and they are either both true or both false (Rule 25)
+# Compilation context affects the minimum value when in scripting mode (Rule 25)
 
 rule_25 = lambda s, v, n=False: (
-    s.add(Not(Or((And(v["arg1_value"] == True, v["arg2_value"] == True)), (And(v["arg1_value"] == False, v["arg2_value"] == False)))) if n else
-          Or((And(v["arg1_value"] == True, v["arg2_value"] == True)), (And(v["arg1_value"] == False, v["arg2_value"] == False))))
+    s.add(Not(If(v["arg1_value"] == True, Select(v["arg2_range"], 0) > -1000, True)) if n else
+          If(v["arg1_value"] == True, Select(v["arg2_range"], 0) > -1000, True))
 )
 
 def rule_25_func(arg1, arg2, solver=None, neg=False):
@@ -20,22 +20,23 @@ def rule_25_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, bool):
             return False
-        if not isinstance(arg2, bool):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = Bool('arg1_value')
-        arg2_value = Bool('arg2_value')
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_value == arg1)
-        solver.add(arg2_value == arg2)
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 25
-        rule_25(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_25(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_25(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_25(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range']}, neg)

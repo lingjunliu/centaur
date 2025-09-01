@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor should not be complex type to avoid 'sorting_kernel_method_name' not implemented error (Rule 2)
+# input tensor's dtype should not be complex to avoid RuntimeError: "sorting_kernel_method_name" not implemented for 'ComplexFloat' (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] != 10, v["arg1_dtype"] != 11)) if n else
-          And(v["arg1_dtype"] != 10, v["arg1_dtype"] != 11))
+    s.add(Not(And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10)) if n else
+          And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10))
 )
 
 def rule_2_func(arg1, solver=None, neg=False):

@@ -1,141 +1,117 @@
 >>
-Rule 1 (target tensor must be 0D or 1D)
-{v_1 : tensor} |= ndim(v_1) = 0 ∨ ndim(v_1) = 1
->>
-Rule 2 (input tensors must have the same embedding dimension if input is 2D)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ ndim(v_3) = 1 then shape(v_1, 1) = shape(v_2, 1)
->>
-Rule 3 (input tensors must have the same embedding dimension if input is 1D)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 0 then shape(v_1, 0) = shape(v_2, 0)
->>
-Rule 4 (if inputs are 2D, target should be 1D)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 then ndim(v_3) = 1
->>
-Rule 5 (if inputs are 1D, target should be 0D)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) = 1 then ndim(v_3) = 0
->>
-Rule 6 (margin should be between -1 and 1)
+Rule 1 (margin should be between -1 and 1)
 {v_1 : float} |= v_1 ≥ -1 ∧ v_1 ≤ 1
 >>
-Rule 7 (reduction should be a valid string)
+Rule 2 (reduction should be one of the valid options)
 {v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
 >>
-Rule 8 (if input1 is NxD, input2 should be NxD and target should be N)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ ndim(v_3) = 1 then shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 0) = shape(v_3, 0)
+Rule 3 (input1 and input2 should have the same number of dimensions if target is 1D)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 1 then ndim(v_1) = ndim(v_2)
 >>
-Rule 9 (if target is 1D, it's size should match the first dimension of 2D inputs)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 1 ∧ ndim(v_1) = 2 ∧ ndim(v_2) = 2 then shape(v_3, 0) = shape(v_1, 0) ∧ shape(v_3, 0) = shape(v_2, 0)
+Rule 4 (input1 and input2 should have the same shape if target is 1D and input tensors are not scalars)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_3) = 1 ∧ ndim(v_1) > 0 ∧ ndim(v_2) > 0) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 10 (input tensors should have the same shape if 1D)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) = 1 then shape(v_1, 0) = shape(v_2, 0)
+Rule 5 (Target tensor should be 0D or 1D)
+{v_1 : tensor} |= ndim(v_1) = 0 ∨ ndim(v_1) = 1
 >>
-Rule 11 (if input tensors are 2D with shape (N,D), then target must be 1D with shape (N))
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 then if ndim(v_3) = 1 then shape(v_1, 0) = shape(v_3, 0) else false
+Rule 12 (if target is 1D, its size should match the batch size of input tensors)
+{v_1 : tensor, v_3 : tensor} |= if (ndim(v_3) = 1 ∧ ndim(v_1) > 0) then shape(v_3, 0) = shape(v_1, 0)
 >>
-Rule 13 (if one input tensor is 2D, the other must be 2D)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then ndim(v_2) = 2 else if ndim(v_1) = 1 then ndim(v_2) = 1
+Rule 13 (If target is 1D, and inputs are 2D, input1 and input2 should be 2D)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_3) = 1) then (ndim(v_1) = 2 ∧ ndim(v_2) = 2)
 >>
-Rule 14 (if target tensor is 1D, both input tensors should be 2D)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 1 then ndim(v_1) = 2 ∧ ndim(v_2) = 2
+Rule 15 (Target should have values either 1 or -1)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] = 1) ∨ (v_1[i] = -1)
 >>
-Rule 15 (Input tensors must have compatible shapes with target if target is 1D)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 1 then shape(v_1,0) = shape(v_2,0) ∧ shape(v_1,0) = shape(v_3,0)
+Rule 16 (If target is 1D and input1 is 0D, then input2 must also be 0D)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_3) = 1 ∧ ndim(v_1) = 0) then ndim(v_2) = 0
 >>
-Rule 16 (Input tensors must have the same shape for cosine embedding loss)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) else false
+Rule 17 (Target should have values either 1 or -1)
+{v_1 : tensor} |= (ndim(v_1) = 0) ∨ (∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] = 1) ∨ (v_1[i] = -1))
 >>
-Rule 17 (If the target is 0D, both inputs must be 1D)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 then ndim(v_1) = 1 ∧ ndim(v_2) = 1
+Rule 20 (If one of the inputs is 1D, the other input must also be 1D, and their sizes must be equal)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then (ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0))
 >>
-Rule 18 (If target is 1D and inputs are 2D, shapes must match)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ ndim(v_3) = 1 then shape(v_1, 0) = shape(v_3, 0) ∧ shape(v_2, 0) = shape(v_3, 0)
+Rule 21 (If one of the inputs is 1D, the other input must also be 1D, and their sizes must be equal, except when target is 0D)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) = 1) then (ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0)) ∨ ndim(v_3) = 0
 >>
-Rule 19 (Shape should not be zero)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 22 (If target is 1D, the input tensors should not be empty)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 1 then (ndim(v_1) > 0 ∧ ndim(v_2) > 0)
 >>
-Rule 21 (if inputs are ND, target is N)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then if ndim(v_1) = ndim(v_2) then if ndim(v_3) = ndim(v_1) -1 then true else false else false
+Rule 23 (If target is 1D and input tensors are 2D, then input tensors sizes in dimension 0 should be equal)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_3) = 1 ∧ ndim(v_1) = 2 ∧ ndim(v_2) = 2) then shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 22 (If reduction is none, then the target must be the same size as inputs batch)
-{v_1 : str, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= if v_1 = "none" ∧ ndim(v_2) = 2 ∧ ndim(v_3) = 2 then ndim(v_4) = 1 ∧ shape(v_2,0) = shape(v_4, 0) ∧ shape(v_3, 0) = shape(v_4, 0)
+Rule 24 (If target is 1D, the input tensors should not be empty)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 1 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
 >>
-Rule 23 (if inputs are Dx1 and 1xD, target is 1)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 then if shape(v_1, 1) = 1 ∧ shape(v_2, 0) = 1 then ndim(v_3) = 0
+Rule 26 (If input tensors are 2D, then sizes should be greater than 0)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 2 ∧ ndim(v_2) = 2) then (shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_2, 0) > 0 ∧ shape(v_2, 1) > 0)
 >>
-Rule 24 (margin must be a valid number)
-{v_1 : float} |= v_1 ≥ -1.0 ∧ v_1 ≤ 1.0
+Rule 29 (If target is 1D, and one of the inputs is 2D while the other is 1D, sizes of the first dimension on 2D tensor and the 1D tensor should match)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_3) = 1 ∧ (ndim(v_1) = 2 ∨ ndim(v_2) = 2) ∧ (ndim(v_1) = 1 ∨ ndim(v_2) = 1)) then (if ndim(v_1) = 2 then shape(v_1, 0) = shape(v_2, 0) else shape(v_2, 0) = shape(v_1, 0))
 >>
-Rule 26 (if inputs have different dimensions, the highest must be two, the lowest zero, intermediate one)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) ≠ ndim(v_2)) ∨ (ndim(v_1) ≠ ndim(v_3)) ∨ (ndim(v_2) ≠ ndim(v_3)) then ((ndim(v_1) = 0 ∨ ndim(v_2) = 0 ∨ ndim(v_3) = 0) ∧ (ndim(v_1) = 1 ∨ ndim(v_2) = 1 ∨ ndim(v_3) = 1) ∧ (ndim(v_1) = 2 ∨ ndim(v_2) = 2 ∨ ndim(v_3) = 2))
+Rule 33 (If target is 1D and input tensors are 2D, then input tensors sizes in dimension 0 should be equal and greater than 0)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_3) = 1 ∧ ndim(v_1) = 2 ∧ ndim(v_2) = 2) then (shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 0) > 0)
 >>
-Rule 27 (if inputs have different dimensions, the highest must be two, the lowest zero, intermediate one. Must be rewritten to adhere to grammar)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ((ndim(v_1) = 2 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 0) ∨ (ndim(v_1) = 2 ∧ ndim(v_2) = 0 ∧ ndim(v_3) = 1) ∨ (ndim(v_1) = 1 ∧ ndim(v_2) = 2 ∧ ndim(v_3) = 0) ∨ (ndim(v_1) = 1 ∧ ndim(v_2) = 0 ∧ ndim(v_3) = 2) ∨ (ndim(v_1) = 0 ∧ ndim(v_2) = 2 ∧ ndim(v_3) = 1) ∨ (ndim(v_1) = 0 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 2) ∨ (ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3)))
+Rule 34 (If target tensor's shape is not () and not (N), then it's invalid.)
+{v_1 : tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_1) = 1)
 >>
-Rule 28 (If inputs have dimension mismatch with target shape 0)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 1 then shape(v_1, 0) ≠ shape(v_2, 0)
+Rule 37 (if input1 is 0 dimensional, input2 also should be 0 dimensional and target should be 0 dimensional)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then (ndim(v_2) = 0 ∧ ndim(v_3) = 0)
 >>
-Rule 29 (shape mismatch between 1D tensor and size of 2D tensors)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ ndim(v_3) = 1 then shape(v_1, 0) ≠ shape(v_3, 0) ∨ shape(v_2, 0) ≠ shape(v_3, 0)
+Rule 38 (If input tensors are 2D, and target is 1D then the second dimension of input tensor 1 and input tensor 2 should be same)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ ndim(v_3) = 1) then shape(v_1, 1) = shape(v_2, 1)
 >>
-Rule 30 (If target is 1D, input shape at dim 0 must match target shape at dim 0, unless input shape is zero)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 1 ∧ ndim(v_1) = 2 ∧ ndim(v_2) = 2 then (shape(v_1, 0) = shape(v_3, 0) ∧ shape(v_2, 0) = shape(v_3, 0)) ∨ (shape(v_1,0) = 0) ∨ (shape(v_2, 0) = 0)
+Rule 40 (The size of input tensor dimensions > 0 should not be zero.)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1)-1]: if ndim(v_1) > 0 then shape(v_1, i) > 0
 >>
-Rule 31 (Target dimension check and shape requirement)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 then if ndim(v_3) > 1 then false else if ndim(v_3) = 1 then shape(v_1, 0) = shape(v_3, 0) ∧ shape(v_2, 0) = shape(v_3, 0)
+Rule 42 (If target's dimension is > 1, then raise error)
+{v_1 : tensor} |= ndim(v_1) ≤ 1
 >>
-Rule 33 (The last dimension of two 2D input tensors must match for CosineEmbeddingLoss)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 then shape(v_1, 1) = shape(v_2, 1)
+Rule 44 (If input tensors are 2D, and target is 1D then the second dimension of input tensor 1 and input tensor 2 should be same, and target size should be equal to first dimension of input tensor 1)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ ndim(v_3) = 1) then (shape(v_1, 1) = shape(v_2, 1) ∧ shape(v_3, 0) = shape(v_1, 0))
 >>
-Rule 35 (If target is 1D, then input1 and input2 must be 2D and shape[0] must equal shape[0] of target)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 1 then (ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 0) = shape(v_3, 0) ∧ shape(v_2, 0) = shape(v_3, 0))
+Rule 46 (If input tensor1 is 1D and input tensor 2 is 2D, then dimension 0 of input tensor 1 should match dimension 0 of input tensor 2, and target tensor should be 1D, with its dimension 0 matching dimension 0 of input tensor 1)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) = 1 ∧ ndim(v_2) = 2) then (shape(v_1, 0) = shape(v_2, 0) ∧ ndim(v_3) = 1 ∧ shape(v_3, 0) = shape(v_1, 0))
 >>
-Rule 36 (Shape mismatch when tensors are 2D and target is not 1D)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ ndim(v_3) ≠ 1 then true else (shape(v_1,0) = 0) ∨ (shape(v_2, 0) = 0) ∨ (shape(v_3,0) = 0)
+Rule 49 (If the inputs are (N, D) or (D) and target is (N) or (), D should be greater than 0, unless input tensors are 0D)
+{v_1 : tensor, v_2 : tensor} |= if ((ndim(v_1) = 2 ∧ ndim(v_2) = 2) ∨ (ndim(v_1) = 1 ∧ ndim(v_2) = 1)) then (if ndim(v_1) = 2 then shape(v_1, 1) > 0 else shape(v_1, 0) > 0)
 >>
-Rule 37 (Shape mismatch in input tensors leading to runtime error)
-{v_1:tensor, v_2:tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, if ndim(v_1) > 0 then ndim(v_1)-1 else 0] : shape(v_1,i) = shape(v_2,i) else false
+Rule 50 (Input1, Input2 and Target dimension constraints)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ ndim(v_3) = 1) ∨ (ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1) ∨ (ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ ndim(v_3) = 0)
 >>
-Rule 38 (Input 2D target 1D, dimensions matching)
-{v_1:tensor, v_2:tensor, v_3:tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ ndim(v_3) = 1 then shape(v_1,0) = shape(v_3, 0) ∧ shape(v_2, 0) = shape(v_3, 0) else True
+Rule 51 (If input1, input2 and target are 1D, sizes of all should match)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1) then (shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 0) = shape(v_3, 0))
 >>
-Rule 39 (Target shape should be (N) when input tensors are (N, D))
-{v_1: tensor, v_2: tensor, v_3: tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 then (ndim(v_3) = 1 ∧ shape(v_1, 0) = shape(v_3, 0))
+Rule 52 (If inputs and target tensors are non-empty, then size > 0)
+{v_1:tensor, v_2:tensor, v_3: tensor} |= if (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0) then shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0 ∧ shape(v_3, 0) > 0
 >>
-Rule 40 (If the reduction is none, the target must be size N)
-{v_1: str, v_2: tensor, v_3: tensor, v_4: tensor} |= if v_1 = "none" ∧ ndim(v_2) = 2 ∧ ndim(v_3) = 2 then (ndim(v_4) = 1 ∧ shape(v_4, 0) = shape(v_2, 0) ∧ shape(v_4, 0) = shape(v_3, 0)) else True
+Rule 55 (if input1 and input2 are 2D, the last dimension should be same.)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 2 ∧ ndim(v_2) = 2) then (shape(v_1, 1) = shape(v_2, 1))
 >>
-Rule 42 (Input shapes must match if not 1D or 0D target case)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) ≠ 1 ∧ ndim(v_1) ≠ 0) ∧ (ndim(v_2) ≠ 1 ∧ ndim(v_2) ≠ 0) then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 56 (Input1, Input2 and Target dimension constraints)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ ndim(v_3) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 0) = shape(v_3, 0)) ∨ (ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 0) = shape(v_3, 0)) ∨ (ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ ndim(v_3) = 0)
 >>
-Rule 43 (Enforce matching sizes for target and first dimension of inputs if not 0 or 1D tensors)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 1 ∧ ndim(v_3) > -1 then (shape(v_1, 0) = shape(v_3, 0) ∧ shape(v_2, 0) = shape(v_3, 0)) else True
+Rule 58 (the target's element value must be either 1 or -1)
+{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] = 1 ∨ v_1[i] = -1)
 >>
-Rule 44 (Enforce correct dimensions for CosineEmbeddingLoss input tensors)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ ndim(v_3) = 1) ∨ (ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 0)
+Rule 59 (Input1, Input2 and Target dimension constraints)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ((ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ ndim(v_3) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 0) = shape(v_3, 0) ∧ shape(v_1, 1) > 0) ∨ (ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 0) = shape(v_3, 0)) ∨ (ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ ndim(v_3) = 0))
 >>
-Rule 47 (If inputs are of unequal dimension, sizes should not be 0 or 3)
-{v_1:tensor, v_2:tensor} |= if ndim(v_1) ≠ ndim(v_2) then (∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) ≠ 0 ∧ ∀i ∈ [0, ndim(v_2)-1]: shape(v_2, i) ≠ 0 ∧ shape(v_1,0) ≠ 3 ∧ shape(v_2,0) ≠ 3 ) else True
+Rule 60 (target's element value must be either 1 or -1, or a scalar with value 1 or -1)
+{v_1: tensor} |= (ndim(v_1) = 0 ∧ (v_1 = 1 ∨ v_1 = -1)) ∨ (ndim(v_1) > 0 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] = 1 ∨ v_1[i] = -1))
 >>
-Rule 48 (Only enforce dimension matching if both inputs are valid - 1D/2D)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 1 ∨ ndim(v_1) = 2) ∧ (ndim(v_2) = 1 ∨ ndim(v_2) = 2) then ndim(v_1) = ndim(v_2) else True
+Rule 62 (if input1 and input2 are 2D, the last dimension should be same, AND the first dimension should match with dimension 0 of target)
+{v_1 : tensor, v_2 : tensor, v_3:tensor} |= if ((ndim(v_1) = 2) ∧ (ndim(v_2) = 2) ∧ ndim(v_3) = 1) then (shape(v_1, 1) = shape(v_2, 1) ∧ shape(v_1, 0) = shape(v_3, 0))
 >>
-Rule 49 (If sizes are incompatible, at least one size must be zero)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) ≠ shape(v_2, 1) then (shape(v_1, 1) = 0) ∨ (shape(v_2, 1) = 0)
+Rule 64 (if input1 and input2 are 2D, and the first dimension is 0, then an error is raised.)
+{v_1 : tensor, v_2 : tensor} |= if ((ndim(v_1) = 2) ∧ (ndim(v_2) = 2)) then (shape(v_1, 0) > 0) ∧ (shape(v_2, 0) > 0)
 >>
-Rule 50 (Avoid error message about size, if one input has zero size, other sizes don't matter)
-{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0) ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 70 (Check for non-empty tensors, size > 0, handle 0D and 1D)
+{v_1 : tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_1) = 1 ∧ shape(v_1, 0) > 0) ∨ (ndim(v_1) = 2 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0)
 >>
-Rule 51 (If the first tensor has size 0, sizes don't matter)
-{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then true else (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 73 (Complete Input and Target shape constraints, rewritten without `and` operator)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) = 2) then if (ndim(v_2) = 2) then if (ndim(v_3) = 1) then (shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 0) = shape(v_3, 0) ∧ shape(v_1, 1) > 0 ∧ shape(v_2,1) > 0 ∧ shape(v_1, 1) = shape(v_2,1)) else false else false else if (ndim(v_1) = 1) then if (ndim(v_2) = 1) then if (ndim(v_3) = 1) then (shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 0) = shape(v_3, 0)) else false else false else if (ndim(v_1) = 0) then if (ndim(v_2) = 0) then if (ndim(v_3) = 0) then true else false else false else false
 >>
-Rule 52 (Enforce Correct Shape if not (0, ) )
-{v_1: tensor, v_2: tensor} |= if (ndim(v_1) = 2 ∧ shape(v_1, 0) > 0) then shape(v_1, 1) = shape(v_2, 1)
->>
-Rule 53 (If the second tensor has size 0, sizes don't matter)
-{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0 then true else (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
->>
-Rule 54 (Enforce Size Match Except when both tensors have a size of zero)
-{v_1:tensor, v_2:tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0) ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) else True
->>
-Rule 55 (If both the inputs have size [0], then target should have size ())
-{v_1: tensor, v_2: tensor, v_3: tensor} |= if (ndim(v_1) = 1 ∧ shape(v_1, 0) = 0) ∧ (ndim(v_2) = 1 ∧ shape(v_2, 0) = 0) then ndim(v_3) = 0 else True
+Rule 77 (Check for same size for last dimension, applicable when ndim =2)
+{v_1 : tensor, v_2: tensor} |= if (ndim(v_1) = 2 ∧ ndim(v_2) = 2) then (shape(v_1, 1) = shape(v_2, 1))

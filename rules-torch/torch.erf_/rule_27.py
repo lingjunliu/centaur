@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the input is not a float, ensure it's not a bool to prevent casting to char. (Rule 27)
+# Input tensor dtype must be a valid real number to ensure correct erf computation. This excludes char and complex types. (Rule 27)
 
 rule_27 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_dtype"] < 6), (v["arg1_dtype"] != 0), False)) if n else
-          If((v["arg1_dtype"] < 6), (v["arg1_dtype"] != 0), False))
+    s.add(Not(And(And(And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10), v["arg1_dtype"] != 11), v["arg1_dtype"] != 12)) if n else
+          And(And(And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10), v["arg1_dtype"] != 11), v["arg1_dtype"] != 12))
 )
 
 def rule_27_func(arg1, solver=None, neg=False):

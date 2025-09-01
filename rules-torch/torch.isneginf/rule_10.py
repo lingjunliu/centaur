@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Validate tensor dimension (Rule 10)
+# Input tensor dimension should be greater than 0 (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] <= 5) if n else
-          v["arg1_ndim"] <= 5)
+    s.add(Not(v["arg1_ndim"] > 0) if n else
+          v["arg1_ndim"] > 0)
 )
 
 def rule_10_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# out tensor must have the same batch dimensions as A, if A has batch dimensions (Rule 5)
+# out tensor must have the same shape as A, except the last two dimensions are collapsed into one if A is 2D, or simply same shape if ndim(A (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 2, And([Implies(i < (v["arg1_ndim"] - 2 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]), False)) if n else
-          If(v["arg1_ndim"] > 2, And([Implies(i < (v["arg1_ndim"] - 2 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]), False))
+    s.add(Not(If(v["arg1_ndim"] == 2, (And([Implies(i < (v["arg1_ndim"] - 2 + 1), Select(v["arg2_shape"], i) == Select(v["arg1_shape"], i)) for i in range(6)])), (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg2_shape"], i) == Select(v["arg1_shape"], i)) for i in range(6)])))) if n else
+          If(v["arg1_ndim"] == 2, (And([Implies(i < (v["arg1_ndim"] - 2 + 1), Select(v["arg2_shape"], i) == Select(v["arg1_shape"], i)) for i in range(6)])), (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg2_shape"], i) == Select(v["arg1_shape"], i)) for i in range(6)]))))
 )
 
 def rule_5_func(arg1, arg2, solver=None, neg=False):

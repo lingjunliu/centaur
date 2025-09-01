@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the output tensor is boolean, the input tensor should be able to be cast to boolean (Rule 10)
+# If out is provided and its dtype is boolean, then input can't be complex. If out is complex, input must be complex. (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_dtype"] == 0, Or(Or(Or(Or(Or(v["arg1_dtype"] == 0, v["arg1_dtype"] == 1), v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), False)) if n else
-          If(v["arg2_dtype"] == 0, Or(Or(Or(Or(Or(v["arg1_dtype"] == 0, v["arg1_dtype"] == 1), v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), False))
+    s.add(Not(If(v["arg2_dtype"] == 0, v["arg1_dtype"] < 10, If(And(v["arg2_dtype"] >= 10, v["arg2_dtype"] <= 11), And(v["arg1_dtype"] >= 10, v["arg1_dtype"] <= 11), True))) if n else
+          If(v["arg2_dtype"] == 0, v["arg1_dtype"] < 10, If(And(v["arg2_dtype"] >= 10, v["arg2_dtype"] <= 11), And(v["arg1_dtype"] >= 10, v["arg1_dtype"] <= 11), True)))
 )
 
 def rule_10_func(arg1, arg2, solver=None, neg=False):

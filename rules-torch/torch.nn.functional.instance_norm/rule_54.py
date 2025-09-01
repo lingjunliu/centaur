@@ -5,35 +5,57 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# For input where Ndim is 2, the multiplication of shape 0 and 1 should be greater than 1 (Rule 54)
+# The input, weight, bias, running_mean, and running_var should all be the same dtype (Rule 54)
 
 rule_54 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) > 1, False)) if n else
-          If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) > 1, False))
+    s.add(Not(If(v["arg6_value"] == False, And(And(And(v["arg1_dtype"] == v["arg2_dtype"], v["arg1_dtype"] == v["arg3_dtype"]), v["arg1_dtype"] == v["arg4_dtype"]), v["arg1_dtype"] == v["arg5_dtype"]), True)) if n else
+          If(v["arg6_value"] == False, And(And(And(v["arg1_dtype"] == v["arg2_dtype"], v["arg1_dtype"] == v["arg3_dtype"]), v["arg1_dtype"] == v["arg4_dtype"]), v["arg1_dtype"] == v["arg5_dtype"]), True))
 )
 
-def rule_54_func(arg1, solver=None, neg=False):
+def rule_54_func(arg1, arg2, arg3, arg4, arg5, arg6, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
+    arg4 = next(iter(arg4.values()))
+    arg5 = next(iter(arg5.values()))
+    arg6 = next(iter(arg6.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
+        if not isinstance(arg2, np.ndarray):
+            return False
+        if not isinstance(arg3, np.ndarray):
+            return False
+        if not isinstance(arg4, np.ndarray):
+            return False
+        if not isinstance(arg5, np.ndarray):
+            return False
+        if not isinstance(arg6, bool):
+            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
+        arg2_dtype = Int('arg2_dtype')
+        arg3_dtype = Int('arg3_dtype')
+        arg4_dtype = Int('arg4_dtype')
+        arg5_dtype = Int('arg5_dtype')
+        arg6_value = Bool('arg6_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
+        solver.add(arg4_dtype == list_of_available_dtypes.index(arg4.dtype))
+        solver.add(arg5_dtype == list_of_available_dtypes.index(arg5.dtype))
+        solver.add(arg6_value == arg6)
 
         # Constraints for rule 54
-        rule_54(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
+        rule_54(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype, 'arg4_dtype': arg4_dtype, 'arg5_dtype': arg5_dtype, 'arg6_value': arg6_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_54(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_54(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype'], 'arg4_dtype': arg4['dtype'], 'arg5_dtype': arg5['dtype'], 'arg6_value': arg6['value']}, neg)

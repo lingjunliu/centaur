@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The width of the input tensor must be positive if the downscale factor is also positive (Rule 59)
+# Height of the input tensor should be divisible by the downscale factor (Rule 59)
 
 rule_59 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] > 0, Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0, False)) if n else
-          If(v["arg2_value"] > 0, Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0, False))
+    s.add(Not(If(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 2) % v["arg2_value"] == 0, True)) if n else
+          If(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 2) % v["arg2_value"] == 0, True))
 )
 
 def rule_59_func(arg1, arg2, solver=None, neg=False):

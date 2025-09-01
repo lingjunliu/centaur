@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the input tensor is of complex type, then the out tensor's dtype should also be complex. (Rule 10)
+# If input is not complex128, and output is provided, the output tensor should have the same dtype as the input (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, If(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11, False))) if n else
-          If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, If(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11, False)))
+    s.add(Not(If(v["arg1_dtype"] != 11, v["arg1_dtype"] == v["arg2_dtype"], True)) if n else
+          If(v["arg1_dtype"] != 11, v["arg1_dtype"] == v["arg2_dtype"], True))
 )
 
 def rule_10_func(arg1, arg2, solver=None, neg=False):

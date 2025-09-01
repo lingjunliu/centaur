@@ -5,35 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Avoid exceeding the available memory by limiting individual sizes (Rule 50)
+# Dims length must be smaller than input dimensions threshold and prevent the tuple being too long, the tiled tensor has too many dimensions. (Rule 50)
 
 rule_50 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) < 1000) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) < 1000) for i in range(6)]))
+    s.add(Not(And(v["arg2_length"] < v["arg1_ndim"] + 5, v["arg2_length"] < 10)) if n else
+          And(v["arg2_length"] < v["arg1_ndim"] + 5, v["arg2_length"] < 10))
 )
 
-def rule_50_func(arg1, solver=None, neg=False):
+def rule_50_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not isinstance(arg1, np.ndarray):
+            return False
+        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
-        arg1_values = Array('arg1_values', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg2_length = Int('arg2_length')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_length == len(arg2))
 
         # Constraints for rule 50
-        rule_50(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values})
+        rule_50(solver, {'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_50(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values']}, neg)
+        rule_50(solver, {'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length']}, neg)

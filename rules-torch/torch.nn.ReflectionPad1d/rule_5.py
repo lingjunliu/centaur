@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Padding size should be less than the corresponding input dimension when padding is a tuple (Rule 5)
+# Input W should result to a positive width with tuple padding (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg2_values"], 0) < Select(v["arg1_shape"], v["arg1_ndim"] - 1) + Select(v["arg2_values"], 0), Select(v["arg2_values"], 1) < Select(v["arg1_shape"], v["arg1_ndim"] - 1) + Select(v["arg2_values"], 1))) if n else
-          And(Select(v["arg2_values"], 0) < Select(v["arg1_shape"], v["arg1_ndim"] - 1) + Select(v["arg2_values"], 0), Select(v["arg2_values"], 1) < Select(v["arg1_shape"], v["arg1_ndim"] - 1) + Select(v["arg2_values"], 1)))
+    s.add(Not(Select(v["arg1_shape"], v["arg1_ndim"] - 1) + Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1) > 0) if n else
+          Select(v["arg1_shape"], v["arg1_ndim"] - 1) + Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1) > 0)
 )
 
 def rule_5_func(arg1, arg2, solver=None, neg=False):
@@ -37,9 +37,9 @@ def rule_5_func(arg1, arg2, solver=None, neg=False):
             arg2_values = Store(arg2_values, i, arg2[i])
 
         # Constraints for rule 5
-        rule_5(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_values': arg2_values})
+        rule_5(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_values': arg2_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_5(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_values': arg2['values']}, neg)
+        rule_5(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_values': arg2['values']}, neg)

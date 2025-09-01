@@ -1,69 +1,81 @@
 >>
 Rule 1 (dropout probability has to be between 0 and 1)
-{v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 1
+{p : float} |= p ≥ 0 ∧ p ≤ 1
 >>
-Rule 3 (dropout probability has to be between 0 and 1 inclusive)
-{v_1 : float} |= v_1 >= 0 ∧ v_1 <= 1
+Rule 2 (inplace is boolean)
+{inplace : bool} |= inplace = true ∨ inplace = false
 >>
-Rule 4 (Inplace should be a boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 3 (input tensor must have at least one dimension)
+{input : tensor} |= ndim(input) ≥ 1
 >>
-Rule 5 (dropout probability has to be between 0 and 1 inclusive - alternative formulation)
-{v_1 : float} |= (v_1 ≥ 0) ∧ (v_1 ≤ 1)
+Rule 4 (input tensor must have floating point dtype)
+{input : tensor} |= dtype_(input) = 6 ∨ dtype_(input) = 7 ∨ dtype_(input) = 8
 >>
-Rule 6 (dropout probability must be in the range [0, 1])
-{v_1 : float} |= (v_1 >= 0) ∧ (v_1 <= 1)
+Rule 5 (input tensor must have 4 or 5 dimensions)
+{input : tensor} |= ndim(input) = 4 ∨ ndim(input) = 5
 >>
-Rule 7 (dropout probability is within the valid range)
-{v_1 : float} |= 0 ≤ v_1 ∧ v_1 ≤ 1
+Rule 6 (input tensor must have positive shape)
+{input : tensor} |= ∀i ∈ [0, ndim(input) - 1] : shape(input, i) > 0
 >>
-Rule 8 (p must be between 0 and 1)
-{v_1 : float} |= (v_1 >= 0.0) ∧ (v_1 <= 1.0)
+Rule 9 (p and inplace parameters provided together must be valid)
+{p : float, inplace : bool} |= (p ≥ 0 ∧ p ≤ 1) ∧ (inplace = true ∨ inplace = false)
 >>
-Rule 9 (dropout probability must be within [0,1])
-{v_1 : float} |= 0.0 <= v_1 ∧ v_1 <= 1.0
+Rule 12 (Combined rule for p and input)
+{p : float, input : tensor} |= (p ≥ 0 ∧ p ≤ 1) ∧ (dtype_(input) = 6 ∨ dtype_(input) = 7 ∨ dtype_(input) = 8)
 >>
-Rule 11 (dropout probability should be a float between zero and one)
-{v_1 : float} |= 0 <= v_1 ∧ v_1 <= 1
+Rule 13 (All parameters should be valid.)
+{p : float, inplace : bool, input : tensor} |= (p ≥ 0 ∧ p ≤ 1) ∧ (inplace = true ∨ inplace = false) ∧ (dtype_(input) = 6 ∨ dtype_(input) = 7 ∨ dtype_(input) = 8) ∧ (ndim(input) = 4 ∨ ndim(input) = 5) ∧ ∀i ∈ [0, ndim(input) - 1] : shape(input, i) > 0
 >>
-Rule 12 (Probability of dropout has to be between 0.0 and 1.0)
-{v_1 : float} |= v_1 >= 0.0 ∧ v_1 <= 1.0
+Rule 14 (Checking valid configuration when p = 0)
+{p : float, input : tensor} |= if p = 0 then true else (dtype_(input) = 6 ∨ dtype_(input) = 7 ∨ dtype_(input) = 8)
 >>
-Rule 15 (Probability p for FeatureAlphaDropout must satisfy 0.0 <= p <= 1.0)
-{v_1 : float} |= (v_1 ≥ 0.0) ∧ (v_1 ≤ 1.0)
+Rule 15 (Checking valid configuration when p = 1)
+{p : float, input : tensor} |= if p = 1 then true else (dtype_(input) = 6 ∨ dtype_(input) = 7 ∨ dtype_(input) = 8)
 >>
-Rule 22 (if inplace is True, dropout probability must be less than 1)
-{v_1 : bool, v_2 : float} |= if v_1 = true then v_2 < 1
+Rule 18 (If p is between 0 and 1, return true)
+{p : float} |= (p ≥ 0) ∧ (p ≤ 1)
 >>
-Rule 23 (if inplace is false, dropout probability should be checked)
-{v_1 : bool, v_2 : float} |= if v_1 = false then v_2 >= 0 ∧ v_2 <= 1
+Rule 19 (Combined rule for all parameters)
+{p : float, inplace : bool, input : tensor} |= (p ≥ 0 ∧ p ≤ 1) ∧ (inplace = true ∨ inplace = false) ∧ (dtype_(input) = 6 ∨ dtype_(input) = 7 ∨ dtype_(input) = 8) ∧ (ndim(input) = 4 ∨ ndim(input) = 5) ∧ ∀i ∈ [0, ndim(input) - 1] : shape(input, i) > 0 ∧ (if inplace = true then true)
 >>
-Rule 24 (Inplace parameter affecting dropout probability range check)
-{v_1 : bool, v_2 : float} |= if v_1 = false then (v_2 ≥ 0 ∧ v_2 ≤ 1)
+Rule 21 (Combined rule, focusing on shape properties)
+{input : tensor} |= (ndim(input) = 4 ∨ ndim(input) = 5) ∧ ∀i ∈ [0, ndim(input) - 1] : shape(input, i) > 0
 >>
-Rule 25 (Dropout probability validity depends on inplace)
-{v_1 : bool, v_2 : float} |= if v_1 = true then true else (v_2 >= 0 ∧ v_2 <= 1)
+Rule 23 (Checking valid configuration when inplace is true)
+{inplace : bool, input : tensor} |= if inplace = true then (dtype_(input) = 6 ∨ dtype_(input) = 7 ∨ dtype_(input) = 8)
 >>
-Rule 26 (Relationship between inplace and dropout probability)
-{v_1 : bool, v_2 : float} |= if v_1 = true then true else 0 ≤ v_2 ∧ v_2 ≤ 1
+Rule 24 (If the input tensor has complex dtype, then inplace must be false)
+{inplace : bool, input : tensor} |= if (dtype_(input) = 9 ∨ dtype_(input) = 10) then inplace = false
 >>
-Rule 27 (If inplace is False, then the probability should be within range)
-{v_1: bool, v_2: float} |= if v_1 = false then 0 <= v_2 ∧ v_2 <= 1
+Rule 53 (Combined rule for all parameters)
+{p : float, inplace : bool, input : tensor} |= (p ≥ 0 ∧ p ≤ 1) ∧ (inplace = true ∨ inplace = false) ∧ (dtype_(input) = 6 ∨ dtype_(input) = 7 ∨ dtype_(input) = 8) ∧ (ndim(input) = 4 ∨ ndim(input) = 5)
 >>
-Rule 28 (Inplace and the probability parameter)
-{v_1 : bool, v_2 : float} |= if v_1 = false then 0.0 <= v_2 ∧ v_2 <= 1.0
+Rule 57 (dropout probability is not invalid)
+{p : float} |= p = p
 >>
-Rule 29 (The value of p is constraint based on inplace value)
-{v_1 : bool, v_2 : float} |= if v_1 = false then (v_2 >= 0.0 ∧ v_2 <= 1.0)
+Rule 58 (dropout probability has to be between 0 and 1)
+{p : float} |= (p + 0) ≥ 0 ∧ (p + 0) ≤ 1
 >>
-Rule 30 (Input must be a Tensor)
-{v_1: tensor} |= ndim(v_1) >= 1
+Rule 60 (Placeholder rule using p)
+{p : float} |= p ≥ -1000
 >>
-Rule 31 (AlphaDropout Input must be a Tensor with at least one dimension)
-{v_1: tensor} |= ndim(v_1) > 0
+Rule 61 (Combined Placeholder Rule with all parameters)
+{p : float, inplace : bool, input : tensor} |= (p ≥ -1000) ∧ (inplace = true ∨ inplace = false) ∧ (ndim(input) ≥ 0)
 >>
-Rule 33 (Relationship between inplace and probability - zero dropout if inplace)
-{v_1 : bool, v_2 : float} |= if v_1 = true then v_2 = 0
+Rule 62 (Combined Placeholder Rule with comparison)
+{p : float, inplace : bool, input : tensor} |= p ≥ -1000 ∧ (inplace = true ∨ inplace = false) ∧ ndim(input) ≥ 0 ∧ dtype_(input) = dtype_(input)
 >>
-Rule 34 (Inplace parameter affecting dropout probability)
-{v_1 : bool, v_2 : float} |= if v_1 = true then v_2 = 0.0
+Rule 63 (Combined Placeholder Rule with all parameters)
+{p : float, inplace : bool, input : tensor} |= p = p ∧ (inplace = true ∨ inplace = false) ∧ ndim(input) = ndim(input)
+>>
+Rule 64 (Combined Placeholder Rule with all parameters and func call)
+{p : float, inplace : bool, input : tensor} |= p = p ∧ (inplace = true ∨ inplace = false) ∧ ndim(input) = ndim(input) ∧ dtype_(input) = dtype_(input)
+>>
+Rule 65 (Use ndim)
+{input : tensor} |= ndim(input) = ndim(input)
+>>
+Rule 66 (Use ndim and dtype_)
+{input : tensor} |= dtype_(input) = dtype_(input) ∧ ndim(input) ≥ 0
+>>
+Rule 68 (input tensor must be a tensor)
+{input : tensor} |= ndim(input) ≥ 0

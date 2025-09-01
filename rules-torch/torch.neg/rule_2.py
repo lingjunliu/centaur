@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor should not be of integer type when out tensor is float64 (Rule 2)
+# if out tensor is provided, it should have the same dtype as the input tensor (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_dtype"] == 8, Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), False)) if n else
-          If(v["arg2_dtype"] == 8, Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), False))
+    s.add(Not(If(True, v["arg1_dtype"] == v["arg2_dtype"], True)) if n else
+          If(True, v["arg1_dtype"] == v["arg2_dtype"], True))
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):

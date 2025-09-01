@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# For 3D tensors, ensure that the memory doesn't overflow due to large padding (Rule 38)
+# The sum of input dimensions and padding must be representable with int32 (Rule 38)
 
 rule_38 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) * (Select(v["arg1_shape"], 1) + v["arg2_value"] + v["arg2_value"]) * (Select(v["arg1_shape"], 2) + v["arg2_value"] + v["arg2_value"]) < 1000000000, False)) if n else
-          If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) * (Select(v["arg1_shape"], 1) + v["arg2_value"] + v["arg2_value"]) * (Select(v["arg1_shape"], 2) + v["arg2_value"] + v["arg2_value"]) < 1000000000, False))
+    s.add(Not(And(Select(v["arg1_shape"], v["arg1_ndim"] - 1) + 2 * v["arg2_value"] < 2147483647, Select(v["arg1_shape"], v["arg1_ndim"] - 2) + 2 * v["arg2_value"] < 2147483647)) if n else
+          And(Select(v["arg1_shape"], v["arg1_ndim"] - 1) + 2 * v["arg2_value"] < 2147483647, Select(v["arg1_shape"], v["arg1_ndim"] - 2) + 2 * v["arg2_value"] < 2147483647))
 )
 
 def rule_38_func(arg1, arg2, solver=None, neg=False):

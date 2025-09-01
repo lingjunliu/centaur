@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if output is short, input should not be float (Rule 11)
+# If output is specified, its dtype must be able to hold the result of log1p. (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_dtype"] == 2, And(And((v["arg1_dtype"] != 7), (v["arg1_dtype"] != 8)), (v["arg1_dtype"] != 9)), False)) if n else
-          If(v["arg2_dtype"] == 2, And(And((v["arg1_dtype"] != 7), (v["arg1_dtype"] != 8)), (v["arg1_dtype"] != 9)), False))
+    s.add(Not(If(v["arg1_dtype"] == 7, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 2, v["arg2_dtype"] > 2, True))) if n else
+          If(v["arg1_dtype"] == 7, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 2, v["arg2_dtype"] > 2, True)))
 )
 
 def rule_11_func(arg1, arg2, solver=None, neg=False):

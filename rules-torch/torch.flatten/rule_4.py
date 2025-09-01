@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# start_dim must be within the tensor dimension range (Rule 4)
+# If start_dim is non-negative, it should be less than the number of dimensions (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_value"] < v["arg1_ndim"]) if n else
-          v["arg2_value"] < v["arg1_ndim"])
+    s.add(Not(If(v["arg2_value"] >= 0, v["arg2_value"] < v["arg1_ndim"], True)) if n else
+          If(v["arg2_value"] >= 0, v["arg2_value"] < v["arg1_ndim"], True))
 )
 
 def rule_4_func(arg1, arg2, solver=None, neg=False):

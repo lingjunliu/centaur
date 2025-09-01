@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If enable is true, oneDNN library must be available (Rule 24)
+# enabled parameter should be one of two values, where one value causes fusion and the other does not (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, True, False)) if n else
-          If(v["arg1_value"] == True, True, False))
+    s.add(Not(Or([And(a < (1 + 1), And((If(a == 0, v["arg1_value"] == True, v["arg1_value"] == False)), If(v["arg1_value"] == True, Or([And(b < (1 + 1), b == 1) for b in range(6)]), Or([And(c < (1 + 1), c == 0) for c in range(6)])))) for a in range(6)])) if n else
+          Or([And(a < (1 + 1), And((If(a == 0, v["arg1_value"] == True, v["arg1_value"] == False)), If(v["arg1_value"] == True, Or([And(b < (1 + 1), b == 1) for b in range(6)]), Or([And(c < (1 + 1), c == 0) for c in range(6)])))) for a in range(6)]))
 )
 
 def rule_24_func(arg1, solver=None, neg=False):

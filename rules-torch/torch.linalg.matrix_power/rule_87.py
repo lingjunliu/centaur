@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If matrix power is being computed with at least one dim, and it's a complex type, first dimension cannot be negative (Rule 87)
+# A must be a tensor with float or complex dtype AND shape(A,0 (Rule 87)
 
 rule_87 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_ndim"] >= 1, (Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11))), Select(v["arg1_shape"], 0) >= 0, False)) if n else
-          If(And(v["arg1_ndim"] >= 1, (Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11))), Select(v["arg1_shape"], 0) >= 0, False))
+    s.add(Not(And((And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 11)), (If(And(And(v["arg1_ndim"] > 0, v["arg1_dtype"] < 9), v["arg1_ndim"] < 3), Select(v["arg1_shape"], 0) > 5, True)))) if n else
+          And((And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 11)), (If(And(And(v["arg1_ndim"] > 0, v["arg1_dtype"] < 9), v["arg1_ndim"] < 3), Select(v["arg1_shape"], 0) > 5, True))))
 )
 
 def rule_87_func(arg1, solver=None, neg=False):

@@ -1,24 +1,51 @@
 >>
-Rule 3 (tensor dimensions must be positive to avoid size 0 errors)
+Rule 2 (input and other must have broadcastable shapes if both are tensors)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1)
+>>
+Rule 3 (input and output tensors must have compatible data types)
+{v_1 : tensor, v_3 : tensor} |= dtype_(v_1) ≠ "ComplexDouble" ∧ dtype_(v_3) ≠ "ComplexDouble"
+>>
+Rule 4 (input tensor must not be empty)
 {v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 4 (If other is a tensor, ensure shapes are broadcastable)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0 ∧ ndim(v_2) = 0) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (if ndim(v_1) - i - 1 < 0 then true else if ndim(v_2) - i - 1 < 0 then true else shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)))
+Rule 5 (other tensor must not be empty)
+{v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
 >>
-Rule 6 (input tensor cannot be complex dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+Rule 6 (input and other must have broadcastable shapes if both are tensors, addressing size mismatch)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) <= i) ∨ (ndim(v_2) <= i) ∨ (shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i)) ∨ (shape(v_1, ndim(v_1) - 1 - i) = 1) ∨ (shape(v_2, ndim(v_2) - 1 - i) = 1)
 >>
-Rule 7 (other tensor cannot be complex dtype)
-{v_2 : tensor} |= dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11
+Rule 7 (Prevent ComplexDouble dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ "ComplexDouble"
 >>
-Rule 8 (If other is a tensor, ensure shapes are broadcastable, handling scalar case)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0 ∧ ndim(v_2) = 0) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (if ndim(v_1) - i - 1 < 0 then true else if ndim(v_2) - i - 1 < 0 then true else shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) = 0) ∨ (ndim(v_1) = 0 ∧ ndim(v_2) > 0)
+Rule 10 (input and other must have broadcastable shapes if both are tensors, addressing size mismatch)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (i ≥ ndim(v_1)) ∨ (i >= ndim(v_2)) ∨ (shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i)) ∨ (shape(v_1, ndim(v_1) - 1 - i) = 1) ∨ (shape(v_2, ndim(v_2) - 1 - i) = 1)
 >>
-Rule 12 (if one tensor has dimension 0, the other one should also have dimension 0, or be a scalar)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
+Rule 12 (Prevent ComplexDouble dtype for other when other is tensor)
+{v_2 : tensor} |= dtype_(v_2) ≠ "ComplexDouble"
 >>
-Rule 13 (if one tensor has dimension 0, the other one should also have dimension 0, or be a scalar)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then ndim(v_1) = 0
+Rule 18 (Prevent ComplexDouble dtype for either input or other when other is tensor)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ "ComplexDouble" ∧ dtype_(v_2) ≠ "ComplexDouble"
 >>
-Rule 71 (Check that input tensor v_1 is not of type ComplexDouble)
-{v_1: tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+Rule 31 (If other is a tensor, and input is tensor, one of them should not be complex double)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ "ComplexDouble" ∨ dtype_(v_2) ≠ "ComplexDouble"
+>>
+Rule 34 (If other is a tensor, and input is tensor, they must have broadcastable shapes and valid data types)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (i ≥ ndim(v_1)) ∨ (i >= ndim(v_2)) ∨ (shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i)) ∨ (shape(v_1, ndim(v_1) - 1 - i) = 1) ∨ (shape(v_2, ndim(v_2) - 1 - i) = 1)) ∧ (dtype_(v_1) ≠ "ComplexDouble") ∧ (dtype_(v_2) ≠ "ComplexDouble")
+>>
+Rule 38 (If other is a tensor, and input is tensor, they must have broadcastable shapes and one should not be complex double)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (i ≥ ndim(v_1)) ∨ (i >= ndim(v_2)) ∨ (shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i)) ∨ (shape(v_1, ndim(v_1) - 1 - i) = 1) ∨ (shape(v_2, ndim(v_2) - 1 - i) = 1)) ∧ ((dtype_(v_1) ≠ "ComplexDouble") ∨ (dtype_(v_2) ≠ "ComplexDouble"))
+>>
+Rule 41 (If other is a tensor, and input is tensor, they must have broadcastable shapes and one should not be complex double)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (i ≥ ndim(v_1)) ∨ (i >= ndim(v_2)) ∨ (shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i)) ∨ (shape(v_1, ndim(v_1) - 1 - i) = 1) ∨ (shape(v_2, ndim(v_2) - 1 - i) = 1)) ∧ (dtype_(v_1) ≠ "ComplexDouble" ∨ dtype_(v_2) ≠ "ComplexDouble")
+>>
+Rule 44 (If other is a tensor, and input is tensor, they must have broadcastable shapes)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (i ≥ ndim(v_1)) ∨ (i >= ndim(v_2)) ∨ (shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i)) ∨ (shape(v_1, ndim(v_1) - 1 - i) = 1) ∨ (shape(v_2, ndim(v_2) - 1 - i) = 1))
+>>
+Rule 56 (If input is tensor and other is tensor, at least one of the tensors should not be complex double and must have broadcastable shapes)
+{v_1 : tensor, v_2 : tensor} |= ((dtype_(v_1) ≠ "ComplexDouble") ∨ (dtype_(v_2) ≠ "ComplexDouble")) ∧ (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (i ≥ ndim(v_1)) ∨ (i >= ndim(v_2)) ∨ (shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i)) ∨ (shape(v_1, ndim(v_1) - 1 - i) = 1) ∨ (shape(v_2, ndim(v_2) - 1 - i) = 1))
+>>
+Rule 60 (If input and other are tensors, one cannot be complex double and must have broadcastable shapes)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ "ComplexDouble" ∨ dtype_(v_2) ≠ "ComplexDouble") ∧ (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (i ≥ ndim(v_1)) ∨ (i >= ndim(v_2)) ∨ (shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i)) ∨ (shape(v_1, ndim(v_1) - 1 - i) = 1) ∨ (shape(v_2, ndim(v_2) - 1 - i) = 1))
+>>
+Rule 72 (If other is a tensor, input and other must have broadcastable shapes and other cannot be ComplexDouble)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (i ≥ ndim(v_1)) ∨ (i >= ndim(v_2)) ∨ (shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i)) ∨ (shape(v_1, ndim(v_1) - 1 - i) = 1) ∨ (shape(v_2, ndim(v_2) - 1 - i) = 1)) ∧ (dtype_(v_2) ≠ "ComplexDouble")

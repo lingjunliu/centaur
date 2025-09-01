@@ -5,33 +5,41 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# tensor element should be within limit (Rule 59)
+# padding cannot be greater than 10 times the input dimension for tuple version (Rule 59)
 
 rule_59 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_range"], 0) > -10000, Select(v["arg1_range"], 1) < 10000)) if n else
-          And(Select(v["arg1_range"], 0) > -10000, Select(v["arg1_range"], 1) < 10000))
+    s.add(Not(If(v["arg1_ndim"] == 2, And(Select(v["arg2_values"], 0) <= Select(v["arg1_shape"], 1) * 10, Select(v["arg2_values"], 1) <= Select(v["arg1_shape"], 1) * 10), And(Select(v["arg2_values"], 0) <= Select(v["arg1_shape"], 2) * 10, Select(v["arg2_values"], 1) <= Select(v["arg1_shape"], 2) * 10))) if n else
+          If(v["arg1_ndim"] == 2, And(Select(v["arg2_values"], 0) <= Select(v["arg1_shape"], 1) * 10, Select(v["arg2_values"], 1) <= Select(v["arg1_shape"], 1) * 10), And(Select(v["arg2_values"], 0) <= Select(v["arg1_shape"], 2) * 10, Select(v["arg2_values"], 1) <= Select(v["arg1_shape"], 2) * 10)))
 )
 
-def rule_59_func(arg1, solver=None, neg=False):
+def rule_59_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
+        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_values = Array('arg2_values', IntSort(), IntSort())
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        for i in range(len(arg2)):
+            arg2_values = Store(arg2_values, i, arg2[i])
 
         # Constraints for rule 59
-        rule_59(solver, {'arg1_range': arg1_range})
+        rule_59(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_values': arg2_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_59(solver, {'arg1_range': arg1['range']}, neg)
+        rule_59(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_values': arg2['values']}, neg)

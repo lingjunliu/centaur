@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input is complex, output must be complex (Rule 32)
+# If a complex input tensor is provided, and if an 'out' tensor is also provided, then 'out' must have dtype float32 or float64. (Rule 32)
 
 rule_32 = lambda s, v, n=False: (
-    s.add(Not(If(And(9 <= v["arg1_dtype"], v["arg1_dtype"] <= 10), v["arg1_dtype"] == v["arg2_dtype"], False)) if n else
-          If(And(9 <= v["arg1_dtype"], v["arg1_dtype"] <= 10), v["arg1_dtype"] == v["arg2_dtype"], False))
+    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), True)) if n else
+          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), True))
 )
 
 def rule_32_func(arg1, arg2, solver=None, neg=False):

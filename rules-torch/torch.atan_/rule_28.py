@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# when using in-place version and if input tensor is int type, avoid using int8 type. (Rule 28)
+# Input tensor must not have an integer dtype (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 1) if n else
-          v["arg1_dtype"] != 1)
+    s.add(Not(v["arg1_dtype"] > 5) if n else
+          v["arg1_dtype"] > 5)
 )
 
 def rule_28_func(arg1, solver=None, neg=False):

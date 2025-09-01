@@ -1,123 +1,147 @@
 >>
-Rule 1 (mode must be a valid string.)
+Rule 1 (mode should be 'bilinear', 'nearest' or 'bicubic')
 {v_1 : str} |= v_1 = "bilinear" ∨ v_1 = "nearest" ∨ v_1 = "bicubic"
 >>
-Rule 2 (padding_mode must be a valid string.)
+Rule 2 (padding_mode should be 'zeros', 'border' or 'reflection')
 {v_1 : str} |= v_1 = "zeros" ∨ v_1 = "border" ∨ v_1 = "reflection"
 >>
-Rule 3 (input tensor must be 4D or 5D.)
+Rule 3 (input tensor must be 4D or 5D)
 {v_1 : tensor} |= ndim(v_1) = 4 ∨ ndim(v_1) = 5
 >>
-Rule 4 (grid tensor must be 4D if input is 4D.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 4 then ndim(v_2) = 4
+Rule 5 (If input is 4D, grid must be 4D and last dimension of grid must be 2)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 4 then ndim(v_2) = 4 ∧ shape(v_2, ndim(v_2) - 1) = 2
 >>
-Rule 5 (grid tensor must be 5D if input is 5D.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 5 then ndim(v_2) = 5
+Rule 6 (If input is 5D, grid must be 5D and last dimension of grid must be 3)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 5 then ndim(v_2) = 5 ∧ shape(v_2, ndim(v_2) - 1) = 3
 >>
-Rule 6 (grid's last dimension must be 2 if input is 4D.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 4 then shape(v_2, ndim(v_2) - 1) = 2
->>
-Rule 7 (grid's last dimension must be 3 if input is 5D.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 5 then shape(v_2, ndim(v_2) - 1) = 3
->>
-Rule 8 (align_corners is a boolean value.)
+Rule 7 (align_corners is a boolean)
 {v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 9 (input's batch size must match grid's batch size.)
+Rule 8 (mode is bicubic only if the input is 4D)
+{v_1 : tensor, v_2 : str} |= if v_2 = "bicubic" then ndim(v_1) = 4
+>>
+Rule 9 (grid values should be in the range [-1, 1])
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) - 1] : min(v_1) ≥ -1 ∧ max(v_1) ≤ 1
+>>
+Rule 10 (Check the number of channels is the same between input and output.)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) = shape(v_2, 1)
+>>
+Rule 11 (Grid's batch size should be the same as input)
 {v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 10 (input tensor should have positive dimensions)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 12 (Input and grid tensors have the same data type)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 23 (grid's values should be within range [-1,1])
-{v_1 : tensor} |= min(v_1) ≥ -1 ∧ max(v_1) ≤ 1
->>
-Rule 25 (input's batch size must match grid's batch size and be positive.)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 0) > 0
->>
-Rule 26 (If mode is bicubic, input must be 4D)
-{v_1 : str, v_2 : tensor} |= if v_1 = "bicubic" then ndim(v_2) = 4
->>
-Rule 28 (align_corners is only valid when input and grid have same spatial dimensions)
-{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then (if ndim(v_2) = 4 then shape(v_2, 2) = shape(v_3, 1) ∧ shape(v_2, 3) = shape(v_3, 2) else if ndim(v_2) = 5 then shape(v_2, 2) = shape(v_3, 1) ∧ shape(v_2, 3) = shape(v_3, 2) ∧ shape(v_2, 4) = shape(v_3, 3) else false)
->>
-Rule 29 (padding mode must be a valid string)
-{v_1: str} |= v_1 = "zeros" ∨ v_1 = "border" ∨ v_1 = "reflection"
->>
-Rule 33 (input and grid tensors should have floating point dtype)
-{v_1: tensor, v_2: tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8)
->>
-Rule 37 (input and grid batch sizes must match)
-{v_1: tensor, v_2: tensor} |= shape(v_1, 0) = shape(v_2, 0)
->>
-Rule 39 (align_corners must be a bool)
-{v_1: bool} |= v_1 = true ∨ v_1 = false
->>
-Rule 48 (grid tensor dimensions are correct with respect to input tensor dimensions)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 4 then ndim(v_2) = 4 ∧ shape(v_2, ndim(v_2) - 1) = 2 else if ndim(v_1) = 5 then ndim(v_2) = 5 ∧ shape(v_2, ndim(v_2) - 1) = 3 else false
->>
-Rule 54 (input and grid tensors should have floating point dtype and greater than 0)
-{v_1: tensor, v_2: tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8) ∧ min(v_1) > 0 ∧ min(v_2) > 0
->>
-Rule 55 (align_corners is only valid when input and grid have same spatial dimensions and shapes)
-{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then (if ndim(v_2) = 4 then shape(v_2, 2) = shape(v_3, 1) ∧ shape(v_2, 3) = shape(v_3, 2) ∧ shape(v_2,1) = shape(v_3,1) ∧ shape(v_2,0) = shape(v_3,0) else if ndim(v_2) = 5 then shape(v_2, 2) = shape(v_3, 1) ∧ shape(v_2, 3) = shape(v_3, 2) ∧ shape(v_2, 4) = shape(v_3, 3) ∧ shape(v_2,1) = shape(v_3,1) ∧ shape(v_2,0) = shape(v_3,0) else false)
->>
-Rule 56 (input and grid must have positive dimensions )
-{v_1: tensor, v_2: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
->>
-Rule 60 (input and grid tensors should have floating point dtype and within a reasonable range)
-{v_1: tensor, v_2: tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8) ∧ -1000 < min(v_1) ∧ max(v_1) < 1000 ∧ -1000 < min(v_2) ∧ max(v_2) < 1000
->>
-Rule 61 (align_corners is only valid when input and grid have compatible spatial dimensions)
-{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then (if ndim(v_2) = 4 then shape(v_2, 2) = shape(v_3, 1) ∧ shape(v_2, 3) = shape(v_3, 2) else if ndim(v_2) = 5 then shape(v_2, 2) = shape(v_3, 1) ∧ shape(v_2, 3) = shape(v_3, 2) ∧ shape(v_2, 4) = shape(v_3, 3))
->>
-Rule 62 (input and grid dimensions should be 4 or 5)
-{v_1: tensor, v_2: tensor} |= (ndim(v_1) = 4 ∨ ndim(v_1) = 5) ∧ (ndim(v_2) = 4 ∨ ndim(v_2) = 5)
->>
-Rule 69 (If grid values are outside the range of [-1,1], padding mode must be specified)
-{v_1 : tensor, v_2 : str} |= if min(v_1) < -1 ∨ max(v_1) > 1 then v_2 = "zeros" ∨ v_2 = "border" ∨ v_2 = "reflection"
->>
-Rule 70 (input and grid must have positive dimensions and compatible sizes)
-{v_1: tensor, v_2: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0 ∧ shape(v_1,0) = shape(v_2,0)
->>
-Rule 75 (align_corners is only valid when input and grid have compatible spatial dimensions and matching batch sizes)
-{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then (if ndim(v_2) = 4 then shape(v_2, 2) = shape(v_3, 1) ∧ shape(v_2, 3) = shape(v_3, 2) ∧ shape(v_2, 0) = shape(v_3, 0) else if ndim(v_2) = 5 then shape(v_2, 2) = shape(v_3, 1) ∧ shape(v_2, 3) = shape(v_3, 2) ∧ shape(v_2, 4) = shape(v_3, 3) ∧ shape(v_2, 0) = shape(v_3, 0))
->>
-Rule 76 (input and grid tensors should have floating point dtype and reasonable value range)
-{v_1: tensor, v_2: tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8) ∧ min(v_1) > -100 ∧ max(v_1) < 100 ∧ min(v_2) > -100 ∧ max(v_2) < 100
->>
-Rule 81 (align_corners is only valid when input and grid have compatible spatial dimensions)
-{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then (if ndim(v_2) = 4 then shape(v_2, 2) = shape(v_3, 1) ∧ shape(v_2, 3) = shape(v_3, 2) ∧ shape(v_2, 0) = shape(v_3, 0) ∧ shape(v_2,1) = shape(v_3,1) else if ndim(v_2) = 5 then shape(v_2, 2) = shape(v_3, 1) ∧ shape(v_2, 3) = shape(v_3, 2) ∧ shape(v_2, 4) = shape(v_3, 3) ∧ shape(v_2, 0) = shape(v_3, 0) ∧ shape(v_2,1) = shape(v_3,1))
->>
-Rule 87 (If grid values are outside the range of [-1,1], padding mode must be specified or grid range must be reasonable)
-{v_1 : tensor, v_2 : str} |= if min(v_1) < -1 ∨ max(v_1) > 1 then (v_2 = "zeros" ∨ v_2 = "border" ∨ v_2 = "reflection") ∨ (min(v_1) ≥ -10 ∧ max(v_1) ≤ 10)
->>
-Rule 91 (input and grid tensors should have floating point dtype and input should be 4 or 5 dimensional)
-{v_1: tensor, v_2: tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8) ∧ (ndim(v_1) = 4 ∨ ndim(v_1) = 5)
->>
-Rule 92 (If grid values are outside the range of [-1,1], padding mode must be specified)
+Rule 13 (Padding mode is valid only when grid has values outside [-1, 1])
 {v_1 : tensor, v_2 : str} |= if min(v_1) < -1 ∨ max(v_1) > 1 then (v_2 = "zeros" ∨ v_2 = "border" ∨ v_2 = "reflection")
 >>
-Rule 94 (If mode is bicubic, grid must be 4 dimensional)
-{v_1: str, v_2: tensor} |= if v_1 = "bicubic" then ndim(v_2) = 4
+Rule 14 (If mode is bicubic, then input must be float type)
+{v_1 : tensor, v_2 : str} |= if v_2 = "bicubic" then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
 >>
-Rule 95 (align_corners is only valid when input and grid have compatible spatial dimensions AND same data type)
-{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then (if ndim(v_2) = 4 then shape(v_2, 2) = shape(v_3, 1) ∧ shape(v_2, 3) = shape(v_3, 2) ∧ shape(v_2, 0) = shape(v_3, 0) ∧ shape(v_2,1) = shape(v_3,1) ∧ dtype_(v_2) = dtype_(v_3) else if ndim(v_2) = 5 then shape(v_2, 2) = shape(v_3, 1) ∧ shape(v_2, 3) = shape(v_3, 2) ∧ shape(v_2, 4) = shape(v_3, 3) ∧ shape(v_2, 0) = shape(v_3, 0) ∧ shape(v_2,1) = shape(v_3,1) ∧ dtype_(v_2) = dtype_(v_3))
+Rule 15 (The number of dimensions for input and grid can be different given the right configuration)
+{v_1: tensor, v_2: tensor} |= (ndim(v_1) = 4 ∧ ndim(v_2) = 4) ∨ (ndim(v_1) = 5 ∧ ndim(v_2) = 5)
 >>
-Rule 96 (input and grid tensors should have floating point dtype and reasonable size)
-{v_1: tensor, v_2: tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8) ∧ shape(v_1, 1) > 0 ∧ shape(v_2, 1) > 0
+Rule 16 (Shape check between input and grid)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 0) = shape(v_2, 0) else shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 103 (mode must be a valid string, if padding_mode is reflection mode must be bilinear)
-{v_1 : str, v_2: str} |= (v_1 = "bilinear" ∨ v_1 = "nearest" ∨ v_1 = "bicubic") ∧ (if v_2 = "reflection" then v_1 = "bilinear")
+Rule 17 (Input must be a tensor with floating point or complex dtype)
+{v_1 : tensor} |= (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 10)
 >>
-Rule 109 (If mode is bicubic, grid must be 4 dimensional AND the padding mode is either zeros or border)
-{v_1: str, v_2: tensor, v_3: str} |= if v_1 = "bicubic" then (ndim(v_2) = 4 ∧ (v_3 = "zeros" ∨ v_3 = "border"))
+Rule 18 (Enforce grid range based on align_corners parameter)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then min(v_1) >= -1 ∧ max(v_1) <= 1
 >>
-Rule 113 (mode must be a valid string, if padding_mode is reflection mode must be bilinear and If mode is bicubic, grid must be 4 dimensional AND the padding mode is either zeros or border)
-{v_1 : str, v_2: str, v_3: tensor} |= (v_1 = "bilinear" ∨ v_1 = "nearest" ∨ v_1 = "bicubic") ∧ (if v_2 = "reflection" then v_1 = "bilinear") ∧ (if v_1 = "bicubic" then (ndim(v_3) = 4 ∧ (v_2 = "zeros" ∨ v_2 = "border")))
+Rule 19 (If the mode is bilinear or nearest, input type is float or complex)
+{v_1 : tensor, v_2 : str} |= if v_2 = "bilinear" ∨ v_2 = "nearest" then (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 10)
 >>
-Rule 118 (mode must be a valid string, if padding_mode is reflection mode must be bilinear and If mode is bicubic, grid must be 4 dimensional)
-{v_1 : str, v_2: str, v_3: tensor} |= (v_1 = "bilinear" ∨ v_1 = "nearest" ∨ v_1 = "bicubic") ∧ (if v_2 = "reflection" then v_1 = "bilinear") ∧ (if v_1 = "bicubic" then ndim(v_3) = 4)
+Rule 21 (Input tensor must have at least 3 dimensions if align_corners is true)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then ndim(v_1) >= 3
 >>
-Rule 121 (input and grid tensors should have floating point dtype AND mode can be bilinear or nearest)
-{v_1: tensor, v_2: tensor, v_3: str} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8) ∧ (v_3 = "bilinear" ∨ v_3 = "nearest" ∨ v_3 = "bicubic")
+Rule 25 (If align_corners is True, the grid values must be within [-1,1])
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then min(v_1) = -1 ∧ max(v_1) = 1
+>>
+Rule 30 (If align corners is True, input and grid need to satisfy certain dimension sizes)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then (ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ shape(v_1, 2) > 1 ∧ shape(v_1, 3) > 1 ∧ shape(v_2, 1) > 1 ∧ shape(v_2, 2) > 1) ∨ (ndim(v_1) = 5 ∧ ndim(v_2) = 5 ∧ shape(v_1, 2) > 1 ∧ shape(v_1, 3) > 1 ∧ shape(v_1, 4) > 1 ∧ shape(v_2, 1) > 1 ∧ shape(v_2, 2) > 1 ∧ shape(v_2, 3) > 1)
+>>
+Rule 33 (Mode must be 'bilinear', 'nearest' or 'bicubic' - using comparison)
+{v_1 : str} |= (v_1 = "bilinear") ∨ (v_1 = "nearest") ∨ (v_1 = "bicubic")
+>>
+Rule 34 (Padding mode must be 'zeros', 'border' or 'reflection' - using comparison)
+{v_1 : str} |= (v_1 = "zeros") ∨ (v_1 = "border") ∨ (v_1 = "reflection")
+>>
+Rule 35 (Input and Grid tensors must have compatible shapes based on align_corners when align_corners is true)
+{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 = true then (ndim(v_1) = ndim(v_2) ∧ (ndim(v_1) = 4 ∨ ndim(v_1) = 5) ∧ shape(v_1,0) = shape(v_2,0))
+>>
+Rule 36 (The last dimension of grid should be 2 or 3)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) = 2 ∨ shape(v_1, ndim(v_1) - 1) = 3
+>>
+Rule 37 (Input shape must have at least 3 dimensions to have channel, height, width)
+{v_1: tensor} |= ndim(v_1) >=3
+>>
+Rule 38 (If input is 4D, grid should be 4D)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 4 then ndim(v_2) = 4
+>>
+Rule 39 (The input tensor must have at least a batch and channel dimension)
+{v_1: tensor} |= ndim(v_1) >= 2
+>>
+Rule 40 (Grid tensor must have a shape where the last dim is 2 if input is 4D)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 4 then shape(v_2, ndim(v_2)-1) = 2
+>>
+Rule 42 (If align_corners is False, ensure grid doesnt use the corner pixels)
+{v_1 : tensor, v_2 : bool} |= if v_2 = false then ∀i ∈ [0, shape(v_1, ndim(v_1)-1) -1 ] : v_1[i] < 1 ∧ v_1[i] > -1
+>>
+Rule 43 (If align_corners is False and 4D input, height and width of grid should match height and width of input)
+{v_1 : tensor, v_2: tensor, v_3: bool} |= if v_3 = false ∧ ndim(v_1) = 4 then shape(v_1, 2) = shape(v_2, 1) ∧ shape(v_1, 3) = shape(v_2, 2)
+>>
+Rule 44 (The batch size of input and grid should be same)
+{v_1:tensor, v_2:tensor} |= shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 45 (If input is 5D, grid should be 5D)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 5 then ndim(v_2) = 5
+>>
+Rule 46 (If input is 5D, grid should have a shape where the last dim is 3)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 5 then shape(v_2, ndim(v_2)-1) = 3
+>>
+Rule 47 (If the mode is 'bicubic', the padding mode can't be reflection)
+{v_1: str, v_2: str} |= if v_1 = "bicubic" then v_2 ≠ "reflection"
+>>
+Rule 48 (If the padding mode is reflection, min and max value of the grid cannot be greater than 1 or smaller than -1 respectively)
+{v_1: tensor, v_2: str} |= if v_2 = "reflection" then min(v_1) >= -1 ∧ max(v_1) <= 1
+>>
+Rule 49 (If align_corners is False, the range should not be exactly -1 and 1, since it can cause indexing out of bound)
+{v_1 : tensor, v_2: bool} |= if v_2 = false then max(v_1) < 1 ∧ min(v_1) > -1
+>>
+Rule 50 (If align_corners is true, then the spatial dimensions of input and grid should correspond correctly)
+{v_1 : tensor, v_2: tensor, v_3: bool} |= if v_3 = true ∧ ndim(v_1) = 4 then shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 ∧ shape(v_2, 1) > 0 ∧ shape(v_2, 2) > 0 else if v_3 = true ∧ ndim(v_1) = 5 then shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 ∧ shape(v_1, 4) > 0 ∧ shape(v_2, 1) > 0 ∧ shape(v_2, 2) > 0 ∧ shape(v_2, 3) > 0
+>>
+Rule 51 (if align_corners is False and 5D input, then grid's dimensions 1,2,3 should match input 2,3,4)
+{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 = false ∧ ndim(v_1) = 5 then shape(v_1, 2) = shape(v_2, 1) ∧ shape(v_1, 3) = shape(v_2, 2) ∧ shape(v_1, 4) = shape(v_2, 3)
+>>
+Rule 52 (The input tensor's channel dimension should be greater than 0)
+{v_1: tensor} |= shape(v_1, 1) > 0
+>>
+Rule 55 (Padding mode must be a valid string)
+{v_1: str} |= v_1 = "zeros" ∨ v_1 = "border" ∨ v_1 = "reflection"
+>>
+Rule 56 (Mode can be 'bilinear', 'nearest' or 'bicubic')
+{v_1:str} |= v_1 = "bilinear" ∨ v_1 = "nearest" ∨ v_1 = "bicubic"
+>>
+Rule 57 (If align_corners is false, input tensor dimensions greater than 1, and the grid and input match in size)
+{v_1 : tensor, v_2: tensor, v_3: bool} |= if v_3 = false then (ndim(v_1) = 4 ∧ shape(v_1, 2) = shape(v_2, 1) ∧ shape(v_1, 3) = shape(v_2, 2) ∧ shape(v_1, 2) > 1 ∧ shape(v_1, 3) > 1) ∨ (ndim(v_1) = 5 ∧ shape(v_1, 2) = shape(v_2, 1) ∧ shape(v_1, 3) = shape(v_2, 2) ∧ shape(v_1, 4) = shape(v_2, 3) ∧ shape(v_1, 2) > 1 ∧ shape(v_1, 3) > 1 ∧ shape(v_1, 4) > 1)
+>>
+Rule 58 (When align_corners is True, ensure that spatial size in grid is greater than 0)
+{v_1: tensor, v_2: bool} |= if v_2 = true then shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+>>
+Rule 61 (When mode is bicubic, check that input tensor datatype is floating)
+{v_1 : tensor, v_2: str} |= if v_2 = "bicubic" then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 62 (The channel dimension in input cannot be zero)
+{v_1: tensor} |= shape(v_1, 1) ≠ 0
+>>
+Rule 63 (The grid tensor's elements should be float if dtype is not complex)
+{v_1: tensor} |= if dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 64 (If grid values are outside range of [-1,1], then padding mode needs to be specified, i.e., not be zeros, since zeros is default)
+{v_1: tensor, v_2: str} |= if min(v_1) < -1 ∨ max(v_1) > 1 then v_2 ≠ "zeros"
+>>
+Rule 65 (If the grid's values are outside of -1 and 1, padding_mode should not be none)
+{v_1 : tensor, v_2 : str} |= if min(v_1) < -1 ∨ max(v_1) > 1 then v_2 ≠ "none"

@@ -1,87 +1,87 @@
 >>
-Rule 1 (input tensor must have float or integer dtype)
-{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 9
+Rule 1 (input tensor must be non-negative)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
 >>
-Rule 2 (input tensor must be non-negative)
+Rule 3 (input tensor must be non-negative)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : min(v_1) ≥ 0
+>>
+Rule 4 (input tensor's minimum value is non-negative)
 {v_1 : tensor} |= min(v_1) ≥ 0
 >>
-Rule 3 (input tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 5 (input tensor's data type must be a floating point)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 4 (input tensor must have a floating-point or integer dtype and be non-negative)
-{v_1 : tensor} |= (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 9) ∧ min(v_1) ≥ 0
+Rule 19 (Helper function to recursively check non-negativity with dimension checks)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int, v_5 : int, v_6: int, v_7: int, v_8:int} |=  if v_2 ≠ 0 ∧ v_3 ≠ 0 ∧ v_4 ≠ 0 ∧ v_5 ≠ 0 ∧ v_6 ≠ 0 ∧ v_7 ≠ 0 ∧ v_8 ≠0 then ∀i ∈ [0, shape(v_1, 0) -1] : v_1[i] ≥ 0
 >>
-Rule 5 (input tensor cannot have complex dtype)
-{v_1 : tensor} |= dtype_(v_1) < 10 ∨ dtype_(v_1) > 11
+Rule 22 (input tensor values must be non-negative, using a recursive lambda for conciseness - Requires function definition which is impossible.)
+{v_1 : tensor} |= if ndim(v_1) = 0 then v_1 ≥ 0 else ∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] ≥ 0)
 >>
-Rule 6 (if the input tensor has zero dimension, it should not have negative values.)
-{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then true else min(v_1) ≥ 0
+Rule 23 (input tensor values must be non-negative, for at least one element)
+{v_1 : tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
 >>
-Rule 7 (if the minimum value is not available, the input tensor should have at least one element)
-{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+Rule 24 (input tensor values must have at least one non-negative value OR the tensor is empty)
+{v_1 : tensor} |= (∃i ∈ [0, if ndim(v_1) > 0 then shape(v_1, 0) - 1 else 0] : v_1[i] ≥ 0) ∨ (ndim(v_1) > 0 ∧ shape(v_1, 0) = 0)
 >>
-Rule 8 (input tensor should have non-negative values or all values are NaN)
-{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (min(v_1) ≥ 0 ∨ (min(v_1) ≠ min(v_1) ∧ max(v_1) ≠ max(v_1)))
+Rule 25 (input tensor values must be non-negative, or the tensor must be empty)
+{v_1 : tensor} |= if ndim(v_1) = 0 then v_1 ≥ 0 else (ndim(v_1) > 0 ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0)) ∨ (ndim(v_1) > 0 ∧ shape(v_1, 0) = 0)
 >>
-Rule 9 (The shape of the output tensor is the same as the shape of the input tensor)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_1, i)
+Rule 26 (If input tensor is not empty, all elements should be non-negative)
+{v_1 : tensor} |= if (ndim(v_1) > 0 ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)) then (min(v_1) ≥ 0)
 >>
-Rule 10 (If the input is a scalar, it must be non-negative)
-{v_1 : tensor} |= if ndim(v_1) = 0 then min(v_1) ≥ 0
+Rule 28 (If input tensor is not empty and has a floating-point datatype, then the minimum element should be non-negative)
+{v_1 : tensor} |= if (ndim(v_1) > 0 ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)) then (min(v_1) ≥ 0)
 >>
-Rule 12 (Input tensor should not contain NaN values if it has non-zero dimensions.)
-{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then true else min(v_1) = min(v_1) ∧ max(v_1) = max(v_1)
+Rule 29 (If input tensor is not empty, has a floating-point datatype, and ndim > 0, then the minimum element should be non-negative)
+{v_1 : tensor} |= if (ndim(v_1) > 0 ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ ndim(v_1) > 0) then (min(v_1) ≥ 0)
 >>
-Rule 13 (If the input is empty, the output is also empty)
-{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0
+Rule 30 (Input tensor must have floating point type and be non-negative)
+{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (if ndim(v_1) = 0 then v_1 ≥ 0 else ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0)
 >>
-Rule 14 (The elements of the input tensor should not be infinite if it has non-zero dimensions.)
-{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then true else min(v_1) ≠ (-1/0) ∧ max(v_1) ≠ (1/0)
+Rule 31 (Input tensor should be non-negative if its datatype is floating point.)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then (if ndim(v_1) = 0 then v_1 ≥ 0 else ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0)
 >>
-Rule 15 (If the input is a scalar, it should not be infinite or NaN)
-{v_1 : tensor} |= if ndim(v_1) = 0 then min(v_1) ≠ (-1/0) ∧ max(v_1) ≠ (1/0) ∧ min(v_1) = min(v_1) ∧ max(v_1) = max(v_1)
+Rule 32 (If input tensor is not empty, all elements should be non-negative or has complex datatype)
+{v_1 : tensor} |= (∃i ∈ [0, if ndim(v_1) > 0 then shape(v_1, 0) - 1 else 0] : v_1[i] ≥ 0) ∨ (ndim(v_1) > 0 ∧ shape(v_1, 0) = 0) ∨ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
 >>
-Rule 21 (Input must be a tensor, otherwise return false)
-{v_1 : tensor ⊎ int ⊎ float ⊎ bool ⊎ dtype ⊎ str ⊎ list(tensor) ⊎ tuple(tensor)} |= if v_1 = v_1 then true else false
+Rule 34 (If input tensor is not empty and is not a complex number, all elements must be non-negative)
+{v_1 : tensor} |= if (ndim(v_1) > 0 ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ ((dtype_(v_1) ≠ 9) ∧ (dtype_(v_1) ≠ 10))) then (if ndim(v_1) = 0 then v_1 ≥ 0 else ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0)
 >>
-Rule 23 (Input tensor can't be boolean)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 35 (Input tensor constraints: floating-point or complex type AND non-negative for floating-point)
+{v_1 : tensor} |= ((dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (if ndim(v_1) = 0 then v_1 ≥ 0 else ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0)) ∨ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
 >>
-Rule 24 (if the input tensor has integer type, all values should be representable as float without loss of precision)
-{v_1 : tensor} |= if (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5) then max(v_1) ≤ 2147483647
+Rule 36 (If input tensor is non-empty, it must be a floating point tensor with non-negative values, or it can be a complex tensor)
+{v_1 : tensor} |= (ndim(v_1) > 0 ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ ((dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (if ndim(v_1) = 0 then v_1 ≥ 0 else ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0))) ∨ (ndim(v_1) > 0 ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)) ∨ (ndim(v_1) = 0 ∧ shape(v_1, 0) = 0)
 >>
-Rule 25 (the input tensor can only be of specific dtypes)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 37 (Input tensor must be a floating point tensor and non-negative OR a complex tensor; if non-empty)
+{v_1 : tensor} |= if (ndim(v_1) > 0 ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)) then ((dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (if ndim(v_1) = 0 then v_1 ≥ 0 else ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0)) ∨ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
 >>
-Rule 26 (if input tensor is complex type, it's not valid)
-{v_1 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then false
+Rule 39 (Input tensor can be empty OR it must be a floating-point tensor with non-negative values OR a complex tensor)
+{v_1 : tensor} |= (ndim(v_1) = 0) ∨ (((dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (if ndim(v_1) = 0 then v_1 ≥ 0 else ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0))) ∨ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
 >>
-Rule 27 (input tensor dtype can be only signed type.)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 40 (Input tensor: floating-point non-negative, complex, or empty.)
+{v_1 : tensor} |= (ndim(v_1) = 0) ∨ (((dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (if ndim(v_1) = 0 then v_1 ≥ 0 else (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0))) ∨ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10))
 >>
-Rule 28 (input tensor dtype can be only floating point or integer.)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
+Rule 42 (The input tensor must satisfy ONE of the following conditions)
+{v_1 : tensor} |= (ndim(v_1) = 0) ∨ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∨ ((dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (if ndim(v_1) = 0 then v_1 ≥ 0 else ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0))
 >>
-Rule 29 (if input tensor's dtype is uint8, then all the values should be less than or equal to the maximum value of uint8)
-{v_1 : tensor} |= if dtype_(v_1) = 5 then max(v_1) ≤ 255
+Rule 43 (If input tensor is non-empty: a floating point with non-negative elements OR is a complex tensor)
+{v_1 : tensor} |= if ndim(v_1) > 0 ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then ((dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (if ndim(v_1) = 0 then v_1 ≥ 0 else ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0)) ∨ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
 >>
-Rule 30 (if input tensor has int8 dtype, then all the values should be within the int8 range)
-{v_1 : tensor} |= if dtype_(v_1) = 1 then min(v_1) ≥ -128 ∧ max(v_1) ≤ 127
+Rule 44 (Input tensor can be empty OR (floating-point with non-negative elements) OR complex)
+{v_1 : tensor} |= (ndim(v_1) = 0) ∨ ((dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 8) ∧ (if ndim(v_1) = 0 then v_1 ≥ 0 else ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0)) ∨ (dtype_(v_1) ≥ 9 ∧ dtype_(v_1) ≤ 10)
 >>
-Rule 31 (if the input tensor has non-negative integer type, it can't have negative values)
-{v_1 : tensor} |= if dtype_(v_1) = 5 then min(v_1) ≥ 0
+Rule 45 (The input tensor should be either empty or have dtype float with non-negative values OR dtype complex)
+{v_1 : tensor} |= (ndim(v_1) = 0) ∨ ((dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 8) ∧ (if ndim(v_1) = 0 then v_1 ≥ 0 else (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0))) ∨ (dtype_(v_1) ≥ 9 ∧ dtype_(v_1) ≤ 10)
 >>
-Rule 32 (if the input is int, it must be non-negative.)
-{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then min(v_1) >= 0
+Rule 46 (The input tensor must satisfy ONE of the following constraints: It is an empty tensor, OR it is a floating-point tensor and has non-negative elements, OR it is a complex tensor.)
+{v_1 : tensor} |= (ndim(v_1) = 0) ∨ ((dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 8) ∧ (∀i ∈ [0, if ndim(v_1) > 0 then shape(v_1, 0) - 1 else 0] : v_1[i] ≥ 0)) ∨ (dtype_(v_1) ≥ 9 ∧ dtype_(v_1) ≤ 10)
 >>
-Rule 33 (if the tensor has int8 or int16 or int32 or int64 type, the values must be non-negative)
-{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then min(v_1) ≥ 0
+Rule 47 (Input tensor type and values are constrained)
+{v_1 : tensor} |= (ndim(v_1) = 0) ∨ (((dtype_(v_1) ≥ 6) ∧ (dtype_(v_1) ≤ 8) ∧ (if ndim(v_1) = 0 then v_1 ≥ 0 else (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0)))) ∨ ((dtype_(v_1) ≥ 9) ∧ (dtype_(v_1) ≤ 10))
 >>
-Rule 47 (Trivial rule for generator, input must be a tensor and have non-negative shape)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Rule 48 (Input tensor adheres to type and value constraints for poisson distribution parameter.)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true else (if (dtype_(v_1) ≥ 6) ∧ (dtype_(v_1) ≤ 8) then (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0) else if (dtype_(v_1) ≥ 9) ∧ (dtype_(v_1) ≤ 10) then true else false)
 >>
-Rule 50 (Trivial shape based rule to avoid variable being unused)
-{v_1 : tensor} |= shape(v_1, 0) ≥ 0
->>
-Rule 51 (Check shape only if tensor is not scalar to avoid out of bound error)
-{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) ≥ 0
+Rule 49 (Input tensor: either floating point and non-negative, or complex)
+{v_1 : tensor} |= ((dtype_(v_1) ≥ 6) ∧ (dtype_(v_1) ≤ 8) ∧ (∀i ∈ [0, if ndim(v_1) > 0 then shape(v_1, 0) - 1 else 0] : v_1[i] ≥ 0)) ∨ ((dtype_(v_1) ≥ 9) ∧ (dtype_(v_1) ≤ 10))

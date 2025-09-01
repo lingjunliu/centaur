@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The downscale factor must be positive, and if the number of dimensions is greater than or equal to 3, both the height and width of the input must be divisible by the downscale factor. (Rule 49)
+# Final pixel_unshuffle validation (Rule 49)
 
 rule_49 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg2_value"] > 0, If(v["arg1_ndim"] >= 3, (And(Select(v["arg1_shape"], v["arg1_ndim"] - 2) % v["arg2_value"] == 0, Select(v["arg1_shape"], v["arg1_ndim"] - 1) % v["arg2_value"] == 0)), False))) if n else
-          And(v["arg2_value"] > 0, If(v["arg1_ndim"] >= 3, (And(Select(v["arg1_shape"], v["arg1_ndim"] - 2) % v["arg2_value"] == 0, Select(v["arg1_shape"], v["arg1_ndim"] - 1) % v["arg2_value"] == 0)), False)))
+    s.add(Not(And(And(v["arg2_value"] > 0, (If(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 2) % v["arg2_value"] == 0, True))), (Or(Or(v["arg1_ndim"] >= 3, (And(And(v["arg1_ndim"] >= 0, Select(v["arg1_shape"], -1) > 0), Select(v["arg1_shape"], -2) > 0))), v["arg1_ndim"] < 2)))) if n else
+          And(And(v["arg2_value"] > 0, (If(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 2) % v["arg2_value"] == 0, True))), (Or(Or(v["arg1_ndim"] >= 3, (And(And(v["arg1_ndim"] >= 0, Select(v["arg1_shape"], -1) > 0), Select(v["arg1_shape"], -2) > 0))), v["arg1_ndim"] < 2))))
 )
 
 def rule_49_func(arg1, arg2, solver=None, neg=False):

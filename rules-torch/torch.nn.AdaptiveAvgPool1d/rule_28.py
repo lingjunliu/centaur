@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The total number of elements should be in reasonable range. (Rule 28)
+# input tensor's last dimension size should not cause overflow when multiplied by output_size (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_value"] * Select(v["arg1_shape"], 1) * (If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0), 1)) < 100000000) if n else
-          v["arg2_value"] * Select(v["arg1_shape"], 1) * (If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0), 1)) < 100000000)
+    s.add(Not(If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 1) * v["arg2_value"] < 2147483647, If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 2) * v["arg2_value"] < 2147483647, True))) if n else
+          If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 1) * v["arg2_value"] < 2147483647, If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 2) * v["arg2_value"] < 2147483647, True)))
 )
 
 def rule_28_func(arg1, arg2, solver=None, neg=False):

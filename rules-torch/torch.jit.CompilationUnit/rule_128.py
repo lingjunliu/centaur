@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the dimension of a tensor is greater than zero, its maximum value is positive. (Rule 128)
+# If the tensor has more than one dimensions, then min should be smaller than max (Rule 128)
 
 rule_128 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 0, Select(v["arg1_range"], 1) > 0, False)) if n else
-          If(v["arg1_ndim"] > 0, Select(v["arg1_range"], 1) > 0, False))
+    s.add(Not(If(v["arg1_ndim"] > 1, Select(v["arg1_range"], 0) < Select(v["arg1_range"], 1), True)) if n else
+          If(v["arg1_ndim"] > 1, Select(v["arg1_range"], 0) < Select(v["arg1_range"], 1), True))
 )
 
 def rule_128_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_128_func(arg1, solver=None, neg=False):
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 128
-        rule_128(solver, {'arg1_ndim': arg1_ndim, 'arg1_range': arg1_range})
+        rule_128(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_128(solver, {'arg1_ndim': arg1['ndim'], 'arg1_range': arg1['range']}, neg)
+        rule_128(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']}, neg)

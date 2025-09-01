@@ -5,74 +5,164 @@ Rule 1 (input tensor should have at least 3 dimensions)
 Rule 2 (upscale_factor should be positive)
 {v_2 : int} |= v_2 > 0
 >>
-Rule 6 (input's 'channel' dimension should be divisible by the square of upscale_factor)
-{v_1 : tensor, v_2 : int} |= (shape(v_1, ndim(v_1) - 3) / (v_2 * v_2) - (shape(v_1, ndim(v_1) - 3) / (v_2 * v_2))) = 0
+Rule 3 (channel dimension should be divisible by the square of upscale_factor)
+{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 3) % (v_2 * v_2) = 0
 >>
-Rule 8 (input's channel dimension must be greater than 0)
+Rule 7 (input tensor has sufficient dimensions given upscale factor)
+{v_1 : tensor, v_2 : int} |= if v_2 > 0 then ndim(v_1) ≥ 3 else ndim(v_1) ≥ 0
+>>
+Rule 8 (upscale factor is small relative to the channel size)
+{v_1 : tensor, v_2 : int} |= v_2 * v_2 ≤ shape(v_1, ndim(v_1) - 3)
+>>
+Rule 9 (upscale factor cannot be excessively large)
+{v_2 : int} |= v_2 < 1000
+>>
+Rule 10 (input tensor's channel dimension must be positive)
 {v_1 : tensor} |= shape(v_1, ndim(v_1) - 3) > 0
 >>
-Rule 9 (input's 'channel' dimension should be divisible by the square of upscale_factor - using quantifiers)
-{v_1 : tensor, v_2 : int} |= ∃i ∈ [0, 0] : shape(v_1, ndim(v_1) - 3) = (v_2 * v_2) * i
+Rule 11 (The square of upscale factor must be less than the maximum integer)
+{v_2 : int} |= v_2 * v_2 < 2147483647
 >>
-Rule 14 (input's 'channel' dimension is perfectly divisible by upscale_factor squared)
-{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 3) = (v_2 * v_2) * (shape(v_1, ndim(v_1) - 3) / (v_2 * v_2))
+Rule 12 (if upscale_factor is 1, channel dimension should remain the same)
+{v_1 : tensor, v_2 : int} |= if v_2 = 1 then shape(v_1, ndim(v_1) - 3) = shape(v_1, ndim(v_1) - 3)
 >>
-Rule 33 (If upscale_factor is zero, input tensor must be less than 3 dimension )
-{v_1 : tensor, v_2 : int} |= if v_2 = 0 then ndim(v_1) < 3
+Rule 13 (upscale_factor must be an integer and within reasonable bounds)
+{v_2 : int} |= v_2 > 0 ∧ v_2 < 10000
 >>
-Rule 35 (Upscale factor is an int and the tensor's dimensions are 3 or more)
-{v_1: tensor, v_2: int} |= (v_2 ≥ 0) ∧ (ndim(v_1) ≥ 3)
+Rule 14 (channel dimension should be large enough to be reshaped)
+{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 3) ≥ v_2 * v_2
 >>
-Rule 36 (Combined rule: upscale_factor must be a positive integer AND divisible by the square of the channel)
-{v_1: tensor, v_2: int} |= (v_2 > 0) ∧ (ndim(v_1) ≥ 3) ∧ (shape(v_1, ndim(v_1) - 3) = (v_2 * v_2) * (shape(v_1, ndim(v_1) - 3) / (v_2 * v_2)))
+Rule 15 (Input should be a tensor with numerical dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
 >>
-Rule 37 (If the input has less than 3 dimensions, the upscale factor must be zero)
-{v_1: tensor, v_2: int} |= if ndim(v_1) < 3 then v_2 = 0
+Rule 16 (upscale_factor cannot be zero)
+{v_2 : int} |= v_2 ≠ 0
 >>
-Rule 39 (If upscale factor is negative, the input must not have a channel dimension (ndim<3))
-{v_1: tensor, v_2: int} |= if v_2 < 0 then ndim(v_1) < 3
+Rule 17 (upscale factor should not be a very large number to prevent overflow)
+{v_2 : int} |= v_2 < 100000
 >>
-Rule 43 (If input tensor has less than 3 dimensions, upscale factor should be one to bypass it)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) < 3 then v_2 = 1
+Rule 18 (If upscale_factor is greater than 1, ensure at least 3 dimensions)
+{v_1 : tensor, v_2 : int} |= if v_2 > 1 then ndim(v_1) >= 3
 >>
-Rule 46 (If upscale factor is not 1, then tensor must be 3 dimensions or more)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ 1 then ndim(v_1) ≥ 3
+Rule 20 (Height and Width dimension of input tensor must be positive)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0
 >>
-Rule 49 (If upscale_factor is a negative integer, it should be flagged as invalid)
-{v_2: int} |= if v_2 < 0 then false
+Rule 21 (Upscale factor is one if and only if the input shape remains unchanged)
+{v_1: tensor, v_2 : int} |= if v_2 = 1 then shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 1) ∧ shape(v_1, ndim(v_1) - 2) = shape(v_1, ndim(v_1) - 2) ∧ shape(v_1, ndim(v_1) - 3) = shape(v_1, ndim(v_1) - 3)
 >>
-Rule 51 (If input doesn't have at least 3 dimensions then upscale factor must be 1)
-{v_1: tensor, v_2 : int} |= if ndim(v_1) < 3 then v_2 = 1
+Rule 22 (channel dimension must be divisible by upscale_factor squared)
+{v_1 : tensor, v_2 : int} |= (shape(v_1, ndim(v_1) - 3) % (v_2 * v_2)) = 0
 >>
-Rule 52 (Upscale factor must be positive if ndim >= 3)
-{v_1: tensor, v_2: int} |= if ndim(v_1) >= 3 then v_2 > 0
+Rule 25 (If upscale_factor is valid, then channel dimension must be divisible by upscale_factor squared)
+{v_1 : tensor, v_2 : int} |= if v_2 > 0 ∧ v_2 < 100000 then (shape(v_1, ndim(v_1) - 3) % (v_2 * v_2)) = 0
 >>
-Rule 59 (Another combined expression. If the tensor has less than 3 dimensions, then v_2 must be one)
-{v_1: tensor, v_2: int} |= if ndim(v_1) < 3 then v_2 = 1
+Rule 26 (Height and width are constrained based on the upscale factor.)
+{v_1 : tensor, v_2: int} |= if v_2 > 0 then shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0
 >>
-Rule 63 (Combined tensor dimension and positive upscale)
-{v_1: tensor, v_2: int} |= v_2 > 0 ∧ ndim(v_1) >= 3
+Rule 27 (If the upscale factor is valid and greater than 1 then certain dimension restrictions apply.)
+{v_1 : tensor, v_2 : int} |= if v_2 > 1 ∧ v_2 < 100000 then ndim(v_1) >=3 ∧ (shape(v_1, ndim(v_1) - 3) % (v_2 * v_2)) = 0
 >>
-Rule 67 (if upscale_factor isn't positive, must have at most two dimensions.)
-{v_1: tensor, v_2: int} |= if v_2 <= 0 then ndim(v_1) <= 2
+Rule 28 (If upscale is valid and tensor dimensions meet minimal requirements, then dimensions are positive.)
+{v_1 : tensor, v_2 : int} |= if v_2 > 0 ∧ ndim(v_1) >=3 then shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0
 >>
-Rule 69 (if v_1 has fewer than 3 dimensions then upscale = 1, else then u > 0)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) < 3 then v_2 = 1 else v_2 > 0
+Rule 29 (If channel dimension is positive then upscale factor must be positive.)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, ndim(v_1) - 3) > 0 then v_2 > 0
 >>
-Rule 71 (If there are two or fewer dimensions, v_2 (upscale_factor) *must* be 1)
-{v_1: tensor, v_2 : int} |= if ndim(v_1) <= 2 then v_2 = 1
+Rule 30 (if upscale factor is greater than 1 and the number of dimensions is 4, then height and width can't be 0 )
+{v_1 : tensor, v_2 : int} |= if v_2 > 1 ∧ ndim(v_1) = 4 then shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
 >>
-Rule 73 (If the input is 1 or 2 dimensions upscale factor should also be 1)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) ≤ 2 then v_2 = 1
+Rule 31 (channel dimension of input tensor must be positive and divisible by the square of upscale factor, when upscale factor is valid)
+{v_1 : tensor, v_2 : int} |= if v_2 > 0 ∧ v_2 < 100000 then shape(v_1, ndim(v_1) - 3) > 0 ∧ (shape(v_1, ndim(v_1) - 3) % (v_2 * v_2)) = 0
 >>
-Rule 75 (Final - Enforce that uScale is 1 if 2D or lower)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) <= 2 then v_2 = 1
+Rule 32 (if upscale factor is valid and greater than 1, then height and width dimensions of tensor should not be zero)
+{v_1 : tensor, v_2 : int} |= if v_2 > 1 ∧ v_2 < 100000 then shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0
 >>
-Rule 76 (Correct a negative upscale only if input has 3 or more dimensions)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 3 ∧ v_2 < 0 then false
+Rule 33 (if all input conditions are satisfied then make sure channel dimension is divisible by upscale_factor squared, height and width dimensions of tensor should not be zero)
+{v_1 : tensor, v_2 : int} |= if v_2 > 1 ∧ v_2 < 100000 ∧ ndim(v_1) >=3 then shape(v_1, ndim(v_1) - 3) > 0 ∧ (shape(v_1, ndim(v_1) - 3) % (v_2 * v_2)) = 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0
 >>
-Rule 77 (If we have an upscale factor of zero and have a shape then return a single one-dimension)
-{v_1 : tensor, v_2 : int} |= if v_2 = 0 then ndim(v_1) = 1
+Rule 34 (if all input conditions are satisfied, height and width cannot be zero, and make sure channel dimension is divisible by upscale_factor squared)
+{v_1 : tensor, v_2 : int} |= if v_2 > 0 ∧ v_2 < 100000 ∧ ndim(v_1) >=3 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0 then (shape(v_1, ndim(v_1) - 3) % (v_2 * v_2)) = 0
 >>
-Rule 79 (Final 2: make > 2 dimensions = 1)
-{v_1: tensor, v_2: int} |= if ndim(v_1) <= 2 then v_2 = 1
+Rule 35 (If upscale factor is valid then the channel dimension must be a non-zero multiple of upscale factor squared)
+{v_1 : tensor, v_2 : int} |= if v_2 > 0 ∧ v_2 < 100000 then ∃i ∈ [1,100] : shape(v_1, ndim(v_1) - 3) = i * (v_2 * v_2)
+>>
+Rule 36 (If upscale factor is a small positive number then number of input dimensions must be >= 3 and channel dimension of input tensor must be positive and divisible by the square of upscale factor )
+{v_1 : tensor, v_2 : int} |= if v_2 > 0 ∧ v_2 < 10 then ndim(v_1) >=3 ∧ shape(v_1, ndim(v_1) - 3) > 0 ∧ (shape(v_1, ndim(v_1) - 3) % (v_2 * v_2)) = 0
+>>
+Rule 37 (channel dimension must be divisible by upscale_factor squared if upscale factor is valid and other dimensions are positive.)
+{v_1 : tensor, v_2 : int} |= if v_2 > 0 ∧ v_2 < 100000 ∧ ndim(v_1) >= 3 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0 then (shape(v_1, ndim(v_1) - 3) % (v_2 * v_2)) = 0
+>>
+Rule 38 (If input meets the minimal requirements then channel dimensions and height and width dimensions should be positive, and channel dimension is divisible by the square of upscale factor)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 3 ∧ v_2 > 0 then shape(v_1, ndim(v_1) - 3) > 0 ∧ (shape(v_1, ndim(v_1) - 3) % (v_2 * v_2)) = 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0
+>>
+Rule 39 (If upscale factor is valid and not very large and tensor has at least 3 dimensions then channel dimension should be positive and divisible by square of upscale_factor.)
+{v_1 : tensor, v_2 : int} |= if v_2 > 0 ∧ v_2 < 1000 ∧ ndim(v_1) >= 3 then shape(v_1, ndim(v_1) - 3) > 0 ∧ (shape(v_1, ndim(v_1) - 3) % (v_2 * v_2)) = 0
+>>
+Rule 40 (All conditions for valid pixel shuffle. Ensures upscale factor and input tensor have compatible parameters and dimensions.)
+{v_1 : tensor, v_2 : int} |= if v_2 > 0 ∧ v_2 < 1000 ∧ ndim(v_1) >= 3 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0 then shape(v_1, ndim(v_1) - 3) > 0 ∧ (shape(v_1, ndim(v_1) - 3) % (v_2 * v_2)) = 0
+>>
+Rule 41 (The upscale factor and tensor must adhere to specific properties relating to dimension, channel size and spatial dimensions)
+{v_1 : tensor, v_2 : int} |= (v_2 > 0) ∧ (v_2 < 1000) ∧ (ndim(v_1) >= 3) ∧ (shape(v_1, ndim(v_1) - 3) > 0) ∧ ((shape(v_1, ndim(v_1) - 3) % (v_2 * v_2)) = 0) ∧ (shape(v_1, ndim(v_1) - 2) > 0) ∧ (shape(v_1, ndim(v_1) - 1) > 0)
+>>
+Rule 42 (Enforce requirements of upscale factor being valid given the input tensor dimension)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 3 then v_2 > 0
+>>
+Rule 44 (If the tensor has fewer than 3 dimensions the upscale factor must not be positive)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) < 3 then v_2 ≤ 0
+>>
+Rule 45 (The upscale factor cannot be negative when the tensor dimensions is valid)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 3 then v_2 ≥ 0
+>>
+Rule 46 (If all is satisfied for a valid pixel_shuffle, then upscale_factor must not be negative)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 3 ∧ shape(v_1, ndim(v_1) - 3) > 0 ∧ (shape(v_1, ndim(v_1) - 3) % (v_2 * v_2)) = 0 then v_2 ≥ 0
+>>
+Rule 47 (Valid upscale factor enforces channel dimension is valid)
+{v_1 : tensor, v_2 : int} |= if v_2 > 0 then (shape(v_1, ndim(v_1) - 3) % (v_2 * v_2)) = 0
+>>
+Rule 48 (Ensures conditions to allow pixel shuffle are in effect)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 3 then v_2 > 0 ∧ (shape(v_1, ndim(v_1) - 3) % (v_2 * v_2)) = 0
+>>
+Rule 49 (The channel dimension must be valid if input is potentially used by pixel_shuffle)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 3 ∧ v_2 > 0 then shape(v_1, ndim(v_1) - 3) > 0
+>>
+Rule 50 (If the tensor dimensions is suitable for pixelshuffle and if height and width are valid then channel dimension must be valid)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 3 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0 then shape(v_1, ndim(v_1) - 3) > 0 ∧ (shape(v_1, ndim(v_1) - 3) % (v_2 * v_2)) = 0
+>>
+Rule 51 (Validates the upscale factors range, if dimension and height-width are appropriate for pixel shuffle)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 3 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 3) > 0 then v_2 > 0 ∧ v_2 < 1000
+>>
+Rule 52 (channel dim must be appropriate if spatial dimensions are valid)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 3 ∧ v_2 > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0 then shape(v_1, ndim(v_1) - 3) > 0
+>>
+Rule 53 (Height and width must be positive if upscale factor is valid)
+{v_1 : tensor, v_2 : int} |= if v_2 > 0 ∧ ndim(v_1) >= 3 then shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0
+>>
+Rule 54 (If spatial dimensions of tensor is valid for shuffle then upscale factor must be valid integer > 0 and less than 1000)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 3 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0 then v_2 > 0 ∧ v_2 < 1000
+>>
+Rule 55 (All checks for pixle shuffle are complete.)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 3 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ v_2 > 0 ∧ v_2 < 1000 then (shape(v_1, ndim(v_1) - 3) % (v_2 * v_2)) = 0
+>>
+Rule 56 (All checks.)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 3 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0 then v_2 > 0 ∧ v_2 < 1000 ∧ (shape(v_1, ndim(v_1) - 3) % (v_2 * v_2)) = 0 else if ndim(v_1) < 3 then v_2 = 0
+>>
+Rule 57 (Valid parameters based on all combinations)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 3 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 3) > 0 then v_2 > 0 ∧ v_2 < 1000 ∧ (shape(v_1, ndim(v_1) - 3) % (v_2 * v_2)) = 0 else if ndim(v_1) < 3 then v_2 ≤ 0
+>>
+Rule 58 (Ultimate Rule - Combines previous constraints on dimensions, shape and upscale factor to check PixelShuffle conditions are upheld. Addresses the three error messages.)
+{v_1 : tensor, v_2 : int} |= (ndim(v_1) < 3 ∧ v_2 ≤ 0) ∨ (ndim(v_1) >= 3 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 3) > 0 ∧ v_2 > 0 ∧ v_2 < 1000 ∧ (shape(v_1, ndim(v_1) - 3) % (v_2 * v_2)) = 0)
+>>
+Rule 59 (Comprehensive validation of pixel_shuffle parameters)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) < 3 then v_2 ≤ 0 else (v_2 > 0 ∧ v_2 < 1000) ∧ (shape(v_1, ndim(v_1) - 3) % (v_2 * v_2)) = 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0
+>>
+Rule 61 (Final Rule to Check PixelShuffle Conditions)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) < 3 then v_2 ≤ 0 else (ndim(v_1) >= 3) ∧ (shape(v_1, ndim(v_1) - 2) > 0) ∧ (shape(v_1, ndim(v_1) - 1) > 0) ∧ (shape(v_1, ndim(v_1) - 3) > 0) ∧ (v_2 > 0) ∧ (v_2 < 1000) ∧ ((shape(v_1, ndim(v_1) - 3) % (v_2 * v_2)) = 0)
+>>
+Rule 62 (Exhaustive Rule)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) < 3 then v_2 ≤ 0 else (v_2 > 0) ∧ (v_2 < 1000) ∧ (ndim(v_1) >= 3) ∧ (shape(v_1, ndim(v_1) - 3) > 0) ∧ ((shape(v_1, ndim(v_1) - 3) % (v_2 * v_2)) = 0) ∧ (shape(v_1, ndim(v_1) - 2) > 0) ∧ (shape(v_1, ndim(v_1) - 1) > 0)
+>>
+Rule 63 (Complete Parameter Validation for pixel_shuffle)
+{v_1 : tensor, v_2 : int} |= (ndim(v_1) < 3 ∧ v_2 ≤ 0) ∨ ((v_2 > 0) ∧ (v_2 < 1000) ∧ (ndim(v_1) >= 3) ∧ (shape(v_1, ndim(v_1) - 3) > 0) ∧ ((shape(v_1, ndim(v_1) - 3) % (v_2 * v_2)) = 0) ∧ (shape(v_1, ndim(v_1) - 2) > 0) ∧ (shape(v_1, ndim(v_1) - 1) > 0))
+>>
+Rule 64 (Concise rule encompassing all validity criteria for pixel_shuffle)
+{v_1 : tensor, v_2 : int} |= (ndim(v_1) < 3 ∧ v_2 ≤ 0) ∨ ((v_2 > 0) ∧ (v_2 < 1000) ∧ (ndim(v_1) >= 3) ∧ (shape(v_1, ndim(v_1) - 2) > 0) ∧ (shape(v_1, ndim(v_1) - 1) > 0) ∧ ((shape(v_1, ndim(v_1) - 3) % (v_2 * v_2)) = 0))

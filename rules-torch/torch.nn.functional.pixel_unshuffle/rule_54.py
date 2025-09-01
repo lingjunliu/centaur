@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# downscale factor should not be too large, so that output size is not too small (Rule 54)
+# Pixel Unshuffle Validation Rule (the last one, I promise! (Rule 54)
 
 rule_54 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] >= 3, And((Select(v["arg1_shape"], v["arg1_ndim"] - 2) / v["arg2_value"]) > 1, (Select(v["arg1_shape"], v["arg1_ndim"] - 1) / v["arg2_value"]) > 1), False)) if n else
-          If(v["arg1_ndim"] >= 3, And((Select(v["arg1_shape"], v["arg1_ndim"] - 2) / v["arg2_value"]) > 1, (Select(v["arg1_shape"], v["arg1_ndim"] - 1) / v["arg2_value"]) > 1), False))
+    s.add(Not(And(And(v["arg2_value"] > 0, (If(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 2) % v["arg2_value"] == 0, True))), (Or(v["arg1_ndim"] >= 3, (And(And(v["arg1_ndim"] >= 0, Select(v["arg1_shape"], -2) > 0), Select(v["arg1_shape"], -1) > 0)))))) if n else
+          And(And(v["arg2_value"] > 0, (If(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 2) % v["arg2_value"] == 0, True))), (Or(v["arg1_ndim"] >= 3, (And(And(v["arg1_ndim"] >= 0, Select(v["arg1_shape"], -2) > 0), Select(v["arg1_shape"], -1) > 0))))))
 )
 
 def rule_54_func(arg1, arg2, solver=None, neg=False):

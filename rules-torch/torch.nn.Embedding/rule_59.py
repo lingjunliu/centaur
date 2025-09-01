@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Prevent padding_idx = num_embeddings which can be problematic (Rule 59)
+# Ensure that num_embeddings and embedding_dim are both positive or both zero to not create tensor with negative dimension if multiplied. (Rule 59)
 
 rule_59 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_value"] != v["arg1_value"]) if n else
-          v["arg2_value"] != v["arg1_value"])
+    s.add(Not(Or((And(v["arg1_value"] > 0, v["arg2_value"] > 0)), (And(v["arg1_value"] == 0, v["arg2_value"] == 0)))) if n else
+          Or((And(v["arg1_value"] > 0, v["arg2_value"] > 0)), (And(v["arg1_value"] == 0, v["arg2_value"] == 0))))
 )
 
 def rule_59_func(arg1, arg2, solver=None, neg=False):

@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If scale_factor is specified as a tuple, the length of the tuple must match the number of spatial dimensions (Rule 60)
+# If scale factor is a list, the length of scale factor must match the spatial dimensions of the input tensor (Rule 60)
 
 rule_60 = lambda s, v, n=False: (
     s.add(Not(v["arg2_length"] == v["arg1_ndim"] - 2) if n else
@@ -20,7 +20,7 @@ def rule_60_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, tuple) and all(isinstance(e, (float, np.floating)) for e in arg2)):
+        if not (isinstance(arg2, list) and all(isinstance(e, (float, np.floating)) for e in arg2)):
             return False
 
         # Variable declarations

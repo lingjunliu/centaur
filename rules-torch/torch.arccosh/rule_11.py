@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the input tensor is int, the output tensor should at least be float (Rule 11)
+# Output tensor's dtype, if provided, must have enough precision to accommodate the result without causing underflow or overflow, considering both real and imaginary components. (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(Or(Or((v["arg1_dtype"] == 1), (v["arg1_dtype"] == 2)), (v["arg1_dtype"] == 3)), (v["arg1_dtype"] == 4)), (v["arg1_dtype"] == 5)), Or(Or(Or(Or((v["arg2_dtype"] == 6), (v["arg2_dtype"] == 7)), (v["arg2_dtype"] == 8)), (v["arg2_dtype"] == 9)), (v["arg2_dtype"] == 10)), False)) if n else
-          If(Or(Or(Or(Or((v["arg1_dtype"] == 1), (v["arg1_dtype"] == 2)), (v["arg1_dtype"] == 3)), (v["arg1_dtype"] == 4)), (v["arg1_dtype"] == 5)), Or(Or(Or(Or((v["arg2_dtype"] == 6), (v["arg2_dtype"] == 7)), (v["arg2_dtype"] == 8)), (v["arg2_dtype"] == 9)), (v["arg2_dtype"] == 10)), False))
+    s.add(Not(If(v["arg1_dtype"] == 7, Or(Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), v["arg2_dtype"] == 11), If(v["arg1_dtype"] == 8, Or(Or(Or(v["arg2_dtype"] == 8, v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), v["arg2_dtype"] == 11), If(v["arg1_dtype"] == 9, Or(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), v["arg2_dtype"] == 11), If(v["arg1_dtype"] == 10, Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 11), If(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11, (Or(Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), v["arg2_dtype"] == 11)))))))) if n else
+          If(v["arg1_dtype"] == 7, Or(Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), v["arg2_dtype"] == 11), If(v["arg1_dtype"] == 8, Or(Or(Or(v["arg2_dtype"] == 8, v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), v["arg2_dtype"] == 11), If(v["arg1_dtype"] == 9, Or(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), v["arg2_dtype"] == 11), If(v["arg1_dtype"] == 10, Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 11), If(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11, (Or(Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), v["arg2_dtype"] == 11))))))))
 )
 
 def rule_11_func(arg1, arg2, solver=None, neg=False):

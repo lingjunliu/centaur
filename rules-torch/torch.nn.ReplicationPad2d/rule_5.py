@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor must have at most 5 dimensions (Rule 5)
+# Input tensor must have at most 4 dimensions (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] <= 5) if n else
-          v["arg1_ndim"] <= 5)
+    s.add(Not(v["arg1_ndim"] <= 4) if n else
+          v["arg1_ndim"] <= 4)
 )
 
 def rule_5_func(arg1, solver=None, neg=False):

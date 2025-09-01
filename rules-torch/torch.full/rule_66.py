@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# size dimensions multiplication should not overflow (Rule 66)
+# all dimensions in size tuple must be representable as int32 and non-negative and the tuple length should be a positive number (Rule 66)
 
 rule_66 = lambda s, v, n=False: (
-    s.add(Not(Or([And(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) < 10000) for i in range(6)])) if n else
-          Or([And(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) < 10000) for i in range(6)]))
+    s.add(Not(And(v["arg1_length"] > 0, And([Implies(i < (v["arg1_length"] - 1 + 1), And(And(Select(v["arg1_values"], i) >= -2147483648, Select(v["arg1_values"], i) <= 2147483647), Select(v["arg1_values"], i) >= 0)) for i in range(6)]))) if n else
+          And(v["arg1_length"] > 0, And([Implies(i < (v["arg1_length"] - 1 + 1), And(And(Select(v["arg1_values"], i) >= -2147483648, Select(v["arg1_values"], i) <= 2147483647), Select(v["arg1_values"], i) >= 0)) for i in range(6)])))
 )
 
 def rule_66_func(arg1, solver=None, neg=False):

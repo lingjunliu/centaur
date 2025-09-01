@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Two integer and float variables should follow an inequality relation. (Rule 48)
+# A boolean must be true if an integer is non-negative (Rule 48)
 
 rule_48 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < v["arg2_value"]) if n else
-          v["arg1_value"] < v["arg2_value"])
+    s.add(Not(If(v["arg1_value"] >= 0, v["arg2_value"] == True, True)) if n else
+          If(v["arg1_value"] >= 0, v["arg2_value"] == True, True))
 )
 
 def rule_48_func(arg1, arg2, solver=None, neg=False):
@@ -20,13 +20,13 @@ def rule_48_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
-        if not isinstance(arg2, (float, np.floating)):
+        if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = Int('arg1_value')
-        arg2_value = Real('arg2_value')
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
         solver.add(arg1_value == int(arg1))

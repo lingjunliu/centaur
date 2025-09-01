@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The difference between row and col shouldn't be extremely high (Rule 40)
+# Check if product of row and col can cause overflow, preventing runtime error on CUDA (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] > v["arg2_value"], v["arg1_value"] - v["arg2_value"] < 10000, v["arg2_value"] - v["arg1_value"] < 10000)) if n else
-          If(v["arg1_value"] > v["arg2_value"], v["arg1_value"] - v["arg2_value"] < 10000, v["arg2_value"] - v["arg1_value"] < 10000))
+    s.add(Not(If(v["arg1_value"] > 0, v["arg2_value"] <= 9223372036854775807 / v["arg1_value"], True)) if n else
+          If(v["arg1_value"] > 0, v["arg2_value"] <= 9223372036854775807 / v["arg1_value"], True))
 )
 
 def rule_40_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If number of dimension is 1, then downscale factor should be 1. Otherwise, downscale factor should be >0 and shape of the last two dimension should be greater than 0 (Rule 86)
+# Requires valid downscale factor (Rule 86)
 
 rule_86 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 1, v["arg2_value"] == 1, And(And(v["arg2_value"] > 0, Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0), Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0))) if n else
-          If(v["arg1_ndim"] == 1, v["arg2_value"] == 1, And(And(v["arg2_value"] > 0, Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0), Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0)))
+    s.add(Not(And((And(v["arg2_value"] < 1000, v["arg2_value"] > 0)), (If(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 2) % v["arg2_value"] == 0, True)))) if n else
+          And((And(v["arg2_value"] < 1000, v["arg2_value"] > 0)), (If(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 2) % v["arg2_value"] == 0, True))))
 )
 
 def rule_86_func(arg1, arg2, solver=None, neg=False):

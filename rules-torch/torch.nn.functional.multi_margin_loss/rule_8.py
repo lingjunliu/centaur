@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if weight is provided, its length must be equal to the number of classes. (Rule 8)
+# If weight is provided, its size should match the number of classes which should be less than shape of input. (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_ndim"] == 1, Select(v["arg2_shape"], 0) == Select(v["arg1_shape"], 1), False)) if n else
-          If(v["arg2_ndim"] == 1, Select(v["arg2_shape"], 0) == Select(v["arg1_shape"], 1), False))
+    s.add(Not(And(v["arg2_ndim"] == 1, Select(v["arg2_shape"], 0) < Select(v["arg1_shape"], 1))) if n else
+          And(v["arg2_ndim"] == 1, Select(v["arg2_shape"], 0) < Select(v["arg1_shape"], 1)))
 )
 
 def rule_8_func(arg1, arg2, solver=None, neg=False):

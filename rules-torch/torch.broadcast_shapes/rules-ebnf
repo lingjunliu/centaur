@@ -1,171 +1,201 @@
 >>
-Rule 1 (Shape cannot have negative dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 1 (Shape mismatch: shapes should have at least one dimension when broadcasting)
+{shape1 : tuple(int), shape2 : tuple(int)} |= shape1.len ≥ 1 ∧ shape2.len ≥ 1
 >>
-Rule 2 (Shapes should be broadcastable, checking at least two shapes)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ (∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : if ndim(v_1) - i - 1 < 0 then true else if ndim(v_2) - i - 1 < 0 then true else shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))
+Rule 2 (Shape mismatch: dimensions must be compatible for broadcasting)
+{shape1 : tuple(int), shape2 : tuple(int)} |= if shape1.len > shape2.len then ∀i ∈ [0, shape2.len - 1] : (shape1[shape1.len - 1 - i] = shape2[shape2.len - 1 - i] ∨ shape1[shape1.len - 1 - i] = 1 ∨ shape2[shape2.len - 1 - i] = 1) else ∀i ∈ [0, shape1.len - 1] : (shape1[shape1.len - 1 - i] = shape2[shape2.len - 1 - i] ∨ shape1[shape1.len - 1 - i] = 1 ∨ shape2[shape2.len - 1 - i] = 1)
 >>
-Rule 3 (Ensure a non-empty shape is provided to avoid assertion errors related to empty sequences)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 3 (Trying to create tensor with negative dimension: All dimensions in shapes must be non-negative)
+{shape1 : tuple(int)} |= ∀i ∈ [0, shape1.len - 1] : shape1[i] ≥ 0
 >>
-Rule 8 (Ensure there are at least two shapes and their dimensions are greater than 0.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0
+Rule 5 (Shape mismatch: Shapes must have compatible lengths. If a shape is of length 0, the other shape is length >= 0.)
+{shape1 : tuple(int)} |= if shape1.len = 0 then true else shape1.len ≥ 0
 >>
-Rule 10 (Check for consistent data types for broadcasting - simplified example using dtype_)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 6 (Shape mismatch: If either shape has zero length, then both shapes should have zero length.)
+{shape1 : tuple(int), shape2 : tuple(int)} |= if shape1.len = 0 then shape2.len = 0 else if shape2.len = 0 then shape1.len = 0
 >>
-Rule 11 (Maximum number of dimensions supported is limited - example for 5)
-{v_1 : tensor} |= ndim(v_1) ≤ 5
+Rule 7 (Shape mismatch: If shapes are incompatible, shapes cannot have same length and same dimensions except size 1)
+{shape1 : tuple(int), shape2 : tuple(int)} |= if shape1.len = shape2.len then ∃i ∈ [0, shape1.len - 1] : shape1[i] ≠ shape2[i] ∧ shape1[i] ≠ 1 ∧ shape2[i] ≠ 1
 >>
-Rule 12 (Check if shape contains only integers)
-{v_1 : tuple(int)} |= v_1.len > 0
+Rule 8 (Shape mismatch: objects cannot be broadcast if shapes are both of length 1, and values are different)
+{shape1 : tuple(int), shape2 : tuple(int)} |= if shape1.len = 1 ∧ shape2.len = 1 then shape1[0] = shape2[0] ∨ shape1[0] = 1 ∨ shape2[0] = 1
 >>
-Rule 13 (If both shapes exist, their dimensions must be positive)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0 ∨ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (ndim(v_2) = 0 ∨ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
+Rule 9 (Shape mismatch: If at least one shape has a dimension with value -1, it causes error.)
+{shape1 : tuple(int)} |= ∀i ∈ [0, shape1.len - 1] : shape1[i] ≠ -1
 >>
-Rule 20 (Check all shapes given are tensors)
-{v_1 : list(tensor)} |= v_1.len > 0
+Rule 10 (Shape mismatch: If at least one shape has a dimension with value 0, other dimensions should be valid.)
+{shape1 : tuple(int), shape2 : tuple(int)} |= if ∃i ∈ [0, shape1.len - 1] : shape1[i] = 0 then ∀j ∈ [0, shape2.len - 1] : shape2[j] ≥ 0
 >>
-Rule 21 (The dimensions must be greater than 0 or the tensor is scalar)
-{v_1 : tensor} |= (ndim(v_1) = 0) ∨ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+Rule 12 (Shape mismatch: shapes with different rank should only contain ones at the end)
+{shape1 : tuple(int), shape2 : tuple(int)} |= if shape1.len > shape2.len then ∀i ∈ [0, shape2.len - 1] : (shape1[shape1.len - 1 - i] = shape2[shape2.len - 1 - i] ∨ shape1[shape1.len - 1 - i] = 1 ∨ shape2[shape2.len - 1 - i] = 1) else if shape2.len > shape1.len then ∀i ∈ [0, shape1.len - 1] : (shape1[shape1.len - 1 - i] = shape2[shape2.len - 1 - i] ∨ shape1[shape1.len - 1 - i] = 1 ∨ shape2[shape2.len - 1 - i] = 1)
 >>
-Rule 22 (If one tensor has a dimension size of 1, the other must have either 1 or the same dimension size at the same index)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : if ndim(v_1) - i - 1 < 0 then true else if ndim(v_2) - i - 1 < 0 then true else if shape(v_1, ndim(v_1) - i - 1) = 1 then shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = shape(v_1, ndim(v_1) - i - 1) else if shape(v_2, ndim(v_2) - i - 1) = 1 then shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)
+Rule 16 (Shape mismatch: product of shape1 and shape2 is positive when all the elements in the shapes are valid numbers)
+{shape1 : tuple(int), shape2 : tuple(int)} |= (∀i ∈ [0, shape1.len - 1] : shape1[i] > 0) ∧ (∀i ∈ [0, shape2.len - 1] : shape2[i] > 0)
 >>
-Rule 23 (Dimensions must be non-negative numbers)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Rule 17 (Assert False: when any shape has length more than certain limit, it gives error)
+{shape1 : tuple(int)} |= shape1.len < 10
 >>
-Rule 25 (At least one shape must be a tensor)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
+Rule 20 (Shape mismatch: at least one shape should not be empty.)
+{shape1 : tuple(int), shape2 : tuple(int)} |= shape1.len > 0 ∨ shape2.len > 0
 >>
-Rule 26 (If broadcasting, ensure the largest shape is not infinitely large)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 10000 else ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) < 10000
+Rule 21 (Assert False: when either shape is None)
+{shape1 : tuple(int)} |= shape1 ≠ None
 >>
-Rule 29 (Ensure the product of all dimensions of the shape do not overflow)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000
+Rule 22 (Trying to create tensor with negative dimension: if at least one dimension in shape1 or shape2 is -1)
+{shape1 : tuple(int), shape2 : tuple(int)} |= (∀i ∈ [0, shape1.len - 1] : shape1[i] ≥ 0) ∧ (∀i ∈ [0, shape2.len - 1] : shape2[i] ≥ 0)
 >>
-Rule 30 (Shapes are comprised of numbers smaller than 2^10)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) ∨ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1024) ∧ (ndim(v_2) = 0) ∨ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) < 1024)
+Rule 24 (Shape mismatch: objects cannot be broadcast to a single shape, ensure elements are compatible up to the minimum length)
+{shape1 : tuple(int), shape2 : tuple(int)} |= ∀i ∈ [0, if shape1.len < shape2.len then shape1.len else shape2.len] : (shape1[shape1.len - i - 1] = shape2[shape2.len - i - 1] ∨ shape1[shape1.len - i - 1] = 1 ∨ shape2[shape2.len - i - 1] = 1)
 >>
-Rule 31 (Tuple should contain values of the same type)
-{v_1: tuple(int)} |= ∀i ∈ [1, v_1.len - 1] : v_1[0] = v_1[i]
+Rule 25 (Assert False: when the lengths are different, one of the elements is zero)
+{shape1 : tuple(int), shape2 : tuple(int)} |= if shape1.len ≠ shape2.len then (∃i ∈ [0, shape1.len-1] : shape1[i] = 0) ∨ (∃i ∈ [0, shape2.len-1] : shape2[i] = 0)
 >>
-Rule 32 (The lengths of list of shapes should have less than 10 elements)
-{v_1 : list(tensor)} |= v_1.len < 10
+Rule 26 (Trying to create tensor with negative dimension: dimensions of shapes should be valid integers in a range)
+{shape1 : tuple(int), shape2 : tuple(int)} |= (∀i ∈ [0, shape1.len - 1] : shape1[i] > -1000 ∧ shape1[i] < 1000 ) ∧ (∀i ∈ [0, shape2.len - 1] : shape2[i] > -1000 ∧ shape2[i] < 1000)
 >>
-Rule 37 (Number of shapes should be capped)
-{v_1 : list(tensor)} |= v_1.len < 5
+Rule 27 (Shape mismatch: Cannot broadcast if shape1[i] and shape2[i] exist and are not equal and neither is 1)
+{shape1 : tuple(int), shape2 : tuple(int)} |= if shape1.len > 0 ∧ shape2.len > 0 then ∀i ∈ [0, if shape1.len < shape2.len then shape1.len else shape2.len] : (shape1[shape1.len - 1 - i] = shape2[shape2.len - 1 - i] ∨ shape1[shape1.len - 1 - i] = 1 ∨ shape2[shape2.len - 1 - i] = 1)
 >>
-Rule 40 (Check list has tensor and tuple together)
-{v_1: list(tensor), v_2: list(tuple(int))} |= v_1.len > 0 ∧ v_2.len > 0
+Rule 29 (Assert False: When shape lengths are incompatible and contain zero dimensions and can't broadcast)
+{shape1 : tuple(int), shape2 : tuple(int)} |= if shape1.len ≠ shape2.len then (∃i ∈ [0, if shape1.len < shape2.len then shape1.len else shape2.len] : (shape1[shape1.len - 1 - i] = 0 ∨ shape2[shape2.len - 1 -i ] =0))
 >>
-Rule 44 (Tensor and tuple are of same length)
-{v_1: tensor, v_2: tuple(int)} |= ndim(v_1) = v_2.len
+Rule 30 (Trying to create tensor with negative dimension: Should not contain negative dimensions)
+{shape1 : tuple(int), shape2 : tuple(int)} |= (∀i ∈ [0, shape1.len - 1] : shape1[i] ≥ 0 ) ∧ (∀i ∈ [0, shape2.len - 1] : shape2[i] ≥ 0)
 >>
-Rule 46 (If one of the tensor has all dimensions one it is fine.)
-{v_1 : tensor} |= (ndim(v_1) = 0) ∨ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1)
+Rule 32 (Shape mismatch : ensure shapes can be broadcast)
+{shape1 : tuple(int), shape2 : tuple(int)} |= if shape1.len = 0 ∨ shape2.len = 0 then true else (if shape1.len < shape2.len then ∀i ∈ [0, shape1.len - 1] : (shape1[shape1.len - 1 - i] = shape2[shape2.len - 1 - i] ∨ shape1[shape1.len - 1 - i] = 1 ∨ shape2[shape2.len - 1 - i] = 1) else ∀i ∈ [0, shape2.len - 1] : (shape1[shape1.len - 1 - i] = shape2[shape2.len - 1 - i] ∨ shape1[shape1.len - 1 - i] = 1 ∨ shape2[shape2.len - 1 - i] = 1))
 >>
-Rule 49 (At least two dimensions are of size one)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1 ∧ ∃j ∈ [0, ndim(v_1) - 1] : shape(v_1, j) = 1 ∧ i ≠ j
+Rule 33 (Assert False: When shape lengths are incompatible and contain zero dimensions and can't broadcast, or shapes are None)
+{shape1 : tuple(int), shape2 : tuple(int)} |= (shape1 ≠ None) ∧ (shape2 ≠ None)
 >>
-Rule 50 (The size of the shape should be less than 1000 to avoid potential overflows when calculating memory usage)
-{v_1 : tensor} |= ndim(v_1) < 1000
+Rule 34 (Trying to create tensor with negative dimension: Should not contain negative dimensions, and also cannot be arbitrarily large number for preventing integer overflow)
+{shape1 : tuple(int), shape2 : tuple(int)} |= (∀i ∈ [0, shape1.len - 1] : shape1[i] ≥ 0 ∧ shape1[i] < 1000) ∧ (∀i ∈ [0, shape2.len - 1] : shape2[i] ≥ 0 ∧ shape2[i] < 1000)
 >>
-Rule 51 (At least the last two tensors need to be broadcastable)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) > 0) ∧ (ndim(v_2) > 0) ∧ (if ndim(v_1) > ndim(v_2) then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 1) ∨ shape(v_2, ndim(v_2) -1 ) = 1 ∨ shape(v_1, ndim(v_1) -1 ) = 1 else shape(v_2, ndim(v_2) - 1) = shape(v_1, ndim(v_1) - 1) ∨  shape(v_1, ndim(v_1) -1 ) = 1 ∨ shape(v_2, ndim(v_2) -1 ) = 1)
+Rule 35 (Shape Mismatch : all elements of a shapes tuple are equal)
+{shape1 : tuple(int)} |= ∀i ∈ [1, shape1.len -1] : shape1[0] = shape1[i]
 >>
-Rule 52 (At least the product of last two dimension needs to be smaller than 10000000)
-{v_1: tensor} |= (ndim(v_1) < 2) ∨ (shape(v_1, ndim(v_1) - 1) * shape(v_1, ndim(v_1) - 2) < 10000000)
+Rule 36 (Shape Mismatch : all shapes tuples should not be empty)
+{shape1 : tuple(int), shape2 : tuple(int)} |= (shape1.len > 0) ∧ (shape2.len > 0)
 >>
-Rule 53 (Ensure all tensors are less than a maximum dimension.)
-{v_1 : tensor} |= ndim(v_1) < 6
+Rule 37 (Assert False : when any of the shapes tuple is an empty tuple)
+{shape1 : tuple(int)} |= shape1.len > 0
 >>
-Rule 54 (Ensure broadcasting is possible by either equal dimensions, or one is 1.)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : if ndim(v_1) - i - 1 < 0 then true else if ndim(v_2) - i - 1 < 0 then true else (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1)
+Rule 38 (Trying to create tensor with negative dimension: No dimension should be negative or too large, shapes can broadcast iff one contains 1 at the incompatible dimension)
+{shape1 : tuple(int), shape2 : tuple(int)} |= (∀i ∈ [0, shape1.len - 1] : (shape1[i] ≥ 0) ∧ (shape1[i] < 1000)) ∧ (∀i ∈ [0, shape2.len - 1] : (shape2[i] ≥ 0) ∧ (shape2[i] < 1000)) ∧ if shape1.len < shape2.len then ∀i ∈ [0, shape1.len -1] : (shape1[shape1.len -1 -i] = shape2[shape2.len-1-i] ∨ shape1[shape1.len -1 -i] = 1 ∨ shape2[shape2.len-1-i] = 1) else ∀i ∈ [0, shape2.len -1] : (shape1[shape1.len -1 -i] = shape2[shape2.len-1-i] ∨ shape1[shape1.len -1 -i] = 1 ∨ shape2[shape2.len-1-i] = 1)
 >>
-Rule 55 (Ensure list size are within limits)
-{v_1 : list(tensor)} |= v_1.len < 8
+Rule 39 (Shape Mismatch : when shapes have different length and can not broadcast)
+{shape1 : tuple(int), shape2 : tuple(int)} |= if shape1.len ≠ shape2.len then ∀i ∈ [0, if shape1.len < shape2.len then shape1.len else shape2.len] : (shape1[shape1.len - 1 - i] ≠ shape2[shape2.len - 1 - i] ∧ shape1[shape1.len - 1 - i] ≠ 1 ∧ shape2[shape2.len - 1 - i] ≠ 1)
 >>
-Rule 60 (The minimum dimensions should be 1 if broadcasting)
-{v_1: tensor, v_2: tensor} |= ndim(v_1) >= 1 ∧ ndim(v_2) >= 1
+Rule 40 (Shape Mismatch : when shapes have the same length, at least one dimension should match or equal to 1.)
+{shape1 : tuple(int), shape2 : tuple(int)} |= if shape1.len = shape2.len then ∃i ∈ [0, shape1.len - 1] : (shape1[i] = shape2[i] ∨ shape1[i] = 1 ∨ shape2[i] = 1)
 >>
-Rule 66 (Dimensions can not be too high or it overflows.)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 2048
+Rule 43 (Shape Mismatch : Shapes must be broadcastable, or one of them must be an empty tuple)
+{shape1 : tuple(int), shape2 : tuple(int)} |= (shape1.len = 0 ∨ shape2.len = 0) ∨ (if shape1.len < shape2.len then ∀i ∈ [0, shape1.len - 1] : (shape1[shape1.len - 1 - i] = shape2[shape2.len - 1 - i] ∨ shape1[shape1.len - 1 - i] = 1 ∨ shape2[shape2.len - 1 - i] = 1) else ∀i ∈ [0, shape2.len - 1] : (shape1[shape1.len - 1 - i] = shape2[shape2.len - 1 - i] ∨ shape1[shape1.len - 1 - i] = 1 ∨ shape2[shape2.len - 1 - i] = 1))
 >>
-Rule 68 (When list exists, check if at least one dimension is provided, also check if at least one shape is a tuple)
-{v_1 : list(tensor), v_2 : list(tuple(int))} |= v_1.len > 0 ∧ v_2.len > 0
+Rule 44 (Assert False: product of all elements should not be a very big number.)
+{shape1 : tuple(int)} |= if shape1.len = 0 then true else ∀i ∈ [0, shape1.len -1] : shape1[i] < 100
 >>
-Rule 69 (Ensure a tuple's length is within a reasonable range)
-{v_1: tuple(int)} |= v_1.len < 10
+Rule 46 (Shape Mismatch : Shapes must be broadcastable or should be 1)
+{shape1 : tuple(int), shape2 : tuple(int)} |= if shape1.len < shape2.len then ∀i ∈ [0, shape1.len - 1] : (shape1[shape1.len - 1 - i] = shape2[shape2.len - 1 - i] ∨ shape1[shape1.len - 1 - i] = 1 ∨ shape2[shape2.len - 1 - i] = 1) else if shape2.len < shape1.len then ∀i ∈ [0, shape2.len - 1] : (shape1[shape1.len - 1 - i] = shape2[shape2.len - 1 - i] ∨ shape1[shape1.len - 1 - i] = 1 ∨ shape2[shape2.len - 1 - i] = 1) else ∀i ∈ [0, shape1.len - 1] : (shape1[i] = shape2[i] ∨ shape1[i] = 1 ∨ shape2[i] = 1)
 >>
-Rule 70 (if there's more than one tensor, at least one of them shouldn't have zero dimensions)
-{v_1: tensor, v_2: tensor} |= (ndim(v_1) > 0) ∨ (ndim(v_2) > 0)
+Rule 47 (Assert False: None of the dimensions can be very huge number, for computational efficiency)
+{shape1 : tuple(int)} |= ∀i ∈ [0, shape1.len - 1] : shape1[i] < 1000
 >>
-Rule 72 (If shape is 1 make sure there are not negative numbers.)
-{v_1 : tensor} |= if shape(v_1, 0) = 1 then min(v_1) >= 0
+Rule 48 (Trying to create tensor with negative dimension: Check all dimensions are valid range)
+{shape1 : tuple(int), shape2 : tuple(int)} |= (∀i ∈ [0, shape1.len - 1] : shape1[i] ≥ -1000 ∧ shape1[i] < 1000) ∧ (∀i ∈ [0, shape2.len - 1] : shape2[i] ≥ -1000 ∧ shape2[i] < 1000)
 >>
-Rule 75 (All dimensions need to be smaller than a limit to avoid overflow)
-{v_1: tensor} |=  ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 2048
+Rule 49 (Shape Mismatch : If one dim is present and the other is absent, the present dim must be 1)
+{shape1 : tuple(int), shape2 : tuple(int)} |= if shape1.len > shape2.len then ∀i ∈ [0, shape2.len - 1] : (shape1[shape1.len - 1 - i] = shape2[shape2.len - 1 - i] ∨ shape2[shape2.len - 1 - i] = 1) else if shape2.len > shape1.len then ∀i ∈ [0, shape1.len - 1] : (shape1[shape1.len - 1 - i] = shape2[shape2.len - 1 - i] ∨ shape1[shape1.len - 1 - i] = 1)
 >>
-Rule 78 (The product of a shape's dimensions must be less than a maximum to prevent overflow.)
-{v_1 : tensor} |= (ndim(v_1) = 0) ∨ (shape(v_1, 0) * shape(v_1, 0) < 10000)
+Rule 50 (Assert False : If number of elements is greater than certain threshold, give error)
+{shape1 : tuple(int)} |= shape1.len < 50
 >>
-Rule 79 (If two tensors exist, ensure that their dtypes are compatible.)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = dtype_(v_2))
+Rule 51 (Trying to create tensor with negative dimension : prevent integer overflow or underflow by bounding dimensions)
+{shape1 : tuple(int), shape2 : tuple(int)} |= (∀i ∈ [0, shape1.len - 1] : shape1[i] > -1000 ∧ shape1[i] < 1000) ∧ (∀i ∈ [0, shape2.len - 1] : shape2[i] > -1000 ∧ shape2[i] < 1000)
 >>
-Rule 80 (The number of dimensions should not be negative)
-{v_1: tensor} |= ndim(v_1) ≥ 0
+Rule 53 (Assert False : Shape length difference and has 0, which can't be broadcasted, so give error)
+{shape1 : tuple(int), shape2 : tuple(int)} |= if shape1.len ≠ shape2.len then (∃i ∈ [0, shape1.len - 1] : shape1[i] = 0) ∨ (∃i ∈ [0, shape2.len - 1] : shape2[i] = 0)
 >>
-Rule 81 (List can not have more than 7 tensors)
-{v_1 : list(tensor)} |= v_1.len < 7
+Rule 54 (Trying to create tensor with negative dimension : shape1 should only contain positive dimensions when its length > 0)
+{shape1 : tuple(int)} |= if shape1.len > 0 then ∀i ∈ [0, shape1.len - 1] : shape1[i] ≥ 0
 >>
-Rule 82 (Dimension has to be smaller than 10)
-{v_1 : tensor} |= ndim(v_1) < 10
+Rule 55 (Shape Mismatch : Shapes should have the same length or can broadcast if the shorter one is 1.)
+{shape1 : tuple(int), shape2 : tuple(int)} |= if shape1.len = shape2.len then ∀i ∈ [0, shape1.len - 1] : (shape1[i] = shape2[i] ∨ shape1[i] = 1 ∨ shape2[i] = 1)
 >>
-Rule 83 (The numbers need to be postive.)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 56 (Assert False : When shapes has value, it should have appropriate dimensions)
+{shape1 : tuple(int)} |= if shape1.len > 0 then ∀i ∈ [0, shape1.len-1] : (shape1[i] < 1000 ∧ shape1[i] > -1000)
 >>
-Rule 84 (Tuple can not have more than 9 elements.)
-{v_1 : tuple(int)} |= v_1.len < 9
+Rule 57 (Trying to create tensor with negative dimension : if shape lengths are different and broadcasting is impossible, trigger the error)
+{shape1 : tuple(int), shape2 : tuple(int)} |= if shape1.len ≠ shape2.len then (∀i ∈ [0, if shape1.len < shape2.len then shape1.len else shape2.len] : shape1[shape1.len -1 - i] ≠ shape2[shape2.len -1 - i] ∧ shape1[shape1.len -1 -i] ≠ 1 ∧ shape2[shape2.len -1 - i] ≠ 1)
 >>
-Rule 88 (First tensor dtype can only be integer or floating)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 58 (Shape Mismatch : Shapes with lengths > 0 must have the same dimensions or have one shape to be 1)
+{shape1 : tuple(int), shape2 : tuple(int)} |= if shape1.len > 0 ∧ shape2.len > 0 then if shape1.len = shape2.len then ∀i ∈ [0, shape1.len - 1] : (shape1[i] = shape2[i] ∨ shape1[i] = 1 ∨ shape2[i] = 1)
 >>
-Rule 89 (There should not be a tensor with more than 6 dimensions.)
-{v_1: tensor} |= ndim(v_1) ≤ 6
+Rule 59 (Assert False : Prevent dimensions from being zero when at least one dimension is specified)
+{shape1 : tuple(int)} |= if shape1.len > 0 then ∀i ∈ [0, shape1.len - 1] : shape1[i] ≠ 0
 >>
-Rule 90 (The first shape dimension should be a positive number.)
-{v_1: tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) > 0
+Rule 60 (Trying to create tensor with negative dimension : Prevent large value or zero dimensions)
+{shape1 : tuple(int), shape2 : tuple(int)} |= (∀i ∈ [0, shape1.len - 1] : (shape1[i] > 0 ∧ shape1[i] < 1000)) ∧ (∀i ∈ [0, shape2.len - 1] : (shape2[i] > 0 ∧ shape2[i] < 1000))
 >>
-Rule 91 (Tuple length must be positive.)
-{v_1: tuple(int)} |= v_1.len > 0
+Rule 61 (Shape Mismatch : Broadcasting impossible if different shapes that cannot be made compatible with ones.)
+{shape1 : tuple(int), shape2 : tuple(int)} |= if shape1.len > shape2.len then ∃i ∈ [0, shape2.len - 1] : (shape1[shape1.len - 1 - i] ≠ shape2[shape2.len - 1 - i] ∧ shape1[shape1.len - 1 - i] ≠ 1 ∧ shape2[shape2.len - 1 - i] ≠ 1) else if shape2.len > shape1.len then ∃i ∈ [0, shape1.len - 1] : (shape1[shape1.len - 1 - i] ≠ shape2[shape2.len - 1 - i] ∧ shape1[shape1.len - 1 - i] ≠ 1 ∧ shape2[shape2.len - 1 - i] ≠ 1)
 >>
-Rule 96 (tensor shapes should be the same)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 63 (Trying to create tensor with negative dimension : Validate shape1 and shape2)
+{shape1 : tuple(int), shape2 : tuple(int)} |= if shape1.len > 0 then ∀i ∈ [0, shape1.len - 1] : shape1[i] > 0 ∧ if shape2.len > 0 then ∀i ∈ [0, shape2.len - 1] : shape2[i] > 0
 >>
-Rule 97 (v_2 should be a valid dimension of input tensor)
-{v_1 : tensor, v_2 : int} |= -1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) - 1
+Rule 64 (Shape Mismatch : If shape lengths are not same, check the shorter tuple is either 1 or same with elements of longer tuple in broadcasting)
+{shape1 : tuple(int), shape2 : tuple(int)} |= if shape1.len < shape2.len then ∀i ∈ [0, shape1.len - 1] : (shape1[shape1.len - 1 - i] = shape2[shape2.len - 1 - i] ∨ shape1[shape1.len - 1 - i] = 1) else if shape2.len < shape1.len then ∀i ∈ [0, shape2.len - 1] : (shape1[shape1.len - 1 - i] = shape2[shape2.len - 1 - i] ∨ shape2[shape2.len - 1 - i] = 1)
 >>
-Rule 98 (input tensors must have the same number of dimensions)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Rule 65 (Assert False : Check for extremely large shape for dimensions, must be lower than some limit)
+{shape1 : tuple(int)} |= shape1.len < 100
 >>
-Rule 99 (primitive type variable must be non-negative)
-{v_1 : int ⊎ float} |= v_1 ≥ 0
+Rule 68 (Assert False : A general check of the size of shapes, prevent shapes from getting too huge for computational cost.)
+{shape1 : tuple(int)} |= if shape1.len > 0 then shape1.len < 100
 >>
-Rule 102 (If any of the tensors has a value of NaN should fail.)
-{v_1 : tensor} |= min(v_1) ≠ "nan" ∧ max(v_1) ≠ "nan"
+Rule 69 (Trying to create tensor with negative dimension : all dimensions need to be larger than 0 when shape has value)
+{shape1 : tuple(int), shape2 : tuple(int)} |= (if shape1.len > 0 then ∀i ∈ [0, shape1.len - 1] : shape1[i] > 0) ∧ (if shape2.len > 0 then ∀i ∈ [0, shape2.len - 1] : shape2[i] > 0)
 >>
-Rule 103 (All tensors on the list has to be real values.)
-{v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+Rule 70 (Shape Mismatch : prevent non-broadcastable cases)
+{shape1 : tuple(int), shape2 : tuple(int)} |= if shape1.len > shape2.len then ∃i ∈ [0, shape2.len - 1] : (shape1[shape1.len - 1 - i] = shape2[shape2.len - 1 - i] ∨ shape1[shape1.len - 1 - i] = 1 ∨ shape2[shape2.len - 1 - i] = 1) else if shape2.len > shape1.len then ∃i ∈ [0, shape1.len - 1] : (shape1[shape1.len - 1 - i] = shape2[shape2.len - 1 - i] ∨ shape1[shape1.len - 1 - i] = 1 ∨ shape2[shape2.len - 1 - i] = 1) else ∀i ∈ [0, shape1.len - 1] : (shape1[i] = shape2[i] ∨ shape1[i] = 1 ∨ shape2[i] = 1)
 >>
-Rule 105 (v_2 should be a bool)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 71 (Assert False : All of dimensions should be equal, otherwise error is thrown, but allow one-dimensional tensors.)
+{shape1 : tuple(int)} |= (shape1.len = 1) ∨ (∀i ∈ [1, shape1.len -1] : shape1[0] = shape1[i])
 >>
-Rule 108 (Tuple length can not be negative.)
-{v_1 : tuple(int)} |= v_1.len ≥ 0
+Rule 72 (Trying to create tensor with negative dimension : All dimensions should be within valid range)
+{shape1 : tuple(int), shape2 : tuple(int)} |= (∀i ∈ [0, shape1.len - 1] : shape1[i] > -5000 ∧ shape1[i] < 5000) ∧ (∀i ∈ [0, shape2.len - 1] : shape2[i] > -5000 ∧ shape2[i] < 5000)
 >>
-Rule 109 (A floating point number cannot be greater than 10000.)
-{v_1 : float} |= v_1 ≤ 10000
+Rule 73 (Shape Mismatch: Shape length difference and not containing 1 in shorter tuple)
+{shape1 : tuple(int), shape2 : tuple(int)} |= if shape1.len < shape2.len then ∃i ∈ [0, shape1.len - 1] : (shape1[shape1.len - 1 - i] ≠ shape2[shape2.len - 1 - i] ∧ shape1[shape1.len - 1 - i] ≠ 1) else if shape2.len < shape1.len then ∃i ∈ [0, shape2.len - 1] : (shape1[shape1.len - 1 - i] ≠ shape2[shape2.len - 1 - i] ∧ shape2[shape2.len - 1 - i] ≠ 1)
 >>
-Rule 110 (The maximum number of shapes to be broadcasted should not be more than 4.)
-{v_1 : list(tensor)} |= v_1.len ≤ 4
+Rule 74 (Assert False: When the shape length is significantly different or larger, raise error)
+{shape1 : tuple(int), shape2 : tuple(int)} |= if shape1.len > 20 ∨ shape2.len > 20 then false
+>>
+Rule 75 (Trying to create tensor with negative dimension : Dimensions should be larger than negative limit, prevent dimensions from becoming too small)
+{shape1 : tuple(int), shape2 : tuple(int)} |= (∀i ∈ [0, shape1.len - 1] : shape1[i] > -2000 ∧ shape1[i] < 5000) ∧ (∀i ∈ [0, shape2.len - 1] : shape2[i] > -2000 ∧ shape2[i] < 5000)
+>>
+Rule 76 (Shape Mismatch : At least one value in each shape should be 1 to allow broadcasting)
+{shape1 : tuple(int), shape2 : tuple(int)} |= (∃i ∈ [0, shape1.len - 1] : shape1[i] = 1) ∨ (∃i ∈ [0, shape2.len - 1] : shape2[i] = 1)
+>>
+Rule 78 (Trying to create tensor with negative dimension : Shape elements can not be too negative to avoid memory issues)
+{shape1 : tuple(int), shape2 : tuple(int)} |= (∀i ∈ [0, shape1.len - 1] : shape1[i] > -10000 ∧ shape1[i] < 5000) ∧ (∀i ∈ [0, shape2.len - 1] : shape2[i] > -10000 ∧ shape2[i] < 5000)
+>>
+Rule 79 (Shape Mismatch: Shapes can not broadcast if there exist some unmatched dimension that isn't 1.)
+{shape1 : tuple(int), shape2 : tuple(int)} |= (∀i ∈ [0, if shape1.len < shape2.len then shape1.len else shape2.len] : (shape1[shape1.len - 1 - i] = shape2[shape2.len - 1 - i] ∨ shape1[shape1.len - 1 - i] = 1 ∨ shape2[shape2.len - 1 - i] = 1)) ∨ (shape1.len = 0 ∨ shape2.len = 0)
+>>
+Rule 80 (Assert False: Validate no dimension exceeds reasonable bounds to avoid integer overflow or other issues, specifically, can not contain large dimension numbers that potentially trigger C++ level exception)
+{shape1 : tuple(int)} |= (∀i ∈ [0, shape1.len - 1] : shape1[i] < 100000)
+>>
+Rule 81 (Trying to create tensor with negative dimension : Shape values all should be valid for memory allocation, large, negative and zero numbers to be rejected to prevent crash)
+{shape1 : tuple(int), shape2 : tuple(int)} |= (∀i ∈ [0, shape1.len - 1] : (shape1[i] > -10000 ∧ shape1[i] < 5000) ∧ shape1[i] ≠ 0) ∧ (∀i ∈ [0, shape2.len - 1] : (shape2[i] > -10000 ∧ shape2[i] < 5000) ∧ shape2[i] ≠ 0)
+>>
+Rule 83 (Assert False: Prevent the shape from getting very large by limiting the maximum dimension allowed.)
+{shape1 : tuple(int)} |= if shape1.len > 0 then ∀i ∈ [0, shape1.len - 1] : shape1[i] < 200000
+>>
+Rule 85 (Shape Mismatch : Shapes must be identical length or be different lengths but allow for broadcasting)
+{shape1 : tuple(int), shape2 : tuple(int)} |= if shape1.len = shape2.len then true else if shape1.len < shape2.len then ∀i ∈ [0, shape1.len - 1] : (shape1[shape1.len - 1 - i] = shape2[shape2.len - 1 - i] ∨ shape1[shape1.len - 1 - i] = 1 ∨ shape2[shape2.len - 1 - i] = 1) else ∀i ∈ [0, shape2.len - 1] : (shape1[shape1.len - 1 - i] = shape2[shape2.len - 1 - i] ∨ shape1[shape1.len - 1 - i] = 1 ∨ shape2[shape2.len - 1 - i] = 1)
+>>
+Rule 87 (Trying to create tensor with negative dimension : should only have non-negative dimension or smaller than the limited maximum acceptable dimensions for stable memory usage)
+{shape1 : tuple(int), shape2 : tuple(int)} |= (∀i ∈ [0, shape1.len - 1] : shape1[i] ≥ 0 ∧ shape1[i] < 50000) ∧ (∀i ∈ [0, shape2.len - 1] : shape2[i] ≥ 0 ∧ shape2[i] < 50000)
+>>
+Rule 89 (Assert False : If at least one shape element is zero and lengths are different)
+{shape1 : tuple(int), shape2 : tuple(int)} |= if shape1.len ≠ shape2.len then ∃i ∈ [0, if shape1.len < shape2.len then shape1.len else shape2.len] : (shape1[shape1.len - 1 - i] = 0 ∨ shape2[shape2.len - 1 - i] = 0)

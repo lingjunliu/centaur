@@ -1,48 +1,249 @@
 >>
-Rule 1 (kernel_size must be greater than zero)
+Rule 1 (kernel_size must be a positive integer or a tuple of two positive integers)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 2 (kernel_size must be a tuple of two positive integers)
+Rule 2 (kernel_size must be a positive integer or a tuple of two positive integers)
 {v_1 : tuple(int)} |= v_1.len = 2 ∧ v_1[0] > 0 ∧ v_1[1] > 0
 >>
-Rule 5 (padding must be non-negative)
+Rule 5 (padding must be a non-negative integer or a tuple of two non-negative integers)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 6 (padding as tuple should contain non-negative values)
+Rule 6 (padding must be a non-negative integer or a tuple of two non-negative integers)
 {v_1 : tuple(int)} |= v_1.len = 2 ∧ v_1[0] ≥ 0 ∧ v_1[1] ≥ 0
 >>
-Rule 7 (divisor_override must be greater than zero)
-{v_1 : int ⊎ float} |= v_1 > 0
->>
-Rule 8 (kernel_size should not be a tuple of types other than int)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : true
->>
-Rule 9 (input tensor must be at least 3D)
-{v_1 : tensor} |= ndim(v_1) ≥ 3
->>
-Rule 10 (input tensor must be at most 4D)
-{v_1 : tensor} |= ndim(v_1) ≤ 4
->>
-Rule 13 (stride should be greater than zero - as a tuple)
-{v_1 : tuple(int)} |= v_1[0] > 0 ∧ v_1[1] > 0
->>
-Rule 17 (stride must not be zero)
-{v_1 : int} |= v_1 ≠ 0
->>
-Rule 18 (stride as tuple should not contain zero values)
-{v_1 : tuple(int)} |= v_1.len = 2 ∧ v_1[0] ≠ 0 ∧ v_1[1] ≠ 0
->>
-Rule 20 (input tensor must be 3D or 4D)
+Rule 8 (input tensor must have 3 or 4 dimensions)
 {v_1 : tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4
 >>
-Rule 21 (divisor_override must be non-zero)
-{v_1 : int ⊎ float} |= v_1 ≠ 0
+Rule 9 (ceil_mode must be a boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 58 (kernel_size as tuple must have length 2)
+Rule 11 (pad should be at most half of effective kernel size, integer case)
+{v_1 : int, v_2 : int} |= v_1 ≤ v_2 / 2
+>>
+Rule 12 (pad should be at most half of effective kernel size, tuple case)
+{v_1 : tuple(int), v_2 : tuple(int)} |= v_1[0] ≤ v_2[0] / 2 ∧ v_1[1] ≤ v_2[1] / 2
+>>
+Rule 13 (stride should not be zero, integer case)
+{v_1 : int} |= v_1 ≠ 0
+>>
+Rule 14 (stride should not be zero, tuple case)
+{v_1 : tuple(int)} |= v_1[0] ≠ 0 ∧ v_1[1] ≠ 0
+>>
+Rule 19 (Check for minimum tensor dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 3
+>>
+Rule 20 (If padding is a tuple, ensure it has length 2)
 {v_1 : tuple(int)} |= v_1.len = 2
 >>
-Rule 81 (Prevent IndexError: dimension out of range using min ndim as 3)
+Rule 23 (kernel_size cannot be zero in tuple)
+{v_1 : tuple(int)} |= v_1[0] > 0 ∧ v_1[1] > 0
+>>
+Rule 27 (Input tensor has 3 or 4 dimensions with positive shape)
+{v_1 : tensor} |= (ndim(v_1) = 3 ∨ ndim(v_1) = 4) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 32 (Ensure kernel_size is smaller than input dimensions when kernel_size is integer)
+{v_1 : int, v_2 : tensor} |= v_1 ≤ shape(v_2, ndim(v_2) - 1) ∧ v_1 ≤ shape(v_2, ndim(v_2) - 2)
+>>
+Rule 33 (Ensure kernel_size is smaller than input dimensions when kernel_size is tuple)
+{v_1 : tuple(int), v_2 : tensor} |= v_1[0] ≤ shape(v_2, ndim(v_2) - 2) ∧ v_1[1] ≤ shape(v_2, ndim(v_2) - 1)
+>>
+Rule 36 (divisor_override should not be negative)
+{v_1: int} |= v_1 >= 0
+>>
+Rule 37 (kernel_size and stride are equal when stride is None, but it's not None in API)
+{v_1 : int, v_2 : int} |= v_1 = v_2
+>>
+Rule 38 (kernel_size and stride are equal when stride is None, but it's not None in API)
+{v_1 : tuple(int), v_2 : tuple(int)} |= v_1[0] = v_2[0] ∧ v_1[1] = v_2[1]
+>>
+Rule 39 (padding should be smaller than input H and W dimensions when it's an integer)
+{v_1 : int, v_2 : tensor} |= v_1 < shape(v_2, ndim(v_2) - 2) ∧ v_1 < shape(v_2, ndim(v_2) - 1)
+>>
+Rule 40 (padding should be smaller than input H and W dimensions when it's a tuple)
+{v_1 : tuple(int), v_2 : tensor} |= v_1[0] < shape(v_2, ndim(v_2) - 2) ∧ v_1[1] < shape(v_2, ndim(v_2) - 1)
+>>
+Rule 46 (Input tensor dimension check for 3D tensors)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1,0) > 0 ∧ shape(v_1,1) > 0 ∧ shape(v_1,2) > 0
+>>
+Rule 47 (Input tensor dimension check for 4D tensors)
+{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1,0) > 0 ∧ shape(v_1,1) > 0 ∧ shape(v_1,2) > 0 ∧ shape(v_1,3) > 0
+>>
+Rule 48 (Padding values should be less than kernel sizes.)
+{v_1: int, v_2: int} |= v_1 < v_2
+>>
+Rule 49 (Padding values should be less than kernel sizes.)
+{v_1: tuple(int), v_2: tuple(int)} |= v_1[0] < v_2[0] ∧ v_1[1] < v_2[1]
+>>
+Rule 60 (when padding is a tuple, each element must be non-negative)
+{v_1 : tuple(int)} |= v_1[0] ≥ 0 ∧ v_1[1] ≥ 0
+>>
+Rule 61 (the input tensor should not be empty, all dimension sizes must be positive)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 62 (kernel_size must be smaller than corresponding input dimension, integer case)
+{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1)-2) > v_2 ∧ shape(v_1, ndim(v_1)-1) > v_2
+>>
+Rule 63 (kernel_size must be smaller than corresponding input dimension, tuple case)
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_1, ndim(v_1)-2) > v_2[0] ∧ shape(v_1, ndim(v_1)-1) > v_2[1]
+>>
+Rule 73 (kernel_size should be smaller than the input tensor dimensions, checking the difference of the padding)
+{v_1 : tensor, v_2: int, v_3: int} |= shape(v_1,ndim(v_1)-2) + 2*v_3 >= v_2 ∧ shape(v_1,ndim(v_1)-1) + 2*v_3 >= v_2
+>>
+Rule 74 (kernel_size tuple should be smaller than the input tensor dimensions, checking the difference of the padding)
+{v_1 : tensor, v_2: tuple(int), v_3: tuple(int)} |= shape(v_1,ndim(v_1)-2) + 2*v_3[0] >= v_2[0] ∧ shape(v_1,ndim(v_1)-1) + 2*v_3[1] >= v_2[1]
+>>
+Rule 78 (If padding is integer, then value should be less than half of kernel size - handles kernel_size being an integer.)
+{v_1 : int, v_2 : int} |= v_1 <= (v_2 / 2)
+>>
+Rule 79 (If padding is tuple, then each value should be less than half of kernel size, handles kernel_size being a tuple.)
+{v_1 : tuple(int), v_2 : tuple(int)} |= v_1[0] <= (v_2[0] / 2) ∧ v_1[1] <= (v_2[1] / 2)
+>>
+Rule 81 (check tensor dimension range)
+{v_1: tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4
+>>
+Rule 82 (Check that tensor dimension value should be larger than zero.)
+{v_1: tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+>>
+Rule 83 (When the input tensor is 4D, check dimension value.)
+{v_1: tensor} |= if ndim(v_1) = 4 then shape(v_1, 3) > 0
+>>
+Rule 85 (Padding value range when kernel size is a tuple value)
+{v_1: tuple(int)} |= v_1[0] >= 0 ∧ v_1[1] >= 0
+>>
+Rule 90 (kernel_size[0] can not exceed the image height. kernel_size is tuple, input is tensor)
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_1, ndim(v_1) - 2) ≥ v_2[0]
+>>
+Rule 91 (kernel_size[1] can not exceed the image width. kernel_size is tuple, input is tensor)
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_1, ndim(v_1) - 1) ≥ v_2[1]
+>>
+Rule 92 (kernel_size can not exceed the image height. kernel_size is int, input is tensor)
+{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 2) ≥ v_2
+>>
+Rule 93 (kernel_size can not exceed the image width. kernel_size is int, input is tensor)
+{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 1) ≥ v_2
+>>
+Rule 96 (stride[0] should not be zero when stride is tuple, handles tuple case)
+{v_1 : tuple(int)} |= v_1[0] ≠ 0
+>>
+Rule 97 (stride[1] should not be zero when stride is tuple, handles tuple case)
+{v_1 : tuple(int)} |= v_1[1] ≠ 0
+>>
+Rule 100 (kernel_size[0] should be positive when kernel_size is tuple, handles tuple case)
+{v_1 : tuple(int)} |= v_1[0] > 0
+>>
+Rule 101 (kernel_size[1] should be positive when kernel_size is tuple, handles tuple case)
+{v_1 : tuple(int)} |= v_1[1] > 0
+>>
+Rule 102 (Check tensor shape for negative or zero values, handle Runtime Error)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 103 (Check ndim to comply with IndexError message)
+{v_1: tensor} |= ndim(v_1) >= 1
+>>
+Rule 104 (padding[0] is at most half of kernel_size[0], handle tuple and padding related error)
+{v_1 : tuple(int), v_2 : tuple(int)} |= v_1[0] <= (v_2[0] / 2)
+>>
+Rule 105 (padding[1] is at most half of kernel_size[1], handle tuple and padding related error)
+{v_1 : tuple(int), v_2 : tuple(int)} |= v_1[1] <= (v_2[1] / 2)
+>>
+Rule 106 (kernel_size is valid when it's an integer)
+{v_1 : tensor, v_2 : int} |= v_2 > 0 ∧ shape(v_1, ndim(v_1) - 2) ≥ v_2 ∧ shape(v_1, ndim(v_1) - 1) ≥ v_2
+>>
+Rule 107 (kernel_size is valid when it's a tuple)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2[0] > 0 ∧ v_2[1] > 0 ∧ shape(v_1, ndim(v_1) - 2) ≥ v_2[0] ∧ shape(v_1, ndim(v_1) - 1) ≥ v_2[1]
+>>
+Rule 113 (kernel_size needs to be positive)
+{v_1: int} |= v_1 > 0
+>>
+Rule 114 (kernel_size[0] needs to be positive)
+{v_1: tuple(int)} |= v_1[0] > 0 ∧ v_1[1] > 0
+>>
+Rule 115 (Check relation between kernel_size and padding to solve the specific error, Integer Version)
+{v_1: int, v_2: int} |= v_2 >= 0 ∧ v_2 <= (v_1 / 2)
+>>
+Rule 116 (Check relation between kernel_size and padding to solve the specific error, Tuple Version)
+{v_1: tuple(int), v_2: tuple(int)} |= v_1[0] >= 0 ∧ v_1[0] <= (v_2[0] / 2) ∧ v_1[1] >= 0 ∧ v_1[1] <= (v_2[1] / 2)
+>>
+Rule 117 (padding integer value is at most half of kernel size integer value)
+{v_1 : int, v_2 : int} |= v_1 ≤ (v_2 / 2)
+>>
+Rule 125 (padding values should be less than half of kernel size values, tuple)
+{v_1 : tuple(int), v_2: tuple(int)} |= v_1[0] <= (v_2[0] / 2) ∧ v_1[1] <= (v_2[1] / 2)
+>>
+Rule 126 (Check relation between kernel_size and input shape to prevent errors. int case)
+{v_1: tensor, v_2: int} |= shape(v_1, ndim(v_1) - 2) >= v_2 ∧ shape(v_1, ndim(v_1) - 1) >= v_2
+>>
+Rule 128 (check kernel_size is valid or not, int version)
+{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) >= v_2 ∧ shape(v_1, ndim(v_1) - 1) >= v_2
+>>
+Rule 129 (check kernel_size is valid or not, tuple version)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2[0] > 0 ∧ v_2[1] > 0 ∧ shape(v_1, ndim(v_1) - 2) >= v_2[0] ∧ shape(v_1, ndim(v_1) - 1) >= v_2[1]
+>>
+Rule 136 (ensure padding is within the limit)
+{v_1: int, v_2: int} |= v_2 >= 0 ∧ v_2 <= (v_1/2)
+>>
+Rule 137 (Check tensor shape values are positive when dimensions are 3 or 4)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 else if ndim(v_1) = 4 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 else false
+>>
+Rule 138 (To avoid stride-related errors, stride values have to be less than the image size, integer version)
+{v_1 : tensor, v_2: int} |= shape(v_1, ndim(v_1) - 2) >= v_2 ∧ shape(v_1, ndim(v_1) - 1) >= v_2
+>>
+Rule 139 (To avoid stride-related errors, stride values have to be less than the image size, tuple version)
+{v_1 : tensor, v_2: tuple(int)} |= shape(v_1, ndim(v_1) - 2) >= v_2[0] ∧ shape(v_1, ndim(v_1) - 1) >= v_2[1]
+>>
+Rule 146 (Check if the input tensor has the right dimensions.)
 {v_1: tensor} |= ndim(v_1) >= 3
 >>
-Rule 98 (kernel_size and stride must have the same length if both are tuples )
-{v_1: tuple(int), v_2: tuple(int)} |= v_1.len = v_2.len
+Rule 152 (Handle the case for when Padding Value is not valid in comparsion to kernel size - Integer Values)
+{v_1: int, v_2: int} |= v_1 <= (v_2/2) ∧ v_1 >= 0
+>>
+Rule 153 (Handle the case for when Padding Value is not valid in comparsion to kernel size - Tuple Values)
+{v_1: tuple(int), v_2: tuple(int)} |= v_1[0] <= (v_2[0]/2) ∧ v_1[1] <= (v_2[1]/2) ∧ v_1[0] >= 0 ∧ v_1[1] >= 0
+>>
+Rule 156 (Handling the shape values when invalid for tensor input, integer case, needs to be less than input)
+{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 2) >= v_2 ∧ shape(v_1, ndim(v_1) - 1) >= v_2
+>>
+Rule 157 (Handing shape, kernel_size and padding to prevent Runtime Error, integer values)
+{v_1: tensor, v_2: int, v_3: int} |= shape(v_1, ndim(v_1) - 2) + 2 * v_3 >= v_2 ∧ shape(v_1, ndim(v_1) - 1) + 2 * v_3 >= v_2 ∧ v_2>0 ∧ v_3 >= 0
+>>
+Rule 158 (Handling shape, kernel_size and padding to prevent Runtime Error, tuple values)
+{v_1: tensor, v_2: tuple(int), v_3: tuple(int)} |= shape(v_1, ndim(v_1) - 2) + 2 * v_3[0] >= v_2[0] ∧ shape(v_1, ndim(v_1) - 1) + 2 * v_3[1] >= v_2[1] ∧ v_2[0]>0 ∧ v_2[1]>0 ∧ v_3[0] >= 0 ∧ v_3[1] >= 0
+>>
+Rule 159 (To ensure tensor dimensions are at least 3)
+{v_1 : tensor} |= ndim(v_1) >= 3
+>>
+Rule 160 (padding value is half the effective kernel size or less)
+{v_1: int, v_2: int} |= v_1 >= 0 ∧ v_1 <= v_2 / 2
+>>
+Rule 161 (tuple, padding value is half the effective kernel size or less)
+{v_1: tuple(int), v_2: tuple(int)} |= v_1[0] >= 0 ∧ v_1[1] >= 0 ∧ v_1[0] <= v_2[0] / 2 ∧ v_1[1] <= v_2[1] / 2
+>>
+Rule 168 (If the input is a 3D tensor, check its dimensions are greater than zero)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+>>
+Rule 169 (If the input is a 4D tensor, check its dimensions are greater than zero)
+{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+>>
+Rule 170 (Padding Value must be in certain relation with kernel size - Integer Values)
+{v_1: int, v_2: int} |= v_1 >= 0 ∧ v_1 <= (v_2/2)
+>>
+Rule 171 (Padding Value must be in certain relation with kernel size - Tuple Values)
+{v_1: tuple(int), v_2: tuple(int)} |= v_1[0] >= 0 ∧ v_1[0] <= (v_2[0]/2) ∧ v_1[1] >= 0 ∧ v_1[1] <= (v_2[1]/2)
+>>
+Rule 172 (Ensure the dimensions of the kernel are less than or equal to the dimensions of the input, integer case)
+{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 2) ≥ v_2 ∧ shape(v_1, ndim(v_1) - 1) ≥ v_2
+>>
+Rule 173 (Ensure the dimensions of the kernel are less than or equal to the dimensions of the input, tuple case)
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_1, ndim(v_1) - 2) ≥ v_2[0] ∧ shape(v_1, ndim(v_1) - 1) ≥ v_2[1]
+>>
+Rule 180 (kernel tuple can not exceed input sizes)
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_1, ndim(v_1) - 2) >= v_2[0] ∧ shape(v_1, ndim(v_1) - 1) >= v_2[1]
+>>
+Rule 183 (Check tensor shape values are positive when dimensions are 3 or 4)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 else if ndim(v_1) = 4 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+>>
+Rule 184 (Handling stride for 2D, handles Tuple Version)
+{v_1 : tuple(int), v_2: tensor} |= shape(v_2,ndim(v_2)-2) > v_1[0] ∧ shape(v_2,ndim(v_2)-1) > v_1[1]
+>>
+Rule 185 (Handling stride for 2D, Integer version.)
+{v_1 : int, v_2: tensor} |= shape(v_2,ndim(v_2)-2) > v_1 ∧ shape(v_2,ndim(v_2)-1) > v_1

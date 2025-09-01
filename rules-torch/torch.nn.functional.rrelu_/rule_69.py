@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If Training is enabled, then upper bound must be greater than min tensor value and lower bound must be less than max tensor value (Rule 69)
+# If the input tensor's dtype is float16 and training is false, then lower is anything (Rule 69)
 
 rule_69 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg3_value"] == True, And(v["arg2_value"] > Select(v["arg1_range"], 0), v["arg2_value"] < Select(v["arg1_range"], 1)), False)) if n else
-          If(v["arg3_value"] == True, And(v["arg2_value"] > Select(v["arg1_range"], 0), v["arg2_value"] < Select(v["arg1_range"], 1)), False))
+    s.add(Not(If(And(v["arg1_dtype"] == 6, v["arg2_value"] == False), True, v["arg3_value"] > -1.0 / 0.0)) if n else
+          If(And(v["arg1_dtype"] == 6, v["arg2_value"] == False), True, v["arg3_value"] > -1.0 / 0.0))
 )
 
 def rule_69_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -21,27 +21,26 @@ def rule_69_func(arg1, arg2, arg3, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, (float, np.floating)):
+        if not isinstance(arg2, bool):
             return False
-        if not isinstance(arg3, bool):
+        if not isinstance(arg3, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_value = Real('arg2_value')
-        arg3_value = Bool('arg3_value')
+        arg1_dtype = Int('arg1_dtype')
+        arg2_value = Bool('arg2_value')
+        arg3_value = Real('arg3_value')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         solver.add(arg2_value == arg2)
         solver.add(arg3_value == arg3)
 
         # Constraints for rule 69
-        rule_69(solver, {'arg1_range': arg1_range, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
+        rule_69(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_69(solver, {'arg1_range': arg1['range'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)
+        rule_69(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)

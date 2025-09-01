@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The return value of the API indicates whether deterministic algorithms are enabled (Rule 19)
+# Always true for a float (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, True, False)) if n else
-          If(v["arg1_value"] == True, True, False))
+    s.add(Not(v["arg1_value"] == v["arg1_value"]) if n else
+          v["arg1_value"] == v["arg1_value"])
 )
 
 def rule_19_func(arg1, solver=None, neg=False):
@@ -17,12 +17,12 @@ def rule_19_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not isinstance(arg1, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
+        arg1_value = Real('arg1_value')
 
         # Value assignments
         solver.add(arg1_value == arg1)

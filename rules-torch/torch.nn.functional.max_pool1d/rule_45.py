@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If pad is larger than half of the effective kernel size it will return an error, requires dilation, kernel size, and padding (Rule 45)
+# Padding should be at most half of effective kernel size (Rule 45)
 
 rule_45 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] <= (v["arg2_value"] + (v["arg3_value"] - 1)) / 2) if n else
-          v["arg1_value"] <= (v["arg2_value"] + (v["arg3_value"] - 1)) / 2)
+    s.add(Not(v["arg1_value"] <= (v["arg2_value"] + (v["arg2_value"] - 1) * (v["arg3_value"] - 1)) / 2) if n else
+          v["arg1_value"] <= (v["arg2_value"] + (v["arg2_value"] - 1) * (v["arg3_value"] - 1)) / 2)
 )
 
 def rule_45_func(arg1, arg2, arg3, solver=None, neg=False):

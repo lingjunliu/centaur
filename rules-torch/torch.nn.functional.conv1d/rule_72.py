@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check if the number of input channels is non-negative (Rule 72)
+# Check that weight's in_channels and out_channels are greater than zero. (Rule 72)
 
 rule_72 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 1) >= 0) if n else
-          Select(v["arg1_shape"], 1) >= 0)
+    s.add(Not(And((Select(v["arg1_shape"], 0) > 0), (Select(v["arg1_shape"], 1) > 0))) if n else
+          And((Select(v["arg1_shape"], 0) > 0), (Select(v["arg1_shape"], 1) > 0)))
 )
 
 def rule_72_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the 'out' tensor has a lower floating point precision than the input, the results of arctanh may be truncated. Prevent this cast. (Rule 17)
+# Out tensor must have a compatible dtype with Float, if input is float (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 7, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 8, v["arg2_dtype"] >= 8, If(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9, If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, False))))) if n else
-          If(v["arg1_dtype"] == 7, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 8, v["arg2_dtype"] >= 8, If(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9, If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, False)))))
+    s.add(Not(If(v["arg1_dtype"] < 9, v["arg2_dtype"] >= 7, True)) if n else
+          If(v["arg1_dtype"] < 9, v["arg2_dtype"] >= 7, True))
 )
 
 def rule_17_func(arg1, arg2, solver=None, neg=False):

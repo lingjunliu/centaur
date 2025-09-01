@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If a list, length must be less than some max length (Rule 18)
+# The tensor's elements should have a reasonable range (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_length"] < 1000) if n else
-          v["arg1_length"] < 1000)
+    s.add(Not(And(Select(v["arg1_range"], 0) > -10000, Select(v["arg1_range"], 1) < 10000)) if n else
+          And(Select(v["arg1_range"], 0) > -10000, Select(v["arg1_range"], 1) < 10000))
 )
 
 def rule_18_func(arg1, solver=None, neg=False):
@@ -17,20 +17,21 @@ def rule_18_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 18
-        rule_18(solver, {'arg1_length': arg1_length})
+        rule_18(solver, {'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_18(solver, {'arg1_length': arg1['length']}, neg)
+        rule_18(solver, {'arg1_range': arg1['range']}, neg)

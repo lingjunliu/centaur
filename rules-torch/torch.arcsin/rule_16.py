@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the input tensor's dtype is bool, the output dtype must be at least float32 (Rule 16)
+# The input tensor cannot be boolean if the output tensor is Short (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 0, v["arg2_dtype"] >= 7, False)) if n else
-          If(v["arg1_dtype"] == 0, v["arg2_dtype"] >= 7, False))
+    s.add(Not(If(v["arg2_dtype"] == 2, v["arg1_dtype"] != 0, True)) if n else
+          If(v["arg2_dtype"] == 2, v["arg1_dtype"] != 0, True))
 )
 
 def rule_16_func(arg1, arg2, solver=None, neg=False):

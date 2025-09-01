@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Combine non-negative check with a more conservative size limit to prevent allocation errors. (Rule 31)
+# size: integer, should be within reasonable bounds (Rule 31)
 
 rule_31 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] >= 0, v["arg1_value"] < 268435456)) if n else
-          And(v["arg1_value"] >= 0, v["arg1_value"] < 268435456))
+    s.add(Not(And(-10000 < v["arg1_value"], v["arg1_value"] < 10000)) if n else
+          And(-10000 < v["arg1_value"], v["arg1_value"] < 10000))
 )
 
 def rule_31_func(arg1, solver=None, neg=False):

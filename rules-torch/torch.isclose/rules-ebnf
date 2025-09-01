@@ -1,27 +1,108 @@
 >>
-Rule 1 (rtol must be non-negative)
+Rule 1 (Input tensors should have the same size to avoid size mismatch errors)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 2 (rtol should be non-negative)
 {v_1 : float} |= v_1 ≥ 0
 >>
-Rule 2 (input and other tensors should have the same shape to avoid size mismatch errors)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 3 (Input tensors should be the same data type. Avoid type mismatch errors for float and complex numbers.)
+{v_1 : tensor, v_2 : tensor} |=  if dtype_(v_1) = "float16" then dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" else if dtype_(v_1) = "float32" then dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" ∨ dtype_(v_2) = "float16" else if dtype_(v_1) = "float64" then dtype_(v_2) = "float64" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float16" else if dtype_(v_1) = "complex64" then dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128" else if dtype_(v_1) = "complex128" then dtype_(v_2) = "complex128" ∨ dtype_(v_2) = "complex64" else dtype_(v_1) = dtype_(v_2)
 >>
-Rule 3 (Check that input and other tensors have compatible dtypes to avoid dtype mismatch errors)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 4 (Input tensors should be the same data type.  Avoid type mismatch errors between Bool and ComplexFloat.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "bool" then dtype_(v_2) ≠ "complex64" ∧ dtype_(v_2) ≠ "complex128"
 >>
-Rule 4 (Ensure equal_nan is a boolean value)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 5 (Input tensors should be the same data type. Avoid type mismatch errors between Byte and Char.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "np.int8" then dtype_(v_2) ≠ "str"
 >>
-Rule 5 (input and other tensors have compatible dtypes)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∧ dtype_(v_2) = 6) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_2) = 7) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 8) ∨ (dtype_(v_1) = 9 ∧ dtype_(v_2) = 9) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_2) = 10) ∨ (dtype_(v_1) = 1 ∧ dtype_(v_2) = 1) ∨ (dtype_(v_1) = 2 ∧ dtype_(v_2) = 2) ∨ (dtype_(v_1) = 3 ∧ dtype_(v_2) = 3) ∨ (dtype_(v_1) = 4 ∧ dtype_(v_2) = 4) ∨ (dtype_(v_1) = 5 ∧ dtype_(v_2) = 5) ∨ (dtype_(v_1) = 0 ∧ dtype_(v_2) = 0)
+Rule 6 (Input tensors should be the same data type. Avoid type mismatch errors between Long and Int.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "np.int64" then dtype_(v_2) ≠ "np.int32"
 >>
-Rule 6 (input and other must be tensors to avoid type errors)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0
+Rule 7 (Input tensors should have compatible shapes or one should be scalar to avoid size mismatch errors)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_2) = 0) ∨ (∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)))
 >>
-Rule 49 (Avoid Bool/ComplexFloat type mismatch)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ 0 ∨ dtype_(v_2) ≠ 9) ∧ (dtype_(v_1) ≠ 0 ∨ dtype_(v_2) ≠ 10) ∧ (dtype_(v_2) ≠ 9 ∨ dtype_(v_1) ≠ 0) ∧ (dtype_(v_2) ≠ 10 ∨ dtype_(v_1) ≠ 0)
+Rule 9 (Input tensors should not have half and double as different dtypes.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "np.float16" then dtype_(v_2) ≠ "np.float64" else if dtype_(v_2) = "np.float16" then dtype_(v_1) ≠ "np.float64"
 >>
-Rule 50 (Avoid Byte/Char type mismatch)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ 5 ∨ dtype_(v_2) ≠ 2) ∧ (dtype_(v_2) ≠ 5 ∨ dtype_(v_1) ≠ 2)
+Rule 10 (Relative tolerance should be non-negative)
+{v_1 : float} |= v_1 ≥ 0.0
 >>
-Rule 51 (Avoid Long/Int type mismatch)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ 4 ∨ dtype_(v_2) ≠ 3) ∧ (dtype_(v_2) ≠ 4 ∨ dtype_(v_1) ≠ 3)
+Rule 11 (Data types must be compatible)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "bool" then dtype_(v_2) ≠ "complex64" ∧ dtype_(v_2) ≠ "complex128" else if dtype_(v_1) = "np.int8" then dtype_(v_2) ≠ "str" else if dtype_(v_1) = "np.int64" then dtype_(v_2) ≠ "np.int32" else if dtype_(v_1) = "np.float16" then dtype_(v_2) ≠ "np.float64" else if dtype_(v_2) = "np.float16" then dtype_(v_1) ≠ "np.float64"
+>>
+Rule 12 (Input tensors must have the same size to avoid mismatch)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))
+>>
+Rule 14 (The input tensors should either have the same dtype or be integral/floating point. Avoid Bool vs. ComplexFloat error.)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = dtype_(v_2)) ∨ (if dtype_(v_1) = "bool" then dtype_(v_2) ≠ "complex64" ∧ dtype_(v_2) ≠ "complex128" else if dtype_(v_2) = "bool" then dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128")
+>>
+Rule 15 (The input tensors should either have the same dtype or be of compatible types)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = dtype_(v_2)) ∨ (if dtype_(v_1) = "np.int8" then dtype_(v_2) ≠ "str" else if dtype_(v_2) = "np.int8" then dtype_(v_1) ≠ "str" else if dtype_(v_1) = "np.int64" then dtype_(v_2) ≠ "np.int32" else if dtype_(v_2) = "np.int64" then dtype_(v_1) ≠ "np.int32" else if dtype_(v_1) = "np.float16" then dtype_(v_2) ≠ "np.float64" else if dtype_(v_2) = "np.float16" then dtype_(v_1) ≠ "np.float64")
+>>
+Rule 16 (The input tensors should have compatible sizes)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_2) = 0) ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 17 (Rtol and Atol should be non-negative)
+{v_1 : float, v_2 : float} |= v_1 ≥ 0.0 ∧ v_2 ≥ 0.0
+>>
+Rule 18 (Input Tensors should have dtypes that are compatible to avoid the 'Half did not match Double' error)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = dtype_(v_2)) ∨ ((dtype_(v_1) = "np.float16" ∧ dtype_(v_2) ≠ "np.float64") ∧ (dtype_(v_2) = "np.float16" ∧ dtype_(v_1) ≠ "np.float64"))
+>>
+Rule 20 (If one input is bool the other one cannot be complex. Avoids "Bool did not match ComplexFloat", using if-then-else)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "bool" then (dtype_(v_2) ≠ "complex64" ∧ dtype_(v_2) ≠ "complex128") else if dtype_(v_2) = "bool" then (dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128")
+>>
+Rule 23 (If one input is bool, the other one cannot be complex. Using a single if-then-else to avoid "Bool did not match ComplexFloat")
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "bool" then dtype_(v_2) ≠ "complex64" ∧ dtype_(v_2) ≠ "complex128" else if dtype_(v_2) = "bool" then dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128"
+>>
+Rule 24 (Input types should be compatible, covering Bool/Complex, Half/Double, Byte/Char, Long/Int)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_1) = dtype_(v_2)) ∨ (if dtype_(v_1) = "bool" then dtype_(v_2) ≠ "complex64" ∧ dtype_(v_2) ≠ "complex128") ∧ (if dtype_(v_1) = "np.float16" then dtype_(v_2) ≠ "np.float64") ∧ (if dtype_(v_1) = "np.int8" then dtype_(v_2) ≠ "str") ∧ (if dtype_(v_1) = "np.int64" then dtype_(v_2) ≠ "np.int32")
+>>
+Rule 25 (Input tensors should have compatible data types to avoid errors. Specifically, prevent Byte/Char and Long/Int mismatches)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "np.int8" then dtype_(v_2) ≠ "str" else if dtype_(v_2) = "np.int8" then dtype_(v_1) ≠ "str" else if dtype_(v_1) = "np.int64" then dtype_(v_2) ≠ "np.int32" else if dtype_(v_2) = "np.int64" then dtype_(v_1) ≠ "np.int32"
+>>
+Rule 27 (All parameters, rtol and atol, should be non-negative)
+{v_1 : float, v_2 : float} |= v_1 ≥ 0 ∧ v_2 ≥ 0
+>>
+Rule 28 (Input tensors must have compatible data types to prevent errors. Covers bool/complex, half/double, byte/char, long/int.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "bool" then dtype_(v_2) ≠ "complex64" ∧ dtype_(v_2) ≠ "complex128" else if dtype_(v_2) = "bool" then dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128" else if dtype_(v_1) = "np.float16" then dtype_(v_2) ≠ "np.float64" else if dtype_(v_2) = "np.float16" then dtype_(v_1) ≠ "np.float64" else if dtype_(v_1) = "np.int8" then dtype_(v_2) ≠ "str" else if dtype_(v_2) = "np.int8" then dtype_(v_1) ≠ "str" else if dtype_(v_1) = "np.int64" then dtype_(v_2) ≠ "np.int32" else if dtype_(v_2) = "np.int64" then dtype_(v_1) ≠ "np.int32"
+>>
+Rule 29 (Input tensors should have sizes which are broadcastable.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_2) = 0) ∨ (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)))
+>>
+Rule 34 (Input tensors should possess datatypes that are either identical or deemed compatible, preventing issues with Half/Double mismatches, Bool/Complex conflicts, Byte/Char inconsistencies, and Long/Int incompatibilities.)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = dtype_(v_2)) ∨ (if dtype_(v_1) = "bool" then dtype_(v_2) ≠ "complex64" ∧ dtype_(v_2) ≠ "complex128" else if dtype_(v_2) = "bool" then dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128" else if dtype_(v_1) = "np.float16" then dtype_(v_2) ≠ "np.float64" else if dtype_(v_2) = "np.float16" then dtype_(v_1) ≠ "np.float64" else if dtype_(v_1) = "np.int8" then dtype_(v_2) ≠ "str" else if dtype_(v_2) = "np.int8" then dtype_(v_1) ≠ "str" else if dtype_(v_1) = "np.int64" then dtype_(v_2) ≠ "np.int32" else if dtype_(v_2) = "np.int64" then dtype_(v_1) ≠ "np.int32")
+>>
+Rule 35 (The dimensions of the input tensors should align either perfectly or through broadcasting, with scalars permissible, to avert dimension-related problems during execution)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_2) = 0) ∨ (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)))
+>>
+Rule 37 (Data type compatibility is necessary. Prevents Half/Double, Bool/Complex, Byte/Char and Long/Int errors from occurring)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "bool" then (dtype_(v_2) ≠ "complex64" ∧ dtype_(v_2) ≠ "complex128") else if dtype_(v_1) = "np.float16" then dtype_(v_2) ≠ "np.float64" else if dtype_(v_1) = "np.int8" then dtype_(v_2) ≠ "str" else if dtype_(v_1) = "np.int64" then dtype_(v_2) ≠ "np.int32" else if dtype_(v_2) = "bool" then (dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128") else if dtype_(v_2) = "np.float16" then dtype_(v_1) ≠ "np.float64" else if dtype_(v_2) = "np.int8" then dtype_(v_1) ≠ "str" else if dtype_(v_2) = "np.int64" then dtype_(v_1) ≠ "np.int32"
+>>
+Rule 40 (Prevent data type mismatch)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "np.int8" then dtype_(v_2) ≠ "str" else if dtype_(v_2) = "np.int8" then dtype_(v_1) ≠ "str" else if dtype_(v_1) = "np.int64" then dtype_(v_2) ≠ "np.int32" else if dtype_(v_2) = "np.int64" then dtype_(v_1) ≠ "np.int32" else if dtype_(v_1) = "bool" then (dtype_(v_2) ≠ "complex64" ∧ dtype_(v_2) ≠ "complex128") else if dtype_(v_2) = "bool" then (dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128") else if dtype_(v_1) = "np.float16" then dtype_(v_2) ≠ "np.float64" else if dtype_(v_2) = "np.float16" then dtype_(v_1) ≠ "np.float64"
+>>
+Rule 44 (Sizes of tensors v_1 and v_2 must be compatible to avoid broadcast errors.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_2) = 0) ∨ (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))
+>>
+Rule 45 (Check for type compatibility to prevent runtime errors.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "bool" then (dtype_(v_2) ≠ "complex64" ∧ dtype_(v_2) ≠ "complex128") else if dtype_(v_2) = "bool" then (dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128") else if dtype_(v_1) = "np.float16" then dtype_(v_2) ≠ "np.float64" else if dtype_(v_2) = "np.float16" then dtype_(v_1) ≠ "np.float64" else if dtype_(v_1) = "np.int8" then dtype_(v_2) ≠ "str" else if dtype_(v_2) = "np.int8" then dtype_(v_1) ≠ "str" else if dtype_(v_1) = "np.int64" then dtype_(v_2) ≠ "np.int32" else if dtype_(v_2) = "np.int64" then dtype_(v_1) ≠ "np.int32"
+>>
+Rule 46 (Sizes must be compatible. Broadcasting or equal sizes.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_2) = 0) ∨ (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ((ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1)))
+>>
+Rule 48 (Ensure valid tensor sizes for isclose)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_2) = 0) ∨ (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ((ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))))
+>>
+Rule 51 (Dimensions should allow for broadcasting.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_2) = 0) ∨ (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1))
+>>
+Rule 53 (Datatypes must align. Covers all error scenarios.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "bool" then dtype_(v_2) ≠ "complex64" ∧ dtype_(v_2) ≠ "complex128" else if dtype_(v_1) = "np.float16" then dtype_(v_2) ≠ "np.float64" else if dtype_(v_1) = "np.int8" then dtype_(v_2) ≠ "str" else if dtype_(v_1) = "np.int64" then dtype_(v_2) ≠ "np.int32" else if dtype_(v_2) = "bool" then dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128" else if dtype_(v_2) = "np.float16" then dtype_(v_1) ≠ "np.float64" else if dtype_(v_2) = "np.int8" then dtype_(v_1) ≠ "str" else if dtype_(v_2) = "np.int64" then dtype_(v_1) ≠ "np.int32"
+>>
+Rule 54 (Tensors should have same or compatible types. Prevents issues like Half/Double, Bool/Complex, etc.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "bool" then dtype_(v_2) ≠ "complex64" ∧ dtype_(v_2) ≠ "complex128" else if dtype_(v_1) = "np.float16" then dtype_(v_2) ≠ "np.float64" else if dtype_(v_1) = "np.int8" then dtype_(v_2) ≠ "str" else if dtype_(v_1) = "np.int64" then dtype_(v_2) ≠ "np.int32" else if dtype_(v_2) = "bool" then dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128" else if dtype_(v_2) = "np.float16" then dtype_(v_1) ≠ "np.float64" else if dtype_(v_2) = "np.int8" then dtype_(v_1) ≠ "str" else if dtype_(v_2) = "np.int64" then dtype_(v_1) ≠ "np.int32" else dtype_(v_1) = dtype_(v_2)
+>>
+Rule 58 (Input Tensors should have compatible datatypes. Must ensure data type validity to avoid Half/Double, Bool/Complex, Byte/Char, Long/Int issues)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = dtype_(v_2)) ∨ ((dtype_(v_1) = "bool" ∧ dtype_(v_2) ≠ "complex64" ∧ dtype_(v_2) ≠ "complex128") ∧ (dtype_(v_2) = "bool" ∧ dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128") ∧ (dtype_(v_1) = "np.float16" ∧ dtype_(v_2) ≠ "np.float64") ∧ (dtype_(v_2) = "np.float16" ∧ dtype_(v_1) ≠ "np.float64") ∧ (dtype_(v_1) = "np.int8" ∧ dtype_(v_2) ≠ "str") ∧ (dtype_(v_2) = "np.int8" ∧ dtype_(v_1) ≠ "str") ∧ (dtype_(v_1) = "np.int64" ∧ dtype_(v_2) ≠ "np.int32") ∧ (dtype_(v_2) = "np.int64" ∧ dtype_(v_1) ≠ "np.int32"))
+>>
+Rule 59 (Input tensors have the same size or broadcastable size and compatible datatypes)
+{v_1 : tensor, v_2 : tensor} |= ((ndim(v_1) = 0) ∨ (ndim(v_2) = 0) ∨ (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1))) ∧ (if dtype_(v_1) = "bool" then dtype_(v_2) ≠ "complex64" ∧ dtype_(v_2) ≠ "complex128" else if dtype_(v_1) = "np.float16" then dtype_(v_2) ≠ "np.float64" else if dtype_(v_1) = "np.int8" then dtype_(v_2) ≠ "str" else if dtype_(v_1) = "np.int64" then dtype_(v_2) ≠ "np.int32" else if dtype_(v_2) = "bool" then dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128" else if dtype_(v_2) = "np.float16" then dtype_(v_1) ≠ "np.float64" else if dtype_(v_2) = "np.int8" then dtype_(v_1) ≠ "str" else if dtype_(v_2) = "np.int64" then dtype_(v_1) ≠ "np.int32" else dtype_(v_1) = dtype_(v_2))

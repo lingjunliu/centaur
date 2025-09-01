@@ -1,294 +1,321 @@
 >>
-Rule 1 (nonlinearity must be tanh or relu)
+Rule 1 (nonlinearity should be either 'tanh' or 'relu')
 {v_1 : str} |= v_1 = "tanh" ∨ v_1 = "relu"
 >>
-Rule 2 (num_layers must be a positive integer)
+Rule 2 (input_size should be greater than 0)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 3 (dropout must be a non-negative float)
-{v_1 : float} |= v_1 ≥ 0
+Rule 5 (dropout should be between 0 and 1 inclusive)
+{v_1 : float} |= v_1 ≥ 0.0 ∧ v_1 ≤ 1.0
 >>
-Rule 6 (batch_first must be a boolean)
+Rule 6 (If bidirectional is true, num_layers should be less than a certain limit - example 10 for demonstration)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 ≤ 10
+>>
+Rule 7 (dtype should be within the valid range)
+{v_1 : dtype} |= 1 ≤ v_1 ∧ v_1 ≤ 13
+>>
+Rule 8 (Check input tensor dimensions when batch_first is true)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then ndim(v_1) = 3
+>>
+Rule 9 (Check input tensor dimensions when batch_first is false)
+{v_1 : tensor, v_2 : bool} |= if v_2 = false then ndim(v_1) = 3
+>>
+Rule 10 (Check hidden state tensor dimensions when bidirectional is false)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 0) = v_2
+>>
+Rule 11 (Check hidden state tensor dimensions when bidirectional is true and num_layers is not high)
+{v_1 : tensor, v_2 : int, v_3: bool} |= if v_3 = true then shape(v_1, 0) = 2 * v_2
+>>
+Rule 12 (bias is boolean)
 {v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 9 (num_layers must be less than or equal to a maximum value)
-{v_1 : int} |= v_1 ≤ 10
->>
-Rule 10 (dropout should be between 0 and 1 inclusive)
-{v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 1
->>
-Rule 11 (input_size and hidden_size cannot be equal to zero)
-{v_1 : int, v_2 : int} |= v_1 ≠ 0 ∧ v_2 ≠ 0
->>
-Rule 12 (hidden_size should not be too large relative to input_size)
-{v_1 : int, v_2 : int} |= v_2 ≤ v_1 * 10
->>
-Rule 13 (If dropout is zero, then num_layers must be 1)
-{v_1 : float, v_2 : int} |= if v_1 = 0 then v_2 = 1
->>
-Rule 14 (If bidirectional is false, dropout should not be 1)
-{v_1 : bool, v_2 : float} |= if v_1 = false then v_2 < 1
->>
-Rule 15 (input_size, hidden_size and num_layers must be less than a maximum value when bias is false)
-{v_1 : int, v_2 : int, v_3 : int, v_4 : bool} |= if v_4 = false then v_1 < 1000 ∧ v_2 < 1000 ∧ v_3 < 5
->>
-Rule 16 (If bidirectional is true, then hidden_size must be greater than 0)
-{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 > 0
->>
-Rule 17 (input_size should not be equal to hidden_size)
+Rule 13 (input size and hidden size should not be equal)
 {v_1 : int, v_2 : int} |= v_1 ≠ v_2
 >>
-Rule 19 (num_layers cannot exceed 5 if dropout is greater than 0.5)
-{v_1: int, v_2: float} |= if v_2 > 0.5 then v_1 <= 5
+Rule 15 (Ensure input and hidden tensor dtype match when dtype is specified)
+{v_1 : tensor, v_2 : tensor, v_3 : dtype} |= if v_3 ≠ 0 then dtype_(v_1) = v_3 ∧ dtype_(v_2) = v_3
 >>
-Rule 20 (If bias is false, num_layers * (input_size + hidden_size) < 10000)
-{v_1: bool, v_2: int, v_3: int, v_4: int} |= if v_1 = false then v_4 * (v_2 + v_3) < 10000
+Rule 19 (num_layers should be greater than 0 and less than a reasonable limit - e.g. 20)
+{v_1 : int} |= v_1 > 0 ∧ v_1 < 20
 >>
-Rule 21 (if dropout is greater than 0, then num_layers must be greater than 1)
-{v_1 : float, v_2 : int} |= if v_1 > 0 then v_2 > 1
+Rule 23 (Check input tensor dimensions when batch_first is true, requiring at least two dimensions)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then ndim(v_1) ≥ 2
 >>
-Rule 22 (if bias is False, input size and hidden size sum must be greater than num layers)
-{v_1: bool, v_2: int, v_3: int, v_4: int} |= if v_1 = false then v_2 + v_3 > v_4
+Rule 24 (Check input tensor dimensions when batch_first is false, requiring at least two dimensions)
+{v_1 : tensor, v_2 : bool} |= if v_2 = false then ndim(v_1) ≥ 2
 >>
-Rule 23 (hidden_size should be less than input_size * num_layers if bidirectional is true)
-{v_1 : int, v_2 : int, v_3 : bool} |= if v_3 = true then v_1 * v_2 > v_1
+Rule 25 (Check hidden state tensor dimensions when bidirectional is false)
+{v_1 : tensor, v_2 : int, v_3: int} |= shape(v_1, 0) = v_2 ∧ shape(v_1, 2) = v_3
 >>
-Rule 24 (if nonlinearity is tanh, input_size * hidden_size should be greater than 100)
-{v_1 : str, v_2 : int, v_3 : int} |= if v_1 = "tanh" then v_2 * v_3 > 100
+Rule 27 (Ensure that the hx tensor's second dimension (batch size) matches the input tensor's appropriate dimension)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then shape(v_1, 1) = shape(v_2, 1) else shape(v_1, 1) = shape(v_2, 1)
 >>
-Rule 25 (if batch_first is True, then input_size and hidden_size cannot be too large, e.g. greater than 2048)
-{v_1: bool, v_2: int, v_3: int} |= if v_1 = true then v_2 < 2048 ∧ v_3 < 2048
+Rule 28 (input_size and hidden_size should not be the same if bidirectional)
+{v_1 : int, v_2 : int, v_3 : bool} |= if v_3 = true then v_1 ≠ v_2
 >>
-Rule 26 (If nonlinearity is relu and dropout is non-zero, num_layers should not be greater than 3)
-{v_1 : str, v_2 : float, v_3 : int} |= if v_1 = "relu" ∧ v_2 > 0 then v_3 ≤ 3
+Rule 29 (Check that the number of layers is compatible with the hx tensor shape)
+{v_1 : int, v_2 : tensor, v_3: bool} |= if v_3 = true then shape(v_2, 0) % (2 * v_1) = 0 else shape(v_2, 0) % v_1 = 0
 >>
-Rule 27 (hidden_size should be less than or equal to input_size if bidirectional is false)
-{v_1 : int, v_2 : int, v_3 : bool} |= if v_3 = false then v_1 ≥ v_2
+Rule 30 (If dropout is 0, num_layers can be anything)
+{v_1 : float, v_2 : int} |= if v_1 = 0.0 then v_2 > 0
 >>
-Rule 28 (If bias is true and nonlinearity is tanh, then hidden_size must be less than 4096)
-{v_1: bool, v_2: str, v_3: int} |= if v_1 = true ∧ v_2 = "tanh" then v_3 < 4096
+Rule 33 (hidden_size should be greater than 0 and not exceed a certain limit)
+{v_1 : int} |= v_1 > 0 ∧ v_1 < 10000
 >>
-Rule 29 (If batch_first is true, then the sum of input_size, hidden_size and num_layers should not be zero)
-{v_1: bool, v_2: int, v_3: int, v_4: int} |= if v_1 = true then v_2 + v_3 + v_4 > 0
+Rule 36 (If bidirectional is true, num_layers should be less than a certain limit - example 10 for demonstration and greater than 0)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 ≤ 10 ∧ v_2 > 0
 >>
-Rule 30 (If bidirectional is True, dropout should be less than 0.75)
-{v_1: bool, v_2: float} |= if v_1 = true then v_2 < 0.75
+Rule 37 (Check input tensor's sequence length dimension is positive)
+{v_1 : tensor} |= shape(v_1, 0) > 0
 >>
-Rule 31 (If bias is True, the sum of input_size and hidden_size must be greater than zero)
-{v_1 : bool, v_2 : int, v_3 : int} |= if v_1 = true then v_2 + v_3 > 0
+Rule 38 (Check input tensor's batch dimension is positive)
+{v_1 : tensor} |= shape(v_1, 1) > 0
 >>
-Rule 32 (dropout cannot be 1 if num_layers is greater than 1)
-{v_1 : float, v_2 : int} |= if v_2 > 1 then v_1 < 1
+Rule 39 (If batch_first is true, the batch dimension should be positive)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then shape(v_1, 0) > 0 else shape(v_1, 1) > 0
 >>
-Rule 33 (nonlinearity can only be tanh or relu)
-{v_1: str} |= v_1 = "tanh" ∨ v_1 = "relu"
+Rule 40 (Check that if batch_first is true, the last dimension of the input is input_size)
+{v_1 : tensor, v_2 : bool, v_3 : int} |= if v_2 = true then shape(v_1, 2) = v_3
 >>
-Rule 34 (input_size must be greater than 0 and hidden_size must be greater or equal to 1 if bias is false)
-{v_1: int, v_2: int, v_3: bool} |= if v_3 = false then v_1 > 0 ∧ v_2 ≥ 1
+Rule 41 (Check that if batch_first is false, the last dimension of the input is input_size)
+{v_1 : tensor, v_2 : bool, v_3 : int} |= if v_2 = false then shape(v_1, 2) = v_3
 >>
-Rule 35 (If bidirectional is true and bias is false, then hidden size and input size both have to be greater than 0)
-{v_1: bool, v_2: bool, v_3: int, v_4: int} |= if v_1 = true ∧ v_2 = false then v_3 > 0 ∧ v_4 > 0
+Rule 44 (If bidirectional, then the hidden state should have a certain dimension)
+{v_1 : tensor, v_2 : bool, v_3: int, v_4: int} |= if v_2 = true then shape(v_1, 0) = 2 * v_3 ∧ shape(v_1, 2) = v_4
 >>
-Rule 36 (if bias is true and bidirectional is true then input_size must be less than 1000)
-{v_1 : bool, v_2 : bool, v_3 : int} |= if v_1 = true ∧ v_2 = true then v_3 < 1000
+Rule 45 (If dropout is > 0, then num_layers must be greater than 1)
+{v_1 : float, v_2 : int} |= if v_1 > 0.0 then v_2 > 1
 >>
-Rule 37 (if nonlinearity is tanh and bias is false then hidden size and input size must be different)
-{v_1 : str, v_2 : bool, v_3 : int, v_4 : int} |= if v_1 = "tanh" ∧ v_2 = false then v_3 ≠ v_4
+Rule 47 (If bias is false then make sure it will not influence the calculation)
+{v_1 : bool} |= if v_1 = false then true
 >>
-Rule 38 (if num_layers is greater than 1 then dropout has to be less than 0.9)
-{v_1: int, v_2: float} |= if v_1 > 1 then v_2 < 0.9
+Rule 48 (Check that input_size is smaller than the maximum reasonable size.)
+{v_1 : int} |= v_1 < 5000
 >>
-Rule 39 (if batch_first is true and bidirectional is false, then the product of input_size and hidden size must be positive)
-{v_1: bool, v_2: bool, v_3: int, v_4: int} |= if v_1 = true ∧ v_2 = false then v_3 * v_4 > 0
+Rule 50 (If batch_first is true and dropout is not zero, the last dimension must be positive)
+{v_1: bool, v_2: float, v_3: tensor} |= if v_1 = true ∧ v_2 > 0 then shape(v_3,2) > 0
 >>
-Rule 40 (if nonlinearity is relu then num_layers should be less than or equal to 4)
-{v_1: str, v_2: int} |= if v_1 = "relu" then v_2 ≤ 4
+Rule 51 (If batch_first is false and dropout is not zero, the last dimension must be positive)
+{v_1: bool, v_2: float, v_3: tensor} |= if v_1 = false ∧ v_2 > 0 then shape(v_3,2) > 0
 >>
-Rule 41 (If batch_first is false, the sequence length has to be positive)
-{v_1: bool} |= v_1 = false ∨ v_1 = true
+Rule 55 (num_layers must be within a practical limit)
+{v_1 : int} |= v_1 > 0 ∧ v_1 < 100
 >>
-Rule 42 (If dtype is specified, it must be a floating-point type if nonlinearity is tanh or relu)
-{v_1: dtype, v_2: str} |= if v_2 = "tanh" ∨ v_2 = "relu" then v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+Rule 56 (Check the hidden state shape matches the requirements when batch_first is True)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : bool, v_5: bool} |= if v_4 = true ∧ v_5 = true then shape(v_1, 0) = 2 * v_2 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) = v_3 else if v_4 = true ∧ v_5=false then shape(v_1, 0) = v_2 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) = v_3
 >>
-Rule 43 (If bidirectional is true, hidden_size must be less than input_size * num_layers)
-{v_1: bool, v_2: int, v_3: int, v_4: int} |= if v_1 = true then v_3 * v_4 > v_2
+Rule 57 (Check the hidden state shape matches the requirements when batch_first is False)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : bool, v_5: bool} |= if v_4 = false ∧ v_5 = true then shape(v_1, 0) = 2 * v_2 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) = v_3 else if v_4 = false ∧ v_5 = false then shape(v_1, 0) = v_2 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) = v_3
 >>
-Rule 44 (If bias is true, then the product of input_size and hidden_size should be positive)
-{v_1: bool, v_2: int, v_3: int} |= if v_1 = true then v_2 * v_3 > 0
+Rule 60 (The type of bias can only be boolean)
+{v_1: bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 45 (dropout should be greater or equal to zero and less than one)
-{v_1: float} |= v_1 ≥ 0 ∧ v_1 < 1
+Rule 61 (Input tensor must have at least 2 dimensions)
+{v_1: tensor} |= ndim(v_1) >= 2
 >>
-Rule 46 (If batch_first is false, the input_size must be less than 2048)
-{v_1: bool, v_2: int} |= if v_1 = false then v_2 < 2048
+Rule 64 (Check the hidden state shape matches the requirements when batch_first is True and bidirectional is True or False)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : bool, v_5: bool} |= if v_4 = true  then if v_5 = true then shape(v_1, 0) = 2 * v_2 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) = v_3 else shape(v_1, 0) = v_2 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) = v_3
 >>
-Rule 47 (If bias is false and bidirectional is true, then num_layers must be less than 8)
-{v_1: bool, v_2: bool, v_3: int} |= if v_1 = false ∧ v_2 = true then v_3 < 8
+Rule 65 (Check the hidden state shape matches the requirements when batch_first is False and bidirectional is True or False)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : bool, v_5: bool} |= if v_4 = false  then if v_5 = true then shape(v_1, 0) = 2 * v_2 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) = v_3 else shape(v_1, 0) = v_2 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) = v_3
 >>
-Rule 49 (If dropout > 0 and num_layers > 1, then hidden_size should also be greater than 1)
-{v_1 : float, v_2 : int, v_3: int} |= if v_1 > 0 ∧ v_2 > 1 then v_3 > 1
+Rule 66 (dropout must be a valid probability and affect only when the num_layers is greater than 1)
+{v_1 : float, v_2 : int} |= if v_2 > 1 then v_1 ≥ 0.0 ∧ v_1 ≤ 1.0 else v_1 = 0.0
 >>
-Rule 50 (if bias is True, then input_size must be a multiple of 4)
-{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 % 4 = 0
+Rule 67 (The hidden size should not be 0)
+{v_1: int} |= v_1 > 0
 >>
-Rule 51 (If batch_first is true, input_size must not exceed hidden_size * 2)
-{v_1: bool, v_2: int, v_3: int} |= if v_1 = true then v_2 ≤ v_3 * 2
+Rule 69 (The data type should be valid)
+{v_1: dtype} |= v_1 > 0
 >>
-Rule 52 (If bias is false, then the sum of input_size, hidden_size, and num_layers should be greater than 2)
-{v_1: bool, v_2: int, v_3: int, v_4: int} |= if v_1 = false then v_2 + v_3 + v_4 > 2
+Rule 70 (Check hx data type is the same with input data type)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 53 (If bidirectional is true, hidden_size must be a multiple of 8)
-{v_1: bool, v_2: int} |= if v_1 = true then v_2 % 8 = 0
+Rule 71 (Input data type should be float or double or half)
+{v_1: tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6
 >>
-Rule 54 (If batch_first is True, the sum of input_size and hidden_size must be less than 4096)
-{v_1 : bool, v_2 : int, v_3 : int} |= if v_1 = true then v_2 + v_3 < 4096
+Rule 72 (Check that bias and nonlinearity are only used when num_layers is greater than 1)
+{v_1: int, v_2: bool, v_3: str} |= if v_1 > 1 then (v_2 = true ∨ v_2 = false) ∧ (v_3 = "tanh" ∨ v_3 = "relu")
 >>
-Rule 55 (dropout value should be less than or equal to 0.99)
-{v_1 : float} |= v_1 ≤ 0.99
+Rule 73 (Check that input and hidden tensor's batch dimensions match when batch_first is True)
+{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 = true then shape(v_1, 0) = shape(v_2, 1)
 >>
-Rule 56 (If batch_first is true and bidirectional is true, then the sum of hidden_size and input_size must be less than 2048)
-{v_1: bool, v_2: bool, v_3: int, v_4: int} |= if v_1 = true ∧ v_2 = true then v_3 + v_4 < 2048
+Rule 74 (Check that input and hidden tensor's batch dimensions match when batch_first is False)
+{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 = false then shape(v_1, 1) = shape(v_2, 1)
 >>
-Rule 57 (If the input size is less than 10, hidden_size should also be less than 10.)
-{v_1 : int, v_2: int} |= if v_1 < 10 then v_2 < 10
+Rule 75 (Check that when dropout is not 0 num_layers is at least 2)
+{v_1: float, v_2: int} |= if v_1 > 0 then v_2 >= 2
 >>
-Rule 58 (If bidirectional is false and bias is true, hidden_size should be positive.)
-{v_1 : bool, v_2: bool, v_3: int} |= if v_1 = false ∧ v_2 = true then v_3 > 0
+Rule 76 (The valid input size must be positive and lower than a maximal value)
+{v_1 : int} |= v_1 > 0 ∧ v_1 < 20000
 >>
-Rule 59 (If batch_first is false, then the num_layers must be greater than 0.)
-{v_1 : bool, v_2: int} |= if v_1 = false then v_2 > 0
+Rule 78 (When batch_first is True, the input tensor must have 3 dimension)
+{v_1 : tensor, v_2: bool} |= if v_2 = true then ndim(v_1) = 3
 >>
-Rule 60 (If bias is true, then num_layers must be greater than or equal to 1)
-{v_1 : bool, v_2: int} |= if v_1 = true then v_2 ≥ 1
+Rule 79 (When batch_first is False, the input tensor must have 3 dimension)
+{v_1 : tensor, v_2: bool} |= if v_2 = false then ndim(v_1) = 3
 >>
-Rule 61 (If batch_first is true and dropout is zero, then the sum of input_size and hidden_size cannot be less than 1)
-{v_1: bool, v_2: float, v_3: int, v_4: int} |= if v_1 = true ∧ v_2 = 0 then v_3 + v_4 ≥ 1
+Rule 82 (When bidirectional is True, the hx tensor dimension must be twice num_layers)
+{v_1 : tensor, v_2: int, v_3: bool} |= if v_3 = true then shape(v_1, 0) = 2 * v_2
 >>
-Rule 62 (If bias is False and the sum of input_size and hidden_size is 0, num_layers also needs to be 0.)
-{v_1 : bool, v_2 : int, v_3 : int, v_4: int} |= if v_1 = false ∧ v_2 + v_3 = 0 then v_4 = 0
+Rule 85 (The input size should be a valid positive integer and less than some max reasonable number)
+{v_1: int} |= v_1 > 0 ∧ v_1 < 15000
 >>
-Rule 64 (If batch_first is false and bias is false, then the product of hidden_size and input_size must be positive)
-{v_1: bool, v_2: bool, v_3: int, v_4: int} |= if v_1 = false ∧ v_2 = false then v_3 * v_4 > 0
+Rule 88 (When batch_first is True, the input tensor must have at least 3 dimensions)
+{v_1 : tensor, v_2: bool} |= if v_2 = true then ndim(v_1) >= 3
 >>
-Rule 65 (dropout value should be greater than 0.1 if num_layers is greater than 4.)
-{v_1: float, v_2: int} |= if v_2 > 4 then v_1 > 0.1
+Rule 89 (When batch_first is False, the input tensor must have at least 3 dimensions)
+{v_1 : tensor, v_2: bool} |= if v_2 = false then ndim(v_1) >= 3
 >>
-Rule 66 (input_size, hidden_size, and num_layers should not be all equal when bias is false)
-{v_1 : int, v_2 : int, v_3 : int, v_4 : bool} |= if v_4 = false then (v_1 ≠ v_2 ∨ v_2 ≠ v_3)
+Rule 90 (When bidirectional is True, the first hx tensor dimension must be 2 * num_layers, otherwise it is numlayers)
+{v_1 : tensor, v_2: int, v_3: bool} |= if v_3 = true then shape(v_1, 0) = 2 * v_2 else shape(v_1, 0) = v_2
 >>
-Rule 67 (If bidirectional is True, input_size must be a multiple of 4)
-{v_1 : bool, v_2: int} |= if v_1 = true then v_2 % 4 = 0
+Rule 93 (Check that input and hidden state have compatible dtypes)
+{v_1 : tensor, v_2 : tensor, v_3: dtype} |= if v_3 ≠ 0 then dtype_(v_1) = v_3 ∧ dtype_(v_2) = v_3
 >>
-Rule 70 (num_layers must not exceed 15)
-{v_1: int} |= v_1 ≤ 15
+Rule 95 (The input size must be a positive integer and less than some max reasonable number)
+{v_1: int} |= v_1 > 0 ∧ v_1 < 20000
 >>
-Rule 71 (If bias is false and dropout > 0, then input size and hidden size cannot both be 1)
-{v_1: bool, v_2: float, v_3: int, v_4: int} |= if v_1 = false ∧ v_2 > 0 then (v_3 ≠ 1 ∨ v_4 ≠ 1)
+Rule 97 (Check dtype is in the allowed range if specified, 0 means unspecified)
+{v_1: dtype} |= v_1 = 0 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
 >>
-Rule 72 (If batch_first is true, then the sum of input_size, hidden_size and num_layers should be greater than 0 )
-{v_1 : bool, v_2: int, v_3: int, v_4: int} |= if v_1 = true then v_2 + v_3 + v_4 > 0
+Rule 100 (If bidirectional is False, first dimension of hidden state should be equal to num_layers)
+{v_1: bool, v_2: tensor, v_3: int} |= if v_1 = false then shape(v_2, 0) = v_3
 >>
-Rule 73 (If bidirectional is false and num_layers >1, then dropout should be less than 1)
-{v_1 : bool, v_2 : int, v_3 : float} |= if v_1 = false ∧ v_2 > 1 then v_3 < 1
+Rule 101 (If bidirectional is True, first dimension of hidden state should be equal to 2*num_layers)
+{v_1: bool, v_2: tensor, v_3: int} |= if v_1 = true then shape(v_2, 0) = 2 * v_3
 >>
-Rule 74 (If nonlinearity is tanh, then the product of input_size and hidden size should not be zero)
-{v_1 : str, v_2 : int, v_3: int} |= if v_1 = "tanh" then v_2 * v_3 ≠ 0
+Rule 102 (The Hidden size should be lower than Input Size)
+{v_1 : int, v_2: int} |= v_2 < v_1
 >>
-Rule 75 (If the sum of num_layers and dropout > 1, then input_size should be at least 10.)
-{v_1 : int, v_2: float, v_3 : int} |= if v_1 + v_2 > 1 then v_3 ≥ 10
+Rule 104 (dropout must be a valid probability and set to 0 if num_layers is 1)
+{v_1 : float, v_2 : int} |= if v_2 = 1 then v_1 = 0.0 else v_1 ≥ 0.0 ∧ v_1 ≤ 1.0
 >>
-Rule 77 (If batch_first is false and bidirectional is false and the sum of input_size and hidden_size <10 then num_layers must be less or equal to 2 )
-{v_1 : bool, v_2 : bool, v_3 : int, v_4 : int, v_5: int} |= if v_1 = false ∧ v_2 = false ∧ v_3 + v_4 < 10 then v_5 ≤ 2
+Rule 107 (Check that the hidden size is compatible with input size)
+{v_1: int, v_2: int} |= v_2 < v_1
 >>
-Rule 78 (If dropout value is too small, the input size has to be sufficiently large)
-{v_1: float, v_2: int} |= if v_1 < 0.01 then v_2 > 50
+Rule 108 (num_layers should be in a valid range)
+{v_1 : int} |= v_1 > 0 ∧ v_1 < 150
 >>
-Rule 79 (If batch_first is false, the hidden_size must not exceed 4096)
-{v_1 : bool, v_2 : int} |= if v_1 = false then v_2 < 4096
+Rule 109 (If bias is False, then all bias operations do not exist)
+{v_1: bool} |= if v_1 = false then true
 >>
-Rule 80 (If bias is true, then the absolute value of input_size minus hidden_size should not be greater than 1000)
-{v_1 : bool, v_2: int, v_3: int} |= if v_1 = true then (if v_2 - v_3 > 0 then v_2 - v_3 ≤ 1000 else v_3 - v_2 ≤ 1000)
+Rule 110 (If nonlinearity is relu or tanh, it is valid)
+{v_1: str} |= v_1 = "relu" ∨ v_1 = "tanh"
 >>
-Rule 82 (If batch_first is true, the input_size plus the hidden_size should not exceed 4096.)
-{v_1: bool, v_2 : int, v_3: int} |= if v_1 = true then v_2 + v_3 ≤ 4096
+Rule 115 (Check the num layers should be a valid one)
+{v_1 : int} |= v_1 > 0 ∧ v_1 < 50
 >>
-Rule 83 (If bias is false, the product of hidden_size and num_layers should not exceed 4096.)
-{v_1 : bool, v_2 : int, v_3: int} |= if v_1 = false then v_2 * v_3 ≤ 4096
+Rule 117 (If batch_first is True, the input tensor dimension 0 is valid)
+{v_1 : tensor, v_2 : int, v_3: bool} |= if v_3 = true then shape(v_1, 0) = v_2
 >>
-Rule 84 (If bidirectional is true and batch_first is false, the maximum value of input_size and hidden_size should be greater than 10)
-{v_1 : bool, v_2 : bool, v_3 : int, v_4 : int} |= if v_1 = true ∧ v_2 = false then (if v_3 > v_4 then v_3 > 10 else v_4 > 10)
+Rule 118 (If batch_first is False, the input tensor dimension 1 is valid)
+{v_1 : tensor, v_2 : int, v_3: bool} |= if v_3 = false then shape(v_1, 1) = v_2
 >>
-Rule 85 (dropout value has to be less than or equal to 0.9 unless number of layers is 1)
-{v_1: float, v_2: int} |= if v_2 > 1 then v_1 ≤ 0.9
+Rule 120 (If nonlinearity is specified then it must be tanh or relu)
+{v_1: str} |= if v_1 ≠ "none" then v_1 = "relu" ∨ v_1 = "tanh"
 >>
-Rule 87 (If bidirectional is true, hidden_size should be less than or equal to 2048.)
-{v_1 : bool, v_2: int} |= if v_1 = true then v_2 ≤ 2048
+Rule 121 (Check input tensor must have 3 dimensions when batch first is True or False)
+{v_1 : tensor} |= ndim(v_1) >= 3
 >>
-Rule 89 (If batch_first is false, num_layers must be less than or equal to 10 )
-{v_1 : bool, v_2 : int} |= if v_1 = false then v_2 ≤ 10
+Rule 122 (When bidirectional is True, then first dimension of hx should be 2*num_layers and when it is false it should be num_layers)
+{v_1 : tensor, v_2: bool, v_3: int} |= if v_2 = true then shape(v_1, 0) = 2 * v_3 else shape(v_1, 0) = v_3
 >>
-Rule 90 (dropout value must be less than 0.85 if bias is false)
-{v_1: float, v_2: bool} |= if v_2 = false then v_1 ≤ 0.85
+Rule 123 (The input size must be a positive integer and less than some max reasonable number and greater than hidden size)
+{v_1: int, v_2 : int} |= v_1 > 0 ∧ v_1 < 10000 ∧ v_1 > v_2
 >>
-Rule 93 (If dropout is greater than 0, then the product of input_size and hidden_size must be positive)
-{v_1 : float, v_2: int, v_3: int} |= if v_1 > 0 then v_2 * v_3 > 0
+Rule 124 (The hidden size must be a positive integer and less than some max reasonable number)
+{v_1: int} |= v_1 > 0 ∧ v_1 < 10000
 >>
-Rule 94 (If bidirectional is true, the sum of input_size and hidden_size must be greater than or equal to 2 )
-{v_1 : bool, v_2: int, v_3: int} |= if v_1 = true then v_2 + v_3 ≥ 2
+Rule 128 (When batch_first is True, the input tensor dimension 2 should be the same as input_size)
+{v_1 : tensor, v_2 : int, v_3: bool} |= if v_3 = true then shape(v_1, 2) = v_2
 >>
-Rule 95 (if batch_first is true and dropout equals 0.5, the hidden_size has to be different from input size)
-{v_1 : bool, v_2: float, v_3 : int, v_4 : int} |= if v_1 = true ∧ v_2 = 0.5 then v_3 ≠ v_4
+Rule 129 (When batch_first is False, the input tensor dimension 2 should be the same as input_size)
+{v_1 : tensor, v_2 : int, v_3: bool} |= if v_3 = false then shape(v_1, 2) = v_2
 >>
-Rule 98 (If nonlinearity is tanh, and input_size and hidden_size are large, dropout has to be large)
-{v_1 : str, v_2: int, v_3: int, v_4 : float} |= if v_1 = "tanh" ∧ v_2 > 500 ∧ v_3 > 500 then v_4 > 0.1
+Rule 133 (Check that the hidden size is valid and less than the input size)
+{v_1 : int, v_2: int} |= v_1 > 0 ∧ v_1 < 10000 ∧ v_2 > 0 ∧ v_2 < 10000 ∧ v_1 > v_2
 >>
-Rule 99 (If bias is false, the sum of input_size and hidden_size has to be less than or equal to 8192.)
-{v_1 : bool, v_2: int, v_3: int} |= if v_1 = false then v_2 + v_3 ≤ 8192
+Rule 136 (Check the input tensor dimension 2 (feature dimension) should be valid)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) = 3 ∧ shape(v_1, 2) = v_2
 >>
-Rule 100 (If batch_first is false and the sum of input and hidden size is greater than 2, then dropout should be greater than 0.001.)
-{v_1 : bool, v_2 : int, v_3 : int, v_4 : float} |= if v_1 = false ∧ v_2 + v_3 > 2 then v_4 > 0.001
+Rule 138 (Check if the dimensions of hx and input match when batch_first is set)
+{v_1 : tensor, v_2: tensor, v_3: bool} |= if v_3 = true then shape(v_1, 0) = shape(v_2, 1) else shape(v_1, 1) = shape(v_2, 1)
 >>
-Rule 103 (If nonlinearity is tanh and bidirectional is false then hidden size has to be greater than or equal to input size.)
-{v_1 : str, v_2: bool, v_3: int, v_4 : int} |= if v_1 = "tanh" ∧ v_2 = false then v_3 ≥ v_4
+Rule 139 (Check that the data type for input is valid)
+{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 6
 >>
-Rule 104 (If batch_first is true, and dropout is non-zero then input_size and hidden_size should not be equal)
-{v_1 : bool, v_2 : float, v_3 : int, v_4 : int} |= if v_1 = true ∧ v_2 > 0 then v_3 ≠ v_4
+Rule 141 (The hidden size can not be greater or equal to the input size, otherwise it wont work)
+{v_1: int, v_2: int} |= v_1 < v_2
 >>
-Rule 105 (If bias is false and the input size is less than 1000, hidden size has to be less or equal than 100.)
-{v_1 : bool, v_2 : int, v_3 : int} |= if v_1 = false ∧ v_2 < 1000 then v_3 ≤ 100
+Rule 142 (if bidirectional is enabled, check the hx first dimension is a reasonable number (max_num_layers*2))
+{v_1 : int, v_2 : bool} |= if v_2 = true then v_1 < 100
 >>
-Rule 108 (If nonlinearity is relu, the dropout value must be less than 0.95)
-{v_1 : str, v_2 : float} |= if v_1 = "relu" then v_2 < 0.95
+Rule 143 (The hidden size should be valid and less than the input size)
+{v_1 : int, v_2: int} |= v_1 > 0 ∧ v_1 < 8000 ∧ v_2 > 0 ∧ v_2 < 8000 ∧ v_1 > v_2
 >>
-Rule 109 (If the product of input size and hidden size is greater than 1000 and dropout < 0.1, then num_layers has to be less than 3 )
-{v_1 : int, v_2 : int, v_3 : float, v_4 : int} |= if v_1 * v_2 > 1000 ∧ v_3 < 0.1 then v_4 < 3
+Rule 144 (The num layers should be in a valid range)
+{v_1 : int} |= v_1 > 0 ∧ v_1 < 30
 >>
-Rule 110 (If bidirectional is true, and batch_first is also true, input_size and hidden_size cannot be equal)
-{v_1 : bool, v_2 : bool, v_3 : int, v_4 : int} |= if v_1 = true ∧ v_2 = true then v_3 ≠ v_4
+Rule 147 (Check that the data type for input is valid, and also ensure data type for hx is consistent to data type of input)
+{v_1 : dtype, v_2 : tensor, v_3 : tensor} |= (v_1 = 0 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 6) ∧ dtype_(v_2) = dtype_(v_3)
 >>
-Rule 113 (If hidden_size is greater than the square of input_size then bidirectional has to be true)
-{v_1 : int, v_2 : int, v_3: bool} |= if v_2 > v_1 * v_1 then v_3 = true
+Rule 148 (If batch_first is True or False, then dimension 1 of hx should match dimension 1 or 0 of input respectively)
+{v_1 : tensor, v_2: tensor, v_3: bool} |= if ndim(v_1) = 3 ∧ ndim(v_2) = 3 then if v_3 = true then shape(v_1, 0) = shape(v_2, 1) else shape(v_1, 1) = shape(v_2, 1)
 >>
-Rule 114 (If batch_first is false the product between num layers and dropout must be strictly positive. )
-{v_1 : bool, v_2 : int, v_3 : float} |= if v_1 = false then v_2 * v_3 > 0
+Rule 149 (check the nonlinearity is valid, tanh or relu)
+{v_1 : str} |= v_1 = "relu" ∨ v_1 = "tanh"
 >>
-Rule 115 (if dropout is exactly one half, then input and hidden size have to have the same parity: both even or both odd.)
-{v_1 : float, v_2 : int, v_3 : int} |= if v_1 = 0.5 then (v_2 % 2) = (v_3 % 2)
+Rule 150 (If bidirectional is enabled and batch_first is False, check the second dimension of hidden state is smaller than maximum)
+{v_1 : int, v_2 : bool} |= if v_2 = true then v_1 < 1000
 >>
-Rule 118 (If hidden_size is greater than input_size, then bias has to be true.)
-{v_1 : int, v_2 : int, v_3: bool} |= if v_2 > v_1 then v_3 = true
+Rule 152 (Check there are no empty dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 119 (If dropout equals 1, num_layers has to be set to 1)
-{v_1 : float, v_2 : int} |= if v_1 = 1 then v_2 = 1
+Rule 153 (The hidden size should be valid and less than the input size)
+{v_1 : int, v_2: int} |= v_1 > 0 ∧ v_1 < 7000 ∧ v_2 > 0 ∧ v_2 < 7000 ∧ v_1 > v_2
 >>
-Rule 120 (If bias is false and bidirectional is true, input_size and hidden_size need to be different)
-{v_1 : bool, v_2 : bool, v_3 : int, v_4 : int} |= if v_1 = false ∧ v_2 = true then v_3 ≠ v_4
+Rule 154 (The num layers should be in a valid range)
+{v_1 : int} |= v_1 > 0 ∧ v_1 < 25
 >>
-Rule 123 (If hidden_size is a power of two, then input size must also be power of two)
-{v_1 : int, v_2: int} |= (v_1 > 0 ∧ ((v_1 ∧ (v_1 - 1)) = 0)) ∨ (v_2 > 0 ∧ ((v_2 ∧ (v_2 - 1)) = 0))
+Rule 155 (The dropout rate must be valid and will be disabled if num_layers == 1)
+{v_1 : float, v_2 : int} |= if v_2 = 1 then v_1 = 0.0 else v_1 ≥ 0.0 ∧ v_1 ≤ 0.75
 >>
-Rule 124 (If bias is True and bidirectional is false and input_size > 500, hidden_size > 10)
-{v_1: bool, v_2 : bool, v_3: int, v_4: int} |= if v_1 = true ∧ v_2 = false ∧ v_3 > 500 then v_4 > 10
+Rule 159 (If bidirectional is enabled and batch_first is False, check the hx first dimension is reasonable (max_num_layers*2))
+{v_1 : int, v_2 : bool} |= if v_2 = true then v_1 < 60
 >>
-Rule 125 (The number of layers must be a positive value less than 6)
-{v_1 : int} |= 0 < v_1 ∧ v_1 < 6
+Rule 163 (The hidden size should be valid and less than the input size and both must be greater than zero)
+{v_1 : int, v_2: int} |= v_1 > 0 ∧ v_1 < 6000 ∧ v_2 > 0 ∧ v_2 < 6000 ∧ v_1 > v_2
+>>
+Rule 165 (If batch_first is True or False, then hx should have 3 dimensions if it exists)
+{v_1 : tensor} |= ndim(v_1) = 3
+>>
+Rule 166 (Check if the dimensions of hx and input match, depending on batch_first. It will only matter if the dimensions are at least 2.)
+{v_1 : tensor, v_2: tensor, v_3: bool} |= if ndim(v_1) >= 2 ∧ ndim(v_2) >= 2 then if v_3 = true then shape(v_1, 0) = shape(v_2, 1) else shape(v_1, 1) = shape(v_2, 1)
+>>
+Rule 169 (Check that the dropout rate should not be greater than a threshold value)
+{v_1 : float} |= v_1 < 0.7
+>>
+Rule 171 (The second dimension of hidden state should be equals to hidden_size)
+{v_1 : tensor, v_2: int} |= shape(v_1, 2) = v_2
+>>
+Rule 172 (The dropout rate must be a valid one and will be disabled if num_layers == 1)
+{v_1 : float, v_2 : int} |= if v_2 = 1 then v_1 = 0.0 else v_1 ≥ 0.0 ∧ v_1 ≤ 0.5
+>>
+Rule 178 (When bias is enabled the parameters must satisfy a lot of things)
+{v_1 : bool} |= if v_1 = true then true
+>>
+Rule 179 (If bidirectional is enabled, check that the num_layers must be reasonable small)
+{v_1: bool, v_2: int} |= if v_1 = true then v_2 < 20
+>>
+Rule 184 (The number of layers should be within reasonable bounds)
+{v_1 : int} |= v_1 > 0 ∧ v_1 < 15
+>>
+Rule 187 (Check that the data type for input and hx are valid and consistent)
+{v_1 : dtype, v_2 : tensor} |= (v_1 = 0 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 6) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 6)
+>>
+Rule 189 (The parameters must satify that for LSTM models, not other kind of models)
+{v_1: tensor, v_2: str} |= if v_2 = "LSTM" then ndim(v_1) = 3
+>>
+Rule 191 (There is no other constraints to bias parameter, it can be always set to True)
+{v_1: bool} |= if v_1 = true then true

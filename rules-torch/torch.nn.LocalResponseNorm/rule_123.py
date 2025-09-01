@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Alpha must be a regular number, not NaN or infinite (Rule 123)
+# Ensure alpha value is a safe float (Rule 123)
 
 rule_123 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_value"] == v["arg1_value"], v["arg1_value"] != 1.0 / 0.0), v["arg1_value"] != -1.0 / 0.0)) if n else
-          And(And(v["arg1_value"] == v["arg1_value"], v["arg1_value"] != 1.0 / 0.0), v["arg1_value"] != -1.0 / 0.0))
+    s.add(Not(And(v["arg1_value"] > -1000000000000000000000000000000000000, v["arg1_value"] < 1000000000000000000000000000000000000)) if n else
+          And(v["arg1_value"] > -1000000000000000000000000000000000000, v["arg1_value"] < 1000000000000000000000000000000000000))
 )
 
 def rule_123_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input is complex and out is provided, out must be complex (Rule 20)
+# If out is provided, and the input is an integer tensor, then the out tensor cannot be of short type. (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(If(Or((v["arg1_dtype"] == 9), (v["arg1_dtype"] == 10)), Or((v["arg2_dtype"] == 9), (v["arg2_dtype"] == 10)), False)) if n else
-          If(Or((v["arg1_dtype"] == 9), (v["arg1_dtype"] == 10)), Or((v["arg2_dtype"] == 9), (v["arg2_dtype"] == 10)), False))
+    s.add(Not(If(v["arg1_dtype"] < 6, v["arg2_dtype"] != 2, True)) if n else
+          If(v["arg1_dtype"] < 6, v["arg2_dtype"] != 2, True))
 )
 
 def rule_20_func(arg1, arg2, solver=None, neg=False):

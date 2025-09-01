@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# A must have at least two dimensions (Rule 9)
+# A's datatype must be one of the supported types: float32, float64, complex64, complex128 (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] >= 2) if n else
-          v["arg1_ndim"] >= 2)
+    s.add(Not(Or(Or(Or(v["arg1_dtype"] == 8, v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 7)) if n else
+          Or(Or(Or(v["arg1_dtype"] == 8, v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 7))
 )
 
 def rule_9_func(arg1, solver=None, neg=False):
@@ -22,15 +22,15 @@ def rule_9_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 9
-        rule_9(solver, {'arg1_ndim': arg1_ndim})
+        rule_9(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_9(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_9(solver, {'arg1_dtype': arg1['dtype']}, neg)

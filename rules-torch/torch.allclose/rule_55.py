@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Enforce compatible dtypes to avoid Half did not match Double, etc. (Rule 55)
+# prevent Half tensor compared to Double tensor (Rule 55)
 
 rule_55 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(And(And(And((Or(v["arg1_dtype"] != 6, v["arg2_dtype"] != 8)), (Or(v["arg1_dtype"] != 0, v["arg2_dtype"] != 10))), (Or(v["arg1_dtype"] != 1, v["arg2_dtype"] != 2))), (Or(v["arg1_dtype"] != 2, v["arg2_dtype"] != 1))), (Or(v["arg1_dtype"] != 10, v["arg2_dtype"] != 0))), (Or(v["arg1_dtype"] != 3, v["arg2_dtype"] != 4))), (Or(v["arg1_dtype"] != 1, v["arg2_dtype"] != 3)))) if n else
-          And(And(And(And(And(And((Or(v["arg1_dtype"] != 6, v["arg2_dtype"] != 8)), (Or(v["arg1_dtype"] != 0, v["arg2_dtype"] != 10))), (Or(v["arg1_dtype"] != 1, v["arg2_dtype"] != 2))), (Or(v["arg1_dtype"] != 2, v["arg2_dtype"] != 1))), (Or(v["arg1_dtype"] != 10, v["arg2_dtype"] != 0))), (Or(v["arg1_dtype"] != 3, v["arg2_dtype"] != 4))), (Or(v["arg1_dtype"] != 1, v["arg2_dtype"] != 3))))
+    s.add(Not(If(v["arg1_dtype"] == 6, v["arg2_dtype"] != 8, True)) if n else
+          If(v["arg1_dtype"] == 6, v["arg2_dtype"] != 8, True))
 )
 
 def rule_55_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if the output is boolean, the inputs must be non-complex, checking dtype using numerical values (Rule 12)
+# Output tensor dtype should not be boolean if input tensors are complex (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg3_dtype"] == 0, And(v["arg1_dtype"] < 10, v["arg2_dtype"] < 10), False)) if n else
-          If(v["arg3_dtype"] == 0, And(v["arg1_dtype"] < 10, v["arg2_dtype"] < 10), False))
+    s.add(Not(If(Or(Or(Or((v["arg1_dtype"] == 10), (v["arg1_dtype"] == 11)), (v["arg2_dtype"] == 10)), (v["arg2_dtype"] == 11)), v["arg3_dtype"] != 0, True)) if n else
+          If(Or(Or(Or((v["arg1_dtype"] == 10), (v["arg1_dtype"] == 11)), (v["arg2_dtype"] == 10)), (v["arg2_dtype"] == 11)), v["arg3_dtype"] != 0, True))
 )
 
 def rule_12_func(arg1, arg2, arg3, solver=None, neg=False):

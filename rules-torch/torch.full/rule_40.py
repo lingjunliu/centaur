@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Fill value can't be None type. (Rule 40)
+# If dtype is specified and it's a floating point, fill_value should also be a floating point number (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] != 12) if n else
-          v["arg1_value"] != 12)
+    s.add(Not(If(Or(v["arg1_value"] == 7, v["arg1_value"] == 8), True, True)) if n else
+          If(Or(v["arg1_value"] == 7, v["arg1_value"] == 8), True, True))
 )
 
 def rule_40_func(arg1, solver=None, neg=False):

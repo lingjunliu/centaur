@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# normalized_shape list can not consist of more than six items, else memory error could occur. (Rule 110)
+# Preventing storage overflow by using reasonable shape values  (Rule 110)
 
 rule_110 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_length"] < 6) if n else
-          v["arg1_length"] < 6)
+    s.add(Not(Select(v["arg1_shape"], 0) < 500) if n else
+          Select(v["arg1_shape"], 0) < 500)
 )
 
 def rule_110_func(arg1, solver=None, neg=False):
@@ -17,20 +17,21 @@ def rule_110_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 110
-        rule_110(solver, {'arg1_length': arg1_length})
+        rule_110(solver, {'arg1_shape': arg1_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_110(solver, {'arg1_length': arg1['length']}, neg)
+        rule_110(solver, {'arg1_shape': arg1['shape']}, neg)

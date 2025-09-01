@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check if two integer variables are different (Rule 25)
+# enabled and disabled_torch_function must be boolean values (Rule 25)
 
 rule_25 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] != v["arg2_value"]) if n else
-          v["arg1_value"] != v["arg2_value"])
+    s.add(Not(And((Or(v["arg1_value"] == True, v["arg1_value"] == False)), (Or(v["arg2_value"] == True, v["arg2_value"] == False)))) if n else
+          And((Or(v["arg1_value"] == True, v["arg1_value"] == False)), (Or(v["arg2_value"] == True, v["arg2_value"] == False))))
 )
 
 def rule_25_func(arg1, arg2, solver=None, neg=False):
@@ -18,19 +18,19 @@ def rule_25_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not isinstance(arg1, bool):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_value = Int('arg2_value')
+        arg1_value = Bool('arg1_value')
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 25
         rule_25(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})

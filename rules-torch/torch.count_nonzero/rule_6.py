@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Dimension should be within the valid range, or None (Rule 6)
+# dim should be within the valid range of dimensions for input if dim is an integer (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == 0, True, And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"]))) if n else
-          If(v["arg2_value"] == 0, True, And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"])))
+    s.add(Not((And(-1 * v["arg1_ndim"] <= v["arg2_value"], v["arg2_value"] <= v["arg1_ndim"] - 1))) if n else
+          (And(-1 * v["arg1_ndim"] <= v["arg2_value"], v["arg2_value"] <= v["arg1_ndim"] - 1)))
 )
 
 def rule_6_func(arg1, arg2, solver=None, neg=False):

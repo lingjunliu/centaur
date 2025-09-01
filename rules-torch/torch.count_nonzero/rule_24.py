@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The dimension must be less than the maximum dimension value if ndim > 0 (Rule 24)
+# if dim is specified as an integer, it must be within the valid range (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 0, v["arg2_value"] < 2147483647, False)) if n else
-          If(v["arg1_ndim"] > 0, v["arg2_value"] < 2147483647, False))
+    s.add(Not(And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"])) if n else
+          And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"]))
 )
 
 def rule_24_func(arg1, arg2, solver=None, neg=False):

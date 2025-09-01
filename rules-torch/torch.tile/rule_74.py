@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Avoid creating oversized tiles and triggering a storage calculation overflow or out of memory issue by checking max memory usage per dimension. (Rule 74)
+# Rule that input tensor and product of tile factor must be smaller than maximum signed long long int and limit the number of dimension can be added and tensor dim is valid and byte size < max long long and each dim > 0 (Rule 74)
 
 rule_74 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] < v["arg2_length"], True, And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg1_shape"], i) * Select(v["arg2_values"], i) < 2000000) for i in range(6)]))) if n else
-          If(v["arg1_ndim"] < v["arg2_length"], True, And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg1_shape"], i) * Select(v["arg2_values"], i) < 2000000) for i in range(6)])))
+    s.add(Not(And(And(v["arg2_length"] < v["arg1_ndim"] + 5, Select(v["arg1_shape"], 0) * Select(v["arg2_values"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg2_values"], 1) * 4 < 9000000000000000000), And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) > 0) for i in range(6)]))) if n else
+          And(And(v["arg2_length"] < v["arg1_ndim"] + 5, Select(v["arg1_shape"], 0) * Select(v["arg2_values"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg2_values"], 1) * 4 < 9000000000000000000), And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) > 0) for i in range(6)])))
 )
 
 def rule_74_func(arg1, arg2, solver=None, neg=False):
@@ -39,9 +39,9 @@ def rule_74_func(arg1, arg2, solver=None, neg=False):
             arg2_values = Store(arg2_values, i, arg2[i])
 
         # Constraints for rule 74
-        rule_74(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_length': arg2_length, 'arg2_values': arg2_values})
+        rule_74(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length, 'arg2_values': arg2_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_74(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_length': arg2['length'], 'arg2_values': arg2['values']}, neg)
+        rule_74(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length'], 'arg2_values': arg2['values']}, neg)

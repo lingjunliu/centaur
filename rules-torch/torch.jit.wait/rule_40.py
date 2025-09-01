@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The argument must be a valid integer and not equal to negative infinity representation. (Rule 40)
+# future list contains only values from the Fibonacci sequence (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] != -9221120237041090560) if n else
-          v["arg1_value"] != -9221120237041090560)
+    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), Or([And(j < (20 + 1), If(j == 0, Select(v["arg1_values"], i) == 0, If(j == 1, Select(v["arg1_values"], i) == 1, Select(v["arg1_values"], i) == (If(Select(v["arg1_values"], i) < 0, -1, 1)) * (If(Select(v["arg1_values"], i) < 0, -1, 1)) * ((0 + (If(j > 2, (((If((j - 1) == 0, 0, 1)) + (If((j - 2) == 0, 0, 1)))), 1))))))) for j in range(6)])) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_length"] - 1 + 1), Or([And(j < (20 + 1), If(j == 0, Select(v["arg1_values"], i) == 0, If(j == 1, Select(v["arg1_values"], i) == 1, Select(v["arg1_values"], i) == (If(Select(v["arg1_values"], i) < 0, -1, 1)) * (If(Select(v["arg1_values"], i) < 0, -1, 1)) * ((0 + (If(j > 2, (((If((j - 1) == 0, 0, 1)) + (If((j - 2) == 0, 0, 1)))), 1))))))) for j in range(6)])) for i in range(6)]))
 )
 
 def rule_40_func(arg1, solver=None, neg=False):
@@ -17,20 +17,23 @@ def rule_40_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_length = Int('arg1_length')
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
+        solver.add(arg1_length == len(arg1))
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 40
-        rule_40(solver, {'arg1_value': arg1_value})
+        rule_40(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_40(solver, {'arg1_value': arg1['value']}, neg)
+        rule_40(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values']}, neg)

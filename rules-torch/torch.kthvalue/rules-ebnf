@@ -1,168 +1,123 @@
 >>
-Rule 1 (k should be within the range of the dimension size)
+Rule 1 (k must be within the valid range for the input tensor's dimension to prevent RuntimeError)
 {v_1 : tensor, v_2 : int, v_3 : int} |= v_2 ≥ 1 ∧ v_2 ≤ shape(v_1, v_3)
 >>
-Rule 3 (Input tensor should have non-zero size along the specified dimension)
+Rule 3 (input tensor dimension size should be non-zero to prevent IndexError)
 {v_1 : tensor, v_3 : int} |= shape(v_1, v_3) > 0
 >>
-Rule 4 (k must be an integer)
-{v_2 : int ⊎ float} |= if v_2 > 0 then true else false
->>
-Rule 5 (keepdim must be a boolean)
+Rule 4 (keepdim must be a boolean)
 {v_4 : bool} |= v_4 = true ∨ v_4 = false
 >>
-Rule 6 (Tuple out must contain tensors)
+Rule 7 (out must be a tuple of two tensors, if provided)
 {v_5 : tuple(tensor)} |= v_5.len = 2
 >>
-Rule 7 (k must be greater than zero)
+Rule 8 (If dim is None, it should default to the last dimension)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ 1 ∧ v_2 ≤ shape(v_1, ndim(v_1) - 1)
+>>
+Rule 9 (k should be a positive integer)
 {v_2: int} |= v_2 > 0
 >>
-Rule 8 (kthvalue() accepts only tensors as input.)
-{v_1: tensor} |= ndim(v_1) ≥ 1
+Rule 12 (dim must be a valid dimension for the input tensor to prevent IndexError, handling negative dimensions)
+{v_1 : tensor, v_3 : int} |=  v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)
 >>
-Rule 10 (kthvalue requires k to be an integer greater than 0)
-{v_2: int} |= v_2 ≥ 1
+Rule 20 (k must be within the valid range for the input tensor's dimension to prevent RuntimeError, considering the edge case where the dimension size is 1)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if shape(v_1, v_3) > 0 then v_2 ≥ 1 ∧ v_2 ≤ shape(v_1, v_3)
 >>
-Rule 12 (Dimension should be within the valid range of input tensor's dimensions. Cannot use negative indexing with ndim)
-{v_1 : tensor, v_3 : int} |= v_3 ≥ 0 ∧ v_3 < ndim(v_1)
+Rule 21 (dim must be a valid dimension for the input tensor to prevent IndexError, handling negative dimensions. Check if dimension exists.)
+{v_1 : tensor, v_3 : int} |= if ndim(v_1) > 0 then v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)
 >>
-Rule 22 (dim must be an integer)
-{v_3 : int ⊎ float} |= if v_3 > 0 then true else false
+Rule 24 (k must be a positive integer when input has elements)
+{v_1 : tensor, v_2: int} |= if ndim(v_1) > 0 then v_2 > 0
 >>
-Rule 23 (Input tensor cannot be a tuple)
-{v_1 : tensor ⊎ tuple(tensor)} |= if ndim(v_1) > 0 then true else false
+Rule 27 (k must be within the valid range for the input tensor's dimension to prevent RuntimeError, considering the edge case where the dimension size is 1, and that dimension exists)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) > 0 ∧ v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) ∧ shape(v_1, v_3) > 0 then v_2 ≥ 1 ∧ v_2 ≤ shape(v_1, v_3)
 >>
-Rule 24 (k should not be zero)
-{v_2: int} |= v_2 ≠ 0
+Rule 29 (k must be a positive integer when input has elements and dimension is valid)
+{v_1 : tensor, v_2: int, v_3: int} |= if ndim(v_1) > 0 ∧ v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) then v_2 > 0
 >>
-Rule 28 (If out is provided, it must be a tuple of two tensors)
-{v_5 : tuple(tensor) ⊎ tensor} |= if v_5.len = 2 then true else false
->>
-Rule 30 (Input tensor must be a tensor)
-{v_1: tensor ⊎ int ⊎ float} |= ndim(v_1) > 0
->>
-Rule 32 (dim must be an integer, which implies float must be converted to int)
-{v_3 : int ⊎ float} |= if v_3 = v_3 then true else false
->>
-Rule 33 (Input tensor cannot be a tuple)
-{v_1 : tensor ⊎ tuple(tensor)} |= ndim(v_1) > 0
->>
-Rule 36 (If out is provided, it must be a tuple of two tensors)
-{v_5 : tuple(tensor) ⊎ tensor} |= v_5.len = 2
->>
-Rule 37 (If dimension is specified, it must be within the valid range. Negative indexing handled via addition.)
-{v_1: tensor, v_3: int} |= v_3 ≥ 0 ∧ v_3 < ndim(v_1)
->>
-Rule 39 (K must be less than or equal to the dimension)
-{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 ≤ shape(v_1, v_3)
->>
-Rule 40 (dim must be an integer or None(represented by -1 here))
-{v_3 : int ⊎ float} |= if v_3 > -2 then true else false
->>
-Rule 41 (Input tensor cannot be a tuple. More precise with checking ndim than simply checking for a tuple type)
-{v_1 : tensor} |= ndim(v_1) > 0
->>
-Rule 45 (Check the input tensor type)
-{v_1 : tensor ⊎ int} |= if ndim(v_1) > 0 then true else false
->>
-Rule 47 (dim must be an integer or None(represented by -1 here))
-{v_3 : int ⊎ float} |= v_3 ≥ -1
->>
-Rule 48 (Input tensor must have at least one dimension (ndim>0) and each dimension must have a size > 0)
-{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 51 (K must be less than or equal to the dimension's shape value, and greater than 0)
-{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 ≤ shape(v_1, v_3) ∧ v_2 > 0
->>
-Rule 52 (Check if the k value is a valid number)
-{v_2: int ⊎ float} |= if v_2 = v_2 then true else false
->>
-Rule 53 (Check if input tensor is a valid tensor with minimum dimensions)
-{v_1: tensor ⊎ int} |= ndim(v_1) ≥ 0
->>
-Rule 56 (If out is provided, it must be a tuple of two tensors with length of 2.)
-{v_5 : tuple(tensor) ⊎ tensor} |= if v_5 = v_5 then v_5.len = 2
->>
-Rule 61 (If dimension is specified, and keepdim is false then dimension is less than the ndim)
-{v_1 : tensor, v_3 : int, v_4 : bool} |= if v_4 = false then v_3 < ndim(v_1)
->>
-Rule 62 (Check output tuple length is 2 if it is provided as a tuple)
-{v_5 : tuple(tensor) ⊎ tensor} |= if v_5.len = 2 then true
->>
-Rule 63 (k must be a valid integer)
-{v_2: int} |= v_2 ≥ 0
->>
-Rule 67 (Ensure output tensors have positive shape if dimension is valid.)
-{v_1 : tensor, v_3 : int} |= if v_3 ≥ 0 ∧ v_3 < ndim(v_1) then shape(v_1,v_3) > 0
->>
-Rule 68 (If dimension is specified, and keepdim is false then dimension is less than the ndim and the dimension is positive)
-{v_1 : tensor, v_3 : int, v_4 : bool} |= if v_4 = false then v_3 < ndim(v_1) ∧ v_3 ≥ 0
->>
-Rule 71 (k must be less than or equal to the size of any dimension shape)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : k ≤ shape(v_1, i)
->>
-Rule 73 (keepdim should be a boolean)
-{v_4 : bool} |= if v_4 = true then true else false
->>
-Rule 74 (If dimension is specified, and keepdim is false then dimension is less than the ndim and the dimension is positive, and k < shape in that dimension. Note shape(v1,v3) is invalid if v3 is invalid so this one comes first.)
-{v_1 : tensor, v_2 : int, v_3 : int, v_4 : bool} |= (v_3 ≥ 0 ∧ v_3 < ndim(v_1) ∧ v_4 = false ∧ v_2 ≤ shape(v_1, v_3)) ∨ v_4 = true
->>
-Rule 77 (k must be less than or equal to the size of any dimension shape, but only if the tensor is not empty)
-{v_1: tensor, v_2: int} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : v_2 ≤ shape(v_1, i)
->>
-Rule 84 (Check if input tensor is of valid data type and dimension is specified)
-{v_1: tensor, v_3: int} |= if v_3 < ndim(v_1) ∧ v_3 >= 0 then true
->>
-Rule 86 (If dimension is specified, and keepdim is false then dimension is less than the ndim and the dimension is positive, and k < shape in that dimension. Note shape(v1,v3) is invalid if v3 is invalid so this one comes first.)
-{v_1 : tensor, v_2 : int, v_3 : int, v_4 : bool} |= if v_3 ≥ 0 ∧ v_3 < ndim(v_1) ∧ v_4 = false then v_2 ≤ shape(v_1, v_3)
->>
-Rule 89 (k must be less or equal than any of the dimension sizes, but dimensions must have positive shape)
-{v_1: tensor, v_2: int} |= ∀i ∈ [0, ndim(v_1) - 1] : if shape(v_1, i) > 0 then v_2 ≤ shape(v_1, i)
->>
-Rule 90 (Check if input tensor has dimensions >= 0)
+Rule 30 (input must be a tensor to call shape)
 {v_1: tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 94 (k must be a valid integer and also greater than zero and smaller than the largest possible integer.)
-{v_2: int} |= v_2 > 0 ∧ v_2 < 2147483647
+Rule 31 (k must be within the valid range for the input tensor's dimension to prevent RuntimeError, considering the edge case where the dimension size is 1, and that dimension exists, input is not scalar)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) > 0 ∧ ndim(v_1) > 0 ∧ v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) ∧ shape(v_1, v_3) > 0 then v_2 ≥ 1 ∧ v_2 ≤ shape(v_1, v_3)
 >>
-Rule 101 (k must be less or equal than any of the dimension sizes, and the tensor must not be empty)
-{v_1: tensor, v_2: int} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : if shape(v_1, i) > 0 then v_2 ≤ shape(v_1, i)
+Rule 36 (k must be within the valid range for the input tensor's dimension to prevent RuntimeError, considering the edge case where the dimension size is 1, and that dimension exists, input is not scalar, handle when dimension is not specified)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0 then v_2 ≥ 1 ∧ v_2 ≤ shape(v_1, ndim(v_1) - 1)
 >>
-Rule 107 (Dimensions have to be nonnegative)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Rule 43 (If out is specified, it must be a tuple of length 2 where both elements are tensors.)
+{v_5 : tuple(tensor)} |= if v_5.len = 2 then true else false
 >>
-Rule 108 (Input is not a tuple or list)
-{v_1: tensor ⊎ tuple(tensor) ⊎ list(tensor)} |= ndim(v_1) >= 0
+Rule 45 (If out is specified, it must be a tuple of length 2 where both elements are tensors. Check if the output is specified as tuple)
+{v_5 : tuple(tensor) ⊎ tuple(int) ⊎ tuple(float) ⊎ tuple(bool) } |= if v_5.len = 2 then true else false
 >>
-Rule 114 (The shape of dimension should be a positive number)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 47 (If out is specified, it must be a tuple of length 2.)
+{v_5 : tuple(tensor) ⊎ tuple(int) ⊎ tuple(float) ⊎ tuple(bool) } |=  v_5.len = 2
 >>
-Rule 115 (Check if input tensor has dimensions >= 0)
-{v_1: tensor ⊎ int ⊎ float} |= if ndim(v_1) >= 0 then true else false
+Rule 48 (If dimension is specified, k must be less than dimension size)
+{v_1 : tensor, v_2 : int, v_3: int} |= if v_3 < ndim(v_1) ∧ v_3 ≥ (0 - ndim(v_1)) ∧ shape(v_1, v_3) > 0 then v_2 ≤ shape(v_1, v_3)
 >>
-Rule 119 (Dimensions have to be a valid dimension, but dimensions shape must be a positive number)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : if i >= 0 ∧ i < ndim(v_1) then shape(v_1, i) > 0
+Rule 49 (k must be within the valid range for the input tensor's dimension to prevent RuntimeError, considering the edge case where the dimension size is 1, and that dimension exists, input is not scalar, handle when dimension is not specified or dim is None, and dimension has non zero size, at least one dimension exists)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ ndim(v_1) > 0 then v_2 ≥ 1 ∧ v_2 ≤ shape(v_1, ndim(v_1) - 1)
 >>
-Rule 120 (Check if the input is a tensor)
-{v_1 : tensor ⊎ int ⊎ float ⊎ bool} |= ndim(v_1) >= 0
+Rule 51 (If dimension is specified, k must be less than dimension size, k>0)
+{v_1 : tensor, v_2 : int, v_3: int} |= if v_3 < ndim(v_1) ∧ v_3 ≥ (0 - ndim(v_1)) ∧ shape(v_1, v_3) > 0 then v_2 ≤ shape(v_1, v_3) ∧ v_2 > 0
 >>
-Rule 121 (Input tensor must be 2D)
-{v_1 : tensor} |= ndim(v_1) = 2
+Rule 53 (If out is specified, it must be a tuple of length 2, and the elements of tuple must be tensor to avoid TypeError)
+{v_5 : tuple(tensor)} |=  if v_5.len = 2 then true else false
 >>
-Rule 125 (k must be valid comparing to the shape in at least one dimension)
-{v_1: tensor, v_2: int} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ v_2
+Rule 55 (If out is specified, it must be a tuple of length 2.)
+{v_5 : tuple(tensor)} |=  v_5.len = 2
 >>
-Rule 133 (If k is larger than the maximum allowed, it will error)
-{v_2: int} |= v_2 < 2147483647
+Rule 62 (if input is a scalar, k must be 1 to avoid RuntimeError)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then v_2 = 1
 >>
-Rule 138 (If input is not a tensor type, report it.)
-{v_1: tensor ⊎ int} |= if ndim(v_1) > 0 then true else false
+Rule 63 (If out is specified, it must be a tuple of length 2 and both element must be tensor to avoid TypeError)
+{v_5: tuple(tensor)} |= if v_5.len = 2 then true
 >>
-Rule 143 (Dimensions have to be a valid dimension, and the number of dimensions > 0)
-{v_1: tensor} |= ndim(v_1) > 0
+Rule 68 (Check k is valid for a given dimension to avoid RuntimeError, if specified and dimension exist. Must be at least one element)
+{v_1 : tensor, v_2 : int, v_3: int} |= if ndim(v_1) > 0 ∧ v_3 < ndim(v_1) ∧ v_3 ≥ (0 - ndim(v_1)) ∧ shape(v_1, v_3) > 0 then v_2 ≤ shape(v_1, v_3) ∧ v_2 > 0
 >>
-Rule 145 (If the argument isn't a tensor, then it must be of a type tuple with 2 elements.)
-{v_1: tensor ⊎ tuple(tensor)} |= v_1.len = 2
+Rule 71 (If out is specified, it must be a tuple of length 2 and both element must be tensor to avoid TypeError, check dimension exists if specified and valid)
+{v_1 : tensor, v_5: tuple(tensor), v_3: int} |= if v_5.len = 2 ∧ ndim(v_1) > 0 ∧ v_3 < ndim(v_1) ∧ v_3 ≥ (0 - ndim(v_1)) then true
 >>
-Rule 150 (If input is not a tensor type, it will report the error message.)
-{v_1 : tensor ⊎ int ⊎ float} |= if ndim(v_1) > 0 then true else false
+Rule 75 (Check k is valid for a given dimension to avoid RuntimeError, if specified and dimension exist. Must be at least one element, prevent IndexError for empty dim, ndim >0, scalar is invalid, k must be valid number)
+{v_1 : tensor, v_2 : int, v_3: int} |= if  ndim(v_1) > 0 ∧ ndim(v_1) > 0 ∧ v_3 < ndim(v_1) ∧ v_3 ≥ (0 - ndim(v_1)) ∧ shape(v_1, v_3) > 0 then v_2 ≤ shape(v_1, v_3) ∧ v_2 > 0
+>>
+Rule 78 (To avoid TypeError: Check that out is a tuple if specified, with at least one element)
+{v_5: tuple(tensor) ⊎ tuple(int) ⊎ tuple(float) ⊎ tuple(bool)} |= v_5.len ≥ 0
+>>
+Rule 82 (Check k is valid for a given dimension to avoid RuntimeError, if specified and dimension exist. Must be at least one element, prevent IndexError for empty dim, ndim >0, k can not be zero)
+{v_1 : tensor, v_2 : int, v_3: int} |= if  ndim(v_1) > 0 ∧ v_3 < ndim(v_1) ∧ v_3 ≥ (0 - ndim(v_1)) ∧ shape(v_1, v_3) > 0 then v_2 ≤ shape(v_1, v_3) ∧ v_2 > 0
+>>
+Rule 85 (Check k is valid for a given dimension to avoid RuntimeError, if specified and dimension exist. Must be at least one element, prevent IndexError for empty dim, ndim >0, k can not be zero.Also, for scalar k ==1)
+{v_1 : tensor, v_2 : int, v_3: int} |= if  ndim(v_1) > 0 ∧ v_3 < ndim(v_1) ∧ v_3 ≥ (0 - ndim(v_1)) ∧ shape(v_1, v_3) > 0 then v_2 ≤ shape(v_1, v_3) ∧ v_2 > 0 else if ndim(v_1) = 0 then v_2 = 1
+>>
+Rule 89 (To avoid TypeError: Check that out is a tuple if specified, and tuple contains two tensor elements to be written, and ndim should not be scalar )
+{v_1 : tensor, v_5: tuple(tensor)} |= if v_5.len = 2 ∧ ndim(v_1) > 0 then true
+>>
+Rule 90 (Check k is valid for a given dimension to avoid RuntimeError, if specified and dimension exist. Must be at least one element, prevent IndexError for empty dim, ndim >0, k can not be zero, Check that shape is valid)
+{v_1 : tensor, v_2 : int, v_3: int} |= if  ndim(v_1) > 0 ∧ shape(v_1, 0) > 0 ∧ v_3 < ndim(v_1) ∧ v_3 ≥ (0 - ndim(v_1)) ∧ shape(v_1, v_3) > 0 then v_2 ≤ shape(v_1, v_3) ∧ v_2 > 0 else if ndim(v_1) = 0 then v_2 = 1
+>>
+Rule 93 (To avoid TypeError for output and check length of the tuple)
+{v_5: tuple(tensor)} |=  v_5.len = 2
+>>
+Rule 95 (To avoid TypeError for output and check length of the tuple and to avoid scalar operation if not intended)
+{v_1 : tensor, v_5: tuple(tensor)} |= if ndim(v_1) > 0 then v_5.len = 2
+>>
+Rule 97 (To avoid TypeError for output and check length of the tuple and ndim not valid or other errors if tuple !=2 it should throw error )
+{v_5: tuple(tensor)} |=   v_5.len = 2
+>>
+Rule 98 (Check k is valid for a given dimension to avoid RuntimeError, if specified and dimension exist. Must be at least one element, prevent IndexError for empty dim, ndim >0, k can not be zero. Also, for scalar k ==1 and also check that shape is not zero , and check if dimension exists before check dimension properties to avoid nested check)
+{v_1 : tensor, v_2 : int, v_3: int} |= if  ndim(v_1) > 0 ∧ v_3 < ndim(v_1) ∧ v_3 ≥ (0 - ndim(v_1)) then if shape(v_1, 0) > 0 ∧ shape(v_1, v_3) > 0 then v_2 ≤ shape(v_1, v_3) ∧ v_2 > 0 else if ndim(v_1) = 0 then v_2 = 1
+>>
+Rule 100 (Check k is valid for a given dimension to avoid RuntimeError, if specified and dimension exist. Must be at least one element, prevent IndexError for empty dim, ndim >0, k can not be zero. Also, for scalar k ==1 and also check that shape is not zero , Check scalar tensor, and check dimension exists and is valid before accessing shape)
+{v_1 : tensor, v_2 : int, v_3: int} |= if  ndim(v_1) > 0  then if  v_3 < ndim(v_1) ∧ v_3 ≥ (0 - ndim(v_1))  then if shape(v_1, 0) > 0 ∧ shape(v_1, v_3) > 0 then v_2 ≤ shape(v_1, v_3) ∧ v_2 > 0  else if ndim(v_1) = 0 then v_2 = 1
+>>
+Rule 105 (Check if out is a tuple with proper elements)
+{v_5: tuple(tensor) ⊎ tuple(int) ⊎ tuple(float) ⊎ tuple(bool)} |= if v_5.len = 2 then true
+>>
+Rule 107 (To avoid TypeError for output)
+{v_5: tuple(tensor) } |= v_5.len = 2
+>>
+Rule 109 (Check if out is a tuple)
+{v_5 : tuple(tensor) ⊎ tuple(int) ⊎ tuple(float) ⊎ tuple(bool)} |= if v_5.len = 2 then true

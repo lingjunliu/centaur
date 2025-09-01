@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Dimension should be within the range of input tensor's dimensions - revised to avoid '-' before a function call (Rule 4)
+# Dimension should be in valid range (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"])) if n else
-          And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"]))
+    s.add(Not(And(-1 * v["arg1_ndim"] <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"])) if n else
+          And(-1 * v["arg1_ndim"] <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"]))
 )
 
 def rule_4_func(arg1, arg2, solver=None, neg=False):

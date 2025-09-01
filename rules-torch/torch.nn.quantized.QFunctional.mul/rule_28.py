@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If zero_point is specified, it must be a representable integer for the specified dtype (Rule 28)
+# If input tensor is of integer type, other tensor should also be of integer type. (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(Or((And(And(v["arg2_value"] == 5, 0 <= v["arg1_value"]), v["arg1_value"] <= 255)), (And(And(v["arg2_value"] == 1, -128 <= v["arg1_value"]), v["arg1_value"] <= 127)))) if n else
-          Or((And(And(v["arg2_value"] == 5, 0 <= v["arg1_value"]), v["arg1_value"] <= 255)), (And(And(v["arg2_value"] == 1, -128 <= v["arg1_value"]), v["arg1_value"] <= 127))))
+    s.add(Not(If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), And(1 <= v["arg2_dtype"], v["arg2_dtype"] <= 5), True)) if n else
+          If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), And(1 <= v["arg2_dtype"], v["arg2_dtype"] <= 5), True))
 )
 
 def rule_28_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,24 @@ def rule_28_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_value = Int('arg2_value')
+        arg1_dtype = Int('arg1_dtype')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 28
-        rule_28(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_28(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_28(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_28(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)

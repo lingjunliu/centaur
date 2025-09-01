@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If both input and out tensors are provided, then out must have same dtype or higher than input (Rule 28)
+# Prevent potential casting errors: if input is complex, out must also be complex and have same or higher precision. (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_dtype"] >= v["arg1_dtype"]) if n else
-          v["arg2_dtype"] >= v["arg1_dtype"])
+    s.add(Not(If(v["arg1_dtype"] == 9, (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, True))) if n else
+          If(v["arg1_dtype"] == 9, (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, True)))
 )
 
 def rule_28_func(arg1, arg2, solver=None, neg=False):

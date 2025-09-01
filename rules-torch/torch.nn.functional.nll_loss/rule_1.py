@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input and target batch size mismatch (Rule 1)
+# Input and target tensors should have matching batch sizes, addressing "ValueError: Expected input batch_size (3 (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
     s.add(Not(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0)) if n else

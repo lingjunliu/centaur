@@ -5,16 +5,17 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# split_sizes should sum to the size of the input tensor at dimension 0 and all elements be non-negative (Rule 16)
+# Each split size must be less or equal to dimension size (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(And(And((v["arg2_length"] > 0), (If(Select(v["arg1_shape"], 0) > 0, True, False))), (And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) >= 0) for i in range(6)])))) if n else
-          And(And((v["arg2_length"] > 0), (If(Select(v["arg1_shape"], 0) > 0, True, False))), (And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) >= 0) for i in range(6)]))))
+    s.add(Not(If(v["arg3_value"] >= 0, (And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) <= Select(v["arg1_shape"], v["arg3_value"])) for i in range(6)])), True)) if n else
+          If(v["arg3_value"] >= 0, (And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) <= Select(v["arg1_shape"], v["arg3_value"])) for i in range(6)])), True))
 )
 
-def rule_16_func(arg1, arg2, solver=None, neg=False):
+def rule_16_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
@@ -22,12 +23,15 @@ def rule_16_func(arg1, arg2, solver=None, neg=False):
             return False
         if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
+        if not (isinstance(arg3, (int, np.integer)) and not isinstance(arg3, bool)):
+            return False
 
         # Variable declarations
         solver = Solver()
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg2_length = Int('arg2_length')
         arg2_values = Array('arg2_values', IntSort(), IntSort())
+        arg3_value = Int('arg3_value')
 
         # Value assignments
         for i in range(arg1.ndim):
@@ -35,11 +39,12 @@ def rule_16_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_length == len(arg2))
         for i in range(len(arg2)):
             arg2_values = Store(arg2_values, i, arg2[i])
+        solver.add(arg3_value == int(arg3))
 
         # Constraints for rule 16
-        rule_16(solver, {'arg1_shape': arg1_shape, 'arg2_length': arg2_length, 'arg2_values': arg2_values})
+        rule_16(solver, {'arg1_shape': arg1_shape, 'arg2_length': arg2_length, 'arg2_values': arg2_values, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_16(solver, {'arg1_shape': arg1['shape'], 'arg2_length': arg2['length'], 'arg2_values': arg2['values']}, neg)
+        rule_16(solver, {'arg1_shape': arg1['shape'], 'arg2_length': arg2['length'], 'arg2_values': arg2['values'], 'arg3_value': arg3['value']}, neg)

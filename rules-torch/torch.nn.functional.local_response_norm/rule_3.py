@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor's dtype should not be Byte to avoid RuntimeError: "avg_pool3d_out_frame" not implemented for 'Byte' (Rule 3)
+# Alpha should be non-negative to prevent unexpected behavior in normalization (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 6) if n else
-          v["arg1_dtype"] != 6)
+    s.add(Not(v["arg1_value"] >= 0) if n else
+          v["arg1_value"] >= 0)
 )
 
 def rule_3_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_3_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_value = Real('arg1_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 3
-        rule_3(solver, {'arg1_dtype': arg1_dtype})
+        rule_3(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_3(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_3(solver, {'arg1_value': arg1['value']}, neg)

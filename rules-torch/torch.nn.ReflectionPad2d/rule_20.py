@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# For N-dimensional padding the API doc refers to torch.nn.functional.pad (Rule 20)
+# Input tensor must be at least 2D (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 5, False, False)) if n else
-          If(v["arg1_ndim"] > 5, False, False))
+    s.add(Not(v["arg1_ndim"] >= 2) if n else
+          v["arg1_ndim"] >= 2)
 )
 
 def rule_20_func(arg1, solver=None, neg=False):

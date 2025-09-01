@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# When an out tensor is provided, ensure it isn't of a dtype that will cause a casting error, specifically when the input is a float type and the out tensor is a short type (Rule 16)
+# If input tensor's dtype is bool (0 (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(If((And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)), v["arg2_dtype"] != 2, False)) if n else
-          If((And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)), v["arg2_dtype"] != 2, False))
+    s.add(Not(If(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0, True)) if n else
+          If(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0, True))
 )
 
 def rule_16_func(arg1, arg2, solver=None, neg=False):

@@ -5,37 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The combination of arguments must correspond to a valid state (Rule 13)
+# The allowed dtypes are float16, float32, float64, complex64, complex128 or a numpy dtype of float16, float32, float64, complex64, or complex128 (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(Or((And(v["arg1_value"] == -1, v["arg2_value"] == False)), (And(v["arg1_value"] == 6, v["arg2_value"] == True))), (And(v["arg1_value"] == 7, v["arg2_value"] == False))), (And(v["arg1_value"] == 8, v["arg2_value"] == False))), (And(v["arg1_value"] == 12, v["arg2_value"] == False)))) if n else
-          Or(Or(Or(Or((And(v["arg1_value"] == -1, v["arg2_value"] == False)), (And(v["arg1_value"] == 6, v["arg2_value"] == True))), (And(v["arg1_value"] == 7, v["arg2_value"] == False))), (And(v["arg1_value"] == 8, v["arg2_value"] == False))), (And(v["arg1_value"] == 12, v["arg2_value"] == False))))
+    s.add(Not(Or(Or(Or(Or(Or(v["arg1_value"] == 6, v["arg1_value"] == 7), v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10), (And(v["arg1_value"] == 12, (Or(Or(Or(Or(v["arg1_value"] == 6, v["arg1_value"] == 7), v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10)))))) if n else
+          Or(Or(Or(Or(Or(v["arg1_value"] == 6, v["arg1_value"] == 7), v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10), (And(v["arg1_value"] == 12, (Or(Or(Or(Or(v["arg1_value"] == 6, v["arg1_value"] == 7), v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10))))))
 )
 
-def rule_13_func(arg1, arg2, solver=None, neg=False):
+def rule_13_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
-            return False
-        if not isinstance(arg2, bool):
+        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = Int('arg1_value')
-        arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        solver.add(arg2_value == arg2)
+        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
 
         # Constraints for rule 13
-        rule_13(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_13(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_13(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_13(solver, {'arg1_value': arg1['value']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if output size is specified, check whether any of the values in the tuple exceed 2 or falls below -2 (Rule 111)
+# padding is a valid tuple and must have length 1 or 3 with all elements non-negative (Rule 111)
 
 rule_111 = lambda s, v, n=False: (
-    s.add(Not(Or([And(i < (v["arg1_length"] - 1 + 1), Or(Select(v["arg1_values"], i) > 2, Select(v["arg1_values"], i) < -2)) for i in range(6)])) if n else
-          Or([And(i < (v["arg1_length"] - 1 + 1), Or(Select(v["arg1_values"], i) > 2, Select(v["arg1_values"], i) < -2)) for i in range(6)]))
+    s.add(Not(And((Or(v["arg1_length"] == 1, v["arg1_length"] == 3)), And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) >= 0) for i in range(6)]))) if n else
+          And((Or(v["arg1_length"] == 1, v["arg1_length"] == 3)), And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) >= 0) for i in range(6)])))
 )
 
 def rule_111_func(arg1, solver=None, neg=False):

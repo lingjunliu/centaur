@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Avoid overflow by ensuring input tensor's data type is precise enough. (Rule 54)
+# The input tensor must not be of boolean, integer or string dtype (Rule 54)
 
 rule_54 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 7, True, If(v["arg1_dtype"] == 8, True, If(v["arg1_dtype"] == 9, True, If(v["arg1_dtype"] == 10, True, False))))) if n else
-          If(v["arg1_dtype"] == 7, True, If(v["arg1_dtype"] == 8, True, If(v["arg1_dtype"] == 9, True, If(v["arg1_dtype"] == 10, True, False)))))
+    s.add(Not(If(Or(Or((v["arg1_dtype"] == 0), (And(v["arg1_dtype"] < 6, v["arg1_dtype"] > 0))), (v["arg1_dtype"] == 11)), False, True)) if n else
+          If(Or(Or((v["arg1_dtype"] == 0), (And(v["arg1_dtype"] < 6, v["arg1_dtype"] > 0))), (v["arg1_dtype"] == 11)), False, True))
 )
 
 def rule_54_func(arg1, solver=None, neg=False):

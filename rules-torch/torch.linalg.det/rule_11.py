@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If out tensor is provided, it must have same batch dims as input (Rule 11)
+# Shape of out must match shape of A except when ndim(A (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 2, (And(v["arg2_ndim"] == v["arg1_ndim"] - 2, And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]))), (v["arg2_ndim"] == 0))) if n else
-          If(v["arg1_ndim"] > 2, (And(v["arg2_ndim"] == v["arg1_ndim"] - 2, And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]))), (v["arg2_ndim"] == 0)))
+    s.add(Not(If(v["arg1_ndim"] == 2, v["arg2_ndim"] == 0, (And([Implies(i < (v["arg1_ndim"] - 2 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])))) if n else
+          If(v["arg1_ndim"] == 2, v["arg2_ndim"] == 0, (And([Implies(i < (v["arg1_ndim"] - 2 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]))))
 )
 
 def rule_11_func(arg1, arg2, solver=None, neg=False):

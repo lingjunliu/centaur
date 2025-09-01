@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# When an output tensor is specified, and the input tensor is of type float, the output tensor must be of type float32 or float64 (Rule 26)
+# If input tensor is float32, an out tensor must be provided with dtype float32 or float64 (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 7, (Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8)), False)) if n else
-          If(v["arg1_dtype"] == 7, (Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8)), False))
+    s.add(Not(If(v["arg1_dtype"] == 7, Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), True)) if n else
+          If(v["arg1_dtype"] == 7, Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), True))
 )
 
 def rule_26_func(arg1, arg2, solver=None, neg=False):

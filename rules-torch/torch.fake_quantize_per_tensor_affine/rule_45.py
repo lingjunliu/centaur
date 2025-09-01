@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The scale should be a reasonable value (Rule 45)
+# Quant max must be an integer (Rule 45)
 
 rule_45 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 100) if n else
-          v["arg1_value"] < 100)
+    s.add(Not(v["arg1_value"] == (v["arg1_value"] / 1) * 1) if n else
+          v["arg1_value"] == (v["arg1_value"] / 1) * 1)
 )
 
 def rule_45_func(arg1, solver=None, neg=False):

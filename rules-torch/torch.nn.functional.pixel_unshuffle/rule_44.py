@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the downscale factor is positive, height must be divisible by it (Rule 44)
+# Complete validation for pixel_unshuffle parameters (Rule 44)
 
 rule_44 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] > 0, Select(v["arg1_shape"], v["arg1_ndim"] - 2) % v["arg2_value"] == 0, False)) if n else
-          If(v["arg2_value"] > 0, Select(v["arg1_shape"], v["arg1_ndim"] - 2) % v["arg2_value"] == 0, False))
+    s.add(Not(And(And(And(v["arg2_value"] > 0, v["arg1_ndim"] >= 1), (If(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 2) % v["arg2_value"] == 0, True))), (v["arg1_ndim"] >= 3))) if n else
+          And(And(And(v["arg2_value"] > 0, v["arg1_ndim"] >= 1), (If(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 2) % v["arg2_value"] == 0, True))), (v["arg1_ndim"] >= 3)))
 )
 
 def rule_44_func(arg1, arg2, solver=None, neg=False):

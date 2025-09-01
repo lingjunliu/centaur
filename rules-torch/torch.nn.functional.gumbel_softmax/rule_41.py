@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# hard must be a boolean value - using not equals and and operator, simplified (Rule 41)
+# Tau: a positive floating-point value, avoid zero division (Rule 41)
 
 rule_41 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] != True, v["arg1_value"] != False)) if n else
-          And(v["arg1_value"] != True, v["arg1_value"] != False))
+    s.add(Not(v["arg1_value"] > 0.000001) if n else
+          v["arg1_value"] > 0.000001)
 )
 
 def rule_41_func(arg1, solver=None, neg=False):
@@ -17,12 +17,12 @@ def rule_41_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not isinstance(arg1, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
+        arg1_value = Real('arg1_value')
 
         # Value assignments
         solver.add(arg1_value == arg1)

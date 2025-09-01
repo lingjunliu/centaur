@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# layer_norm_eps must be greater than 0 (Rule 5)
+# activation must be either relu or gelu if it is a string (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] > 0) if n else
-          v["arg1_value"] > 0)
+    s.add(Not(Or(v["arg1_value"] == 11, v["arg1_value"] == 17)) if n else
+          Or(v["arg1_value"] == 11, v["arg1_value"] == 17))
 )
 
 def rule_5_func(arg1, solver=None, neg=False):
@@ -17,15 +17,15 @@ def rule_5_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
+        if not isinstance(arg1, str):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
+        arg1_value = String('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
+        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
 
         # Constraints for rule 5
         rule_5(solver, {'arg1_value': arg1_value})

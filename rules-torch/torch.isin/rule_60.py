@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# test_elements must be one of supported types if element's dim is 0 (Rule 60)
+# The type of elements and test_elements should be numerical to avoid the unsupported input type error, and both should have same dtype for meaningful comparison (Rule 60)
 
 rule_60 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_ndim"] == 0), (Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4), v["arg2_dtype"] == 5), v["arg2_dtype"] == 6), v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10)), False)) if n else
-          If((v["arg1_ndim"] == 0), (Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4), v["arg2_dtype"] == 5), v["arg2_dtype"] == 6), v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10)), False))
+    s.add(Not(If(And((v["arg1_dtype"] > 0), (v["arg2_dtype"] > 0)), v["arg1_dtype"] == v["arg2_dtype"], False)) if n else
+          If(And((v["arg1_dtype"] > 0), (v["arg2_dtype"] > 0)), v["arg1_dtype"] == v["arg2_dtype"], False))
 )
 
 def rule_60_func(arg1, arg2, solver=None, neg=False):
@@ -25,17 +25,17 @@ def rule_60_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_dtype = Int('arg1_dtype')
         arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 60
-        rule_60(solver, {'arg1_ndim': arg1_ndim, 'arg2_dtype': arg2_dtype})
+        rule_60(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_60(solver, {'arg1_ndim': arg1['ndim'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_60(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)

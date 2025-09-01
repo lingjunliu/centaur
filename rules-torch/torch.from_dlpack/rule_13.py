@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# ext_tensor's ndim is 1 and its length is a prime number (Rule 13)
+# if the tensor is 2 dimensional, then the number of elements should be between 1 and 2147483647 (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] == 1, (And([Implies(i < (Select(v["arg1_shape"], 0) - 1 + 1), Or([And(j < (Select(v["arg1_shape"], 0) - 1 + 1), i * j != Select(v["arg1_shape"], 0)) for j in range(6)])) for i in range(6)])))) if n else
-          And(v["arg1_ndim"] == 1, (And([Implies(i < (Select(v["arg1_shape"], 0) - 1 + 1), Or([And(j < (Select(v["arg1_shape"], 0) - 1 + 1), i * j != Select(v["arg1_shape"], 0)) for j in range(6)])) for i in range(6)]))))
+    s.add(Not(If(v["arg1_ndim"] == 2, And(Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) >= 1, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) <= 2147483647), True)) if n else
+          If(v["arg1_ndim"] == 2, And(Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) >= 1, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) <= 2147483647), True))
 )
 
 def rule_13_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_13_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 13
-        rule_13(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_13(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_13(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_13(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

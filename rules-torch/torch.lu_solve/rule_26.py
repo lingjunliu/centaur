@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The number of dimensions of b must be greater than or equal to the number of dimensions of LU_pivots (Rule 26)
+# b and LU_data should have same number of dimensions if they are greater than or equal to 2 (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] >= v["arg2_ndim"]) if n else
-          v["arg1_ndim"] >= v["arg2_ndim"])
+    s.add(Not(If(And(v["arg1_ndim"] >= 2, v["arg2_ndim"] >= 2), v["arg1_ndim"] == v["arg2_ndim"], True)) if n else
+          If(And(v["arg1_ndim"] >= 2, v["arg2_ndim"] >= 2), v["arg1_ndim"] == v["arg2_ndim"], True))
 )
 
 def rule_26_func(arg1, arg2, solver=None, neg=False):

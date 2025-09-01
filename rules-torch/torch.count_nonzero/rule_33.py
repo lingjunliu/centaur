@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# When dim is a tuple, no duplicate values are allowed (Rule 33)
+# If dim is a tuple, the length must be greater than 0 (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), And([Implies(j < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) != Select(v["arg1_values"], j)) for j in range(6)])) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_length"] - 1 + 1), And([Implies(j < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) != Select(v["arg1_values"], j)) for j in range(6)])) for i in range(6)]))
+    s.add(Not(v["arg1_length"] > 0) if n else
+          v["arg1_length"] > 0)
 )
 
 def rule_33_func(arg1, solver=None, neg=False):
@@ -23,17 +23,14 @@ def rule_33_func(arg1, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_length = Int('arg1_length')
-        arg1_values = Array('arg1_values', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_length == len(arg1))
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 33
-        rule_33(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values})
+        rule_33(solver, {'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_33(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values']}, neg)
+        rule_33(solver, {'arg1_length': arg1['length']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input and output dtypes must be compatible; prevent bool output for complex input (Rule 11)
+# If output tensor is boolean, input should also be boolean or floating-point to avoid casting errors (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), If(v["arg2_dtype"] == 0, (Or(v["arg1_dtype"] < 9, v["arg1_dtype"] > 10)), False))) if n else
-          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), If(v["arg2_dtype"] == 0, (Or(v["arg1_dtype"] < 9, v["arg1_dtype"] > 10)), False)))
+    s.add(Not(If(v["arg2_dtype"] == 0, (Or(v["arg1_dtype"] == 0, (And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)))), True)) if n else
+          If(v["arg2_dtype"] == 0, (Or(v["arg1_dtype"] == 0, (And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)))), True))
 )
 
 def rule_11_func(arg1, arg2, solver=None, neg=False):

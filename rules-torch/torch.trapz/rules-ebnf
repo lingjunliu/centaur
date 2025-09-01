@@ -1,102 +1,108 @@
 >>
-Rule 1 (y and x must have the same length along the specified dimension if x is provided)
+Rule 1 (y and x tensors must have the same length along dimension dim)
 {v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_1, v_3) = shape(v_2, v_3)
 >>
-Rule 2 (dim should be a valid dimension of input tensor y)
-{v_1 : tensor, v_2 : int} |= -1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) - 1
+Rule 3 (y and x should not be boolean tensors)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ "bool" ∧ dtype_(v_2) ≠ "bool"
 >>
-Rule 3 (y should not be a boolean tensor)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 4 (y should be a tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 5 (The dimension argument should not be greater than the number of dimensions.)
-{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
+Rule 5 (x should be a tensor)
+{v_2 : tensor} |= ndim(v_2) ≥ 1
 >>
-Rule 8 (dim should be a valid dimension of input tensor y)
-{v_1 : tensor, v_2 : int} |= -1 * ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) - 1
+Rule 7 (dim must be within the valid range of dimensions for y)
+{v_1 : tensor, v_3 : int} |= v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)
 >>
-Rule 12 (The dimension argument should not be less than the negative number of dimensions.)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1))
+Rule 11 (y and x tensors must have at least one element in the specified dimension)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_1, v_3) > 0 ∧ shape(v_2, v_3) > 0
 >>
-Rule 13 (y and x must have the same length along dim if x is provided and dim is valid)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= ((-1 * ndim(v_1) ≤ v_3 ∧ v_3 ≤ ndim(v_1) - 1) ∧ shape(v_1, v_3) = shape(v_2, v_3)) ∨ ((-1 * ndim(v_1) > v_3) ∨ (v_3 > ndim(v_1) - 1))
+Rule 12 (dim should not be equal to number of dimensions)
+{v_1 : tensor, v_3 : int} |= v_3 ≠ ndim(v_1)
 >>
-Rule 15 (x can't be bool if given, otherwise trapezoid will fail)
-{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then true else dtype_(v_1) ≠ 0
+Rule 13 (x and y should have the same number of dimensions if x is provided)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 16 (dim must be within the allowed range)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+Rule 14 (y and x data type should be float or complex)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128" ∧ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" ∨ dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128"
 >>
-Rule 18 (If x is given, its size should be > 0)
-{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then false
+Rule 15 (If x is not None, then x and y should have compatible dtypes)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) > 0 then (dtype_(v_1) = "float32" ∧ dtype_(v_2) = "float32") ∨ (dtype_(v_1) = "float64" ∧ dtype_(v_2) = "float64") ∨ (dtype_(v_1) = "complex64" ∧ dtype_(v_2) = "complex64") ∨ (dtype_(v_1) = "complex128" ∧ dtype_(v_2) = "complex128")
 >>
-Rule 19 (x or y can't be bool, otherwise trapezoid will fail)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0
+Rule 16 (The size of x should be greater than 1 if provided.)
+{v_2 : tensor} |= if shape(v_2, 0) > 0 then shape(v_2, 0) > 1
 >>
-Rule 21 (y and x must have the same length along dim if x is provided and dim is valid. Otherwise, if x is not given (i.e., shape(x,i)=0 for all i) it always passes)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0 then true else ((-1 * ndim(v_1) ≤ v_3 ∧ v_3 ≤ ndim(v_1) - 1) ∧ shape(v_1, v_3) = shape(v_2, v_3)) ∨ ((-1 * ndim(v_1) > v_3) ∨ (v_3 > ndim(v_1) - 1))
+Rule 18 (if x is given then shapes should match except on dim.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if shape(v_2,0) > 0 then (∀i ∈ [0, ndim(v_1) -1] : (if i ≠ v_3 then shape(v_1, i) = shape(v_2, i)))
 >>
-Rule 24 (y and x must have the same length along dim if x is provided and dim is valid, Or if x is not given, any dim is valid)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |=  if ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0 then true else (-1 * ndim(v_1) ≤ v_3 ∧ v_3 ≤ ndim(v_1) - 1) ∧ shape(v_1, v_3) = shape(v_2, v_3)
+Rule 21 (y should have dimension greater than the absolute value of dim)
+{v_1 : tensor, v_3 : int} |= ndim(v_1) > (if v_3 < 0 then 0 - v_3 else v_3)
 >>
-Rule 27 (x must not be 0-dimensional if passed.)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 24 (The shape of x must be 1D)
+{v_2 : tensor} |= if shape(v_2, 0) > 0 then ndim(v_2) = 1
 >>
-Rule 28 (y and x must have the same length along dim if x is provided and dim is valid, Or if x is not given, any dim is valid. Dtype of y or x can't be bool. Dim must be in valid range)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= (dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0) ∧ (v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) ∧ (if ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0 then true else (-1 * ndim(v_1) ≤ v_3 ∧ v_3 ≤ ndim(v_1) - 1) ∧ shape(v_1, v_3) = shape(v_2, v_3))
+Rule 25 (x and y cannot both be None)
+{v_1 : tensor, v_2 : tensor} |=  shape(v_1,0) > 0 ∨ shape(v_2,0) > 0
 >>
-Rule 31 (x must be passed and not have a zero dimension, if given)
-{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0 then dtype_(v_1) ≠ 0 else (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
+Rule 26 (If x is not None, shape of x[0] must equal shape of y[dim])
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if shape(v_2,0) > 0 then shape(v_2, 0) = shape(v_1, v_3)
 >>
-Rule 32 (y and x must have the same length along dim if x is provided and dim is valid. If x is not passed, then x has 0 dimensions, and any dim is valid for y. Dtype of y or x can't be bool, dim must be in valid range)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= (dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0) ∧ (v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) ∧ (if ndim(v_2) = 0 then true else shape(v_1, v_3) = shape(v_2, v_3))
+Rule 27 (If x is None, the dimension dim must be 0)
+{v_2 : tensor, v_3 : int} |= if shape(v_2, 0) = 0 then v_3 = 0
 >>
-Rule 33 (y or x must not be boolean tensors, and if x is given its number of dimensions must be greater than 0)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0 ∧ (if ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0 then true else ndim(v_2) > 0)
+Rule 29 (y cannot have boolean dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ "bool"
 >>
-Rule 34 (y and x must have the same length along dim if x is provided and dim is valid, x and y must be passed and not have a boolean dtype. If x is not passed, then x has 0 dimensions, and any dim is valid for y.)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= (dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0) ∧ (if ndim(v_2) = 0 then true else (v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) ∧ shape(v_1, v_3) = shape(v_2, v_3))
+Rule 30 (If x is defined, then x cannot have boolean dtype)
+{v_2 : tensor} |= if shape(v_2, 0) > 0 then dtype_(v_2) ≠ "bool"
 >>
-Rule 36 (y and x must have the same length along dim if x is provided and dim is valid. If x is not passed, then shape(x) has 0 elements, any dim is valid for y. Dtype of y or x can't be bool, dim must be in valid range)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= (dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0) ∧ (v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) ∧ (if ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0 then true else shape(v_1, v_3) = shape(v_2, v_3))
+Rule 36 (If x is defined, y and x need to have same type)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) > 0 then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 37 (If x is given (not 0 dimensions), its dimensions must be greater than 0 and y cannot be boolean)
-{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0 then dtype_(v_1) ≠ 0 else (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) ∧ dtype_(v_1) ≠ 0
+Rule 37 (y and dim should be compatible, y tensor should have abs(dim) < y.ndim)
+{v_1 : tensor, v_3 : int} |= (if v_3 < 0 then 0 - v_3 else v_3) < ndim(v_1)
 >>
-Rule 38 (If x is given, its dimensions must be greater than 0, dim is a valid dimension and y cannot be boolean)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0 then dtype_(v_1) ≠ 0 else (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) ∧ dtype_(v_1) ≠ 0 ∧ (v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1))
+Rule 39 (If x is not None, y and x shapes must match except in dim)
+{v_1 : tensor, v_2 : tensor, v_3: int} |= if shape(v_2, 0) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : (if i ≠ v_3 then shape(v_1, i) = shape(v_2, i)))
 >>
-Rule 41 (If x is given and dimension is valid, y and x must have the same length along the dimension. Otherwise evaluates to true)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0 then true else if (v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) then shape(v_1, v_3) = shape(v_2, v_3)
+Rule 42 (If x is not defined, the shape of x must be 0.)
+{v_2: tensor} |= shape(v_2, 0) = 0 ∨ ndim(v_2) = 0
 >>
-Rule 43 (If x is given and dimension is valid, y and x must have the same length along the dimension, dtype of y or x cannot be boolean. Otherwise evaluates to true)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= (dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0) ∧ if ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0 then true else if (v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) then shape(v_1, v_3) = shape(v_2, v_3)
+Rule 47 (x and y can't be bool, covers error 3)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ "bool" ∧ (if shape(v_2,0) > 0 then dtype_(v_2) ≠ "bool")
 >>
-Rule 44 (If x is given, its dimensions must be greater than 0, y and x must not be boolean)
-{v_1 : tensor, v_2 : tensor} |= (if ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0 then false else (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)) ∧ dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0
+Rule 51 (If x is defined, y and x shapes must match except in dim, covering error 1, also ensures that shapes matches on dim)
+{v_1 : tensor, v_2 : tensor, v_3: int} |= if shape(v_2, 0) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : (if i ≠ v_3 then shape(v_1, i) = shape(v_2, i) else shape(v_1, i) > 0 ∧ shape(v_2, i) > 0))
 >>
-Rule 47 (If x is given and dimension is valid, y and x must have the same length along the dimension, the dimension must also be a valid one for y. )
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0 then true else (v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) ∧ shape(v_1, v_3) = shape(v_2, v_3)
+Rule 52 (y and dim should be compatible, y tensor should have abs(dim) less than y.ndim, covering error 2. Also x can't be bool, covering error 3)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (if v_3 < 0 then 0 - v_3 else v_3) < ndim(v_1) ∧ dtype_(v_1) ≠ "bool" ∧ (if shape(v_2,0) > 0 then dtype_(v_2) ≠ "bool")
 >>
-Rule 49 (If x is given, its dimensions must be greater than 0, and y and x must not be boolean. Furthermore, the provided dimension must be a valid one)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= (if ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0 then false else (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)) ∧ dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0 ∧ (v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1))
+Rule 56 (y and dim should be compatible, y tensor should have abs(dim) less than y.ndim, x and y can't be bool, covering all errors)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (if v_3 < 0 then 0 - v_3 else v_3) < ndim(v_1) ∧ dtype_(v_1) ≠ "bool" ∧ (if shape(v_2,0) > 0 then (dtype_(v_2) ≠ "bool" ∧ (∀i ∈ [0, ndim(v_1) - 1] : (if i ≠ v_3 then shape(v_1, i) = shape(v_2, i) else shape(v_1, i) > 0 ∧ shape(v_2, i) > 0))))
 >>
-Rule 50 (If x is given and dimension is valid, y and x must have the same length along the dimension. )
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0 then true else shape(v_1, v_3) = shape(v_2, v_3)
+Rule 61 (If x is defined, y and x shapes on the dimension `dim` must be the same, covering error 1)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if shape(v_2, 0) > 0 then shape(v_1, v_3) = shape(v_2, 0)
 >>
-Rule 56 (If x is given and a dimension is given then it must be a valid one and y and x must have the same length along the dimension. )
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0 then true else if v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) then shape(v_1, v_3) = shape(v_2, v_3)
+Rule 62 (y and dim must be compatible; if dim is negative, it must be a valid negative index)
+{v_1 : tensor, v_3 : int} |= (if v_3 < 0 then v_3 ≥ (0 - ndim(v_1)) else v_3 < ndim(v_1))
 >>
-Rule 59 (The provided dimension must be a valid one, also y and x must not be boolean)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0 ∧ (v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1))
+Rule 65 (If x is defined, shapes of x and y must match on dim, and dim is within range of 0 to y.ndim -1)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if shape(v_2, 0) > 0 then (v_3 ≥ 0 ∧ v_3 < ndim(v_1) ∧ shape(v_1, v_3) = shape(v_2, 0))
 >>
-Rule 61 (The provided dimension must be a valid one, also y and x must not be boolean, also x if given, should be non-zero dimension)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0 ∧ (v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) ∧ (if ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0 then true else (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0))
+Rule 67 (y dtype is not bool and if x exists, its dtype is not bool either, handling error 3)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ "bool" ∧ if shape(v_2, 0) > 0 then dtype_(v_2) ≠ "bool"
 >>
-Rule 63 (The provided dimension must be a valid one, also y and x must not be boolean, also x if given, should be non-zero dimension and y and x must have the same length along the dimension if dimension is valid)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0 ∧ (v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) ∧ (if ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0 then true else (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) ∧ shape(v_1, v_3) = shape(v_2, v_3))
+Rule 68 (If x is defined, shapes of x and y must be the same on dim if dim >= 0 and less than y.ndim and also x must have more than one element on 0 dimension or that won't be trapz)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if shape(v_2, 0) > 0 then (v_3 ≥ 0 ∧ v_3 < ndim(v_1) ∧ shape(v_1, v_3) = shape(v_2, 0) ∧ shape(v_2,0) > 1)
 >>
-Rule 66 (The provided dimension must be a valid one, and if x is given, its dimensions must be greater than 0 and y and x must have the same length along the dimension)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= (v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) ∧ (if ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0 then true else (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) ∧ shape(v_1, v_3) = shape(v_2, v_3))
+Rule 76 (If x exists then it must have more than 1 sample point. needed for valid operation.)
+{v_2 : tensor} |= if shape(v_2, 0) > 0 then shape(v_2,0) > 1
 >>
-Rule 78 (y and x must not be boolean. if x is given, then x must have the same number of elements as y along the given dimension. Dimension must also be a valid one)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0 ∧ (v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) ∧ (if ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0 then true else shape(v_1, v_3) = shape(v_2, v_3))
+Rule 83 (Input tensors x and y cannot have a boolean dtype, to prevent RuntimeError)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ "bool" ∧ (if shape(v_2, 0) > 0 then dtype_(v_2) ≠ "bool")
+>>
+Rule 84 (If x is provided shapes must match as stated in error one, requires x more than 1 point and that there are non zero elements for x and y on axis dim)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if shape(v_2, 0) > 0 then (shape(v_1, v_3) = shape(v_2, 0) ∧ shape(v_2, 0) > 1 ∧ shape(v_1, v_3) > 0 ∧ shape(v_2, 0) > 0)
+>>
+Rule 90 (If `x` exists, it must satisfy the trapezoid shape requirement: at least two elements along dimension 0 and the dimensions has to match)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if shape(v_2, 0) > 0 then shape(v_2, 0) > 1 ∧ shape(v_1, v_3) = shape(v_2, 0)

@@ -1,60 +1,84 @@
 >>
-Rule 1 (output_size should be a sequence containing 2 or 4 elements)
-{v_1 : tuple(int)} |= v_1.len = 2 ∨ v_1.len = 4
->>
-Rule 5 (Check for deterministic implementation requirement, assuming a global flag `deterministic_flag` is available and boolean.)
-{deterministic_flag : bool} |= if deterministic_flag = true then false
->>
-Rule 6 (output_size dimensions should be within valid ranges - simplified to example range check)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ -2 ∧ v_1[i] ≤ 200
->>
-Rule 8 (Check that kernel_size is a positive integer or a tuple of positive integers.)
+Rule 1 (kernel_size should be positive)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 9 (Check that kernel_size is a positive integer or a tuple of positive integers.)
-{v_1 : tuple(int)} |=  v_1.len = 2 ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0) ∨ v_1.len = 4 ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0)
+Rule 2 (kernel_size should be positive)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
 >>
-Rule 11 (Check that stride is a positive integer or a tuple of positive integers.)
-{v_1 : tuple(int)} |= v_1.len = 2 ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0) ∨ v_1.len = 4 ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0)
->>
-Rule 12 (Check that padding is a non-negative integer or a tuple of non-negative integers.)
+Rule 5 (padding should be non-negative)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 13 (Check that padding is a non-negative integer or a tuple of non-negative integers.)
-{v_1 : tuple(int)} |= v_1.len = 2 ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0) ∨ v_1.len = 4 ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0)
+Rule 6 (padding should be non-negative)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] ≥ 0
 >>
-Rule 14 (Check for deterministic implementation requirement, assuming a global flag `deterministic_flag` is available and boolean.)
-{v_1 : bool} |= if v_1 = true then false
+Rule 7 (output_size must have length 2 or 4)
+{v_1 : tuple(int)} |= v_1.len = 2 ∨ v_1.len = 4
 >>
-Rule 15 (output_size dimensions should be within a plausible range - simplified to example range check. Assume output_size is optional and check if defined before range checking)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ -100 ∧ v_1[i] ≤ 300
+Rule 8 (input tensor should have appropriate dimensions with output_size)
+{v_1 : tensor, v_2 : tuple(int)} |= (ndim(v_1) = 4 ∧ v_2.len = 4) ∨ (ndim(v_1) = 3 ∧ v_2.len = 2)
 >>
-Rule 16 (input and indices should have same number of dimensions)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Rule 9 (input tensor should have appropriate dimensions without output_size)
+{v_1 : tensor} |= ndim(v_1) = 4 ∨ ndim(v_1) = 3
 >>
-Rule 19 (Check that kernel_size is a tuple of positive integers.)
-{v_1 : tuple(int)} |= (v_1.len = 2 ∨ v_1.len = 4) ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0)
+Rule 12 (output_size elements should be non-negative)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 23 (Check that padding is a tuple of non-negative integers.)
-{v_1 : tuple(int)} |= (v_1.len = 2 ∨ v_1.len = 4) ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0)
+Rule 13 (indices tensor and input tensor must have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 37 (output_size dimensions should be positive)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 21 (input tensor should have appropriate dimensions with output_size)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = 4 then ndim(v_1) = 4 else ndim(v_1) = 3
 >>
-Rule 48 (indices tensor must have an integer dtype)
-{v_1: tensor} |= 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5
+Rule 25 (output_size can not be empty.)
+{v_1: tuple(int)} |= v_1.len > 0
 >>
-Rule 63 (output_size dimensions should be within required range)
-{v_1 : tuple(int)} |=  ∀i ∈ [0, v_1.len - 1] : -2 <= v_1[i] ∧ v_1[i] <= 2
+Rule 26 (output_size dimension 0 is within valid range.)
+{v_1 : tuple(int)} |= v_1[0] > -10000 ∧ v_1[0] < 10000
 >>
-Rule 78 (indices must have smaller or equal shape compared to input.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) >= ndim(v_2) ∧  ∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) >= shape(v_2, i)
+Rule 27 (output_size dimension 1 is within valid range.)
+{v_1 : tuple(int)} |= v_1[1] > -10000 ∧ v_1[1] < 10000
 >>
-Rule 93 (output_size dimensions should be within required range -2 and 2)
-{v_1 : tuple(int)} |= ∃i ∈ [0, v_1.len - 1] : -2 <= v_1[i] ∧ v_1[i] <= 2
+Rule 28 (kernel size is not zero)
+{v_1: int} |= v_1 != 0
 >>
-Rule 109 (Check indices values)
-{v_1 : tensor, v_2 : tensor} |= min(v_2) >= 0 ∧ max(v_2) < shape(v_1, 2) * shape(v_1,3)
+Rule 36 (if output_size length is 4, input tensor dimension must be 4)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = 4 then ndim(v_1) = 4
 >>
-Rule 125 (Output size dimension should be between acceptable ranges)
-{v_1 : tuple(int)} |=  ∀i ∈ [0, v_1.len - 1] : v_1[i] >= -80 ∧ v_1[i] <= 226
+Rule 37 (if output_size length is 2, input tensor dimension must be 3)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = 2 then ndim(v_1) = 3
+>>
+Rule 40 (output_size dimension 0 is within a reasonable range)
+{v_1 : tuple(int)} |= v_1.len > 0 ∧ v_1[0] > -5000 ∧ v_1[0] < 5000
+>>
+Rule 41 (output_size dimension 1 is within a reasonable range)
+{v_1 : tuple(int)} |= v_1.len > 1 ∧ v_1[1] > -5000 ∧ v_1[1] < 5000
+>>
+Rule 42 (kernel size is not zero)
+{v_1: int} |= v_1 ≠ 0
+>>
+Rule 43 (kernel size is a tuple with each element not zero)
+{v_1: tuple(int)} |= v_1.len = 2 ∧ v_1[0] != 0 ∧ v_1[1] != 0
+>>
+Rule 72 (Check output_size tuple length)
+{v_1 : tuple(int)} |= v_1.len > 0
+>>
+Rule 73 (kernel_size tuple has length 2)
+{v_1: tuple(int)} |= v_1.len = 2
+>>
+Rule 90 (check padding is non-negative)
+{v_1: int} |= v_1 >= 0
+>>
+Rule 92 (output_size[0] must be in a reasonable range to avoid overflow)
+{v_1: tuple(int)} |= v_1.len > 0 ∧ v_1[0] > -5000 ∧ v_1[0] < 5000
+>>
+Rule 93 (output_size[1] must be in a reasonable range to avoid overflow)
+{v_1: tuple(int)} |= v_1.len > 1 ∧ v_1[1] > -5000 ∧ v_1[1] < 5000
+>>
+Rule 104 (Check that all values in kernel_size are not negative)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1]: v_1[i] >= 0
+>>
+Rule 118 (Check that all values in kernel_size are non-negative)
+{v_1 : int} |= v_1 >=0
+>>
+Rule 134 (Check for output size length 1)
+{v_1 : tuple(int)} |= v_1.len != 1

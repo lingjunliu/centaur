@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# beta must be a real number and less than the threshold (Rule 81)
+# Require positive Beta and Threshold for formula stability. (Rule 81)
 
 rule_81 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] == v["arg1_value"], v["arg1_value"] <= v["arg2_value"])) if n else
-          And(v["arg1_value"] == v["arg1_value"], v["arg1_value"] <= v["arg2_value"]))
+    s.add(Not(And(0 < v["arg1_value"], 0 < v["arg2_value"])) if n else
+          And(0 < v["arg1_value"], 0 < v["arg2_value"]))
 )
 
 def rule_81_func(arg1, arg2, solver=None, neg=False):

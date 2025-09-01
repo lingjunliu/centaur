@@ -1,99 +1,96 @@
 >>
-Rule 4 (Number of subscripts must match the number of dimensions for each operand if no ellipsis is used)
-{v_1 : str, v_2 : tensor} |= if ndim(v_2) > 0 then v_1.len > 0
+Rule 5 (tensor must have at least one dimension when the equation implies it)
+{v_1 : str, v_2 : tensor} |= if v_1 ≠ "" then ndim(v_2) ≥ 1
 >>
-Rule 5 (Subscripts must be valid characters)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] = "." ∨ v_1[i] = "," ∨ v_1[i] = ">" ∨ v_1[i] = "-" ∨ v_1[i] = " ")
+Rule 12 (Ensure that all tensor operands are not empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 10 (If opt-einsum is disabled, then strategy is ignored)
-{v_1 : str} |= if v_1 = "none" then true
+Rule 13 (The equation string must not be empty)
+{v_1 : str} |= v_1 ≠ ""
 >>
-Rule 12 (At least one operand should be provided with equation string)
-{v_1 : str} |= v_1.len > 0
->>
-Rule 14 (Sublist format requires tensors and list of ints)
-{v_1 : tensor, v_2 : list(int)} |= ndim(v_1) ≥ 0 ∧ v_2.len > 0
->>
-Rule 15 (Equation must have correct arrow if output subscripts are specified)
-{v_1 : str} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = ">" then ∃j ∈ [0, v_1.len - 1] : v_1[j] = "-"
->>
-Rule 20 (At least one operand should be a tensor)
+Rule 14 (A tensor operand must have at least one dimension)
 {v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 21 (If an equation string is present, its length should be reasonable)
-{v_1 : str} |= v_1.len < 100
+Rule 15 (Equation string must be a valid string from allowed list)
+{v_1: str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba"
 >>
-Rule 22 (When using sublists, the number of tensors should be one less than the number of sublists)
-{v_1 : list(int), v_2 : tensor} |= v_1.len > 0 ∧ ndim(v_2) ≥ 0
+Rule 17 (If equation present, at least one tensor operand is required)
+{v_1: str, v_2: tensor} |= if v_1 ≠ "" then ndim(v_2) ≥ 0
 >>
-Rule 23 (If the equation string contains '->', the part before should contain all variables after)
-{v_1 : str} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = ">" then true
+Rule 18 (Check for tensor emptiness. At least one dimension must be non-zero)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 24 (The dimension of the tensor should be equal to the number of subscripts in the equation when no ellipsis is given)
-{v_1 : str, v_2 : tensor} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "." then true else ndim(v_2) = (if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "," then v_1.len / 2 else v_1.len)
+Rule 19 (Equation and at least one tensor must be present if called with string and tensors)
+{v_1: str, v_2: tensor} |= v_1 ≠ "" ∧ ndim(v_2) ≥ 0
 >>
-Rule 28 (The number of dimensions of the input tensors should be consistent with the equation string)
-{v_1 : str, v_2 : tensor} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "." then true else if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "," then ndim(v_2) = (v_1.len -1) /2 else ndim(v_2) = v_1.len
+Rule 21 (The dimensions of tensor should be at least one)
+{v_1: tensor} |= ndim(v_1) >= 0
 >>
-Rule 31 (The list of integers must consist of elements less than 52 if sublist format is used)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 52
+Rule 28 (For string and tensor combination, string should not be none)
+{v_1 : str} |= v_1 ≠ "none"
 >>
-Rule 33 (If sublist format is used, ensure that all elements in the lists are integers between 0 and 51, inclusive.)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_1[i] < 52
+Rule 29 (The equation string must be a valid string)
+{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = ""
 >>
-Rule 34 (The number of dimensions should match the number of non-ellipsis subscripts)
-{v_1 : str, v_2 : tensor} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "." then true else if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "," then ndim(v_2) = (v_1.len - 1) / 2 else ndim(v_2) = v_1.len
+Rule 31 (Equation must be present if operands are not lists)
+{v_1: str, v_2: tensor} |= if ndim(v_2) > 0 then v_1 ≠ ""
 >>
-Rule 37 (When using sublists there should be at least one tensor)
-{v_1: tensor} |= ndim(v_1) ≥ 0
+Rule 32 (List of tensors must not be empty)
+{v_1: list(tensor)} |= v_1.len > 0
 >>
-Rule 38 (The number of dimensions should be consistent between the equation string and operands.)
-{v_1 : str, v_2 : tensor} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "." then true else if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "," then ndim(v_2) = (v_1.len + 1) / 2 else ndim(v_2) = v_1.len
+Rule 35 (The equation string must contain valid characters)
+{v_1: str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ v_1[i] = "," ∨ v_1[i] = ">" ∨ v_1[i] = "-" ∨ v_1[i] = "."
 >>
-Rule 41 (Sublists must be a list of int)
-{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+Rule 40 (If operands are provided as a list, the list must not be empty)
+{v_1 : list(tensor)} |= v_1.len > 0
 >>
-Rule 43 (If sublist is used make sure each list has the same number of elements)
-{v_1 : list(int), v_2 : list(int)} |= v_1.len = v_2.len
+Rule 51 (If string equation is given, the subscripts must be valid)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z")  ∨ v_1[i] = "," ∨ v_1[i] = ">" ∨ v_1[i] = "-" ∨ v_1[i] = "." ∨ v_1[i] = " "
 >>
-Rule 44 (Make sure that for sublist format elements are integers)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -100 ∧ v_1[i] < 100
+Rule 53 (if sublist format is used, number of dimensions specified by sublist should match)
+{v_1 : list(int), v_2: tensor} |= ndim(v_2) = v_1.len
 >>
-Rule 52 (Equation string only contains valid chars)
-{v_1: str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] = "." ∨ v_1[i] = "," ∨ v_1[i] = ">" ∨ v_1[i] = "-" ∨ v_1[i] = " ")
+Rule 54 (If sublist format is used, number of dimensions specified by sublist should match tensor dimensions )
+{v_1 : list(int), v_2: tensor} |= if v_1.len > 0 then ndim(v_2) = v_1.len
 >>
-Rule 53 (Equation string must match number of provided tensors)
-{v_1 : str, v_2 : list(tensor)} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "," then v_2.len = (v_1.len + 1)/2 else v_2.len = 1
+Rule 60 (Equation provided must be of valid format if it exists)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z")  ∨ v_1[i] = "," ∨ v_1[i] = ">" ∨ v_1[i] = "-" ∨ v_1[i] = "." ∨ v_1[i] = " " ∨ v_1[i] = ""
 >>
-Rule 54 (Subscripts must be alphabetic characters or ellipsis)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ v_1[i] = "."
+Rule 61 (dimensions should be compatible for broadcasting)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) >= 0 ∧ ndim(v_2) >= 0
 >>
-Rule 55 (Equation string must have valid format)
-{v_1: str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] = "." ∨ v_1[i] = "," ∨ v_1[i] = ">" ∨ v_1[i] = "-")
+Rule 66 (String must be in the specified vocabulary)
+{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none"  ∨ v_1 = ""
 >>
-Rule 56 (Equation string must match the dimensions if not using Ellipsis)
-{v_1: str, v_2: tensor} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "." then true else if  ∃i ∈ [0, v_1.len-1] : v_1[i] = "," then  ndim(v_2) = (v_1.len + 1) / 2 else ndim(v_2) = v_1.len
+Rule 68 (string should only contain supported alphabet)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ v_1[i] = "," ∨ v_1[i] = ">" ∨ v_1[i] = "-" ∨ v_1[i] = "." ∨ v_1[i] = " " ∨ v_1[i] = ""
 >>
-Rule 63 (Equation string contains only allowed characters)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] = "." ∨ v_1[i] = "," ∨ v_1[i] = ">" ∨ v_1[i] = "-")
+Rule 69 (sublist should be in the range)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len -1] : v_1[i] >= 0 ∧ v_1[i] < 52
 >>
-Rule 74 (If sublist is provided, the sublist length must not be greater than the dimension of the tensor)
-{v_1 : list(int), v_2 : tensor} |= v_1.len <= ndim(v_2)
+Rule 71 (if string is none then tensors should not be passed)
+{v_1: str} |= v_1 = "none" ∨ v_1 != "none"
 >>
-Rule 76 (Dimension should be the number of char unless ellipsis is provided)
-{v_1 : str, v_2 : tensor} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "." then true else if  ∃i ∈ [0, v_1.len-1] : v_1[i] = "," then ndim(v_2) = (v_1.len + 1) / 2 else ndim(v_2) = v_1.len
+Rule 72 (When there is only one tensor passed then the dimensions of this tensor must not be zero)
+{v_1: tensor} |= ndim(v_1) > 0
 >>
-Rule 81 (The dimension must match with the number of characters unless the ellipsis is provided.)
-{v_1 : str, v_2 : tensor} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "." then true else ndim(v_2) = (if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "," then (v_1.len + 1)/2 else v_1.len)
+Rule 74 (If a string is provided in the equation, then tensors have to respect this strings dimension rules)
+{v_1: str, v_2: tensor} |= v_1 ≠ "" ∧ ndim(v_2) >= 0
 >>
-Rule 84 (Sublist format requires the tensors and list of ints)
-{v_1: tensor, v_2 : list(int)} |= ndim(v_1) ≥ 0 ∧ v_2.len > 0
+Rule 84 (If the operands are given as list , then the number of operands should be equal to the equation)
+{v_1 : str, v_2 : list(tensor)} |= if v_1 ≠ "" then v_2.len > 0
 >>
-Rule 96 (equation dimensions = provided tensors dimensions)
-{v_1 : str, v_2: tensor} |= (if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "." then true else if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "," then ndim(v_2) = (v_1.len + 1)/2 else ndim(v_2) = v_1.len) ∨ (∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ v_1[i] = "." ∨ v_1[i] = "," ∨ v_1[i] = ">" ∨ v_1[i] = "-")
+Rule 87 (Equation should be none if 0 tensors are passed)
+{v_1: str, v_2 : tensor} |= if ndim(v_2) = 0 then v_1 = "none"
 >>
-Rule 98 (Equation must specify fewer operands than were given.)
-{v_1 : str, v_2 : list(tensor)} |= (if ∃i ∈ [0, v_1.len - 1] : v_1[i] = "," then v_2.len ≤ (v_1.len + 1)/2 else v_2.len ≤ 1) ∧ (∃i ∈ [0, v_1.len - 1] : v_1[i] ≠ "")
+Rule 88 (Equation should be specified or at least 1 tensor has to be passed, or sublist notation needs to be followed)
+{v_1: str, v_2: list(tensor)} |= (v_1 ≠ "" ∧ v_2.len > 0) ∨ v_2.len > 0
 >>
-Rule 99 (The characters that subscripts use can only be letters, ellipses, -,>, and , or whitespace)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ v_1[i] = "." ∨ v_1[i] = "," ∨ v_1[i] = ">" ∨ v_1[i] = "-" ∨ v_1[i] = " "
+Rule 91 (Equation string if not none , dimension should match the tensor)
+{v_1 : str, v_2 : tensor} |= if v_1 ≠ "none" then ndim(v_2) ≥ 0
+>>
+Rule 93 (dimension of all tensors if sublist notation is not there must be positive)
+{v_1 : tensor} |= ndim(v_1) >= 0
+>>
+Rule 96 (Either equation or the operands have to be specified, otherwise throw an error.)
+{v_1 : str, v_2: list(tensor)} |= (v_1 ≠ "") ∨ (v_2.len > 0)

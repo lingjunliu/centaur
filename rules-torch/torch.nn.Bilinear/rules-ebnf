@@ -1,288 +1,246 @@
 >>
-Rule 1 (in1_features, in2_features, and out_features must be positive integers)
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 > 0 ∧ v_2 > 0 ∧ v_3 > 0
+Rule 1 (in1_features must be positive)
+{in1_features : int} |= in1_features > 0
 >>
-Rule 3 (Shape of input1 must have in1_features as the last dimension)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) >= 1 ∧ shape(v_1, ndim(v_1) - 1) = v_2
+Rule 2 (in2_features must be positive)
+{in2_features : int} |= in2_features > 0
 >>
-Rule 6 (Input1 and Input2 must have the same number of dimensions)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Rule 3 (out_features must be positive)
+{out_features : int} |= out_features > 0
 >>
-Rule 8 (Weight tensor must have out_features in the first dimension)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) = v_2
+Rule 4 (input1 must be a tensor with at least one dimension)
+{input1 : tensor} |= ndim(input1) > 0
 >>
-Rule 9 (Weight tensor must have in1_features in the second dimension)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 1) = v_2
+Rule 5 (input2 must be a tensor with at least one dimension)
+{input2 : tensor} |= ndim(input2) > 0
 >>
-Rule 10 (Weight tensor must have in2_features in the third dimension)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) = 3 ∧ shape(v_1, 2) = v_2
+Rule 6 (last dimension of input1 matches in1_features)
+{input1 : tensor, in1_features : int} |= ndim(input1) > 0 ∧ shape(input1, ndim(input1) - 1) = in1_features
 >>
-Rule 11 (Bias tensor must have out_features as its size)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) = 1 ∧ shape(v_1, 0) = v_2
+Rule 7 (last dimension of input2 matches in2_features)
+{input2 : tensor, in2_features : int} |= ndim(input2) > 0 ∧ shape(input2, ndim(input2) - 1) = in2_features
 >>
-Rule 12 (Check that the dimension is no more than 4)
-{v_1 : tensor} |= ndim(v_1) <= 4
+Rule 9 (shape dimensions must be representable as concrete integers)
+{input1 : tensor} |= ∀i ∈ [0, ndim(input1) - 1] : shape(input1, i) < 2147483647 ∧ shape(input1, i) > -2147483648
 >>
-Rule 13 (Check if in1_features, in2_features, and out_features are distinct.)
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 ≠ v_2 ∧ v_1 ≠ v_3 ∧ v_2 ≠ v_3
+Rule 10 (shape dimensions must be representable as concrete integers)
+{input2 : tensor} |= ∀i ∈ [0, ndim(input2) - 1] : shape(input2, i) < 2147483647 ∧ shape(input2, i) > -2147483648
 >>
-Rule 15 (bias must be a boolean value)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 11 (Avoid storage size calculation overflow - check sizes)
+{in1_features : int, in2_features : int, out_features : int} |= (in1_features * in2_features * out_features) < 1000000000000000000
 >>
-Rule 16 (in1_features, in2_features, and out_features must be non-negative integers)
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 ≥ 0 ∧ v_2 ≥ 0 ∧ v_3 ≥ 0
+Rule 12 (Input1 and Input2 dimensions are consistent)
+{input1 : tensor, input2 : tensor} |= if ndim(input1) > 1 ∧ ndim(input2) > 1 then (∀i ∈ [0, ndim(input1) - 2] : shape(input1, i) = shape(input2, i))
 >>
-Rule 17 (Input1 and Input2 must have the same number of dimensions if greater than 1)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 then ndim(v_1) = ndim(v_2)
+Rule 13 (Check for negative dimensions in input1's shape)
+{input1 : tensor} |= ∀i ∈ [0, ndim(input1) - 1] : shape(input1, i) > 0
 >>
-Rule 18 (All dimensions of a tensor must be positive)
-{v_1 : tensor} |= ∀ i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 14 (Check for negative dimensions in input2's shape)
+{input2 : tensor} |= ∀i ∈ [0, ndim(input2) - 1] : shape(input2, i) > 0
 >>
-Rule 20 (in1_features and in2_features should be reasonably bounded)
-{v_1: int, v_2: int} |= v_1 < 100000 ∧ v_2 < 100000
+Rule 15 (dtype must be float16, float32, float64, complex64 or complex128 to allow gradients)
+{dtype : dtype} |= dtype_(dtype) = "float16" ∨ dtype_(dtype) = "float32" ∨ dtype_(dtype) = "float64" ∨ dtype_(dtype) = "complex64" ∨ dtype_(dtype) = "complex128"
 >>
-Rule 27 (in1_features, in2_features and out_features must not be extremely large to avoid memory allocation errors)
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 < 2000000000 ∧ v_2 < 2000000000 ∧ v_3 < 2000000000
+Rule 16 (in1_features should not be extremely large to prevent memory allocation issues)
+{in1_features : int} |= in1_features < 10000000
 >>
-Rule 28 (If bias is true, then the bias tensor must have the correct shape)
-{v_1 : bool, v_2 : tensor, v_3 : int} |= if v_1 = true then (ndim(v_2) = 1 ∧ shape(v_2, 0) = v_3)
+Rule 17 (in2_features should not be extremely large to prevent memory allocation issues)
+{in2_features : int} |= in2_features < 10000000
 >>
-Rule 30 (Avoid creating tensors with very large dimensions to prevent overflow errors)
-{v_1: int, v_2: int, v_3: int} |= v_1 < 2000 ∧ v_2 < 2000 ∧ v_3 < 2000
+Rule 18 (out_features should not be extremely large to prevent memory allocation issues)
+{out_features : int} |= out_features < 10000000
 >>
-Rule 31 (Ensure input features are not zero to avoid division by zero in initialization)
-{v_1 : int} |= v_1 ≠ 0
+Rule 19 (Shape of input1 should not lead to excessive memory allocation)
+{input1 : tensor} |= shape(input1, ndim(input1)-1) < 10000000
 >>
-Rule 37 (Avoid negative dimensions in tensors)
-{v_1 : tensor} |= ∀ i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Rule 20 (Shape of input2 should not lead to excessive memory allocation)
+{input2 : tensor} |= shape(input2, ndim(input2)-1) < 10000000
 >>
-Rule 38 (Ensure in1_features, in2_features and out_features are reasonably sized relative to the input size, avoids memory issues.)
-{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= v_2 < 100 * shape(v_1, ndim(v_1) - 1) ∧ v_3 < 100 * shape(v_1, ndim(v_1) - 1) ∧ v_4 < 100 * shape(v_1, ndim(v_1) - 1)
+Rule 21 (dtype must be float16, float32, float64, complex64 or complex128 to allow gradients - verbose string comparison)
+{dtype : str} |= dtype = "float16" ∨ dtype = "float32" ∨ dtype = "float64" ∨ dtype = "complex64" ∨ dtype = "complex128"
 >>
-Rule 40 (The product of dimensions of a tensor must be within a reasonable bound)
-{v_1 : tensor} |= ∀ i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 1000000000
+Rule 25 (Combined check for positive dimensions for input tensors, more robust against negative dimension errors)
+{input1 : tensor, input2 : tensor} |= (ndim(input1) > 0 ∧ ∀i ∈ [0, ndim(input1) - 1] : shape(input1, i) > 0) ∧ (ndim(input2) > 0 ∧ ∀i ∈ [0, ndim(input2) - 1] : shape(input2, i) > 0)
 >>
-Rule 41 (The feature sizes should not be excessively different)
-{v_1 : int, v_2 : int} |= if v_1 > 0 then v_2 / v_1 < 1000
+Rule 26 (Restrict dimension size to avoid overflow, using in1/2/out features)
+{in1_features : int, in2_features : int, out_features : int} |= in1_features * in2_features * out_features < 2147483647
 >>
-Rule 42 (Weight tensor dimensions must not exceed a limit to prevent overflow errors)
-{v_1: tensor} |= ndim(v_1) <= 4
+Rule 27 (Check input1 shape dimensions are not excessively large, preventing storage overflow - combines dimensions)
+{input1 : tensor} |= if ndim(input1) > 0 then shape(input1, 0) * (if ndim(input1) > 1 then shape(input1,1) else 1) < 2147483647
 >>
-Rule 43 (Feature sizes must be less than the maximum allowed integer value to avoid integer overflows)
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 < 2147483647 ∧ v_2 < 2147483647 ∧ v_3 < 2147483647
+Rule 28 (Check input2 shape dimensions are not excessively large, preventing storage overflow - combines dimensions)
+{input2 : tensor} |= if ndim(input2) > 0 then shape(input2, 0) * (if ndim(input2) > 1 then shape(input2,1) else 1) < 2147483647
 >>
-Rule 44 (Shape of weight must align with the given feature sizes)
-{v_1: tensor, v_2: int, v_3: int, v_4: int} |= shape(v_1, 0) = v_4 ∧ shape(v_1, 1) = v_2 ∧ shape(v_1, 2) = v_3
+Rule 29 (Restricting the size of all feature maps combined to avoid alloc error, adds constraints)
+{in1_features : int, in2_features: int, out_features: int, input1 : tensor, input2 : tensor} |= in1_features + in2_features + out_features + shape(input1, ndim(input1) - 1) + shape(input2, ndim(input2) - 1) < 1000000
 >>
-Rule 45 (Check for reasonable tensor dimension)
-{v_1: tensor} |= ndim(v_1) < 10
+Rule 30 (Shape Dimensions of input1 are Concrete Integers)
+{input1 : tensor} |= ∀i ∈ [0, ndim(input1) - 1] : shape(input1, i) > -10000 ∧ shape(input1, i) < 1000000
 >>
-Rule 46 (Total number of elements in tensor must be within a limit)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∀ i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 10000
+Rule 31 (Shape Dimensions of input2 are Concrete Integers)
+{input2 : tensor} |= ∀i ∈ [0, ndim(input2) - 1] : shape(input2, i) > -10000 ∧ shape(input2, i) < 1000000
 >>
-Rule 47 (Total number of elements in the weight tensor should not exceed a limit to avoid memory allocation issues and overflow errors)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 100000000
+Rule 32 (Shape Dimensions of input1 cannot be too negative to avoid overflow on cast)
+{input1 : tensor} |= ∀i ∈ [0, ndim(input1) - 1] : shape(input1, i) > -2147483648
 >>
-Rule 48 (Feature sizes should be less than a specific value to prevent large matrix multiplications causing resource exhaustion)
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 < 5000 ∧ v_2 < 5000 ∧ v_3 < 5000
+Rule 33 (Shape Dimensions of input2 cannot be too negative to avoid overflow on cast)
+{input2 : tensor} |= ∀i ∈ [0, ndim(input2) - 1] : shape(input2, i) > -2147483648
 >>
-Rule 49 (Avoid tensors with very large dimensions along specific axis)
-{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, 1) < 20000
+Rule 34 (Combined Features not exceeding max int)
+{in1_features:int, in2_features:int, out_features: int} |= in1_features < 100000 ∧ in2_features < 100000 ∧ out_features < 100000 ∧ (in1_features + in2_features + out_features < 2147483647)
 >>
-Rule 50 (The product of dimensions should not be too large)
-{v_1: tensor} |= shape(v_1, 0) * shape(v_1, 1) < 1000000
+Rule 35 (Input1 shape dimensions must be non-negative)
+{input1 : tensor} |= ndim(input1) > 0 ∧ ∀i ∈ [0, ndim(input1) - 1] : shape(input1, i) ≥ 0
 >>
-Rule 51 (Number of dimensions in tensors must not be too large)
-{v_1 : tensor} |= ndim(v_1) < 6
+Rule 36 (Input2 shape dimensions must be non-negative)
+{input2 : tensor} |= ndim(input2) > 0 ∧ ∀i ∈ [0, ndim(input2) - 1] : shape(input2, i) ≥ 0
 >>
-Rule 53 (Avoid dimensions exceeding maximum integer size)
-{v_1 : tensor} |= ∀ i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2147483647
+Rule 37 (Ensure feature sizes are not negative)
+{in1_features : int, in2_features : int, out_features : int} |= in1_features > 0 ∧ in2_features > 0 ∧ out_features > 0
 >>
-Rule 54 (Weight dimension must be non-zero)
-{v_1: tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+Rule 38 (in1_features, in2_features, and out_features are within a small, positive range for concrete integer requirements)
+{in1_features : int, in2_features : int, out_features : int} |= in1_features > 0 ∧ in1_features < 1000 ∧ in2_features > 0 ∧ in2_features < 1000 ∧ out_features > 0 ∧ out_features < 1000
 >>
-Rule 55 (Ensure input sizes are reasonable)
-{v_1: tensor} |= ndim(v_1) > 0 ∧ shape(v_1, 0) < 100000
+Rule 39 (Combined shape cannot overflow)
+{input1 : tensor} |= ∀i ∈ [0, ndim(input1) - 1]: shape(input1, 0) = shape(input1, i)  ∧ shape(input1, 0) < 1000000
 >>
-Rule 57 (in1_features should not be so large that weight initialization causes overflow)
-{v_1 : int} |= v_1 < 1000000
+Rule 40 (Tensor shape dimensions not excessively large.)
+{input1: tensor} |= ndim(input1) < 6
 >>
-Rule 58 (Total number of elements must be positive)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∃ i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 41 (Input1 must be a tensor with a small number of dimensions - limiting complexity)
+{input1 : tensor} |= ndim(input1) ≤ 3
 >>
-Rule 59 (Avoid dimensions that could lead to very large weight matrices)
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 * v_2 * v_3 < 1000000000
+Rule 42 (Input2 must be a tensor with a small number of dimensions - limiting complexity)
+{input2 : tensor} |= ndim(input2) ≤ 3
 >>
-Rule 60 (Ensure that in1_features*in2_features does not overflow during memory allocation)
-{v_1: int, v_2: int} |= v_1 * v_2 < 2147483647
+Rule 44 (The difference between in1_features, in2_features, and out_features must be small - rewritten)
+{in1_features : int, in2_features : int, out_features : int} |= if in1_features ≥ in2_features ∧ in1_features ≥ out_features then in1_features - (if in2_features ≤ out_features then in2_features else out_features) < 10000 else if in2_features ≥ in1_features ∧ in2_features ≥ out_features then in2_features - (if in1_features ≤ out_features then in1_features else out_features) < 10000 else out_features - (if in1_features ≤ in2_features then in1_features else in2_features) < 10000
 >>
-Rule 61 (in1_features, in2_features, out_features should not be all same values)
-{v_1 : int, v_2 : int, v_3 : int} |= (v_1 ≠ v_2) ∨ (v_1 ≠ v_3) ∨ (v_2 ≠ v_3)
+Rule 45 (Aggregated size of input features not excessively large, to avoid alloc error)
+{in1_features : int, in2_features : int, out_features : int} |= (in1_features + in2_features + out_features) < 500000
 >>
-Rule 62 (Prevent very small in1_features causing division by zero in weight initialization)
-{v_1 : int} |= v_1 > 0
+Rule 46 (Feature sizes are reasonable concrete integers, specifically targetting symInt issue)
+{in1_features : int} |= in1_features > 0 ∧ in1_features < 2048
 >>
-Rule 63 (The product of in1_features, in2_features, and out_features must be within a reasonable bound to prevent overflow errors)
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 * v_2 * v_3 < 100000000
+Rule 47 (Feature sizes are reasonable concrete integers, specifically targetting symInt issue)
+{in2_features : int} |= in2_features > 0 ∧ in2_features < 2048
 >>
-Rule 64 (All feature sizes should be less than max size)
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 < 10000000 ∧ v_2 < 10000000 ∧ v_3 < 10000000
+Rule 48 (Feature sizes are reasonable concrete integers, specifically targetting symInt issue)
+{out_features : int} |= out_features > 0 ∧ out_features < 2048
 >>
-Rule 65 (The value of product of in1_features and in2_features should be in a reasonable range.)
-{v_1 : int, v_2 : int} |= v_1 * v_2 < 20000000
+Rule 49 (in1_features should be a factor of the first dimension of input1 if the tensor has at least 1 dimension)
+{in1_features : int, input1 : tensor} |= if ndim(input1) > 0 then shape(input1, 0) % in1_features = 0
 >>
-Rule 66 (All the dimensions of the weight tensor must be less than the threshold limit)
-{v_1 : tensor} |= shape(v_1, 0) < 1000 ∧ shape(v_1, 1) < 1000 ∧ shape(v_1, 2) < 1000
+Rule 50 (in2_features should be a factor of the first dimension of input2 if the tensor has at least 1 dimension)
+{in2_features : int, input2 : tensor} |= if ndim(input2) > 0 then shape(input2, 0) % in2_features = 0
 >>
-Rule 67 (in1_features, in2_features and out_features combined should not be excessively large to prevent memory allocation errors)
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 + v_2 + v_3 < 50000
+Rule 51 (out_features cannot be larger than the product of in1 and in2 features)
+{in1_features : int, in2_features : int, out_features : int} |= out_features <= in1_features * in2_features
 >>
-Rule 69 (Feature sizes are positive and smaller than a threshold.)
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 > 0 ∧ v_2 > 0 ∧ v_3 > 0 ∧ v_1 < 10000 ∧ v_2 < 10000 ∧ v_3 < 10000
+Rule 52 (If Input 1 tensor dimension is greater or equal to one, last shape dimension must equal in1_features)
+{input1 : tensor, in1_features : int} |= if ndim(input1) >= 1 then shape(input1, ndim(input1) - 1) = in1_features
 >>
-Rule 70 (Minimum dimensions of the weight should be large to hold all the weights, avoid overflow.)
-{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= shape(v_1, 0) ≥ v_4 ∧ shape(v_1, 1) ≥ v_2 ∧ shape(v_1, 2) ≥ v_3
+Rule 53 (If Input 2 tensor dimension is greater or equal to one, last shape dimension must equal in2_features)
+{input2 : tensor, in2_features : int} |= if ndim(input2) >= 1 then shape(input2, ndim(input2) - 1) = in2_features
 >>
-Rule 71 (Reasonable number of dimensions in a tensor)
-{v_1 : tensor} |= ndim(v_1) < 10
+Rule 54 (The in1_features should be less than first dimension of Input 1 if tensor has dimension more than zero.)
+{in1_features : int, input1 : tensor} |= if ndim(input1) > 0 then in1_features <= shape(input1, 0)
 >>
-Rule 72 (Weight dimension less than an upper bound limit, helps prevent memory over-allocation)
-{v_1: tensor} |= shape(v_1, 0) < 10000 ∧ shape(v_1, 1) < 10000 ∧ shape(v_1, 2) < 10000
+Rule 55 (The in2_features should be less than first dimension of Input 2 if tensor has dimension more than zero.)
+{in2_features : int, input2 : tensor} |= if ndim(input2) > 0 then in2_features <= shape(input2, 0)
 >>
-Rule 73 (Ensure valid, positive shape)
-{v_1: tensor} |= ∀ i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+Rule 56 (The shape of Input 1 last dimension cannot be larger than a set value if more than 0 dimensions)
+{input1 : tensor} |= if ndim(input1) > 0 then shape(input1, ndim(input1) - 1) <= 10000 else True
 >>
-Rule 74 (Combined feature size should not exceed certain upper limit to avoid calculations that lead to memory overflow)
-{v_1: int, v_2: int, v_3: int} |= v_1 + v_2 + v_3 < 100000
+Rule 57 (The shape of Input 2 last dimension cannot be larger than a set value if more than 0 dimensions)
+{input2 : tensor} |= if ndim(input2) > 0 then shape(input2, ndim(input2) - 1) <= 10000 else True
 >>
-Rule 75 (Ensure product of feature size stays within limits)
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 * v_2 * v_3 < 10000000
+Rule 58 (Input tensors should ideally be of floating-point type to facilitate gradient calculations)
+{input1 : tensor} |= dtype_(input1) = "float32" ∨ dtype_(input1) = "float64"
 >>
-Rule 76 (Total elements should be less than a maximum)
-{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1,0) * shape(v_1, 1) < 5000000
+Rule 59 (Input tensors should ideally be of floating-point type to facilitate gradient calculations)
+{input2 : tensor} |= dtype_(input2) = "float32" ∨ dtype_(input2) = "float64"
 >>
-Rule 77 (To prevent storage calculation overflow, the size of weight should be reasonable.)
-{v_1: tensor} |= shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 200000000
+Rule 60 (If one input is float, the other should be too)
+{input1 : tensor, input2 : tensor} |= if dtype_(input1) = "float32" ∨ dtype_(input1) = "float64" then dtype_(input2) = "float32" ∨ dtype_(input2) = "float64"
 >>
-Rule 78 (Feature sizes should be less than a specific value to prevent large calculations causing resource exhaustion)
-{v_1: int, v_2: int, v_3: int} |= v_1 < 40000 ∧ v_2 < 40000 ∧ v_3 < 40000
+Rule 61 (Input1 must be a 2D tensor)
+{input1 : tensor} |= ndim(input1) = 2
 >>
-Rule 79 (Ensure all shape values of input tensors must be less than max value)
-{v_1 : tensor} |= ∀ i ∈ [0, ndim(v_1)-1] : shape(v_1, i) < 1000000
+Rule 62 (Input2 must be a 2D tensor)
+{input2 : tensor} |= ndim(input2) = 2
 >>
-Rule 80 (Total number of dimensions of weight tensor must not exceed 5.)
-{v_1: tensor} |= ndim(v_1) < 5
+Rule 63 (Shape of Input 1 cannot be larger than a reasonable value)
+{input1 : tensor} |= if ndim(input1) > 0 then ∀i ∈ [0, ndim(input1) - 1]: shape(input1, i) < 1000
 >>
-Rule 81 (To prevent storage size overflow, limit the sizes)
-{v_1: int, v_2 : int} |= v_1 < 5000000 ∧ v_2 < 5000000
+Rule 64 (Shape of Input 2 cannot be larger than a reasonable value)
+{input2 : tensor} |= if ndim(input2) > 0 then ∀i ∈ [0, ndim(input2) - 1]: shape(input2, i) < 1000
 >>
-Rule 82 (The first input and the second input has same shape in the first dim)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 65 (Feature sizes are reasonable concrete integers, specifically targeting symInt issue, smaller this time )
+{in1_features : int} |= in1_features > 0 ∧ in1_features < 100
 >>
-Rule 83 (Prevent in1_features, in2_features or out_features being too small)
-{v_1: int, v_2: int, v_3: int} |= v_1 > 1 ∧ v_2 > 1 ∧ v_3 > 1
+Rule 66 (Feature sizes are reasonable concrete integers, specifically targeting symInt issue, smaller this time)
+{in2_features : int} |= in2_features > 0 ∧ in2_features < 100
 >>
-Rule 84 (Weight and bias tensor's dimensions should not exceed the limits)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) < 4 ∧ ndim(v_2) < 2
+Rule 67 (Feature sizes are reasonable concrete integers, specifically targeting symInt issue, smaller this time)
+{out_features : int} |= out_features > 0 ∧ out_features < 100
 >>
-Rule 85 (Total elements in a tensor must not exceed maximum value, check element count.)
-{v_1: tensor} |= min(v_1) > -1000000 ∧ max(v_1) < 1000000
+Rule 68 (Input1 must be a tensor with a very small number of dimensions - limiting complexity.)
+{input1 : tensor} |= ndim(input1) <= 1
 >>
-Rule 86 (Input tensors should have reasonable maximum values, prevent very big input leads to overflow)
-{v_1 : tensor, v_2 : tensor} |= max(v_1) < 10000 ∧ max(v_2) < 10000
+Rule 69 (Input2 must be a tensor with a very small number of dimensions - limiting complexity.)
+{input2 : tensor} |= ndim(input2) <= 1
 >>
-Rule 87 (Feature size needs to less than the first dimension size)
-{v_1 : tensor, v_2 : int} |= v_2 < shape(v_1, 0)
+Rule 71 (Input 1 must be a 1D tensor with shape 10)
+{input1 : tensor} |= ndim(input1) = 1 ∧ shape(input1,0) = 10
 >>
-Rule 88 (Weight should not have extremely large values)
-{v_1 : tensor} |= max(v_1) < 100000000 ∧ min(v_1) > -100000000
+Rule 72 (Input 2 must be a 1D tensor with shape 10)
+{input2 : tensor} |= ndim(input2) = 1 ∧ shape(input2,0) = 10
 >>
-Rule 89 (Prevent Out of memory by checking the element size)
-{v_1 : int, v_2 : int, v_3 : int} |= (v_1 * v_2 * v_3) < 1000000000
+Rule 73 (Require feature sizes to be small)
+{in1_features: int, in2_features: int, out_features:int} |= in1_features < 10 ∧ in2_features < 10 ∧ out_features < 10
 >>
-Rule 90 (Combined number of dimensions should not exceed, prevent overflow)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) + ndim(v_2) < 10
+Rule 80 (If tensor is more than 0 dim, the features should be less than 50. This limits total multiplication size to small number)
+{input1 : tensor, in1_features : int} |= if ndim(input1) > 0 then in1_features < 50
 >>
-Rule 91 (Limit the size of each dimension for numerical stability)
-{v_1 : int, v_2 : int} |= v_1 < 500000 ∧ v_2 < 500000
+Rule 81 (Shape of Input2 0th dimension cannot be great than 100)
+{input2 : tensor} |= if ndim(input2) > 0 then shape(input2, 0) < 100
 >>
-Rule 92 (The first dimension should not be too small to ensure valid computations)
-{v_1: tensor} |= shape(v_1, 0) > 1
+Rule 82 (Check if at least one input is one dimensional)
+{input1: tensor, input2: tensor} |= ndim(input1) = 1 ∨ ndim(input2) = 1
 >>
-Rule 94 (If feature size is greater then max value, it can create memory issues)
-{v_1 : int, v_2 : int} |= v_1 < 10000000 ∧ v_2 < 10000000
+Rule 83 (Check if in1_features is a concrete integer)
+{in1_features: int} |= in1_features > 0 ∧ in1_features < 200
 >>
-Rule 95 (First and second input have almost same size, prevent huge number of computation)
-{v_1 : tensor, v_2 : tensor} |= (shape(v_1, 0) - shape(v_2, 0)) < 1000
+Rule 84 (The dtypes of the two tensors, are compatible)
+{input1 : tensor, input2 : tensor} |= (dtype_(input1) = "float32" ∧ dtype_(input2) = "float32") ∨ (dtype_(input1) = "float64" ∧ dtype_(input2) = "float64")
 >>
-Rule 96 (The product of in1_features and in2_features and out_features must be within a reasonable bound to prevent memory allocation error for bias.)
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 * v_2 * v_3 < 200000000
+Rule 87 (out_features must be less than 20 to reduce overall compute)
+{out_features: int} |= out_features < 20
 >>
-Rule 97 (in1_features*in2_features*out_features should not be greater than max value.)
-{v_1: int, v_2: int, v_3: int} |= v_1 * v_2 * v_3 < 2147483647
+Rule 88 (Input 1 has a valid dimension to prevent small alloc issues)
+{input1 : tensor} |= if ndim(input1) > 0 then shape(input1, 0) > 0
 >>
-Rule 98 (To avoid storage size overflowed with sizes, restrict sizes.)
-{v_1: int, v_2: int, v_3: int} |= v_1 + v_2 + v_3 < 50000
+Rule 90 (Input 1: features needs to be valid and not 0)
+{ in1_features : int} |= in1_features > 1
 >>
-Rule 99 (The dimension of input1 and input2 tensor should be same to apply the transformation)
-{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2)
+Rule 92 (In1_features cannot be a small integer to cause weight issues.)
+{in1_features: int} |= in1_features > 1
 >>
-Rule 100 (The shape of input tensors should be within certain limit)
-{v_1: tensor, v_2: tensor} |= shape(v_1, 0) < 20000 ∧ shape(v_2, 0) < 20000
+Rule 93 (Make sure the smaller set feature, will still allow the tensors to be shaped. )
+{in2_features: int, input2 : tensor} |= if ndim(input2) > 0 then in2_features < shape(input2, 0)
 >>
-Rule 101 (Limit total dimensions of input tensors)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) + ndim(v_2) < 7
+Rule 94 (The output features needs to be small to allow to not overflow sizes.)
+{out_features: int} |= out_features < 50
 >>
-Rule 102 (The sum of feature sizes should not be close to max value, prevent resource exhausted)
-{v_1: int, v_2: int, v_3: int} |= v_1 + v_2 + v_3 < 100000000
+Rule 95 (Input 1 needs to be not allow a negative number)
+{input1 : tensor} |= ∀i ∈ [0, if ndim(input1) > 0 then ndim(input1) - 1 else 0] : shape(input1, i) ≥ 0
 >>
-Rule 104 (Feature size shouldn't be zero. Prevent zero size parameters in computation)
-{v_1 : int, v_2 : tensor} |= v_1 ≠ 0 ∧ shape(v_2, 0) ≠ 0
+Rule 96 (feature cannot be zero )
+{in2_features : int} |= in2_features ≠ 0
 >>
-Rule 105 (Feature sizes should not be zero, prevent dimension error)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0
+Rule 97 (If first dimension is not too large, it will not be a memory error)
+{input2 : tensor} |= if ndim(input2) > 0 then shape(input2,0) < 4000
 >>
-Rule 106 (The product of dimensions should not be extremely small)
-{v_1 : tensor, v_2: tensor} |= shape(v_1, 0) * shape(v_2, 0) > 10
->>
-Rule 107 (Weight dimensions should not be zero)
-{v_1 : tensor} |= shape(v_1, 0) ≠ 0 ∧ shape(v_1, 1) ≠ 0 ∧ shape(v_1, 2) ≠ 0
->>
-Rule 108 (Ensure that none of the dimensions are negative for input tensors)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
->>
-Rule 109 (To prevent storage size calculation overflow, in1_features * in2_features * out_features should not exceed limit.)
-{v_1: int, v_2: int, v_3: int} |= v_1 * v_2 * v_3 < 500000000
->>
-Rule 110 (feature size can't be larger than max limit value)
-{v_1: int} |= v_1 < 1000000000
->>
-Rule 112 (Feature size must not be negative, causing symint issue.)
-{v_1 : int} |= v_1 >= 0
->>
-Rule 115 (Check if feature sizes are too large to avoid storage size calculation overflow, weights)
-{v_1 : tensor} |= shape(v_1, 0) < 50000 ∧ shape(v_1, 1) < 50000 ∧ shape(v_1, 2) < 50000
->>
-Rule 116 (Input tensors must not have dimensions equal to zero)
-{v_1 : tensor, v_2: tensor} |= shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_2, ndim(v_2)-1) > 0
->>
-Rule 117 (To prevent 'Storage size calculation overflowed with sizes', limit size)
-{v_1: int, v_2: int, v_3: int} |= v_1 < 100000 ∧ v_2 < 100000 ∧ v_3 < 100000
->>
-Rule 120 (Weight and bias have small maximum number)
-{v_1 : tensor} |= max(v_1) < 100000
->>
-Rule 121 (Combined Feature Dimensions should not be exceptionally high to avoid memory issues)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1)-1) * shape(v_2, ndim(v_2)-1) < 50000000
->>
-Rule 122 (To prevent Storage size calculation overflow, limit the element)
-{v_1: tensor} |= max(v_1) * shape(v_1, 0) * shape(v_1, 1) < 100000000
->>
-Rule 123 (Minimum weight size is larger than 0 to prevent nan errors, Storage size calculation overflowed with sizes)
-{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
->>
-Rule 124 (Input/Output shapes of the tensor must not exceed max Integer )
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1)-1) < 2147483647 ∧ shape(v_2, ndim(v_2)-1) < 2147483647
->>
-Rule 125 (Check for reasonable input size by summing up the feature map size)
-{v_1: int, v_2: int} |= v_1 + v_2 < 40000
+Rule 98 (in1features and in2features should be positive and not too big for alloc issues)
+{in1_features : int, in2_features : int} |= in1_features > 0 ∧ in2_features > 0 ∧ in1_features < 500 ∧ in2_features < 500

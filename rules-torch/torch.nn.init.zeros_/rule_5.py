@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# ensure that the tensor's shape is not an empty tuple, preventing potential errors (Rule 5)
+# Tensor dimension should be within reasonable limits (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] > 0) if n else
-          v["arg1_ndim"] > 0)
+    s.add(Not(And(v["arg1_ndim"] >= 1, v["arg1_ndim"] <= 10)) if n else
+          And(v["arg1_ndim"] >= 1, v["arg1_ndim"] <= 10))
 )
 
 def rule_5_func(arg1, solver=None, neg=False):

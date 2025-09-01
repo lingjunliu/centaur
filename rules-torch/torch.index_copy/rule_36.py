@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Index values must be within the shape of the input tensor (Rule 36)
+# The size of the destination tensor along the dimension dim must be greater than or equal to the maximum index value (Rule 36)
 
 rule_36 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg3_range"], 1) < Select(v["arg1_shape"], v["arg2_value"])) if n else
-          Select(v["arg3_range"], 1) < Select(v["arg1_shape"], v["arg2_value"]))
+    s.add(Not(If(v["arg1_ndim"] > 0, Select(v["arg1_shape"], v["arg2_value"]) > Select(v["arg3_range"], 1), True)) if n else
+          If(v["arg1_ndim"] > 0, Select(v["arg1_shape"], v["arg2_value"]) > Select(v["arg3_range"], 1), True))
 )
 
 def rule_36_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -28,11 +28,13 @@ def rule_36_func(arg1, arg2, arg3, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
+        arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg2_value = Int('arg2_value')
         arg3_range = Array('arg3_range', IntSort(), IntSort())
 
         # Value assignments
+        solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg2_value == int(arg2))
@@ -40,9 +42,9 @@ def rule_36_func(arg1, arg2, arg3, solver=None, neg=False):
         arg3_range = Store(arg3_range, 1, int(np.max(arg3)))
 
         # Constraints for rule 36
-        rule_36(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value, 'arg3_range': arg3_range})
+        rule_36(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value, 'arg3_range': arg3_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_36(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value'], 'arg3_range': arg3['range']}, neg)
+        rule_36(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value'], 'arg3_range': arg3['range']}, neg)

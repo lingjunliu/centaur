@@ -1,183 +1,84 @@
 >>
-Rule 1 (input tensors must have same number of dimensions)
+Rule 1 (Input tensors should have the same number of dimensions)
 {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 2 (tensor's shapes match)
-{v_1 : tensor, v_2 : tensor} |=  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 2 (Input tensors should have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 4 (the tensors have at least one dimension)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0
+Rule 3 (At least one of the input tensors should have more than 0 elements.)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∨ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
 >>
-Rule 5 (if one tensor is 1D, the other must have the same size as its length)
+Rule 7 (At least one of the input tensors should have more than 0 elements.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) > 0) ∨ (ndim(v_2) > 0)
+>>
+Rule 9 (If the tensors have dimensions, then all dimensions of v1 should be positive numbers)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 11 (If the tensors have dimensions, then shape of v1 should not be empty)
+{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) > 0
+>>
+Rule 12 (If the tensors have dimensions, then shape of v2 should not be empty)
+{v_2 : tensor} |= if ndim(v_2) > 0 then shape(v_2, 0) > 0
+>>
+Rule 13 (If one of the tensors is 0-dimensional then the other should be as well.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0 else if ndim(v_2) = 0 then ndim(v_1) = 0
+>>
+Rule 14 (If one of the tensors is 1-dimensional then the element count should match.)
 {v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 7 (if one tensor has size 1, all dimensions of the other tensor should be 1 or equal to the corresponding dimension of the first one)
-{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1 then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 1 ∨ shape(v_2, i) = shape(v_1, i)
+Rule 15 (If the dimensions are greater than 0, the product of v1 and v2 must be equal)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) * shape(v_2, i))
 >>
-Rule 10 (if dimensions of tensors are different, then they cannot be same size)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then false
->>
-Rule 11 (If the tensors have the same number of dimensions but different shapes, they are not of same size)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) else false
->>
-Rule 12 (Tensors must have the same total number of elements)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∨ ndim(v_2) = 0 then true else (∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) -1] : shape(v_2, i) > 0) ∧ (if ndim(v_1) = ndim(v_2) then true else false)
->>
-Rule 13 (if one tensor has all dimensions equal to 1 then the other must have the same total number of elements)
-{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) = 1) then true else (if (∀i ∈ [0, ndim(v_2) -1] : shape(v_2, i) = 1) then true else false)
->>
-Rule 14 (If one tensor has one dimension, then the other tensor must have one dimension and the shape of both must be equal)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then (ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0))
->>
-Rule 15 (If the two tensors have same number of elements then the number of dimensions should either be equal or atleast one of the dimensions should be equal)
-{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) -1] : shape(v_2, i) > 0) then true else false
->>
-Rule 16 (if ndim v1=0, ndim v2 must be 0)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
->>
-Rule 17 (if all shapes of v1 are greater than zero, all shapes of v2 must be greater than zero)
-{v_1 : tensor, v_2 : tensor} |= if ∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0 then ∀i ∈ [0, ndim(v_2) -1] : shape(v_2, i) > 0
->>
-Rule 18 (if the product of shapes of tensor 1 is not zero, then product of shapes of tensor 2 should not be zero)
-{v_1 : tensor, v_2 : tensor} |= (if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then true else false) ∧ (if (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) then true else false)
->>
-Rule 20 (if the product of shapes of tensor 1 is not zero, then product of shapes of tensor 2 should not be zero)
-{v_1 : tensor, v_2 : tensor} |= (if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0))
->>
-Rule 23 (if the product of shapes of tensor 1 is zero, then product of shapes of tensor 2 must be zero)
-{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0)
->>
-Rule 24 (if the product of shapes of tensor 1 is not zero, then product of shapes of tensor 2 should not be zero)
-{v_1 : tensor, v_2 : tensor} |= if ((∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) = false) then ((∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0) = false)
->>
-Rule 26 (same size if and only if all shapes are equal)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
->>
-Rule 27 (total number of elements has to be same)
-{v_1 : tensor, v_2 : tensor} |= (if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)) ∧ (if ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0))
->>
-Rule 28 (If number of dimensions is same then total number of elements is same if and only if the tensors have same shape)
-{v_1 : tensor, v_2 : tensor} |= (if ndim(v_1) = ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) else false)
->>
-Rule 29 (If the number of elements in a tensor is zero then all dimensions are equal to zero)
-{v_1 : tensor} |= (if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then true else false)
->>
-Rule 30 (If any dimension is zero the product is zero)
-{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∨ ndim(v_1) = 0
->>
-Rule 32 (If product of the non-zero dimensions is same, then same size is True)
-{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) then true else false
->>
-Rule 33 (if the product is not zero, number of dimensions should be greater than zero)
-{v_1 : tensor} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then ndim(v_1) > 0
->>
-Rule 34 (Both number of dimension should be either 0, or 1 or greater than 1)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0 ∨ ndim(v_1) = 1 ∨ ndim(v_1) > 1) ∧ (ndim(v_2) = 0 ∨ ndim(v_2) = 1 ∨ ndim(v_2) > 1)
->>
-Rule 35 (if any tensor has number of dimensions not equal to zero, then dimensions have to be positive integers)
-{v_1 : tensor} |= if ndim(v_1) ≠ 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
->>
-Rule 36 (if the tensors have same number of dimensions then the max dimension of v1 has to be equal to max dimensions of v2)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then (if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))) else false
->>
-Rule 37 (Either both tensor has to be 1D and the shapes have to be equal or one of the dimension has to be greater than 1)
-{v_1 : tensor, v_2 : tensor} |= (if ndim(v_1) = 1 ∧ ndim(v_2) = 1 then shape(v_1, 0) = shape(v_2, 0)) ∨ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 1)
->>
-Rule 38 (number of elements in tensor 1 should be equal to number of elements in tensor 2)
+Rule 16 (The number of elements should be equal)
 {v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
 >>
-Rule 39 (if tensors have same number of dimensions and same shape for all dimensions except the last then those have to be of same size)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i)) then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 1)
+Rule 17 (Tensors should have the same number of elements, assuming they are not empty tensors)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i)) = (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i))
 >>
-Rule 40 (if the dimension is > 0 every dimension needs to be a positive integer)
-{v_1 : tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+Rule 18 (If one of the tensors has a dimension of size 0, both tensors should have a dimension of size 0)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then ∃j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) = 0
 >>
-Rule 41 (Tensors must have same number of dimensions and same shape)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ (if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)))
+Rule 19 (If both tensors are empty, return true)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then true
 >>
-Rule 42 (If both number of dimensions are > 0 then if tensor 1 is same size then the tensor 2 must be of same size)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 22 (If the number of dimensions is not equal, then shapes do not match)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then false
 >>
-Rule 43 (same size is true if and only if number of elements in all dimension is > 0 or number of dimensions is 0 )
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) else (ndim(v_1) = 0) ∧ (ndim(v_2) = 0)
+Rule 28 (If the tensors are both empty, or both have dimensions)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0 ∧ ndim(v_2) = 0) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0)
 >>
-Rule 45 (The number of dimensions should be greater or equal to one)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
+Rule 34 (If the tensors are both empty, or both have dimensions and shapes match at every index)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0 ∧ ndim(v_2) = 0) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 46 (if the tensors are not same size, number of dimension for v1 should not be equal to number of dimensions in v2)
-{v_1 : tensor, v_2 : tensor} |= if ((∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) = false) then ndim(v_1) ≠ ndim(v_2)
+Rule 40 (Shapes are equal if and only if shapes match on all dimensions)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) else false
 >>
-Rule 47 (The number of dimensions should be greater or equal to zero and less than 6)
-{v_1 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_1) < 6
+Rule 43 (The shapes are equal if the shapes are equal at every dimension)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 48 (Same size should return false if tensors do not have same number of elements in total)
-{v_1 : tensor, v_2 : tensor} |= if ((ndim(v_1) > 0 ∧ ndim(v_2) > 0) ∧ ((∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)) = false) then false
+Rule 46 (Number of elements should be equal. Number of elements greater than zero.)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
 >>
-Rule 51 (All dimensions have to be of integer or float data type)
-{v_1 : tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 )
+Rule 49 (Number of elements should be equal. Number of elements greater than zero. If tensors have zero dimensions, return true.)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 0 ∧ ndim(v_2) = 0) then true else (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
 >>
-Rule 52 (number of dimension is the same as shape length)
-{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len
+Rule 52 (For two tensors to have the same size, they must have the same number of dimensions and all the dimensions must be equal.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 53 (Number of dimensions of each tensor has to be within the limits)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0 ∧ ndim(v_1) < 5 ∧ ndim(v_2) < 5
+Rule 55 (Check if the total number of elements are equal)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then true else (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
 >>
-Rule 54 (If both are 0D, then they are same size)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then true else false
+Rule 61 (If number of dimensions does not match, and not both are zero, return false)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 0 ∧ ndim(v_2) = 0) then true else ndim(v_1) = ndim(v_2)
 >>
-Rule 56 (Same number of dimension indicates same size)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ (ndim(v_1) = 0 ∨ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)))
+Rule 64 (The number of elements of the tensors must be equal, and the shapes at every index must either be equal or 1, and the number of dimensions must be equal)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
 >>
-Rule 57 (both number of dimension should be between 0 to 5 exclusive)
-{v_1 : tensor, v_2 : tensor} |= 0 ≤ ndim(v_1) ∧ ndim(v_1) < 6 ∧ 0 ≤ ndim(v_2) ∧ ndim(v_2) < 6
+Rule 67 (The total number of elements must be equal)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1,i) = 1 ∨ shape(v_2, i) = 1 ) else false
 >>
-Rule 58 (both are 0D or both are 1D and equal)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0 ∧ ndim(v_2) = 0) ∨ (ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0))
+Rule 70 (The number of dimensions and shapes at every index must be equal)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 59 (if the tensor has one dimension then the dimension shape needs to be one)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) = 1
->>
-Rule 60 (The tensors have same number of elements if and only if they have same shape)
-{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) = (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
->>
-Rule 61 (If both tensor has same ndim then total number of elements must match)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) = (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) else false
->>
-Rule 62 (tensors are not same size if atleast one of the tensor has 0 dimensions)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∨ ndim(v_2) = 0 then false
->>
-Rule 63 (Only tensors with non-zero total number of element have the same size if and only if their number of dimensions are same)
-{v_1 : tensor, v_2 : tensor} |= ((∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) ) = (ndim(v_1) = ndim(v_2))
->>
-Rule 65 (if dimensions of both tensors is not zero, if they have same shape they are same size)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ 0 ∧ ndim(v_2) ≠ 0 then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
->>
-Rule 66 (if tensors have same dimensions, they should not have different size)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ shape(v_2, i)) = false
->>
-Rule 69 (Total dimension has to be same for them to have same size)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
->>
-Rule 70 (If shape of the tensors are not > 0 then they should have same shape)
-{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0) then  ndim(v_1) = ndim(v_2)
->>
-Rule 71 (Total dimension has to be same for them to have same size)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ (if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
->>
-Rule 72 (the dimension of tensor v1 and v2 can only be one of the specific integers)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 0 ∨ ndim(v_1) = 1 ∨ ndim(v_1) = 2 ∨ ndim(v_1) = 3 ∨ ndim(v_1) = 4 ∨ ndim(v_2) = 0 ∨ ndim(v_2) = 1 ∨ ndim(v_2) = 2 ∨ ndim(v_2) = 3 ∨ ndim(v_2) = 4
->>
-Rule 73 (All the dimension product must match in that case number of dimension should be same)
-{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) = (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) ∧ (ndim(v_1) = ndim(v_2))
->>
-Rule 74 (If total dimensions is more than zero, then tensors must be same size only when dimensions has to be positive and same)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) then (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))) else false)
->>
-Rule 75 (If one of the shape is zero, then it is same size)
-{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0)
->>
-Rule 76 (same size when number of elements must be same and dimension size must be positive)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) > 0 ∧ ndim(v_2) > 0) then ((∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0))
->>
-Rule 77 (If both has same number of dimensions then product of elements has to be same)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) = (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
+Rule 84 (The tensors have the same size if ndim is >0 and the number of elements is the same)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) > 0 ∧ ndim(v_2) > 0)

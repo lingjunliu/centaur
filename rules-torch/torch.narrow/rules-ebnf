@@ -1,129 +1,174 @@
 >>
-Rule 1 (length must be non-negative)
+Rule 1 (start + length should not exceed dimension size)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= v_3 + v_4 ≤ shape(v_1, if v_2 < 0 then ndim(v_1) + v_2 else v_2)
+>>
+Rule 2 (length must be non-negative)
 {v_4 : int} |= v_4 ≥ 0
 >>
-Rule 3 (start + length should not exceed dimension size)
-{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= shape(v_1, if v_2 < 0 then v_2 + ndim(v_1) else v_2) ≥ v_3 + v_4
+Rule 4 (start when tensor must be non-boolean)
+{v_3 : tensor} |= dtype_(v_3) ≠ 0
 >>
-Rule 4 (start must be non-negative)
-{v_3 : int} |= v_3 ≥ 0
+Rule 6 (start + length should not exceed dimension size)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= v_3 + v_4 ≤ shape(v_1, if v_2 < 0 then shape(v_1,ndim(v_1)) + v_2 else v_2)
 >>
-Rule 5 (input tensor must be non-empty for narrowing)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 8 (dim must be within the range of dimensions)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 6 (start cannot exceed the dimension size when positive)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 >= 0 then v_3 < shape(v_1, v_2)
->>
-Rule 7 (if start is a tensor, it must be an integer tensor)
-{v_3 : tensor} |= dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5
->>
-Rule 8 (if start is a tensor, it must be 0-dimensional)
+Rule 10 (start must be an integer when it is a tensor with ndim = 0)
 {v_3 : tensor} |= ndim(v_3) = 0
 >>
-Rule 9 (dim must be in the valid range, considering negative indexing)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ 0 - ndim(v_1) ∧ v_2 < ndim(v_1)
+Rule 11 (start + length should not exceed dimension size)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= if v_2 < 0 then v_3 + v_4 ≤ shape(v_1, ndim(v_1) + v_2) else v_3 + v_4 ≤ shape(v_1, v_2)
 >>
-Rule 17 (dim must be a non-negative integer)
-{v_2 : int} |= v_2 ≥ 0
+Rule 13 (start when tensor must be non-boolean and has ndim == 0)
+{v_3 : tensor} |= dtype_(v_3) ≠ 0 ∧ ndim(v_3) = 0
 >>
-Rule 18 (combined start and length should be within a reasonable bound, relative to tensor size)
-{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= v_3 + v_4 ≤ 2 * shape(v_1, if v_2 < 0 then v_2 + ndim(v_1) else v_2)
+Rule 14 (dim must be integer-compatible)
+{v_2 : int} |= v_2 ≥ -2147483648 ∧ v_2 ≤ 2147483647
 >>
-Rule 19 (If dim is negative, the absolute value should not exceed the number of dimensions)
-{v_1: tensor, v_2: int} |= if v_2 < 0 then 0 - v_2 <= ndim(v_1)
+Rule 18 (start must be integer-compatible)
+{v_3 : int} |= v_3 ≥ -2147483648 ∧ v_3 ≤ 2147483647
 >>
-Rule 20 (start and length should not both be zero when the dimension size is zero.)
-{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= if shape(v_1, if v_2 < 0 then v_2 + ndim(v_1) else v_2) = 0 then v_3 ≠ 0 ∨ v_4 ≠ 0
+Rule 19 (Dimension should be a valid dimension after the tensor is transposed)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then (v_2 >= (0 - ndim(v_1))) else (v_2 < ndim(v_1))
 >>
-Rule 21 (If dim is negative, adding ndim makes it a valid index)
-{v_1 : tensor, v_2 : int} |= if v_2 < 0 then v_2 + ndim(v_1) ≥ 0
+Rule 20 (start + length should not exceed dimension size, works when dim is negative)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= if v_2 < 0 then v_3 + v_4 ≤ shape(v_1, ndim(v_1) + v_2)
 >>
-Rule 22 (The start index v_3 should be non-negative after adjusting for negative indexing of dim v_2)
-{v_1: tensor, v_2: int, v_3: int} |= if v_2 < 0 then v_3 + shape(v_1, v_2 + ndim(v_1)) >=0 else v_3 >= 0
+Rule 21 (dim must be within the range of dimensions, works when dim is positive)
+{v_1 : tensor, v_2 : int} |= if v_2 >= 0 then (v_2 < ndim(v_1))
 >>
-Rule 23 (start plus length must be less than or equal to the dimension size after handling negative dimension indices)
-{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= if v_2 < 0 then v_3 + v_4 ≤ shape(v_1, v_2 + ndim(v_1)) else v_3 + v_4 <= shape(v_1, v_2)
+Rule 24 (length should be integer-compatible)
+{v_4 : int} |= v_4 ≥ -2147483648 ∧ v_4 <= 2147483647
 >>
-Rule 25 (if start is tensor it's element value +length have to be smaller or equal to the size)
-{v_1 : tensor, v_2 : int, v_3 : tensor, v_4 : int} |= if ndim(v_3) = 0 then v_3 + v_4 <= shape(v_1, if v_2 < 0 then v_2 + ndim(v_1) else v_2)
+Rule 29 (dim must be integer-compatible)
+{v_2 : int} |= v_2 ≥ -2147483648 ∧ v_2 <= 2147483647
 >>
-Rule 27 (if start is tensor it's element value +length have to be smaller or equal to the size)
-{v_1 : tensor, v_2 : int, v_3 : tensor, v_4 : int} |= if ndim(v_3) = 0 then v_3 + v_4 ≤ shape(v_1, if v_2 < 0 then v_2 + ndim(v_1) else v_2)
+Rule 31 (Dimension must be smaller than the number of dimensions when it is positive)
+{v_1 : tensor, v_2 : int} |= if v_2 > 0 then v_2 < ndim(v_1)
 >>
-Rule 28 (if dim is tensor, its dtype has to be integer-like)
-{v_2: tensor} |= dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5
+Rule 32 (The start index must be a valid index of the dimension.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 > 0 then (v_3 < shape(v_1, v_2))
 >>
-Rule 31 (if start is tensor it's element value +length have to be smaller or equal to the size)
-{v_1 : tensor, v_2 : int, v_4 : int} |= if shape(v_1, if v_2 < 0 then v_2 + ndim(v_1) else v_2) = 0 then v_4 = 0
+Rule 33 (The start tensor should be scalar)
+{v_1 : tensor} |= ndim(v_1) = 0
 >>
-Rule 33 (if start is a tensor, its value must be non-negative after offsetting negative dimension indexing)
-{v_1: tensor, v_2: int, v_3: tensor} |= if v_2 < 0 then max(v_3) + shape(v_1, v_2 + ndim(v_1)) >=0 else max(v_3) >= 0
+Rule 34 (The length must be a valid integer)
+{v_1 : int} |= v_1 >= -2147483648 ∧ v_1 <= 2147483647
 >>
-Rule 38 (if start is a tensor and the dimension size is zero, then length = 0 or start is out of bounds))
-{v_1 : tensor, v_2 : int, v_3 : tensor, v_4 : int} |= if shape(v_1, if v_2 < 0 then v_2 + ndim(v_1) else v_2) = 0 then v_4 = 0 ∨ max(v_3) >= shape(v_1,if v_2 < 0 then v_2 + ndim(v_1) else v_2)
+Rule 35 (start must be non-negative when dim is zero)
+{v_1 : int, v_2 : int} |= if v_2 = 0 then v_1 >= 0
 >>
-Rule 40 (if start is a tensor, its maximum value plus length must be within the bounds of the narrowed dimension, considering negative indexing of dim)
-{v_1: tensor, v_2: int, v_3: tensor, v_4: int} |= if v_2 < 0 then max(v_3) + v_4 <= shape(v_1, v_2 + ndim(v_1)) else max(v_3) + v_4 <= shape(v_1, v_2)
+Rule 39 (The length must be a valid integer and non-negative)
+{v_1 : int} |= v_1 >= 0 ∧ v_1 >= -2147483648 ∧ v_1 <= 2147483647
 >>
-Rule 42 (if start is a tensor, its maximum value plus length must be within the bounds of the narrowed dimension, considering negative indexing of dim)
-{v_1: tensor, v_2: int, v_3: tensor, v_4: int} |= if v_2 < 0 then (max(v_3) + v_4) ≤ shape(v_1, v_2 + ndim(v_1)) else (max(v_3) + v_4) ≤ shape(v_1, v_2)
+Rule 41 (The start index must be a valid index of the dimension and non-negative)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 >= 0 then (v_3 < shape(v_1, v_2))
 >>
-Rule 45 (if the dimension size is zero length has to be zero)
-{v_1:tensor, v_2:int, v_4:int} |= if shape(v_1, if v_2 < 0 then v_2 + ndim(v_1) else v_2) = 0 then v_4 = 0
+Rule 42 (The start tensor should be scalar and of integer type)
+{v_1 : tensor} |= ndim(v_1) = 0 ∧ (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5)
 >>
-Rule 47 (if start is a tensor, its maximum value plus length must be less than or equal to dimension size, consider negative indexing)
-{v_1: tensor, v_2: int, v_3: tensor, v_4: int} |= if v_2 < 0 then max(v_3) + v_4 ≤ shape(v_1, v_2 + ndim(v_1)) else max(v_3) + v_4 ≤ shape(v_1, v_2)
+Rule 48 (If start is tensor then the maximum value of start tensor should be less than dimension's shape)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= if ndim(v_3) = 0 then max(v_3) < shape(v_1, v_2)
 >>
-Rule 48 (if dimension is out of range error, length has to be zero)
-{v_1:tensor, v_2:int, v_4:int} |= if v_2 > ndim(v_1)-1 ∨ v_2 < 0 - ndim(v_1) then v_4 = 0
+Rule 49 (if dim is negative then dim should be inside the boundries of tensor dimension)
+{v_1: tensor, v_2: int} |= if v_2 < 0 then v_2 >= (0-ndim(v_1))
 >>
-Rule 50 (If dimension is out of range then length should not affect results if it's valid length)
-{v_1:tensor, v_2:int, v_4:int} |= if v_2 > ndim(v_1)-1 ∨ v_2 < 0 - ndim(v_1) then if v_4 >= 0 then true else false
+Rule 54 (Start value should be less than shape of given dimension for positive dimensions)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 >= 0 then v_3 < shape(v_1, v_2)
 >>
-Rule 53 (If dim is a tensor, it has to be an integer-like tensor)
-{v_2: tensor} |= (dtype_(v_2) = 1) ∨ (dtype_(v_2) = 2) ∨ (dtype_(v_2) = 3) ∨ (dtype_(v_2) = 4) ∨ (dtype_(v_2) = 5)
+Rule 59 (Length value should be non negative)
+{v_1: int} |= v_1 >= 0
 >>
-Rule 55 (If dimension is negative, adding ndim makes it a valid index)
-{v_1:tensor, v_2:int} |= if v_2 < 0  then v_2 + ndim(v_1) >= 0
+Rule 60 (The start index must be a valid index of the dimension when non-negative and dim is within range)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 >= 0 ∧ v_2 < ndim(v_1) ∧ v_2 >= (0 - ndim(v_1))  then (v_3 < shape(v_1, v_2))
 >>
-Rule 56 (If the start index is a tensor, check if its maximum value is within a reasonable range, taking into account possible negative indexing for dim)
-{v_1: tensor, v_2: int, v_3: tensor} |= if v_2 < 0 then max(v_3) <= 2*shape(v_1, v_2+ndim(v_1)) else max(v_3) <= 2*shape(v_1,v_2)
+Rule 61 (The start tensor should be scalar and of integer type when it is actually a tensor)
+{v_1 : tensor} |= if ndim(v_1) = 0 then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5)
 >>
-Rule 57 (If the start index is a tensor, ensure its values do not cause an out-of-bounds access, accounting for negative dimension indexing.)
-{v_1: tensor, v_2: int, v_3: tensor} |= if v_2 < 0 then ∃i ∈ [0, ndim(v_3)-1]: v_3[i] < shape(v_1, v_2+ndim(v_1)) else ∃i ∈ [0, ndim(v_3)-1]: v_3[i] < shape(v_1, v_2)
+Rule 64 (Start plus length must be less than the shape of the tensor for the specific dimension)
+{v_1: tensor, v_2: int, v_3: int, v_4: int} |= if v_2 >= 0 ∧ v_2 < ndim(v_1) then (v_3+v_4) <= shape(v_1, v_2)
 >>
-Rule 58 (length must be less or equal to dimension length given start index after applying negative indexing and if start is a tensor)
-{v_1: tensor, v_2: int, v_3: tensor, v_4: int} |= if v_2 < 0 then (max(v_3) + v_4) <= shape(v_1, v_2+ndim(v_1)) else (max(v_3) + v_4) <= shape(v_1, v_2)
+Rule 65 (The start index must be a valid index of the dimension when non-negative and dim is within range)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 ≥ 0 ∧ v_2 < ndim(v_1) ∧ v_2 ≥ (0 - ndim(v_1))  then (v_3 < shape(v_1, v_2))
 >>
-Rule 59 (If start index is a tensor, then start tensor maximum value should not be out of dimension range after applying negative indexing)
-{v_1: tensor, v_2: int, v_3: tensor} |= if v_2 < 0 then max(v_3) < shape(v_1, v_2 + ndim(v_1)) else max(v_3) < shape(v_1, v_2)
+Rule 67 (Start plus length must be less than the shape of the tensor for the specific dimension if dimension is within range and length is greater than zero)
+{v_1: tensor, v_2: int, v_3: int, v_4: int} |= if v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∧ v_4 > 0 then (v_3+v_4) <= shape(v_1, v_2)
 >>
-Rule 61 (If length is zero, then start index does not affect program results for a valid length)
-{v_4:int} |= if v_4 = 0 then true
+Rule 68 (if the dimension is negative then its absolute value should be less than ndim)
+{v_1: tensor, v_2: int} |= if v_2 < 0 then (0 - v_2) <= ndim(v_1)
 >>
-Rule 62 (start and length should be both non-negative and less or equal to the dimension size)
-{v_1:tensor, v_2: int, v_3: int, v_4:int} |= v_3 >= 0 ∧ v_4 >= 0 ∧ v_3+v_4 <= shape(v_1, if v_2 < 0 then v_2 + ndim(v_1) else v_2)
+Rule 74 (If the length is non-negative and adding it to start exceeds the dimensions, then throw the relevant error)
+{v_1: tensor, v_2: int, v_3: int, v_4: int} |= if v_4 >= 0 ∧ v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) then v_3 + v_4 <= shape(v_1, v_2)
 >>
-Rule 63 (if length is a constant, then the value should be valid to prevent from exception.)
-{v_1:tensor, v_2:int, v_3:int, v_4:int} |= if v_4 ≥ 0 then v_3 + v_4 <= shape(v_1, if v_2 < 0 then v_2 + ndim(v_1) else v_2)
+Rule 78 (if Start is an int then the value should be such that adding length to it does not exceed tensor's size for that dimensions)
+{v_1: tensor, v_2: int, v_3: int, v_4: int} |= if v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) then (v_3 + v_4) <= shape(v_1, v_2)
 >>
-Rule 64 (If dimension is negative, check whether start index after negative indexing falls within a valid range.)
-{v_1: tensor, v_2: int, v_3: int} |= if v_2 < 0 then v_3 >= 0 - (v_2+ndim(v_1))
+Rule 79 (if length is 0 then that dimension can be 0 in input shape)
+{v_1: tensor, v_2: int, v_4: int} |= if v_4 = 0 then shape(v_1,v_2) >=0
 >>
-Rule 65 (if length is non-negative, adding it to start value gives valid index for particular dimension based on -ve indexing rule)
-{v_1: tensor, v_2: int, v_3: int, v_4:int} |= if v_4 ≥ 0 then if v_2 < 0 then v_3 + v_4 <= shape(v_1, v_2+ndim(v_1)) else v_3 + v_4 <= shape(v_1, v_2)
+Rule 82 (if length is 0 then that dimension can be 0 in input shape and dim within bounds)
+{v_1: tensor, v_2: int, v_4: int} |= if v_4 = 0 ∧ v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) then shape(v_1,v_2) >=0
 >>
-Rule 66 (Start index value must be less than the shape, and greater than or equal to the negative value of shape.This accounts for negative indexing.)
-{v_1:tensor, v_2:int, v_3:int} |= if v_2 < 0 then v_3 >= 0 - shape(v_1, v_2 + ndim(v_1)) else v_3 >= 0 - shape(v_1, v_2)
+Rule 84 (If dim >= ndim(input) then throw error)
+{v_1 : tensor, v_2 : int} |= if v_2 >= 0 then v_2 < ndim(v_1)
 >>
-Rule 67 (if the start value is close to the size of the tensor and is negative, the length should not be too large.)
-{v_1:tensor, v_2:int, v_3:int, v_4:int} |= if v_2<0 then v_3+shape(v_1, v_2 + ndim(v_1)) >= -1 * v_4
+Rule 90 (if length is 0 then that dimension can be 0 in input shape and dim within bounds, other wise shape must be >0)
+{v_1: tensor, v_2: int, v_4: int} |= if v_4 = 0 ∧ v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) then shape(v_1,v_2) >=0 else shape(v_1,v_2)>0
 >>
-Rule 68 (If start is out of bounds (positive), then the length should be zero)
-{v_1:tensor, v_2:int, v_3:int, v_4:int} |= if v_2 >= 0 then if v_3 >= shape(v_1, v_2) then v_4 = 0
+Rule 92 (If dim is out of range when it is positive, throw error, else check for negative bound as well)
+{v_1 : tensor, v_2 : int} |= if v_2 >= 0 then v_2 < ndim(v_1) else if v_2 < 0 then (0 - v_2) <= ndim(v_1)
 >>
-Rule 69 (if start is tensor and dim is within the range of tensor, and length is non-negative)
-{v_1: tensor, v_2: int, v_3:tensor, v_4: int} |= if v_2 >= 0 - ndim(v_1) ∧ v_2 <= ndim(v_1)-1 ∧ v_4 >= 0 then max(v_3) + v_4 <= shape(v_1, if v_2 < 0 then v_2 + ndim(v_1) else v_2)
+Rule 94 (start+length cannot overflow)
+{v_3: int, v_4: int} |= v_3 + v_4 >= -2147483648 ∧ v_3+v_4 <= 2147483647
 >>
-Rule 80 (If the dimension is out of range given length)
-{v_1: tensor, v_2: int, v_4: int} |= if v_2 > ndim(v_1) - 1 ∨ v_2 < 0 - ndim(v_1) then v_4=0
+Rule 97 (if the start is a tensor, then the dtype of tensor should be integral and scalar if it represents a dimension)
+{v_3 : tensor} |= if ndim(v_3) = 0 then (dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5)
+>>
+Rule 99 (If the length is 0, then start value need not be valid but still need to be within the range)
+{v_1: tensor, v_2: int, v_3: int, v_4: int} |= if v_4 = 0 ∧ v_2 >= (0-ndim(v_1)) ∧ v_2 < ndim(v_1) then true else v_3 < shape(v_1, v_2)
+>>
+Rule 100 (If dim is out of range when it is positive, throw error, else check for negative bound as well)
+{v_1 : tensor, v_2 : int} |= if v_2 >= 0 then v_2 < ndim(v_1) else (0 - v_2) <= ndim(v_1)
+>>
+Rule 102 (start+length cannot overflow, also start and length should be compatible with signed int)
+{v_3: int, v_4: int} |= v_3 + v_4 >= -2147483648 ∧ v_3+v_4 <= 2147483647 ∧ v_3 >= -2147483648 ∧ v_3 <= 2147483647 ∧ v_4 >= -2147483648 ∧ v_4 <= 2147483647
+>>
+Rule 103 (If the length is 0, then start value need not be valid but still need to be within the range, shape needs to be greater than zero)
+{v_1: tensor, v_2: int, v_3: int, v_4: int} |= if v_4 = 0 ∧ v_2 >= (0-ndim(v_1)) ∧ v_2 < ndim(v_1) then shape(v_1, v_2) >= 0 else v_3 < shape(v_1, v_2)
+>>
+Rule 104 (Start must be less than shape of given dimension (negative indices) for negative dimensions)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 < 0 then v_3 < shape(v_1, v_2)
+>>
+Rule 108 (If the length is 0, then start value need not be valid but still need to be within the shape, shape needs to be greater than zero if length !=0 for valid start)
+{v_1: tensor, v_2: int, v_3: int, v_4: int} |= if v_4 = 0 ∧ v_2 >= (0-ndim(v_1)) ∧ v_2 < ndim(v_1) then shape(v_1, v_2) >= 0 else v_3 < shape(v_1, v_2) ∧ shape(v_1,v_2) > 0
+>>
+Rule 109 (Start must be less than shape of given dimension (negative indices) for negative dimensions and start has to be more than negative dimension count to avoid indexing error)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 < 0 then v_3 < shape(v_1, v_2) ∧ v_3 >= (0-ndim(v_1))
+>>
+Rule 112 (If the length is 0, then start value need not be valid but still need to be within the shape, shape needs to be greater than zero if length !=0 for valid start and dimension needs to be a valid tensor's dimension)
+{v_1: tensor, v_2: int, v_3: int, v_4: int} |= if v_4 = 0 ∧ v_2 >= (0-ndim(v_1)) ∧ v_2 < ndim(v_1) then shape(v_1, v_2) >= 0 else v_3 < shape(v_1, v_2) ∧ shape(v_1,v_2) > 0 ∧  v_2 >= (0-ndim(v_1)) ∧ v_2 < ndim(v_1)
+>>
+Rule 113 (Start must be less than shape of given dimension (negative indices) for negative dimensions and start has to be more than negative dimension count to avoid indexing error, else start must be less than shape of given dimension for positive dimesions too)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 < 0 then v_3 < shape(v_1, (ndim(v_1) + v_2)) ∧ v_3 >= (0-ndim(v_1)) else v_3 < shape(v_1, v_2)
+>>
+Rule 114 (If the dim is not int or float, throw errors)
+{v_2: int} |= v_2 >= -2147483648 ∧ v_2 <= 2147483647
+>>
+Rule 117 (If the length is 0, then start value need not be valid but still need to be within the shape, shape needs to be greater than zero if length !=0 for valid start and dimension needs to be a valid tensor's dimension and start should also be compatible with signed int)
+{v_1: tensor, v_2: int, v_3: int, v_4: int} |= if v_4 = 0 ∧ v_2 >= (0-ndim(v_1)) ∧ v_2 < ndim(v_1) then shape(v_1, v_2) >= 0 else v_3 < shape(v_1, v_2) ∧ shape(v_1,v_2) > 0 ∧  v_2 >= (0-ndim(v_1)) ∧ v_2 < ndim(v_1) ∧ v_3 >= -2147483648 ∧ v_3 <= 2147483647
+>>
+Rule 118 (Start must be less than shape of given dimension (negative indices) for negative dimensions and start has to be more than negative dimension count to avoid indexing error, else start must be less than shape of given dimension for positive dimesions too and start has to be within valid range of signed int too)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 < 0 then v_3 < shape(v_1, (ndim(v_1) + v_2)) ∧ v_3 >= (0-ndim(v_1)) ∧ v_3 >= -2147483648 ∧ v_3 <= 2147483647 else v_3 < shape(v_1, v_2) ∧ v_3 >= -2147483648 ∧ v_3 <= 2147483647
+>>
+Rule 119 (the start cannot be a bool tensor type)
+{v_3: tensor} |= dtype_(v_3) != 0
+>>
+Rule 122 (If the length is 0, then start value need not be valid but still need to be within the shape, shape needs to be greater than zero if length !=0 for valid start and dimension needs to be a valid tensor's dimension and start should also be compatible with signed int, dim should be integer)
+{v_1: tensor, v_2: int, v_3: int, v_4: int} |= if v_4 = 0 ∧ v_2 >= (0-ndim(v_1)) ∧ v_2 < ndim(v_1) then shape(v_1, v_2) >= 0 else v_3 < shape(v_1, v_2) ∧ shape(v_1,v_2) > 0 ∧  v_2 >= (0-ndim(v_1)) ∧ v_2 < ndim(v_1) ∧ v_3 >= -2147483648 ∧ v_3 <= 2147483647 ∧ v_2 >= -2147483648 ∧ v_2 <= 2147483647
+>>
+Rule 123 (Start must be less than shape of given dimension (negative indices) for negative dimensions and start has to be more than negative dimension count to avoid indexing error, else start must be less than shape of given dimension for positive dimesions too and start has to be within valid range of signed int too, the dim is supposed to be integer)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 < 0 then v_3 < shape(v_1, (ndim(v_1) + v_2)) ∧ v_3 >= (0-ndim(v_1)) ∧ v_3 >= -2147483648 ∧ v_3 <= 2147483647 ∧ v_2 >= -2147483648 ∧ v_2 <= 2147483647  else v_3 < shape(v_1, v_2) ∧ v_3 >= -2147483648 ∧ v_3 <= 2147483647 ∧ v_2 >= -2147483648 ∧ v_2 <= 2147483647
+>>
+Rule 129 (If dimension has valid integral range then, start+length cannot go out of bound by comparing with 2147483647)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= if v_2 >= (0-ndim(v_1)) ∧ v_2 < ndim(v_1) then (v_3+v_4) <= 2147483647

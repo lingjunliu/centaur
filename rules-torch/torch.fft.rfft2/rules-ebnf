@@ -1,129 +1,69 @@
 >>
-Rule 8 (Signal size in transformed dimensions cannot be zero.)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ 0
+Rule 3 (input tensor cannot be Half dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ "float16"
 >>
-Rule 9 (When dim and s are given, they must have the same length.)
-{v_1 : tuple(int), v_2 : tuple(int)} |= v_1.len = v_2.len
+Rule 4 (When given, dim and shape arguments must have the same length)
+{v_2 : tuple(int), v_3 : tuple(int)} |= (v_2 = None) ∨ (v_3 = None) ∨ (v_2.len = v_3.len)
 >>
-Rule 10 (Dimensions to be transformed should be within the range of input tensor's dimensions. Input included)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : (0 - ndim(v_1)) ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+Rule 5 (FFT dims must be unique - at least in case that dim is not None)
+{v_3 : tuple(int)} |= (v_3 = None) ∨ (∀i ∈ [0, v_3.len - 1] : ∀j ∈ [i+1, v_3.len - 1] : v_3[i] ≠ v_3[j])
 >>
-Rule 11 (The output tensor must be a complex tensor.)
-{v_1 : tensor} |= dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 7 (Signal size must be non-negative)
+{v_2 : tuple(int)} |= (v_2 = None) ∨ (∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∨ v_2[i] = -1)
 >>
-Rule 12 (Dimensions should be unique.)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i+1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+Rule 8 (norm should be one of the defined strings)
+{v_4 : str} |= v_4 = "forward" ∨ v_4 = "backward" ∨ v_4 = "ortho" ∨ v_4 = None
 >>
-Rule 13 (norm must be a valid string)
-{v_1 : str} |= v_1 = "forward" ∨ v_1 = "backward" ∨ v_1 = "ortho"
+Rule 12 (output tensor should be complex to match rfftn - fixed redundant variable)
+{v_5 : tensor} |= dtype_(v_5) = "complex64" ∨ dtype_(v_5) = "complex128"
 >>
-Rule 14 (input tensor must not be empty - first dimension)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 17 (Signal size must be non-negative)
+{v_2 : tuple(int)} |= (v_2 = None) ∨ (∀i ∈ [0, v_2.len - 1] : (v_2[i] > 0) ∨ (v_2[i] = -1))
 >>
-Rule 17 (Dimensions to be transformed should be within the range of input tensor's dimensions. Input included)
-{v_1 : tensor, v_2 : tuple(int)} |=  ∀i ∈ [0, v_2.len - 1] : (0 - ndim(v_1)) ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+Rule 18 (norm should be one of the defined strings)
+{v_4 : str} |= (v_4 = "forward") ∨ (v_4 = "backward") ∨ (v_4 = "ortho") ∨ (v_4 = None)
 >>
-Rule 23 (Dimensions to be transformed should be within the range of input tensor's dimensions. Input included and at least one dimension should be specified)
-{v_1 : tensor, v_2 : tuple(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : (0 - ndim(v_1)) ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+Rule 19 (signal size should match the input shape when trimming using and instead of implication)
+{v_1 : tensor, v_2 : tuple(int), v_3 : tuple(int)} |= (v_2 = None) ∨ (v_3 = None) ∨ (∀i ∈ [0, v_3.len - 1] : (v_2[i] > 0) ∧ (v_2[i] ≤ shape(v_1, v_3[i])))
 >>
-Rule 24 (Input tensor must have floating or complex dtype.)
-{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10
+Rule 20 (input tensor must have at least two dimensions)
+{v_1 : tensor} |= ndim(v_1) >= 2
 >>
-Rule 25 (Tuple length should be less than or equal to the number of dimensions of the input tensor.)
-{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≤ ndim(v_1)
->>
-Rule 26 (Input tensor's dimension must be greater than 1)
-{v_1 : tensor} |= ndim(v_1) > 1
->>
-Rule 29 (Input tensor must have a valid dtype - not half)
-{v_1: tensor} |= dtype_(v_1) ≠ 6
->>
-Rule 30 (If s is given, the elements must be integers and s.len > 0)
-{v_1 : tuple(int)} |= v_1.len > 0
->>
-Rule 36 (If norm is given, it must be a valid string)
-{v_1: str} |= v_1 = "forward" ∨ v_1 = "backward" ∨ v_1 = "ortho"
->>
-Rule 39 (If s and dim are given, the elements within them must be within the range of dimensions)
-{v_1 : tensor, v_2 : tuple(int), v_3 : tuple(int)} |= v_2.len = v_3.len ∧ ∀i ∈ [0, v_2.len - 1] : (0 - ndim(v_1)) ≤ v_2[i] ∧ v_2[i] < ndim(v_1) ∧  (0 - ndim(v_1)) ≤ v_3[i] ∧ v_3[i] < ndim(v_1)
->>
-Rule 41 (output tensor must be of complex type)
-{v_1: tensor} |= dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
->>
-Rule 42 (If s and dim are given, the elements within them must be within the range of dimensions)
-{v_1 : tensor, v_2 : tuple(int), v_3 : tuple(int)} |= (v_2.len = v_3.len) ∧ (∀i ∈ [0, v_2.len - 1] : (0 - ndim(v_1)) ≤ v_2[i] ∧ v_2[i] < ndim(v_1))
->>
-Rule 46 (Input tensor must have a valid dtype - not half and must be floating point or complex)
-{v_1: tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∨ (9 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10)
->>
-Rule 49 (If s and dim are given, the elements within them must be valid)
-{v_1 : tensor, v_2 : tuple(int), v_3 : tuple(int)} |= (v_2.len = v_3.len) ∧ (∀i ∈ [0, v_2.len - 1] : (0 - ndim(v_1)) ≤ v_2[i] ∧ v_2[i] < ndim(v_1)) ∧ (∀i ∈ [0, v_3.len - 1] : (0 - ndim(v_1)) ≤ v_3[i] ∧ v_3[i] < ndim(v_1))
->>
-Rule 51 (Shape of input tensor must be positive)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 52 (If s and dim are given, the elements within them must be valid dimensions for the input)
-{v_1 : tensor, v_2 : tuple(int), v_3 : tuple(int)} |= if v_2.len = 0 then v_3.len = 0 else if v_3.len = 0 then v_2.len = 0 else (v_2.len = v_3.len) ∧ (∀i ∈ [0, v_2.len - 1] : (0 - ndim(v_1)) ≤ v_2[i] ∧ v_2[i] < ndim(v_1))
->>
-Rule 56 (If any element in s is -1, then s.len < ndim(v_1))
-{v_1 : tensor, v_2 : tuple(int)} |= ∃i ∈ [0, v_2.len - 1] : if v_2[i] = -1 then v_2.len < ndim(v_1)
->>
-Rule 58 (If any element in s is -1, then at least one of the dimensions of the input tensor are being used and s.len < ndim(v_1))
-{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then ∃i ∈ [0, v_2.len - 1] : if v_2[i] = -1 then v_2.len < ndim(v_1)
->>
-Rule 60 (Input tensor must have at least two dimensions)
+Rule 30 (input tensor must have at least two dimensions)
 {v_1 : tensor} |= ndim(v_1) ≥ 2
 >>
-Rule 62 (The s and dim tuples must have the same length if they exist)
-{v_1 : tuple(int), v_2 : tuple(int)} |= if v_1.len > 0 then if v_2.len > 0 then v_1.len = v_2.len
+Rule 41 (dim values must be within valid range, here assuming input tensor has at least 2 dimensions and dim not none)
+{v_1 : tensor, v_3 : tuple(int)} |= (v_3 ≠ None) ∧ (∀i ∈ [0, v_3.len - 1] : v_3[i] ≥ (0 - ndim(v_1)) ∧ v_3[i] ≤ (ndim(v_1) - 1))
 >>
-Rule 63 (The s and dim tuples must have the same length if they exist and have the same length if any)
-{v_1 : tuple(int), v_2 : tuple(int)} |= if v_1.len > 0 then if v_2.len > 0 then v_1.len = v_2.len else false else if v_2.len > 0 then false
+Rule 56 (out should be a tensor, so if it is a float, it should return error)
+{v_5 : tensor} |= dtype_(v_5) ≠ "float32" ∧ dtype_(v_5) ≠ "float64" ∧ dtype_(v_5) ≠ "float16"
 >>
-Rule 64 (If any element in dim tuple exceed input ndim, it's not valid. If any element is a valid dimension it's fine. If empty its fine)
-{v_1: tensor, v_2 : tuple(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : (0 - ndim(v_1)) ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+Rule 61 (dim values must be within valid range, here assuming input tensor has at least 2 dimensions and dim not none, and checking for negative indices using if)
+{v_1 : tensor, v_3 : tuple(int)} |= (v_3 ≠ None) ∧ (∀i ∈ [0, v_3.len - 1] : if v_3[i] < 0 then v_3[i] ≥ (0 - ndim(v_1)) else v_3[i] ≤ (ndim(v_1) - 1))
 >>
-Rule 65 (The s and dim tuples must have the same length if they exist and must be comprised of valid integers with respect to the input dimensions)
-{v_1: tensor, v_2 : tuple(int), v_3 : tuple(int)} |= if v_2.len > 0 then if v_3.len > 0 then (v_2.len = v_3.len) ∧ (∀i ∈ [0, v_2.len - 1] : (0 - ndim(v_1)) ≤ v_2[i] ∧ v_2[i] < ndim(v_1)) else false else if v_3.len > 0 then false
+Rule 62 (output tensor should be complex to match rfftn and is defined with correct dtype - refined)
+{v_5 : tensor} |= (v_5 = None) ∨ (dtype_(v_5) = "complex64" ∨ dtype_(v_5) = "complex128")
 >>
-Rule 66 (If s and dim are given, the elements within them must be valid dimensions for the input, must have the same length, and each element must be unique within each of them)
-{v_1: tensor, v_2 : tuple(int), v_3 : tuple(int)} |= if v_2.len > 0 then if v_3.len > 0 then (v_2.len = v_3.len) ∧ (∀i ∈ [0, v_2.len - 1] : (0 - ndim(v_1)) ≤ v_2[i] ∧ v_2[i] < ndim(v_1)) ∧ (∀i ∈ [0, v_3.len - 1] : (0 - ndim(v_1)) ≤ v_3[i] ∧ v_3[i] < ndim(v_1)) ∧ (∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j]) ∧ (∀i ∈ [0, v_3.len - 1] : ∀j ∈ [i+1, v_3.len - 1] : v_3[i] ≠ v_3[j]) else false else if v_3.len > 0 then false
+Rule 66 (out should be a tensor)
+{v_5 : tensor} |= (v_5 = None) ∨ (true)
 >>
-Rule 67 (If s and dim are given, the elements within them must be valid dimensions for the input, must have the same length, and each element must be unique within each of them)
-{v_1: tensor, v_2 : tuple(int), v_3 : tuple(int)} |= (v_2.len = v_3.len) ∧ if v_2.len > 0 then (∀i ∈ [0, v_2.len - 1] : (0 - ndim(v_1)) ≤ v_2[i] ∧ v_2[i] < ndim(v_1)) ∧ (∀i ∈ [0, v_3.len - 1] : (0 - ndim(v_1)) ≤ v_3[i] ∧ v_3[i] < ndim(v_1)) ∧ (∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j]) ∧ (∀i ∈ [0, v_3.len - 1] : ∀j ∈ [i+1, v_3.len - 1] : v_3[i] ≠ v_3[j])
+Rule 71 (dim values must be within valid range using if for index check, more robust)
+{v_1 : tensor, v_3 : tuple(int)} |= (v_3 = None) ∨ (∀i ∈ [0, v_3.len - 1] : if v_3[i] < 0 then (v_3[i] ≥ (0 - ndim(v_1))) else (v_3[i] ≤ (ndim(v_1) - 1)))
 >>
-Rule 69 (Input tensor must have a floating-point dtype or complex dtype)
-{v_1 : tensor} |= (dtype_(v_1) > 5 ∧ dtype_(v_1) < 11)
+Rule 80 (The product of s should be greater than 0 to avoid runtime error of 0 data points when s is provided and is not None)
+{v_2 : tuple(int)} |= (v_2 = None) ∨ (∃i ∈ [0, v_2.len - 1] : v_2[i] = 0)
 >>
-Rule 70 (If s and dim are given, the elements within them must be valid dimensions for the input, must have the same length, and elements must be unique)
-{v_1: tensor, v_2 : tuple(int), v_3 : tuple(int)} |= if v_2.len = 0 then v_3.len = 0 else if v_3.len = 0 then v_2.len = 0 else (v_2.len = v_3.len) ∧ (∀i ∈ [0, v_2.len - 1] : (0 - ndim(v_1)) ≤ v_2[i] ∧ v_2[i] < ndim(v_1)) ∧ (∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j])
+Rule 86 (out tensor needs complex dtype - rephrased to avoid duplication, if defined it needs to be complex)
+{v_5 : tensor} |= if v_5 ≠ None then (dtype_(v_5) = "complex64" ∨ dtype_(v_5) = "complex128")
 >>
-Rule 71 (The last two dimensions of the input tensor must be of a reasonable size, i.e., non-zero)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0
+Rule 89 (signal size should match the input shape when trimming, only when s is provided - using and instead of implies)
+{v_1 : tensor, v_2 : tuple(int), v_3 : tuple(int)} |= (v_2 = None) ∨ (v_3 = None) ∨ (∀i ∈ [0, v_3.len - 1] : (v_2[i] ≠ -1) ∧ (v_2[i] ≤ shape(v_1, v_3[i])))
 >>
-Rule 72 (If s and dim are given, the elements within them must be valid dimensions for the input, must have the same length, and elements must be unique)
-{v_1: tensor, v_2 : tuple(int), v_3 : tuple(int)} |= (v_2.len = v_3.len) ∧ if v_2.len > 0 then (∀i ∈ [0, v_2.len - 1] : (0 - ndim(v_1)) ≤ v_2[i] ∧ v_2[i] < ndim(v_1)) ∧ (∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j])
+Rule 99 (signal size should match the input shape when trimming, only when s is provided - using and instead of implies but fixing the parse error)
+{v_1 : tensor, v_2 : tuple(int), v_3 : tuple(int)} |= (v_2 = None) ∨ (v_3 = None) ∨ (∀i ∈ [0, v_3.len - 1] : if v_2[i] ≠ -1 then (v_2[i] ≤ shape(v_1, v_3[i])))
 >>
-Rule 73 (Input tensor must have a floating-point dtype or complex dtype and out tensor must have a matching complex type)
-{v_1: tensor, v_2: tensor} |= ((dtype_(v_1) > 5 ∧ dtype_(v_1) < 9) ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)) ∨ ((dtype_(v_1) > 8 ∧ dtype_(v_1) < 11) ∧ (dtype_(v_2) = dtype_(v_1)))
+Rule 100 (The input tensor must have data points, refined.)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
 >>
-Rule 75 (The input tensor must have valid dimensions specified in dim. If not specified, it uses last two dimensions by default - which implies ndim >=2 )
-{v_1 : tensor, v_2: tuple(int)} |= if v_2.len > 0 then true else ndim(v_1) >= 2
->>
-Rule 76 (If s and dim are given, the elements within them must be valid dimensions for the input, must have the same length, and elements must be unique and s.len >0, dim.len>0 if not empty)
-{v_1: tensor, v_2 : tuple(int), v_3 : tuple(int)} |= (v_2.len = v_3.len) ∧ if v_2.len > 0 then (∀i ∈ [0, v_2.len - 1] : (0 - ndim(v_1)) ≤ v_2[i] ∧ v_2[i] < ndim(v_1)) ∧ (∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j]) ∧ v_2.len > 0 ∧ v_3.len > 0
->>
-Rule 77 (If input has shape (0), it has invalid number of data points)
-{v_1:tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0
->>
-Rule 78 (If s and dim are given, the elements within them must be valid dimensions for the input, must have the same length, and elements must be unique. And they should only be non-empty only when input size >0)
-{v_1: tensor, v_2 : tuple(int), v_3 : tuple(int)} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then v_2.len = 0 ∧ v_3.len = 0 else (v_2.len = v_3.len) ∧ if v_2.len > 0 then (∀i ∈ [0, v_2.len - 1] : (0 - ndim(v_1)) ≤ v_2[i] ∧ v_2[i] < ndim(v_1)) ∧ (∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j])
->>
-Rule 81 (If the output tensor has a shape of 0 for any dimension then we should expect at least one input tensor with shape of 0, represented using implication if then else)
-{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0) then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0)
->>
-Rule 83 (If the input is empty tensor, expect output also empty)
-{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0)
->>
-Rule 84 (If s and dim are given, the elements within them must be valid dimensions for the input, must have the same length, elements must be unique, and lengths must be >0 and <= number of dimension)
-{v_1: tensor, v_2 : tuple(int), v_3 : tuple(int)} |= ((v_2.len = v_3.len) ∧ if v_2.len > 0 then (∀i ∈ [0, v_2.len - 1] : (0 - ndim(v_1)) ≤ v_2[i] ∧ v_2[i] < ndim(v_1)) ∧ (∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j]) ) ∧ (v_2.len > 0 ∧ v_2.len ≤ ndim(v_1))
+Rule 110 (check out is tensor.)
+{v_5 : tensor} |= v_5 = None ∨ true

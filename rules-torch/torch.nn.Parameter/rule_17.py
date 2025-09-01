@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# requires_grad must be false if the tensor is of integer type, and true if it is of float or complex type (Rule 17)
+# If requires_grad is true, then data must be a tensor whose elements are of floating point or complex type. (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(If(And((v["arg1_dtype"] >= 1), (v["arg1_dtype"] <= 5)), (v["arg2_value"] == False), If(And((v["arg1_dtype"] >= 6), (v["arg1_dtype"] <= 10)), (v["arg2_value"] == True), False))) if n else
-          If(And((v["arg1_dtype"] >= 1), (v["arg1_dtype"] <= 5)), (v["arg2_value"] == False), If(And((v["arg1_dtype"] >= 6), (v["arg1_dtype"] <= 10)), (v["arg2_value"] == True), False)))
+    s.add(Not(If(v["arg2_value"] == True, And((v["arg1_dtype"] > 6), (v["arg1_dtype"] < 12)), True)) if n else
+          If(v["arg2_value"] == True, And((v["arg1_dtype"] > 6), (v["arg1_dtype"] < 12)), True))
 )
 
 def rule_17_func(arg1, arg2, solver=None, neg=False):

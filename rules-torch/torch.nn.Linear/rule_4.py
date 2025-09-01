@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If bias is true then out_features must be greater than 0 (Rule 4)
+# in_features and out_features cannot be extremely large to avoid storage overflow (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == True, v["arg1_value"] > 0, False)) if n else
-          If(v["arg2_value"] == True, v["arg1_value"] > 0, False))
+    s.add(Not(And(v["arg1_value"] < 10000000, v["arg2_value"] < 10000000)) if n else
+          And(v["arg1_value"] < 10000000, v["arg2_value"] < 10000000))
 )
 
 def rule_4_func(arg1, arg2, solver=None, neg=False):
@@ -20,17 +20,17 @@ def rule_4_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
-        if not isinstance(arg2, bool):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = Int('arg1_value')
-        arg2_value = Bool('arg2_value')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
         solver.add(arg1_value == int(arg1))
-        solver.add(arg2_value == arg2)
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 4
         rule_4(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})

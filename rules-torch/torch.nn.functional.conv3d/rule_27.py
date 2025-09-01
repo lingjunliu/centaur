@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Each dimension of stride should be greater than zero (Rule 27)
+# Dilation cannot be zero (Rule 27)
 
 rule_27 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) > 0) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) > 0) for i in range(6)]))
+    s.add(Not(And([Implies(i < (2 + 1), Select(v["arg1_values"], i) != 0) for i in range(6)])) if n else
+          And([Implies(i < (2 + 1), Select(v["arg1_values"], i) != 0) for i in range(6)]))
 )
 
 def rule_27_func(arg1, solver=None, neg=False):
@@ -22,18 +22,16 @@ def rule_27_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
         arg1_values = Array('arg1_values', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
         for i in range(len(arg1)):
             arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 27
-        rule_27(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length})
+        rule_27(solver, {'arg1_values': arg1_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_27(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length']}, neg)
+        rule_27(solver, {'arg1_values': arg1['values']}, neg)

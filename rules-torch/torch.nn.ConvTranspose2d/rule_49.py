@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# groups must divide both in_channels and out_channels (Rule 49)
+# output_padding constraints relative to stride and kernel_size (Rule 49)
 
 rule_49 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] % v["arg3_value"] == 0, v["arg2_value"] % v["arg3_value"] == 0)) if n else
-          And(v["arg1_value"] % v["arg3_value"] == 0, v["arg2_value"] % v["arg3_value"] == 0))
+    s.add(Not(And(v["arg1_value"] < v["arg2_value"], v["arg1_value"] < v["arg3_value"])) if n else
+          And(v["arg1_value"] < v["arg2_value"], v["arg1_value"] < v["arg3_value"]))
 )
 
 def rule_49_func(arg1, arg2, arg3, solver=None, neg=False):

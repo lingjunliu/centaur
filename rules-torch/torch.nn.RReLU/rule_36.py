@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# To prevent potential instability during the random 'a' sampling process, upper and lower should be relatively close (Rule 36)
+# lower and upper must be within a reasonable distance from each other and positive (Rule 36)
 
 rule_36 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_value"] - v["arg1_value"] < 1) if n else
-          v["arg2_value"] - v["arg1_value"] < 1)
+    s.add(Not(And(And(v["arg1_value"] - v["arg2_value"] < 1e5, v["arg1_value"] >= 0), v["arg2_value"] >= 0)) if n else
+          And(And(v["arg1_value"] - v["arg2_value"] < 1e5, v["arg1_value"] >= 0), v["arg2_value"] >= 0))
 )
 
 def rule_36_func(arg1, arg2, solver=None, neg=False):

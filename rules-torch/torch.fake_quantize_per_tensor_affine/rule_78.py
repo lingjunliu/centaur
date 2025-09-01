@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the tensor has negative values, the zero point should be small (Rule 78)
+# If the maximum value of the input tensor is greater than 0, then the zero_point should also be greater than or equal to 0 to make sense (Rule 78)
 
 rule_78 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_range"], 0) < 0, v["arg2_value"] < 1000, False)) if n else
-          If(Select(v["arg1_range"], 0) < 0, v["arg2_value"] < 1000, False))
+    s.add(Not(If(Select(v["arg1_range"], 1) > 0, v["arg2_value"] >= 0, True)) if n else
+          If(Select(v["arg1_range"], 1) > 0, v["arg2_value"] >= 0, True))
 )
 
 def rule_78_func(arg1, arg2, solver=None, neg=False):

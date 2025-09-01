@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input spatial dimensions must be greater than a combined term of kernel, dilation and padding (Rule 55)
+# If kernel size is 2 and passed as int, then the calculation to find sliding size should produce a value > 0 (Rule 55)
 
 rule_55 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_shape"], 2) > (v["arg2_value"] - 1) * v["arg3_value"] - 2 * v["arg4_value"], Select(v["arg1_shape"], 3) > (v["arg2_value"] - 1) * v["arg3_value"] - 2 * v["arg4_value"])) if n else
-          And(Select(v["arg1_shape"], 2) > (v["arg2_value"] - 1) * v["arg3_value"] - 2 * v["arg4_value"], Select(v["arg1_shape"], 3) > (v["arg2_value"] - 1) * v["arg3_value"] - 2 * v["arg4_value"]))
+    s.add(Not(If(v["arg2_value"] == 2, And(Select(v["arg1_shape"], 2) + 2 * v["arg4_value"] - v["arg3_value"] * (v["arg2_value"] - 1) - 1 > 0, Select(v["arg1_shape"], 3) + 2 * v["arg4_value"] - v["arg3_value"] * (v["arg2_value"] - 1) - 1 > 0), True)) if n else
+          If(v["arg2_value"] == 2, And(Select(v["arg1_shape"], 2) + 2 * v["arg4_value"] - v["arg3_value"] * (v["arg2_value"] - 1) - 1 > 0, Select(v["arg1_shape"], 3) + 2 * v["arg4_value"] - v["arg3_value"] * (v["arg2_value"] - 1) - 1 > 0), True))
 )
 
 def rule_55_func(arg1, arg2, arg3, arg4, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# check if the output tensor can be casted from float to char (Rule 6)
+# input tensor's dtype must be a valid type for erf operation which excludes char when output is float (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 0) if n else
-          v["arg1_dtype"] != 0)
+    s.add(Not(If(v["arg1_dtype"] == 1, False, True)) if n else
+          If(v["arg1_dtype"] == 1, False, True))
 )
 
 def rule_6_func(arg1, solver=None, neg=False):

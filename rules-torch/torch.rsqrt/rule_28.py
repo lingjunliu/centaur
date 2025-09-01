@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Avoid integer overflow during computations. If input is Int, output tensor must be Float64 (Rule 28)
+# If the input tensor has a complex128 dtype and an out tensor is provided, the out tensor cannot have a lower precision (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_dtype"] == 5), (v["arg2_dtype"] == 8), False)) if n else
-          If((v["arg1_dtype"] == 5), (v["arg2_dtype"] == 8), False))
+    s.add(Not(If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, True)) if n else
+          If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, True))
 )
 
 def rule_28_func(arg1, arg2, solver=None, neg=False):

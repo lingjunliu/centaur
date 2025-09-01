@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Prevent upper being a NaN when lower is not (Rule 39)
+# prevent - from being too large to avoid integer overflow issues. (Rule 39)
 
 rule_39 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == v["arg1_value"], v["arg2_value"] == v["arg2_value"], False)) if n else
-          If(v["arg1_value"] == v["arg1_value"], v["arg2_value"] == v["arg2_value"], False))
+    s.add(Not(And(And(v["arg1_value"] > -1e5, v["arg2_value"] < 1e5), v["arg2_value"] > v["arg1_value"] - 1e3)) if n else
+          And(And(v["arg1_value"] > -1e5, v["arg2_value"] < 1e5), v["arg2_value"] > v["arg1_value"] - 1e3))
 )
 
 def rule_39_func(arg1, arg2, solver=None, neg=False):

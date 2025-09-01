@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Quant min and quant max should not be infinite (Rule 105)
+# If zero_point is greater than zero, quant min should also be greater or equal to zero. (Rule 105)
 
 rule_105 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] < 1e9, v["arg2_value"] < 1e9)) if n else
-          And(v["arg1_value"] < 1e9, v["arg2_value"] < 1e9))
+    s.add(Not(If(v["arg1_value"] > 0, v["arg2_value"] >= 0, True)) if n else
+          If(v["arg1_value"] > 0, v["arg2_value"] >= 0, True))
 )
 
 def rule_105_func(arg1, arg2, solver=None, neg=False):

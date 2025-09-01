@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Suppress "argmax_cpu" not implemented for 'Bool' error: input tensor should not have boolean dtype (Rule 1)
+# Suppress RuntimeError: "argmax_cpu" not implemented for 'Bool'. Input tensor should not be boolean. (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 0) if n else
-          v["arg1_dtype"] != 0)
+    s.add(Not(v["arg1_dtype"] != bool) if n else
+          v["arg1_dtype"] != bool)
 )
 
 def rule_1_func(arg1, solver=None, neg=False):

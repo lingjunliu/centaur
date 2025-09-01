@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The output type cannot be Int16 if the input type is float (Rule 27)
+# If the output tensor is Short, the input tensor must have a dtype that allows lossless casting to Short after applying the cosine function. (Rule 27)
 
 rule_27 = lambda s, v, n=False: (
-    s.add(Not(If(Or((v["arg1_dtype"] == 7), (v["arg1_dtype"] == 8)), (v["arg2_dtype"] != 2), False)) if n else
-          If(Or((v["arg1_dtype"] == 7), (v["arg1_dtype"] == 8)), (v["arg2_dtype"] != 2), False))
+    s.add(Not(If(v["arg2_dtype"] == 2, (Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 6)), True)) if n else
+          If(v["arg2_dtype"] == 2, (Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 6)), True))
 )
 
 def rule_27_func(arg1, arg2, solver=None, neg=False):

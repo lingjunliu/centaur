@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensors must be floating point, and reduction must be sum, mean, or none. (Rule 36)
+# If swap is False, all tensors must have the same dtype (Rule 36)
 
 rule_36 = lambda s, v, n=False: (
-    s.add(Not(And(And(And((Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)), (Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8))), (Or(Or(v["arg3_dtype"] == 6, v["arg3_dtype"] == 7), v["arg3_dtype"] == 8))), (Or(Or(v["arg4_value"] == 6, v["arg4_value"] == 7), v["arg4_value"] == 8)))) if n else
-          And(And(And((Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)), (Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8))), (Or(Or(v["arg3_dtype"] == 6, v["arg3_dtype"] == 7), v["arg3_dtype"] == 8))), (Or(Or(v["arg4_value"] == 6, v["arg4_value"] == 7), v["arg4_value"] == 8))))
+    s.add(Not(If(v["arg4_value"] == False, And(v["arg1_dtype"] == v["arg2_dtype"], v["arg1_dtype"] == v["arg3_dtype"]), True)) if n else
+          If(v["arg4_value"] == False, And(v["arg1_dtype"] == v["arg2_dtype"], v["arg1_dtype"] == v["arg3_dtype"]), True))
 )
 
 def rule_36_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
@@ -26,7 +26,7 @@ def rule_36_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
             return False
         if not isinstance(arg3, np.ndarray):
             return False
-        if not isinstance(arg4, str):
+        if not isinstance(arg4, bool):
             return False
 
         # Variable declarations
@@ -34,13 +34,13 @@ def rule_36_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         arg1_dtype = Int('arg1_dtype')
         arg2_dtype = Int('arg2_dtype')
         arg3_dtype = Int('arg3_dtype')
-        arg4_value = String('arg4_value')
+        arg4_value = Bool('arg4_value')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
         solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
-        solver.add(arg4_value == list_of_string_values_torch.index(arg4))
+        solver.add(arg4_value == arg4)
 
         # Constraints for rule 36
         rule_36(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype, 'arg4_value': arg4_value})

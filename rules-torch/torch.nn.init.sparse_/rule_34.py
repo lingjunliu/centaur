@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Standard deviation is a finite number, not NaN (Rule 34)
+# Sparsity must be representable as float32, float64, etc. (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_value"] < 1000000, v["arg1_value"] > -1000000), v["arg1_value"] == v["arg1_value"])) if n else
-          And(And(v["arg1_value"] < 1000000, v["arg1_value"] > -1000000), v["arg1_value"] == v["arg1_value"]))
+    s.add(Not(And(v["arg1_value"] > -3.4E38, v["arg1_value"] < 3.4E38)) if n else
+          And(v["arg1_value"] > -3.4E38, v["arg1_value"] < 3.4E38))
 )
 
 def rule_34_func(arg1, solver=None, neg=False):

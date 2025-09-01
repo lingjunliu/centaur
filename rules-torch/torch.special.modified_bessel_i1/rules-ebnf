@@ -1,75 +1,63 @@
 >>
-Rule 1 (input tensor should not have Half (float16) dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 7
+Rule 1 (input tensor should not be Half (float16))
+{v_1 : tensor} |= dtype_(v_1) ≠ 6
 >>
-Rule 2 (input tensor dtype should be float32, float64, complex64, or complex128)
-{v_1 : tensor} |= dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 7
+Rule 2 (input tensor should be float or complex)
+{v_1 : tensor} |= 6 < dtype_(v_1) ∧ dtype_(v_1) < 11
 >>
-Rule 3 (input tensor should be float16, float32, float64, complex64 or complex128)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+Rule 3 (output tensor dtype should be the same as input tensor)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 5 (if input dtype is float16, then out must also be float16)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7
+Rule 4 (if out is provided, input and out tensors must have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 6 (input and output tensors should have same dtype if input is not float16)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ 7 then dtype_(v_1) = dtype_(v_2)
+Rule 10 (Input tensor should be a real tensor)
+{v_1 : tensor} |= dtype_(v_1) < 10
 >>
-Rule 7 (either both input and output are float16, or neither are)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∧ dtype_(v_2) = 7) ∨ (dtype_(v_1) ≠ 7 ∧ dtype_(v_2) ≠ 7)
+Rule 11 (Input tensor should not be complex with float16)
+{v_1: tensor} |= if dtype_(v_1) = 9 then false
 >>
-Rule 9 (input must be a floating point tensor)
-{v_1 : tensor} |= dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
+Rule 12 (Input tensor dtype must be float16, float32, float64, complex64, or complex128)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 10 (input must be a floating point or complex tensor)
-{v_1 : tensor} |= dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+Rule 14 (Input tensor should be a floating-point tensor or a complex tensor)
+{v_1 : tensor} |= (dtype_(v_1) > 6 ∧ dtype_(v_1) < 9) ∨ (dtype_(v_1) > 9 ∧ dtype_(v_1) < 11)
 >>
-Rule 14 (Input tensor must have floating or complex dtype)
-{v_1 : tensor} |= dtype_(v_1) > 6 ∧ dtype_(v_1) < 12
+Rule 18 (Input tensor should not have dim>0 when dtype is Half)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then ndim(v_1) = 0
 >>
-Rule 16 (If the input tensor is of type Half, an output tensor must be provided.)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then true
+Rule 20 (If the input is Half, the out tensor must also be Half)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6
 >>
-Rule 19 (Input and output tensors must have same dtype, and cannot be Half)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) ≠ 7
+Rule 21 (If the output tensor is specified, and the input is Half and scalar, then the output should also be scalar)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 ∧ ndim(v_1) = 0 then ndim(v_2) = 0
 >>
-Rule 24 (Input tensor must be either float or complex, and not Half)
-{v_1 : tensor} |= (dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11)
+Rule 22 (If input is Half, it should be able to be promoted to float)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then true
 >>
-Rule 30 (Input and output tensors must not be float16)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 7 ∧ dtype_(v_2) ≠ 7
+Rule 27 (The input tensor must have non-negative values)
+{v_1 : tensor} |= min(v_1) ≥ 0
 >>
-Rule 36 (input tensor must have floating point or complex dtype and not be float16.)
-{v_1 : tensor} |= (dtype_(v_1) > 7) ∧ (dtype_(v_1) < 12)
+Rule 28 (Input tensor cannot have negative values when using complex types)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) ≥ 0
 >>
-Rule 43 (If the input tensor has more than 2 dimensions, it cannot be half)
-{v_1 : tensor} |= if ndim(v_1) > 2 then dtype_(v_1) ≠ 7
+Rule 29 (The input tensor must have finite values)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 44 (If ndim is less than 1, it can not be float16)
-{v_1 : tensor} |= if ndim(v_1) < 1 then dtype_(v_1) ≠ 7
+Rule 33 (input tensor must be of floating or complex type to be valid)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 45 (if ndim(v_1) = 0 then v_1 is not half)
-{v_1 : tensor} |= if ndim(v_1) = 0 then dtype_(v_1) ≠ 7
+Rule 34 (input tensor's values should be within reasonable bounds)
+{v_1 : tensor} |= min(v_1) > -1000 ∧ max(v_1) < 1000
 >>
-Rule 46 (The input tensor must have at least one dimension if it is not of type float16)
-{v_1 : tensor} |= if dtype_(v_1) ≠ 7 then ndim(v_1) ≥ 1
+Rule 37 (if output tensor is specified, check that it has the same shape and dtype as input)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = dtype_(v_2)) ∧ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 47 (input tensor can be float16 only if at least one dimension is 1)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1)
+Rule 38 (Check the valid range of dtype)
+{v_1 : tensor} |= dtype_(v_1) > 6
 >>
-Rule 48 (If input's dtype is Half, then ndim must be greater than 0)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then ndim(v_1) > 0
+Rule 42 (modified_bessel_i1 is not defined on boolean tensors.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 49 (input cannot be half, or must be more than 2 dimensions)
-{v_1 : tensor} |= dtype_(v_1) ≠ 7 ∨ ndim(v_1) > 2
->>
-Rule 50 (if input dtype is Half, then all shape dimensions must be less than 1024)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1024
->>
-Rule 51 (If any dimension of v_1 is 0, then it is fine for the dtype to be half.)
-{v_1 : tensor} |= (∃ i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (dtype_(v_1) ≠ 7)
->>
-Rule 52 (input cannot be half, unless all dimensions are small)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≤ 10)
->>
-Rule 53 (If the input tensor is of Half type, then the number of dimensions should be 1 AND the first dimension size needs to be less than 1000)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then (ndim(v_1) = 1 ∧ shape(v_1, 0) < 1000)
+Rule 51 (Input tensor must be floating point or complex)
+{v_1 : tensor} |= (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)

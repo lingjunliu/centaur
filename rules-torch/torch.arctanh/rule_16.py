@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If an out tensor is provided, its dtype must be sufficient for arctanh calculation on the input, otherwise a cast will occur (Rule 16)
+# When an out tensor is provided, its dtype should be able to represent the arctanh values. (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] < 7, (Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10)), False)) if n else
-          If(v["arg1_dtype"] < 7, (Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10)), False))
+    s.add(Not(If(v["arg1_dtype"] < 9, v["arg2_dtype"] >= 7, v["arg2_dtype"] >= 9)) if n else
+          If(v["arg1_dtype"] < 9, v["arg2_dtype"] >= 7, v["arg2_dtype"] >= 9))
 )
 
 def rule_16_func(arg1, arg2, solver=None, neg=False):

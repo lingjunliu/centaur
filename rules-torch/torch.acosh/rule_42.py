@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if input tensor is of float16 type, the out parameter must be at least of float32 type (Rule 42)
+# If input is float, the output must also be float or complex to avoid data type cast errors (Rule 42)
 
 rule_42 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_ndim"] > 0, If(v["arg1_dtype"] == 6, v["arg2_dtype"] > 6, False), False)) if n else
-          If(v["arg2_ndim"] > 0, If(v["arg1_dtype"] == 6, v["arg2_dtype"] > 6, False), False))
+    s.add(Not(If(And(v["arg2_ndim"] > 0, (Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9))), Or(Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), v["arg2_dtype"] == 11), True)) if n else
+          If(And(v["arg2_ndim"] > 0, (Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9))), Or(Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), v["arg2_dtype"] == 11), True))
 )
 
 def rule_42_func(arg1, arg2, solver=None, neg=False):
@@ -35,9 +35,9 @@ def rule_42_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 42
-        rule_42(solver, {'arg1_dtype': arg1_dtype, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype})
+        rule_42(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_42(solver, {'arg1_dtype': arg1['dtype'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_42(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg2_ndim': arg2['ndim']}, neg)

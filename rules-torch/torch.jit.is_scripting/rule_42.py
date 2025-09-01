@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if integer v_1 is not equal to zero then a float v_2 should be greater than v_1 (Rule 42)
+# Compilation context enforces that a string parameter matches from a specific list. (Rule 42)
 
 rule_42 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] != 0, v["arg2_value"] > v["arg1_value"], False)) if n else
-          If(v["arg1_value"] != 0, v["arg2_value"] > v["arg1_value"], False))
+    s.add(Not(If(v["arg1_value"] == True, Or(Or(v["arg2_value"] == 11, v["arg2_value"] == 20), v["arg2_value"] == 12), True)) if n else
+          If(v["arg1_value"] == True, Or(Or(v["arg2_value"] == 11, v["arg2_value"] == 20), v["arg2_value"] == 12), True))
 )
 
 def rule_42_func(arg1, arg2, solver=None, neg=False):
@@ -18,19 +18,19 @@ def rule_42_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not isinstance(arg1, bool):
             return False
-        if not isinstance(arg2, (float, np.floating)):
+        if not isinstance(arg2, str):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_value = Real('arg2_value')
+        arg1_value = Bool('arg1_value')
+        arg2_value = String('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        solver.add(arg2_value == arg2)
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_value == list_of_string_values_torch.index(arg2))
 
         # Constraints for rule 42
         rule_42(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})

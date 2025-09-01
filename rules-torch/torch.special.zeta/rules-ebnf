@@ -1,21 +1,102 @@
 >>
-Rule 1 (Input tensors must have compatible data types to avoid 'zeta_cpu' not implemented error for complex types)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 ∧ dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10
+Rule 1 (input and other tensors must have the same shape to avoid broadcasting issues)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 2 (Input tensors must have compatible shapes to avoid size mismatch error)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 2 (input tensor should not be complex to avoid "zeta_cpu" not implemented error)
+{v_1 : tensor} |= dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128"
 >>
-Rule 4 (Input tensors must have compatible data types to avoid 'zeta_cpu' not implemented error for complex types)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) < 9 ∧ dtype_(v_2) < 9
+Rule 4 (input tensor should have dimension >= 1 to be valid)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 5 (Input tensors must have compatible shapes to avoid size mismatch error, considering broadcasting)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (if ndim(v_1) - i - 1 < 0 then true else if ndim(v_2) - i - 1 < 0 then true else shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)))
+Rule 5 (other tensor should have dimension >= 1 to be valid)
+{v_2 : tensor} |= ndim(v_2) ≥ 1
 >>
-Rule 7 (Input tensors must have compatible data types to avoid 'zeta_cpu' not implemented error for complex types)
-{v_1 : tensor} |= dtype_(v_1) < 9
+Rule 6 (if out is provided, it should have the same shape as input.)
+{v_1 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)
 >>
-Rule 8 (Input tensors must have compatible shapes to avoid size mismatch error, considering broadcasting)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (if ndim(v_1) - i - 1 < 0 then true else if ndim(v_2) - i - 1 < 0 then true else shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)))
+Rule 7 (input and other tensors' dimension should not exceed a reasonable limit)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) < 10 ∧ ndim(v_2) < 10
 >>
-Rule 60 (Both inputs must be non-complex if both are tensors)
-{v_1 : tensor, v_2: tensor} |= dtype_(v_1) < 9 ∧ dtype_(v_2) < 9
+Rule 8 (input tensor's datatype should be float or int)
+{v_1 : tensor} |= dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "int32" ∨ dtype_(v_1) = "int64" ∨ dtype_(v_1) = "float16"
+>>
+Rule 9 (other tensor's datatype should be float or int)
+{v_2 : tensor} |= dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" ∨ dtype_(v_2) = "int32" ∨ dtype_(v_2) = "int64" ∨ dtype_(v_2) = "float16"
+>>
+Rule 18 (If other is a float, it should be greater than 0)
+{v_2 : float} |= v_2 > 0
+>>
+Rule 21 (input and other tensor dtype should be same to avoid potential errors)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 22 (If the shape of v_1 is [a, b, c] and shape of v_2 is [a, b, 1], then the last dim of v_2 should be 1)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then true else false
+>>
+Rule 23 (If other is not provided (KeyError), then it is assumed to be 1, so input should be greater than 0)
+{v_1 : tensor} |= min(v_1) > 0
+>>
+Rule 24 (if input and other have different dimensions, the smaller dimension tensor should have size 1 for the leading dimensions to make it broadcastable)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_2) - ndim(v_1) - 1] : shape(v_2, i) = 1 else if ndim(v_2) < ndim(v_1) then ∀i ∈ [0, ndim(v_1) - ndim(v_2) - 1] : shape(v_1, i) = 1
+>>
+Rule 25 (If other is a tensor, all its elements must be positive)
+{v_2 : tensor} |= min(v_2) > 0
+>>
+Rule 26 (If input is a tensor and other is a tensor and their dimensions are different, the smaller one's shape should be 1.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∃i ∈ [0, ndim(v_2)-1] : shape(v_2, i) = 1 else if ndim(v_2) < ndim(v_1) then ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 1
+>>
+Rule 27 (If other is a tensor, its values should be greater than 0)
+{v_2 : tensor} |= ∀i ∈ [0, ndim(v_2)-1] : min(v_2) > 0
+>>
+Rule 28 (if dimensions do not match and cannot be broadcasted, raise error)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then (∀i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_2) else ndim(v_1) -1] : if ndim(v_1) - i - 1 < 0 then shape(v_2, ndim(v_2)-i-1) = 1 else if ndim(v_2) - i - 1 < 0 then shape(v_1, ndim(v_1)-i-1) = 1 else if shape(v_1, ndim(v_1)-i-1) ≠ shape(v_2, ndim(v_2)-i-1) then false)
+>>
+Rule 29 (If input and other are tensors, their sizes should be compatible)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1
+>>
+Rule 31 (If input and other are tensors with the same number of dimensions, but their sizes are different in at least one dimension, then one of the tensor must have size 1 in that dimension to be broadcastable)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then (∃i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) ≠ shape(v_2, i)) ∧ (shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))
+>>
+Rule 36 (If dimensions of input and other are different, broadcasting should make the sizes compatible)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_2) - ndim(v_1) - 1] : shape(v_2, i) = 1 ∨ if ndim(v_1) > ndim(v_2) then ∀i ∈ [0, ndim(v_1) - ndim(v_2) - 1] : shape(v_1, i) = 1
+>>
+Rule 39 (If number of dimensions between input and other are different, then ensure appropriate broadcasting.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then (∃i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_2) else ndim(v_1) - 1] : if ndim(v_1) - i - 1 < 0 then shape(v_2, ndim(v_2)-i-1) = 1 else if ndim(v_2) - i - 1 < 0 then shape(v_1, ndim(v_1)-i-1) = 1)
+>>
+Rule 41 (For tensors with the same number of dimensions, sizes must either be equal, or one must be size 1 to enable broadcasting)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1
+>>
+Rule 42 (If 'other' is not specified, the input 'x' must be of a type that zeta supports, avoiding the 'zeta_cpu' issue)
+{v_1 : tensor} |= dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "float16"
+>>
+Rule 43 (To avoid size mismatch, if the input and other tensors have different shapes, ensure they are broadcastable.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then (∀i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_2) - 1 else ndim(v_1) - 1] : if (ndim(v_1) - i - 1) < 0 then shape(v_2, ndim(v_2) - i - 1) = 1 else if (ndim(v_2) - i - 1) < 0 then shape(v_1, ndim(v_1) - i - 1) = 1 else shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))
+>>
+Rule 44 (Input and output tensors should be of compatible dtypes to support the zeta operation)
+{v_1 : tensor, v_3 : tensor} |= (dtype_(v_1) = "float32" ∧ dtype_(v_3) = "float32") ∨ (dtype_(v_1) = "float64" ∧ dtype_(v_3) = "float64") ∨ (dtype_(v_1) = "float16" ∧ dtype_(v_3) = "float16")
+>>
+Rule 46 (If number of dimensions differs between input and other, sizes of leading dimensions must match or be 1 for broadcasting.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_2) - ndim(v_1) - 1] : shape(v_2, i) = 1 else if ndim(v_2) < ndim(v_1) then ∀i ∈ [0, ndim(v_1) - ndim(v_2) - 1] : shape(v_1, i) = 1 else if ndim(v_1) = ndim(v_2) then true else false
+>>
+Rule 48 (To avoid size mismatch error, shapes of input and other tensors must be broadcastable)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1 else if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, ndim(v_2) - ndim(v_1) + i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, ndim(v_2) - ndim(v_1) + i) = 1 else ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, ndim(v_1) - ndim(v_2) + i) ∨ shape(v_2, i) = 1 ∨ shape(v_1, ndim(v_1) - ndim(v_2) + i) = 1
+>>
+Rule 49 (To avoid size mismatch error during element-wise operation, sizes must be compatible for broadcasting)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i)) ∨ (shape(v_1, i) = 1) ∨ (shape(v_2, i) = 1) else if ndim(v_1) > ndim(v_2) then ∀i ∈ [0, ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i)) ∨ (shape(v_1, ndim(v_1) - ndim(v_2) + i) = 1) ∨ (shape(v_2, i) = 1) else ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_2, ndim(v_2) - ndim(v_1) + i) = shape(v_1, i)) ∨ (shape(v_2, ndim(v_2) - ndim(v_1) + i) = 1) ∨ (shape(v_1, i) = 1)
+>>
+Rule 50 (If output tensor is provided then it must have same shape as the result of the zeta(input,other) operation.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = ndim(v_2) then (ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)) ∨ (ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_2, i) = shape(v_3, i))
+>>
+Rule 51 (If shapes are not equal and not broadcastable, the function will throw size error)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1) else (ndim(v_1) > ndim(v_2) ∧ ∀i ∈ [0, ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_1, ndim(v_1) - ndim(v_2) + i) = 1 ∨ shape(v_2, i) = 1)) ∨ (ndim(v_2) > ndim(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_2, ndim(v_2) - ndim(v_1) + i) = shape(v_1, i) ∨ shape(v_2, ndim(v_2) - ndim(v_1) + i) = 1 ∨ shape(v_1, i) = 1))
+>>
+Rule 52 (To avoid "The size of tensor a (100) must match the size of tensor b (6) at non-singleton dimension 3" error, the input and other tensors must have broadcastable shapes.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)) ∨ (ndim(v_1) ≠ ndim(v_2) ∧ ((ndim(v_1) < ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, ndim(v_2) - ndim(v_1) + i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, ndim(v_2) - ndim(v_1) + i) = 1) ∧ (∀i ∈ [0, ndim(v_2) - ndim(v_1) - 1] : shape(v_2, i) = 1)) ∨ (ndim(v_2) < ndim(v_1) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, ndim(v_1) - ndim(v_2) + i) ∨ shape(v_2, i) = 1 ∨ shape(v_1, ndim(v_1) - ndim(v_2) + i) = 1) ∧ (∀i ∈ [0, ndim(v_1) - ndim(v_2) - 1] : shape(v_1, i) = 1))))
+>>
+Rule 58 (Shape and dtype constraints.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))) ∨ (ndim(v_1) ≠ ndim(v_2) ∧ ((ndim(v_1) < ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, ndim(v_2) - ndim(v_1) + i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, ndim(v_2) - ndim(v_1) + i) = 1) ∧ (∀i ∈ [0, ndim(v_2) - ndim(v_1) - 1] : shape(v_2, i) = 1))) ∨ (ndim(v_2) < ndim(v_1) ∧ (∀i ∈ [0, ndim(v_2) - 1] : (shape(v_2, i) = shape(v_1, ndim(v_1) - ndim(v_2) + i) ∨ shape(v_2, i) = 1 ∨ shape(v_1, ndim(v_1) - ndim(v_2) + i) = 1) ∧ (∀i ∈ [0, ndim(v_1) - ndim(v_2) - 1] : shape(v_1, i) = 1))))) ∧ (dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128")
+>>
+Rule 62 (Sizes must be broadcastable, and the input dtype must be real to prevent errors.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))) ∨ (ndim(v_1) < ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, ndim(v_2) - ndim(v_1) + i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, ndim(v_2) - ndim(v_1) + i) = 1) ∧ (∀i ∈ [0, ndim(v_2) - ndim(v_1) - 1] : shape(v_2, i) = 1))) ∨ (ndim(v_2) < ndim(v_1) ∧ (∀i ∈ [0, ndim(v_2) - 1] : (shape(v_2, i) = shape(v_1, ndim(v_1) - ndim(v_2) + i) ∨ shape(v_2, i) = 1 ∨ shape(v_1, ndim(v_1) - ndim(v_2) + i) = 1) ∧ (∀i ∈ [0, ndim(v_1) - ndim(v_2) - 1] : shape(v_1, i) = 1))) ∧ (dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128")
+>>
+Rule 63 (Combined Shape and Dtype constraints for avoiding the described errors)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128") ∧ ((ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))) ∨ (ndim(v_1) < ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, ndim(v_2) - ndim(v_1) + i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, ndim(v_2) - ndim(v_1) + i) = 1) ∧ (∀i ∈ [0, ndim(v_2) - ndim(v_1) - 1] : shape(v_2, i) = 1))) ∨ (ndim(v_2) < ndim(v_1) ∧ (∀i ∈ [0, ndim(v_2) - 1] : (shape(v_2, i) = shape(v_1, ndim(v_1) - ndim(v_2) + i) ∨ shape(v_2, i) = 1 ∨ shape(v_1, ndim(v_1) - ndim(v_2) + i) = 1) ∧ (∀i ∈ [0, ndim(v_1) - ndim(v_2) - 1] : shape(v_1, i) = 1))))

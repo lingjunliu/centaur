@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# end_dim must be less than the number of dimensions of the input tensor (Rule 2)
+# end_dim should be less than ndim(input (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
     s.add(Not(v["arg2_value"] < v["arg1_ndim"]) if n else

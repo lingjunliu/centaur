@@ -1,72 +1,66 @@
 >>
-Rule 1 (threshold_cpu does not support Bool tensor)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 1 (Input tensor should not be boolean for threshold_cpu implementation)
+{input : tensor} |= dtype_(input) ≠ 0
 >>
-Rule 2 (value should not cause overflow when converted to Half type)
-{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 then -65500 ≤ v_2 ∧ v_2 ≤ 65500
+Rule 2 (Value should be representable without overflow in the Half type (float16, type 6))
+{value : float} |= value < 65504 ∧ value > -65504
 >>
-Rule 6 (value should not cause overflow when converted to Half type, when threshold is float16)
-{v_1 : float, v_2 : float} |= if v_1 > -65500 ∧ v_1 < 65500 then v_2 > -65500 ∧ v_2 < 65500
+Rule 4 (Value should be representable without overflow in the Half type (float16, type 6))
+{value : float} |= -65504 ≤ value ∧ value ≤ 65504
 >>
-Rule 9 (value should not cause overflow when converted to float16, if input is float16)
-{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 then v_2 > -65500 ∧ v_2 < 65500
+Rule 6 (Input tensor must have at least one dimension if not empty)
+{input: tensor} |= (ndim(input) > 0) ∨ (∀i ∈ [0, ndim(input) - 1] : shape(input, i) = 0)
 >>
-Rule 19 (The value must be representable in the same dtype as the threshold)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 then dtype_(v_2) = 1 else if dtype_(v_1) = 2 then dtype_(v_2) = 2 else if dtype_(v_1) = 3 then dtype_(v_2) = 3 else if dtype_(v_1) = 4 then dtype_(v_2) = 4 else if dtype_(v_1) = 5 then dtype_(v_2) = 5 else if dtype_(v_1) = 6 then dtype_(v_2) = 6 else if dtype_(v_1) = 7 then dtype_(v_2) = 7 else if dtype_(v_1) = 8 then dtype_(v_2) = 8
+Rule 7 (Value should be representable as float16 without underflow)
+{value: float} |= value > -65504
 >>
-Rule 22 (Value must be of same dtype as Input if Input is not Bool)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ 0 then dtype_(v_1) = dtype_(v_2)
+Rule 8 (Threshold and value should have compatible types)
+{threshold: float, value: float, input: tensor} |= if dtype_(input) = 6 then -65504 ≤ threshold ∧ threshold ≤ 65504 ∧ -65504 ≤ value ∧ value ≤ 65504
 >>
-Rule 25 (If threshold is of a certain dtype, value must be of compatible dtype to prevent overflow)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+Rule 9 (Check if the input is boolean type)
+{input: tensor} |= if dtype_(input) = 0 then false
 >>
-Rule 30 (value should not cause overflow when converted to float16, if threshold is float16)
-{v_1 : float, v_2 : float} |= if v_1 > -65504.0 ∧ v_1 < 65504.0 then v_2 > -65504.0 ∧ v_2 < 65504.0
+Rule 11 (Value should be representable in float16 to avoid overflow)
+{value : float, input: tensor} |= if dtype_(input) = 6 then -65504 ≤ value ∧ value ≤ 65504
 >>
-Rule 31 (value should not cause overflow when converted to float16, if threshold is float16 and input is not bool)
-{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) ≠ 0 ∧ v_2 > -65504.0 ∧ v_2 < 65504.0 then v_3 > -65504.0 ∧ v_3 < 65504.0
+Rule 12 (Threshold should be representable in float16 to avoid overflow)
+{threshold: float, input: tensor} |= if dtype_(input) = 6 then -65504 ≤ threshold ∧ threshold ≤ 65504
 >>
-Rule 35 (value should not cause overflow when converted to float16)
-{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 then v_2 > -65504.0 ∧ v_2 < 65504.0
+Rule 14 (Value must be within the range of float16 if input dtype is float16)
+{value : float, input : tensor} |= if dtype_(input) = 6 then -65504 ≤ value ∧ value ≤ 65504
 >>
-Rule 38 (threshold value should be a float that can be represented as float16)
-{v_1 : float} |= v_1 > -65504.0 ∧ v_1 < 65504.0
+Rule 16 (If value is close to inf, then dtype cannot be float16)
+{value: float, input: tensor} |= if value > 65500 ∨ value < -65500 then dtype_(input) ≠ 6
 >>
-Rule 40 (The value cannot be converted to type at::Half without overflow)
-{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 then v_2 ≥ -65504.0 ∧ v_2 ≤ 65504.0
+Rule 17 (Input tensor cannot be of boolean dtype for CPU implementation)
+{input: tensor} |= dtype_(input) ≠ 0
 >>
-Rule 47 (If input is of type Float16, value must be within representable range.)
-{v_1: tensor, v_2: float} |= if dtype_(v_1) = 6 then v_2 ≥ -65504.0 ∧ v_2 ≤ 65504.0
+Rule 18 (Value must be a valid float16 if the input tensor is of float16 dtype)
+{value: float, input: tensor} |= if dtype_(input) = 6 then -65504 ≤ value ∧ value ≤ 65504
 >>
-Rule 48 (Value parameter must be within the range of representable float16 numbers if the input tensor is float16)
-{v_1: float} |= v_1 ≥ -65504.0 ∧ v_1 ≤ 65504.0
+Rule 28 (Value must be representable as float16 to prevent overflow when input dtype is float16)
+{input: tensor, value: float} |= if dtype_(input) = 6 then -65504 ≤ value ∧ value ≤ 65504
 >>
-Rule 49 (value should be representable as a float16)
-{v_1 : float} |= v_1 ≥ -65504.0 ∧ v_1 ≤ 65504.0
+Rule 39 (If input is of type float16, the value cannot overflow)
+{input: tensor, value: float, threshold: float} |= if dtype_(input) = 6 then -65504 ≤ value ∧ value ≤ 65504 ∧ -65504 <= threshold ∧ threshold <= 65504
 >>
-Rule 54 (For threshold_cpu, input must be a valid dtype that's not Bool, and value must be a valid number)
-{v_1 : tensor, v_2 : float} |= dtype_(v_1) ≠ 0 ∧ (if dtype_(v_1) = 6 then v_2 ≥ -65504.0 ∧ v_2 ≤ 65504.0)
+Rule 47 (If input data type is float16, value and threshold should be representable as float16 to avoid overflow.)
+{input: tensor, value: float, threshold: float} |= if dtype_(input) = 6 then -65504 ≤ value ∧ value ≤ 65504 ∧ -65504 ≤ threshold ∧ threshold ≤ 65504
 >>
-Rule 56 (Input must not be a Bool tensor)
-{v_1: tensor} |= dtype_(v_1) ≠ 0
+Rule 48 (If value is infinite, the dtype of the input must support infinite values.)
+{input: tensor, value: float} |= if value > 10000000000000000000 ∨ value < -10000000000000000000 then dtype_(input) ≠ 6
 >>
-Rule 57 (If input tensor is float16, threshold and value parameters must be representable as float16)
-{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 6 then v_2 ≥ -65504.0 ∧ v_2 ≤ 65504.0 ∧ v_3 ≥ -65504.0 ∧ v_3 ≤ 65504.0
+Rule 54 (The threshold should not be inf to prevent unexpected results)
+{threshold: float} |= threshold < 10000000000000000000 ∧ threshold > -10000000000000000000
 >>
-Rule 59 (Threshold and value should be representable as float16 if input is float16)
-{v_1 : float, v_2 : float} |= v_1 ≥ -65504.0 ∧ v_1 ≤ 65504.0 ∧ v_2 ≥ -65504.0 ∧ v_2 ≤ 65504.0
+Rule 63 (The threshold value must be finite to produce meaningful results)
+{threshold: float} |= threshold < 1000000000 ∧ threshold > -1000000000
 >>
-Rule 66 (Combined Rule for 'threshold_cpu' and Half-overflow)
-{v_1 : tensor, v_2 : float} |= dtype_(v_1) ≠ 0 ∧ if dtype_(v_1) = 6 then v_2 ≥ -65504.0 ∧ v_2 ≤ 65504.0
+Rule 72 (If threshold is infinity, value must be infinity)
+{threshold: float, value: float} |= if threshold > 100000000 then value > 100000000 else if threshold < -100000000 then value < -100000000
 >>
-Rule 68 (Input type cannot be Bool, and if float16, value must be a valid float16)
-{v_1: tensor, v_2: float} |= dtype_(v_1) ≠ 0 ∧ if dtype_(v_1) = 6 then v_2 > -65504.0 ∧ v_2 < 65504.0
+Rule 93 (If inplace operation is set to true, then the tensor should not have requires_grad set to true)
+{inplace: bool} |= if inplace then false
 >>
-Rule 69 (The API does not support Bool tensors, and the value must be a valid Half if the input is Half and uses threshold_cpu)
-{v_1: tensor, v_2: float} |= dtype_(v_1) ≠ 0 ∧ (if dtype_(v_1) = 6 then v_2 > -65504.0 ∧ v_2 < 65504.0)
->>
-Rule 71 (For threshold_cpu, the input must be a valid dtype besides Bool, and for float16, the value must also be a valid float16)
-{v_1: tensor, v_2: float} |= dtype_(v_1) ≠ 0 ∧ (if dtype_(v_1) = 6 then v_2 ≥ -65504.0 ∧ v_2 ≤ 65504.0)
->>
-Rule 74 (The Threshold API only supports specific dtypes.)
-{v_1: tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 12
+Rule 117 (Input tensor, value, and threshold must be the same dtype for type consistency.)
+{input: tensor, value: float, threshold:float} |= (dtype_(input) = 6 ∧ value > -65504 ∧ value < 65504 ∧ threshold > -65504 ∧ threshold < 65504) ∨ (dtype_(input) = 7 ∨ dtype_(input) = 8)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor's dtype cannot be complex - complex128 (Rule 69)
+# Check if any shape of the input tensor is greater than 10, making the tensor large enough (Rule 69)
 
 rule_69 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 10) if n else
-          v["arg1_dtype"] != 10)
+    s.add(Not(Or(Or(Select(v["arg1_shape"], 0) > 10, Select(v["arg1_shape"], 1) > 10), Select(v["arg1_shape"], 2) > 10)) if n else
+          Or(Or(Select(v["arg1_shape"], 0) > 10, Select(v["arg1_shape"], 1) > 10), Select(v["arg1_shape"], 2) > 10))
 )
 
 def rule_69_func(arg1, solver=None, neg=False):
@@ -22,15 +22,16 @@ def rule_69_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 69
-        rule_69(solver, {'arg1_dtype': arg1_dtype})
+        rule_69(solver, {'arg1_shape': arg1_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_69(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_69(solver, {'arg1_shape': arg1['shape']}, neg)

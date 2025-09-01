@@ -1,99 +1,84 @@
 >>
-Rule 1 (mean and std should be non-negative)
-{v_1 : float, v_2 : float} |= v_1 ≥ 0 ∧ v_2 ≥ 0
+Rule 1 (mean and std must have the same total number of elements when shapes don't match)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) * shape(v_2, i) = shape(v_1,i))
 >>
-Rule 2 (mean and std tensors must have the same number of elements.)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, j)
+Rule 2 (std must have positive values)
+{v_2 : tensor} |= min(v_2) > 0
 >>
-Rule 7 (If mean and std are both floats, then they must be non-negative)
-{v_1 : float, v_2 : float} |= v_1 >= 0 ∧ v_2 >= 0
+Rule 5 (size must be a tuple of ints with positive values if provided)
+{v_3 : tuple(int)} |= (∀i ∈ [0, v_3.len - 1] : v_3[i] > 0)
 >>
-Rule 10 (If both mean and std are tensors, then their shapes should be compatible for broadcasting.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)
->>
-Rule 12 (mean and std tensors must have compatible data types)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
->>
-Rule 13 (mean tensor's dimension must be greater than or equal to zero)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
->>
-Rule 15 (If mean and std are both tensors, they should have the same number of elements if their shapes do not match)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_1) = shape(v_2) then true else (∀i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, j))
->>
-Rule 21 (std should be positive if it is a float)
-{v_1 : float} |= v_1 > 0
->>
-Rule 22 (mean and std must have the same shape if they are both tensors and have more than 0 dimensions)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then shape(v_1) = shape(v_2)
->>
-Rule 23 (If std is a tensor, all its values must be positive)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : min(v_1) > 0
->>
-Rule 24 (If the mean is a tensor, it should be of floating type)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6
->>
-Rule 26 (If mean and std are both tensors, their dtypes must be the same)
+Rule 8 (if mean and std are tensors, they must have compatible dtypes)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 30 (If mean and std are both tensors, and have dimensions > 0, then the number of elements should be equal or they should be broadcastable.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, j)) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))
+Rule 9 (std cannot be empty tensor)
+{v_2 : tensor} |= ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
 >>
-Rule 31 (If std is a tensor, all its values must be positive)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : v_1[j] > 0
+Rule 12 (std must have positive values)
+{v_1 : tensor} |= min(v_1) > 0
 >>
-Rule 35 (Shape of output tensor must have positive values)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 13 (std can be a float, if so it must be positive)
+{v_1 : float} |= v_1 > 0
 >>
-Rule 41 (if both mean and std are tensor then their dimension must be greater than or equal to zero)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0
+Rule 14 (size must be a tuple of ints with positive values if provided)
+{v_1 : tuple(int)} |= (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0)
 >>
-Rule 44 (If std is a tensor, its dtype must be float16, float32 or float64.)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 16 (std cannot be empty tensor)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 46 (If the std is a float, it must be positive.)
+Rule 20 (If size is int, it must be positive)
+{v_1: int} |= v_1 > 0
+>>
+Rule 29 (if the size paramater is a tuple, its length must be positive)
+{v_1 : tuple(int)} |= v_1.len > 0
+>>
+Rule 30 (if the size paramater is a tuple, its length must be positive and all elements must be positive)
+{v_1 : tuple(int)} |= v_1.len > 0 ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0)
+>>
+Rule 31 (if mean and std are tensors and shapes are different, total number of elements must be the same)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ shape(v_2, i)) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 38 (if size is specified, and it is an int, then it must be greater than 0)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 40 (If std is tensor, it must have a floating point dtype.)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6
+>>
+Rule 43 (if the number of elements in mean and std tensors are same then sum of log of each shape should be equal)
+{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ shape(v_2, i)) then (∃n ∈ [0, ndim(v_1) - 1] : shape(v_1, n) = shape(v_2, n))
+>>
+Rule 44 (If the shapes of mean and std do not match, the product of the shape of mean should be equal to product of the shape of std)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ shape(v_2, i)) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) * shape(v_2, i) = shape(v_1,i) )
+>>
+Rule 45 (If the shapes of mean and std are different, the product of the dimensions of the mean tensor must equal the product of the dimensions of the std tensor)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ shape(v_2, i)) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) * shape(v_2, i) = shape(v_2, i))
+>>
+Rule 46 (If the shapes of mean and std are different, then mean and std must have same number of elements)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 48 (if shapes are different the product of dimensions for both mean and std must be same)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ shape(v_2, i)) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1,i) * shape(v_2, i) = shape(v_1,i))
+>>
+Rule 50 (If mean and std are specified, then the number of dimensions must be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+>>
+Rule 51 (If the number of dimensions of mean and std are not the same and mean and std are tensors, then product of all the dimensions in mean must be equal to product of all the dimensions in std)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) * shape(v_2, i) = shape(v_2, i) )
+>>
+Rule 56 (If std is a float, it must be greater than zero)
 {v_1: float} |= v_1 > 0
 >>
-Rule 47 (If mean and std are tensors their shapes must be broadcastable)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))
+Rule 60 (If mean is a float, then std must be a tensor with floating point dtype)
+{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
 >>
-Rule 55 (std is a tensor, each element must be positive )
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : min(v_1) > 0
+Rule 66 (if std is a float, it must be a non-negative)
+{v_1: float} |= v_1 ≥ 0
 >>
-Rule 58 (If mean and std are tensors, then they must have a floating point dtype)
-{v_1: tensor, v_2: tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+Rule 67 (If the size is an integer, it cannot be zero)
+{v_1: int} |= v_1 ≠ 0
 >>
-Rule 63 (If mean and std are tensors, they must have the same dtype)
-{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 68 (If size is a int, it must be a non-negative)
+{v_1: int} |= v_1 ≥ 0
 >>
-Rule 68 (If the output tensor exists, it must be of the float type.)
-{v_1: tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
->>
-Rule 71 (If std is a tensor, each element has to be positive)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : v_1[j] > 0
->>
-Rule 73 (If the mean and std are tensors, their shapes must be broadcastable)
-{v_1: tensor, v_2: tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))
->>
-Rule 77 (If mean and std are tensors, and size argument is not provided then the number of dimension for both of them should be the same.)
-{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2)
->>
-Rule 81 (The shape of all tensors provided as input to the function should be positive )
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 82 (If the std is a tensor, it cannot be empty, all dimensions greater than 0)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 87 (If mean and std are tensors, they are not bool tensors)
-{v_1: tensor, v_2: tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0
->>
-Rule 89 (If mean and std are tensors, their data types must be floating points)
-{v_1: tensor, v_2: tensor} |= (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∧ (dtype_(v_2) = 6) ∨ (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8)
->>
-Rule 90 (If mean is a tensor, standard deviation should be positive)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1] : min(v_1) > 0
->>
-Rule 91 (The data type of both mean and std cannot be boolean)
-{v_1:tensor, v_2: tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0
->>
-Rule 94 (If std is a tensor, each element has to be a positive number)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1)-1] : ∀j ∈ [0, shape(v_1, i)-1] : v_1[j] > 0
+Rule 71 (if std is a tensor, its elements must be non-negative)
+{v_1 : tensor} |= min(v_1) ≥ 0

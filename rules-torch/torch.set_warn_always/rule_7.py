@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Boolean variable compared to itself (Rule 7)
+# boolean input should be valid, i.e., true or false (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] == v["arg1_value"]) if n else
-          v["arg1_value"] == v["arg1_value"])
+    s.add(Not(If(v["arg1_value"] == True, True, If(v["arg1_value"] == False, True, False))) if n else
+          If(v["arg1_value"] == True, True, If(v["arg1_value"] == False, True, False)))
 )
 
 def rule_7_func(arg1, solver=None, neg=False):

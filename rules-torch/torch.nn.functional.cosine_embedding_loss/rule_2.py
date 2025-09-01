@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If target is 1D, input tensors must be 2D (Rule 2)
+# input tensors should be 2D if the target tensor is 1D (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg3_ndim"] == 1, And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 2), False)) if n else
-          If(v["arg3_ndim"] == 1, And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 2), False))
+    s.add(Not(If(v["arg3_ndim"] == 1, And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 2), True)) if n else
+          If(v["arg3_ndim"] == 1, And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 2), True))
 )
 
 def rule_2_func(arg1, arg2, arg3, solver=None, neg=False):

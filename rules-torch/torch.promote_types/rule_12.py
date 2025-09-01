@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If type2 is string, type1 must not be bool, int8, int16, int32, int64, uint8 (Rule 12)
+# If type1 is bool, and type2 is not bool, then type2 should be at least int8 (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == 11, And(And(And(And(And(v["arg1_value"] != 0, v["arg1_value"] != 1), v["arg1_value"] != 2), v["arg1_value"] != 3), v["arg1_value"] != 4), v["arg1_value"] != 5), False)) if n else
-          If(v["arg2_value"] == 11, And(And(And(And(And(v["arg1_value"] != 0, v["arg1_value"] != 1), v["arg1_value"] != 2), v["arg1_value"] != 3), v["arg1_value"] != 4), v["arg1_value"] != 5), False))
+    s.add(Not(If(v["arg1_value"] == 0, Or(v["arg2_value"] >= 1, v["arg2_value"] == 0), True)) if n else
+          If(v["arg1_value"] == 0, Or(v["arg2_value"] >= 1, v["arg2_value"] == 0), True))
 )
 
 def rule_12_func(arg1, arg2, solver=None, neg=False):

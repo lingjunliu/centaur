@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Prevent storage overflows caused by very large out_features values, limit even further (Rule 56)
+# out_features value should not be extremely big to allocate output (Rule 56)
 
 rule_56 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 1024) if n else
-          v["arg1_value"] < 1024)
+    s.add(Not(v["arg1_value"] < 100000) if n else
+          v["arg1_value"] < 100000)
 )
 
 def rule_56_func(arg1, solver=None, neg=False):

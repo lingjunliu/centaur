@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# tensor should have at least two dimensions and first and second dimension sum is more than 10, check for max shape less than 20 (Rule 55)
+# Ensure argument exists and, if it's a tuple or list, it isn't excessively long (Rule 55)
 
 rule_55 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], 0) + Select(v["arg1_shape"], 1) > 10), Select(v["arg1_shape"], 0) < 20), Select(v["arg1_shape"], 1) < 20)) if n else
-          And(And(And(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], 0) + Select(v["arg1_shape"], 1) > 10), Select(v["arg1_shape"], 0) < 20), Select(v["arg1_shape"], 1) < 20))
+    s.add(Not(v["arg1_length"] < 100) if n else
+          v["arg1_length"] < 100)
 )
 
 def rule_55_func(arg1, solver=None, neg=False):
@@ -17,23 +17,20 @@ def rule_55_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not ((isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)) or (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1))):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_length = Int('arg1_length')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_length == len(arg1))
 
         # Constraints for rule 55
-        rule_55(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_55(solver, {'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_55(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_55(solver, {'arg1_length': arg1['length']}, neg)

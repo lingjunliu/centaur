@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# size should be 4D or 5D (Rule 2)
+# size must have length 4 or 5 (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
     s.add(Not(Or(v["arg1_length"] == 4, v["arg1_length"] == 5)) if n else

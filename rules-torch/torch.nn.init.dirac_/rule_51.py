@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If groups is not 1, the first dimension of the tensor should be divisible by groups (Rule 51)
+# The input tensor dimension must be in [3, 5] and if groups is specified, it must be positive and divisible by first dimension of the input (Rule 51)
 
 rule_51 = lambda s, v, n=False: (
-    s.add(Not(Or((v["arg2_value"] == 1), (And(v["arg1_ndim"] > 0, Select(v["arg1_shape"], 0) % v["arg2_value"] == 0)))) if n else
-          Or((v["arg2_value"] == 1), (And(v["arg1_ndim"] > 0, Select(v["arg1_shape"], 0) % v["arg2_value"] == 0))))
+    s.add(Not(And((And((v["arg1_ndim"] >= 3), (v["arg1_ndim"] <= 5))), (If(v["arg2_value"] > 0, (Select(v["arg1_shape"], 0) % v["arg2_value"]) == 0, True)))) if n else
+          And((And((v["arg1_ndim"] >= 3), (v["arg1_ndim"] <= 5))), (If(v["arg2_value"] > 0, (Select(v["arg1_shape"], 0) % v["arg2_value"]) == 0, True))))
 )
 
 def rule_51_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input tensor has int16 dtype and min is less than 0, then the output tensor must not be int16 or int8  (Rule 34)
+# When the output is short, the input dtype should be smaller than double and the maximum input value shouldn't be very large (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_dtype"] == 2, Select(v["arg1_range"], 0) < 0), Or(Or(v["arg2_dtype"] > 3, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), False)) if n else
-          If(And(v["arg1_dtype"] == 2, Select(v["arg1_range"], 0) < 0), Or(Or(v["arg2_dtype"] > 3, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), False))
+    s.add(Not(If(v["arg2_dtype"] == 2, (And(v["arg1_dtype"] != 8, Select(v["arg1_range"], 1) < 60)), True)) if n else
+          If(v["arg2_dtype"] == 2, (And(v["arg1_dtype"] != 8, Select(v["arg1_range"], 1) < 60)), True))
 )
 
 def rule_34_func(arg1, arg2, solver=None, neg=False):

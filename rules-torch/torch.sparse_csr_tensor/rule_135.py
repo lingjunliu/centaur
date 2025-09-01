@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# values must be a tensor and its dtype is not str or bool but float or complex and dimension more than zero and max is greater than min (Rule 135)
+# If size is a list, elements must be non-negative and less than 2^16 to avoid overflow during allocation AND at least one element in the size should be greater than one and len of the size > 3 and the length should be less than 6 and first two elements should be divisble by 3. (Rule 135)
 
 rule_135 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(And(v["arg1_dtype"] != 0, v["arg1_dtype"] != 11), (Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10))), v["arg1_ndim"] > 0), Select(v["arg1_range"], 1) > Select(v["arg1_range"], 0))) if n else
-          And(And(And(And(v["arg1_dtype"] != 0, v["arg1_dtype"] != 11), (Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10))), v["arg1_ndim"] > 0), Select(v["arg1_range"], 1) > Select(v["arg1_range"], 0)))
+    s.add(Not(And(And(And(And(And((And([Implies(i < (v["arg1_length"] - 1 + 1), And(Select(v["arg1_values"], i) >= 0, Select(v["arg1_values"], i) < 65536)) for i in range(6)])), (Or([And(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) > 1) for i in range(6)]))), (v["arg1_length"] > 3)), (v["arg1_length"] < 6)), (Select(v["arg1_values"], 0) % 3 == 0)), (Select(v["arg1_values"], 1) % 3 == 0))) if n else
+          And(And(And(And(And((And([Implies(i < (v["arg1_length"] - 1 + 1), And(Select(v["arg1_values"], i) >= 0, Select(v["arg1_values"], i) < 65536)) for i in range(6)])), (Or([And(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) > 1) for i in range(6)]))), (v["arg1_length"] > 3)), (v["arg1_length"] < 6)), (Select(v["arg1_values"], 0) % 3 == 0)), (Select(v["arg1_values"], 1) % 3 == 0)))
 )
 
 def rule_135_func(arg1, solver=None, neg=False):
@@ -17,25 +17,23 @@ def rule_135_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_length = Int('arg1_length')
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_length == len(arg1))
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 135
-        rule_135(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim})
+        rule_135(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_135(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_135(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values']}, neg)

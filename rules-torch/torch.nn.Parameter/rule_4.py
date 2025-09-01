@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Parameter tensor must be of floating point or complex dtype if requires_grad is not explicitly set to false (Rule 4)
+# data tensor must be float or complex if requires_grad is true (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == True, (And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 10)), (v["arg1_dtype"] >= 0))) if n else
-          If(v["arg2_value"] == True, (And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 10)), (v["arg1_dtype"] >= 0)))
+    s.add(Not(If(v["arg2_value"] == True, (And(v["arg1_dtype"] >= 7, v["arg1_dtype"] <= 11)), True)) if n else
+          If(v["arg2_value"] == True, (And(v["arg1_dtype"] >= 7, v["arg1_dtype"] <= 11)), True))
 )
 
 def rule_4_func(arg1, arg2, solver=None, neg=False):

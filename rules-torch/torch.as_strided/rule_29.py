@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Shape and Stride are not zero (Rule 29)
+# If size is empty, stride must also be empty (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(And((v["arg1_length"] > 0), (v["arg2_length"] > 0))) if n else
-          And((v["arg1_length"] > 0), (v["arg2_length"] > 0)))
+    s.add(Not(If(v["arg1_length"] == 0, v["arg2_length"] == 0, True)) if n else
+          If(v["arg1_length"] == 0, v["arg2_length"] == 0, True))
 )
 
 def rule_29_func(arg1, arg2, solver=None, neg=False):

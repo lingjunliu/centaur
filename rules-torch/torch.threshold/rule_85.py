@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Tensor shape must match vector Length (Rule 85)
+# If the value parameter is an integer then it should be within the range of min and max. (Rule 85)
 
 rule_85 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) == v["arg2_length"]) if n else
-          Select(v["arg1_shape"], 0) == v["arg2_length"])
+    s.add(Not(If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), And(Select(v["arg1_range"], 0) <= v["arg2_value"], v["arg2_value"] <= Select(v["arg1_range"], 1)), True)) if n else
+          If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), And(Select(v["arg1_range"], 0) <= v["arg2_value"], v["arg2_value"] <= Select(v["arg1_range"], 1)), True))
 )
 
 def rule_85_func(arg1, arg2, solver=None, neg=False):
@@ -20,23 +20,25 @@ def rule_85_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, list) and all(isinstance(e, (float, np.floating)) for e in arg2)):
+        if not isinstance(arg2, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_length = Int('arg2_length')
+        arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg2_value = Real('arg2_value')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_length == len(arg2))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 85
-        rule_85(solver, {'arg1_shape': arg1_shape, 'arg2_length': arg2_length})
+        rule_85(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_85(solver, {'arg1_shape': arg1['shape'], 'arg2_length': arg2['length']}, neg)
+        rule_85(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range'], 'arg2_value': arg2['value']}, neg)

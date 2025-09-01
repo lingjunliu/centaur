@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If size is a list(int (Rule 42)
+# size as int, if dtype is complex64 or complex128, then v_1 must be > 0 (Rule 42)
 
 rule_42 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] == v["arg2_length"], And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_values"], i)) for i in range(6)]))) if n else
-          And(v["arg1_ndim"] == v["arg2_length"], And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_values"], i)) for i in range(6)])))
+    s.add(Not(If(Or(v["arg2_value"] == 9, v["arg2_value"] == 10), v["arg1_value"] > 0, True)) if n else
+          If(Or(v["arg2_value"] == 9, v["arg2_value"] == 10), v["arg1_value"] > 0, True))
 )
 
 def rule_42_func(arg1, arg2, solver=None, neg=False):
@@ -18,30 +18,24 @@ def rule_42_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
-        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_length = Int('arg2_length')
-        arg2_values = Array('arg2_values', IntSort(), IntSort())
+        arg1_value = Int('arg1_value')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_length == len(arg2))
-        for i in range(len(arg2)):
-            arg2_values = Store(arg2_values, i, arg2[i])
+        solver.add(arg1_value == int(arg1))
+        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
 
         # Constraints for rule 42
-        rule_42(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_length': arg2_length, 'arg2_values': arg2_values})
+        rule_42(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_42(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_length': arg2['length'], 'arg2_values': arg2['values']}, neg)
+        rule_42(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

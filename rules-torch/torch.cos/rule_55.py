@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the input tensor cannot be represented by "Short" dtype and if output tensor is specified, then the output tensor's dtype must be greater than np.int16 (Rule 55)
+# If out is Short, input cannot be Float. (Rule 55)
 
 rule_55 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] > 2, v["arg2_dtype"] > 2, False)) if n else
-          If(v["arg1_dtype"] > 2, v["arg2_dtype"] > 2, False))
+    s.add(Not(If(v["arg2_dtype"] == 2, (v["arg1_dtype"] < 6), True)) if n else
+          If(v["arg2_dtype"] == 2, (v["arg1_dtype"] < 6), True))
 )
 
 def rule_55_func(arg1, arg2, solver=None, neg=False):

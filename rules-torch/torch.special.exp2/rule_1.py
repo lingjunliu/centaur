@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Output tensor's data type should be compatible with complex input tensor to avoid casting errors (Rule 1)
+# Complex input tensor cannot be cast to boolean output tensor (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, False)) if n else
-          If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, False))
+    s.add(Not(If(v["arg1_dtype"] == 10, v["arg2_dtype"] != 0, True)) if n else
+          If(v["arg1_dtype"] == 10, v["arg2_dtype"] != 0, True))
 )
 
 def rule_1_func(arg1, arg2, solver=None, neg=False):

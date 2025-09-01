@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If dtype is specified and it is not None(0 (Rule 21)
+# if dtype is None, then the input tensor should have a floating or complex dtype (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] != 0, (If(v["arg1_dtype"] == 1, False, False)), False)) if n else
-          If(v["arg2_value"] != 0, (If(v["arg1_dtype"] == 1, False, False)), False))
+    s.add(Not(If(v["arg2_value"] == 12, (Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)), True)) if n else
+          If(v["arg2_value"] == 12, (Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)), True))
 )
 
 def rule_21_func(arg1, arg2, solver=None, neg=False):

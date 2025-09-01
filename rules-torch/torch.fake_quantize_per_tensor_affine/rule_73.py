@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# the scale should not be too close to zero or it can overflow, should be greater than this small value (Rule 73)
+# The zero point must be representable as an int64. (Rule 73)
 
 rule_73 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] > 1e-10) if n else
-          v["arg1_value"] > 1e-10)
+    s.add(Not(And(-9223372036854775808 <= v["arg1_value"], v["arg1_value"] <= 9223372036854775807)) if n else
+          And(-9223372036854775808 <= v["arg1_value"], v["arg1_value"] <= 9223372036854775807))
 )
 
 def rule_73_func(arg1, solver=None, neg=False):
@@ -17,15 +17,15 @@ def rule_73_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 73
         rule_73(solver, {'arg1_value': arg1_value})

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# A must be at least rank 2 (Rule 78)
+# To avoid the combined errors: Dtype should be float32+, not float16; If ndim < 2 then requires a zero dim size, else must have batch square matrices. (Rule 78)
 
 rule_78 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] >= 2) if n else
-          v["arg1_ndim"] >= 2)
+    s.add(Not(And((And(v["arg1_dtype"] >= 8, v["arg1_dtype"] != 7)), (Or((And(v["arg1_ndim"] < 2, (Or([And(i < (If(v["arg1_ndim"] > 0, v["arg1_ndim"] - 1, 0) + 1), Select(v["arg1_shape"], i) == 0) for i in range(6)])))), (And(And(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2)), Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0)))))) if n else
+          And((And(v["arg1_dtype"] >= 8, v["arg1_dtype"] != 7)), (Or((And(v["arg1_ndim"] < 2, (Or([And(i < (If(v["arg1_ndim"] > 0, v["arg1_ndim"] - 1, 0) + 1), Select(v["arg1_shape"], i) == 0) for i in range(6)])))), (And(And(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2)), Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0))))))
 )
 
 def rule_78_func(arg1, solver=None, neg=False):
@@ -23,14 +23,19 @@ def rule_78_func(arg1, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 78
-        rule_78(solver, {'arg1_ndim': arg1_ndim})
+        rule_78(solver, {'arg1_dtype': arg1_dtype, 'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_78(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_78(solver, {'arg1_dtype': arg1['dtype'], 'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

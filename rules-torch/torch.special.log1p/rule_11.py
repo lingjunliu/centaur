@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the output tensor is boolean, the input tensor should not be complex and should be castable to boolean (Rule 11)
+# If `out` is provided: if `out` is boolean, then `input` must be numeric (int, float, bool (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_dtype"] == 0, And(And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10), (Or(Or(Or(Or(Or(v["arg1_dtype"] == 0, v["arg1_dtype"] == 1), v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5))), False)) if n else
-          If(v["arg2_dtype"] == 0, And(And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10), (Or(Or(Or(Or(Or(v["arg1_dtype"] == 0, v["arg1_dtype"] == 1), v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5))), False))
+    s.add(Not(If(v["arg2_dtype"] == 0, v["arg1_dtype"] < 9, If(And(v["arg2_dtype"] >= 10, v["arg2_dtype"] <= 11), And(v["arg1_dtype"] >= 10, v["arg1_dtype"] <= 11), True))) if n else
+          If(v["arg2_dtype"] == 0, v["arg1_dtype"] < 9, If(And(v["arg2_dtype"] >= 10, v["arg2_dtype"] <= 11), And(v["arg1_dtype"] >= 10, v["arg1_dtype"] <= 11), True)))
 )
 
 def rule_11_func(arg1, arg2, solver=None, neg=False):

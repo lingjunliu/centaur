@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input is np.int32 and output is provided, the output type can be float16, float32, float64, complex64, complex128 (Rule 22)
+# If the output tensor is provided, and it's of type float32, the input tensor should not be of type float64. (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_dtype"] == 3), Or(Or(Or(Or((v["arg2_dtype"] == 6), (v["arg2_dtype"] == 7)), (v["arg2_dtype"] == 8)), (v["arg2_dtype"] == 9)), (v["arg2_dtype"] == 10)), False)) if n else
-          If((v["arg1_dtype"] == 3), Or(Or(Or(Or((v["arg2_dtype"] == 6), (v["arg2_dtype"] == 7)), (v["arg2_dtype"] == 8)), (v["arg2_dtype"] == 9)), (v["arg2_dtype"] == 10)), False))
+    s.add(Not(If(v["arg2_dtype"] == 8, v["arg1_dtype"] != 9, True)) if n else
+          If(v["arg2_dtype"] == 8, v["arg1_dtype"] != 9, True))
 )
 
 def rule_22_func(arg1, arg2, solver=None, neg=False):

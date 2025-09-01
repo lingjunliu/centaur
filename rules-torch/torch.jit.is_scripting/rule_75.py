@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if a float v_1 is greater than 0 and less than 1 and a boolean v_2 is true, then a tuple v_3 of int will have a length of 1 (Rule 75)
+# Enforce tensors are always the same dtype and shape when in scripting. (Rule 75)
 
 rule_75 = lambda s, v, n=False: (
-    s.add(Not(If(And(And(v["arg1_value"] > 0, v["arg1_value"] < 1), v["arg2_value"] == True), v["arg3_length"] == 1, False)) if n else
-          If(And(And(v["arg1_value"] > 0, v["arg1_value"] < 1), v["arg2_value"] == True), v["arg3_length"] == 1, False))
+    s.add(Not(If(v["arg1_value"] == True, And(v["arg2_dtype"] == v["arg3_dtype"], Select(v["arg2_shape"], 0) == Select(v["arg3_shape"], 0)), True)) if n else
+          If(v["arg1_value"] == True, And(v["arg2_dtype"] == v["arg3_dtype"], Select(v["arg2_shape"], 0) == Select(v["arg3_shape"], 0)), True))
 )
 
 def rule_75_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -19,28 +19,34 @@ def rule_75_func(arg1, arg2, arg3, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
+        if not isinstance(arg1, bool):
             return False
-        if not isinstance(arg2, bool):
+        if not isinstance(arg2, np.ndarray):
             return False
-        if not (isinstance(arg3, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg3)):
+        if not isinstance(arg3, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
-        arg2_value = Bool('arg2_value')
-        arg3_length = Int('arg3_length')
+        arg1_value = Bool('arg1_value')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg2_dtype = Int('arg2_dtype')
+        arg3_shape = Array('arg3_shape', IntSort(), IntSort())
+        arg3_dtype = Int('arg3_dtype')
 
         # Value assignments
         solver.add(arg1_value == arg1)
-        solver.add(arg2_value == arg2)
-        solver.add(arg3_length == len(arg3))
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        for i in range(arg3.ndim):
+            arg3_shape = Store(arg3_shape, i, arg3.shape[i])
+        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
 
         # Constraints for rule 75
-        rule_75(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_length': arg3_length})
+        rule_75(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype, 'arg2_shape': arg2_shape, 'arg3_dtype': arg3_dtype, 'arg3_shape': arg3_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_75(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value'], 'arg3_length': arg3['length']}, neg)
+        rule_75(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype'], 'arg2_shape': arg2['shape'], 'arg3_dtype': arg3['dtype'], 'arg3_shape': arg3['shape']}, neg)

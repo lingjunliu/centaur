@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# dtype of the input cannot be float16 (Rule 4)
+# if out tensor is provided, its dtype must be integral or boolean (0-5 (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 6) if n else
-          v["arg1_dtype"] != 6)
+    s.add(Not(And(0 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)) if n else
+          And(0 <= v["arg1_dtype"], v["arg1_dtype"] <= 5))
 )
 
 def rule_4_func(arg1, solver=None, neg=False):

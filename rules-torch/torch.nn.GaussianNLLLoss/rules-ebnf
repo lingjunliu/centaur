@@ -1,123 +1,162 @@
 >>
-Rule 1 (var should not have negative entries)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : min(v_1) ≥ 0
+Rule 1 (variance must be positive to avoid ValueError: var has negative entry/entries)
+{v_3 : tensor} |= min(v_3) > 0
 >>
-Rule 2 (eps should be a positive float)
-{v_1 : float} |= v_1 > 0
+Rule 2 (input and target tensors should have the same data type to avoid RuntimeError: result type Float can't be cast to the desired output type int)
+{v_4 : tensor, v_5 : tensor} |= dtype_(v_4) = dtype_(v_5)
 >>
-Rule 3 (reduction must be one of the allowed strings)
-{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
+Rule 3 (input and variance tensors should have the same data type to avoid RuntimeError: "lt_cpu" not implemented for 'ComplexDouble')
+{v_4 : tensor, v_6 : tensor} |= dtype_(v_4) = dtype_(v_6)
 >>
-Rule 4 (Input and target tensors should have the same shape)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1) = shape(v_2)
+Rule 4 (reduction parameter should be one of the allowed values)
+{v_7 : str} |= v_7 = "none" ∨ v_7 = "mean" ∨ v_7 = "sum"
 >>
-Rule 5 (var tensor should have non-complex dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+Rule 5 (input and target must have the same shape to avoid RuntimeError: The size of tensor a (2) must match the size of tensor b (0) at non-singleton dimension 1)
+{v_4 : tensor, v_5 : tensor} |= ndim(v_4) = ndim(v_5) ∧ ∀i ∈ [0, ndim(v_4) - 1] : shape(v_4, i) = shape(v_5, i)
 >>
-Rule 6 (full must be a boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 6 (If var has one fewer dimension than input, all other dimensions must match)
+{v_4 : tensor, v_6 : tensor} |= if ndim(v_6) = ndim(v_4) - 1 then ∀i ∈ [0, ndim(v_6) - 1] : shape(v_4, i) = shape(v_6, i)
 >>
-Rule 8 (input and target must have compatible dtypes.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+Rule 7 (if var has same number of dims with a dim of 1, then the other dims should match input)
+{v_4: tensor, v_6: tensor} |= if ndim(v_4) = ndim(v_6) then (∃i ∈ [0, ndim(v_6) - 1]: shape(v_6, i) = 1) ∨ (∀i ∈ [0, ndim(v_4) - 1] : shape(v_4, i) = shape(v_6, i))
 >>
-Rule 9 (input, target, and var tensors should have the same number of dimensions)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_2) = ndim(v_3)
+Rule 8 (Eps should be a non-negative float to ensure stability)
+{v_2 : float} |= v_2 ≥ 0
 >>
-Rule 10 (var tensor should have compatible size with input tensor)
-{v_1 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_3) ∨ (ndim(v_1) = ndim(v_3) + 1 ∧ (shape(v_3, ndim(v_3) - 1) = 1 ∨ shape(v_3, ndim(v_3) -1) = shape(v_1, ndim(v_1) - 1))) ∨ (ndim(v_3) = 0)
+Rule 9 (variance must be a scalar or have compatible dimensions with input to prevent ValueError: var is of incorrect size)
+{v_4 : tensor, v_6 : tensor} |= ndim(v_6) = 0 ∨ (ndim(v_4) = ndim(v_6) ∨ ndim(v_6) = ndim(v_4) - 1 ∨ (ndim(v_4) = ndim(v_6) ∧ ∃i ∈ [0, ndim(v_4) - 1] : shape(v_6, i) = 1))
 >>
-Rule 11 (input and target must have compatible dtypes, not integer)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then dtype_(v_2) = dtype_(v_1)
+Rule 10 (If variance is scalar, it should be positive)
+{v_6 : tensor} |= if ndim(v_6) = 0 then v_6 > 0
 >>
-Rule 12 (var must be positive)
-{v_1 : tensor} |= min(v_1) > 0
+Rule 11 (Input, Target, and Var must all have the same number of dimensions if not scalar)
+{v_4 : tensor, v_5 : tensor, v_6 : tensor} |= (ndim(v_6) = 0) ∨ (ndim(v_4) = ndim(v_5) ∧ ndim(v_5) = ndim(v_6))
 >>
-Rule 13 (input target and var should be float or double tensors)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) ∧ (dtype_(v_3) = 7 ∨ dtype_(v_3) = 8)
+Rule 12 (Input and target must have compatible dtypes, preventing RuntimeError)
+{v_4: tensor, v_5: tensor} |= if dtype_(v_4) = "float" then dtype_(v_5) = "float" else if dtype_(v_4) = "double" then dtype_(v_5) = "double"
 >>
-Rule 14 (If reduction is none, output shape is same as input shape)
-{v_1 : tensor, v_2 : str, v_3 : tensor} |= if v_2 = "none" then shape(v_1) = shape(v_3)
+Rule 13 (Variance tensor cannot be a boolean tensor)
+{v_6 : tensor} |= dtype_(v_6) ≠ "bool"
 >>
-Rule 15 (If input and target are complex, var cannot be int or float)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then (dtype_(v_3) = 9 ∨ dtype_(v_3) = 10)
+Rule 14 (If variance has one fewer dimension than input, the number of dimensions must be greater than zero)
+{v_4 : tensor, v_6 : tensor} |= if ndim(v_6) = ndim(v_4) - 1 then ndim(v_4) > 0
 >>
-Rule 16 (If input is complex, var must also be complex)
-{v_1 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_3) = 9 ∨ dtype_(v_3) = 10)
+Rule 15 (If variance has one fewer dimension than input, then variance cannot have zero dimensions )
+{v_4 : tensor, v_6 : tensor} |= if ndim(v_6) = ndim(v_4) -1 then ndim(v_6) > 0
 >>
-Rule 17 (If target is complex, input must also be complex)
-{v_2 : tensor, v_1 : tensor} |= if (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+Rule 16 (Input tensor cannot be boolean dtype.)
+{v_4 : tensor} |= dtype_(v_4) ≠ "bool"
 >>
-Rule 18 (If input is not complex, var cannot be complex)
-{v_1 : tensor, v_3 : tensor} |= if (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10) then (dtype_(v_3) ≠ 9 ∧ dtype_(v_3) ≠ 10)
+Rule 17 (Target tensor cannot be boolean dtype.)
+{v_5 : tensor} |= dtype_(v_5) ≠ "bool"
 >>
-Rule 19 (If target is not complex, input must also be not complex)
-{v_2 : tensor, v_1 : tensor} |= if (dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10) then (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10)
+Rule 18 (If input and target tensors have different number of dimensions then one must be a scalar, preventing RuntimeError)
+{v_4 : tensor, v_5 : tensor} |= if ndim(v_4) ≠ ndim(v_5) then ndim(v_4) = 0 ∨ ndim(v_5) = 0
 >>
-Rule 20 (If input and target are not complex, var cannot be complex)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10) ∧ (dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10) then (dtype_(v_3) ≠ 9 ∧ dtype_(v_3) ≠ 10)
+Rule 19 (Variance tensor cannot be complex dtype to avoid "lt_cpu" not implemented)
+{v_6 : tensor} |= dtype_(v_6) ≠ "complex64" ∧ dtype_(v_6) ≠ "complex128"
 >>
-Rule 21 (If input and target are not complex, then var cannot be complex)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) < 9 ∨ dtype_(v_1) > 10) ∧ (dtype_(v_2) < 9 ∨ dtype_(v_2) > 10) then (dtype_(v_3) < 9 ∨ dtype_(v_3) > 10)
+Rule 20 (If var is not scalar, it should have positive dimensions)
+{v_6 : tensor} |= if ndim(v_6) ≠ 0 then ∀i ∈ [0, ndim(v_6) - 1] : shape(v_6, i) > 0
 >>
-Rule 22 (If var has one fewer dimension, input and target cannot be complex)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = ndim(v_3) + 1 then (dtype_(v_1) < 9 ∨ dtype_(v_1) > 10) ∧ (dtype_(v_2) < 9 ∨ dtype_(v_2) > 10)
+Rule 21 (If var has same number of dimensions as input, then either all dimension sizes must match, or at least one dim of var must be 1)
+{v_4: tensor, v_6: tensor} |= if ndim(v_4) = ndim(v_6) then (∀i ∈ [0, ndim(v_4) - 1] : shape(v_4, i) = shape(v_6, i)) ∨ (∃i ∈ [0, ndim(v_4) - 1] : shape(v_6, i) = 1)
 >>
-Rule 23 (If var has a final dimension of 1, input and target cannot be complex)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if shape(v_3, ndim(v_3)-1) = 1 then (dtype_(v_1) < 9 ∨ dtype_(v_1) > 10) ∧ (dtype_(v_2) < 9 ∨ dtype_(v_2) > 10)
+Rule 22 (If var has one fewer dimension than input, the last dimension of input must be greater than 0)
+{v_4 : tensor, v_6 : tensor} |= if ndim(v_6) = ndim(v_4) - 1 then shape(v_4, ndim(v_4) - 1) > 0
 >>
-Rule 24 (If input and target have same shape and are not complex, var must be float or int)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if shape(v_1) = shape(v_2) ∧ (dtype_(v_1) < 9 ∨ dtype_(v_1) > 10) ∧ (dtype_(v_2) < 9 ∨ dtype_(v_2) > 10) then (dtype_(v_3) > 5 ∧ dtype_(v_3) < 9) ∨ (dtype_(v_3) > 0 ∧ dtype_(v_3) < 6)
+Rule 23 (input and target tensors must have floating point dtype to prevent RuntimeError: result type Float can't be cast to the desired output type int)
+{v_4 : tensor, v_5 : tensor} |= (dtype_(v_4) = "float32" ∨ dtype_(v_4) = "float64" ∨ dtype_(v_4) = "float16") ∧ (dtype_(v_5) = "float32" ∨ dtype_(v_5) = "float64" ∨ dtype_(v_5) = "float16")
 >>
-Rule 25 (input, target, var must have same dtype)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_2) = dtype_(v_3)
+Rule 24 (If var has shape (1,), then this is equivalent to scalar)
+{v_4 : tensor, v_6 : tensor} |= if shape(v_6, 0) = 1 ∧ ndim(v_6) = 1 then ndim(v_4) = 1 ∨ ndim(v_4) = 0
 >>
-Rule 26 (eps should be positive)
-{v_1: float} |= v_1 > 0
+Rule 25 (If input is scalar, target must be scalar to prevent dimension mismatch)
+{v_4 : tensor, v_5 : tensor} |= if ndim(v_4) = 0 then ndim(v_5) = 0
 >>
-Rule 28 (If var is scalar, it must be float if input is float)
-{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 then if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_3) = 7 ∨ dtype_(v_3) = 8
+Rule 26 (If target is scalar, var must be scalar to prevent dimension mismatch.)
+{v_5 : tensor, v_6 : tensor} |= if ndim(v_5) = 0 then ndim(v_6) = 0
 >>
-Rule 29 (If target is complex, var can only be complex.)
-{v_2 : tensor, v_3 : tensor} |= if (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then (dtype_(v_3) = 9 ∨ dtype_(v_3) = 10)
+Rule 27 (If target is scalar, input must be scalar to prevent dimension mismatch.)
+{v_4 : tensor, v_5 : tensor} |= if ndim(v_5) = 0 then ndim(v_4) = 0
 >>
-Rule 30 (var must be of float type)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 28 (If var is scalar, its dtype must be a float to prevent errors)
+{v_6 : tensor} |= if ndim(v_6) = 0 then dtype_(v_6) = "float16" ∨ dtype_(v_6) = "float32" ∨ dtype_(v_6) = "float64"
 >>
-Rule 31 (If target is float, input must be float too)
-{v_2 : tensor, v_1 : tensor} |= if (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+Rule 29 (If input has shape (1,), then this is equivalent to scalar)
+{v_4 : tensor, v_5 : tensor} |= if shape(v_4, 0) = 1 ∧ ndim(v_4) = 1 then ndim(v_5) = 1 ∨ ndim(v_5) = 0
 >>
-Rule 32 (If input and target are complex, var must be complex or scalar)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then (dtype_(v_3) = 9 ∨ dtype_(v_3) = 10) ∨ ndim(v_3) = 0
+Rule 30 (If target has shape (1,), then this is equivalent to scalar)
+{v_5 : tensor, v_6 : tensor} |= if shape(v_5, 0) = 1 ∧ ndim(v_5) = 1 then ndim(v_6) = 1 ∨ ndim(v_6) = 0
 >>
-Rule 33 (If input and target are not complex, var must be float or int or scalar)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) < 9 ∨ dtype_(v_1) > 10) ∧ (dtype_(v_2) < 9 ∨ dtype_(v_2) > 10) then (dtype_(v_3) > 5 ∧ dtype_(v_3) < 9) ∨ (dtype_(v_3) > 0 ∧ dtype_(v_3) < 6) ∨ ndim(v_3) = 0
+Rule 31 (if input and target tensors are not scalar, then both tensors must have the same number of dimensions and each dimension must have the same size)
+{v_4 : tensor, v_5 : tensor} |= if ndim(v_4) ≠ 0 ∧ ndim(v_5) ≠ 0 then ndim(v_4) = ndim(v_5) ∧ ∀i ∈ [0, ndim(v_4) - 1] : shape(v_4, i) = shape(v_5, i)
 >>
-Rule 34 (If target is not complex, input must not be complex, and var must not be complex)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_2) < 9 ∨ dtype_(v_2) > 10) then (dtype_(v_1) < 9 ∨ dtype_(v_1) > 10) ∧ (dtype_(v_3) < 9 ∨ dtype_(v_3) > 10)
+Rule 32 (target cannot be complex dtype to avoid "lt_cpu" not implemented)
+{v_5 : tensor} |= dtype_(v_5) ≠ "complex64" ∧ dtype_(v_5) ≠ "complex128"
 >>
-Rule 35 (If input, target are float, var must be float or int or scalar)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) then (dtype_(v_3) > 5 ∧ dtype_(v_3) < 9) ∨ (dtype_(v_3) > 0 ∧ dtype_(v_3) < 6) ∨ ndim(v_3) = 0
+Rule 33 (If var has more than 1 dimension then it cannot have dimensions of size 1 and also have different shape from input)
+{v_4 : tensor, v_6 : tensor} |= if ndim(v_6) > 1 then (∀i ∈ [0, ndim(v_6) - 1] : shape(v_6, i) ≠ 1) ∨ (∀i ∈ [0, ndim(v_4) - 1] : shape(v_4, i) = shape(v_6, i) ∧ ndim(v_4) = ndim(v_6))
 >>
-Rule 36 (If input is complex, target must be complex, and var must be complex or scalar)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) ∧ ((dtype_(v_3) = 9 ∨ dtype_(v_3) = 10) ∨ ndim(v_3) = 0)
+Rule 34 (if input ndim is 0 then target and var ndim must be 0 to prevent size mismatch errors)
+{v_4: tensor, v_5: tensor, v_6: tensor} |= if ndim(v_4) = 0 then ndim(v_5) = 0 ∧ ndim(v_6) = 0
 >>
-Rule 37 (var cannot be int, if input and target are float or complex, or is var is scalar.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then (dtype_(v_3) < 1 ∨ dtype_(v_3) > 5) ∧ ndim(v_3) ≠ 0
+Rule 35 (if target ndim is 0 then input and var ndim must be 0 to prevent size mismatch errors)
+{v_4: tensor, v_5: tensor, v_6: tensor} |= if ndim(v_5) = 0 then ndim(v_4) = 0 ∧ ndim(v_6) = 0
 >>
-Rule 38 (If input is float, target must be float, and var must be float or scalar)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) ∧ ((dtype_(v_3) = 7 ∨ dtype_(v_3) = 8) ∨ ndim(v_3) = 0)
+Rule 36 (if var ndim is 0 then input and target ndim must be 0 to prevent size mismatch errors)
+{v_4: tensor, v_5: tensor, v_6: tensor} |= if ndim(v_6) = 0 then ndim(v_4) = 0 ∧ ndim(v_5) = 0
 >>
-Rule 39 (If the last dimension of var is 1, then input and target, must be float or scalar)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if shape(v_3, ndim(v_3) - 1) = 1 then (dtype_(v_1) > 5 ∧ dtype_(v_1) < 9) ∧ (dtype_(v_2) > 5 ∧ dtype_(v_2) < 9)
+Rule 37 (if var is a tensor with ndim > 0 then its dtype cannot be bool to prevent errors)
+{v_6: tensor} |= if ndim(v_6) > 0 then dtype_(v_6) ≠ "bool"
 >>
-Rule 40 (input must be of complex type, or var cannot be of complex type)
-{v_1 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_3) = 9 ∨ dtype_(v_3) = 10) ∨ ndim(v_3) = 0 else (dtype_(v_3) < 9 ∨ dtype_(v_3) > 10)
+Rule 38 (reduction must be one of 'none', 'mean', or 'sum')
+{v_7: str} |= v_7 = "none" ∨ v_7 = "mean" ∨ v_7 = "sum"
 >>
-Rule 41 (If target is of complex type, input and var must be of complex type or var is scalar)
-{v_2 : tensor, v_1 : tensor, v_3 : tensor} |= if (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ ((dtype_(v_3) = 9 ∨ dtype_(v_3) = 10) ∨ (ndim(v_3) = 0))
+Rule 39 (If target is a tensor with ndim > 0 then its dtype cannot be bool to prevent errors)
+{v_5: tensor} |= if ndim(v_5) > 0 then dtype_(v_5) ≠ "bool"
 >>
-Rule 43 (If shape of var has more than one dimension, dtype of var should be numerical.)
-{v_3 : tensor} |= if ndim(v_3) > 0 then (dtype_(v_3) > 0 ∧ dtype_(v_3) < 11)
+Rule 40 (if input is a tensor with ndim > 0 then its dtype cannot be bool to prevent errors)
+{v_4: tensor} |= if ndim(v_4) > 0 then dtype_(v_4) ≠ "bool"
 >>
-Rule 45 (eps must be float, reduction must be string, shapes of input and target must be compatible for broadcasting and shapes of input and var must be compatible for broadcasting)
-{v_1 : float, v_2 : str, v_3 : tensor, v_4 : tensor, v_5 : tensor} |= (v_2 = "none" ∨ v_2 = "mean" ∨ v_2 = "sum") ∧ v_1 > 0 ∧ (ndim(v_3) > 0 ∧ ndim(v_4) > 0 ∧ ∀i ∈ [0, if ndim(v_3) ≥ ndim(v_4) then ndim(v_3) - 1 else ndim(v_4) - 1] : ndim(v_3) - i - 1 < 0 ∨ ndim(v_4) - i - 1 < 0 ∨ shape(v_3, ndim(v_3) - i - 1) = 1 ∨ shape(v_4, ndim(v_4) - i - 1) = 1 ∨ shape(v_3, ndim(v_3) - i - 1) = shape(v_4, ndim(v_4) - i - 1)) ∧ (ndim(v_3) = ndim(v_5) ∨ (ndim(v_3) = ndim(v_5) + 1 ∧ (shape(v_5, ndim(v_5) - 1) = 1 ∨ shape(v_5, ndim(v_5) - 1) = shape(v_3, ndim(v_3) - 1))) ∨ (ndim(v_5) = 0))
+Rule 41 (if reduction is none, input, target and var should have the same shape)
+{v_7: str, v_4: tensor, v_5: tensor, v_6: tensor} |= if v_7 = "none" then (ndim(v_4) = ndim(v_5) ∧ ndim(v_5) = ndim(v_6) ∧ (∀i ∈ [0, ndim(v_4) - 1] : shape(v_4, i) = shape(v_5, i) ∧ shape(v_5,i) = shape(v_6, i)))
+>>
+Rule 42 (if reduction is none, input and target should have same dtype)
+{v_7: str, v_4: tensor, v_5: tensor} |= if v_7 = "none" then dtype_(v_4) = dtype_(v_5)
+>>
+Rule 43 (if reduction is none, input and var should have same dtype)
+{v_7: str, v_4: tensor, v_6: tensor} |= if v_7 = "none" then dtype_(v_4) = dtype_(v_6)
+>>
+Rule 44 (if reduction is none, target and var should have same dtype)
+{v_7: str, v_5: tensor, v_6: tensor} |= if v_7 = "none" then dtype_(v_5) = dtype_(v_6)
+>>
+Rule 46 (eps should be greater than zero)
+{v_2: float} |= v_2 > 0
+>>
+Rule 48 (if full is used then input, target and var should have same dtype)
+{v_1: bool, v_4: tensor, v_5: tensor, v_6: tensor} |= if v_1 = true then dtype_(v_4) = dtype_(v_5) ∧ dtype_(v_5) = dtype_(v_6)
+>>
+Rule 49 (If full is True, then Input, Target and Var cannot be complex dtype)
+{v_1: bool, v_4: tensor, v_5: tensor, v_6: tensor} |= if v_1 = true then dtype_(v_4) ≠ "complex64" ∧ dtype_(v_4) ≠ "complex128" ∧ dtype_(v_5) ≠ "complex64" ∧ dtype_(v_5) ≠ "complex128" ∧ dtype_(v_6) ≠ "complex64" ∧ dtype_(v_6) ≠ "complex128"
+>>
+Rule 50 (If full is true, then Input and Target cannot be integer dtype to prevent result type cast error)
+{v_1: bool, v_4: tensor, v_5: tensor} |= if v_1 = true then dtype_(v_4) ≠ "int8" ∧ dtype_(v_4) ≠ "int16" ∧ dtype_(v_4) ≠ "int32" ∧ dtype_(v_4) ≠ "int64" ∧ dtype_(v_5) ≠ "int8" ∧ dtype_(v_5) ≠ "int16" ∧ dtype_(v_5) ≠ "int32" ∧ dtype_(v_5) ≠ "int64"
+>>
+Rule 51 (if full is true, then Var cannot be integer dtype to prevent result type cast error)
+{v_1: bool, v_6: tensor} |= if v_1 = true then dtype_(v_6) ≠ "int8" ∧ dtype_(v_6) ≠ "int16" ∧ dtype_(v_6) ≠ "int32" ∧ dtype_(v_6) ≠ "int64"
+>>
+Rule 52 (if full is true, then Target cannot be integer dtype to prevent result type cast error)
+{v_1: bool, v_5: tensor} |= if v_1 = true then dtype_(v_5) ≠ "int8" ∧ dtype_(v_5) ≠ "int16" ∧ dtype_(v_5) ≠ "int32" ∧ dtype_(v_5) ≠ "int64"
+>>
+Rule 53 (If full is true, then Input cannot be integer dtype to prevent result type cast error)
+{v_1: bool, v_4: tensor} |= if v_1 = true then dtype_(v_4) ≠ "int8" ∧ dtype_(v_4) ≠ "int16" ∧ dtype_(v_4) ≠ "int32" ∧ dtype_(v_4) ≠ "int64"
+>>
+Rule 54 (If full is true, then Target cannot be integer dtype to prevent result type cast error and Input/Var dtypes should match)
+{v_1: bool, v_4: tensor, v_5: tensor, v_6: tensor} |= if v_1 = true then dtype_(v_5) ≠ "int8" ∧ dtype_(v_5) ≠ "int16" ∧ dtype_(v_5) ≠ "int32" ∧ dtype_(v_5) ≠ "int64" ∧ dtype_(v_4) = dtype_(v_6)
+>>
+Rule 55 (If full is true, then Input and Var cannot be integer dtype to prevent result type cast error)
+{v_1: bool, v_4: tensor, v_6: tensor} |= if v_1 = true then dtype_(v_6) ≠ "int8" ∧ dtype_(v_6) ≠ "int16" ∧ dtype_(v_6) ≠ "int32" ∧ dtype_(v_6) ≠ "int64" ∧ dtype_(v_4) = dtype_(v_5)
+>>
+Rule 56 (if reduction is none then input, target and var cannot be complex dtype)
+{v_7: str, v_4: tensor, v_5: tensor, v_6: tensor} |= if v_7 = "none" then dtype_(v_4) ≠ "complex64" ∧ dtype_(v_4) ≠ "complex128" ∧ dtype_(v_5) ≠ "complex64" ∧ dtype_(v_5) ≠ "complex128" ∧ dtype_(v_6) ≠ "complex64" ∧ dtype_(v_6) ≠ "complex128"

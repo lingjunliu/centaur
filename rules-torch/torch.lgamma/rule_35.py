@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the input tensor has int8, int16, or int32 dtype and also contains negative numbers, the output tensor cannot be int8, int16, int32 because the lgamma function doesn't accept negative inputs (Rule 35)
+# If output is specified to be of short dtype, then input shouldn't be float, the minimum value of input should be non negative and less than some threshold to avoid overflow (Rule 35)
 
 rule_35 = lambda s, v, n=False: (
-    s.add(Not(If(And((Or(Or((v["arg1_dtype"] == 1), (v["arg1_dtype"] == 2)), (v["arg1_dtype"] == 3))), (Select(v["arg1_range"], 0) < 0)), Or((v["arg2_dtype"] == 7), (v["arg2_dtype"] == 8)), False)) if n else
-          If(And((Or(Or((v["arg1_dtype"] == 1), (v["arg1_dtype"] == 2)), (v["arg1_dtype"] == 3))), (Select(v["arg1_range"], 0) < 0)), Or((v["arg2_dtype"] == 7), (v["arg2_dtype"] == 8)), False))
+    s.add(Not(If(v["arg2_dtype"] == 2, (And(And(v["arg1_dtype"] != 7, Select(v["arg1_range"], 0) >= 0), Select(v["arg1_range"], 0) < 60)), True)) if n else
+          If(v["arg2_dtype"] == 2, (And(And(v["arg1_dtype"] != 7, Select(v["arg1_range"], 0) >= 0), Select(v["arg1_range"], 0) < 60)), True))
 )
 
 def rule_35_func(arg1, arg2, solver=None, neg=False):

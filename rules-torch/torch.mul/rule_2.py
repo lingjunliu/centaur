@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Output tensor dtype should be able to accommodate result type (Rule 2)
+# Output tensor dtype must be compatible with input and other tensor dtypes. Suppress "result type Float can't be cast to the desired output type Short" (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(Or((Or(v["arg3_dtype"] == v["arg1_dtype"], v["arg3_dtype"] == v["arg2_dtype"])), (v["arg1_dtype"] == v["arg2_dtype"]))) if n else
-          Or((Or(v["arg3_dtype"] == v["arg1_dtype"], v["arg3_dtype"] == v["arg2_dtype"])), (v["arg1_dtype"] == v["arg2_dtype"])))
+    s.add(Not(Or(v["arg3_dtype"] == v["arg1_dtype"], v["arg3_dtype"] == v["arg2_dtype"])) if n else
+          Or(v["arg3_dtype"] == v["arg1_dtype"], v["arg3_dtype"] == v["arg2_dtype"]))
 )
 
 def rule_2_func(arg1, arg2, arg3, solver=None, neg=False):

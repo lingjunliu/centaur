@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The value returned is a boolean, and if true, algorithms are deterministic. (Rule 20)
+# Always true for a string (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(Or((v["arg1_value"] == True), (v["arg1_value"] == False))) if n else
-          Or((v["arg1_value"] == True), (v["arg1_value"] == False)))
+    s.add(Not(v["arg1_value"] == v["arg1_value"]) if n else
+          v["arg1_value"] == v["arg1_value"])
 )
 
 def rule_20_func(arg1, solver=None, neg=False):
@@ -17,15 +17,15 @@ def rule_20_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not isinstance(arg1, str):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
+        arg1_value = String('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
+        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
 
         # Constraints for rule 20
         rule_20(solver, {'arg1_value': arg1_value})

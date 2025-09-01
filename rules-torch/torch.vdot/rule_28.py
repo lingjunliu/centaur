@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If one of the tensors is a float, the other has to be a float (Rule 28)
+# If input is float64, other must be float64 to address "dot : expected both vectors to have same dtype, but found Float and Double" (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not((Or((v["arg1_dtype"] == 7), (v["arg1_dtype"] == 8))) == (Or((v["arg2_dtype"] == 7), (v["arg2_dtype"] == 8)))) if n else
-          (Or((v["arg1_dtype"] == 7), (v["arg1_dtype"] == 8))) == (Or((v["arg2_dtype"] == 7), (v["arg2_dtype"] == 8))))
+    s.add(Not(If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8, True)) if n else
+          If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8, True))
 )
 
 def rule_28_func(arg1, arg2, solver=None, neg=False):

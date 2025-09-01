@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input tensor's dtype is int8, output tensor cannot be bool if specified (Rule 30)
+# To avoid casting errors to Short, if output is Short, input must be Int8, Int16, or a Float-type that can be precisely represented as Short after taking the cosine (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 1, v["arg2_dtype"] != 0, False)) if n else
-          If(v["arg1_dtype"] == 1, v["arg2_dtype"] != 0, False))
+    s.add(Not(If(v["arg2_dtype"] == 2, (Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)), True)) if n else
+          If(v["arg2_dtype"] == 2, (Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)), True))
 )
 
 def rule_30_func(arg1, arg2, solver=None, neg=False):

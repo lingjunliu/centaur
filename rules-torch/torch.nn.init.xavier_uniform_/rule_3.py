@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# tensor should not be a boolean tensor, because uniform_bounds is not implemented for bool (Rule 3)
+# tensor dtype should not be boolean because uniform_bounds is not implemented for bool (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
     s.add(Not(v["arg1_dtype"] != 0) if n else

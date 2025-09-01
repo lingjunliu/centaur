@@ -5,37 +5,35 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# pin_memory and check invariants are the same (Rule 139)
+# The size tuple must have a length greater or equal than 2 and less than 5 and elements should be divisible by 2 and its minimum values greater than 1 and less than 100 and must be sorted. (Rule 139)
 
 rule_139 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] == v["arg2_value"]) if n else
-          v["arg1_value"] == v["arg2_value"])
+    s.add(Not(And(And(And(And((And(v["arg1_length"] >= 2, v["arg1_length"] < 5)), (And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) % 2 == 0) for i in range(6)]))), (And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) > 1) for i in range(6)]))), (And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) < 100) for i in range(6)]))), (Select(v["arg1_values"], 0) <= Select(v["arg1_values"], 1)))) if n else
+          And(And(And(And((And(v["arg1_length"] >= 2, v["arg1_length"] < 5)), (And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) % 2 == 0) for i in range(6)]))), (And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) > 1) for i in range(6)]))), (And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) < 100) for i in range(6)]))), (Select(v["arg1_values"], 0) <= Select(v["arg1_values"], 1))))
 )
 
-def rule_139_func(arg1, arg2, solver=None, neg=False):
+def rule_139_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
-            return False
-        if not isinstance(arg2, bool):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_value = Bool('arg2_value')
+        arg1_length = Int('arg1_length')
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_value == arg2)
+        solver.add(arg1_length == len(arg1))
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 139
-        rule_139(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_139(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_139(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_139(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values']}, neg)

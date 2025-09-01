@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if input is of type float32 and out tensor is not given, it should not be converted to float64 (Rule 56)
+# Input tensor must be a real-valued tensor, not complex. (Rule 56)
 
 rule_56 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 7, True, False)) if n else
-          If(v["arg1_dtype"] == 7, True, False))
+    s.add(Not(If(v["arg1_dtype"] == 10, False, If(v["arg1_dtype"] == 11, False, True))) if n else
+          If(v["arg1_dtype"] == 10, False, If(v["arg1_dtype"] == 11, False, True)))
 )
 
 def rule_56_func(arg1, solver=None, neg=False):

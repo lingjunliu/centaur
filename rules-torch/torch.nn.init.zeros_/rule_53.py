@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If tensor has dtype int8, int16, int32, int64 then minimum value must be greater than -2048 and maximum value must be less than 2048. (Rule 53)
+# Tensor cannot have inf or nan values (Rule 53)
 
 rule_53 = lambda s, v, n=False: (
-    s.add(Not(If((Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4)), (And(Select(v["arg1_range"], 0) > -2048, Select(v["arg1_range"], 1) < 2048)), False)) if n else
-          If((Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4)), (And(Select(v["arg1_range"], 0) > -2048, Select(v["arg1_range"], 1) < 2048)), False))
+    s.add(Not(Or([And(i < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_range"], 0) > -99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999, Select(v["arg1_range"], 1) < 99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999)) for i in range(6)])) if n else
+          Or([And(i < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_range"], 0) > -99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999, Select(v["arg1_range"], 1) < 99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999)) for i in range(6)]))
 )
 
 def rule_53_func(arg1, solver=None, neg=False):
@@ -22,18 +22,18 @@ def rule_53_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_ndim = Int('arg1_ndim')
         arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
         arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 53
-        rule_53(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_53(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_53(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
+        rule_53(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']}, neg)

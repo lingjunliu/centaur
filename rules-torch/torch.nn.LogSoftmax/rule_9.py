@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor must have at least one dimension if dim is to be specified (Rule 9)
+# dim should be within the valid range based on the input tensor's dimensions to prevent IndexError (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_ndim"] > 0, v["arg2_value"] == 0)) if n else
-          Or(v["arg1_ndim"] > 0, v["arg2_value"] == 0))
+    s.add(Not(If(v["arg1_ndim"] == 0, True, And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"]))) if n else
+          If(v["arg1_ndim"] == 0, True, And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"])))
 )
 
 def rule_9_func(arg1, arg2, solver=None, neg=False):

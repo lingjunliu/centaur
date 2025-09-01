@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check the individual expanded sizes not too big (Rule 30)
+# the sum of the size tuple should be smaller than max int (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) < 100000) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) < 100000) for i in range(6)]))
+    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), And(Select(v["arg1_values"], i) > 0, (And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) < 2147483647) for i in range(6)])))) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_length"] - 1 + 1), And(Select(v["arg1_values"], i) > 0, (And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) < 2147483647) for i in range(6)])))) for i in range(6)]))
 )
 
 def rule_30_func(arg1, solver=None, neg=False):

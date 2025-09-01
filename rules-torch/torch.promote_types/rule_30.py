@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If type1 is float64, type2 must be float64, complex64, or complex128 (Rule 30)
+# If both types are different, both should be a valid data type (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 8, Or(Or(v["arg2_value"] == 8, v["arg2_value"] == 9), v["arg2_value"] == 10), False)) if n else
-          If(v["arg1_value"] == 8, Or(Or(v["arg2_value"] == 8, v["arg2_value"] == 9), v["arg2_value"] == 10), False))
+    s.add(Not(If(v["arg1_value"] != v["arg2_value"], And((And(v["arg1_value"] >= 0, v["arg1_value"] <= 12)), (And(v["arg2_value"] >= 0, v["arg2_value"] <= 12))), True)) if n else
+          If(v["arg1_value"] != v["arg2_value"], And((And(v["arg1_value"] >= 0, v["arg1_value"] <= 12)), (And(v["arg2_value"] >= 0, v["arg2_value"] <= 12))), True))
 )
 
 def rule_30_func(arg1, arg2, solver=None, neg=False):

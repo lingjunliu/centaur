@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Shapes should either match at dim, or one of them should be of size 1 (Rule 69)
+# Enforce shape compatibility on dimension 'dim' between tensors x1 and x2 (Rule 69)
 
 rule_69 = lambda s, v, n=False: (
-    s.add(Not(If(And(And(v["arg3_value"] >= 0, v["arg3_value"] < v["arg1_ndim"]), v["arg3_value"] < v["arg2_ndim"]), Or(Or((Select(v["arg1_shape"], v["arg3_value"]) == Select(v["arg2_shape"], v["arg3_value"])), (Select(v["arg1_shape"], v["arg3_value"]) == 1)), (Select(v["arg2_shape"], v["arg3_value"]) == 1)), False)) if n else
-          If(And(And(v["arg3_value"] >= 0, v["arg3_value"] < v["arg1_ndim"]), v["arg3_value"] < v["arg2_ndim"]), Or(Or((Select(v["arg1_shape"], v["arg3_value"]) == Select(v["arg2_shape"], v["arg3_value"])), (Select(v["arg1_shape"], v["arg3_value"]) == 1)), (Select(v["arg2_shape"], v["arg3_value"]) == 1)), False))
+    s.add(Not(If(And(And(And((v["arg3_value"] >= (0 - v["arg1_ndim"])), (v["arg3_value"] < v["arg1_ndim"])), (v["arg3_value"] >= (0 - v["arg2_ndim"]))), (v["arg3_value"] < v["arg2_ndim"])), (Or(Or(Select(v["arg1_shape"], v["arg3_value"]) == Select(v["arg2_shape"], v["arg3_value"]), Select(v["arg1_shape"], v["arg3_value"]) == 1), Select(v["arg2_shape"], v["arg3_value"]) == 1)), True)) if n else
+          If(And(And(And((v["arg3_value"] >= (0 - v["arg1_ndim"])), (v["arg3_value"] < v["arg1_ndim"])), (v["arg3_value"] >= (0 - v["arg2_ndim"]))), (v["arg3_value"] < v["arg2_ndim"])), (Or(Or(Select(v["arg1_shape"], v["arg3_value"]) == Select(v["arg2_shape"], v["arg3_value"]), Select(v["arg1_shape"], v["arg3_value"]) == 1), Select(v["arg2_shape"], v["arg3_value"]) == 1)), True))
 )
 
 def rule_69_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -44,9 +44,9 @@ def rule_69_func(arg1, arg2, arg3, solver=None, neg=False):
         solver.add(arg3_value == int(arg3))
 
         # Constraints for rule 69
-        rule_69(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape, 'arg3_value': arg3_value})
+        rule_69(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_69(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape'], 'arg3_value': arg3['value']}, neg)
+        rule_69(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_value': arg3['value']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If a tensor is a scalar, its value must be non-negative (Rule 8)
+# If any input tensor has dimension greater than 2, then the rule is violated (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 0, Select(v["arg1_range"], 0) >= 0, False)) if n else
-          If(v["arg1_ndim"] == 0, Select(v["arg1_range"], 0) >= 0, False))
+    s.add(Not(If(v["arg1_ndim"] > 2, False, True)) if n else
+          If(v["arg1_ndim"] > 2, False, True))
 )
 
 def rule_8_func(arg1, solver=None, neg=False):
@@ -23,17 +23,14 @@ def rule_8_func(arg1, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 8
-        rule_8(solver, {'arg1_ndim': arg1_ndim, 'arg1_range': arg1_range})
+        rule_8(solver, {'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_8(solver, {'arg1_ndim': arg1['ndim'], 'arg1_range': arg1['range']}, neg)
+        rule_8(solver, {'arg1_ndim': arg1['ndim']}, neg)

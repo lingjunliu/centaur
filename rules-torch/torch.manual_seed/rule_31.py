@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Seed must be a 64-bit integer, and not a smaller integer such as a 32-bit integer (Rule 31)
+# Seed must be a value within the allowed integer range (Rule 31)
 
 rule_31 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_value"] >= -2147483648, v["arg1_value"] <= 2147483647), False, False)) if n else
-          If(And(v["arg1_value"] >= -2147483648, v["arg1_value"] <= 2147483647), False, False))
+    s.add(Not(And((v["arg1_value"] >= -9223372036854775808), (v["arg1_value"] <= 18446744073709551615))) if n else
+          And((v["arg1_value"] >= -9223372036854775808), (v["arg1_value"] <= 18446744073709551615)))
 )
 
 def rule_31_func(arg1, solver=None, neg=False):

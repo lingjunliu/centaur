@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Stride should be a positive integer and not zero (Rule 110)
+# Let's set a limit to prevent large negative integer. Kernel cannot have value that are way too small (negative (Rule 110)
 
 rule_110 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] > 0, v["arg1_value"] != 0)) if n else
-          And(v["arg1_value"] > 0, v["arg1_value"] != 0))
+    s.add(Not(And(v["arg1_value"] > -10000, v["arg1_value"] < 10000)) if n else
+          And(v["arg1_value"] > -10000, v["arg1_value"] < 10000))
 )
 
 def rule_110_func(arg1, solver=None, neg=False):

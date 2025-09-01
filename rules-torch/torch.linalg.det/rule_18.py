@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Dimensions n and m of A must be equal (Rule 18)
+# Shape of A must be (*, n, n (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2)) if n else
-          Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2))
+    s.add(Not(And(And(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2)), Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0)) if n else
+          And(And(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2)), Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0))
 )
 
 def rule_18_func(arg1, solver=None, neg=False):

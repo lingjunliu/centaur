@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If dim is a tuple, the length of the tuple must be less than or equal to the number of dimensions of the input tensor. (Rule 10)
+# Dimension should be within the valid range to avoid IndexError (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_length"] <= v["arg1_ndim"]) if n else
-          v["arg2_length"] <= v["arg1_ndim"])
+    s.add(Not(Or((And(v["arg2_value"] >= 0, v["arg2_value"] < v["arg1_ndim"])), (And(v["arg2_value"] < 0, v["arg2_value"] > (0 - v["arg1_ndim"]) - 1)))) if n else
+          Or((And(v["arg2_value"] >= 0, v["arg2_value"] < v["arg1_ndim"])), (And(v["arg2_value"] < 0, v["arg2_value"] > (0 - v["arg1_ndim"]) - 1))))
 )
 
 def rule_10_func(arg1, arg2, solver=None, neg=False):
@@ -20,22 +20,22 @@ def rule_10_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg2_length = Int('arg2_length')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_length == len(arg2))
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 10
-        rule_10(solver, {'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length})
+        rule_10(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_10(solver, {'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length']}, neg)
+        rule_10(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if the value for num_features is specified, it has to be greater than 0 (Rule 115)
+# If dtype is specified, ensure the input tensor has a compatible floating point dtype (Rule 115)
 
 rule_115 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] >= 0) if n else
-          v["arg1_value"] >= 0)
+    s.add(Not(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)) if n else
+          Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10))
 )
 
 def rule_115_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_115_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 115
-        rule_115(solver, {'arg1_value': arg1_value})
+        rule_115(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_115(solver, {'arg1_value': arg1['value']}, neg)
+        rule_115(solver, {'arg1_dtype': arg1['dtype']}, neg)

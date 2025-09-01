@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# lambd must be non-negative and should be reasonable. (Rule 39)
+# Lambd must be representable as a float16 number to avoid overflow. (Rule 39)
 
 rule_39 = lambda s, v, n=False: (
-    s.add(Not(And((v["arg1_value"] >= 0), v["arg1_value"] < 10000)) if n else
-          And((v["arg1_value"] >= 0), v["arg1_value"] < 10000))
+    s.add(Not(And(v["arg1_value"] > -65504.0, v["arg1_value"] < 65504.0)) if n else
+          And(v["arg1_value"] > -65504.0, v["arg1_value"] < 65504.0))
 )
 
 def rule_39_func(arg1, solver=None, neg=False):

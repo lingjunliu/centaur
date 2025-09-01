@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# A general rule to check type compatibility: prevent float64 to be assigned to int32 tensors directly (Rule 5)
+# If out tensor is provided, its dtype must be able to accommodate the result of sin operation on input tensor (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 8, v["arg2_value"] != 3, False)) if n else
-          If(v["arg1_dtype"] == 8, v["arg2_value"] != 3, False))
+    s.add(Not(If(v["arg1_dtype"] == 1, Or(Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), If(v["arg1_dtype"] == 2, Or(Or(Or(Or(v["arg2_dtype"] == 2, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), If(v["arg1_dtype"] == 3, Or(Or(Or(Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), If(v["arg1_dtype"] == 4, Or(Or(Or(Or(v["arg2_dtype"] == 4, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), If(v["arg1_dtype"] == 5, Or(Or(Or(Or(v["arg2_dtype"] == 5, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), If(v["arg1_dtype"] == 6, Or(Or(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), If(v["arg1_dtype"] == 7, Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), If(v["arg1_dtype"] == 8, Or(Or(v["arg2_dtype"] == 8, v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), If(v["arg1_dtype"] == 9, Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, True))))))))))) if n else
+          If(v["arg1_dtype"] == 1, Or(Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), If(v["arg1_dtype"] == 2, Or(Or(Or(Or(v["arg2_dtype"] == 2, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), If(v["arg1_dtype"] == 3, Or(Or(Or(Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), If(v["arg1_dtype"] == 4, Or(Or(Or(Or(v["arg2_dtype"] == 4, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), If(v["arg1_dtype"] == 5, Or(Or(Or(Or(v["arg2_dtype"] == 5, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), If(v["arg1_dtype"] == 6, Or(Or(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), If(v["arg1_dtype"] == 7, Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), If(v["arg1_dtype"] == 8, Or(Or(v["arg2_dtype"] == 8, v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), If(v["arg1_dtype"] == 9, Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, True)))))))))))
 )
 
 def rule_5_func(arg1, arg2, solver=None, neg=False):
@@ -20,22 +20,22 @@ def rule_5_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
-        arg2_value = Int('arg2_value')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 5
-        rule_5(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
+        rule_5(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_5(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)
+        rule_5(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)

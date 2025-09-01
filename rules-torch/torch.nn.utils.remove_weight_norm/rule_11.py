@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# name must be a string and its value should be selected from given options (Rule 11)
+# module parameter must be a Module with attribute _forward_pre_hooks (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(Or(Or(v["arg1_value"] == 6, v["arg1_value"] == 7), v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10), v["arg1_value"] == 11)) if n else
-          Or(Or(Or(Or(Or(v["arg1_value"] == 6, v["arg1_value"] == 7), v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10), v["arg1_value"] == 11))
+    s.add(Not(Or([And(v_2 < (0 + 1), Select(v["arg1_shape"], v_2) >= 0) for v_2 in range(6)])) if n else
+          Or([And(v_2 < (0 + 1), Select(v["arg1_shape"], v_2) >= 0) for v_2 in range(6)]))
 )
 
 def rule_11_func(arg1, solver=None, neg=False):
@@ -17,20 +17,21 @@ def rule_11_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, str):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 11
-        rule_11(solver, {'arg1_value': arg1_value})
+        rule_11(solver, {'arg1_shape': arg1_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_11(solver, {'arg1_value': arg1['value']}, neg)
+        rule_11(solver, {'arg1_shape': arg1['shape']}, neg)

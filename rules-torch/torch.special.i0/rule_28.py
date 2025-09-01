@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If providing an out tensor, it must have a compatible type with the i0 operation on the input. (Rule 28)
+# If input is complex64 or complex128, the output should also be one of those (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(If((And(v["arg1_dtype"] >= 7, v["arg1_dtype"] < 10)), (And(v["arg2_dtype"] >= 7, v["arg2_dtype"] < 10)), If((Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11)), (Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 11)), False))) if n else
-          If((And(v["arg1_dtype"] >= 7, v["arg1_dtype"] < 10)), (And(v["arg2_dtype"] >= 7, v["arg2_dtype"] < 10)), If((Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11)), (Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 11)), False)))
+    s.add(Not(If((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), True)) if n else
+          If((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), True))
 )
 
 def rule_28_func(arg1, arg2, solver=None, neg=False):

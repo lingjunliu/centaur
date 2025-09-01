@@ -1,5 +1,5 @@
 >>
-Rule 1 (order must be non-negative)
+Rule 1 (The order 'n' must be non-negative)
 {v_2 : int} |= v_2 ≥ 0
 >>
 Rule 3 (prepend must be a Tensor)
@@ -8,146 +8,86 @@ Rule 3 (prepend must be a Tensor)
 Rule 4 (append must be a Tensor)
 {v_5 : tensor} |= ndim(v_5) ≥ 0
 >>
-Rule 5 (prepend's dimension must be the same as input)
-{v_1 : tensor, v_4 : tensor, v_3 : int} |= ndim(v_1) = ndim(v_4) ∧ ∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_3 then shape(v_1, i) = shape(v_4, i)
+Rule 5 (If prepend is specified, its dimension must be the same as input's dimension)
+{v_1 : tensor, v_4 : tensor} |= if v_4 ≠ None then ndim(v_1) = ndim(v_4)
 >>
-Rule 6 (append's dimension must be the same as input)
-{v_1 : tensor, v_5 : tensor, v_3 : int} |= ndim(v_1) = ndim(v_5) ∧ ∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_3 then shape(v_1, i) = shape(v_5, i)
+Rule 6 (If append is specified, its dimension must be the same as input's dimension)
+{v_1 : tensor, v_5 : tensor} |= if v_5 ≠ None then ndim(v_1) = ndim(v_5)
 >>
-Rule 8 (dim must be in the valid range)
+Rule 7 (If prepend is specified, its shape must match input's shape except on dim)
+{v_1 : tensor, v_3 : int, v_4 : tensor} |= if v_4 ≠ None then (∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_3 then shape(v_1, i) = shape(v_4, i))
+>>
+Rule 8 (If append is specified, its shape must match input's shape except on dim)
+{v_1 : tensor, v_3 : int, v_5 : tensor} |= if v_5 ≠ None then (∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_3 then shape(v_1, i) = shape(v_5, i))
+>>
+Rule 10 (Dimension 'dim' must be within the valid range)
 {v_1 : tensor, v_3 : int} |= v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)
 >>
-Rule 13 (n and dim cannot be the same)
-{v_2 : int, v_3 : int} |= v_2 ≠ v_3
+Rule 23 (If prepend is specified, its shape must match input's shape except on dim, only checking the case when dim >=0)
+{v_1 : tensor, v_3 : int, v_4 : tensor} |= if v_4 ≠ None ∧ v_3 ≥ 0 then (∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_3 then shape(v_1, i) = shape(v_4, i))
 >>
-Rule 14 (input should have at least one dimension if prepend is used)
-{v_1 : tensor, v_4 : tensor} |= if ndim(v_4) > 0 then ndim(v_1) > 0
+Rule 24 (If append is specified, its shape must match input's shape except on dim, only checking the case when dim >= 0)
+{v_1 : tensor, v_3 : int, v_5 : tensor} |= if v_5 ≠ None ∧ v_3 ≥ 0 then (∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_3 then shape(v_1, i) = shape(v_5, i))
 >>
-Rule 15 (input should have at least one dimension if append is used)
-{v_1 : tensor, v_5 : tensor} |= if ndim(v_5) > 0 then ndim(v_1) > 0
+Rule 25 (If prepend is specified and dim is negative, its shape must match input's shape except on dim)
+{v_1 : tensor, v_3 : int, v_4 : tensor} |= if v_4 ≠ None ∧ v_3 < 0 then (∀i ∈ [0, ndim(v_1) - 1] : if i ≠ (ndim(v_1) + v_3) then shape(v_1, i) = shape(v_4, i))
 >>
-Rule 16 (if prepend is not None, its type must be a tensor)
-{v_4 : tensor ⊎ int ⊎ float ⊎ bool ⊎ str} |= if ndim(v_4) > 0 then true else false
+Rule 26 (If append is specified and dim is negative, its shape must match input's shape except on dim)
+{v_1 : tensor, v_3 : int, v_5 : tensor} |= if v_5 ≠ None ∧ v_3 < 0 then (∀i ∈ [0, ndim(v_1) - 1] : if i ≠ (ndim(v_1) + v_3) then shape(v_1, i) = shape(v_5, i))
 >>
-Rule 17 (if append is not None, its type must be a tensor)
-{v_5 : tensor ⊎ int ⊎ float ⊎ bool ⊎ str} |= if ndim(v_5) > 0 then true else false
+Rule 75 (If prepend exists, then its dtype must be the same as the input's dtype)
+{v_1 : tensor, v_4 : tensor} |= if v_4 ≠ None then dtype_(v_1) = dtype_(v_4)
 >>
-Rule 18 (if prepend is a Tensor, its dtype should be the same as the input tensor)
-{v_1 : tensor, v_4 : tensor} |= if ndim(v_4) > 0 then dtype_(v_1) = dtype_(v_4)
+Rule 76 (If append exists, then its dtype must be the same as the input's dtype)
+{v_1 : tensor, v_5 : tensor} |= if v_5 ≠ None then dtype_(v_1) = dtype_(v_5)
 >>
-Rule 19 (if append is a Tensor, its dtype should be the same as the input tensor)
-{v_1 : tensor, v_5 : tensor} |= if ndim(v_5) > 0 then dtype_(v_1) = dtype_(v_5)
+Rule 85 (If prepend exists, then its dtype must be the same as the input's dtype and its shape must be broadcastable.)
+{v_1 : tensor, v_4 : tensor} |= if v_4 ≠ None then dtype_(v_1) = dtype_(v_4) ∧ (ndim(v_1) > 0 ∧ ndim(v_4) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_4) then ndim(v_1) - 1 else ndim(v_4) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_4) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_4, ndim(v_4) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_4, ndim(v_4) - i - 1))
 >>
-Rule 20 (If prepend is not None, then its dimension along dim must match input)
-{v_1 : tensor, v_3 : int, v_4 : tensor} |= if ndim(v_4) > 0 then shape(v_4, v_3) = shape(v_1, v_3)
+Rule 86 (If append exists, then its dtype must be the same as the input's dtype and its shape must be broadcastable.)
+{v_1 : tensor, v_5 : tensor} |= if v_5 ≠ None then dtype_(v_1) = dtype_(v_5) ∧ (ndim(v_1) > 0 ∧ ndim(v_5) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_5) then ndim(v_1) - 1 else ndim(v_5) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_5) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_5, ndim(v_5) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_5, ndim(v_5) - i - 1))
 >>
-Rule 21 (If append is not None, then its dimension along dim must match input)
-{v_1 : tensor, v_3 : int, v_5 : tensor} |= if ndim(v_5) > 0 then shape(v_5, v_3) = shape(v_1, v_3)
+Rule 95 (prepend must be a Tensor or None, and if defined its shape must match input's shape along the specified dimension)
+{v_1 : tensor, v_3 : int, v_4 : tensor} |= if v_4 ≠ None then shape(v_1, v_3) = shape(v_4, v_3)
 >>
-Rule 22 (If prepend is provided, then dim must be within input dimensions)
-{v_1 : tensor, v_3 : int, v_4 : tensor} |= if ndim(v_4) > 0 then v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)
+Rule 96 (append must be a Tensor or None, and if defined its shape must match input's shape along the specified dimension)
+{v_1 : tensor, v_3 : int, v_5 : tensor} |= if v_5 ≠ None then shape(v_1, v_3) = shape(v_5, v_3)
 >>
-Rule 23 (If append is provided, then dim must be within input dimensions)
-{v_1 : tensor, v_3 : int, v_5 : tensor} |= if ndim(v_5) > 0 then v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)
+Rule 101 (If prepend is specified, the size of prepend along dim must match input, otherwise it must be 0)
+{v_1 : tensor, v_3 : int, v_4 : tensor} |= if v_4 ≠ None then shape(v_4, v_3) = shape(v_1, v_3)
 >>
-Rule 24 (if dim is negative, take absolute value before comparison)
-{v_1 : tensor, v_3 : int} |= if v_3 < 0 then (0 - v_3) ≤ ndim(v_1) else v_3 < ndim(v_1)
+Rule 102 (If append is specified, the size of append along dim must match input, otherwise it must be 0)
+{v_1 : tensor, v_3 : int, v_5 : tensor} |= if v_5 ≠ None then shape(v_5, v_3) = shape(v_1, v_3)
 >>
-Rule 25 (If prepend's ndim > 0, input must have at least that many dimensions)
-{v_1 : tensor, v_4 : tensor} |= if ndim(v_4) > 0 then ndim(v_1) ≥ ndim(v_4)
+Rule 105 (If prepend and append both exist, their dtypes should match.)
+{v_4: tensor, v_5: tensor} |= if v_4 ≠ None ∧ v_5 ≠ None then dtype_(v_4) = dtype_(v_5)
 >>
-Rule 26 (If append's ndim > 0, input must have at least that many dimensions)
-{v_1 : tensor, v_5 : tensor} |= if ndim(v_5) > 0 then ndim(v_1) ≥ ndim(v_5)
+Rule 106 (If prepend and append both exist, then their number of dimensions must be the same.)
+{v_4: tensor, v_5: tensor} |= if v_4 ≠ None ∧ v_5 ≠ None then ndim(v_4) = ndim(v_5)
 >>
-Rule 27 (If append is provided, then its shape should match input in non-dim dimensions)
-{v_1 : tensor, v_3 : int, v_5 : tensor} |= if ndim(v_5) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_3 then shape(v_5, i) = shape(v_1, i)
+Rule 111 (If prepend is specified and has the same number of dimensions as the input, then its shape along dim must match the input's shape along dim)
+{v_1 : tensor, v_3 : int, v_4 : tensor} |= if v_4 ≠ None ∧ ndim(v_1) = ndim(v_4) then shape(v_4, v_3) = shape(v_1, v_3)
 >>
-Rule 28 (If prepend is provided, then its shape should match input in non-dim dimensions)
-{v_1 : tensor, v_3 : int, v_4 : tensor} |= if ndim(v_4) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_3 then shape(v_4, i) = shape(v_1, i)
+Rule 112 (If append is specified and has the same number of dimensions as the input, then its shape along dim must match the input's shape along dim)
+{v_1 : tensor, v_3 : int, v_5 : tensor} |= if v_5 ≠ None ∧ ndim(v_1) = ndim(v_5) then shape(v_5, v_3) = shape(v_1, v_3)
 >>
-Rule 31 (order should be less than the size of the dimension)
-{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 ≤ shape(v_1, v_3)
+Rule 115 (If the type of prepend is tensor, all values must be numeric)
+{v_4: tensor} |= if v_4 != None then (dtype_(v_4) = 1 ∨ dtype_(v_4) = 2 ∨ dtype_(v_4) = 3 ∨ dtype_(v_4) = 4 ∨ dtype_(v_4) = 5 ∨ dtype_(v_4) = 6 ∨ dtype_(v_4) = 7 ∨ dtype_(v_4) = 8)
 >>
-Rule 32 (order should be less than the size of the dimension, considering negative dim)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 < 0 then v_2 ≤ shape(v_1, v_3 + ndim(v_1)) else v_2 ≤ shape(v_1, v_3)
+Rule 116 (If the type of append is tensor, all values must be numeric)
+{v_5: tensor} |= if v_5 != None then (dtype_(v_5) = 1 ∨ dtype_(v_5) = 2 ∨ dtype_(v_5) = 3 ∨ dtype_(v_5) = 4 ∨ dtype_(v_5) = 5 ∨ dtype_(v_5) = 6 ∨ dtype_(v_5) = 7 ∨ dtype_(v_5) = 8)
 >>
-Rule 33 (If append is provided, and input has zero dimension in dim, then append must be empty)
-{v_1 : tensor, v_3 : int, v_5 : tensor} |= if ndim(v_5) > 0 then if shape(v_1, v_3) = 0 then ndim(v_5) = 0
+Rule 125 (If prepend and append exist, and they have the same number of dimensions, then their shapes should also be the same)
+{v_4: tensor, v_5: tensor} |= if v_4 ≠ None ∧ v_5 ≠ None ∧ ndim(v_4) = ndim(v_5) then (∀i ∈ [0, ndim(v_4) - 1] : shape(v_4, i) = shape(v_5, i))
 >>
-Rule 34 (If prepend is provided, and input has zero dimension in dim, then prepend must be empty)
-{v_1 : tensor, v_3 : int, v_4 : tensor} |= if ndim(v_4) > 0 then if shape(v_1, v_3) = 0 then ndim(v_4) = 0
+Rule 131 (If prepend is specified and has the same number of dimensions as the input, then its shape along dim must match the input's shape along dim)
+{v_1 : tensor, v_3 : int, v_4 : tensor} |= if v_4 ≠ None then (if ndim(v_1) = ndim(v_4) then shape(v_4, v_3) = shape(v_1, v_3))
 >>
-Rule 35 (if prepend is None and append is None, order must be less than the size of dimension)
-{v_1 : tensor, v_2 : int, v_3 : int, v_4 : tensor ⊎ int ⊎ float ⊎ bool ⊎ str, v_5 : tensor ⊎ int ⊎ float ⊎ bool ⊎ str} |= if ndim(v_4) = 0 ∧ ndim(v_5) = 0 then if v_3 < 0 then v_2 ≤ shape(v_1, v_3 + ndim(v_1)) else v_2 ≤ shape(v_1, v_3)
+Rule 132 (If append is specified and has the same number of dimensions as the input, then its shape along dim must match the input's shape along dim)
+{v_1 : tensor, v_3 : int, v_5 : tensor} |= if v_5 ≠ None then (if  ndim(v_1) = ndim(v_5) then shape(v_5, v_3) = shape(v_1, v_3))
 >>
-Rule 36 (If prepend is not None, its shape along dim must have a valid range)
-{v_1 : tensor, v_3 : int, v_4 : tensor} |= if ndim(v_4) > 0 then (shape(v_4, v_3) ≥ 0) ∧ (shape(v_4, v_3) ≤ shape(v_1,v_3))
+Rule 135 (If the prepend and the input have differing numbers of dimensions, then prepend must be broadcastable to input)
+{v_1 : tensor, v_4 : tensor} |= if v_4 ≠ None ∧ ndim(v_1) ≠ ndim(v_4) then (ndim(v_1) > 0 ∧ ndim(v_4) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_4) then ndim(v_1) - 1 else ndim(v_4) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_4) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_4, ndim(v_4) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_4, ndim(v_4) - i - 1))
 >>
-Rule 37 (If append is not None, its shape along dim must have a valid range)
-{v_1 : tensor, v_3 : int, v_5 : tensor} |= if ndim(v_5) > 0 then (shape(v_5, v_3) ≥ 0) ∧ (shape(v_5, v_3) ≤ shape(v_1,v_3))
->>
-Rule 38 (If prepend is provided and input is 0-dimensional, prepend must also be 0-dimensional)
-{v_1 : tensor, v_4 : tensor} |= if ndim(v_1) = 0 then ndim(v_4) = 0
->>
-Rule 39 (If append is provided and input is 0-dimensional, append must also be 0-dimensional)
-{v_1 : tensor, v_5 : tensor} |= if ndim(v_1) = 0 then ndim(v_5) = 0
->>
-Rule 40 (If append is provided and input has zero dimension in dim, then order must be 0)
-{v_1 : tensor, v_2 : int, v_3 : int, v_5 : tensor} |= if ndim(v_5) > 0 then if shape(v_1, v_3) = 0 then v_2 = 0
->>
-Rule 41 (If prepend is provided and input has zero dimension in dim, then order must be 0)
-{v_1 : tensor, v_2 : int, v_3 : int, v_4 : tensor} |= if ndim(v_4) > 0 then if shape(v_1, v_3) = 0 then v_2 = 0
->>
-Rule 42 (The absolute value of dim must be less than the number of dimensions in input)
-{v_1 : tensor, v_3 : int} |= if v_3 < 0 then (0 - v_3) < ndim(v_1) else v_3 < ndim(v_1)
->>
-Rule 43 (If prepend is provided and input is not empty, then prepend must be Tensor.)
-{v_1 : tensor, v_4 : tensor ⊎ int ⊎ float ⊎ bool ⊎ str} |= if ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 then ndim(v_4) > 0
->>
-Rule 44 (If append is provided and input is not empty, then append must be Tensor.)
-{v_1 : tensor, v_5 : tensor ⊎ int ⊎ float ⊎ bool ⊎ str} |= if ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 then ndim(v_5) > 0
->>
-Rule 45 (If the input is 0-dimensional, then order must be 0)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then v_2 = 0
->>
-Rule 46 (If the input is 0-dimensional, then dim can only be -1)
-{v_1 : tensor, v_3 : int} |= if ndim(v_1) = 0 then v_3 = -1
->>
-Rule 47 (If the input is 0-dimensional, then prepend must be None)
-{v_1 : tensor, v_4 : tensor ⊎ int ⊎ float ⊎ bool ⊎ str} |= if ndim(v_1) = 0 then ndim(v_4) = 0
->>
-Rule 48 (If the input is 0-dimensional, then append must be None)
-{v_1 : tensor, v_5 : tensor ⊎ int ⊎ float ⊎ bool ⊎ str} |= if ndim(v_1) = 0 then ndim(v_5) = 0
->>
-Rule 49 (If the input has no dimension, order doesn't matter)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then true else v_2 ≥ 0
->>
-Rule 50 (If the input has zero dimension in given dimension, order must be 0)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if shape(v_1, v_3) = 0 then v_2 = 0
->>
-Rule 52 (If prepend or append are given, the dim is equal to default value -1)
-{v_3 : int, v_4 : tensor ⊎ int ⊎ float ⊎ bool ⊎ str, v_5 : tensor ⊎ int ⊎ float ⊎ bool ⊎ str} |= if (ndim(v_4) > 0) ∨ (ndim(v_5) > 0) then v_3 = -1
->>
-Rule 53 (If the input has a dimension with size one, then order can be larger)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if shape(v_1, v_3) = 1 then v_2 ≥ 0
->>
-Rule 54 (if input has zero dimension, order doesn't matter)
-{v_1 : tensor, v_2 : int} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then true else v_2 ≥ 0
->>
-Rule 55 (If append or prepend is given and input is not empty, dim should not exceed ndim)
-{v_1 : tensor, v_3 : int, v_4 : tensor ⊎ int ⊎ float ⊎ bool ⊎ str, v_5 : tensor ⊎ int ⊎ float ⊎ bool ⊎ str} |= if ((ndim(v_4) > 0) ∨ (ndim(v_5) > 0)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then v_3 < ndim(v_1)
->>
-Rule 56 (If append or prepend is given and input is not empty, dim should not exceed ndim considering negative dim)
-{v_1 : tensor, v_3 : int, v_4 : tensor ⊎ int ⊎ float ⊎ bool ⊎ str, v_5 : tensor ⊎ int ⊎ float ⊎ bool ⊎ str} |= if ((ndim(v_4) > 0) ∨ (ndim(v_5) > 0)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then if v_3 < 0 then (0 - v_3) < ndim(v_1) else v_3 < ndim(v_1)
->>
-Rule 57 (If prepend is None, append is None, and input has one dimension, then order has to less than input's shape in zero dimension)
-{v_1 : tensor, v_2 : int, v_4 : tensor ⊎ int ⊎ float ⊎ bool ⊎ str, v_5 : tensor ⊎ int ⊎ float ⊎ bool ⊎ str} |= if (ndim(v_4) = 0) ∧ (ndim(v_5) = 0) ∧ (ndim(v_1) = 1) then (v_2 ≤ shape(v_1, 0))
->>
-Rule 58 (If append is not None, and prepend is None, last dimension of append should be equal to input)
-{v_1 : tensor, v_5 : tensor ⊎ int ⊎ float ⊎ bool ⊎ str, v_4 : tensor ⊎ int ⊎ float ⊎ bool ⊎ str} |= if (ndim(v_5) > 0) ∧ (ndim(v_4) = 0) then shape(v_5, ndim(v_5) -1 ) = shape(v_1, ndim(v_1)-1)
->>
-Rule 59 (If prepend is not None, and append is None, first dimension of prepend should be equal to input)
-{v_1 : tensor, v_4 : tensor ⊎ int ⊎ float ⊎ bool ⊎ str, v_5 : tensor ⊎ int ⊎ float ⊎ bool ⊎ str} |= if (ndim(v_4) > 0) ∧ (ndim(v_5) = 0) then shape(v_4, ndim(v_4) -1 ) = shape(v_1, ndim(v_1)-1)
->>
-Rule 60 (If prepend and append aren't None, then prepend, append should be the same shape)
-{v_4 : tensor, v_5 : tensor} |= if (ndim(v_4) > 0) ∧ (ndim(v_5) > 0) then (ndim(v_4) = ndim(v_5)) ∧ (∀i ∈ [0, ndim(v_4) -1 ] : shape(v_4, i) = shape(v_5, i))
+Rule 136 (If the append and the input have differing numbers of dimensions, then append must be broadcastable to input)
+{v_1 : tensor, v_5 : tensor} |= if v_5 ≠ None ∧ ndim(v_1) ≠ ndim(v_5) then (ndim(v_1) > 0 ∧ ndim(v_5) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_5) then ndim(v_1) - 1 else ndim(v_5) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_5) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_5, ndim(v_5) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_5, ndim(v_5) - i - 1))

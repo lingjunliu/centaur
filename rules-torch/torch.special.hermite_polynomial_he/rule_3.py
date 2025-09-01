@@ -8,8 +8,8 @@ from z3 import *
 # input tensor should not have Half dtype to avoid RuntimeError: "hermite_polynomial_he_cpu" not implemented for 'Half' (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 6) if n else
-          v["arg1_dtype"] != 6)
+    s.add(Not(If(v["arg1_dtype"] == 6, False, True)) if n else
+          If(v["arg1_dtype"] == 6, False, True))
 )
 
 def rule_3_func(arg1, solver=None, neg=False):

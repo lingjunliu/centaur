@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Prevent too large number to cause gradient problem (Rule 52)
+# In case of overflow or negative value. Check for valid tensor product and allow allocation (Rule 52)
 
 rule_52 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] < 100000, v["arg2_value"] < 100000)) if n else
-          And(v["arg1_value"] < 100000, v["arg2_value"] < 100000))
+    s.add(Not(v["arg1_value"] * v["arg2_value"] > -1) if n else
+          v["arg1_value"] * v["arg2_value"] > -1)
 )
 
 def rule_52_func(arg1, arg2, solver=None, neg=False):

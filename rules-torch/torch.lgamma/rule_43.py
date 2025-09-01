@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if input tensor dtype is integer, the output tensor must be float or double. (Rule 43)
+# Input and output tensors dtypes should be consistent and not integer or complex (Rule 43)
 
 rule_43 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(Or(Or((v["arg1_dtype"] == 1), (v["arg1_dtype"] == 2)), (v["arg1_dtype"] == 3)), (v["arg1_dtype"] == 4)), (v["arg1_dtype"] == 5)), Or((v["arg2_dtype"] == 7), (v["arg2_dtype"] == 8)), False)) if n else
-          If(Or(Or(Or(Or((v["arg1_dtype"] == 1), (v["arg1_dtype"] == 2)), (v["arg1_dtype"] == 3)), (v["arg1_dtype"] == 4)), (v["arg1_dtype"] == 5)), Or((v["arg2_dtype"] == 7), (v["arg2_dtype"] == 8)), False))
+    s.add(Not(And((v["arg1_dtype"] == v["arg2_dtype"]), (And(And(And(And(And(And(v["arg1_dtype"] != 1, v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5), v["arg1_dtype"] != 9), v["arg1_dtype"] != 10)))) if n else
+          And((v["arg1_dtype"] == v["arg2_dtype"]), (And(And(And(And(And(And(v["arg1_dtype"] != 1, v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5), v["arg1_dtype"] != 9), v["arg1_dtype"] != 10))))
 )
 
 def rule_43_func(arg1, arg2, solver=None, neg=False):

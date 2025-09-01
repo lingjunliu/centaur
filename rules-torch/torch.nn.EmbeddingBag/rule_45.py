@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# embedding_dim * num_embeddings must not exceed max int value (Rule 45)
+# padding_idx should be valid index less than num_embeddings, if padding_idx is specified (Rule 45)
 
 rule_45 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] * v["arg2_value"] <= 2147483647) if n else
-          v["arg1_value"] * v["arg2_value"] <= 2147483647)
+    s.add(Not(If(v["arg1_value"] != -1, And(v["arg1_value"] >= 0, v["arg1_value"] < v["arg2_value"]), True)) if n else
+          If(v["arg1_value"] != -1, And(v["arg1_value"] >= 0, v["arg1_value"] < v["arg2_value"]), True))
 )
 
 def rule_45_func(arg1, arg2, solver=None, neg=False):

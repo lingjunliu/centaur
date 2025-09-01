@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the input tensor is an int, the values should be within reasonable bounds (Rule 12)
+# if the input is a matrix, the number of rows must be greater than zero. (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), And(Select(v["arg1_range"], 0) > -1000000, Select(v["arg1_range"], 1) < 1000000), False)) if n else
-          If(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), And(Select(v["arg1_range"], 0) > -1000000, Select(v["arg1_range"], 1) < 1000000), False))
+    s.add(Not(If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) > 0, True)) if n else
+          If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) > 0, True))
 )
 
 def rule_12_func(arg1, solver=None, neg=False):
@@ -22,18 +22,18 @@ def rule_12_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 12
-        rule_12(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_12(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_12(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
+        rule_12(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

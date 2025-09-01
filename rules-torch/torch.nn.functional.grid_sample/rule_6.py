@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# grid's last dimension must be 2 if input is 4D. (Rule 6)
+# If input is 5D, grid must be 5D and last dimension of grid must be 3 (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 4, Select(v["arg2_shape"], v["arg2_ndim"] - 1) == 2, False)) if n else
-          If(v["arg1_ndim"] == 4, Select(v["arg2_shape"], v["arg2_ndim"] - 1) == 2, False))
+    s.add(Not(If(v["arg1_ndim"] == 5, And(v["arg2_ndim"] == 5, Select(v["arg2_shape"], v["arg2_ndim"] - 1) == 3), True)) if n else
+          If(v["arg1_ndim"] == 5, And(v["arg2_ndim"] == 5, Select(v["arg2_shape"], v["arg2_ndim"] - 1) == 3), True))
 )
 
 def rule_6_func(arg1, arg2, solver=None, neg=False):

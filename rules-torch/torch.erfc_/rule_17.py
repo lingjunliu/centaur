@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Prevent complex types which cause implementation errors (Rule 17)
+# If the input tensor has complex dtype, it should not be ComplexDouble (complex128 (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] < 9) if n else
-          v["arg1_dtype"] < 9)
+    s.add(Not(If(v["arg1_dtype"] == 10, False, True)) if n else
+          If(v["arg1_dtype"] == 10, False, True))
 )
 
 def rule_17_func(arg1, solver=None, neg=False):

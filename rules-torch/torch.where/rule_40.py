@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If out is provided, its dtype must be compatible with input and other such that the result is compatible too (Rule 40)
+# If the out tensor is specified, then its dtype must be the same as input and other's dtype (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg2_dtype"] == 7, v["arg3_dtype"] == 7), Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), False)) if n else
-          If(And(v["arg2_dtype"] == 7, v["arg3_dtype"] == 7), Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), False))
+    s.add(Not(And(v["arg1_dtype"] == v["arg2_dtype"], v["arg2_dtype"] == v["arg3_dtype"])) if n else
+          And(v["arg1_dtype"] == v["arg2_dtype"], v["arg2_dtype"] == v["arg3_dtype"]))
 )
 
 def rule_40_func(arg1, arg2, arg3, solver=None, neg=False):

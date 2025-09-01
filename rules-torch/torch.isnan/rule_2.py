@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Complex values are considered NaN when either their real and/or imaginary part is NaN. (Rule 2)
+# The dtype of the input tensor must be numerical (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11), True, False)) if n else
-          If(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11), True, False))
+    s.add(Not(v["arg1_dtype"] != 11) if n else
+          v["arg1_dtype"] != 11)
 )
 
 def rule_2_func(arg1, solver=None, neg=False):

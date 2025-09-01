@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The size of the input tensor in the first dimension should be limited (Rule 8)
+# If the tensor has a dimension equal to zero, then the number of dimensions must be greater than or equal to 2 (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) < 10000) if n else
-          Select(v["arg1_shape"], 0) < 10000)
+    s.add(Not(If(Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 0) for i in range(6)]), v["arg1_ndim"] >= 2, True)) if n else
+          If(Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 0) for i in range(6)]), v["arg1_ndim"] >= 2, True))
 )
 
 def rule_8_func(arg1, solver=None, neg=False):
@@ -22,16 +22,18 @@ def rule_8_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
+        arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
+        solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 8
-        rule_8(solver, {'arg1_shape': arg1_shape})
+        rule_8(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_8(solver, {'arg1_shape': arg1['shape']}, neg)
+        rule_8(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

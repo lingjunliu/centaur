@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the tensors do not have the same number of dimensions, then they have to be a vector and a matrix with compatible dimension size (Rule 56)
+# Shape compatibility - If dimensions match on first tensor's dimension 0, then tensors must be broadcastable or matching size tensors. (Rule 56)
 
 rule_56 = lambda s, v, n=False: (
-    s.add(Not(Or((v["arg1_ndim"] == v["arg2_ndim"]), (Or((And(And(v["arg1_ndim"] == 1, v["arg2_ndim"] == 2), Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 1))), (And(And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 1), Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 0))))))) if n else
-          Or((v["arg1_ndim"] == v["arg2_ndim"]), (Or((And(And(v["arg1_ndim"] == 1, v["arg2_ndim"] == 2), Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 1))), (And(And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 1), Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 0)))))))
+    s.add(Not(If(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0), Or((And(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]))), (And(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), And([Implies(i < (If(v["arg1_ndim"] >= v["arg2_ndim"], v["arg1_ndim"] - 1, v["arg2_ndim"] - 1) + 1), Or(Or(Or(Or(v["arg1_ndim"] - i - 1 < 0, v["arg2_ndim"] - i - 1 < 0), Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == 1), Select(v["arg2_shape"], v["arg2_ndim"] - i - 1) == 1), Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - i - 1))) for i in range(6)])))), True)) if n else
+          If(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0), Or((And(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]))), (And(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), And([Implies(i < (If(v["arg1_ndim"] >= v["arg2_ndim"], v["arg1_ndim"] - 1, v["arg2_ndim"] - 1) + 1), Or(Or(Or(Or(v["arg1_ndim"] - i - 1 < 0, v["arg2_ndim"] - i - 1 < 0), Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == 1), Select(v["arg2_shape"], v["arg2_ndim"] - i - 1) == 1), Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - i - 1))) for i in range(6)])))), True))
 )
 
 def rule_56_func(arg1, arg2, solver=None, neg=False):
@@ -39,9 +39,9 @@ def rule_56_func(arg1, arg2, solver=None, neg=False):
             arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 56
-        rule_56(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape})
+        rule_56(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_56(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape']}, neg)
+        rule_56(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim']}, neg)

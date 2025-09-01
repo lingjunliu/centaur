@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If an out tensor is provided, its data type must not be int8, int16, or int32 if the input type is float. (Rule 25)
+# If the desired output type is Short, then the input type must be such that cos(input (Rule 25)
 
 rule_25 = lambda s, v, n=False: (
-    s.add(Not(If(Or((v["arg1_dtype"] == 7), (v["arg1_dtype"] == 8)), And(And((v["arg2_dtype"] != 1), (v["arg2_dtype"] != 2)), (v["arg2_dtype"] != 3)), False)) if n else
-          If(Or((v["arg1_dtype"] == 7), (v["arg1_dtype"] == 8)), And(And((v["arg2_dtype"] != 1), (v["arg2_dtype"] != 2)), (v["arg2_dtype"] != 3)), False))
+    s.add(Not(If(v["arg2_dtype"] == 2, (Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 2, v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)), True)) if n else
+          If(v["arg2_dtype"] == 2, (Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 2, v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)), True))
 )
 
 def rule_25_func(arg1, arg2, solver=None, neg=False):

@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The input tensor has non-zero size at the reduction dimension (Rule 4)
+# check that the given dimension exists and is not zero-sized (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
     s.add(Not(Select(v["arg1_shape"], v["arg2_value"]) > 0) if n else

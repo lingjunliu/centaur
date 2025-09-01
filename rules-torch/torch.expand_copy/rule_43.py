@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the number of target sizes provided is less than the number of tensor dimensions, then only the trailing dimensions of size are used and must correspond. (Rule 43)
+# If the tensor is empty then the size tuple's elements should either be 0 or equal to the original shape or can create a new one (Rule 43)
 
 rule_43 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_length"] < v["arg1_ndim"], And([Implies(i < (v["arg2_length"] - 1 + 1), Or(Or((Select(v["arg1_shape"], v["arg1_ndim"] - v["arg2_length"] + i) == 0), (Select(v["arg1_shape"], v["arg1_ndim"] - v["arg2_length"] + i) == 1)), (Select(v["arg1_shape"], v["arg1_ndim"] - v["arg2_length"] + i) == Select(v["arg2_values"], i)))) for i in range(6)]), And([Implies(i < (v["arg1_ndim"] - 1 + 1), Or(Or((Select(v["arg1_shape"], i) == 0), (Select(v["arg1_shape"], i) == 1)), (Select(v["arg1_shape"], i) == Select(v["arg2_values"], i)))) for i in range(6)]))) if n else
-          If(v["arg2_length"] < v["arg1_ndim"], And([Implies(i < (v["arg2_length"] - 1 + 1), Or(Or((Select(v["arg1_shape"], v["arg1_ndim"] - v["arg2_length"] + i) == 0), (Select(v["arg1_shape"], v["arg1_ndim"] - v["arg2_length"] + i) == 1)), (Select(v["arg1_shape"], v["arg1_ndim"] - v["arg2_length"] + i) == Select(v["arg2_values"], i)))) for i in range(6)]), And([Implies(i < (v["arg1_ndim"] - 1 + 1), Or(Or((Select(v["arg1_shape"], i) == 0), (Select(v["arg1_shape"], i) == 1)), (Select(v["arg1_shape"], i) == Select(v["arg2_values"], i)))) for i in range(6)])))
+    s.add(Not(If((Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 0) for i in range(6)])), And([Implies(j < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], j) >= 0) for j in range(6)]), True)) if n else
+          If((Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 0) for i in range(6)])), And([Implies(j < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], j) >= 0) for j in range(6)]), True))
 )
 
 def rule_43_func(arg1, arg2, solver=None, neg=False):
@@ -39,9 +39,9 @@ def rule_43_func(arg1, arg2, solver=None, neg=False):
             arg2_values = Store(arg2_values, i, arg2[i])
 
         # Constraints for rule 43
-        rule_43(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_length': arg2_length, 'arg2_values': arg2_values})
+        rule_43(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length, 'arg2_values': arg2_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_43(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_length': arg2['length'], 'arg2_values': arg2['values']}, neg)
+        rule_43(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length'], 'arg2_values': arg2['values']}, neg)

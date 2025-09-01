@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Limit element count to prevent excessive memory allocation (Rule 55)
+# Even stricter limit on N if x is small. There is something wrong if you are calling vander on small vector with large N. (Rule 55)
 
 rule_55 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_shape"], 0) < 500000, v["arg2_value"] < 1000)) if n else
-          And(Select(v["arg1_shape"], 0) < 500000, v["arg2_value"] < 1000))
+    s.add(Not(If(Select(v["arg1_shape"], 0) < 10, v["arg2_value"] < 100, True)) if n else
+          If(Select(v["arg1_shape"], 0) < 10, v["arg2_value"] < 100, True))
 )
 
 def rule_55_func(arg1, arg2, solver=None, neg=False):

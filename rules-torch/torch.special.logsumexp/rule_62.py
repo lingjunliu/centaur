@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If out is provided, its dtype must match input's and both must be floating or complex point type. (Rule 62)
+# If input tensor's dtype is complex, then out tensor's dtype should be complex too (Rule 62)
 
 rule_62 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_dtype"] == v["arg2_dtype"], 6 <= v["arg1_dtype"]), v["arg1_dtype"] <= 11)) if n else
-          And(And(v["arg1_dtype"] == v["arg2_dtype"], 6 <= v["arg1_dtype"]), v["arg1_dtype"] <= 11))
+    s.add(Not(If(Or(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg1_dtype"] == 11), Or(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), v["arg2_dtype"] == 11), True)) if n else
+          If(Or(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg1_dtype"] == 11), Or(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), v["arg2_dtype"] == 11), True))
 )
 
 def rule_62_func(arg1, arg2, solver=None, neg=False):

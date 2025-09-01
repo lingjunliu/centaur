@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Object must be a tensor, if the name of the function starts with 'to' (Rule 23)
+# Check if input is a valid tensor with supported data type (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] >= 0) if n else
-          v["arg1_ndim"] >= 0)
+    s.add(Not(And(And((v["arg1_ndim"] >= 0), (v["arg1_dtype"] >= 0)), (v["arg1_dtype"] <= 10))) if n else
+          And(And((v["arg1_ndim"] >= 0), (v["arg1_dtype"] >= 0)), (v["arg1_dtype"] <= 10)))
 )
 
 def rule_23_func(arg1, solver=None, neg=False):
@@ -23,14 +23,16 @@ def rule_23_func(arg1, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 23
-        rule_23(solver, {'arg1_ndim': arg1_ndim})
+        rule_23(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_23(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_23(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor dtype should be compatible, not str, bool, etc. (Rule 32)
+# Dimension must be an integer value (Rule 32)
 
 rule_32 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(And(And(And(And(v["arg1_dtype"] != 0, v["arg1_dtype"] != 1), v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5), v["arg1_dtype"] != 11), v["arg1_dtype"] != 12)) if n else
-          And(And(And(And(And(And(And(v["arg1_dtype"] != 0, v["arg1_dtype"] != 1), v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5), v["arg1_dtype"] != 11), v["arg1_dtype"] != 12))
+    s.add(Not(Or([And(x < (1 + 1), (v["arg1_value"] * x) % x == 0) for x in range(6)])) if n else
+          Or([And(x < (1 + 1), (v["arg1_value"] * x) % x == 0) for x in range(6)]))
 )
 
 def rule_32_func(arg1, solver=None, neg=False):
@@ -17,20 +17,18 @@ def rule_32_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not ((isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)) or isinstance(arg1, (float, np.floating))):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 32
-        rule_32(solver, {'arg1_dtype': arg1_dtype})
+        rule_32(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_32(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_32(solver, {'arg1_value': arg1['value']}, neg)

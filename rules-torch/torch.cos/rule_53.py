@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If an output tensor is provided, it must be at least float16 if input is integer, boolean, or float16 (Rule 53)
+# Prevent "cast to Short" error by ensuring that if the output is Short, then the input must be a type that is guaranteed to produce a limited range when cos is applied (Rule 53)
 
 rule_53 = lambda s, v, n=False: (
-    s.add(Not(If(Or((v["arg1_dtype"] <= 2), (v["arg1_dtype"] == 6)), (v["arg2_dtype"] >= 6), False)) if n else
-          If(Or((v["arg1_dtype"] <= 2), (v["arg1_dtype"] == 6)), (v["arg2_dtype"] >= 6), False))
+    s.add(Not(If(v["arg2_dtype"] == 2, (Or(Or(v["arg1_dtype"] == 0, v["arg1_dtype"] == 1), v["arg1_dtype"] == 2)), True)) if n else
+          If(v["arg2_dtype"] == 2, (Or(Or(v["arg1_dtype"] == 0, v["arg1_dtype"] == 1), v["arg1_dtype"] == 2)), True))
 )
 
 def rule_53_func(arg1, arg2, solver=None, neg=False):

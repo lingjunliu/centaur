@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# output_size must have the correct number of dimensions if provided (Rule 7)
+# output_size should have 1 or 3 elements (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
     s.add(Not(Or(v["arg1_length"] == 1, v["arg1_length"] == 3)) if n else

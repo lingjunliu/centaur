@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The first element of tuple of float must be positive (Rule 31)
+# Input tensor dimension should be non-negative (Rule 31)
 
 rule_31 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_length"] > 0, Select(v["arg1_values"], 0) > 0, False)) if n else
-          If(v["arg1_length"] > 0, Select(v["arg1_values"], 0) > 0, False))
+    s.add(Not(v["arg1_ndim"] >= 0) if n else
+          v["arg1_ndim"] >= 0)
 )
 
 def rule_31_func(arg1, solver=None, neg=False):
@@ -17,23 +17,20 @@ def rule_31_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, tuple) and all(isinstance(e, (float, np.floating)) for e in arg1)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
-        arg1_values = Array('arg1_values', IntSort(), RealSort())
+        arg1_ndim = Int('arg1_ndim')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
+        solver.add(arg1_ndim == arg1.ndim)
 
         # Constraints for rule 31
-        rule_31(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values})
+        rule_31(solver, {'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_31(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values']}, neg)
+        rule_31(solver, {'arg1_ndim': arg1['ndim']}, neg)

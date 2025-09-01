@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Combine dimension and shape checks for A and tau (Rule 13)
+# Complete dimensional constraint for A and tau - simplified (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(v["arg1_ndim"] >= 2, v["arg1_ndim"] - v["arg2_ndim"] == 1), Select(v["arg1_shape"], v["arg1_ndim"] - 1) >= Select(v["arg2_shape"], v["arg2_ndim"] - 1)), If(v["arg1_ndim"] > 2, (And([Implies(i < (v["arg1_ndim"] - 2 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])), If(v["arg2_ndim"] > 1, Select(v["arg2_shape"], 0) == 1, False)))) if n else
-          And(And(And(v["arg1_ndim"] >= 2, v["arg1_ndim"] - v["arg2_ndim"] == 1), Select(v["arg1_shape"], v["arg1_ndim"] - 1) >= Select(v["arg2_shape"], v["arg2_ndim"] - 1)), If(v["arg1_ndim"] > 2, (And([Implies(i < (v["arg1_ndim"] - 2 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])), If(v["arg2_ndim"] > 1, Select(v["arg2_shape"], 0) == 1, False))))
+    s.add(Not(And(And(And(v["arg1_ndim"] >= 2, v["arg2_ndim"] == v["arg1_ndim"] - 1), Select(v["arg1_shape"], v["arg1_ndim"] - 2) >= Select(v["arg2_shape"], v["arg2_ndim"] - 1)), (Or(v["arg1_ndim"] <= 2, And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]))))) if n else
+          And(And(And(v["arg1_ndim"] >= 2, v["arg2_ndim"] == v["arg1_ndim"] - 1), Select(v["arg1_shape"], v["arg1_ndim"] - 2) >= Select(v["arg2_shape"], v["arg2_ndim"] - 1)), (Or(v["arg1_ndim"] <= 2, And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])))))
 )
 
 def rule_13_func(arg1, arg2, solver=None, neg=False):

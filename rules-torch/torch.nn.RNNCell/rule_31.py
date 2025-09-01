@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# To prevent symInt error, ensure input_size and hidden_size are less than max int (Rule 31)
+# input_size and hidden_size are non negative (Rule 31)
 
 rule_31 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] < 2147483647, v["arg2_value"] < 2147483647)) if n else
-          And(v["arg1_value"] < 2147483647, v["arg2_value"] < 2147483647))
+    s.add(Not(And(v["arg1_value"] >= 0, v["arg2_value"] >= 0)) if n else
+          And(v["arg1_value"] >= 0, v["arg2_value"] >= 0))
 )
 
 def rule_31_func(arg1, arg2, solver=None, neg=False):

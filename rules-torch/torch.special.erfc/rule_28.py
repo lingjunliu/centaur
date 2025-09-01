@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If Input is complex, output must be complex (Rule 28)
+# Output tensor cannot be boolean if input is integer or float (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), (Or(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), v["arg2_dtype"] == 11)), False)) if n else
-          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), (Or(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), v["arg2_dtype"] == 11)), False))
+    s.add(Not(If((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)), v["arg2_dtype"] != 0, True)) if n else
+          If((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)), v["arg2_dtype"] != 0, True))
 )
 
 def rule_28_func(arg1, arg2, solver=None, neg=False):

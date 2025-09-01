@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If ndim(v1 (Rule 47)
+# Check that dim1 and dim2 are not both out of bounds (Rule 47)
 
 rule_47 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 0, If(Or((If(v["arg2_value"] < 0, (0 - v["arg2_value"]), v["arg2_value"])) > v["arg1_ndim"], (If(v["arg3_value"] < 0, (0 - v["arg3_value"]), v["arg3_value"])) > v["arg1_ndim"]), False, False), False)) if n else
-          If(v["arg1_ndim"] > 0, If(Or((If(v["arg2_value"] < 0, (0 - v["arg2_value"]), v["arg2_value"])) > v["arg1_ndim"], (If(v["arg3_value"] < 0, (0 - v["arg3_value"]), v["arg3_value"])) > v["arg1_ndim"]), False, False), False))
+    s.add(Not(Or((And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"])), (And(v["arg3_value"] >= (0 - v["arg1_ndim"]), v["arg3_value"] < v["arg1_ndim"])))) if n else
+          Or((And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"])), (And(v["arg3_value"] >= (0 - v["arg1_ndim"]), v["arg3_value"] < v["arg1_ndim"]))))
 )
 
 def rule_47_func(arg1, arg2, arg3, solver=None, neg=False):

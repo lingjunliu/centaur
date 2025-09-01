@@ -1,108 +1,66 @@
 >>
-Rule 2 (Input tensor must have a valid dtype)
-{v_1 : tensor} |= 0 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 12
+Rule 1 (input and exponent tensors should have the same dtype if both are tensors)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 5 (Output tensor should have a floating-point or complex dtype)
-{v_3 : tensor} |= (6 <= dtype_(v_3) ∧ dtype_(v_3) <= 8) ∨ (10 <= dtype_(v_3) ∧ dtype_(v_3) <=11)
+Rule 2 (if input tensor is complex, output tensor should have ComplexDouble dtype)
+{v_1 : tensor, v_3 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_3) = 11
 >>
-Rule 7 (shape of input and exponent should match if both are tensors)
+Rule 3 (if exponent tensor is complex, output tensor should have ComplexDouble dtype)
+{v_2 : tensor, v_3 : tensor} |= if dtype_(v_2) = 10 ∨ dtype_(v_2) = 11 then dtype_(v_3) = 11
+>>
+Rule 4 (if either input or exponent is complex, output tensor should have ComplexDouble dtype)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11 then dtype_(v_3) = 11
+>>
+Rule 5 (output tensor must have float64 dtype if input and exponent are not complex)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11 ∧ dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11 then dtype_(v_3) = 9
+>>
+Rule 6 (input and exponent tensors should have compatible shapes if both are tensors)
 {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 8 (Exponent value must be in a valid range to avoid overflow)
-{v_2 : tensor} |= max(v_2) < 100 ∧ min(v_2) > -100
+Rule 9 (if exponent is a tensor with integers, then all values must be non-negative)
+{v_2 : tensor} |= if dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 then min(v_2) ≥ 0
 >>
-Rule 10 (If input or exponent is complex, output must be complex)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) then dtype_(v_3) ≥ 10
+Rule 10 (input tensor and output tensor must have same shape)
+{v_1 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)
 >>
-Rule 12 (If input is integer and exponent is negative, output must be floating point or complex.)
-{v_1 : tensor, v_2 : tensor} |= if (1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5) ∧ (min(v_2) < 0) then (dtype_(v_1) > 5)
+Rule 11 (exponent tensor and output tensor must have same shape)
+{v_2 : tensor, v_3 : tensor} |= ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)
 >>
-Rule 13 (When input and exponent are both tensors, at least one must be floating or complex to avoid integer division)
-{v_1 : tensor, v_2 : tensor} |= if (1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5) ∧ (1 <= dtype_(v_2) ∧ dtype_(v_2) <= 5) then (dtype_(v_1) > 5) ∨ (dtype_(v_2) > 5)
+Rule 18 (output tensor must have float64 dtype if input is a tensor)
+{v_1 : tensor, v_3 : tensor} |= if dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11 then dtype_(v_3) = 9
 >>
-Rule 15 (Ensure exponent is not too large for safe computation)
-{v_2 : tensor} |= max(v_2) < 1000
+Rule 19 (output tensor must have float64 dtype if exponent is a tensor)
+{v_2 : tensor, v_3 : tensor} |= if dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11 then dtype_(v_3) = 9
 >>
-Rule 16 (Ensure input is not too close to zero when exponent is negative)
-{v_1 : tensor, v_2 : tensor} |= if min(v_2) < 0 then min(v_1) > 0.000001
+Rule 31 (If input is complex64 and exponent is a float, then output must be complex128)
+{v_1 : tensor, v_3 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_3) = 11
 >>
-Rule 17 (If input or exponent is complex, output must be complex)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) then dtype_(v_3) ≥ 10 else dtype_(v_3) < 9
+Rule 32 (If exponent is complex64 and input is a float, then output must be complex128)
+{v_2 : tensor, v_3 : tensor} |= if dtype_(v_2) = 10 then dtype_(v_3) = 11
 >>
-Rule 19 (If input is integer and exponent is negative, output must be floating point or complex.)
-{v_1 : tensor, v_2 : tensor} |= if (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5) ∧ (min(v_2) < 0) then (dtype_(v_1) > 5)
+Rule 33 (output tensor must have float64 or complex128 dtype)
+{v_3 : tensor} |= dtype_(v_3) = 9 ∨ dtype_(v_3) = 11
 >>
-Rule 30 (Output tensor, if supplied, must have the correct shape)
-{v_1: tensor, v_2: tensor, v_3: tensor} |= if ndim(v_3) > 0 then (ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)) ∨ (ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i))
+Rule 34 (When input and exponent are tensors, they must be broadcastable)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)
 >>
-Rule 32 (If both input and exponent are tensors, they must have compatible dtypes.)
-{v_1 : tensor, v_2 : tensor} |= if (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 11) ∧ (6 <= dtype_(v_2) ∧ dtype_(v_2) <= 11) then true else false
+Rule 50 (If the out tensor's dtype is Double, then input tensor dtype must be either float or Double or complex)
+{v_1: tensor, v_3: tensor} |= if dtype_(v_3) = 9 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
 >>
-Rule 41 (Ensure input's dtype is not bool if exponent is a tensor with negative values)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 0) ∧ (min(v_2) < 0) then false
+Rule 51 (If the out tensor's dtype is Double, then exponent tensor dtype must be either float or Double or complex)
+{v_2: tensor, v_3: tensor} |= if dtype_(v_3) = 9 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11
 >>
-Rule 42 (Exponent should have floating or integer dtype.)
-{v_2 : tensor} |= (1 <= dtype_(v_2) ∧ dtype_(v_2) <=5) ∨ (6 <= dtype_(v_2) ∧ dtype_(v_2) <= 8)
+Rule 64 (If input is a number and exponent is a tensor, the out tensor must have same dtype as exponent)
+{v_2: tensor, v_3: tensor} |= dtype_(v_2) = dtype_(v_3)
 >>
-Rule 45 (If input is complex, output must be complex)
-{v_1 : tensor, v_3 : tensor} |= if (dtype_(v_1) ≥ 9) then dtype_(v_3) ≥ 10 else dtype_(v_3) < 9
+Rule 65 (If exponent is a number and input is a tensor, the out tensor must have the same dtype as input)
+{v_1: tensor, v_3: tensor} |= dtype_(v_1) = dtype_(v_3)
 >>
-Rule 46 (If exponent is complex, output must be complex)
-{v_2 : tensor, v_3 : tensor} |= if (dtype_(v_2) ≥ 9) then dtype_(v_3) ≥ 10 else dtype_(v_3) < 9
+Rule 70 (if out is present, its shape must be same as the input's shape, if input is a tensor)
+{v_1 : tensor, v_3: tensor} |= ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)
 >>
-Rule 57 (If input is a tensor with zero value and exponent has negative values, the result tensor will have inf or nan values.)
-{v_1 : tensor, v_2 : tensor} |= if (min(v_1) = 0) ∧ (min(v_2) < 0) then false
+Rule 71 (if out is present, its shape must be same as the exponent's shape, if exponent is a tensor)
+{v_2 : tensor, v_3: tensor} |= ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)
 >>
-Rule 58 (Output tensor, if supplied, must have the correct shape if exponent is also a tensor)
-{v_2: tensor, v_3: tensor} |= if (ndim(v_3) > 0) ∧ (ndim(v_2) > 0) then (ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i))
->>
-Rule 59 (Output tensor, if supplied, must have the correct shape if input is also a tensor)
-{v_1: tensor, v_3: tensor} |= if (ndim(v_3) > 0) ∧ (ndim(v_1) > 0) then (ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i))
->>
-Rule 60 (If either input or exponent is complex, the output must be complex)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) ≥ 9) ∨ (dtype_(v_2) ≥ 9) then dtype_(v_3) ≥ 10 else dtype_(v_3) < 9
->>
-Rule 63 (If an output tensor is specified, the dtypes of the output and input tensors must be compatible)
-{v_1 : tensor, v_3 : tensor} |= if (ndim(v_3) > 0) then ( (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∧ (6 <= dtype_(v_3) ∧ dtype_(v_3) <= 8)) ∨ ((9 <= dtype_(v_1)) ∧ (9 <= dtype_(v_3)))
->>
-Rule 64 (If an output tensor is specified, the dtypes of the output and exponent tensors must be compatible)
-{v_2 : tensor, v_3 : tensor} |= if (ndim(v_3) > 0) then ( (6 <= dtype_(v_2) ∧ dtype_(v_2) <= 8) ∧ (6 <= dtype_(v_3) ∧ dtype_(v_3) <= 8)) ∨ ((9 <= dtype_(v_2)) ∧ (9 <= dtype_(v_3)))
->>
-Rule 65 (Ensure exponent tensor shape is valid.)
-{v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
->>
-Rule 66 (Ensure input tensor shape is valid.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 68 (If input is integer and exponent is negative, output must be floating point or complex.)
-{v_1 : tensor, v_2 : tensor} |= if (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5) ∧ (min(v_2) < 0) then ((dtype_(v_1) = 8) ∨ (dtype_(v_1) = 11))
->>
-Rule 69 (If input is a tensor with zero value and exponent has negative values, the result tensor will have inf or nan values.)
-{v_1 : tensor, v_2 : tensor} |= if (min(v_1) = 0) ∧ (∃i ∈ [0, ndim(v_2) - 1]: v_2[i] < 0) then false
->>
-Rule 78 (If an output tensor is specified, it should have floating point or complex dtype)
-{v_3 : tensor} |= if (ndim(v_3) > 0) then ((6 <= dtype_(v_3) ∧ dtype_(v_3) <= 8) ∨ (10 <= dtype_(v_3) ∧ dtype_(v_3) <= 11))
->>
-Rule 82 (If an output tensor is specified, it has a compatible shape with broadcasting of input and exponent when both are tensors)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_3) > 0) ∧ (ndim(v_1) > 0) ∧ (ndim(v_2) > 0) then (ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)) ∨ (ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)) ∨ (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))
->>
-Rule 87 (If an output tensor is specified, it must be a tensor and its shape should be compatible with the input and exponent using broadcasting rules)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_3) > 0) then (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ (ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)) ∨ (ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)) ∨ (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)))
->>
-Rule 98 (If an output tensor is specified, its dtype should be compatible with the input tensor)
-{v_1 : tensor, v_3 : tensor} |= if (ndim(v_3) > 0) then if (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) then (6 <= dtype_(v_3) ∧ dtype_(v_3) <= 8) else if (10 <= dtype_(v_1) ∧ dtype_(v_1) <= 11) then (10 <= dtype_(v_3) ∧ dtype_(v_3) <= 11)
->>
-Rule 99 (If an output tensor is specified, its dtype should be compatible with the exponent tensor)
-{v_2 : tensor, v_3 : tensor} |= if (ndim(v_3) > 0) then if (6 <= dtype_(v_2) ∧ dtype_(v_2) <= 8) then (6 <= dtype_(v_3) ∧ dtype_(v_3) <= 8) else if (10 <= dtype_(v_2) ∧ dtype_(v_2) <= 11) then (10 <= dtype_(v_3) ∧ dtype_(v_3) <= 11)
->>
-Rule 101 (If input and exponent are tensors of different dimensions, check that they are broadcastable if no output is given)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) > 0) ∧ (ndim(v_2) > 0) ∧ (ndim(v_1) ≠ ndim(v_2)) then (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))
->>
-Rule 104 (If input and output is specified, the dtype of the output must be double if input is not complex, and complex if input is complex.)
-{v_1: tensor, v_3: tensor} |= if (ndim(v_3) > 0) then if (dtype_(v_1) < 9) then (dtype_(v_3) = 8) else (dtype_(v_3) = 11)
->>
-Rule 105 (If exponent and output is specified, the dtype of the output must be double if exponent is not complex, and complex if exponent is complex.)
-{v_2: tensor, v_3: tensor} |= if (ndim(v_3) > 0) then if (dtype_(v_2) < 9) then (dtype_(v_3) = 8) else (dtype_(v_3) = 11)
->>
-Rule 113 (If input is boolean, exponent must be non-negative)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 0) then (min(v_2) ≥ 0)
+Rule 109 (If out is given, dtype of input and exponent must promote to out)
+{v_1: tensor, v_2: tensor, v_3: tensor} |= if dtype_(v_1) = 7 ∧ dtype_(v_2) = 7 then dtype_(v_3) = 9 else if dtype_(v_1) = 8 ∧ dtype_(v_2) = 8 then dtype_(v_3) = 9 else if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∨ (dtype_(v_2) = 10 ∨ dtype_(v_2) = 11) then dtype_(v_3) = 11

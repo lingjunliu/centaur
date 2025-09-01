@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor must have float, int or complex dtype (Rule 14)
+# If the input tensor is complex128, the output is not complex64 (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(And(1 <= v["arg1_dtype"], Or(Or(v["arg1_dtype"] <= 9, v["arg1_dtype"] == 10), v["arg1_dtype"] == 11))) if n else
-          And(1 <= v["arg1_dtype"], Or(Or(v["arg1_dtype"] <= 9, v["arg1_dtype"] == 10), v["arg1_dtype"] == 11)))
+    s.add(Not(If(v["arg1_dtype"] == 11, v["arg1_dtype"] != 10, True)) if n else
+          If(v["arg1_dtype"] == 11, v["arg1_dtype"] != 10, True))
 )
 
 def rule_14_func(arg1, solver=None, neg=False):

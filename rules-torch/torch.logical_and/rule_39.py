@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If v_3 is provided, and v_1 or v_2 is bool, then v_3 should be bool or the same as v1 and v2 (Rule 39)
+# If out is provided and input dtypes are different, the out dtype should be bool. (Rule 39)
 
 rule_39 = lambda s, v, n=False: (
-    s.add(Not(If(Or((v["arg1_dtype"] == 0), (v["arg2_dtype"] == 0)), (Or(Or(v["arg3_dtype"] == 0, v["arg3_dtype"] == v["arg1_dtype"]), v["arg3_dtype"] == v["arg2_dtype"])), False)) if n else
-          If(Or((v["arg1_dtype"] == 0), (v["arg2_dtype"] == 0)), (Or(Or(v["arg3_dtype"] == 0, v["arg3_dtype"] == v["arg1_dtype"]), v["arg3_dtype"] == v["arg2_dtype"])), False))
+    s.add(Not(If(v["arg1_dtype"] != v["arg2_dtype"], v["arg3_dtype"] == 0, True)) if n else
+          If(v["arg1_dtype"] != v["arg2_dtype"], v["arg3_dtype"] == 0, True))
 )
 
 def rule_39_func(arg1, arg2, arg3, solver=None, neg=False):

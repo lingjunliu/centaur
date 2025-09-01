@@ -5,38 +5,35 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-#  If the data consists of less than 32 points we should ensure the features are not extremely small (Rule 79)
+# To avoid allocation issues, restricting sizes and also making sure the dimensions do not lead to extreme numbers (Rule 79)
 
 rule_79 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg2_shape"], 1) < 32, v["arg1_value"] > 2, False)) if n else
-          If(Select(v["arg2_shape"], 1) < 32, v["arg1_value"] > 2, False))
+    s.add(Not(If(v["arg1_ndim"] == 2, And(Select(v["arg1_shape"], 0) < 256, Select(v["arg1_shape"], 1) < 256), If(v["arg1_ndim"] == 3, And(And(Select(v["arg1_shape"], 0) < 256, Select(v["arg1_shape"], 1) < 256), Select(v["arg1_shape"], 2) < 256), True))) if n else
+          If(v["arg1_ndim"] == 2, And(Select(v["arg1_shape"], 0) < 256, Select(v["arg1_shape"], 1) < 256), If(v["arg1_ndim"] == 3, And(And(Select(v["arg1_shape"], 0) < 256, Select(v["arg1_shape"], 1) < 256), Select(v["arg1_shape"], 2) < 256), True)))
 )
 
-def rule_79_func(arg1, arg2, solver=None, neg=False):
+def rule_79_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
-            return False
-        if not isinstance(arg2, np.ndarray):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 79
-        rule_79(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape})
+        rule_79(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_79(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape']}, neg)
+        rule_79(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

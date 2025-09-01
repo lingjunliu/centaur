@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor should not be of float16 type when out tensor is double type (Rule 2)
+# input tensor dtype should not be float16 if out tensor is float64 (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_dtype"] == 8, v["arg1_dtype"] != 7, False)) if n else
-          If(v["arg2_dtype"] == 8, v["arg1_dtype"] != 7, False))
+    s.add(Not(If(v["arg1_dtype"] == 6, v["arg2_dtype"] != 8, True)) if n else
+          If(v["arg1_dtype"] == 6, v["arg2_dtype"] != 8, True))
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):

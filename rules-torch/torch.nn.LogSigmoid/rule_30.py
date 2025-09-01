@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# dtype should be in the valid range of indices (Rule 30)
+# Prevent "log_sigmoid_cpu" not implemented for 'Char' by ensuring the input tensor has dtype of float16, float32, float64, complex64, complex128 or dtype_ (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] >= 0, v["arg1_dtype"] < 13)) if n else
-          And(v["arg1_dtype"] >= 0, v["arg1_dtype"] < 13))
+    s.add(Not(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 11), v["arg1_dtype"] == 13)) if n else
+          Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 11), v["arg1_dtype"] == 13))
 )
 
 def rule_30_func(arg1, solver=None, neg=False):

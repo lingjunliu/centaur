@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# A must have two or more dimensions, and dimensions must be greater than 0 (Rule 7)
+# A's last two dimensions should have the same size and be non-zero (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0), Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0)) if n else
-          And(And(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0), Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0))
+    s.add(Not(And(Select(v["arg1_shape"], v["arg1_ndim"] - 2) == Select(v["arg1_shape"], v["arg1_ndim"] - 1), Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0)) if n else
+          And(Select(v["arg1_shape"], v["arg1_ndim"] - 2) == Select(v["arg1_shape"], v["arg1_ndim"] - 1), Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0))
 )
 
 def rule_7_func(arg1, solver=None, neg=False):

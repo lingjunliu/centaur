@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Two tuple must have same length (Rule 50)
+# A list of boolean values must have at least two elements if the length is less than the tensor rank. (Rule 50)
 
 rule_50 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_length"] == v["arg2_length"]) if n else
-          v["arg1_length"] == v["arg2_length"])
+    s.add(Not(If(v["arg1_length"] < v["arg2_ndim"], v["arg1_length"] >= 2, True)) if n else
+          If(v["arg1_length"] < v["arg2_ndim"], v["arg1_length"] >= 2, True))
 )
 
 def rule_50_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,24 @@ def rule_50_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not (isinstance(arg1, list) and all(isinstance(e, bool) for e in arg1)):
             return False
-        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_length = Int('arg1_length')
-        arg2_length = Int('arg2_length')
+        arg2_ndim = Int('arg2_ndim')
 
         # Value assignments
         solver.add(arg1_length == len(arg1))
-        solver.add(arg2_length == len(arg2))
+        solver.add(arg2_ndim == arg2.ndim)
 
         # Constraints for rule 50
-        rule_50(solver, {'arg1_length': arg1_length, 'arg2_length': arg2_length})
+        rule_50(solver, {'arg1_length': arg1_length, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_50(solver, {'arg1_length': arg1['length'], 'arg2_length': arg2['length']}, neg)
+        rule_50(solver, {'arg1_length': arg1['length'], 'arg2_ndim': arg2['ndim']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if input is half, other must be half or float (Rule 12)
+# Prevent complex double cast to half by enforcing compatible dtypes (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), False)) if n else
-          If(v["arg1_dtype"] == 6, Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), False))
+    s.add(Not(If(v["arg1_dtype"] == 10, v["arg2_dtype"] != 6, If(v["arg2_dtype"] == 10, v["arg1_dtype"] != 6, True))) if n else
+          If(v["arg1_dtype"] == 10, v["arg2_dtype"] != 6, If(v["arg2_dtype"] == 10, v["arg1_dtype"] != 6, True)))
 )
 
 def rule_12_func(arg1, arg2, solver=None, neg=False):

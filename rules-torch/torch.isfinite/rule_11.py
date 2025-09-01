@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# tensor's data type can't be boolean (Rule 11)
+# input tensor can not be int8 (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 0) if n else
-          v["arg1_dtype"] != 0)
+    s.add(Not(v["arg1_dtype"] != 1) if n else
+          v["arg1_dtype"] != 1)
 )
 
 def rule_11_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor should not be boolean or complex or string (Rule 15)
+# Input tensor must not be of boolean or complex type (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(And(And(And((v["arg1_dtype"] != 0), (v["arg1_dtype"] != 9)), (v["arg1_dtype"] != 10)), (v["arg1_dtype"] != 11))) if n else
-          And(And(And((v["arg1_dtype"] != 0), (v["arg1_dtype"] != 9)), (v["arg1_dtype"] != 10)), (v["arg1_dtype"] != 11)))
+    s.add(Not(And(And(v["arg1_dtype"] != 0, v["arg1_dtype"] != 9), v["arg1_dtype"] != 10)) if n else
+          And(And(v["arg1_dtype"] != 0, v["arg1_dtype"] != 9), v["arg1_dtype"] != 10))
 )
 
 def rule_15_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Value should be exactly representable as half precision to avoid overflow at::Half conversion (Rule 29)
+# If the tensor is of type float16, the value must be within the representable range (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, ((v["arg2_value"] * 2048) % 2) == 0, False)) if n else
-          If(v["arg1_dtype"] == 6, ((v["arg2_value"] * 2048) % 2) == 0, False))
+    s.add(Not(If(v["arg1_dtype"] == 7, (And(v["arg2_value"] >= -2048, v["arg2_value"] <= 2048)), True)) if n else
+          If(v["arg1_dtype"] == 7, (And(v["arg2_value"] >= -2048, v["arg2_value"] <= 2048)), True))
 )
 
 def rule_29_func(arg1, arg2, solver=None, neg=False):

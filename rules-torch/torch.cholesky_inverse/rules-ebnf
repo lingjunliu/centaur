@@ -1,30 +1,78 @@
 >>
-Rule 1 (Input tensor must have at least 2 dimensions)
+Rule 1 (The input tensor must have at least 2 dimensions.)
 {v_1 : tensor} |= ndim(v_1) ≥ 2
 >>
-Rule 2 (Input tensor should be of supported dtypes)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 2 (The input tensor's dtype must be one of float, double, cfloat and cdouble)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 9
 >>
-Rule 3 (Input tensor must be square matrices)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
+Rule 3 (Shape of input tensor should be square matrices)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
 >>
-Rule 6 (Ensure input tensor is not of Half dtype)
+Rule 4 (All dimensions of the input tensor must be positive to avoid empty matrices)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 5 (upper must be a boolean value)
+{v_2 : bool} |= v_2 = true ∨ v_2 = false
+>>
+Rule 7 (The input tensor L's dtype should not be float16)
 {v_1 : tensor} |= dtype_(v_1) ≠ 6
 >>
-Rule 55 (Check for batch square matrices)
-{v_1 : tensor} |= if ndim(v_1) > 2 then shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0
+Rule 8 (The last two dimensions of input tensor L must be equal, ensuring square matrices)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
 >>
-Rule 57 (Check for non-square matrices)
-{v_1 : tensor} |= if ndim(v_1) ≥ 2 then shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
+Rule 9 (Check if the diagonal elements of input tensor L are non-zero. (Simplified, can't directly check diagonal))
+{v_1 : tensor} |= min(v_1) > 0 ∨ max(v_1) < 0
 >>
-Rule 74 (Check for batch square matrices - more precise error message)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (shape(v_1, ndim(v_1) - 1) ≠ 0) ∧ (shape(v_1, ndim(v_1) - 2) ≠ 0) ∧ (shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2))
+Rule 10 (Check if input tensor shape last 2 dimensions are not 0, causing the 0 by 86 matrices error)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0
 >>
-Rule 77 (Check for batch square matrices and that the matrices are not 0x0)
-{v_1 : tensor} |= (ndim(v_1) ≥ 2) ∧ (shape(v_1, ndim(v_1) - 1) ≠ 0) ∧ (shape(v_1, ndim(v_1) - 2) ≠ 0) ∧ (shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2))
+Rule 11 (The input tensor L must have dimension greater than or equal to 2 and shape must be valid)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (ndim(v_1) = 2 ∨ (ndim(v_1) > 2 ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ))
 >>
-Rule 84 (Check for batch square matrices and that the matrices are not 0x0)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (shape(v_1, ndim(v_1) - 1) ≠ 0 ∧ shape(v_1, ndim(v_1) - 2) ≠ 0) ∧ (shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2))
+Rule 12 (The input tensor L's dtype can be float32, float64, complex64, or complex128)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 90 (Check for batch square matrices and that the matrices are not 0x0, more strict and checks ndim)
-{v_1 : tensor} |= (ndim(v_1) ≥ 2) ∧ (shape(v_1, ndim(v_1) - 1) > 0) ∧ (shape(v_1, ndim(v_1) - 2) > 0) ∧ (shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2))
+Rule 13 (Check that the matrix is not singular by ensuring the minimum absolute value of the diagonal elements is greater than a small epsilon)
+{v_1 : tensor} |= min(v_1) > 1e-8 ∨ max(v_1) < -1e-8
+>>
+Rule 15 (The input tensor L must have at least 2 dimensions, and the last two dimensions must be greater than 0)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0
+>>
+Rule 16 (The input tensor L's dtype can be float32, float64, complex64, or complex128, and should not be float16)
+{v_1 : tensor} |= dtype_(v_1) ≠ 6 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 18 (If number of dimensions is greater than 2, last two dimensions must be equal)
+{v_1 : tensor} |= if ndim(v_1) > 2 then shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
+>>
+Rule 20 (If number of dimensions is greater than 2, last two dimensions must be equal, otherwise there needs to be 2 dimensions)
+{v_1 : tensor} |= if ndim(v_1) > 2 then shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2) else ndim(v_1) = 2
+>>
+Rule 22 (The input tensor can not have dimension equal to 0)
+{v_1: tensor} |= ndim(v_1) > 0
+>>
+Rule 24 (Check that the matrix is not singular by ensuring the diagonal elements are not close to zero. Cannot access individual elements)
+{v_1 : tensor} |= min(v_1) > 1e-8 ∨ max(v_1) < -1e-8 ∨ min(v_1) = 0.0 ∨ max(v_1) = 0.0
+>>
+Rule 25 (Input tensor L must be batches of square matrices with positive dimensions and correct dtype)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 26 (If the input is a batch of matrices (ndim > 2), enforce square matrices)
+{v_1: tensor} |= if ndim(v_1) > 2 then shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
+>>
+Rule 27 (If number of dimensions is 2, then the input tensor should be a square matrix with valid dtype)
+{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) = shape(v_1, 1) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 28 (Either input is not half, or not using out parameter. Limited by the lack of out parameter)
+{v_1: tensor} |= dtype_(v_1) ≠ 6
+>>
+Rule 29 (The input tensor must not have a Half dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 7
+>>
+Rule 31 (Enforce the input to be positive definite or hermitian positive definite and avoid LinAlgError)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0 ∧ min(v_1) > 0
+>>
+Rule 32 (Enforce the input to be positive definite or hermitian positive definite and avoid LinAlgError using max instead of min and avoid issues with shape function)
+{v_1: tensor} |= ndim(v_1) >=2 ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ max(v_1) > 0
+>>
+Rule 35 (Enforce the input to be positive definite or hermitian positive definite and avoid LinAlgError- Checking for nan or inf values is false)
+{v_1: tensor} |= ndim(v_1) >=2 ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ (min(v_1) ≠ "nan") ∧ (max(v_1) ≠ "inf")

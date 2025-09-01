@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If deterministic is enabled, warn_only has to be enabled (Rule 34)
+# output_size cannot have length 1 or 3 if input is not a 3D tensor (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(Or((v["arg1_value"] == False), (v["arg2_value"] == True))) if n else
-          Or((v["arg1_value"] == False), (v["arg2_value"] == True)))
+    s.add(Not(If(v["arg1_ndim"] != 3, And(v["arg2_length"] != 1, v["arg2_length"] != 3), True)) if n else
+          If(v["arg1_ndim"] != 3, And(v["arg2_length"] != 1, v["arg2_length"] != 3), True))
 )
 
 def rule_34_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,24 @@ def rule_34_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, bool):
+        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_value = Bool('arg2_value')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_length = Int('arg2_length')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_value == arg2)
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_length == len(arg2))
 
         # Constraints for rule 34
-        rule_34(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_34(solver, {'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_34(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_34(solver, {'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length']}, neg)

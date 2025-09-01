@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if out is provided, its type should be able to represent the result of log1p(input (Rule 13)
+# If the input is a floating-point type, the output type should also be a floating-point type or complex type with sufficient precision (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_dtype"] == 2, v["arg1_dtype"] < 2, False)) if n else
-          If(v["arg2_dtype"] == 2, v["arg1_dtype"] < 2, False))
+    s.add(Not(If(v["arg1_dtype"] == 7, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 8, v["arg2_dtype"] >= 8, If(v["arg1_dtype"] == 6, v["arg2_dtype"] >= 6, True)))) if n else
+          If(v["arg1_dtype"] == 7, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 8, v["arg2_dtype"] >= 8, If(v["arg1_dtype"] == 6, v["arg2_dtype"] >= 6, True))))
 )
 
 def rule_13_func(arg1, arg2, solver=None, neg=False):

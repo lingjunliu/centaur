@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If atol is a tensor, then the dtype must be the same as the input (Rule 29)
+# Out tensor, if provided, must have the same dtype as the input tensor or must be safely castable (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_ndim"] > 0, v["arg1_dtype"] == v["arg2_dtype"], False)) if n else
-          If(v["arg2_ndim"] > 0, v["arg1_dtype"] == v["arg2_dtype"], False))
+    s.add(Not(If(v["arg2_ndim"] > 0, (v["arg1_dtype"] == v["arg2_dtype"]), True)) if n else
+          If(v["arg2_ndim"] > 0, (v["arg1_dtype"] == v["arg2_dtype"]), True))
 )
 
 def rule_29_func(arg1, arg2, solver=None, neg=False):
@@ -35,9 +35,9 @@ def rule_29_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 29
-        rule_29(solver, {'arg1_dtype': arg1_dtype, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype})
+        rule_29(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_29(solver, {'arg1_dtype': arg1['dtype'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_29(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg2_ndim': arg2['ndim']}, neg)

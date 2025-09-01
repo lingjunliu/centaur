@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if dtype is double, dropout should be a float greater than or equal to 0.0 and less than or equal to 1.0 (Rule 53)
+# if training, probability should be between 0 and 1, exclusive (Rule 53)
 
 rule_53 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 8, (And(v["arg2_value"] >= 0, v["arg2_value"] <= 1)), False)) if n else
-          If(v["arg1_dtype"] == 8, (And(v["arg2_value"] >= 0, v["arg2_value"] <= 1)), False))
+    s.add(Not(If(v["arg2_value"], And(v["arg1_value"] > 0, v["arg1_value"] < 1), True)) if n else
+          If(v["arg2_value"], And(v["arg1_value"] > 0, v["arg1_value"] < 1), True))
 )
 
 def rule_53_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,24 @@ def rule_53_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, (float, np.floating)):
             return False
-        if not isinstance(arg2, (float, np.floating)):
+        if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_value = Real('arg2_value')
+        arg1_value = Real('arg1_value')
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg1_value == arg1)
         solver.add(arg2_value == arg2)
 
         # Constraints for rule 53
-        rule_53(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
+        rule_53(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_53(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)
+        rule_53(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

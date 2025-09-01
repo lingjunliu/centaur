@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If number of dimension is less than 3, then height and width must be equal to 1 (Rule 61)
+# If the input has 2 dimensions, both dimensions must be positive (Rule 61)
 
 rule_61 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] < 3, And(Select(v["arg1_shape"], v["arg1_ndim"] - 2) == 1, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 1), False)) if n else
-          If(v["arg1_ndim"] < 3, And(Select(v["arg1_shape"], v["arg1_ndim"] - 2) == 1, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 1), False))
+    s.add(Not(If(v["arg1_ndim"] == 2, And(Select(v["arg1_shape"], 0) > 0, Select(v["arg1_shape"], 1) > 0), True)) if n else
+          If(v["arg1_ndim"] == 2, And(Select(v["arg1_shape"], 0) > 0, Select(v["arg1_shape"], 1) > 0), True))
 )
 
 def rule_61_func(arg1, solver=None, neg=False):

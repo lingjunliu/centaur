@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# output tensor's dtype should be compatible with boolean type to avoid casting error (Rule 2)
+# Output tensor dtype should be compatible with bool to avoid can't be cast error. (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_dtype"] == 0, v["arg1_dtype"] == 0, False)) if n else
-          If(v["arg2_dtype"] == 0, v["arg1_dtype"] == 0, False))
+    s.add(Not(If(v["arg2_dtype"] == 0, v["arg1_dtype"] == 0, True)) if n else
+          If(v["arg2_dtype"] == 0, v["arg1_dtype"] == 0, True))
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):

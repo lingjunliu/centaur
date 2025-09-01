@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If ndim is zero, both start and end dim must be set to zero (Rule 36)
+# if start_dim is zero and the number of dimensions of the tensor is greater than 0, then end_dim has to be greater or equal to zero minus ndim(v1 (Rule 36)
 
 rule_36 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 0, And(v["arg2_value"] == 0, v["arg3_value"] == 0), False)) if n else
-          If(v["arg1_ndim"] == 0, And(v["arg2_value"] == 0, v["arg3_value"] == 0), False))
+    s.add(Not(If(And(v["arg2_value"] == 0, v["arg1_ndim"] > 0), v["arg3_value"] >= (0 - v["arg1_ndim"]), True)) if n else
+          If(And(v["arg2_value"] == 0, v["arg1_ndim"] > 0), v["arg3_value"] >= (0 - v["arg1_ndim"]), True))
 )
 
 def rule_36_func(arg1, arg2, arg3, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Basic checks: 1D input, non-negative N, reasonable size (Rule 33)
+# If the provided tensor is large, N must be small, specifically targeting float32 (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_ndim"] == 1, v["arg2_value"] >= 0), Select(v["arg1_shape"], 0) * v["arg2_value"] <= 5000000)) if n else
-          And(And(v["arg1_ndim"] == 1, v["arg2_value"] >= 0), Select(v["arg1_shape"], 0) * v["arg2_value"] <= 5000000))
+    s.add(Not(If(v["arg1_dtype"] == 7, If(Select(v["arg1_shape"], 0) > 10000, If(v["arg2_value"] == none, Select(v["arg1_shape"], 0) < 100, v["arg2_value"] < 100), True), True)) if n else
+          If(v["arg1_dtype"] == 7, If(Select(v["arg1_shape"], 0) > 10000, If(v["arg2_value"] == none, Select(v["arg1_shape"], 0) < 100, v["arg2_value"] < 100), True), True))
 )
 
 def rule_33_func(arg1, arg2, solver=None, neg=False):
@@ -25,20 +25,20 @@ def rule_33_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
         arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 33
-        rule_33(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_33(solver, {'arg1_dtype': arg1_dtype, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_33(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_33(solver, {'arg1_dtype': arg1['dtype'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)

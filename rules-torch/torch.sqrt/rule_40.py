@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the input is complex and out is specified, the out must also be complex (Rule 40)
+# If the 'out' tensor is provided, its dtype must be a valid type to cast the result of the square root operation, addressing potential casting errors by excluding 'Short' and ensuring correct treatment of integer and complex inputs (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(If((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), False)) if n else
-          If((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), False))
+    s.add(Not(And((v["arg2_dtype"] != 2), (If(And((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8))), Select(v["arg1_range"], 0) >= 0, If(And((And(9 <= v["arg1_dtype"], v["arg1_dtype"] <= 10)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8))), True, If(And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8), v["arg1_dtype"] <= v["arg2_dtype"], If(And(9 <= v["arg2_dtype"], v["arg2_dtype"] <= 10), v["arg1_dtype"] <= v["arg2_dtype"], True))))))) if n else
+          And((v["arg2_dtype"] != 2), (If(And((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8))), Select(v["arg1_range"], 0) >= 0, If(And((And(9 <= v["arg1_dtype"], v["arg1_dtype"] <= 10)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8))), True, If(And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8), v["arg1_dtype"] <= v["arg2_dtype"], If(And(9 <= v["arg2_dtype"], v["arg2_dtype"] <= 10), v["arg1_dtype"] <= v["arg2_dtype"], True)))))))
 )
 
 def rule_40_func(arg1, arg2, solver=None, neg=False):
@@ -26,16 +26,19 @@ def rule_40_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
         arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 40
-        rule_40(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_40(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_40(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_40(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range'], 'arg2_dtype': arg2['dtype']}, neg)

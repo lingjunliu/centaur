@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check for potential integer overflow when multiplying with element size, again using ShortStorage with only v_1 (Rule 41)
+# Ensure size is not excessively large to avoid memory allocation issues (Rule 41)
 
 rule_41 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] > -1, v["arg1_value"] < 2147483647 / 2)) if n else
-          And(v["arg1_value"] > -1, v["arg1_value"] < 2147483647 / 2))
+    s.add(Not(v["arg1_value"] < 10000000) if n else
+          v["arg1_value"] < 10000000)
 )
 
 def rule_41_func(arg1, solver=None, neg=False):

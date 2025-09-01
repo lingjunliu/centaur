@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The size of list must be less then the dimension of the tensor (Rule 35)
+# The length of a list cannot be larger than the dimension of a tensor (Rule 35)
 
 rule_35 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_length"] < v["arg2_ndim"]) if n else
-          v["arg1_length"] < v["arg2_ndim"])
+    s.add(Not(v["arg1_length"] <= v["arg2_ndim"]) if n else
+          v["arg1_length"] <= v["arg2_ndim"])
 )
 
 def rule_35_func(arg1, arg2, solver=None, neg=False):

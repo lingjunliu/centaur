@@ -5,37 +5,57 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Running mean and Running var must be float32 tensors (Rule 53)
+# If training is true, the input should have the same dtype as weight, bias, running_mean and running_var (Rule 53)
 
 rule_53 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7)) if n else
-          And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7))
+    s.add(Not(If(v["arg1_value"], And(And(And(v["arg2_dtype"] == v["arg3_dtype"], v["arg2_dtype"] == v["arg4_dtype"]), v["arg2_dtype"] == v["arg5_dtype"]), v["arg2_dtype"] == v["arg6_dtype"]), True)) if n else
+          If(v["arg1_value"], And(And(And(v["arg2_dtype"] == v["arg3_dtype"], v["arg2_dtype"] == v["arg4_dtype"]), v["arg2_dtype"] == v["arg5_dtype"]), v["arg2_dtype"] == v["arg6_dtype"]), True))
 )
 
-def rule_53_func(arg1, arg2, solver=None, neg=False):
+def rule_53_func(arg1, arg2, arg3, arg4, arg5, arg6, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
+    arg4 = next(iter(arg4.values()))
+    arg5 = next(iter(arg5.values()))
+    arg6 = next(iter(arg6.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, bool):
             return False
         if not isinstance(arg2, np.ndarray):
+            return False
+        if not isinstance(arg3, np.ndarray):
+            return False
+        if not isinstance(arg4, np.ndarray):
+            return False
+        if not isinstance(arg5, np.ndarray):
+            return False
+        if not isinstance(arg6, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_value = Bool('arg1_value')
         arg2_dtype = Int('arg2_dtype')
+        arg3_dtype = Int('arg3_dtype')
+        arg4_dtype = Int('arg4_dtype')
+        arg5_dtype = Int('arg5_dtype')
+        arg6_dtype = Int('arg6_dtype')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg1_value == arg1)
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
+        solver.add(arg4_dtype == list_of_available_dtypes.index(arg4.dtype))
+        solver.add(arg5_dtype == list_of_available_dtypes.index(arg5.dtype))
+        solver.add(arg6_dtype == list_of_available_dtypes.index(arg6.dtype))
 
         # Constraints for rule 53
-        rule_53(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_53(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype, 'arg4_dtype': arg4_dtype, 'arg5_dtype': arg5_dtype, 'arg6_dtype': arg6_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_53(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_53(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype'], 'arg4_dtype': arg4['dtype'], 'arg5_dtype': arg5['dtype'], 'arg6_dtype': arg6['dtype']}, neg)

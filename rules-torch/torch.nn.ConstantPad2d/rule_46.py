@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Padding should not result in narrow length less than 0, consider both dimensions for 4d tensor and tuple padding (Rule 46)
+# Combined check for valid output dimension - tuple padding (Rule 46)
 
 rule_46 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 4, And(Select(v["arg1_shape"], 2) + Select(v["arg2_values"], 2) + Select(v["arg2_values"], 3) >= 0, Select(v["arg1_shape"], 3) + Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1) >= 0), False)) if n else
-          If(v["arg1_ndim"] == 4, And(Select(v["arg1_shape"], 2) + Select(v["arg2_values"], 2) + Select(v["arg2_values"], 3) >= 0, Select(v["arg1_shape"], 3) + Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1) >= 0), False))
+    s.add(Not(Or((And(And(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 1) + Select(v["arg2_values"], 2) + Select(v["arg2_values"], 3) >= 0), Select(v["arg1_shape"], 2) + Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1) >= 0)), (And(And(v["arg1_ndim"] == 4, Select(v["arg1_shape"], 2) + Select(v["arg2_values"], 2) + Select(v["arg2_values"], 3) >= 0), Select(v["arg1_shape"], 3) + Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1) >= 0)))) if n else
+          Or((And(And(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 1) + Select(v["arg2_values"], 2) + Select(v["arg2_values"], 3) >= 0), Select(v["arg1_shape"], 2) + Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1) >= 0)), (And(And(v["arg1_ndim"] == 4, Select(v["arg1_shape"], 2) + Select(v["arg2_values"], 2) + Select(v["arg2_values"], 3) >= 0), Select(v["arg1_shape"], 3) + Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1) >= 0))))
 )
 
 def rule_46_func(arg1, arg2, solver=None, neg=False):

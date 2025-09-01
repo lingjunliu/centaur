@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# nonlinearity must be tanh or relu (Rule 1)
+# nonlinearity should be either 'tanh' or 'relu' (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_value"] == 13, v["arg1_value"] == 12)) if n else
-          Or(v["arg1_value"] == 13, v["arg1_value"] == 12))
+    s.add(Not(Or(v["arg1_value"] == 12, v["arg1_value"] == 11)) if n else
+          Or(v["arg1_value"] == 12, v["arg1_value"] == 11))
 )
 
 def rule_1_func(arg1, solver=None, neg=False):

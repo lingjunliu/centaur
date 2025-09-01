@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# dimension must be within the valid range for unbind operation (Rule 16)
+# dimension should be a valid index of shape - combined (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(And((0 - v["arg1_ndim"]) <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"])) if n else
-          And((0 - v["arg1_ndim"]) <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"]))
+    s.add(Not(Or((And(v["arg2_value"] >= 0, v["arg2_value"] < v["arg1_ndim"])), (And(v["arg2_value"] < 0, v["arg2_value"] >= (0 - v["arg1_ndim"]))))) if n else
+          Or((And(v["arg2_value"] >= 0, v["arg2_value"] < v["arg1_ndim"])), (And(v["arg2_value"] < 0, v["arg2_value"] >= (0 - v["arg1_ndim"])))))
 )
 
 def rule_16_func(arg1, arg2, solver=None, neg=False):

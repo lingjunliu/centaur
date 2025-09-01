@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The product of the input tensor dimensions must not cause an overflow during storage calculation (Rule 26)
+# Input tensor should not have extremely large dimensions to prevent memory allocation errors (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) * (If(v["arg1_ndim"] > 1, Select(v["arg1_shape"], 1), 1)) * (If(v["arg1_ndim"] > 2, Select(v["arg1_shape"], 2), 1)) < 2000000000) if n else
-          Select(v["arg1_shape"], 0) * (If(v["arg1_ndim"] > 1, Select(v["arg1_shape"], 1), 1)) * (If(v["arg1_ndim"] > 2, Select(v["arg1_shape"], 2), 1)) < 2000000000)
+    s.add(Not(And(And(Select(v["arg1_shape"], 0) < 100000, Select(v["arg1_shape"], 1) < 100000), If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 2) < 100000, True))) if n else
+          And(And(Select(v["arg1_shape"], 0) < 100000, Select(v["arg1_shape"], 1) < 100000), If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 2) < 100000, True)))
 )
 
 def rule_26_func(arg1, solver=None, neg=False):

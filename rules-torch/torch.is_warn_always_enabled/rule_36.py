@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If a list of integers is not empty, then the tensor should have more than 2 dimensions (Rule 36)
+# Tensor and tuple, tensor ndim equals to the len of the tuple (Rule 36)
 
 rule_36 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_length"] > 0, v["arg1_ndim"] > 2, False)) if n else
-          If(v["arg2_length"] > 0, v["arg1_ndim"] > 2, False))
+    s.add(Not(v["arg1_ndim"] == v["arg2_length"]) if n else
+          v["arg1_ndim"] == v["arg2_length"])
 )
 
 def rule_36_func(arg1, arg2, solver=None, neg=False):
@@ -20,7 +20,7 @@ def rule_36_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
 
         # Variable declarations

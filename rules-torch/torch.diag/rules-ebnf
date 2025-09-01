@@ -1,219 +1,75 @@
 >>
-Rule 1 (Input tensor should be 1D or 2D)
+Rule 1 (Input tensor must be 1D or 2D)
 {v_1 : tensor} |= ndim(v_1) = 1 ∨ ndim(v_1) = 2
 >>
-Rule 2 (Output tensor dtype should be compatible with input tensor dtype)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6 else if dtype_(v_1) = 7 then dtype_(v_2) = 7 else if dtype_(v_1) = 8 then dtype_(v_2) = 8
+Rule 2 (Out tensor dtype must match input tensor dtype, if provided)
+{v_1 : tensor, v_3 : tensor} |= if v_3 = true then dtype_(v_1) = dtype_(v_3)
 >>
-Rule 4 (Out tensor should not be float type.)
-{v_2 : tensor} |= dtype_(v_2) ≠ 7 ∧ dtype_(v_2) ≠ 8
+Rule 4 (If input is 1D, its size should not lead to memory overflow when creating a square matrix.)
+{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) * shape(v_1, 0) < 2147483647
 >>
-Rule 5 (if input tensor is complex type, out tensor should be complex type too.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+Rule 5 (If input is 2D, it should not lead to memory overflow.)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 2147483647
 >>
-Rule 8 (Diagonal offset should be within reasonable bounds for a 2D tensor)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then v_2 > (0 - shape(v_1, 0)) ∧ v_2 < shape(v_1,1)
+Rule 11 (Out tensor dtype must match input tensor dtype, if provided and not None)
+{v_1 : tensor, v_3 : tensor} |= if v_3 ≠ false then dtype_(v_1) = dtype_(v_3)
 >>
-Rule 11 (If the input is 1D, the output tensor's first dimension must be large enough.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then shape(v_2, 0) ≥ shape(v_1, 0)
+Rule 12 (diagonal value should be within reasonable bounds compared to input tensor size)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then (v_2 ≥ (0 - shape(v_1, 0)) ∧ v_2 ≤ shape(v_1, 1))
 >>
-Rule 13 (Output tensor's dimension must be 2 if the input tensor's dimension is 1)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then ndim(v_2) = 2
+Rule 14 (If input is 1D, resulting square matrix side should not cause memory overflow)
+{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) < 46340
 >>
-Rule 15 (If input tensor is 2D, the out tensor's dimension has to be 1.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then ndim(v_2) = 1
+Rule 18 (Input tensor must be of floating or integer type)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
 >>
-Rule 17 (if diagonal is not 0 and input is 2D, the output size should be smaller than the maximum dimension of input - corrected syntax)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 ∧ v_2 ≠ 0 then (if shape(v_1, 0) < shape(v_1, 1) then shape(v_1, 0) else shape(v_1, 1)) > 0
+Rule 20 (diagonal must be within valid range)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then v_2 > (0 - shape(v_1, 0)) ∧ v_2 < shape(v_1, 1)
 >>
-Rule 19 (Input and output tensors should have compatible dtypes to avoid casting errors, focusing on Byte)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 1 then dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+Rule 21 (If out is specified, the data type must be compatible.)
+{v_1 : tensor, v_3 : tensor} |= if v_3 ≠ false then (dtype_(v_1) = dtype_(v_3) ∨ (dtype_(v_1) = 9 ∧ dtype_(v_3) = 8) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_3) = 9))
 >>
-Rule 20 (If the input is 2D, the total number of elements should not cause an overflow)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 1000000000
+Rule 22 (If input tensor is complex, out tensor must be complex)
+{v_1 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (v_3 ≠ false ∧ (dtype_(v_3) = 9 ∨ dtype_(v_3) = 10))
 >>
-Rule 21 (For large input tensors, ensure diagonal offset is within reasonable bounds for memory allocation.)
-{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) > 1000 ∧ ndim(v_1) = 2 then v_2 < 1000 ∧ v_2 > -1000
+Rule 23 (Shape of input tensor should not result in excessive memory use)
+{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) < 10000000 else if ndim(v_1) = 2 then shape(v_1, 0) < 30000 ∧ shape(v_1, 1) < 30000
 >>
-Rule 22 (Out tensor should be of integer type, to avoid casting issue.)
-{v_2 : tensor} |= dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 5
+Rule 24 (If input is 1D, the resulting square matrix side should not cause memory overflow. abs() fix.)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then shape(v_1, 0) + max(v_2, 0 - v_2) < 46340
 >>
-Rule 23 (If input is 2D tensor and diagonal is greater than zero, then the first dimension of input tensor should be greater than diagonal)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 ∧ v_2 > 0 then shape(v_1, 0) > v_2
+Rule 31 (out argument, if present, must be of type tensor.)
+{v_3 : tensor ⊎ bool} |= if v_3 ≠ false then true
 >>
-Rule 24 (If input is 2D tensor and diagonal is less than zero, then the second dimension of input tensor should be greater than abs(diagonal))
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 ∧ v_2 < 0 then shape(v_1, 1) > (0 - v_2)
+Rule 34 (out argument, if present, must be of type tensor or be absent)
+{v_3 : tensor ⊎ bool} |= v_3 = false ∨ true
 >>
-Rule 25 (If output is defined, input and output tensors should have same number of elements.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then shape(v_1,0) = shape(v_2,0)
+Rule 38 (out argument, if present, must be of type tensor)
+{v_3 : tensor ⊎ bool} |= v_3 = false ∨ v_3 = true
 >>
-Rule 26 (If input tensor is a boolean tensor, the output tensor also must be a boolean tensor)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0
+Rule 39 (If out tensor is specified, data type should be compatible - refined)
+{v_1 : tensor, v_3 : tensor} |= if v_3 ≠ false then (dtype_(v_1) = dtype_(v_3) ∨ (dtype_(v_1) = 9 ∧ dtype_(v_3) = 10) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_3) = 9) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_3) = 7) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_3) = 8))
 >>
-Rule 27 (The size of the input tensor must be lower than a threshold, to avoid allocation errors)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) < 1000000000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 1000000000
+Rule 47 (If out tensor is specified, data type should be compatible - consider more cases)
+{v_1 : tensor, v_3 : tensor} |= if v_3 ≠ false then (dtype_(v_1) = dtype_(v_3) ∨ (dtype_(v_1) = 9 ∧ dtype_(v_3) = 10) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_3) = 9) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_3) = 7) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_3) = 8) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_3) = 8) ∨ (dtype_(v_1) = 9 ∧ dtype_(v_3) = 7))
 >>
-Rule 28 (Input and output tensors should have the same dtype if `out` is provided)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then dtype_(v_1) = dtype_(v_2)
+Rule 48 (If input tensor is of type Complex, output tensor should be of type complex or castable.)
+{v_1 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then true
 >>
-Rule 30 (if the input tensor is complex, then the output should be too)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+Rule 56 (If out tensor is specified, data type should be compatible. Handle all conversions.)
+{v_1 : tensor, v_3 : tensor} |= if v_3 ≠ false then (dtype_(v_1) = dtype_(v_3) ∨ (dtype_(v_1) = 9 ∧ dtype_(v_3) = 10) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_3) = 9) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_3) = 7) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_3) = 8) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_3) = 8) ∨ (dtype_(v_1) = 9 ∧ dtype_(v_3) = 7) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_3) = 7) ∨ (dtype_(v_1) = 9 ∧ dtype_(v_3) = 8) ∨ (dtype_(v_1) = 1 ∧ dtype_(v_3) = 7) ∨ (dtype_(v_1) = 2 ∧ dtype_(v_3) = 8))
 >>
-Rule 36 (If input tensor is a boolean tensor, and output tensor is not defined, then the API will return a boolean tensor.)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then true
+Rule 60 (If out tensor is specified, data type must be compatible)
+{v_1 : tensor, v_3 : tensor} |= if v_3 ≠ false then (dtype_(v_1) = dtype_(v_3) ∨ (dtype_(v_1) = 9 ∧ dtype_(v_3) = 10) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_3) = 9) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_3) = 7) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_3) = 8) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_3) = 8) ∨ (dtype_(v_1) = 9 ∧ dtype_(v_3) = 8) ∨ (dtype_(v_1) = 1 ∧ dtype_(v_3) = 2) ∨ (dtype_(v_1) = 2 ∧ dtype_(v_3) = 3) ∨ (dtype_(v_1) = 3 ∧ dtype_(v_3) = 4) ∨ (dtype_(v_1) = 4 ∧ dtype_(v_3) = 5))
 >>
-Rule 37 (If the input tensor is larger than some dimension limitations, then returns False to avoid memory allocation error)
-{v_1 : tensor} |= if shape(v_1, 0) > 500000000 then false
+Rule 70 (If out is provided, data type should be compatible)
+{v_1 : tensor, v_3 : tensor} |= if v_3 ≠ false then (dtype_(v_1) = dtype_(v_3) ∨ (dtype_(v_1) = 9 ∧ dtype_(v_3) = 10) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_3) = 9) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_3) = 7) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_3) = 8) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_3) = 8) ∨ (dtype_(v_1) = 9 ∧ dtype_(v_3) = 8))
 >>
-Rule 39 (if input is int type and output is defined, then output type also has to be int type)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5 then dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 5
+Rule 73 (Diagonal offset within dimension bounds for 2D input)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then (0 - shape(v_1, 0) < v_2) ∧ (v_2 < shape(v_1, 1))
 >>
-Rule 40 (If the out tensor is defined, then dimension has to be correct based on the input dimension)
-{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 1 then ndim(v_2) = 2 else if ndim(v_1) = 2 then ndim(v_2) = 1
+Rule 83 (Diagonal must be within valid range for a 2D input tensor.)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then (0 - shape(v_1, 0) < v_2 ∧ v_2 < shape(v_1, 1))
 >>
-Rule 42 (If input tensor's total number of elements are large, return False)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) < 200000000 else if ndim(v_1) = 2 then shape(v_1,0) * shape(v_1, 1) < 40000000
->>
-Rule 43 (The data type of input cannot be string or dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 12
->>
-Rule 44 (If the output tensor has defined, then number of elements has to match)
-{v_1: tensor, v_2 : tensor} |= if ndim(v_2) = 1 then if ndim(v_1) = 2 then shape(v_2,0) = shape(v_1,0)
->>
-Rule 45 (The shape of 1D tensor cannot be zero)
-{v_1: tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) > 0
->>
-Rule 51 (The dimension of the input tensor times a constant should be limited to avoid size calculation overflow.)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 2147483647 else if ndim(v_1) = 1 then shape(v_1, 0) < 2147483647
->>
-Rule 52 (if input tensor is of complex type, the output tensor should not be Byte)
-{v_1 : tensor, v_2: tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) ≠ 1
->>
-Rule 53 (Diagonal value must be smaller than the max value)
-{v_2: int} |= v_2 < 2147483647 ∧ v_2 > -2147483647
->>
-Rule 55 (The tensor's dimension cannot be 0)
-{v_1: tensor} |= ndim(v_1) > 0
->>
-Rule 59 (The product of the tensor size and the diagonal must not cause storage overflow.)
-{v_1: tensor, v_2: int} |= if shape(v_1, 0) > 0 ∧ v_2 > 0 then shape(v_1, 0) * v_2 < 2147483647 else if shape(v_1, 0) > 0 ∧ v_2 < 0 then shape(v_1, 0) * (0-v_2) < 2147483647
->>
-Rule 60 (If input tensor is of floating type, output tensor cannot be of boolean type to prevent casting errors)
-{v_1 : tensor, v_2: tensor} |= if dtype_(v_1) > 5 ∧ dtype_(v_1) < 9 then dtype_(v_2) ≠ 0
->>
-Rule 61 (The dimension of the input tensor should be within the valid range.)
-{v_1 : tensor} |= if ndim(v_1) > 3 then false
->>
-Rule 62 (if input tensor is of complex type, and out tensor is defined, then out tensor should also be complex)
-{v_1 : tensor, v_2: tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
->>
-Rule 63 (The output tensor shape cannot exceed this number to prevent overflow)
-{v_2: tensor} |= if ndim(v_2) = 2 then shape(v_2, 0) * shape(v_2,1) < 2147483647 else if ndim(v_2) = 1 then shape(v_2,0) < 2147483647
->>
-Rule 64 (If the product of the maximum size and diagonal value results in less than zero, returns false to avoid allocation errors.)
-{v_1: tensor, v_2: int} |= if v_2 > 0 then shape(v_1, 0) < 2147483647 / v_2 else if v_2 < 0 then shape(v_1, 0) < 2147483647 / (0 - v_2)
->>
-Rule 65 (if the input tensor is of double type, the output tensor cannot be of boolean or byte type to prevent casting errors)
-{v_1 : tensor, v_2: tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 1
->>
-Rule 66 (The dimension of the input tensor should be within the valid range.)
-{v_1 : tensor} |= ndim(v_1) ≤ 2
->>
-Rule 74 (If diagonal is 0, out tensor and in tensor should have consistent datatype.)
-{v_1: tensor, v_2: tensor, v_3: int} |= if v_3 = 0 then dtype_(v_1) = dtype_(v_2)
->>
-Rule 77 (Output should have consistent datatype.)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6 else if dtype_(v_1) = 7 then dtype_(v_2) = 7 else if dtype_(v_1) = 8 then dtype_(v_2) = 8 else if dtype_(v_1) = 1 then dtype_(v_2) = 1 else if dtype_(v_1) = 2 then dtype_(v_2) = 2 else if dtype_(v_1) = 3 then dtype_(v_2) = 3 else if dtype_(v_1) = 4 then dtype_(v_2) = 4 else if dtype_(v_1) = 5 then dtype_(v_2) = 5 else if dtype_(v_1) = 0 then dtype_(v_2) = 0 else if dtype_(v_1) = 9 then dtype_(v_2) = 9 else if dtype_(v_1) = 10 then dtype_(v_2) = 10
->>
-Rule 78 (For 2D matrix input, if diagonal is defined, then output cannot have empty shape)
-{v_1: tensor, v_2: int} |= if ndim(v_1) = 2 ∧ v_2 > 0 then shape(v_1, 1) > v_2 else if ndim(v_1) = 2 ∧ v_2 < 0 then shape(v_1,0) > (0 - v_2)
->>
-Rule 79 (If dtype of the input is complex, dtype of output cannot be byte, short, int, long.)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4
->>
-Rule 80 (Input dimension has to be in valid range, 1D or 2D)
-{v_1: tensor} |= ndim(v_1) = 1 ∨ ndim(v_1) = 2
->>
-Rule 81 (The product of the shape is lower than the limit for avoid memory allocation)
-{v_1 : tensor} |= if shape(v_1, 0) * shape(v_1, 1) > 500000000 then false
->>
-Rule 82 (Output should have consistent datatype if it is defined)
-{v_1: tensor, v_2: tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) = 6 then dtype_(v_2) = 6 else if dtype_(v_1) = 7 then dtype_(v_2) = 7 else if dtype_(v_1) = 8 then dtype_(v_2) = 8 else if dtype_(v_1) = 1 then dtype_(v_2) = 1 else if dtype_(v_1) = 2 then dtype_(v_2) = 2 else if dtype_(v_1) = 3 then dtype_(v_2) = 3 else if dtype_(v_1) = 4 then dtype_(v_2) = 4 else if dtype_(v_1) = 5 then dtype_(v_2) = 5 else if dtype_(v_1) = 0 then dtype_(v_2) = 0 else if dtype_(v_1) = 9 then dtype_(v_2) = 9 else if dtype_(v_1) = 10 then dtype_(v_2) = 10
->>
-Rule 87 (When a byte tensor is casted to complexdouble, it is invalid.)
-{v_1 : tensor, v_2: tensor} |= if dtype_(v_1) = 1 then dtype_(v_2) ≠ 10
->>
-Rule 88 (If input tensor is an integer tensor and the output tensor is defined, output tensor should not have floating point datatype.)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) > 0 ∧ dtype_(v_1) < 6 then dtype_(v_2) < 6
->>
-Rule 90 (Input cannot have a zero element size.)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 92 (When a byte tensor is casted to complexdouble, it is invalid if out tensor is defined)
-{v_1 : tensor, v_2: tensor} |= if dtype_(v_1) = 1 ∧ ndim(v_2) > 0 then dtype_(v_2) ≠ 10
->>
-Rule 93 (If input tensor is an integer tensor and the output tensor is defined, output tensor should not have floating point datatype.)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) > 0 ∧ dtype_(v_1) < 6 then dtype_(v_2) < 6 ∨ ndim(v_2) = 0
->>
-Rule 94 (The shape must be positive)
-{v_1: tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1,1) > 0
->>
-Rule 95 (If out is double, the input should not be bool to avoid casting)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_2) = 8 then dtype_(v_1) ≠ 0
->>
-Rule 96 (The product of the shape is within a certain range)
-{v_1 : tensor} |= if shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 then shape(v_1, 0) * shape(v_1, 1) < 2147483647
->>
-Rule 99 (If the given diagonal is not zero, the first dimension cannot be zero if it is not zero)
-{v_1: tensor, v_2: int} |= if v_2 ≠ 0 then shape(v_1, 0) > 0
->>
-Rule 101 (Check whether its elements are positive or negative)
-{v_1: tensor} |= (min(v_1) > 0) ∨ (max(v_1) < 0)
->>
-Rule 103 (If there is a float type in input tensor, out tensor also has to be float type)
-{v_1: tensor, v_2 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
->>
-Rule 105 (All dimensions have to be positive)
-{v_1: tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) > 0 else if ndim(v_1) = 2 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
->>
-Rule 106 (The product of the shape of input tensor should be less than the limited value)
-{v_1 : tensor} |= if shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 then shape(v_1, 0) * shape(v_1, 1) < 100000000
->>
-Rule 107 (When a tensor whose element size is zero is casted to a tensor, it is invalid.)
-{v_1 : tensor, v_2: tensor} |= if shape(v_1, 0) = 0 ∨ shape(v_1, 1) = 0 then dtype_(v_2) ≠ 10
->>
-Rule 108 (Input cannot have large value to trigger overflow error)
-{v_1: tensor} |= max(v_1) < 100000000 ∧ min(v_1) > -100000000
->>
-Rule 109 (When diagonal parameter is larger than the first dimension, then return False.)
-{v_1: tensor, v_2: int} |= if shape(v_1, 0) > 0 ∧ v_2 > shape(v_1, 0) then false
->>
-Rule 110 (Input cannot have a String value)
-{v_1: tensor} |= dtype_(v_1) ≠ 11
->>
-Rule 112 (When the tensor's element size is zero, they will have different dtype. Otherwise, it could have different datatype)
-{v_1 : tensor, v_2: tensor} |= if shape(v_1, 0) = 0 ∨ shape(v_1, 1) = 0 then dtype_(v_1) ≠ dtype_(v_2)
->>
-Rule 113 (If the input has a large value, it is invalid.)
-{v_1: tensor} |= max(v_1) < 100000000
->>
-Rule 114 (When diagonal parameter is smaller than 0, the second dimension has to be positive)
-{v_1: tensor, v_2: int} |= if v_2 < 0 then shape(v_1, 1) > 0
->>
-Rule 115 (If output and input are defined, and the number of elements are not correct, the function returns false)
-{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 1 then shape(v_1, 0) = shape(v_2,0)
->>
-Rule 116 (The product of the shape dimensions can cause overflow)
-{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1,0) < 100000 ∧ shape(v_1,1) < 100000
->>
-Rule 117 (If input tensor is byte and if out tensor is defined, then the out tensor cannot have float type)
-{v_1 : tensor, v_2: tensor} |= if dtype_(v_1) = 1 ∧ ndim(v_2) > 0 then dtype_(v_2) ≠ 6 ∧ dtype_(v_2) ≠ 7 ∧ dtype_(v_2) ≠ 8
->>
-Rule 118 (if the tensor is complex type, then out tensor has to be defined)
-{v_1:tensor, v_2: tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ndim(v_2) > 0
->>
-Rule 119 (If the input tensor's type is double, then out tensor's type cannot be complex number)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10
->>
-Rule 120 (The size of output tensor has to be positive.)
-{v_2: tensor} |= shape(v_2, 0) > 0
+Rule 100 (If an out-tensor is provided, it should have a compatible dtype with that of the input tensor.)
+{v_1 : tensor, v_3 : tensor} |= if v_3 ≠ false then (dtype_(v_1) = dtype_(v_3) ∨ (dtype_(v_1) = 9 ∧ dtype_(v_3) = 10) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_3) = 9) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_3) = 7) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_3) = 8) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_3) = 8) ∨ (dtype_(v_1) = 9 ∧ dtype_(v_3) = 8) ∨ (dtype_(v_1) = 1 ∧ dtype_(v_3) = 2))

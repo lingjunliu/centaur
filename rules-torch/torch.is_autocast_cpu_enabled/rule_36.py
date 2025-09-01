@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# torch.is_autocast_cpu_enabled: The boolean return should be the result of comparing a string to a constant. (Rule 36)
+# Autocast is enabled only if certain dtypes are used (Rule 36)
 
 rule_36 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] == (v["arg2_value"] == 10)) if n else
-          v["arg1_value"] == (v["arg2_value"] == 10))
+    s.add(Not(If(v["arg1_value"], (Or(Or(v["arg2_value"] == 6, v["arg2_value"] == 7), v["arg2_value"] == 8)), True)) if n else
+          If(v["arg1_value"], (Or(Or(v["arg2_value"] == 6, v["arg2_value"] == 7), v["arg2_value"] == 8)), True))
 )
 
 def rule_36_func(arg1, arg2, solver=None, neg=False):
@@ -20,17 +20,17 @@ def rule_36_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, bool):
             return False
-        if not isinstance(arg2, str):
+        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = Bool('arg1_value')
-        arg2_value = String('arg2_value')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
         solver.add(arg1_value == arg1)
-        solver.add(arg2_value == list_of_string_values_torch.index(arg2))
+        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
 
         # Constraints for rule 36
         rule_36(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})

@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# start + length must not exceed the dimension size (Rule 3)
+# start + length must not exceed the size of the dimension (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
     s.add(Not(v["arg3_value"] + v["arg4_value"] <= Select(v["arg1_shape"], v["arg2_value"])) if n else

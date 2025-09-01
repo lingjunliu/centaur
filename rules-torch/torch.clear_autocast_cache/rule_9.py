@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# A float variable must be non-negative (Rule 9)
+# Checking that a data type is not bfloat16 when autocast is disabled (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] >= 0.0) if n else
-          v["arg1_value"] >= 0.0)
+    s.add(Not(If(is_autocast_enabled == False, v["arg1_value"] != bfloat16, True)) if n else
+          If(is_autocast_enabled == False, v["arg1_value"] != bfloat16, True))
 )
 
 def rule_9_func(arg1, solver=None, neg=False):
@@ -17,15 +17,15 @@ def rule_9_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
+        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
+        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
 
         # Constraints for rule 9
         rule_9(solver, {'arg1_value': arg1_value})

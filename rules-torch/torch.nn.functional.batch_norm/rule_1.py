@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# running_mean should have a specified number of elements (Rule 1)
+# running_mean should have a positive number of elements (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) == 3) if n else
-          Select(v["arg1_shape"], 0) == 3)
+    s.add(Not(Select(v["arg1_shape"], 0) > 0) if n else
+          Select(v["arg1_shape"], 0) > 0)
 )
 
 def rule_1_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the input tensor's dtype is float, then the output dtype can only be float (Rule 33)
+# If dtype is explicitly given, then the output tensor will have that dtype. (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(If(And(6 <= v["arg1_dtype"], v["arg1_dtype"] < 9), And(6 <= v["arg2_value"], v["arg2_value"] < 9), False)) if n else
-          If(And(6 <= v["arg1_dtype"], v["arg1_dtype"] < 9), And(6 <= v["arg2_value"], v["arg2_value"] < 9), False))
+    s.add(Not(If(v["arg2_value"] != 0, v["arg2_value"] == v["arg1_dtype"], True)) if n else
+          If(v["arg2_value"] != 0, v["arg2_value"] == v["arg1_dtype"], True))
 )
 
 def rule_33_func(arg1, arg2, solver=None, neg=False):

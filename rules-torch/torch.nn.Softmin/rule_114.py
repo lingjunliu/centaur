@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# This checks if the value, is a dtype is not an int (Rule 114)
+# Ensuring all positive numbers, not bool tensor (Rule 114)
 
 rule_114 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(And(v["arg1_value"] != 1, v["arg1_value"] != 2), v["arg1_value"] != 3), v["arg1_value"] != 4), v["arg1_value"] != 5)) if n else
-          And(And(And(And(v["arg1_value"] != 1, v["arg1_value"] != 2), v["arg1_value"] != 3), v["arg1_value"] != 4), v["arg1_value"] != 5))
+    s.add(Not(Select(v["arg1_range"], 0) > 0) if n else
+          Select(v["arg1_range"], 0) > 0)
 )
 
 def rule_114_func(arg1, solver=None, neg=False):
@@ -17,20 +17,21 @@ def rule_114_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 114
-        rule_114(solver, {'arg1_value': arg1_value})
+        rule_114(solver, {'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_114(solver, {'arg1_value': arg1['value']}, neg)
+        rule_114(solver, {'arg1_range': arg1['range']}, neg)

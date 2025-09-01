@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if dtype is complex requires_grad has to be false for device (Rule 102)
+# Given there's a * operator, check for floating tensors for input and given dtype (Rule 102)
 
 rule_102 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_value"] >= 10, v["arg1_value"] <= 11), v["arg2_value"] == False, False)) if n else
-          If(And(v["arg1_value"] >= 10, v["arg1_value"] <= 11), v["arg2_value"] == False, False))
+    s.add(Not((If(v["arg2_value"] == 0, (And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)), (And(6 <= v["arg2_value"], v["arg2_value"] <= 8))))) if n else
+          (If(v["arg2_value"] == 0, (And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)), (And(6 <= v["arg2_value"], v["arg2_value"] <= 8)))))
 )
 
 def rule_102_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,24 @@ def rule_102_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
+        if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, bool):
+        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_value = Bool('arg2_value')
+        arg1_dtype = Int('arg1_dtype')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
-        solver.add(arg2_value == arg2)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
 
         # Constraints for rule 102
-        rule_102(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_102(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_102(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_102(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if approximate argument is a string, it should be either "none" or "tanh" (Rule 11)
+# approximate argument is in the allowed list (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 6, True, If(v["arg1_value"] == 13, True, False))) if n else
-          If(v["arg1_value"] == 6, True, If(v["arg1_value"] == 13, True, False)))
+    s.add(Not(Or((v["arg1_value"] == 6), (v["arg1_value"] == 12))) if n else
+          Or((v["arg1_value"] == 6), (v["arg1_value"] == 12)))
 )
 
 def rule_11_func(arg1, solver=None, neg=False):

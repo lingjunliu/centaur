@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# check that tensor is not boolean and is complex64 or complex128 (Rule 27)
+# Input must be a tensor with a complex dtype, and not of dtype "dtype" (Rule 27)
 
 rule_27 = lambda s, v, n=False: (
-    s.add(Not(And((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), v["arg1_dtype"] != 0)) if n else
-          And((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), v["arg1_dtype"] != 0))
+    s.add(Not(And((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), v["arg1_dtype"] != 12)) if n else
+          And((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), v["arg1_dtype"] != 12))
 )
 
 def rule_27_func(arg1, solver=None, neg=False):

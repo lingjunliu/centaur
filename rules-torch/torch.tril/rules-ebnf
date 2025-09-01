@@ -2,98 +2,104 @@
 Rule 1 (input tensor must have at least 2 dimensions)
 {v_1 : tensor} |= ndim(v_1) ≥ 2
 >>
-Rule 2 (out tensor should have the same dtype as input tensor)
+Rule 2 (out tensor must have the same dtype as input tensor)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 4 (input tensor must have positive shape dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 6 (out tensor must have the same shape as input tensor)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_2, 1)
 >>
-Rule 10 (check that out has same dimensions as input)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Rule 8 (if out is given, out tensor must have the same dtype as input tensor)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 14 (out tensor has the same shape as input tensor)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 9 (if out is given, out tensor must have the same shape as input tensor)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_2, 1)
 >>
-Rule 15 (if input is float16, out should be float16)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6
+Rule 11 (if out is given, out tensor must have the same dtype as input tensor if out is not none)
+{v_1 : tensor, v_2 : tensor} |= if v_2 = v_2 then (if ndim(v_2) > 0 then dtype_(v_1) = dtype_(v_2))
 >>
-Rule 16 (if input is float32, out should be float32)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7
+Rule 12 (if out is given, out tensor must have the same shape as input tensor if out is not none)
+{v_1 : tensor, v_2 : tensor} |= if v_2 = v_2 then (if ndim(v_2) > 0 then shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_2, 1))
 >>
-Rule 19 (check if input and output tensor have compatible dtypes - float64 case)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) = 8
+Rule 15 (if out is given, out tensor must have the same shape as input tensor)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)))
 >>
-Rule 24 (out tensor should have floating point dtype if input is floating point)
-{v_1 : tensor, v_2 : tensor} |= if 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8 then 6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8
+Rule 17 (if out is given, and input and out are not the same tensor, out tensor must have the same dtype as input tensor)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_2) > 0) ∧ (v_1 ≠ v_2) then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 29 (if input dtype is complex, the out dtype should be complex too)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+Rule 18 (if out is given, and input and out are not the same tensor, out tensor must have the same shape as input tensor)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_2) > 0) ∧ (v_1 ≠ v_2) then (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)))
 >>
-Rule 30 (out tensor has same shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 32 (if out is given and is a different tensor, and input is float type, then out tensor must have a float type as well)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_2) > 0) ∧ (v_1 ≠ v_2) then if ((dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)) then ((dtype_(v_2) = 6) ∨ (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8))
 >>
-Rule 31 (if input is bool, output is bool)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0
+Rule 35 (if out is given and is a different tensor, and input is float type, then out tensor must have a float type as well)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_2) > 0) ∧ (v_1 ≠ v_2) then (if ((dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)) then ((dtype_(v_2) = 6) ∨ (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8)))
 >>
-Rule 34 (If input is int type, output should also be int type)
-{v_1 : tensor, v_2 : tensor} |= if 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5 then 1 <= dtype_(v_2) ∧ dtype_(v_2) <= 5
+Rule 41 (if out is given and the dtypes do not match, then raise an error if input is floating and output is not)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if ((dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)) then ((dtype_(v_2) = 6) ∨ (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8))
 >>
-Rule 36 (if input is complex64, out must be complex64)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 9 then dtype_(v_2) = 9
+Rule 42 (if diagonal is given, it must be representable as an int32)
+{v_1 : int} |= -2147483648 ≤ v_1 ∧ v_1 ≤ 2147483647
 >>
-Rule 45 (If the input is uint8, then the output must also be uint8)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 5 then dtype_(v_2) = 5
+Rule 43 (if the input has fewer than 2 dimensions, it should not have negative shape dimensions)
+{v_1 : tensor} |= if ndim(v_1) < 2 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 50 (if input is complex128, out must be complex128)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 10
+Rule 46 (if the input has fewer than 2 dimensions, ensure each shape dimension is positive)
+{v_1 : tensor} |= if ndim(v_1) < 2 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 54 (if input tensor is int8, out tensor should be int8)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 then dtype_(v_2) = 1
+Rule 47 (if out is given and is a different tensor, if input is floating point and the out is not, and the input and output dtypes are compatible, then no error)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_2) > 0) ∧ (v_1 ≠ v_2) then if ((dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)) then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
 >>
-Rule 55 (input tensor must be a matrix)
-{v_1 : tensor} |= ndim(v_1) = 2
+Rule 48 (if diagonal is given, check that it doesn't overflow when performing operations)
+{v_1 : int, v_2 : tensor} |= if ndim(v_2) > 0 then v_1 < 2147483647 ∧ v_1 > -2147483647
 >>
-Rule 56 (If out is given, the number of dimensions must be at least 2)
-{v_1 : tensor} |= ndim(v_1) >= 2
+Rule 49 (if the input has fewer than 2 dimensions, ensure each shape dimension is positive)
+{v_1 : tensor} |= if ndim(v_1) < 2 then (ndim(v_1) = 0 ∨ (ndim(v_1) > 0 ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)))
 >>
-Rule 59 (if input is bool type, then output should be bool type)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0
+Rule 54 (if diagonal is given, it must fit in the shape of input's dimensions)
+{v_1 : int, v_2 : tensor} |= if ndim(v_2) >= 2 then v_1 < (if shape(v_2, 0) < shape(v_2, 1) then shape(v_2, 0) else shape(v_2, 1))
 >>
-Rule 60 (If input is complex64, then out must be complex64)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 then dtype_(v_2) = 9
+Rule 55 (if the input has fewer than 2 dimensions, ensure positive shape or 0 dimension tensor)
+{v_1 : tensor} |= if ndim(v_1) < 2 then ((ndim(v_1) = 0) ∨ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0))
 >>
-Rule 69 (if input tensor is int16, out tensor should be int16)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 2 then dtype_(v_2) = 2
+Rule 58 (Check input dimension and positive shape, combined)
+{v_1 : tensor} |= (ndim(v_1) >= 2) ∨ ((ndim(v_1) = 0) ∨ (∀i ∈ [0, if ndim(v_1) > 0 then ndim(v_1) - 1 else 0] : shape(v_1, i) > 0))
 >>
-Rule 71 (input and output tensors should have same dimensions)
-{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2)
+Rule 60 (Diagonal range validation)
+{v_1 : int, v_2 : tensor} |= if ndim(v_2) >= 2 then v_1 < (if shape(v_2,0) < shape(v_2,1) then shape(v_2,0) else shape(v_2,1))
 >>
-Rule 76 (If input tensor has dimension 2)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+Rule 61 (Combined check for input dimensions and shape positivity)
+{v_1 : tensor} |= (ndim(v_1) >= 2) ∨ ((ndim(v_1) = 0) ∨ (∀i ∈ [0, (if ndim(v_1) > 0 then (ndim(v_1) - 1) else 0)] : shape(v_1, i) > 0))
 >>
-Rule 84 (if input tensor's dtype is float, out tensor's dtype should also be float)
-{v_1 : tensor, v_2 : tensor} |= if 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8 then 6 <= dtype_(v_2) ∧ dtype_(v_2) <= 8
+Rule 63 (Diagonal within valid range, if input is at least 2D)
+{v_1 : int, v_2 : tensor} |= if ndim(v_2) >= 2 then v_1 < (if shape(v_2, 0) < shape(v_2, 1) then shape(v_2, 0) else shape(v_2, 1)) ∧ v_1 > (-1 * (if shape(v_2, 0) < shape(v_2, 1) then shape(v_2, 0) else shape(v_2, 1)))
 >>
-Rule 85 (Input tensor has positive dimensions)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 64 (Combined check: input is 2D+ OR is 0D or (is 1D and positive shape))
+{v_1 : tensor} |= (ndim(v_1) ≥ 2) ∨ ((ndim(v_1) = 0) ∨ (ndim(v_1) = 1 ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)))
 >>
-Rule 99 (if input is np.float32, out should be np.float32)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7
+Rule 65 (If out is given, ensure float dtype for both, or not floating point)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_2) > 0) ∧ (v_1 ≠ v_2) then (((dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)) = ((dtype_(v_2) = 6) ∨ (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8)))
 >>
-Rule 100 (if input and output tensors given, they must have the same shape)
-{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 67 (Correct dimensions and shape for input)
+{v_1 : tensor} |= (ndim(v_1) >= 2) ∨ ((ndim(v_1) = 0) ∨ (ndim(v_1) = 1 ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)))
 >>
-Rule 101 (If input tensor is a matrix)
-{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+Rule 69 (Diagonal should be between negative and positive dimension size of the smallest dimension when input is 2D or more)
+{v_1 : int, v_2 : tensor} |= if ndim(v_2) >= 2 then ((-1 * (if shape(v_2,0) < shape(v_2,1) then shape(v_2,0) else shape(v_2,1))) < v_1 ∧ v_1 < (if shape(v_2,0) < shape(v_2,1) then shape(v_2,0) else shape(v_2,1)))
 >>
-Rule 106 (If input tensor is int64 (4), then the output tensor should also be int64 (4))
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 4 then dtype_(v_2) = 4
+Rule 70 (Dimensions and Shape)
+{v_1 : tensor} |= (ndim(v_1) >= 2) ∨ ((ndim(v_1) = 0) ∨ (ndim(v_1) = 1 ∧ (∀i ∈ [0, (if ndim(v_1) > 0 then (ndim(v_1) - 1) else 0)] : shape(v_1, i) > 0)))
 >>
-Rule 119 (If the input tensor is complex (9-10), then the output tensor must also be complex (9-10))
-{v_1 : tensor, v_2 : tensor} |= if 9 <= dtype_(v_1) ∧ dtype_(v_1) <= 10 then 9 <= dtype_(v_2) ∧ dtype_(v_2) <= 10
+Rule 78 (If input is 2D, diagonal range is bounded by shape)
+{v_1 : int, v_2 : tensor} |= if ndim(v_2) >= 2 then (-1 * shape(v_2, 0) < v_1 ∧ v_1 < shape(v_2, 0)) ∧ (-1 * shape(v_2, 1) < v_1 ∧ v_1 < shape(v_2, 1))
 >>
-Rule 125 (Input and output tensors must have same shape)
-{v_1: tensor, v_2: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 88 (Dimension & Shape check for input)
+{v_1 : tensor} |= (ndim(v_1) >= 2) ∨ ((ndim(v_1) = 0) ∨ (∃i ∈ [0, (if ndim(v_1) > 0 then (ndim(v_1) - 1) else 0)] : shape(v_1, i) > 0))
 >>
-Rule 126 (Check that the diagonal value is correct when the input is 2D)
-{v_1: tensor, v_2: int} |= if ndim(v_1) = 2 then shape(v_1, 1) > v_2 ∧ v_2 > (0 - shape(v_1,0))
+Rule 91 (Valid dimensions and shape, alternative formulation with quantifiers)
+{v_1 : tensor} |= (ndim(v_1) >= 2) ∨ ((ndim(v_1) < 2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0))
+>>
+Rule 92 (Floating-point type consistency between input and output tensors)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_2) > 0) ∧ (v_1 ≠ v_2) then ((((dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)) ∧ ((dtype_(v_2) = 6) ∨ (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8))) ∨ (((dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)) = false ∧ ((dtype_(v_2) = 6) ∨ (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8)) = false))
+>>
+Rule 94 (Dimension and Shape constraints)
+{v_1 : tensor} |= (ndim(v_1) >= 2) ∨ ((ndim(v_1) = 0) ∨ (ndim(v_1) = 1 ∧ (∃i ∈ [0, (if ndim(v_1) > 0 then (ndim(v_1) - 1) else 0)] : shape(v_1, i) > 0)))

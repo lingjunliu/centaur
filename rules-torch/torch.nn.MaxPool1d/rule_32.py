@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check tensor shape and parameters such that output size will not be too small (Rule 32)
+# Number of dimensions of kernel_size, stride, padding and dilation should match when they are tuples (Rule 32)
 
 rule_32 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 2) + 2 * v["arg3_value"] > v["arg4_value"] * (v["arg2_value"] - 1)) if n else
-          Select(v["arg1_shape"], 2) + 2 * v["arg3_value"] > v["arg4_value"] * (v["arg2_value"] - 1))
+    s.add(Not(And(And(v["arg1_length"] == v["arg2_length"], v["arg1_length"] == v["arg3_length"]), v["arg1_length"] == v["arg4_length"])) if n else
+          And(And(v["arg1_length"] == v["arg2_length"], v["arg1_length"] == v["arg3_length"]), v["arg1_length"] == v["arg4_length"]))
 )
 
 def rule_32_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
@@ -20,33 +20,32 @@ def rule_32_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
-        if not (isinstance(arg3, (int, np.integer)) and not isinstance(arg3, bool)):
+        if not (isinstance(arg3, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg3)):
             return False
-        if not (isinstance(arg4, (int, np.integer)) and not isinstance(arg4, bool)):
+        if not (isinstance(arg4, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg4)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_value = Int('arg2_value')
-        arg3_value = Int('arg3_value')
-        arg4_value = Int('arg4_value')
+        arg1_length = Int('arg1_length')
+        arg2_length = Int('arg2_length')
+        arg3_length = Int('arg3_length')
+        arg4_length = Int('arg4_length')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_value == int(arg2))
-        solver.add(arg3_value == int(arg3))
-        solver.add(arg4_value == int(arg4))
+        solver.add(arg1_length == len(arg1))
+        solver.add(arg2_length == len(arg2))
+        solver.add(arg3_length == len(arg3))
+        solver.add(arg4_length == len(arg4))
 
         # Constraints for rule 32
-        rule_32(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value, 'arg3_value': arg3_value, 'arg4_value': arg4_value})
+        rule_32(solver, {'arg1_length': arg1_length, 'arg2_length': arg2_length, 'arg3_length': arg3_length, 'arg4_length': arg4_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_32(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value'], 'arg4_value': arg4['value']}, neg)
+        rule_32(solver, {'arg1_length': arg1['length'], 'arg2_length': arg2['length'], 'arg3_length': arg3['length'], 'arg4_length': arg4['length']}, neg)

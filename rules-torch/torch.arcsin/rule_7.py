@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input tensor is complex, then the output tensor must also be complex (Rule 7)
+# input tensor's dtype cannot be a type that would cause the arcsin result to be cast to a smaller type in the output tensor (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), False)) if n else
-          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), False))
+    s.add(Not(If(v["arg2_dtype"] == 1, And(And(And(v["arg1_dtype"] != 7, v["arg1_dtype"] != 8), v["arg1_dtype"] != 9), v["arg1_dtype"] != 10), True)) if n else
+          If(v["arg2_dtype"] == 1, And(And(And(v["arg1_dtype"] != 7, v["arg1_dtype"] != 8), v["arg1_dtype"] != 9), v["arg1_dtype"] != 10), True))
 )
 
 def rule_7_func(arg1, arg2, solver=None, neg=False):

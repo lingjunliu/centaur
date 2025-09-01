@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# blank value is non-negative (Rule 45)
+# blank must be int32 when using CuDNN (Rule 45)
 
 rule_45 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] >= 0) if n else
-          v["arg1_value"] >= 0)
+    s.add(Not(v["arg1_value"] < 2147483647) if n else
+          v["arg1_value"] < 2147483647)
 )
 
 def rule_45_func(arg1, solver=None, neg=False):

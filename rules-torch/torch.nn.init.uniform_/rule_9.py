@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check a and b are not NaN or Inf (Rule 9)
+# lower bound must be less than upper bound to a reasonable degree (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] == v["arg1_value"], v["arg2_value"] == v["arg2_value"])) if n else
-          And(v["arg1_value"] == v["arg1_value"], v["arg2_value"] == v["arg2_value"]))
+    s.add(Not(v["arg2_value"] - v["arg1_value"] > 1e-10) if n else
+          v["arg2_value"] - v["arg1_value"] > 1e-10)
 )
 
 def rule_9_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Seed must be an integer and within range [-2^63, (2^64 (Rule 36)
+# Seed is valid: either in range or remappable to range (Rule 36)
 
 rule_36 = lambda s, v, n=False: (
-    s.add(Not((And(v["arg1_value"] >= -9223372036854775808, v["arg1_value"] <= 18446744073709551615))) if n else
-          (And(v["arg1_value"] >= -9223372036854775808, v["arg1_value"] <= 18446744073709551615)))
+    s.add(Not(If(v["arg1_value"] < 0, And((v["arg1_value"] + 18446744073709551616) >= 0, (v["arg1_value"] + 18446744073709551616) <= 18446744073709551615), And(v["arg1_value"] >= -9223372036854775808, v["arg1_value"] <= 18446744073709551615))) if n else
+          If(v["arg1_value"] < 0, And((v["arg1_value"] + 18446744073709551616) >= 0, (v["arg1_value"] + 18446744073709551616) <= 18446744073709551615), And(v["arg1_value"] >= -9223372036854775808, v["arg1_value"] <= 18446744073709551615)))
 )
 
 def rule_36_func(arg1, solver=None, neg=False):

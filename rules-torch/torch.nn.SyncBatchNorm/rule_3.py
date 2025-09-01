@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# momentum must be a float between 0 and 1, or None, which we represent with -1 (Rule 3)
+# momentum should be a float between 0 and 1 inclusive (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(Or((And(v["arg1_value"] >= 0, v["arg1_value"] <= 1)), v["arg1_value"] == -1)) if n else
-          Or((And(v["arg1_value"] >= 0, v["arg1_value"] <= 1)), v["arg1_value"] == -1))
+    s.add(Not(And(v["arg1_value"] >= 0, v["arg1_value"] <= 1)) if n else
+          And(v["arg1_value"] >= 0, v["arg1_value"] <= 1))
 )
 
 def rule_3_func(arg1, solver=None, neg=False):

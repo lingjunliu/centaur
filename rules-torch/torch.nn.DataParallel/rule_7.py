@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# batch size should be larger than the number of GPUs (Rule 7)
+# output_device should be less than the length of device_ids (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) > v["arg2_length"]) if n else
-          Select(v["arg1_shape"], 0) > v["arg2_length"])
+    s.add(Not(v["arg2_value"] < v["arg1_length"]) if n else
+          v["arg2_value"] < v["arg1_length"])
 )
 
 def rule_7_func(arg1, arg2, solver=None, neg=False):
@@ -18,25 +18,24 @@ def rule_7_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
-        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_length = Int('arg2_length')
+        arg1_length = Int('arg1_length')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_length == len(arg2))
+        solver.add(arg1_length == len(arg1))
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 7
-        rule_7(solver, {'arg1_shape': arg1_shape, 'arg2_length': arg2_length})
+        rule_7(solver, {'arg1_length': arg1_length, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_7(solver, {'arg1_shape': arg1['shape'], 'arg2_length': arg2['length']}, neg)
+        rule_7(solver, {'arg1_length': arg1['length'], 'arg2_value': arg2['value']}, neg)

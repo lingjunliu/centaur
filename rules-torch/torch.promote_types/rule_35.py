@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If type2 is float16, type1 must be float16, float32, float64, complex64, or complex128 (Rule 35)
+# If both types are dtype and at least one of them is custom, the other must also be custom (Rule 35)
 
 rule_35 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == 6, Or(Or(Or(Or(v["arg1_value"] == 6, v["arg1_value"] == 7), v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10), False)) if n else
-          If(v["arg2_value"] == 6, Or(Or(Or(Or(v["arg1_value"] == 6, v["arg1_value"] == 7), v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10), False))
+    s.add(Not(If(v["arg1_value"] == 12, v["arg2_value"] == 12, If(v["arg2_value"] == 12, v["arg1_value"] == 12, True))) if n else
+          If(v["arg1_value"] == 12, v["arg2_value"] == 12, If(v["arg2_value"] == 12, v["arg1_value"] == 12, True)))
 )
 
 def rule_35_func(arg1, arg2, solver=None, neg=False):

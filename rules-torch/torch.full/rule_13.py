@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# size must have a reasonable length (Rule 13)
+# If out tensor is specified, its dtype must be a float if fill_value is a float (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_length"] < 20) if n else
-          v["arg1_length"] < 20)
+    s.add(Not(If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), True, False)) if n else
+          If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), True, False))
 )
 
 def rule_13_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_13_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 13
-        rule_13(solver, {'arg1_length': arg1_length})
+        rule_13(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_13(solver, {'arg1_length': arg1['length']}, neg)
+        rule_13(solver, {'arg1_dtype': arg1['dtype']}, neg)

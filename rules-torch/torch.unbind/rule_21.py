@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The shape of the tensor along the dimension to unbind must be greater than zero to avoid an empty tensor (Rule 21)
+# Shape of the tensor at given dimension should be greater than 0 (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] < 0, Select(v["arg1_shape"], v["arg1_ndim"] + v["arg2_value"]) > 0, Select(v["arg1_shape"], v["arg2_value"]) > 0)) if n else
-          If(v["arg2_value"] < 0, Select(v["arg1_shape"], v["arg1_ndim"] + v["arg2_value"]) > 0, Select(v["arg1_shape"], v["arg2_value"]) > 0))
+    s.add(Not(If(v["arg2_value"] >= 0, Select(v["arg1_shape"], v["arg2_value"]) > 0, Select(v["arg1_shape"], v["arg1_ndim"] + v["arg2_value"]) > 0)) if n else
+          If(v["arg2_value"] >= 0, Select(v["arg1_shape"], v["arg2_value"]) > 0, Select(v["arg1_shape"], v["arg1_ndim"] + v["arg2_value"]) > 0))
 )
 
 def rule_21_func(arg1, arg2, solver=None, neg=False):
@@ -36,9 +36,9 @@ def rule_21_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 21
-        rule_21(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_21(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_21(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_21(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input dtype must be a member of [float16, float32, float64] (Rule 5)
+# dtype is float (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(Or([And(i < (8 + 1), v["arg1_value"] == i) for i in range(6)])) if n else
-          Or([And(i < (8 + 1), v["arg1_value"] == i) for i in range(6)]))
+    s.add(Not(And(v["arg1_value"] > 5, v["arg1_value"] < 9)) if n else
+          And(v["arg1_value"] > 5, v["arg1_value"] < 9))
 )
 
 def rule_5_func(arg1, solver=None, neg=False):

@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Deprecated reduce must be a boolean (Rule 9)
+# size_average must be a boolean value (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
     s.add(Not(Or(v["arg1_value"] == True, v["arg1_value"] == False)) if n else

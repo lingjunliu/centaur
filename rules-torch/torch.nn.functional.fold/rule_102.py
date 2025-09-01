@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check Kernel has dimensions of 2 when in tuple format, and is non zero (Rule 102)
+# kernel_size values should be different (Rule 102)
 
 rule_102 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_values"], 0) > 0, Select(v["arg1_values"], 1) > 0)) if n else
-          And(Select(v["arg1_values"], 0) > 0, Select(v["arg1_values"], 1) > 0))
+    s.add(Not(Select(v["arg1_values"], 0) != Select(v["arg1_values"], 1)) if n else
+          Select(v["arg1_values"], 0) != Select(v["arg1_values"], 1))
 )
 
 def rule_102_func(arg1, solver=None, neg=False):

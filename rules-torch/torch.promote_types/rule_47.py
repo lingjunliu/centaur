@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If type2 is bool, then type1 must not be str (Rule 47)
+# If type2 is complex128, type1 should not be int8, int16, int32, int64, uint8, float16, float32 (Rule 47)
 
 rule_47 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == 0, v["arg1_value"] != 11, False)) if n else
-          If(v["arg2_value"] == 0, v["arg1_value"] != 11, False))
+    s.add(Not(If(v["arg2_value"] == 10, (And(And(And(And(And(And(v["arg1_value"] != 1, v["arg1_value"] != 2), v["arg1_value"] != 3), v["arg1_value"] != 4), v["arg1_value"] != 5), v["arg1_value"] != 6), v["arg1_value"] != 7)), True)) if n else
+          If(v["arg2_value"] == 10, (And(And(And(And(And(And(v["arg1_value"] != 1, v["arg1_value"] != 2), v["arg1_value"] != 3), v["arg1_value"] != 4), v["arg1_value"] != 5), v["arg1_value"] != 6), v["arg1_value"] != 7)), True))
 )
 
 def rule_47_func(arg1, arg2, solver=None, neg=False):

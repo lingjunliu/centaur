@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input_size and hidden_size cannot be equal to prevent zero-size tensors (Rule 29)
+# If dropout is not zero, num_layers should be greater than 1 (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] != v["arg2_value"]) if n else
-          v["arg1_value"] != v["arg2_value"])
+    s.add(Not(If(v["arg1_value"] > 0, v["arg2_value"] > 1, True)) if n else
+          If(v["arg1_value"] > 0, v["arg2_value"] > 1, True))
 )
 
 def rule_29_func(arg1, arg2, solver=None, neg=False):
@@ -18,18 +18,18 @@ def rule_29_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not isinstance(arg1, (float, np.floating)):
             return False
         if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_value = Real('arg1_value')
         arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
+        solver.add(arg1_value == arg1)
         solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 29

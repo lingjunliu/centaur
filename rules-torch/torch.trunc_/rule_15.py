@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If dtype is complex, return false. (Rule 15)
+# Input tensor must have a supported dtype (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), False, False)) if n else
-          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), False, False))
+    s.add(Not(And(And((v["arg1_dtype"] != 0), (v["arg1_dtype"] != 9)), (v["arg1_dtype"] != 10))) if n else
+          And(And((v["arg1_dtype"] != 0), (v["arg1_dtype"] != 9)), (v["arg1_dtype"] != 10)))
 )
 
 def rule_15_func(arg1, solver=None, neg=False):

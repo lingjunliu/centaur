@@ -5,38 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Shape of input tensor at dimension 1, representing the channel dimension, should be equal to num_features (Rule 8)
+# Ensure eps is not too large or small for numerical stability (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 1) == v["arg2_value"]) if n else
-          Select(v["arg1_shape"], 1) == v["arg2_value"])
+    s.add(Not(And(v["arg1_value"] < 1.0, v["arg1_value"] > 1e-10)) if n else
+          And(v["arg1_value"] < 1.0, v["arg1_value"] > 1e-10))
 )
 
-def rule_8_func(arg1, arg2, solver=None, neg=False):
+def rule_8_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
-            return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg1, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_value = Int('arg2_value')
+        arg1_value = Real('arg1_value')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 8
-        rule_8(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_8(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_8(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_8(solver, {'arg1_value': arg1['value']}, neg)

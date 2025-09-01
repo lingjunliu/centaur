@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The input tensor should not be a boolean tensor (Rule 6)
+# input tensor must not be bool, int, float, or string type (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 0) if n else
-          v["arg1_dtype"] != 0)
+    s.add(Not(And(And(And(And(And(And(And(And(And(v["arg1_dtype"] != 0, v["arg1_dtype"] != 1), v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5), v["arg1_dtype"] != 6), v["arg1_dtype"] != 7), v["arg1_dtype"] != 8), v["arg1_dtype"] != 11)) if n else
+          And(And(And(And(And(And(And(And(And(v["arg1_dtype"] != 0, v["arg1_dtype"] != 1), v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5), v["arg1_dtype"] != 6), v["arg1_dtype"] != 7), v["arg1_dtype"] != 8), v["arg1_dtype"] != 11))
 )
 
 def rule_6_func(arg1, solver=None, neg=False):

@@ -1,75 +1,120 @@
 >>
-Rule 1 (out must be a tensor)
-{v_2 : tensor} |= ndim(v_2) ≥ 0
+Rule 2 (result type ComplexDouble can't be cast to the desired output type Bool, input should not be bool if out is bool)
+{input : tensor, out : tensor} |= if dtype_(input) = 0 then dtype_(out) ≠ 0
 >>
-Rule 2 (ComplexDouble input cannot be cast to Bool output)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 10) ∧ (dtype_(v_2) = 0)  ∨ (dtype_(v_1) ≠ 10)
+Rule 3 (The input tensor should not be of boolean type when out is not specified to avoid type errors)
+{input : tensor} |= dtype_(input) ≠ 0
 >>
-Rule 3 (out must be a tensor, not other types such as int, float, str, bool)
-{v_2 : dtype} |= v_2 ≠ 1 ∧ v_2 ≠ 2 ∧ v_2 ≠ 3 ∧ v_2 ≠ 4 ∧ v_2 ≠ 5 ∧ v_2 ≠ 6 ∧ v_2 ≠ 7 ∧ v_2 ≠ 8 ∧ v_2 ≠ 9 ∧ v_2 ≠ 10 ∧ v_2 ≠ 11 ∧ v_2 ≠ 12
+Rule 7 (If the output tensor is provided, its shape must be the same as the input tensor's shape)
+{input : tensor, out : tensor} |= ndim(input) = ndim(out) ∧ ∀i ∈ [0, ndim(input) - 1] : shape(input, i) = shape(out, i)
 >>
-Rule 4 (If input is ComplexDouble, out should also be ComplexDouble or Complex128)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 10 ∨ dtype_(v_2) = 11
+Rule 8 (The input tensor's dtype cannot be boolean if an output tensor with a non-floating point dtype is specified)
+{input : tensor, out : tensor} |= if dtype_(out) = 0 then dtype_(input) ≠ 0
 >>
-Rule 5 (out must be a tensor)
-{v_2 : tensor ⊎ int ⊎ float ⊎ bool ⊎ str ⊎ list(int) ⊎ tuple(int)} |= dtype_(v_2) = 0 ∨ dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11
+Rule 9 (The elements of the input tensor must be non-negative to ensure that log2 computation is valid)
+{input : tensor} |= min(input) ≥ 0
 >>
-Rule 6 (If input is ComplexDouble, out should also be ComplexDouble or Complex128)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 10 ∨ dtype_(v_2) = 11 ∨ dtype_(v_1) ≠ 10
+Rule 11 (If the input is complex, the output must also be complex)
+{input : tensor, out : tensor} |= if (dtype_(input) = 9) ∨ (dtype_(input) = 10) then (dtype_(out) = 9) ∨ (dtype_(out) = 10)
 >>
-Rule 8 (If input is ComplexDouble, out cannot be Bool)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) ≠ 0
+Rule 12 (Out tensor should be of floating point or complex type.)
+{out : tensor} |= (dtype_(out) = 6) ∨ (dtype_(out) = 7) ∨ (dtype_(out) = 8) ∨ (dtype_(out) = 9) ∨ (dtype_(out) = 10)
 >>
-Rule 9 (out must be a Tensor)
-{v_2 : tensor ⊎ int ⊎ float ⊎ bool ⊎ str} |= dtype_(v_2) = 0 ∨ dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11
+Rule 14 (If the input is complex, the output should have the same complex type.)
+{input : tensor, out : tensor} |= if (dtype_(input) = 9) then (dtype_(out) = 9) else if (dtype_(input) = 10) then (dtype_(out) = 10)
 >>
-Rule 14 (out must be a Tensor and have a compatible dtype with input that allows log2 calculation)
-{v_2 : tensor} |= dtype_(v_2) ≠ 0
+Rule 15 (If an output tensor is specified, it cannot be of boolean type)
+{out : tensor} |= dtype_(out) ≠ 0
 >>
-Rule 19 (out tensor must have a dtype compatible with log2 calculation, disallowing Bool)
-{v_2 : tensor} |= dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 1
+Rule 19 (If the input is complex, the output must also be complex, and if the input is real, the output must be real.)
+{input : tensor, out : tensor} |= if (dtype_(input) = 9) ∨ (dtype_(input) = 10) then (dtype_(out) = 9) ∨ (dtype_(out) = 10) else if (dtype_(input) = 6) ∨ (dtype_(input) = 7) ∨ (dtype_(input) = 8) then (dtype_(out) = 6) ∨ (dtype_(out) = 7) ∨ (dtype_(out) = 8)
 >>
-Rule 20 (If input is not complex, the output shouldnt be complex)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ 10 then dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11
+Rule 26 (If `out` is provided, the output dtype should be at least as precise as input dtype)
+{input : tensor, out : tensor} |= if (dtype_(input) = 1) ∨ (dtype_(input) = 2) ∨ (dtype_(input) = 3) ∨ (dtype_(input) = 4) ∨ (dtype_(input) = 5) then (dtype_(out) = 6) ∨ (dtype_(out) = 7) ∨ (dtype_(out) = 8) ∨ (dtype_(out) = 9) ∨ (dtype_(out) = 10)
 >>
-Rule 22 (out tensor must have a dtype compatible with log2 calculation, disallowing Bool and String)
-{v_2 : tensor} |= dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 11
+Rule 28 (The input tensor's dtype must be numerical (not boolean or string))
+{input : tensor} |= dtype_(input) ≠ 0 ∧ dtype_(input) ≠ 11
 >>
-Rule 23 (If input is not complex, the output shouldnt be complex)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 10 ∨ dtype_(v_1) > 11 then dtype_(v_2) < 10 ∨ dtype_(v_2) > 11
+Rule 32 (If out tensor is provided, its dtype must be at least as precise as input. Also if input is int, out must be float/complex.)
+{input : tensor, out : tensor} |= if (dtype_(input) = 1) ∨ (dtype_(input) = 2) ∨ (dtype_(input) = 3) ∨ (dtype_(input) = 4) ∨ (dtype_(input) = 5) then (dtype_(out) = 6) ∨ (dtype_(out) = 7) ∨ (dtype_(out) = 8) ∨ (dtype_(out) = 9) ∨ (dtype_(out) = 10) else if (dtype_(input) = 6) ∨ (dtype_(input) = 7) ∨ (dtype_(input) = 8) then (dtype_(out) = 6) ∨ (dtype_(out) = 7) ∨ (dtype_(out) = 8) else if (dtype_(input) = 9) ∨ (dtype_(input) = 10) then (dtype_(out) = 9) ∨ (dtype_(out) = 10)
 >>
-Rule 24 (Input tensor can't have boolean dtype, since bool is not compatible with log2)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 35 (If `out` is provided, then its dtype must be a floating point or complex type, and if input is complex then output must be too)
+{input : tensor, out : tensor} |= if (dtype_(input) = 9) ∨ (dtype_(input) = 10) then (dtype_(out) = 9) ∨ (dtype_(out) = 10) else (dtype_(out) = 6) ∨ (dtype_(out) = 7) ∨ (dtype_(out) = 8) ∨ (dtype_(out) = 9) ∨ (dtype_(out) = 10)
 >>
-Rule 28 (Input tensor must be a numeric type, and cannot be bool or str.)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 11
+Rule 37 (The input must have a numerical dtype and the elements must be non-negative)
+{input : tensor} |= dtype_(input) ≠ 0 ∧ dtype_(input) ≠ 11 ∧ min(input) >= 0
 >>
-Rule 29 (The output tensor, if specified, must be a tensor with a valid dtype (cannot be bool or string) and be compatible to the input)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 11 ∧ (if dtype_(v_1) = 10 then dtype_(v_2) = 10 ∨ dtype_(v_2) = 11)
+Rule 40 (The input tensor must have a numerical dtype (i.e., not boolean or string) and its elements must be non-negative)
+{input : tensor} |= dtype_(input) ≠ 0 ∧ dtype_(input) ≠ 11 ∧ min(input) ≥ 0
 >>
-Rule 30 (If input is ComplexDouble, out must be ComplexDouble or Complex128, otherwise input and output tensors must have compatible dtypes)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 10 ∨ dtype_(v_2) = 11 else (dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 11 ∧ dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 11)
+Rule 44 (If an `out` tensor is provided, its dtype must be a floating point or complex dtype and the type should be the same or more precise than the input)
+{input : tensor, out : tensor} |= (dtype_(out) = 6) ∨ (dtype_(out) = 7) ∨ (dtype_(out) = 8) ∨ (dtype_(out) = 9) ∨ (dtype_(out) = 10) ∧ if (dtype_(input) = 9) ∨ (dtype_(input) = 10) then (dtype_(out) = 9) ∨ (dtype_(out) = 10) else if (dtype_(input) = 1) ∨ (dtype_(input) = 2) ∨ (dtype_(input) = 3) ∨ (dtype_(input) = 4) ∨ (dtype_(input) = 5) then (dtype_(out) = 6) ∨ (dtype_(out) = 7) ∨ (dtype_(out) = 8) ∨ (dtype_(out) = 9) ∨ (dtype_(out) = 10)
 >>
-Rule 37 (if input tensor is complex, then output tensor must also be complex)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 10 ∨ dtype_(v_2) = 11 else if dtype_(v_1) = 11 then dtype_(v_2) = 10 ∨ dtype_(v_2) = 11
+Rule 47 (If an `out` tensor is provided, its dtype must be at least as precise as that of the `input` tensor and appropriate for storing log2 values.)
+{input : tensor, out : tensor} |= if (dtype_(input) = 1) ∨ (dtype_(input) = 2) ∨ (dtype_(input) = 3) ∨ (dtype_(input) = 4) ∨ (dtype_(input) = 5) then (dtype_(out) = 6) ∨ (dtype_(out) = 7) ∨ (dtype_(out) = 8) ∨ (dtype_(out) = 9) ∨ (dtype_(out) = 10) else if (dtype_(input) = 6) ∨ (dtype_(input) = 7) ∨ (dtype_(input) = 8) then (dtype_(out) = 6) ∨ (dtype_(out) = 7) ∨ (dtype_(out) = 8) ∨ (dtype_(out) = 9) ∨ (dtype_(out) = 10) else if (dtype_(input) = 9) ∨ (dtype_(input) = 10) then (dtype_(out) = 9) ∨ (dtype_(out) = 10)
 >>
-Rule 46 (If input tensor is complex, then output tensor must also be complex)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_2) = 10 ∨ dtype_(v_2) = 11
+Rule 49 (The input tensor must have a numerical (not boolean or string) dtype and must contain non-negative values. If minimum value check cannot be performed then tensor should not be empty.)
+{input : tensor} |= dtype_(input) ≠ 0 ∧ dtype_(input) ≠ 11 ∧ ( (min(input) ≥ 0) ∨ (∃i ∈ [0, ndim(input) - 1] : shape(input, i) = 0))
 >>
-Rule 49 (If input tensor is complex, then output tensor must also be complex, also if it is an integer, the result tensor must be an integer)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_2) = 10 ∨ dtype_(v_2) = 11 else if dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5 then dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 5
+Rule 51 (If an `out` tensor is specified, its shape must be the same as the `input` tensor and it is a tensor.)
+{input : tensor, out : tensor} |= ndim(input) = ndim(out) ∧ ∀i ∈ [0, ndim(input) - 1] : shape(input, i) = shape(out, i) ∧ ndim(out) > 0
 >>
-Rule 53 (If input tensor is complex, then output tensor must also be complex; otherwise, the dtypes of input and output tensors must be compatible such that log2 operation is valid.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_2) = 10 ∨ dtype_(v_2) = 11 else (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 9 ∧ dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 9)
+Rule 52 (The input tensor must have a numerical (not boolean or string) dtype and must contain non-negative values. If min cannot be performed, tensor should not be empty.)
+{input : tensor} |= dtype_(input) ≠ 0 ∧ dtype_(input) ≠ 11 ∧ ((∃i ∈ [0, ndim(input) - 1] : shape(input, i) = 0) ∨ min(input) ≥ 0)
 >>
-Rule 55 (The output tensor needs to have compatible dtypes. If the input is an integer, then the output must also be an integer.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5 then dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 5 else if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_2) = 10 ∨ dtype_(v_2) = 11
+Rule 56 (If an `out` tensor is provided, its dtype must be float or complex. If the input's dtype is int, then `out` must be float or complex)
+{input : tensor, out : tensor} |= (dtype_(out) = 6) ∨ (dtype_(out) = 7) ∨ (dtype_(out) = 8) ∨ (dtype_(out) = 9) ∨ (dtype_(out) = 10) ∧ if (dtype_(input) = 1) ∨ (dtype_(input) = 2) ∨ (dtype_(input) = 3) ∨ (dtype_(input) = 4) ∨ (dtype_(input) = 5) then (dtype_(out) = 6) ∨ (dtype_(out) = 7) ∨ (dtype_(out) = 8) ∨ (dtype_(out) = 9) ∨ (dtype_(out) = 10)
 >>
-Rule 61 (If the input tensor is of complex dtype, the out tensor must also be complex dtype, if input tensor is real, then the out tensor has to be also real)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_2) = 10 ∨ dtype_(v_2) = 11 else if dtype_(v_1) < 10 then dtype_(v_2) < 10
+Rule 57 (If the input is complex, and an `out` tensor is specified, `out` must also be complex and its shape must match the input)
+{input : tensor, out : tensor} |= if (dtype_(input) = 9) ∨ (dtype_(input) = 10) then (dtype_(out) = 9) ∨ (dtype_(out) = 10) ∧ ndim(input) = ndim(out) ∧ ∀i ∈ [0, ndim(input) - 1] : shape(input, i) = shape(out, i)
 >>
-Rule 64 (The output dtype should be compatible with the input dtype of the log2 operation. If the input is a float, then output must be a float. If the input is an integer, then out has to be an integer.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 else if dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5 then dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 5 else if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_2) = 10 ∨ dtype_(v_2) = 11
+Rule 59 (If the input dtype is an integer, the `out` dtype must be floating point or complex. Also, if `out` is given, its type must be floating point or complex)
+{input : tensor, out : tensor} |= (dtype_(out) = 6) ∨ (dtype_(out) = 7) ∨ (dtype_(out) = 8) ∨ (dtype_(out) = 9) ∨ (dtype_(out) = 10) ∧ (if (dtype_(input) = 1) ∨ (dtype_(input) = 2) ∨ (dtype_(input) = 3) ∨ (dtype_(input) = 4) ∨ (dtype_(input) = 5) then (dtype_(out) = 6) ∨ (dtype_(out) = 7) ∨ (dtype_(out) = 8) ∨ (dtype_(out) = 9) ∨ (dtype_(out) = 10))
 >>
-Rule 70 (The dtype of out tensor has to be aligned with the input tensor, regarding floating, integer, and complex types)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_2) = 10 ∨ dtype_(v_2) = 11 else if dtype_(v_1) > 5 ∧ dtype_(v_1) < 10 then dtype_(v_2) > 5 ∧ dtype_(v_2) < 10 else if dtype_(v_1) > 0 ∧ dtype_(v_1) < 6 then dtype_(v_2) > 0 ∧ dtype_(v_2) < 6
+Rule 60 (If the input tensor is complex and an out tensor is given then, out has to be complex, the output must have same dimensions and shape as input and out must be a tensor)
+{input : tensor, out : tensor} |= (if (dtype_(input) = 9) ∨ (dtype_(input) = 10) then (dtype_(out) = 9) ∨ (dtype_(out) = 10)) ∧ ndim(input) = ndim(out) ∧ ∀i ∈ [0, ndim(input) - 1] : shape(input, i) = shape(out, i) ∧ ndim(out) > 0
+>>
+Rule 61 (The input tensor must have a numerical dtype (not boolean or string), and its elements must be non-negative. If the tensor is empty or its minimum cannot be determined, this check is skipped.)
+{input : tensor} |= dtype_(input) ≠ 0 ∧ dtype_(input) ≠ 11 ∧ ((∃i ∈ [0, ndim(input) - 1] : shape(input, i) = 0) ∨ (∃v ∈ [0, 1000] : min(input) ≥ 0))
+>>
+Rule 62 (If an out tensor is given, its dtype must be floating point or complex and its shape must be same as that of input. If the input type is integer then out should be float or complex.)
+{input : tensor, out : tensor} |= ndim(input) = ndim(out) ∧ ∀i ∈ [0, ndim(input) - 1] : shape(input, i) = shape(out, i) ∧ (dtype_(out) = 6 ∨ dtype_(out) = 7 ∨ dtype_(out) = 8 ∨ dtype_(out) = 9 ∨ dtype_(out) = 10) ∧ (if (dtype_(input) = 1) ∨ (dtype_(input) = 2) ∨ (dtype_(input) = 3) ∨ (dtype_(input) = 4) ∨ (dtype_(input) = 5) then (dtype_(out) = 6) ∨ (dtype_(out) = 7) ∨ (dtype_(out) = 8) ∨ (dtype_(out) = 9) ∨ (dtype_(out) = 10))
+>>
+Rule 63 (If the input tensor is complex and an out tensor is given then, out has to be complex, the output must have same dimensions and shape as input and out must be a tensor)
+{input : tensor, out : tensor} |= (if (dtype_(input) = 9) ∨ (dtype_(input) = 10) then (dtype_(out) = 9) ∨ (dtype_(out) = 10)) ∧ ndim(out) > 0
+>>
+Rule 64 (Input must be numerical and non-negative. Skip min if the shape makes it impossible to compute, so function does not throw an error)
+{input : tensor} |= dtype_(input) ≠ 0 ∧ dtype_(input) ≠ 11 ∧ ((∃i ∈ [0, ndim(input) - 1] : shape(input, i) = 0) ∨ (dtype_(input) = 9) ∨ (dtype_(input) = 10) ∨ (min(input) ≥ 0))
+>>
+Rule 66 (If `out` is a tensor and input is a complex number, then out also needs to be a complex number. Dimensions and shape of input and out have to be identical)
+{input : tensor, out : tensor} |= (if (dtype_(input) = 9) ∨ (dtype_(input) = 10) then (dtype_(out) = 9) ∨ (dtype_(out) = 10)) ∧ ndim(input) = ndim(out) ∧ ∀i ∈ [0, ndim(input) - 1] : shape(input, i) = shape(out, i)
+>>
+Rule 68 (If the input is a complex tensor then the output, if provided, must also be complex and If `out` is given, its type must be floating point or complex)
+{input : tensor, out : tensor} |= (if (dtype_(input) = 9) ∨ (dtype_(input) = 10) then (dtype_(out) = 9) ∨ (dtype_(out) = 10)) ∧ (dtype_(out) = 6 ∨ dtype_(out) = 7 ∨ dtype_(out) = 8 ∨ dtype_(out) = 9 ∨ dtype_(out) = 10)
+>>
+Rule 71 (If an out tensor is provided, it has to be of floating or complex type and if the input type is integer then out type has to be float or complex)
+{input : tensor, out : tensor} |= (dtype_(out) = 6 ∨ dtype_(out) = 7 ∨ dtype_(out) = 8 ∨ dtype_(out) = 9 ∨ dtype_(out) = 10) ∧ (if (dtype_(input) = 1) ∨ (dtype_(input) = 2) ∨ (dtype_(input) = 3) ∨ (dtype_(input) = 4) ∨ (dtype_(input) = 5) then (dtype_(out) = 6) ∨ (dtype_(out) = 7) ∨ (dtype_(out) = 8) ∨ (dtype_(out) = 9) ∨ (dtype_(out) = 10))
+>>
+Rule 72 (If input is a complex tensor and an out tensor is given then, the out tensor must be complex and its dimensions must be the same)
+{input : tensor, out : tensor} |= (if (dtype_(input) = 9) ∨ (dtype_(input) = 10) then (dtype_(out) = 9) ∨ (dtype_(out) = 10)) ∧ ndim(input) = ndim(out)
+>>
+Rule 73 (The input tensor must be numerical (not boolean or string). Furthermore, elements must be non-negative or the tensor cannot be empty)
+{input : tensor} |= dtype_(input) ≠ 0 ∧ dtype_(input) ≠ 11 ∧ ((∃i ∈ [0, ndim(input) - 1] : shape(input, i) = 0) ∨ (dtype_(input) = 6) ∨ (dtype_(input) = 7) ∨ (dtype_(input) = 8) ∨ (dtype_(input) = 9) ∨ (dtype_(input) = 10) ∨ (min(input) ≥ 0))
+>>
+Rule 77 (If an `out` tensor is specified then: must be floating/complex & If input is complex, then out must be complex.Also Input tensor and Out tensor must have same shape)
+{input : tensor, out : tensor} |= (ndim(input) = ndim(out) ∧ ∀i ∈ [0, ndim(input) - 1] : shape(input, i) = shape(out, i)) ∧ (if (dtype_(input) = 9) ∨ (dtype_(input) = 10) then (dtype_(out) = 9) ∨ (dtype_(out) = 10) else (dtype_(out) = 6) ∨ (dtype_(out) = 7) ∨ (dtype_(out) = 8) ∨ (dtype_(out) = 9) ∨ (dtype_(out) = 10) )
+>>
+Rule 83 (If an `out` tensor is specified then its dtype must be a floating point or complex. Furthermore: if the input tensor's data type is an integer, then the data type of the `out` tensor has to be a floating-point or complex. Also if input is complex, output should also be complex)
+{input : tensor, out : tensor} |= (dtype_(out) = 6 ∨ dtype_(out) = 7 ∨ dtype_(out) = 8 ∨ dtype_(out) = 9 ∨ dtype_(out) = 10) ∧ (if (dtype_(input) = 1) ∨ (dtype_(input) = 2) ∨ (dtype_(input) = 3) ∨ (dtype_(input) = 4) ∨ (dtype_(input) = 5) then (dtype_(out) = 6) ∨ (dtype_(out) = 7) ∨ (dtype_(out) = 8) ∨ (dtype_(out) = 9) ∨ (dtype_(out) = 10) else (if (dtype_(input) = 9) ∨ (dtype_(input) = 10) then (dtype_(out) = 9) ∨ (dtype_(out) = 10)))
+>>
+Rule 85 (Input has to be numerical (not boolean or string), with elements that are non-negative; if input is not empty, it should satisfy that)
+{input : tensor} |= dtype_(input) ≠ 0 ∧ dtype_(input) ≠ 11 ∧ ((∃i ∈ [0, ndim(input) - 1] : shape(input, i) = 0) ∨ (min(input) ≥ 0))
+>>
+Rule 86 (If out is specified, check dtype :  has to be floating/complex; and if input is an integer, then out's dtype has to be floating/complex. If input is complex, then out's dtype has to be complex)
+{input : tensor, out : tensor} |= (if (dtype_(input) = 1) ∨ (dtype_(input) = 2) ∨ (dtype_(input) = 3) ∨ (dtype_(input) = 4) ∨ (dtype_(input) = 5) then (dtype_(out) = 6) ∨ (dtype_(out) = 7) ∨ (dtype_(out) = 8) ∨ (dtype_(out) = 9) ∨ (dtype_(out) = 10) else (if (dtype_(input) = 9) ∨ (dtype_(input) = 10) then (dtype_(out) = 9) ∨ (dtype_(out) = 10) else (dtype_(out) = 6) ∨ (dtype_(out) = 7) ∨ (dtype_(out) = 8) ∨ (dtype_(out) = 9) ∨ (dtype_(out) = 10) ))
+>>
+Rule 89 (`out` needs to be float/complex, must have same shape of input. Further, if input is an integer, then `out` has to be float or complex, and if input is complex, `out` also needs to be complex.)
+{input : tensor, out : tensor} |= (ndim(input) = ndim(out) ∧ ∀i ∈ [0, ndim(input) - 1] : shape(input, i) = shape(out, i)) ∧ (if (dtype_(input) = 1) ∨ (dtype_(input) = 2) ∨ (dtype_(input) = 3) ∨ (dtype_(input) = 4) ∨ (dtype_(input) = 5) then (dtype_(out) = 6) ∨ (dtype_(out) = 7) ∨ (dtype_(out) = 8) ∨ (dtype_(out) = 9) ∨ (dtype_(out) = 10) else (if (dtype_(input) = 9) ∨ (dtype_(input) = 10) then (dtype_(out) = 9) ∨ (dtype_(out) = 10) else ((dtype_(out) = 6) ∨ (dtype_(out) = 7) ∨ (dtype_(out) = 8) ∨ (dtype_(out) = 9) ∨ (dtype_(out) = 10))))
+>>
+Rule 92 (If output exists: the output needs to be of tensor type; it must have a floating/complex data type. The data type of the input needs to have an effect on the data type of the out; also the output shape must be same as input.)
+{input : tensor, out : tensor} |= (if (dtype_(input) = 1) ∨ (dtype_(input) = 2) ∨ (dtype_(input) = 3) ∨ (dtype_(input) = 4) ∨ (dtype_(input) = 5) then (dtype_(out) = 6) ∨ (dtype_(out) = 7) ∨ (dtype_(out) = 8) ∨ (dtype_(out) = 9) ∨ (dtype_(out) = 10) else (if (dtype_(input) = 9) ∨ (dtype_(input) = 10) then (dtype_(out) = 9) ∨ (dtype_(out) = 10) else ((dtype_(out) = 6) ∨ (dtype_(out) = 7) ∨ (dtype_(out) = 8) ∨ (dtype_(out) = 9) ∨ (dtype_(out) = 10)))) ∧ ndim(input) = ndim(out) ∧ ∀i ∈ [0, ndim(input) - 1] : shape(input, i) = shape(out, i)

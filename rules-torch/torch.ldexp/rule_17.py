@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input and output dtypes must be compatible (Rule 17)
+# If out tensor is provided, its dtype should be compatible with input (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_dtype"] == 7), (Or((v["arg2_dtype"] == 7), (v["arg2_dtype"] == 8))), If((v["arg1_dtype"] == 8), (Or((v["arg2_dtype"] == 7), (v["arg2_dtype"] == 8))), If((v["arg1_dtype"] == 9), (Or((v["arg2_dtype"] == 9), (v["arg2_dtype"] == 10))), If((v["arg1_dtype"] == 10), (Or((v["arg2_dtype"] == 9), (v["arg2_dtype"] == 10))), v["arg1_dtype"] == v["arg2_dtype"]))))) if n else
-          If((v["arg1_dtype"] == 7), (Or((v["arg2_dtype"] == 7), (v["arg2_dtype"] == 8))), If((v["arg1_dtype"] == 8), (Or((v["arg2_dtype"] == 7), (v["arg2_dtype"] == 8))), If((v["arg1_dtype"] == 9), (Or((v["arg2_dtype"] == 9), (v["arg2_dtype"] == 10))), If((v["arg1_dtype"] == 10), (Or((v["arg2_dtype"] == 9), (v["arg2_dtype"] == 10))), v["arg1_dtype"] == v["arg2_dtype"])))))
+    s.add(Not(Or(Or(Or(Or(v["arg1_dtype"] == v["arg2_dtype"], (And(v["arg1_dtype"] == 6, v["arg2_dtype"] == 6))), (And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7))), (And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8))), (And(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9)))) if n else
+          Or(Or(Or(Or(v["arg1_dtype"] == v["arg2_dtype"], (And(v["arg1_dtype"] == 6, v["arg2_dtype"] == 6))), (And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7))), (And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8))), (And(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9))))
 )
 
 def rule_17_func(arg1, arg2, solver=None, neg=False):

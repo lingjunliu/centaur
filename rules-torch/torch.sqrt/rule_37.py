@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the out tensor is provided, then if the input tensor's dtype is float16, float32 or float64 and all input values are non-negative, then the output tensor's dtype is not int8 or int16. (Rule 37)
+# If the 'out' tensor is provided, its dtype must be a valid type to cast the result of the square root, with following conditions: (Rule 37)
 
 rule_37 = lambda s, v, n=False: (
-    s.add(Not(If(And((Or(Or((v["arg1_dtype"] == 7), (v["arg1_dtype"] == 8)), (v["arg1_dtype"] == 9))), (Select(v["arg1_range"], 0) >= 0)), And((v["arg2_dtype"] != 1), (v["arg2_dtype"] != 2)), False)) if n else
-          If(And((Or(Or((v["arg1_dtype"] == 7), (v["arg1_dtype"] == 8)), (v["arg1_dtype"] == 9))), (Select(v["arg1_range"], 0) >= 0)), And((v["arg2_dtype"] != 1), (v["arg2_dtype"] != 2)), False))
+    s.add(Not(If(And(And(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), 6 <= v["arg2_dtype"]), v["arg2_dtype"] <= 8), Select(v["arg1_range"], 0) >= 0, If(And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8), v["arg1_dtype"] <= v["arg2_dtype"], If(And(9 <= v["arg2_dtype"], v["arg2_dtype"] <= 10), v["arg1_dtype"] <= v["arg2_dtype"], If(Or(Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4), v["arg2_dtype"] == 5), True, False))))) if n else
+          If(And(And(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), 6 <= v["arg2_dtype"]), v["arg2_dtype"] <= 8), Select(v["arg1_range"], 0) >= 0, If(And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8), v["arg1_dtype"] <= v["arg2_dtype"], If(And(9 <= v["arg2_dtype"], v["arg2_dtype"] <= 10), v["arg1_dtype"] <= v["arg2_dtype"], If(Or(Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4), v["arg2_dtype"] == 5), True, False)))))
 )
 
 def rule_37_func(arg1, arg2, solver=None, neg=False):

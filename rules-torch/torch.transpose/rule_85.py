@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if the abs value is greater or equal to ndim will cause exception, use a or condition, try with all conditions using a (Rule 85)
+# Tensor needs at least two dimensions when either dim0 or dim1 are selected. (Rule 85)
 
 rule_85 = lambda s, v, n=False: (
-    s.add(Not(And(((If(v["arg2_value"] < 0, (0 - v["arg2_value"]), v["arg2_value"])) < v["arg1_ndim"]), ((If(v["arg3_value"] < 0, (0 - v["arg3_value"]), v["arg3_value"])) < v["arg1_ndim"]))) if n else
-          And(((If(v["arg2_value"] < 0, (0 - v["arg2_value"]), v["arg2_value"])) < v["arg1_ndim"]), ((If(v["arg3_value"] < 0, (0 - v["arg3_value"]), v["arg3_value"])) < v["arg1_ndim"])))
+    s.add(Not(If((Or(Or(Or(v["arg2_value"] == 0, v["arg2_value"] == 1), v["arg3_value"] == 0), v["arg3_value"] == 1)), v["arg1_ndim"] >= 2, True)) if n else
+          If((Or(Or(Or(v["arg2_value"] == 0, v["arg2_value"] == 1), v["arg3_value"] == 0), v["arg3_value"] == 1)), v["arg1_ndim"] >= 2, True))
 )
 
 def rule_85_func(arg1, arg2, arg3, solver=None, neg=False):

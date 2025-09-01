@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# After broadcasting, at least one of the tensors must have float or complex dtype (Rule 42)
+# If at least one of x1 or x2 is of floating point type, then both must be of floating point type (Rule 42)
 
 rule_42 = lambda s, v, n=False: (
-    s.add(Not(Or((And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 11)), (And(v["arg2_dtype"] >= 6, v["arg2_dtype"] <= 11)))) if n else
-          Or((And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 11)), (And(v["arg2_dtype"] >= 6, v["arg2_dtype"] <= 11))))
+    s.add(Not(If(Or((Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9)), (Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9))), And((Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9)), (Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9))), True)) if n else
+          If(Or((Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9)), (Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9))), And((Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9)), (Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9))), True))
 )
 
 def rule_42_func(arg1, arg2, solver=None, neg=False):

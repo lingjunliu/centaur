@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Only float and integer dtypes are allowed (Rule 32)
+# If the input is Bool, raise an error; else, if it is complex, raise an error. (Rule 32)
 
 rule_32 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] < 1, v["arg1_dtype"] > 8), False, False)) if n else
-          If(Or(v["arg1_dtype"] < 1, v["arg1_dtype"] > 8), False, False))
+    s.add(Not(If(v["arg1_dtype"] == 0, False, If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), False, True))) if n else
+          If(v["arg1_dtype"] == 0, False, If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), False, True)))
 )
 
 def rule_32_func(arg1, solver=None, neg=False):

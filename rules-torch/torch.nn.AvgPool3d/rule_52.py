@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Padding is non-negative (Rule 52)
+# Ensure divisor_override is within reasonable range (Rule 52)
 
 rule_52 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] >= 0) if n else
-          v["arg1_value"] >= 0)
+    s.add(Not(v["arg1_value"] < 10000) if n else
+          v["arg1_value"] < 10000)
 )
 
 def rule_52_func(arg1, solver=None, neg=False):

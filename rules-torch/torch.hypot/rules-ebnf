@@ -1,141 +1,99 @@
 >>
-Rule 1 (input and other tensors must have the same number of dimensions for broadcasting)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Rule 2 (The output tensor must be a tensor)
+{v_3 : tensor} |= ndim(v_3) ≥ 0
 >>
-Rule 3 (input and out tensors should have compatible dtypes to prevent casting errors)
-{v_1 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_3)
+Rule 4 (The input and other tensors must have the same size for element-wise operation if not broadcastable)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 4 (input and other tensors must have the same dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 5 (The input and other tensors must have broadcastable shapes - simplified)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∨ (shape(v_1, 0) = shape(v_2, 0) ∨ shape(v_1, 0) = 1 ∨ shape(v_2, 0) = 1)
 >>
-Rule 5 (input tensor dimension should be positive)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 6 (The output tensor must be a tensor, check its dimension)
+{v_3 : tensor} |= ndim(v_3) > 0
 >>
-Rule 6 (other tensor dimension should be positive)
-{v_2 : tensor} |= ndim(v_2) > 0
+Rule 9 (The input and other tensors must have broadcastable shapes - simplified)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∨ shape(v_1, 0) = shape(v_2, 0) ∨ shape(v_1, 0) = 1 ∨ shape(v_2, 0) = 1
 >>
-Rule 13 (If out tensor is provided, it must have a floating point or complex dtype)
-{v_3 : tensor} |= dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 9 ∨ dtype_(v_3) = 10
+Rule 11 (The input and output tensors should have compatible data types, v1 complex, then v3 must be complex)
+{v_1 : tensor, v_3 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_3) = 10 ∨ dtype_(v_3) = 11
 >>
-Rule 14 (Input tensor cannot have boolean dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 16 (Enforce mismatch in dimension size of input tensors)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ shape(v_1, 0) ≠ shape(v_2, 0) ∧ shape(v_1, 0) ≠ 1 ∧ shape(v_2, 0) ≠ 1
 >>
-Rule 15 (Other tensor cannot have boolean dtype)
-{v_2 : tensor} |= dtype_(v_2) ≠ 0
+Rule 17 (The input and other tensors must have broadcastable shapes - simplified for non-singleton dimension 0)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) ≠ 1 ∧ shape(v_2, 0) ≠ 1 then shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 16 (Shape of input tensors should be broadcastable - simplified)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1
+Rule 24 (Require different dimension sizes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≠ ndim(v_2)
 >>
-Rule 20 (if input and other tensor have different number of dimensions then dimensions must be prepended with 1s)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_2) - ndim(v_1) - 1]: shape(v_1, i) = 1 else if ndim(v_2) < ndim(v_1) then  ∀i ∈ [0, ndim(v_1) - ndim(v_2) - 1]: shape(v_2, i) = 1
+Rule 27 (Require complex input and non-complex output)
+{v_1 : tensor, v_3 : tensor} |= (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (dtype_(v_3) ≠ 10 ∧ dtype_(v_3) ≠ 11)
 >>
-Rule 22 (If the output tensor is provided, its dtype should match the input tensors' dtype after type promotion)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_2) = 1 then dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 9 ∨ dtype_(v_3) = 10 else if dtype_(v_1) = 2 ∨ dtype_(v_2) = 2 then dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 9 ∨ dtype_(v_3) = 10 else if dtype_(v_1) = 3 ∨ dtype_(v_2) = 3 then dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 9 ∨ dtype_(v_3) = 10 else if dtype_(v_1) = 4 ∨ dtype_(v_2) = 4 then dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 9 ∨ dtype_(v_3) = 10 else if dtype_(v_1) = 5 ∨ dtype_(v_2) = 5 then dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 9 ∨ dtype_(v_3) = 10
+Rule 30 (Require complex input, real other input, and complex output to trigger cast error)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (dtype_(v_2) < 10) ∧ (dtype_(v_3) < 10)
 >>
-Rule 24 (Input tensors dimensions cannot be empty)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0
+Rule 31 (Shapes must match or be broadcastable for v1 and v2)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ shape(v_2, i) ∧ shape(v_1, i) ≠ 1 ∧ shape(v_2, i) ≠ 1
 >>
-Rule 26 (Hypot result cannot be a boolean)
-{v_3 : tensor} |= dtype_(v_3) ≠ 0
+Rule 33 (Complex input, real other input, and complex output to trigger cast error, but only considering float and complex dtypes)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (dtype_(v_2) < 8) ∧ (dtype_(v_3) = 8)
 >>
-Rule 30 (input and other tensors shapes must be broadcastable using a loop-free expression)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > ndim(v_2) then ∃i ∈ [0, ndim(v_1) - ndim(v_2) - 1] : shape(v_2, i) = 1 else if ndim(v_2) > ndim(v_1) then ∃i ∈ [0, ndim(v_2) - ndim(v_1) - 1] : shape(v_1, i) = 1 else ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1
+Rule 34 (Shapes must match or be broadcastable for v1 and v2, checking for size mismatch on first dim)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ (shape(v_1, 0) ≠ shape(v_2, 0)) ∧ (shape(v_1, 0) ≠ 1) ∧ (shape(v_2, 0) ≠ 1)
 >>
-Rule 31 (if input and other tensor are integers, then the output tensor should be floating points)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) then (dtype_(v_3) = 7 ∨ dtype_(v_3) = 8)
+Rule 40 (Shapes of input 1 and input 2 must not be broadcastable, and they have same ndim)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ ∃i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) ≠ shape(v_2, i)) ∧ (shape(v_1, i) ≠ 1) ∧ (shape(v_2, i) ≠ 1)
 >>
-Rule 32 (if input and other tensor are integers, then the output tensor should be floating points or complex)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) then (dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 9 ∨ dtype_(v_3) = 10)
+Rule 42 (If input 1 is complex and input 2 is real, trigger the casting error; don't use v3)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (dtype_(v_2) < 10)
 >>
-Rule 33 (If out is provided, input and other tensors should have the same type as out)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_3) ∧ dtype_(v_2) = dtype_(v_3)
+Rule 46 (Enforce Shapes of input 1 and input 2 must not be broadcastable; enforce different size on dimension 0)
+{v_1 : tensor, v_2 : tensor} |= (shape(v_1, 0) ≠ shape(v_2, 0)) ∧ (shape(v_1, 0) ≠ 1) ∧ (shape(v_2, 0) ≠ 1) ∧ ndim(v_1) = ndim(v_2)
 >>
-Rule 35 (if one of the input tensors is complex the output should also be complex)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 then dtype_(v_3) = 9 ∨ dtype_(v_3) = 10
+Rule 55 (Enforce Shapes of input 1 and input 2 must not be broadcastable)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ shape(v_2, i) ∧ shape(v_1, i) ≠ 1 ∧ shape(v_2, i) ≠ 1)
 >>
-Rule 37 (If out is provided, input and other tensors should have a compatible type as out)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) else if dtype_(v_3) = 9 ∨ dtype_(v_3) = 10 then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+Rule 58 (Enforce Shapes of input 1 and input 2 are not broadcastable - dimension mismatch for the last dimension)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ (shape(v_1, ndim(v_1)-1) ≠ shape(v_2, ndim(v_2)-1)) ∧ (shape(v_1, ndim(v_1)-1) ≠ 1) ∧ (shape(v_2, ndim(v_2)-1) ≠ 1)
 >>
-Rule 42 (The output tensor should be float if one of input is float)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 then dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 9 ∨ dtype_(v_3) = 10
+Rule 61 (Enforce Shapes of input 1 and input 2 are different, which triggers an error during broadcast operation, and require input tensors to not be scalars)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ (shape(v_1, 0) ≠ shape(v_2, 0)) ∧ (ndim(v_1) > 0) ∧ (ndim(v_2) > 0)
 >>
-Rule 44 (If out is provided, input and other tensors should have a compatible type as out)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) else if dtype_(v_3) = 9 ∨ dtype_(v_3) = 10 then (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+Rule 64 (Enforce Shapes of input 1 and input 2 are not broadcastable - use size mismatch for singleton and non-singleton dimensions)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ (shape(v_1, 0) ≠ shape(v_2, 0))
 >>
-Rule 47 (If one of the input tensors is complex the output should also be complex)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 then true else false
+Rule 67 (Enforce Shapes of input 1 and input 2 are the same ndim but different sizes on at least one dimension to trigger the error)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∃i ∈ [0, ndim(v_1)-1] : (shape(v_1, i) ≠ shape(v_2, i))
 >>
-Rule 48 (If out is provided, input and other tensors should have a compatible type as out)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) else if dtype_(v_3) = 9 ∨ dtype_(v_3) = 10 then (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) else if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) then (dtype_(v_3) = 7 ∨ dtype_(v_3) = 8)
+Rule 70 (Shapes of input 1 and input 2 are not broadcastable)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∃i ∈ [0, ndim(v_1)-1] : (shape(v_1, i) ≠ shape(v_2, i)) ∧ (shape(v_1, i) > 1) ∧ (shape(v_2, i) > 1)
 >>
-Rule 49 (Non-singleton dimensions of input and other tensors must match for smaller dimensions)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1) else ∀i ∈ [0, ndim(v_2) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
+Rule 75 (Trigger casting error: input 1 is complex and the output dtype is float)
+{v_1 : tensor, v_3 : tensor} |= (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (dtype_(v_3) = 7)
 >>
-Rule 50 (Hypot result should be float/complex based on the type of input operands)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∨ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) then true else if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∨ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then true else false
+Rule 76 (Shapes are different at the first dimension (no broadcasting))
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ shape(v_1, 0) ≠ shape(v_2, 0)
 >>
-Rule 51 (If out is provided, input and other tensors should have a compatible type as out, and smaller than complex128)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) else if dtype_(v_3) = 9 then (dtype_(v_1) = 9) ∧ (dtype_(v_2) = 9) else if dtype_(v_3) = 10 then (dtype_(v_1) = 10) ∧ (dtype_(v_2) = 10) else if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) then (dtype_(v_3) = 7 ∨ dtype_(v_3) = 8)
+Rule 79 (Enforce size mismatch on first dimension and same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= (shape(v_1, 0) ≠ shape(v_2, 0)) ∧ ndim(v_1) = ndim(v_2)
 >>
-Rule 52 (Non-singleton dimensions of input and other tensors must match with complex handling)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1) else if ndim(v_2) < ndim(v_1) then ∀i ∈ [0, ndim(v_2) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1) else if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∨ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then true else  ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
+Rule 81 (Trigger the casting error: One input is complex and no output is specified so the default dtype is used, but it's incompatible)
+{v_1 : tensor} |= (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11)
 >>
-Rule 53 (Input tensors must have a floating point or complex dtype)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+Rule 82 (Enforce size mismatch on first dimension, and no broadcasting)
+{v_1 : tensor, v_2 : tensor} |= (shape(v_1, 0) ≠ shape(v_2, 0)) ∧ (shape(v_1, 0) > 1) ∧ (shape(v_2, 0) > 1)  ∧ (ndim(v_1) = ndim(v_2))
 >>
-Rule 56 (The output tensor cannot be of integer type.)
-{v_3 : tensor} |= dtype_(v_3) ≠ 1 ∧ dtype_(v_3) ≠ 2 ∧ dtype_(v_3) ≠ 3 ∧ dtype_(v_3) ≠ 4 ∧ dtype_(v_3) ≠ 5
+Rule 88 (Enforce incompatible shapes (must be different and not 1))
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ (shape(v_1, 0) ≠ shape(v_2, 0)) ∧ (shape(v_1, 0) > 1) ∧ (shape(v_2, 0) > 1)
 >>
-Rule 57 (Input tensors should have same dtype, otherwise promote to highest precision, considering complex numbers)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) then (dtype_(v_3) = 7 ∨ dtype_(v_3) = 8) else if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then (dtype_(v_3) = 9 ∨ dtype_(v_3) = 10) else if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) then (dtype_(v_3) = 7 ∨ dtype_(v_3) = 8)
+Rule 94 (Enforce size mismatch)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) ≠ shape(v_2, 0) ∧ shape(v_1, 0) ≠ 1 ∧ shape(v_2, 0) ≠ 1
 >>
-Rule 58 (Shapes must be broadcastable, accounting for missing dimensions)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > ndim(v_2) then ∀i ∈ [0, ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_1, ndim(v_1) - ndim(v_2) + i) = 1 ∨ shape(v_2, i) = 1) else if ndim(v_2) > ndim(v_1) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_2, ndim(v_2) - ndim(v_1) + i) = shape(v_1, i) ∨ shape(v_2, ndim(v_2) - ndim(v_1) + i) = 1 ∨ shape(v_1, i) = 1) else ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
+Rule 100 (Enforce different shapes for broadcast error)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ (shape(v_1, 0) ≠ shape(v_2, 0))
 >>
-Rule 59 (The output tensor is not of boolean or integer type)
-{v_3 : tensor} |= dtype_(v_3) ≠ 0 ∧ dtype_(v_3) ≠ 1 ∧ dtype_(v_3) ≠ 2 ∧ dtype_(v_3) ≠ 3 ∧ dtype_(v_3) ≠ 4 ∧ dtype_(v_3) ≠ 5
+Rule 103 (Incompatible shapes and same number of dimensions causes dimension error)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) ≠ shape(v_2, i) ∧ shape(v_1,i) > 1 ∧ shape(v_2, i) > 1
 >>
-Rule 60 (Shapes must be broadcastable, accounting for missing dimensions and complex type)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > ndim(v_2) then ∀i ∈ [0, ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_1, ndim(v_1) - ndim(v_2) + i) = 1 ∨ shape(v_2, i) = 1) else if ndim(v_2) > ndim(v_1) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_2, ndim(v_2) - ndim(v_1) + i) = shape(v_1, i) ∨ shape(v_2, ndim(v_2) - ndim(v_1) + i) = 1 ∨ shape(v_1, i) = 1) else  ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
->>
-Rule 61 (The output tensor is not of boolean or integer type - again, more specific)
-{v_3 : tensor} |= dtype_(v_3) ≠ 0 ∧ dtype_(v_3) < 6
->>
-Rule 67 (If one of the input tensors is float then output must be float or complex. It depends on whether the other tensor is complex.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 then (if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 then dtype_(v_3) = 9 ∨ dtype_(v_3) = 10 else dtype_(v_3) = 7 ∨ dtype_(v_3) = 8)
->>
-Rule 68 (Shapes must be broadcastable, accounting for missing dimensions, simpler, not type specific)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, ndim(v_2) - ndim(v_1) + i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, ndim(v_2) - ndim(v_1) + i) = 1) else ∀i ∈ [0, ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_1, ndim(v_1) - ndim(v_2) + i) = 1 ∨ shape(v_2, i) = 1)
->>
-Rule 69 (The output tensor cannot be of boolean or integer type - again, more specific and independent)
-{v_3 : tensor} |= dtype_(v_3) > 6
->>
-Rule 70 (If one of the tensors is complex promote to complex if either tensor is complex)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) > 8 ∨ dtype_(v_2) > 8 then dtype_(v_3) > 8
->>
-Rule 71 (if input/other is float, output has to be float or complex depending on whether the other tensor is complex)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 then (if dtype_(v_1) > 8 ∨ dtype_(v_2) > 8 then dtype_(v_3) > 8 else dtype_(v_3) = 7 ∨ dtype_(v_3) = 8)
->>
-Rule 72 (Shapes must be broadcastable, simpler, and only compares existing dimensions)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, ndim(v_2) - ndim(v_1) + i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, ndim(v_2) - ndim(v_1) + i) = 1) else if ndim(v_2) < ndim(v_1) then true else  ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
->>
-Rule 74 (If both the input tensors are of integer type then the output tensor must be float)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) < 6 ∧ dtype_(v_2) < 6 then dtype_(v_3) = 7 ∨ dtype_(v_3) = 8
->>
-Rule 75 (complex promote)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) > 8 ∨ dtype_(v_2) > 8 then true else false
->>
-Rule 79 (if input/other is float, output has to be float.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∨ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) then (dtype_(v_3) = 7 ∨ dtype_(v_3) = 8)
->>
-Rule 80 (If one argument is int, the other should be float for calculation)
-{v_1:tensor, v_2:tensor} |= if dtype_(v_1) < 6 then dtype_(v_2) >6 else if dtype_(v_2) <6 then dtype_(v_1) > 6
->>
-Rule 83 (Check the dtypes of tensors v1 and v2, ensure out is consistent with those types)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) > 8 ∨ dtype_(v_2) > 8 then dtype_(v_3) > 8 else (if dtype_(v_1) > 6 ∨ dtype_(v_2) > 6 then dtype_(v_3) = 7 ∨ dtype_(v_3) = 8)
->>
-Rule 85 (Shapes must be broadcastable, accounting for missing dimensions)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, ndim(v_2) - ndim(v_1) + i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, ndim(v_2) - ndim(v_1) + i) = 1) else  ∀i ∈ [0, ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_1, ndim(v_1) - ndim(v_2) + i) = 1 ∨ shape(v_2, i) = 1)
->>
-Rule 89 (If input is an integer, out must be float or complex)
-{v_1 : tensor, v_3 : tensor} |= if dtype_(v_1) < 6 then dtype_(v_3) > 6
+Rule 108 (Triggers casting error: If dtype of v1 is complex)
+{v_1 : tensor} |= dtype_(v_1) = 10 ∨ dtype_(v_1) = 11

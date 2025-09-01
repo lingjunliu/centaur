@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check if list is empty (Rule 117)
+# Dtype of input tensor should be float32. (Rule 117)
 
 rule_117 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_length"] == 0, False, False)) if n else
-          If(v["arg1_length"] == 0, False, False))
+    s.add(Not(v["arg1_dtype"] == 7) if n else
+          v["arg1_dtype"] == 7)
 )
 
 def rule_117_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_117_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 117
-        rule_117(solver, {'arg1_length': arg1_length})
+        rule_117(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_117(solver, {'arg1_length': arg1['length']}, neg)
+        rule_117(solver, {'arg1_dtype': arg1['dtype']}, neg)

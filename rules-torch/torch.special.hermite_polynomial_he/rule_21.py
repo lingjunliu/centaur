@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor and n have compatible dtypes (Rule 21)
+# Enforce n to be non-negative integer if input tensor dtype is not Half (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), True, Or(v["arg2_value"] == 0, v["arg2_value"] == 1))) if n else
-          If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), True, Or(v["arg2_value"] == 0, v["arg2_value"] == 1)))
+    s.add(Not(If(v["arg1_dtype"] != 6, v["arg2_value"] >= 0, True)) if n else
+          If(v["arg1_dtype"] != 6, v["arg2_value"] >= 0, True))
 )
 
 def rule_21_func(arg1, arg2, solver=None, neg=False):

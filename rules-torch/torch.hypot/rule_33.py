@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If out is provided, input and other tensors should have the same type as out (Rule 33)
+# Complex input, real other input, and complex output to trigger cast error, but only considering float and complex dtypes (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] == v["arg3_dtype"], v["arg2_dtype"] == v["arg3_dtype"])) if n else
-          And(v["arg1_dtype"] == v["arg3_dtype"], v["arg2_dtype"] == v["arg3_dtype"]))
+    s.add(Not(And(And((Or(Or(v["arg1_dtype"] == 8, v["arg1_dtype"] == 10), v["arg1_dtype"] == 11)), (v["arg2_dtype"] < 8)), (v["arg3_dtype"] == 8))) if n else
+          And(And((Or(Or(v["arg1_dtype"] == 8, v["arg1_dtype"] == 10), v["arg1_dtype"] == 11)), (v["arg2_dtype"] < 8)), (v["arg3_dtype"] == 8)))
 )
 
 def rule_33_func(arg1, arg2, arg3, solver=None, neg=False):

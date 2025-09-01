@@ -5,17 +5,16 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check the shape of the numpy dtype. (Rule 46)
+# if default dtype is floating point, the new tensor must belong to its family, and the size should be greater than 0. (Rule 46)
 
 rule_46 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 12, Select(v["arg2_shape"], 0) == v["arg3_value"], False)) if n else
-          If(v["arg1_value"] == 12, Select(v["arg2_shape"], 0) == v["arg3_value"], False))
+    s.add(Not(If(And(6 <= v["arg1_value"], v["arg1_value"] <= 8), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8)), If(And(9 <= v["arg1_value"], v["arg1_value"] <= 10), (And(9 <= v["arg2_dtype"], v["arg2_dtype"] <= 10)), True))) if n else
+          If(And(6 <= v["arg1_value"], v["arg1_value"] <= 8), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8)), If(And(9 <= v["arg1_value"], v["arg1_value"] <= 10), (And(9 <= v["arg2_dtype"], v["arg2_dtype"] <= 10)), True)))
 )
 
-def rule_46_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_46_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
@@ -23,25 +22,20 @@ def rule_46_func(arg1, arg2, arg3, solver=None, neg=False):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
-        if not (isinstance(arg3, (int, np.integer)) and not isinstance(arg3, bool)):
-            return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = Int('arg1_value')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
-        arg3_value = Int('arg3_value')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
         solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
-        solver.add(arg3_value == int(arg3))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 46
-        rule_46(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg3_value': arg3_value})
+        rule_46(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_46(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg3_value': arg3['value']}, neg)
+        rule_46(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype']}, neg)

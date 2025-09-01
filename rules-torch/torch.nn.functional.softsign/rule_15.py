@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The input tensor's dtype is not equal to boolean. (Rule 15)
+# The input tensor must have a supported data type, preventing the "abs_cpu" error for boolean tensors. (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 0) if n else
-          v["arg1_dtype"] != 0)
+    s.add(Not(Or((v["arg1_dtype"] > 1), (v["arg1_dtype"] < 1) == False)) if n else
+          Or((v["arg1_dtype"] > 1), (v["arg1_dtype"] < 1) == False))
 )
 
 def rule_15_func(arg1, solver=None, neg=False):

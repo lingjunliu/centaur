@@ -1,66 +1,42 @@
 >>
-Rule 4 (atol must be non-negative)
-{v_1 : float ⊎ tensor} |= v_1 ≥ 0
+Rule 2 (atol and rtol should be non-negative if provided as float)
+{v_1: float, v_2: float} |= v_1 ≥ 0 ∧ v_2 ≥ 0
 >>
-Rule 6 (If atol is specified and is larger than zero, then rtol is set to zero. Imply rtol must be specified)
-{v_1 : float, v_2 : float} |= if v_1 > 0 then v_2 = 0
+Rule 3 (hermitian must be a boolean)
+{v_1: bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 7 (The input tensor A must be at least 2D)
-{v_1 : tensor} |= ndim(v_1) ≥ 2
+Rule 4 (atol tensor and input tensor must have compatible shapes if atol is a tensor)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) > 1 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : ndim(v_1) - i - 2 < 0 ∨ shape(v_1, ndim(v_1) - i - 2) = shape(v_2, ndim(v_2) - i - 1) ∨ shape(v_2, ndim(v_2) - i - 1) = 1
 >>
-Rule 8 (If atol is a tensor, it must be broadcastable to the singular values of A)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≤ ndim(v_1)
+Rule 6 (input tensor must have at least two dimensions)
+{v_1: tensor} |= ndim(v_1) ≥ 2
 >>
-Rule 10 (If A is complex and hermitian is True, A should be hermitian)
-{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then (if v_2 = true then true)
+Rule 7 (tol value should be non-negative if provided)
+{v_1: float} |= v_1 >= 0
 >>
-Rule 11 (A's dtype must be supported)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 8 (input tensor must have a floating-point or complex dtype, express dtype restriction with comparison to constant integers.)
+{v_1: tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
 >>
-Rule 13 (atol must be a scalar if it's a tensor)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 0 ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) < ndim(v_1))
+Rule 11 (atol tensor and input tensor must have compatible shapes if atol is a tensor. Corrected the duplicated rule)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) > 0 then (ndim(v_1) > 1 ∧ ∀i ∈ [0, ndim(v_2) - 1] : (ndim(v_1) - i - 2 < 0 ∨ shape(v_1, ndim(v_1) - i - 2) = shape(v_2, ndim(v_2) - i - 1) ∨ shape(v_2, ndim(v_2) - i - 1) = 1))
 >>
-Rule 17 (If atol and rtol are tensors, their dtypes should match)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 20 (atol tensor and input tensor must have compatible shapes if atol is a tensor. Corrected the duplicated rule)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) > 0 then (ndim(v_1) > 1 ∧ ∀i ∈ [0, ndim(v_2) - 1] : (ndim(v_1) - 2 - i < 0 ∨ shape(v_1, ndim(v_1) - 2 - i) = shape(v_2, ndim(v_2) - 1 - i) ∨ shape(v_2, ndim(v_2) - 1 - i) = 1))
 >>
-Rule 19 (If hermitian is True, input tensor A's last two dimension must be the same.)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then shape(v_1, ndim(v_1)-1) = shape(v_1, ndim(v_1)-2)
+Rule 64 (If tol is passed as a positional argument, hermitian must be a boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 27 (If hermitian is True, then A's last two dimensions must be equal.)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
+Rule 89 (if atol and rtol are both numpy.float16, this is an invalid combination)
+{v_1 : float, v_2 : float} |= v_1 > 6 ∨ v_2 > 6
 >>
-Rule 32 (If A is complex and hermitian is True, the last two dimensions must be equal)
-{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then (if v_2 = true then shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2))
+Rule 90 (If tol is provided as a float16, atol and rtol cannot be provided)
+{v_1 : float} |= v_1 > 6
 >>
-Rule 33 (atol and rtol must be non-negative if specified)
-{v_1 : float, v_2: float} |= v_1 >= 0 ∧ v_2 >=0
+Rule 97 (If atol and rtol are both numpy.float16, this is an invalid combination, check using dtype_.)
+{v_1 : tensor} |= if dtype_(v_1) = 7 then false
 >>
-Rule 34 (A's dtype must be float16, float32, float64, complex64, or complex128)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 105 (If atol and rtol are both numpy.float16, this is an invalid combination, check using dtype_ of input, atol and rtol, where dtype=7 maps to float16)
+{v_1: tensor, v_2: float, v_3: float} |=  if dtype_(v_1) = 7 then v_2 > 7 ∨ v_3 > 7
 >>
-Rule 35 (If A is complex, and hermitian is true, then A must be Hermitian symmetric or Hermitian)
-{v_1 : tensor, v_2 : bool} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ v_2 = true then shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
->>
-Rule 38 (If A is complex, atol and rtol must be complex or real)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true
->>
-Rule 39 (A should be at least 2D)
-{v_1: tensor} |= ndim(v_1) >= 2
->>
-Rule 43 (If A has dtype float16, the error would occur)
-{v_1 : tensor} |= dtype_(v_1) ≠ 6
->>
-Rule 45 (A's dtype can't be float16 when tol is provided)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then false
->>
-Rule 49 (If tol is float16, an error will occur because it is not supported)
-{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true else false
->>
-Rule 62 (To avoid KeyError: 'rtol', if atol is None then rtol should be specified)
-{v_1 : float ⊎ tensor, v_2 : float ⊎ tensor} |= if v_1 = 0 then v_2 ≠ 0
->>
-Rule 68 (To avoid KeyError: 'rtol', use at least rtol)
-{v_1 : float ⊎ tensor} |= v_1 ≠ 0
->>
-Rule 70 (To avoid KeyError, specify either atol or rtol)
-{v_1: bool, v_2 : bool} |= v_1 ∨ v_2
+Rule 106 (If atol is provided, and rtol is not, then atol cannot be float16.)
+{v_1 : tensor, v_2 : float} |= if ndim(v_1) > 0 then v_2 > 7

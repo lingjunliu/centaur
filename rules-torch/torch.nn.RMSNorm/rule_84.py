@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the input tensor has a very high dimension shape on one, it will likely allocate too much data so its bad to do. (Rule 84)
+# preventing very large tensor allocations (Rule 84)
 
 rule_84 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_shape"], 0) > 100000, False, False)) if n else
-          If(Select(v["arg1_shape"], 0) > 100000, False, False))
+    s.add(Not(Select(v["arg1_shape"], 0) < 1000) if n else
+          Select(v["arg1_shape"], 0) < 1000)
 )
 
 def rule_84_func(arg1, solver=None, neg=False):

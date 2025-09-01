@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if dtype is specified, it should be a valid dtype (Rule 15)
+# If dtype is an integer type, fill_value must be an integer or convertible to one (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] >= 0, v["arg1_value"] <= 12)) if n else
-          And(v["arg1_value"] >= 0, v["arg1_value"] <= 12))
+    s.add(Not(If(Or(Or(Or(Or(Or(v["arg1_value"] == 1, v["arg1_value"] == 2), v["arg1_value"] == 3), v["arg1_value"] == 4), v["arg1_value"] == 5), v["arg1_value"] == 6), True, True)) if n else
+          If(Or(Or(Or(Or(Or(v["arg1_value"] == 1, v["arg1_value"] == 2), v["arg1_value"] == 3), v["arg1_value"] == 4), v["arg1_value"] == 5), v["arg1_value"] == 6), True, True))
 )
 
 def rule_15_func(arg1, solver=None, neg=False):

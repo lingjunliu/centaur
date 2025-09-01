@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Maximum value in a tensor must be below a threshold (Rule 8)
+# tensor has to be 3D for trilinear (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 1) < v["arg2_value"]) if n else
-          Select(v["arg1_range"], 1) < v["arg2_value"])
+    s.add(Not(If(v["arg2_value"] == 28, v["arg1_ndim"] == 3, True)) if n else
+          If(v["arg2_value"] == 28, v["arg1_ndim"] == 3, True))
 )
 
 def rule_8_func(arg1, arg2, solver=None, neg=False):
@@ -20,23 +20,22 @@ def rule_8_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, (float, np.floating)):
+        if not isinstance(arg2, str):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_value = Real('arg2_value')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_value = String('arg2_value')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        solver.add(arg2_value == arg2)
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_value == list_of_string_values_torch.index(arg2))
 
         # Constraints for rule 8
-        rule_8(solver, {'arg1_range': arg1_range, 'arg2_value': arg2_value})
+        rule_8(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_8(solver, {'arg1_range': arg1['range'], 'arg2_value': arg2['value']}, neg)
+        rule_8(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

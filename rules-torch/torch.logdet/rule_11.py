@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor must have at least 2 dimensions, and if it's not, the condition must be true (Rule 11)
+# input tensor dimension check (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] < 2, True, v["arg1_ndim"] >= 2)) if n else
-          If(v["arg1_ndim"] < 2, True, v["arg1_ndim"] >= 2))
+    s.add(Not(If(v["arg1_ndim"] < 2, False, True)) if n else
+          If(v["arg1_ndim"] < 2, False, True))
 )
 
 def rule_11_func(arg1, solver=None, neg=False):

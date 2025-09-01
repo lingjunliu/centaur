@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The length of the 1D input tensor should be greater than or equal to r, or r should be 0 (Rule 29)
+# If the input tensor is empty, r must be zero (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(Or(Select(v["arg1_shape"], 0) >= v["arg2_value"], v["arg2_value"] == 0)) if n else
-          Or(Select(v["arg1_shape"], 0) >= v["arg2_value"], v["arg2_value"] == 0))
+    s.add(Not(If(Select(v["arg1_shape"], 0) == 0, v["arg2_value"] == 0, True)) if n else
+          If(Select(v["arg1_shape"], 0) == 0, v["arg2_value"] == 0, True))
 )
 
 def rule_29_func(arg1, arg2, solver=None, neg=False):

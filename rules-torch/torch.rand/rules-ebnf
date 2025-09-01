@@ -1,150 +1,48 @@
 >>
-Rule 1 (Size should be non-negative)
+Rule 1 (Size must be non-negative to prevent negative dimension error)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+>>
+Rule 2 (Pin memory requires the tensor to be on CPU.)
+{v_1 : bool} |= if v_1 then false
+>>
+Rule 4 (Size must be integer.)
+{v_1 : tuple(int)} |= v_1.len > 0
+>>
+Rule 5 (requires_grad should be boolean value)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 14 (If out is specified, dtype must be compatible)
+{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) = v_2
+>>
+Rule 15 (If size is an integer, it must be non-negative)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 3 (Pin memory requires a device, addressing the "Need to provide pin_memory allocator" error, assuming device is a string)
-{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 ≠ "None"
->>
-Rule 5 (dtype must be a valid dtype. Let's say we have a set of valid dtypes, and dtype_check function checks if v_1 belongs to the set. This rule prevents "check_uniform_bounds" error when the dtype is char)
-{v_1 : dtype} |= dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "float16"
->>
-Rule 7 (Ensure all elements of the size tuple are non-negative)
-{v_1 : tuple(int)} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
->>
-Rule 8 (Pin memory requires a device, addressing the "Need to provide pin_memory allocator" error, device as str)
-{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 ≠ "none"
->>
-Rule 9 (dtype must be a valid dtype to prevent 'Char' error)
-{v_1 : dtype} |= v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 6
->>
-Rule 10 (If out is provided, its dtype must match the desired dtype.)
-{v_1 : tensor, v_2 : dtype} |= if ndim(v_1) > 0 then dtype_(v_1) = v_2
->>
-Rule 18 (pin_memory can only be true if device is CPU)
-{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 = "cpu"
->>
-Rule 20 (The layout parameter should be 'strided' or 'sparse_coo', as these are the only supported layouts for torch.rand)
-{v_1 : str} |= v_1 = "torch.strided"
->>
-Rule 21 (If generator is specified, it must be of a specific type, indicated by str)
-{v_1: str} |= v_1 = "torch.Generator"
->>
-Rule 24 (dtype cannot be a string, addressing the "check_uniform_bounds" error)
+Rule 18 (The dtype cannot be a string.)
 {v_1 : dtype} |= v_1 ≠ 11
 >>
-Rule 27 (pin_memory can't be true if device is specified, it defaults to cpu, and it's the only case for pin_memory = True)
-{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 = "none"
+Rule 20 (Pin memory requires CPU tensors. Device must not be CUDA when pin_memory is true.)
+{v_1 : bool, v_2 : str} |= if v_1 then v_2 ≠ "cuda"
 >>
-Rule 31 (If layout is sparse_coo, then the dtype should be int to prevent error)
-{v_1 : str, v_2 : dtype} |= if v_1 = "sparse_coo" then v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+Rule 21 (Layout must be strided)
+{v_1 : str} |= v_1 = "strided"
 >>
-Rule 32 (pin memory is only valid for CPU tensors.)
-{v_1: bool, v_2: str} |= if v_1 = true then v_2 = "cpu"
+Rule 29 (When pin_memory is set to true, the device must be CPU.)
+{v_1 : bool, v_2 : str} |= if v_1 then v_2 = "cpu"
 >>
-Rule 37 (if out tensor is provided, dtype must be the same as provided dtype, if dtype is provided)
-{v_1 : tensor, v_2: dtype} |= if v_2 ≠ 12 then dtype_(v_1) = v_2
+Rule 33 (If an out tensor is provided, its dtype must be compatible with float or int tensors.)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
 >>
-Rule 42 (Layout cannot be something other than strided or sparse_coo)
-{v_1: str} |= v_1 = "torch.strided"
+Rule 72 (If out is specified, it has to be tensor if is not None.)
+{v_1 : tensor ⊎ int ⊎ float ⊎ bool ⊎ dtype} |= if v_1 ≠ 0 then ∃i ∈ [1, 10] : v_1 = i
 >>
-Rule 43 (If size is specified as int it should not be negative.)
-{v_1: int} |= v_1 ≥ 0
+Rule 75 (If out is specified and is not None (0), must be a tensor and has float dtype.)
+{v_1 : tensor ⊎ int ⊎ float ⊎ bool ⊎ dtype} |= if v_1 ≠ 0 then ∃i ∈ [6, 9] : v_1 = i
 >>
-Rule 44 (if `out` is a Tensor, then its shape should match specified size (as a tuple))
-{v_1: tensor, v_2: tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1]: shape(v_1, i) = v_2[i]
+Rule 87 (Generator is only valid if it is not NoneType which is 0.)
+{v_1 : int ⊎ float ⊎ bool ⊎ dtype} |= v_1 ≠ 0
 >>
-Rule 45 (Dtype must be of allowed numerical types, preventing Char type error, using int codes)
-{v_1: dtype} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10
+Rule 105 (If Generator and names are provided, it is an invalid type combination)
+{v_1 : tensor, v_2: tuple(str), v_3:dtype} |= v_1.len = 0 ∧ v_2.len = 0 ∧ v_3.len = 0
 >>
-Rule 46 (If size is a list, then all elements must be non-negative)
-{v_1: list(int)} |= ∀i ∈ [0, shape(v_1, 0) - 1]: v_1[i] ≥ 0
->>
-Rule 47 (If device is specified (as string), it needs to be valid - e.g., "cpu", "cuda")
-{v_1: str} |= v_1 = "cpu" ∨ v_1 = "cuda"
->>
-Rule 48 (If the device is specified, the device needs to be consistent with requires_grad, for example, GPU tensor requires requires_grad=True.)
-{v_1: str, v_2: bool} |= if v_1 = "cuda" then v_2 = true
->>
-Rule 49 (if device is specified, then it should be compatible with pin_memory argument)
-{v_1: str, v_2: bool} |= if v_2 = true then v_1 = "cpu"
->>
-Rule 53 (If generator is given it must not be None)
-{v_1: str} |= v_1 ≠ "None"
->>
-Rule 55 (If pin_memory is true, then requires_grad must be false since pinned memory is only CPU tensors)
-{v_1: bool, v_2: bool} |= if v_1 = true then v_2 = false
->>
-Rule 58 (If size is an int, then it has to be a positive number)
-{v_1: int} |= v_1 > 0
->>
-Rule 59 (Pin Memory implies device type must be cpu if out tensor is not set.)
-{v_1: bool, v_2: tensor} |= if v_1 = true then ndim(v_2) = 0
->>
-Rule 60 (Dtype must be a valid dtype code between 1 and 11, prevent "check_uniform_bounds")
-{v_1: dtype} |= v_1 > 0 ∧ v_1 < 11
->>
-Rule 61 (If the size is defined as a tuple, then the number of elements must be a positive number to avoid dimension error.)
-{v_1: tuple(int)} |= shape(v_1, 0) > 0
->>
-Rule 62 (If `out` is a Tensor, and `dtype` is given, both dtypes must match)
-{v_1: tensor, v_2: dtype} |= if dtype_(v_1) ≠ 12 then dtype_(v_1) = v_2
->>
-Rule 68 (If the 'out' parameter is provided, its shape must be compatible with the given size - assuming v_2 is either int OR tuple)
-{v_1: tensor, v_2: int} |= if ndim(v_1) > 0 then (ndim(v_1) = 1 ∧ shape(v_1, 0) = v_2)
->>
-Rule 70 (If the 'out' parameter is provided, its shape must be compatible with the given size AND dtype)
-{v_1: tensor, v_2: tuple(int), v_3: dtype} |= if ndim(v_1) > 0 then (ndim(v_1) = shape(v_2, 0) ∧ ∀i ∈ [0, shape(v_2, 0) - 1]: shape(v_1, i) = v_2[i] ∧ dtype_(v_1) = v_3)
->>
-Rule 71 (if device is other than "cpu" then pin memory must be false to prevent memory error.)
-{v_1: str, v_2: bool} |= if v_1 = "cuda" then v_2 = false
->>
-Rule 72 (Requires grad is only applicable for floating points.)
-{v_1: bool, v_2: dtype} |= if v_1 = true then (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 )
->>
-Rule 75 (if the device is cuda and dtype isnt floating point raise type error)
-{v_1: str, v_2: dtype} |= if v_1 = "cuda" then (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8)
->>
-Rule 80 (Device can only be set to CUDA when CUDA is available on this machine)
-{v_1: str} |= v_1 = "cpu"
->>
-Rule 81 (The number of dimensions specified in 'size' (tuple) should be a valid dimension)
-{v_1: tuple(int)} |= shape(v_1,0) < 10
->>
-Rule 84 (If the out tensor is specified its shape is compatible with size)
-{v_1: tensor, v_2: tuple(int)} |= if ndim(v_1) > 0 then (ndim(v_1) = shape(v_2, 0) ∧ ∀i ∈ [0, shape(v_2, 0) - 1]: shape(v_1, i) = v_2[i] )
->>
-Rule 85 (if the size of out is pre-defined, its shape matches the specified size)
-{v_1: tensor, v_2: int} |= if ndim(v_1) > 0 then ndim(v_1) = 1 ∧ shape(v_1, 0) = v_2
->>
-Rule 87 (the requires_grad argument should only be allowed on floating point or complex tensor)
-{v_1: bool, v_2: dtype} |= if v_1 = true then (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10 ∨ v_2 = 11)
->>
-Rule 90 (sizes in a tuple used to create a tensor must be > 0 to prevent dimension issues)
-{v_1: tuple(int)} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
->>
-Rule 91 (if layout isnt defined, and device is cuda, set layout to strided)
-{v_1: str, v_2: str} |= if v_2 = "cuda" then v_1 = "torch.strided"
->>
-Rule 92 ( if you specify requires grad then you need a floating point or complex number )
-{v_1: bool, v_2: dtype} |= if v_1 = true then (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10)
->>
-Rule 93 (If given an out tensor then the size/shape must match)
-{v_1: tensor, v_2: tuple(int)} |= if ndim(v_1) > 0 then ndim(v_1) = shape(v_2, 0) ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_1, i) = v_2[i]
->>
-Rule 95 (Pin memory must be false with Cuda to prevent memory allocation error)
-{v_1: bool, v_2: str} |= if v_2 = "cuda" then v_1 = false
->>
-Rule 98 (Pin memory should be false if it is anything other than cpu to avoid error.)
-{v_1: str, v_2: bool} |= if v_1 ≠ "cpu" then v_2 = false
->>
-Rule 99 (Layout Parameter should not be an empty string)
-{v_1: str} |= v_1 ≠ ""
->>
-Rule 102 ( if given size as an int it needs to be less than the max int value or causes crash)
-{v_1: int} |= v_1 < 2147483647
->>
-Rule 104 ( if data type is char, that is an error. Should prevent this in the implementation if you know the limitations)
-{v_1: dtype} |= v_1 ≠ 11
->>
-Rule 107 (Pin Memory is only valid when device is none which translates to cpu)
-{v_1: bool, v_2: str} |= if v_1 = true then v_2 = "none"
+Rule 111 (The generator is the wrong type if it's anything other than none)
+{v_1 : str} |= v_1 = "none"

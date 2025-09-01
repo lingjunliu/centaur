@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check group parameter valid (Rule 53)
+# The kernel size of the weight needs to be compatible with dilation rate. (Rule 53)
 
 rule_53 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] > 0, Select(v["arg2_shape"], 0) / v["arg1_value"] > 0)) if n else
-          And(v["arg1_value"] > 0, Select(v["arg2_shape"], 0) / v["arg1_value"] > 0))
+    s.add(Not(And(And(And(Select(v["arg1_shape"], 2) > 0, Select(v["arg1_shape"], 3) > 0), Select(v["arg2_values"], 0) > 0), Select(v["arg2_values"], 1) > 0)) if n else
+          And(And(And(Select(v["arg1_shape"], 2) > 0, Select(v["arg1_shape"], 3) > 0), Select(v["arg2_values"], 0) > 0), Select(v["arg2_values"], 1) > 0))
 )
 
 def rule_53_func(arg1, arg2, solver=None, neg=False):
@@ -18,25 +18,26 @@ def rule_53_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_values = Array('arg2_values', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        for i in range(len(arg2)):
+            arg2_values = Store(arg2_values, i, arg2[i])
 
         # Constraints for rule 53
-        rule_53(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape})
+        rule_53(solver, {'arg1_shape': arg1_shape, 'arg2_values': arg2_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_53(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape']}, neg)
+        rule_53(solver, {'arg1_shape': arg1['shape'], 'arg2_values': arg2['values']}, neg)

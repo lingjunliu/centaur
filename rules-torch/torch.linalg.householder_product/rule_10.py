@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The last dimension of A must be greater than or equal to the last dimension of tau (Rule 10)
+# Enforce batch dimension equality more strictly (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_ndim"] >= 2, v["arg2_ndim"] >= 1), Select(v["arg1_shape"], v["arg1_ndim"] - 1) >= Select(v["arg2_shape"], v["arg2_ndim"] - 1), False)) if n else
-          If(And(v["arg1_ndim"] >= 2, v["arg2_ndim"] >= 1), Select(v["arg1_shape"], v["arg1_ndim"] - 1) >= Select(v["arg2_shape"], v["arg2_ndim"] - 1), False))
+    s.add(Not(If(And(v["arg1_ndim"] > 2, v["arg2_ndim"] > 1), And((v["arg2_ndim"] - 1) <= (v["arg1_ndim"] - 2), And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])), True)) if n else
+          If(And(v["arg1_ndim"] > 2, v["arg2_ndim"] > 1), And((v["arg2_ndim"] - 1) <= (v["arg1_ndim"] - 2), And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])), True))
 )
 
 def rule_10_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Dtype of the tensor should be quantized. (Rule 4)
+# input tensor must be a quantized tensor (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 5)) if n else
-          Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 5))
+    s.add(Not(Or(v["arg1_dtype"] == 5, v["arg1_dtype"] == 1)) if n else
+          Or(v["arg1_dtype"] == 5, v["arg1_dtype"] == 1))
 )
 
 def rule_4_func(arg1, solver=None, neg=False):

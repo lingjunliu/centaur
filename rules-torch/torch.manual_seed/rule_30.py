@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Seed is valid if it is within the range [-(2**63 (Rule 30)
+# Seed must be within the allowed integer range (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(Or((And(v["arg1_value"] >= -9223372036854775808, v["arg1_value"] <= 18446744073709551615)), (And(And(v["arg1_value"] < 0, (v["arg1_value"] + 18446744073709551616) >= 0), (v["arg1_value"] + 18446744073709551616) <= 18446744073709551615)))) if n else
-          Or((And(v["arg1_value"] >= -9223372036854775808, v["arg1_value"] <= 18446744073709551615)), (And(And(v["arg1_value"] < 0, (v["arg1_value"] + 18446744073709551616) >= 0), (v["arg1_value"] + 18446744073709551616) <= 18446744073709551615))))
+    s.add(Not(And(And((Or([And(x < (18446744073709551615 + 1), v["arg1_value"] == x) for x in range(6)])), (v["arg1_value"] >= -9223372036854775808)), (v["arg1_value"] <= 18446744073709551615))) if n else
+          And(And((Or([And(x < (18446744073709551615 + 1), v["arg1_value"] == x) for x in range(6)])), (v["arg1_value"] >= -9223372036854775808)), (v["arg1_value"] <= 18446744073709551615)))
 )
 
 def rule_30_func(arg1, solver=None, neg=False):

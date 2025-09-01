@@ -5,35 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If alpha is specified, it must be a float (Rule 16)
+# If alpha is close to zero, it must be exactly zero (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg1_value"] == v["arg1_value"], v["arg1_value"] == v["arg1_value"])) if n else
-          If(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg1_value"] == v["arg1_value"], v["arg1_value"] == v["arg1_value"]))
+    s.add(Not(If(And(v["arg1_value"] > -0.000001, v["arg1_value"] < 0.000001), v["arg1_value"] == 0, True)) if n else
+          If(And(v["arg1_value"] > -0.000001, v["arg1_value"] < 0.000001), v["arg1_value"] == 0, True))
 )
 
-def rule_16_func(arg1, arg2, solver=None, neg=False):
+def rule_16_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (float, np.floating)) or (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool))):
-            return False
-        if not isinstance(arg2, np.ndarray):
+        if not isinstance(arg1, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg2_dtype = Int('arg2_dtype')
+        arg1_value = Real('arg1_value')
 
         # Value assignments
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 16
-        rule_16(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype})
+        rule_16(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_16(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_16(solver, {'arg1_value': arg1['value']}, neg)

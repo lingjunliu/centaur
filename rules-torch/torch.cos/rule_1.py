@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Output tensor's dtype should be able to accommodate the input tensor's dtype (Rule 1)
+# Output tensor's dtype must be compatible with input tensor's dtype to avoid casting issues. (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_dtype"] >= v["arg1_dtype"]) if n else
-          v["arg2_dtype"] >= v["arg1_dtype"])
+    s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else
+          v["arg1_dtype"] == v["arg2_dtype"])
 )
 
 def rule_1_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Another way to enforce dtype and tensor requirement (Rule 32)
+# If the input Tensor has integer dtype it should be castable to Float. (Rule 32)
 
 rule_32 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] > 5) if n else
-          v["arg1_dtype"] > 5)
+    s.add(Not(If(And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 6), False, True)) if n else
+          If(And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 6), False, True))
 )
 
 def rule_32_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# start_dim and end_dim must both be within the allowed range for the tensor's dimensions, and start_dim <= end_dim, and ndim must be positive (Rule 24)
+# If start_dim is negative, end_dim must be less than ndim(v1 (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(v["arg1_ndim"] > 0, (And(0 - v["arg1_ndim"] <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"]))), (And(0 - v["arg1_ndim"] <= v["arg3_value"], v["arg3_value"] < v["arg1_ndim"]))), v["arg2_value"] <= v["arg3_value"])) if n else
-          And(And(And(v["arg1_ndim"] > 0, (And(0 - v["arg1_ndim"] <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"]))), (And(0 - v["arg1_ndim"] <= v["arg3_value"], v["arg3_value"] < v["arg1_ndim"]))), v["arg2_value"] <= v["arg3_value"]))
+    s.add(Not(If(v["arg2_value"] < 0, v["arg3_value"] < v["arg1_ndim"] + v["arg2_value"], True)) if n else
+          If(v["arg2_value"] < 0, v["arg3_value"] < v["arg1_ndim"] + v["arg2_value"], True))
 )
 
 def rule_24_func(arg1, arg2, arg3, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the minimum of input is less than or equal to 0, output cannot be a int tensor, since the value of lgamma is not defined for negative or zero input (Rule 33)
+# If the output is Short and the input dtype is Float, then values in input can't be too big. (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_range"], 0) <= 0, v["arg2_dtype"] >= 7, False)) if n else
-          If(Select(v["arg1_range"], 0) <= 0, v["arg2_dtype"] >= 7, False))
+    s.add(Not(If(And(v["arg2_dtype"] == 2, v["arg1_dtype"] == 7), Select(v["arg1_range"], 1) < 60, True)) if n else
+          If(And(v["arg2_dtype"] == 2, v["arg1_dtype"] == 7), Select(v["arg1_range"], 1) < 60, True))
 )
 
 def rule_33_func(arg1, arg2, solver=None, neg=False):
@@ -25,18 +25,20 @@ def rule_33_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
+        arg1_dtype = Int('arg1_dtype')
         arg1_range = Array('arg1_range', IntSort(), IntSort())
         arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 33
-        rule_33(solver, {'arg1_range': arg1_range, 'arg2_dtype': arg2_dtype})
+        rule_33(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_33(solver, {'arg1_range': arg1['range'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_33(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range'], 'arg2_dtype': arg2['dtype']}, neg)

@@ -5,48 +5,44 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Combined check, ensuring output spatial dimensions are large enough accounting for all parameters with integer kernel size, fixed (Rule 53)
+# Kernel must be smaller than combined input/padding or will get impossible output size (Rule 53)
 
 rule_53 = lambda s, v, n=False: (
-    s.add(Not(And((Select(v["arg1_shape"], 2) + 2 * v["arg3_value"] - v["arg2_value"] - (v["arg2_value"] - 1) * (v["arg4_value"] - 1)) >= 0, (Select(v["arg1_shape"], 3) + 2 * v["arg3_value"] - v["arg2_value"] - (v["arg2_value"] - 1) * (v["arg4_value"] - 1)) >= 0)) if n else
-          And((Select(v["arg1_shape"], 2) + 2 * v["arg3_value"] - v["arg2_value"] - (v["arg2_value"] - 1) * (v["arg4_value"] - 1)) >= 0, (Select(v["arg1_shape"], 3) + 2 * v["arg3_value"] - v["arg2_value"] - (v["arg2_value"] - 1) * (v["arg4_value"] - 1)) >= 0))
+    s.add(Not(And(Select(v["arg1_values"], 0) <= Select(v["arg3_shape"], 2) + 2 * v["arg2_value"], Select(v["arg1_values"], 1) <= Select(v["arg3_shape"], 3) + 2 * v["arg2_value"])) if n else
+          And(Select(v["arg1_values"], 0) <= Select(v["arg3_shape"], 2) + 2 * v["arg2_value"], Select(v["arg1_values"], 1) <= Select(v["arg3_shape"], 3) + 2 * v["arg2_value"]))
 )
 
-def rule_53_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
+def rule_53_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
     arg3 = next(iter(arg3.values()))
-    arg4 = next(iter(arg4.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
         if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
-        if not (isinstance(arg3, (int, np.integer)) and not isinstance(arg3, bool)):
-            return False
-        if not (isinstance(arg4, (int, np.integer)) and not isinstance(arg4, bool)):
+        if not isinstance(arg3, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
         arg2_value = Int('arg2_value')
-        arg3_value = Int('arg3_value')
-        arg4_value = Int('arg4_value')
+        arg3_shape = Array('arg3_shape', IntSort(), IntSort())
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
         solver.add(arg2_value == int(arg2))
-        solver.add(arg3_value == int(arg3))
-        solver.add(arg4_value == int(arg4))
+        for i in range(arg3.ndim):
+            arg3_shape = Store(arg3_shape, i, arg3.shape[i])
 
         # Constraints for rule 53
-        rule_53(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value, 'arg3_value': arg3_value, 'arg4_value': arg4_value})
+        rule_53(solver, {'arg1_values': arg1_values, 'arg2_value': arg2_value, 'arg3_shape': arg3_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_53(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value'], 'arg4_value': arg4['value']}, neg)
+        rule_53(solver, {'arg1_values': arg1['values'], 'arg2_value': arg2['value'], 'arg3_shape': arg3['shape']}, neg)

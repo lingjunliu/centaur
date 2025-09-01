@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# first dimension must be divisible by groups if groups is not 1 (Rule 45)
+# tensor must be of dimension 3,4, or 5 and if groups is given, dimension 0 must be divisible by the group size (Rule 45)
 
 rule_45 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] != 1, (And(v["arg1_ndim"] > 0, Select(v["arg1_shape"], 0) % v["arg2_value"] == 0)), False)) if n else
-          If(v["arg2_value"] != 1, (And(v["arg1_ndim"] > 0, Select(v["arg1_shape"], 0) % v["arg2_value"] == 0)), False))
+    s.add(Not(And((Or(Or((v["arg1_ndim"] == 3), (v["arg1_ndim"] == 4)), (v["arg1_ndim"] == 5))), (Or((v["arg2_value"] <= 1), (Select(v["arg1_shape"], 0) % v["arg2_value"] == 0))))) if n else
+          And((Or(Or((v["arg1_ndim"] == 3), (v["arg1_ndim"] == 4)), (v["arg1_ndim"] == 5))), (Or((v["arg2_value"] <= 1), (Select(v["arg1_shape"], 0) % v["arg2_value"] == 0)))))
 )
 
 def rule_45_func(arg1, arg2, solver=None, neg=False):

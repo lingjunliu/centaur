@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Size must be representable without loss of information to avoid implicit cast issues (Rule 42)
+# If the source is a list, ensure that multiplying its length with a typical element size does not overflow (Rule 42)
 
 rule_42 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] == (v["arg1_value"] + 0)) if n else
-          v["arg1_value"] == (v["arg1_value"] + 0))
+    s.add(Not((v["arg1_length"] * 8) < 2147483647) if n else
+          (v["arg1_length"] * 8) < 2147483647)
 )
 
 def rule_42_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_42_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
+        arg1_length = Int('arg1_length')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
+        solver.add(arg1_length == len(arg1))
 
         # Constraints for rule 42
-        rule_42(solver, {'arg1_value': arg1_value})
+        rule_42(solver, {'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_42(solver, {'arg1_value': arg1['value']}, neg)
+        rule_42(solver, {'arg1_length': arg1['length']}, neg)

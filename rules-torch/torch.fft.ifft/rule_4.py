@@ -8,8 +8,8 @@ from z3 import *
 # Dimension should be in valid range (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(And(0 <= v["arg2_value"] + v["arg1_ndim"], v["arg2_value"] < v["arg1_ndim"])) if n else
-          And(0 <= v["arg2_value"] + v["arg1_ndim"], v["arg2_value"] < v["arg1_ndim"]))
+    s.add(Not(And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"])) if n else
+          And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"]))
 )
 
 def rule_4_func(arg1, arg2, solver=None, neg=False):

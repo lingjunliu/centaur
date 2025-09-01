@@ -1,42 +1,96 @@
 >>
-Rule 1 (input and mat2 must be matrices)
+Rule 1 (input and mat2 must be matrices, i.e., have ndim = 2)
 {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2
->>
-Rule 2 (out tensor must have a float dtype if input and mat2 are float)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8) then (6 ≤ dtype_(v_3) ∧ dtype_(v_3) ≤ 8)
 >>
 Rule 3 (input and mat2 must have the same dtype)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 5 (The number of columns of the first matrix must equal the number of rows of the second matrix)
+Rule 4 (out argument must be a Tensor)
+{v_3 : tensor} |= ndim(v_3) ≥ 0
+>>
+Rule 5 (shape compatibility for matrix multiplication)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 0) ∧ shape(v_1, 0) = shape(v_3, 0) ∧ shape(v_2, 1) = shape(v_3, 1)
+>>
+Rule 6 (input and out must have same number of dimensions if out is provided)
+{v_1 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_3)
+>>
+Rule 8 (If out is provided, its dtype must match the dtype of input)
+{v_1 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_3)
+>>
+Rule 12 (The number of dimensions of the output tensor must be equal to 2)
+{v_3 : tensor} |= ndim(v_3) = 2
+>>
+Rule 13 (if out is specified, the shape must be correct)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then shape(v_1, 0) = shape(v_3, 0) ∧ shape(v_2, 1) = shape(v_3, 1)
+>>
+Rule 14 (input must be a matrix, i.e., have ndim = 2)
+{v_1 : tensor} |= ndim(v_1) = 2
+>>
+Rule 15 (mat2 must be a matrix, i.e., have ndim = 2)
+{v_2 : tensor} |= ndim(v_2) = 2
+>>
+Rule 16 (If out is provided, its dtype must match the dtype of input)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then dtype_(v_1) = dtype_(v_3)
+>>
+Rule 18 (out argument must be a Tensor, if provided)
+{v_3 : tensor} |= if ndim(v_3) > 0 then true
+>>
+Rule 19 (shape compatibility for matrix multiplication)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then shape(v_1, 1) = shape(v_2, 0) ∧ shape(v_1, 0) = shape(v_3, 0) ∧ shape(v_2, 1) = shape(v_3, 1) else shape(v_1, 1) = shape(v_2, 0)
+>>
+Rule 20 (If out is provided, it must be a matrix, i.e. have ndim = 2)
+{v_3 : tensor} |= if ndim(v_3) > 0 then ndim(v_3) = 2
+>>
+Rule 24 (If input is float16, mat2 should not be complex)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) < 10
+>>
+Rule 34 (Dtype of input and mat2 must be same)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 39 (shape compatibility for matrix multiplication)
 {v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) = shape(v_2, 0)
 >>
-Rule 6 (dimension check for output tensor)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_3, 0) = shape(v_1, 0) ∧ shape(v_3, 1) = shape(v_2, 1)
+Rule 42 (if out is provided, input's shape[0] and mat2's shape[1] must match out's shape)
+{v_1: tensor, v_2: tensor, v_3: tensor} |= if ndim(v_3) > 0 then shape(v_1, 0) = shape(v_3, 0) ∧ shape(v_2, 1) = shape(v_3, 1)
 >>
-Rule 12 (If out is specified, its dtype is compatible)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∧ (6 <= dtype_(v_2) ∧ dtype_(v_2) <= 8) then (6 <= dtype_(v_3) ∧ dtype_(v_3) <= 8)
+Rule 50 (If dtype of out is not float, throw error)
+{v_3: tensor} |= if ndim(v_3) > 0 then dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 6
 >>
-Rule 17 (Check the output tensor's dtype if out is provided and input and mat2 are Half type)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 6 ∧ dtype_(v_2) = 6 then dtype_(v_3) = 6
+Rule 58 (Shape compatibility)
+{v_1: tensor, v_2: tensor} |= shape(v_1, 1) = shape(v_2, 0)
 >>
-Rule 23 (If input and mat2 are float16, out should also be float16)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 6) ∧ (dtype_(v_2) = 6) then (dtype_(v_3) = 6)
+Rule 60 (If out is provided, its dtype must match the dtype of input and must have float type)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then dtype_(v_1) = dtype_(v_3) ∧ (dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 6)
 >>
-Rule 24 (Check out's shape: if out is provided, its shape should be (n,p), where input is (n,m) and mat2 is (m,p))
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_3, 0) = shape(v_1, 0) ∧ shape(v_3, 1) = shape(v_2, 1) ∧ ndim(v_3) = 2
+Rule 61 (If input is float16, mat2 should not be complex and Dtype of input and mat2 must be same)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) < 10 ∧ dtype_(v_1) = dtype_(v_2) else dtype_(v_1) = dtype_(v_2)
 >>
-Rule 29 (If out is provided, its shape should be (n,p), where input is (n,m) and mat2 is (m,p))
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 then shape(v_3, 0) = shape(v_1, 0) ∧ shape(v_3, 1) = shape(v_2, 1) ∧ ndim(v_3) = 2
+Rule 66 (If out is provided, its dtype must match the dtype of input and must have float type and Dtype of input and mat2 must be same)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then dtype_(v_1) = dtype_(v_3) ∧ (dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 6) ∧ dtype_(v_1) = dtype_(v_2) else dtype_(v_1) = dtype_(v_2)
 >>
-Rule 35 (If out is provided, its shape should be (n,p), where input is (n,m) and mat2 is (m,p))
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) = 2) ∧ (ndim(v_2) = 2) then (shape(v_3, 0) = shape(v_1, 0) ∧ shape(v_3, 1) = shape(v_2, 1) ∧ ndim(v_3) = 2)
+Rule 78 (Expected out tensor to have dtype float, but got double instead)
+{v_3: tensor} |= if ndim(v_3) > 0 then (dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 6)
 >>
-Rule 41 (If out is provided, its shape should be (n,p), where input is (n,m) and mat2 is (m,p), if input and mat2 are matrices)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) = 2) ∧ (ndim(v_2) = 2) then (shape(v_3, 0) = shape(v_1, 0) ∧ shape(v_3, 1) = shape(v_2, 1))
+Rule 92 (If input is not matrix, throw exception)
+{v_1: tensor} |= ndim(v_1) = 2
 >>
-Rule 52 (If input and mat2 are float16 tensors, then out must also be a tensor of float16, if provided. Otherwise if input/mat2 is not float16, the out dtype must be float or the same dtype of input/mat2.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 6) ∧ (dtype_(v_2) = 6) then (dtype_(v_3) = 6) else if (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∧ (6 <= dtype_(v_2) ∧ dtype_(v_2) <= 8) then (6 <= dtype_(v_3) ∧ dtype_(v_3) <= 8)
+Rule 93 (If mat2 is not matrix, throw exception)
+{v_2: tensor} |= ndim(v_2) = 2
 >>
-Rule 58 (If input and mat2 are float16 tensors, and out is provided, then out must also be a tensor of compatible float type)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 6) ∧ (dtype_(v_2) = 6) then (dtype_(v_3) = 6) else if (dtype_(v_1) = 7) ∧ (dtype_(v_2) = 7) then (dtype_(v_3) = 7) else if (dtype_(v_1) = 8) ∧ (dtype_(v_2) = 8) then (dtype_(v_3) = 8)
+Rule 103 (input and mat2 must be matrices, i.e., have ndim = 2 and Shape compatibility v1 and v2)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 0)
+>>
+Rule 107 (If out is provided, it must be a matrix, i.e. have ndim = 2 and Shape compatibility v1 and v3, and v2 and v3)
+{v_3 : tensor, v_1 : tensor, v_2 : tensor} |= if ndim(v_3) > 0 then ndim(v_3) = 2 ∧ shape(v_1, 0) = shape(v_3, 0) ∧ shape(v_2, 1) = shape(v_3, 1)
+>>
+Rule 110 (If out is provided, its dtype must match the dtype of input and Dtype of input and mat2 must be same and it must be float and the correct shape)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then dtype_(v_1) = dtype_(v_3) ∧ (dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 6) ∧ dtype_(v_1) = dtype_(v_2) ∧ shape(v_1, 0) = shape(v_3, 0) ∧ shape(v_2, 1) = shape(v_3, 1) else dtype_(v_1) = dtype_(v_2)
+>>
+Rule 117 (If input is not matrix, throw exception and if mat2 is not matrix, throw exception)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2
+>>
+Rule 127 (out argument must be a Tensor, if provided, must have the correct dtype)
+{v_3 : tensor} |= if ndim(v_3) > 0 then (dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 6)
+>>
+Rule 135 (Argument out must be a tensor)
+{v_3: tensor} |= if ndim(v_3) > 0 then true

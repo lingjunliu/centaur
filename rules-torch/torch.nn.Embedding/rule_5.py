@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# scale_grad_by_freq is a boolean (Rule 5)
+# norm_type must be a positive float (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_value"] == True, v["arg1_value"] == False)) if n else
-          Or(v["arg1_value"] == True, v["arg1_value"] == False))
+    s.add(Not(v["arg1_value"] > 0) if n else
+          v["arg1_value"] > 0)
 )
 
 def rule_5_func(arg1, solver=None, neg=False):
@@ -17,12 +17,12 @@ def rule_5_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not isinstance(arg1, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
+        arg1_value = Real('arg1_value')
 
         # Value assignments
         solver.add(arg1_value == arg1)

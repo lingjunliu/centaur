@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check if the scale and zero_point are assigned. (Rule 43)
+# if ndim(v_2 (Rule 43)
 
 rule_43 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] > 0, v["arg2_value"] >= 0)) if n else
-          And(v["arg1_value"] > 0, v["arg2_value"] >= 0))
+    s.add(Not(If((And(v["arg2_ndim"] > 0, (Or([And(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) == 0) for i in range(6)])))), (v["arg1_ndim"] == 0), True)) if n else
+          If((And(v["arg2_ndim"] > 0, (Or([And(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) == 0) for i in range(6)])))), (v["arg1_ndim"] == 0), True))
 )
 
 def rule_43_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,27 @@ def rule_43_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
+        if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
-        arg2_value = Int('arg2_value')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_ndim = Int('arg2_ndim')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 43
-        rule_43(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_43(solver, {'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_43(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_43(solver, {'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim']}, neg)

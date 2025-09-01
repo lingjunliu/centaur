@@ -1,96 +1,354 @@
 >>
-Rule 1 (Input tensor must be 3D or 4D to avoid ValueError: expected 3D or 4D input (got 1D input))
-{v_1 : tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4
+Rule 1 (input tensor must be 3 or 4-dimensional to avoid ValueError: expected 3D or 4D input (got 1D input))
+{input : tensor} |= ndim(input) = 3 ∨ ndim(input) = 4
 >>
-Rule 2 (num_features must match input size at dim=1 to avoid ValueError)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 1) = v_2
+Rule 2 (num_features must match input's size at dim=1 to avoid ValueError: expected input's size at dim=0 to match num_features (32), but got: 3.)
+{input : tensor, num_features : int} |= shape(input, 1) = num_features
 >>
-Rule 7 (Input tensor must be of floating point or complex dtype to avoid RuntimeError: mean(): could not infer output dtype. Input dtype must be either a floating point or complex dtype. Got: Long)
-{v_1 : tensor} |= dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128"
+Rule 3 (eps should be non-negative to maintain numerical stability)
+{eps : float} |= eps ≥ 0
 >>
-Rule 8 (Check for positive eps for numerical stability)
-{v_1 : float} |= v_1 > 0
+Rule 4 (momentum should be within [0, 1] range.)
+{momentum : float} |= momentum ≥ 0 ∧ momentum ≤ 1
 >>
-Rule 9 (Check for valid momentum value between 0 and 1)
-{v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 1
+Rule 6 (input tensor should have floating point or complex dtype to avoid RuntimeError: mean(): could not infer output dtype. Input dtype must be either a floating point or complex dtype. Got: Long)
+{input : tensor} |= dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 9 ∨ dtype_(input) = 10
 >>
-Rule 12 (eps must be a non-negative float)
-{v_1 : float} |= v_1 ≥ 0
+Rule 7 (affine parameter should be boolean type to avoid type error)
+{affine : bool} |= affine = true ∨ affine = false
 >>
-Rule 18 (Input tensor must be 3D or 4D to avoid ValueError: expected 3D or 4D input (got 1D input))
-{v_1 : tensor} |= ndim(v_1) ≥ 3 ∧ ndim(v_1) ≤ 4
+Rule 8 (track_running_stats parameter should be boolean type to avoid type error)
+{track_running_stats : bool} |= track_running_stats = true ∨ track_running_stats = false
 >>
-Rule 19 (num_features (v_2) must be a positive integer)
-{v_2 : int} |= v_2 > 0
+Rule 16 (Check for consistent dtype within the input tensor to prevent mixed dtype errors. This focuses on internal consistency, not a specific type)
+{input : tensor} |= ∃ i ∈ [0, ndim(input) - 2] : dtype_(input) = dtype_(input)
 >>
-Rule 22 (affine parameter must be a boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 17 (num_features must be a positive integer)
+{num_features : int} |= num_features > 0
 >>
-Rule 25 (Check for running_mean and running_var to be the same size of num_features)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) = v_2
+Rule 18 (input tensor shape at dimension 1 must be greater than 0)
+{input: tensor} |= shape(input, 1) > 0
 >>
-Rule 26 (eps cannot be too large)
-{v_1 : float} |= v_1 < 1
+Rule 19 (Ensuring num_features is compatible with input tensor's dimension to prevent 'expected input's size at dim=0 to match num_features' error)
+{input : tensor, num_features : int} |= if ndim(input) = 4 then shape(input, 1) = num_features else if ndim(input) = 3 then shape(input, 0) = num_features else false
 >>
-Rule 29 (eps must be a non-negative float and small)
-{v_1 : float} |= v_1 ≥ 0 ∧ v_1 < 1
+Rule 20 (eps should be a small positive float)
+{eps : float} |= eps > 0 ∧ eps < 1
 >>
-Rule 32 (If affine is true, then ensure gradients are required)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" ∨ dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128"
+Rule 21 (momentum should not be excessively large)
+{momentum : float} |= momentum < 0.5
 >>
-Rule 33 (check that tensor datatype is a floating type)
-{v_1 : tensor} |= dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64"
+Rule 22 (Check if affine flag is not dependent on track_running_stats being true)
+{affine: bool, track_running_stats: bool} |= if affine then track_running_stats
 >>
-Rule 34 (If track_running_stats is true, number of element should be a positive number)
-{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 > 0
+Rule 23 (Validating that dtype of the input is either float16, float32 or float64 to avoid RuntimeError: "batch_norm" not implemented for 'Char')
+{input: tensor} |= dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 9
 >>
-Rule 37 (eps must be a non-negative float and reasonably small)
-{v_1 : float} |= v_1 > 0 ∧ v_1 < 0.5
+Rule 24 (Input and num_features relationship considering the lazy initialization)
+{input : tensor, num_features : int} |= (ndim(input) = 4 ∧ num_features > 0) ∨ (ndim(input) = 3 ∧ num_features > 0)
 >>
-Rule 39 (If affine is true, then ensure gradients are required and a float datatype)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64"
+Rule 25 (Eps should be strictly positive and less than 0.1)
+{eps : float} |= 0 < eps ∧ eps < 0.1
 >>
-Rule 50 (Check batch norm is applicable)
-{v_1: tensor} |= dtype_(v_1) ≠ "str"
+Rule 26 (affine and track_running_stats should not be simultaneously false)
+{affine : bool, track_running_stats : bool} |= affine ∨ track_running_stats
 >>
-Rule 53 (eps must be a positive float and not too large or small)
-{v_1 : float} |= v_1 > 1e-6 ∧ v_1 < 0.5
+Rule 27 (Dtype should belong to the allowed floating or complex types for batch norm)
+{dtype : dtype} |= dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10
 >>
-Rule 56 (Running stats number elements should be number of features)
-{v_1: tensor, v_2: int} |= shape(v_1, 1) = v_2
+Rule 28 (Input dimension should be greater than 1 to avoid IndexErrors during feature extraction)
+{input : tensor} |= ndim(input) > 1
 >>
-Rule 68 (Running mean should have floating dtype)
-{v_1: tensor} |= dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128"
+Rule 29 (If input is 3D, num_features must be specified)
+{input : tensor, num_features : int} |= if ndim(input) = 3 then num_features > 0
 >>
-Rule 69 (running_mean and running_var number of elements should match num_features)
-{v_1: tensor, v_2: int} |= shape(v_1, 0) = v_2
+Rule 30 (eps should be significantly smaller than 1 to avoid numerical instability issues)
+{eps : float} |= eps < 0.001
 >>
-Rule 76 (Check that data type is not a character array)
-{v_1 : tensor} |= dtype_(v_1) ≠ "str"
+Rule 31 (If affine is true, then the input dtype must be float or complex)
+{affine : bool, input: tensor} |= if affine then (dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 9 ∨ dtype_(input) = 10)
 >>
-Rule 88 (Shape of input matches requirements for instance norm)
-{v_1: tensor, v_2: int} |= ndim(v_1) ≥ 3 ∧ ndim(v_1) ≤ 4 ∧ shape(v_1, 1) = v_2
+Rule 32 (Checking that input size at dimension=1 exists before lazy initialization of num_features)
+{input : tensor} |= ndim(input) >= 2
 >>
-Rule 95 (Input tensor second dimension equals num_features)
-{v_1: tensor, v_2 : int} |= shape(v_1, 1) = v_2
+Rule 33 (momentum and eps should not be the same)
+{momentum: float, eps: float} |= momentum ≠ eps
 >>
-Rule 105 (If affine set then should be a floating tensor)
-{v_1 : bool, v_2: tensor} |= if v_1 = true then dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" ∨ dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128"
+Rule 34 (If track_running_stats is false, affine must be false)
+{track_running_stats : bool, affine : bool} |= if track_running_stats = false then affine = false
 >>
-Rule 110 (Shape of tensor should fit the input)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) ≥ 3 ∧ ndim(v_1) ≤ 4 ∧ shape(v_1, 1) = v_2
+Rule 35 (eps should be greater than 0 and less than momentum)
+{eps : float, momentum : float} |= 0 < eps ∧ eps < momentum
 >>
-Rule 124 (If input requires grads, should be floating type)
-{v_1 : tensor} |= if min(v_1) < 0 ∨ max(v_1) > 0 then dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128"
+Rule 36 (Input dimension constraints if num_features is provided)
+{input: tensor, num_features: int} |= if num_features > 0 then (ndim(input) = 3 ∨ ndim(input) = 4)
 >>
-Rule 126 (Check num_features is greater than 0)
-{v_1 : int} |= v_1 > 0
+Rule 37 (Ensure input dimension is compatible with feature extraction before applying the norm)
+{input : tensor} |= ndim(input) > 1 ∧ (shape(input, 1) > 0)
 >>
-Rule 127 (Check eps is a small positive number)
-{v_1 : float} |= v_1 > 0 ∧ v_1 < 1
+Rule 38 (Check if the input requires gradient and the type)
+{input: tensor} |= if dtype_(input) = 9 ∨ dtype_(input) = 10 then true else if dtype_(input) = 7 ∨ dtype_(input) = 8 then true else false
 >>
-Rule 129 (If affine parameter is set, data type cannot be an integer)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then dtype_(v_2) ≠ "np.int8" ∧ dtype_(v_2) ≠ "np.int16" ∧ dtype_(v_2) ≠ "np.int32" ∧ dtype_(v_2) ≠ "np.int64"
+Rule 39 (Combined check for num_features and input tensor dimensions, avoiding 1D input.)
+{input : tensor, num_features : int} |= (ndim(input) = 3 ∧ num_features > 0) ∨ (ndim(input) = 4 ∧ num_features > 0) ∨ (ndim(input) > 4)
 >>
-Rule 133 (If track running stats set then number of features should be positive)
-{v_1: bool, v_2 : int} |= if v_1 = true then v_2 > 0
+Rule 40 (Eps is greater than 0, momentum + eps is less than 1 to avoid edge cases)
+{eps : float, momentum : float} |= eps > 0 ∧ momentum + eps < 1
+>>
+Rule 41 (If track_running_stats is enabled, the input dtype must allow gradient calculation (float or complex))
+{track_running_stats : bool, input : tensor} |= if track_running_stats then (dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 9 ∨ dtype_(input) = 10)
+>>
+Rule 42 (For a 3D input, num_features should be less than or equal to input's 0th dimension to prevent size mismatches)
+{input : tensor, num_features : int} |= if ndim(input) = 3 then num_features ≤ shape(input, 0)
+>>
+Rule 43 (If num_features is not specified, it should be inferred from input's 1st dimension, ensure that dim exists)
+{input: tensor} |= if ndim(input) >=2 then true else false
+>>
+Rule 44 (Enforce floating-point dtype for gradient compatibility)
+{input : tensor} |= dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 9
+>>
+Rule 45 (If num_features is 0, then infer the channel dimension from input)
+{input: tensor, num_features : int} |= if num_features = 0 then ndim(input) > 1
+>>
+Rule 46 (eps and momentum together should be less than a threshold)
+{eps: float, momentum: float} |= eps + momentum < 0.5
+>>
+Rule 47 (Input needs to be at least 2D for the channel dimension to exist)
+{input: tensor} |= ndim(input) > 1
+>>
+Rule 53 (If both affine and track_running_stats are false, warn, but allow. This doesn't error, but can lead to unexpected behavior - reformulated without negation)
+{affine : bool, track_running_stats: bool} |= (affine = true) ∨ (track_running_stats = true) ∨ (affine = false ∧ track_running_stats = false)
+>>
+Rule 54 (Momentum must be less than 1, enforcing a valid update rate for running stats.)
+{momentum : float} |= momentum < 1
+>>
+Rule 55 (if num_features = -1, infer the dimension. Enforce input must be at least 2D to have channels)
+{input: tensor, num_features: int} |= if num_features = -1 then ndim(input) > 1
+>>
+Rule 56 (If track_running_stats is enabled, data type of running mean should be the same as the input)
+{track_running_stats : bool, input: tensor} |= if track_running_stats then (dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 9)
+>>
+Rule 57 (If affine, input should have floating or complex type, and num_features must match C dimension, otherwise, it is always true.)
+{affine: bool, input: tensor, num_features : int} |= if affine then (dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 9) ∧ ((ndim(input) = 4 ∧ shape(input,1) = num_features) ∨ (ndim(input) = 3 ∧ shape(input, 0) = num_features))
+>>
+Rule 58 (Eps is a small positive number.)
+{eps: float} |= 0 < eps ∧ eps < 1
+>>
+Rule 59 (Momentum and eps must not add up to 1, so the model will not be unstable.)
+{momentum : float, eps : float} |= momentum + eps ≠ 1
+>>
+Rule 60 (If affine and track_running_stats is false, input must still be 3d or 4d)
+{affine : bool, track_running_stats : bool, input : tensor} |= if affine = false ∧ track_running_stats = false then ndim(input) = 3 ∨ ndim(input) = 4
+>>
+Rule 61 (If number of features is explicitly given, it must be greater than 0)
+{num_features : int} |= num_features > 0 ∨ num_features = -1
+>>
+Rule 62 (Input tensor should have dimension greater than 1 and smaller than 5 to not result into index error)
+{input: tensor} |= ndim(input) > 1 ∧ ndim(input) < 5
+>>
+Rule 68 (num_features must be less than a large number if affine is enabled)
+{num_features : int, affine : bool} |= if affine then num_features < 1024
+>>
+Rule 69 (eps must be non-zero so we do not have division by zero)
+{eps : float} |= eps ≠ 0
+>>
+Rule 71 (Dtype should be either float or complex if track running stats is true and affine is true to allow running calculations.)
+{input: tensor, affine: bool, track_running_stats: bool} |= if (track_running_stats = true) ∧ (affine = true) then (dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 9 ∨ dtype_(input) = 10)
+>>
+Rule 72 (Num features must be non negative, as negative channels do not exist)
+{num_features: int} |= num_features ≥ 0 ∨ num_features = -1
+>>
+Rule 73 (Momentum cannot be 0, else, no updates)
+{momentum: float} |= momentum ≠ 0
+>>
+Rule 75 (Input cannot have shape where any element is equal to 0 as it can be invalid)
+{input: tensor} |= ∃i ∈ [0, ndim(input) - 1] : shape(input, i) ≠ 0
+>>
+Rule 79 (If track_running_stats is enabled, then at least one dimension of the input must have more than 1 element)
+{track_running_stats : bool, input: tensor} |= if track_running_stats then (∃i ∈ [0, ndim(input) - 1] : shape(input, i) > 1)
+>>
+Rule 80 (Momentum should be smaller or equal to 0.5.)
+{momentum : float} |= momentum ≤ 0.5
+>>
+Rule 81 (Eps must be smaller than 0.1)
+{eps : float} |= eps < 0.1
+>>
+Rule 82 (Data type of input should be compatible with batch norm operation if track running stats and affine are true)
+{input: tensor, affine: bool, track_running_stats: bool} |= if (affine = true ∧ track_running_stats = true) then dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 9 ∨ dtype_(input) = 10
+>>
+Rule 83 (Input has to be at least 2d so that it can be fed into batch norm.)
+{input: tensor} |= ndim(input) ≥ 2
+>>
+Rule 89 (Eps should be less than 1.0)
+{eps: float} |= eps < 1.0
+>>
+Rule 90 (Momentum should be greater than 0.0)
+{momentum: float} |= momentum > 0.0
+>>
+Rule 91 (Affine can only be true or false, ensuring valid boolean)
+{affine: bool} |= affine = true ∨ affine = false
+>>
+Rule 92 (Track running stats can only be true or false, ensuring valid boolean)
+{track_running_stats: bool} |= track_running_stats = true ∨ track_running_stats = false
+>>
+Rule 93 (Input tensor's dimension should be greater than 0)
+{input: tensor} |= ndim(input) > 0
+>>
+Rule 94 (eps must be greater or equal to 0.0)
+{eps: float} |= eps ≥ 0.0
+>>
+Rule 95 (momentum must be less or equal to 1.0)
+{momentum: float} |= momentum ≤ 1.0
+>>
+Rule 96 (affine and track_running_stats cannot both be false)
+{affine: bool, track_running_stats: bool} |= if affine = false then track_running_stats = true
+>>
+Rule 98 (If track_running_stats is false, affine should also be false to avoid wrong statistics)
+{affine: bool, track_running_stats: bool} |= if track_running_stats = false then affine = false
+>>
+Rule 102 (Input tensor must have ndim at least 4, to be a valid input)
+{input: tensor} |= ndim(input) ≥ 4
+>>
+Rule 104 (Eps should be within a reasonable bound)
+{eps: float} |= eps < 0.5
+>>
+Rule 105 (momentum must be less or equal than eps + 0.5)
+{momentum : float, eps : float} |= momentum ≤ (eps + 0.5)
+>>
+Rule 106 (if affine is true then the input should have at least three dimensions, due to lazy initialization of the channel dimension)
+{affine: bool, input: tensor} |= if affine then ndim(input) ≥ 3
+>>
+Rule 107 (If the input is 4D, check its size to see if its shape dimensions are non-zero)
+{input: tensor} |= if ndim(input) = 4 then shape(input, 0) > 0 ∧ shape(input, 1) > 0 ∧ shape(input, 2) > 0 ∧ shape(input, 3) > 0
+>>
+Rule 108 (If affine = false then dtype of the input does not need to be anything specific)
+{affine: bool, input: tensor} |= if affine = false then true else dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 9 ∨ dtype_(input) = 10
+>>
+Rule 109 (Eps is less or equal than momentum, or momentum is smaller than 0.5)
+{eps: float, momentum : float} |= eps ≤ momentum ∨ momentum < 0.5
+>>
+Rule 110 (If the num_features is greater than 0, check if it is less than a sufficiently big number (hardware limitation), or it's -1 )
+{num_features : int} |= (num_features < 2048) ∨ (num_features = -1)
+>>
+Rule 111 (If affine= True, then input can be either a float of 32 or 64 bit)
+{affine: bool, input: tensor} |= if affine then (dtype_(input) = 8 ∨ dtype_(input) = 9)
+>>
+Rule 112 (If track_running_stats is true, and if number of dimensions is greater than 3 check the second dimension of input)
+{track_running_stats: bool, input: tensor} |= if track_running_stats ∧ ndim(input) > 3 then (shape(input,1) > 0)
+>>
+Rule 113 (The product of eps and momentum must be a small number, so we do not have exploding value)
+{eps: float, momentum: float} |= eps * momentum < 0.01
+>>
+Rule 115 (If affine is true, and the number of features is specified, then this number should be smaller than the biggest number)
+{affine: bool, num_features : int} |= if affine then num_features < 65536
+>>
+Rule 116 (If track_running_stats is false then we do not care about the dtype of the input )
+{track_running_stats : bool, input: tensor} |= if track_running_stats = false then true else (dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 9 ∨ dtype_(input) = 10)
+>>
+Rule 117 (At least either affine or track_running_stats has to be true)
+{affine: bool, track_running_stats: bool} |= affine ∨ track_running_stats
+>>
+Rule 118 (if the input tensor is less than or equal than 2D, this rule will be false)
+{input: tensor} |= ndim(input) > 2
+>>
+Rule 119 (Eps must be positive and smaller than 10.)
+{eps: float} |= eps > 0 ∧ eps < 10
+>>
+Rule 120 (If affine is true, and the number of features is specified, then this number should be smaller than the second dimension of the input or -1)
+{affine: bool, num_features : int, input: tensor} |= if affine then num_features < shape(input, 1) ∨ num_features = -1
+>>
+Rule 121 (If track_running_stats is false, then the dimension of input should be either 3 or 4 to avoid value error)
+{track_running_stats : bool, input: tensor} |= if track_running_stats = false then ndim(input) = 3 ∨ ndim(input) = 4
+>>
+Rule 123 (if the eps is greater than 0, the ndim of input should be greater than 1)
+{eps: float, input: tensor} |= if eps > 0 then ndim(input) > 1
+>>
+Rule 127 (affine and track_running_stats needs a condition)
+{affine: bool, track_running_stats: bool} |= if affine = false then true else track_running_stats = true
+>>
+Rule 129 (Eps multiplied by 1000 must be smaller or equal than 1)
+{eps: float} |= eps * 1000 ≤ 1
+>>
+Rule 130 (If affine is false the product of momentum and eps must be smaller than .0001)
+{affine: bool, momentum : float, eps :float} |= if affine = false then momentum * eps < 0.0001
+>>
+Rule 131 (If number of dimension is 4 the second dimension has to be equal to the third dimension)
+{input: tensor} |= if ndim(input) = 4 then shape(input, 1) = shape(input, 2)
+>>
+Rule 133 (momentum > 0 or eps > 0)
+{momentum : float, eps: float} |= momentum > 0 ∨ eps > 0
+>>
+Rule 136 (If number of dimension is 4 the second dimension has to be smaller then 10000)
+{input: tensor} |= if ndim(input) = 4 then shape(input, 1) < 10000
+>>
+Rule 137 (Affine depends on eps to be smaller than one)
+{affine: bool, eps: float} |= if affine then eps < 1
+>>
+Rule 139 (If track_running_stats is enabled, then the value of momentum should be greater than eps)
+{track_running_stats : bool, momentum: float, eps: float} |= if track_running_stats then momentum > eps
+>>
+Rule 140 (if affine is true, the num_features must be less than the 0th dimension of input)
+{affine: bool, num_features: int, input: tensor} |= if affine then num_features < shape(input, 0)
+>>
+Rule 141 (If track running stats is disabled, and number of dimension of input is more than 3, then second dimension has to be bigger than eps)
+{track_running_stats : bool, input: tensor, eps: float} |= if track_running_stats = false ∧ ndim(input) > 3 then shape(input, 1) > eps
+>>
+Rule 142 (Eps has to be less than 10 times the momentum or be 0)
+{eps: float, momentum : float} |= eps < momentum * 10 ∨ eps = 0
+>>
+Rule 143 (Momentum must be less than the ndim to prevent errors. It has to be true.)
+{momentum: float, input: tensor} |= momentum < ndim(input)
+>>
+Rule 144 (Eps is bigger than 0 if momentum is also bigger than 0)
+{eps: float, momentum : float} |= if momentum > 0 then eps > 0
+>>
+Rule 145 (If track_running_stats is true, and affine is also true, the momentum cannot be 0 or 1)
+{track_running_stats : bool, affine: bool, momentum: float} |= if track_running_stats ∧ affine then momentum ≠ 0 ∧ momentum ≠ 1
+>>
+Rule 146 (If number of dimension is more than 2 check also the second dimension)
+{input: tensor} |= if ndim(input) > 2 then shape(input, 1) > 0
+>>
+Rule 148 (track_running_stats has to be smaller or equal then 1)
+{track_running_stats: bool, momentum: float} |= if track_running_stats = true then momentum ≤ 1
+>>
+Rule 149 (Eps is positive only if track running stats = true)
+{eps: float, track_running_stats : bool} |= if track_running_stats then eps > 0
+>>
+Rule 150 (If affine is true, the num_features must be a reasonable number.)
+{affine: bool, num_features : int} |= if affine then num_features < 32768
+>>
+Rule 151 (If track_running_stats and affine are enabled then the third dimension must be different from 0.)
+{track_running_stats : bool, affine: bool, input: tensor} |= if track_running_stats ∧ affine ∧ ndim(input) > 2 then shape(input, 2) ≠ 0
+>>
+Rule 152 ( if affine and track_running_stats is true, the ndim of input must be bigger then 3)
+{affine: bool, track_running_stats: bool, input : tensor} |= if affine ∧ track_running_stats then ndim(input) > 3
+>>
+Rule 153 (momentum less then or equal the min dimension of the input )
+{momentum : float, input: tensor} |= momentum ≤ min(input)
+>>
+Rule 154 (if input is tensor, then eps should be greater then -1)
+{eps: float, input: tensor} |= if dtype_(input) > 0 then eps > -1
+>>
+Rule 155 (the multiplication among features has to be smaller then a normal number)
+{affine: bool, num_features : int, track_running_stats: bool} |= if affine ∧ track_running_stats then num_features < 50000
+>>
+Rule 156 ( If track_running_stats, affine then at least dimension one has to be greater than dimension zero.)
+{track_running_stats : bool, affine: bool, input: tensor} |= if track_running_stats ∧ affine ∧ ndim(input) > 1 then shape(input, 1) > shape(input, 0)
+>>
+Rule 157 (eps cannot be greater then the max function among tensor)
+{eps : float, input: tensor} |= eps < max(input)
+>>
+Rule 158 (eps must be different from 1000)
+{eps: float} |= eps ≠ 1000
+>>
+Rule 159 (If input is tensor, then eps should be equal or greater then 0)
+{eps: float, input: tensor} |= if dtype_(input) > 0 then eps ≥ 0
+>>
+Rule 160 (The multiplication among features has to be smaller then 60000)
+{affine: bool, num_features : int, track_running_stats: bool} |= if affine ∧ track_running_stats then num_features < 60000
+>>
+Rule 161 (At least if not specified num_feature number of dimension has to be 3)
+{affine: bool, track_running_stats: bool, input: tensor} |= if track_running_stats ∧ affine ∧ ndim(input) > 1 then shape(input, 1) > 0
+>>
+Rule 162 (If track running stats and affine the dtype has to be among the numbers)
+{affine: bool, track_running_stats: bool, input: tensor} |= if affine ∧ track_running_stats then dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 9 ∨ dtype_(input) = 10

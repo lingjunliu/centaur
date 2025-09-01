@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Padding must be less than half of the effective kernel size (Rule 76)
+# If all parameters are integers then ensure that padding doesn't cause integer overflow, which causes negative values for kernel sizes (Rule 76)
 
 rule_76 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] <= ((v["arg2_value"] - 1) * v["arg3_value"]) / 2) if n else
-          v["arg1_value"] <= ((v["arg2_value"] - 1) * v["arg3_value"]) / 2)
+    s.add(Not(And(And(v["arg1_value"] <= 2147483647, v["arg2_value"] <= 2147483647), v["arg3_value"] <= 2147483647)) if n else
+          And(And(v["arg1_value"] <= 2147483647, v["arg2_value"] <= 2147483647), v["arg3_value"] <= 2147483647))
 )
 
 def rule_76_func(arg1, arg2, arg3, solver=None, neg=False):

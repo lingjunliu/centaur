@@ -5,43 +5,35 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Ensure first element of int list v_1 is not in int list v_2 (Rule 82)
+# For valid bool type tensors minimum values should be false and maximum value should be true. (Rule 82)
 
 rule_82 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_length"] > 0, v["arg2_length"] > 0), And([Implies(j < (v["arg2_length"] - 1 + 1), Select(v["arg1_values"], 0) != Select(v["arg2_values"], j)) for j in range(6)]), False)) if n else
-          If(And(v["arg1_length"] > 0, v["arg2_length"] > 0), And([Implies(j < (v["arg2_length"] - 1 + 1), Select(v["arg1_values"], 0) != Select(v["arg2_values"], j)) for j in range(6)]), False))
+    s.add(Not(If(v["arg1_dtype"] == 0, And(Select(v["arg1_range"], 0) == False, Select(v["arg1_range"], 1) == True), True)) if n else
+          If(v["arg1_dtype"] == 0, And(Select(v["arg1_range"], 0) == False, Select(v["arg1_range"], 1) == True), True))
 )
 
-def rule_82_func(arg1, arg2, solver=None, neg=False):
+def rule_82_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
-            return False
-        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
-        arg1_values = Array('arg1_values', IntSort(), IntSort())
-        arg2_length = Int('arg2_length')
-        arg2_values = Array('arg2_values', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
-        solver.add(arg2_length == len(arg2))
-        for i in range(len(arg2)):
-            arg2_values = Store(arg2_values, i, arg2[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 82
-        rule_82(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values, 'arg2_length': arg2_length, 'arg2_values': arg2_values})
+        rule_82(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_82(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values'], 'arg2_length': arg2['length'], 'arg2_values': arg2['values']}, neg)
+        rule_82(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)

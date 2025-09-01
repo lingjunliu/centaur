@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if dimension is bigger then 3 and v2 then is equal to it, value can not be none. (Rule 115)
+# A string should not be equal to circular, if the data type is int (Rule 115)
 
 rule_115 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_ndim"] > 3, v["arg1_value"] != 6, False)) if n else
-          If(v["arg2_ndim"] > 3, v["arg1_value"] != 6, False))
+    s.add(Not(If(And(v["arg2_dtype"] >= 1, v["arg2_dtype"] <= 5), v["arg1_value"] != 24, True)) if n else
+          If(And(v["arg2_dtype"] >= 1, v["arg2_dtype"] <= 5), v["arg1_value"] != 24, True))
 )
 
 def rule_115_func(arg1, arg2, solver=None, neg=False):
@@ -26,16 +26,16 @@ def rule_115_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_value = String('arg1_value')
-        arg2_ndim = Int('arg2_ndim')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
         solver.add(arg1_value == list_of_string_values_torch.index(arg1))
-        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 115
-        rule_115(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim})
+        rule_115(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_115(solver, {'arg1_value': arg1['value'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_115(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype']}, neg)

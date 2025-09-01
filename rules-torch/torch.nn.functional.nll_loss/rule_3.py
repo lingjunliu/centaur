@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Target should be Long (int64 (Rule 3)
+# Target tensor should have Long data type, addressing "RuntimeError: expected scalar type Long but found Float" (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
     s.add(Not(v["arg1_dtype"] == 4) if n else

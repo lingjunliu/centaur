@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if beta is equal to zero, then max value in input should be non negative (Rule 103)
+# threshold should be larger than max tensor value when beta is around 1, prevents the linear approximation (Rule 103)
 
 rule_103 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == 0, Select(v["arg1_range"], 1) >= 0, False)) if n else
-          If(v["arg2_value"] == 0, Select(v["arg1_range"], 1) >= 0, False))
+    s.add(Not(If(And(0.5 < v_2, v_2 < 1.5), v["arg2_value"] > Select(v["arg1_range"], 1), True)) if n else
+          If(And(0.5 < v_2, v_2 < 1.5), v["arg2_value"] > Select(v["arg1_range"], 1), True))
 )
 
 def rule_103_func(arg1, arg2, solver=None, neg=False):

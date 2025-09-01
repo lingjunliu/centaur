@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# All input tensors, weight, and bias should be either all integer type or all floating/complex (Rule 35)
+# Prevent mixing short int with other datatypes when input1 is short int (Rule 35)
 
 rule_35 = lambda s, v, n=False: (
-    s.add(Not(Or((And(And(And(v["arg1_dtype"] <= 5, v["arg2_dtype"] <= 5), v["arg3_dtype"] <= 5), v["arg4_dtype"] <= 5)), (And(And(And(v["arg1_dtype"] > 5, v["arg2_dtype"] > 5), v["arg3_dtype"] > 5), v["arg4_dtype"] > 5)))) if n else
-          Or((And(And(And(v["arg1_dtype"] <= 5, v["arg2_dtype"] <= 5), v["arg3_dtype"] <= 5), v["arg4_dtype"] <= 5)), (And(And(And(v["arg1_dtype"] > 5, v["arg2_dtype"] > 5), v["arg3_dtype"] > 5), v["arg4_dtype"] > 5))))
+    s.add(Not(If((v["arg1_dtype"] == 2), (And(And((v["arg2_dtype"] == 2), (v["arg3_dtype"] == 2)), (v["arg4_dtype"] == 2))), True)) if n else
+          If((v["arg1_dtype"] == 2), (And(And((v["arg2_dtype"] == 2), (v["arg3_dtype"] == 2)), (v["arg4_dtype"] == 2))), True))
 )
 
 def rule_35_func(arg1, arg2, arg3, arg4, solver=None, neg=False):

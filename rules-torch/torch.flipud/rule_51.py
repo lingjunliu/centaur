@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# For tensors greater than 2D, ensure element counts for any of the axis is greater than one (Rule 51)
+# The absolute value of each dimension size in the input tensor should be limited (Rule 51)
 
 rule_51 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 2, (Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 1) for i in range(6)])), False)) if n else
-          If(v["arg1_ndim"] > 2, (Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 1) for i in range(6)])), False))
+    s.add(Not(If(v["arg1_ndim"] > 0, And([Implies(i < ((If(v["arg1_ndim"] < 6, v["arg1_ndim"], 5)) + 1), Select(v["arg1_shape"], i) < 10000) for i in range(6)]), True)) if n else
+          If(v["arg1_ndim"] > 0, And([Implies(i < ((If(v["arg1_ndim"] < 6, v["arg1_ndim"], 5)) + 1), Select(v["arg1_shape"], i) < 10000) for i in range(6)]), True))
 )
 
 def rule_51_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_51_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 51
-        rule_51(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_51(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_51(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_51(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

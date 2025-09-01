@@ -5,16 +5,18 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# To ensure dimension is valid with respect to Scale and zero_point types (Rule 48)
+# Scale must be Float and 1D tensor, Zero Point must be Int32, Float or Half, and axis within range of input (Rule 48)
 
 rule_48 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 8, v["arg1_ndim"] == 1, If((Or(Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8)), v["arg2_ndim"] == 1, False))) if n else
-          If(v["arg1_dtype"] == 8, v["arg1_ndim"] == 1, If((Or(Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8)), v["arg2_ndim"] == 1, False)))
+    s.add(Not(And(And(And(And(v["arg2_dtype"] == 7, v["arg2_ndim"] == 1), (Or(Or(v["arg3_dtype"] == 3, v["arg3_dtype"] == 6), v["arg3_dtype"] == 7))), (0 - v["arg1_ndim"]) <= v["arg4_value"]), v["arg4_value"] < v["arg1_ndim"])) if n else
+          And(And(And(And(v["arg2_dtype"] == 7, v["arg2_ndim"] == 1), (Or(Or(v["arg3_dtype"] == 3, v["arg3_dtype"] == 6), v["arg3_dtype"] == 7))), (0 - v["arg1_ndim"]) <= v["arg4_value"]), v["arg4_value"] < v["arg1_ndim"]))
 )
 
-def rule_48_func(arg1, arg2, solver=None, neg=False):
+def rule_48_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
+    arg4 = next(iter(arg4.values()))
 
     # Invariant learning phase
     if not solver:
@@ -22,24 +24,30 @@ def rule_48_func(arg1, arg2, solver=None, neg=False):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
+        if not isinstance(arg3, np.ndarray):
+            return False
+        if not (isinstance(arg4, (int, np.integer)) and not isinstance(arg4, bool)):
+            return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg1_dtype = Int('arg1_dtype')
         arg2_ndim = Int('arg2_ndim')
         arg2_dtype = Int('arg2_dtype')
+        arg3_dtype = Int('arg3_dtype')
+        arg4_value = Int('arg4_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         solver.add(arg2_ndim == arg2.ndim)
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
+        solver.add(arg4_value == int(arg4))
 
         # Constraints for rule 48
-        rule_48(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim, 'arg2_dtype': arg2_dtype, 'arg2_ndim': arg2_ndim})
+        rule_48(solver, {'arg1_ndim': arg1_ndim, 'arg2_dtype': arg2_dtype, 'arg2_ndim': arg2_ndim, 'arg3_dtype': arg3_dtype, 'arg4_value': arg4_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_48(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim'], 'arg2_dtype': arg2['dtype'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_48(solver, {'arg1_ndim': arg1['ndim'], 'arg2_dtype': arg2['dtype'], 'arg2_ndim': arg2['ndim'], 'arg3_dtype': arg3['dtype'], 'arg4_value': arg4['value']}, neg)

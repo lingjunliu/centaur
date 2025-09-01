@@ -1,150 +1,108 @@
 >>
-Rule 1 (in_channels and out_channels must be positive integers)
-{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+Rule 1 (in_channels and out_channels must be positive)
+{in_channels : int, out_channels : int} |= in_channels > 0 ∧ out_channels > 0
 >>
-Rule 2 (groups must be a positive integer)
-{v_1 : int} |= v_1 > 0
+Rule 2 (groups must be positive)
+{groups : int} |= groups > 0
 >>
 Rule 3 (in_channels and out_channels must be divisible by groups)
-{v_1 : int, v_2 : int, v_3 : int} |= (v_1 % v_3 = 0) ∧ (v_2 % v_3 = 0)
+{in_channels : int, out_channels : int, groups : int} |= in_channels % groups = 0 ∧ out_channels % groups = 0
 >>
-Rule 10 (The number of input channels must match the weight)
-{v_1: tensor, v_2: int} |= shape(v_1, 1) = v_2
+Rule 4 (dilation must be positive)
+{dilation : int} |= dilation > 0
 >>
-Rule 25 (groups must be less than or equal to in_channels)
-{v_1 : int, v_2 : int} |= v_1 ≤ v_2
+Rule 5 (padding_mode must be zeros)
+{padding_mode : str} |= padding_mode = "zeros"
 >>
-Rule 27 (in_channels and out_channels should be reasonable value)
-{v_1 : int, v_2 : int} |= v_1 < 10000 ∧ v_2 < 10000
+Rule 6 (kernel_size must be positive)
+{kernel_size : int} |= kernel_size > 0
 >>
-Rule 28 (padding must be non-negative)
-{v_1 : int} |= v_1 ≥ 0
+Rule 7 (stride must be positive)
+{stride : int} |= stride > 0
 >>
-Rule 32 (kernel size cannot be too large)
-{v_1 : int} |= v_1 < 100
+Rule 8 (padding must be non-negative)
+{padding : int} |= padding ≥ 0
 >>
-Rule 33 (in_channels and groups should be greater than or equal to one)
-{v_1 : int, v_2 : int} |= v_1 ≥ 1 ∧ v_2 ≥ 1
+Rule 9 (output_padding must be non-negative)
+{output_padding : int} |= output_padding ≥ 0
 >>
-Rule 34 (output_padding should be less than stride)
-{v_1: int, v_2: int} |= v_1 ≤ v_2
+Rule 10 (kernel_size, stride, padding, output_padding, dilation must have same length if they are tuples)
+{kernel_size : tuple(int), stride : tuple(int), padding : tuple(int), output_padding : tuple(int), dilation : tuple(int)} |= (kernel_size.len = stride.len) ∧ (kernel_size.len = padding.len) ∧ (kernel_size.len = output_padding.len) ∧ (kernel_size.len = dilation.len)
 >>
-Rule 36 (in_channels and out_channels relationship with groups)
-{v_1 : int, v_2 : int, v_3 : int} |= v_3 ≤ v_1 ∧ v_3 ≤ v_2
+Rule 11 (kernel_size, stride, padding, output_padding, dilation tuple elements must be positive/non-negative)
+{kernel_size : tuple(int), stride : tuple(int), padding : tuple(int), output_padding : tuple(int), dilation : tuple(int)} |= ∀i ∈ [0, kernel_size.len - 1] : (kernel_size[i] > 0 ∧ stride[i] > 0 ∧ padding[i] ≥ 0 ∧ output_padding[i] ≥ 0 ∧ dilation[i] > 0)
 >>
-Rule 38 (kernel size should be limited by input size)
-{v_1 : int, v_2 : tensor} |= v_1 < shape(v_2, 2) ∧ v_1 < shape(v_2, 3) ∧ v_1 < shape(v_2, 4)
+Rule 12 (input tensor must have 5 dimensions if batch is included, 4 otherwise)
+{v_1 : tensor} |= ndim(v_1) = 5 ∨ ndim(v_1) = 4
 >>
-Rule 39 (Check that if kernel_size is a tuple, it has length 3)
-{v_1 : tuple(int)} |= v_1.len = 3
+Rule 13 (padding_mode should be "zeros")
+{padding_mode : str} |= padding_mode = "constant"
 >>
-Rule 42 (Dilation must be less than half of kernel_size when kernel_size is odd)
-{v_1 : int, v_2 : int} |= if (v_2 % 2) ≠ 0 then v_1 < (v_2 / 2)
+Rule 14 (If bias is true, out_channels must be greater than zero)
+{out_channels : int, bias : bool} |= if bias then out_channels > 0
 >>
-Rule 44 (output_padding must be smaller than stride in each dimension when stride is a tuple)
-{v_1: tuple(int), v_2: tuple(int)} |= v_1[0] < v_2[0] ∧ v_1[1] < v_2[1] ∧ v_1[2] < v_2[2]
+Rule 15 (kernel_size should be greater than dilation)
+{kernel_size : int, dilation : int} |= kernel_size > dilation
 >>
-Rule 45 (Check that output_padding is within a reasonable range compared to kernel size and stride)
-{v_1: int, v_2: int, v_3: int} |= v_1 ≥ 0 ∧ v_1 < v_2 + v_3
+Rule 17 (padding_mode must be from the valid list)
+{padding_mode : str} |= padding_mode = "zeros" ∨ padding_mode = "circular" ∨ padding_mode = "reflect" ∨ padding_mode = "replicate"
 >>
-Rule 46 (Input channels should not be larger than the max value for int32)
-{v_1: int} |= v_1 < 2147483647
+Rule 22 (padding_mode must be equal to zeros)
+{padding_mode : str} |= (padding_mode = "zeros") = true
 >>
-Rule 50 (Check that output_padding is non negative )
-{v_1: int} |= v_1 ≥ 0
+Rule 24 (padding_mode is element of a list containing only "zeros")
+{padding_mode : str} |= ∃i ∈ [0, 0] : padding_mode = "zeros"
 >>
-Rule 51 (Check that groups is non negative )
-{v_1: int} |= v_1 ≥ 1
+Rule 25 (padding_mode must be zeros and not any other string)
+{padding_mode : str} |= if padding_mode = "zeros" then true else false
 >>
-Rule 55 (Check that if bias is True, then output_channels is provided)
-{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 > 0
+Rule 26 (Padding mode should be string "zeros")
+{padding_mode : str} |= "zeros" = padding_mode
 >>
-Rule 56 (kernel_size should not be too big with respect to input size)
-{v_1 : int, v_2 : tensor} |= v_1 < shape(v_2, 2) / 2 ∧ v_1 < shape(v_2, 3) / 2 ∧ v_1 < shape(v_2, 4) / 2
+Rule 29 (Kernel size should be greater than or equal to dilation)
+{kernel_size : int, dilation : int} |= kernel_size ≥ dilation
 >>
-Rule 57 (If stride is a tuple, ensure all values within it are positive.)
-{v_1: tuple(int)} |= v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0
+Rule 30 (If kernel_size and dilation are tuples, then each element of kernel_size must be greater than or equal to the corresponding element of dilation)
+{kernel_size : tuple(int), dilation : tuple(int)} |= if kernel_size.len = dilation.len then ∀i ∈ [0, kernel_size.len - 1] : kernel_size[i] ≥ dilation[i] else false
 >>
-Rule 58 (If padding is a tuple, ensure all values within it are non-negative.)
-{v_1: tuple(int)} |= v_1[0] ≥ 0 ∧ v_1[1] ≥ 0 ∧ v_1[2] ≥ 0
+Rule 31 (If kernel_size is a tuple and dilation is an int, then each element of kernel_size must be greater than or equal to dilation)
+{kernel_size : tuple(int), dilation : int} |= ∀i ∈ [0, kernel_size.len - 1] : kernel_size[i] ≥ dilation
 >>
-Rule 59 (Relationship between dilation and kernel_size when both are tuples)
-{v_1 : tuple(int), v_2 : tuple(int)} |= v_1[0] ≤ v_2[0] ∧ v_1[1] ≤ v_2[1] ∧ v_1[2] ≤ v_2[2]
+Rule 32 (If dilation is a tuple and kernel_size is an int, then kernel_size must be greater than or equal to each element of dilation)
+{kernel_size : int, dilation : tuple(int)} |= ∀i ∈ [0, dilation.len - 1] : kernel_size ≥ dilation[i]
 >>
-Rule 60 (If bias is true, then out_channels must exist and be greater than 0)
-{v_1 : bool, v_2: int} |= if v_1 = true then v_2 > 0
+Rule 35 (If kernel_size and dilation are both tuples, they must have the same length)
+{kernel_size : tuple(int), dilation : tuple(int)} |= kernel_size.len = dilation.len
 >>
-Rule 62 (If input is batched, output is batched)
-{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 5 then ndim(v_2) = 5 else if ndim(v_1) = 4 then ndim(v_2) = 4
+Rule 36 (If bias is true, the tensor dtype must be either float16, float32, float64, complex64 or complex128)
+{bias : bool, dtype : dtype} |= if bias then dtype = 6 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10
 >>
-Rule 63 (Check that if kernel_size is a tuple, it has length 3 and all values are positive.)
-{v_1 : tuple(int)} |= v_1.len = 3 ∧ v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0
+Rule 38 (If bias is False, input dtype and layer dtype are the same)
+{bias : bool, dtype : dtype, input : tensor} |= if bias = false then dtype_(input) = dtype
 >>
-Rule 64 (Check that dilation is non negative )
-{v_1: int} |= v_1 > 0
+Rule 39 (If bias is False, the layer dtype must be either float16, float32, float64, complex64 or complex128)
+{bias : bool, dtype : dtype} |= if bias = false then dtype = 6 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10
 >>
-Rule 65 (if input is batched and the number of input channels are equals output channel)
-{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= if ndim(v_1) = 5 then ndim(v_2) = 5 else if ndim(v_1) = 4 then ndim(v_2) = 4 ∧ v_3 = v_4
+Rule 40 (If bias is False, the input dtype and the ConvTranspose3d layer's dtype must be in the same group (either int/uint or float/complex)
+{bias : bool, dtype : dtype, input : tensor} |= if bias = false then (dtype_(input) ≥ 1 ∧ dtype_(input) ≤ 6 ∧ dtype ≥ 1 ∧ dtype ≤ 6) ∨ (dtype_(input) > 6 ∧ dtype ≤ 11 ∧ dtype_(input) > 6 ∧ dtype ≤ 11)
 >>
-Rule 66 (kernel_size can not be larger than image size)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 2) > v_2 ∧ shape(v_1, 3) > v_2 ∧ shape(v_1, 4) > v_2
+Rule 41 (If bias is False, the input dtype and the ConvTranspose3d layer's dtype must be in the same group (either int/uint or float/complex)
+{bias : bool, dtype : dtype, input : tensor} |= if bias = false then ((dtype_(input) ≥ 1 ∧ dtype_(input) ≤ 6) ∧ (dtype ≥ 1 ∧ dtype ≤ 6)) ∨ ((dtype_(input) > 6 ∧ dtype_(input) ≤ 11) ∧ (dtype > 6 ∧ dtype ≤ 11))
 >>
-Rule 68 (groups must be positive and less than or equal to min(in_channels, out_channels))
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 > 0 ∧ v_1 ≤ v_2 ∧ v_1 ≤ v_3
+Rule 42 (If bias is False, then the convTranspose3d's dtype must be a floating-point number)
+{bias : bool, dtype : dtype} |= if bias = false then (dtype = 6) ∨ (dtype = 7) ∨ (dtype = 8)
 >>
-Rule 71 (output padding constraints)
-{v_1: int, v_2: int} |= v_1 ≥ 0 ∧ v_1 < v_2
+Rule 44 (If bias is False, then convTranspose3d layer must be of floating point or complex type)
+{bias : bool, dtype : dtype} |= if bias = false then (dtype = 6) ∨ (dtype = 7) ∨ (dtype = 8) ∨ (dtype = 9) ∨ (dtype = 10)
 >>
-Rule 72 (kernel and dilation relation)
-{v_1 : int, v_2 : int} |= v_2 > 0 ∧ v_1 > 0 ∧ v_1 ≤ v_2
+Rule 45 (If bias is False, then convTranspose3d layer must be of floating point or complex type and input and weight type must match)
+{bias : bool, dtype : dtype, input: tensor} |= if bias = false then ((dtype = 6) ∨ (dtype = 7) ∨ (dtype = 8) ∨ (dtype = 9) ∨ (dtype = 10)) ∧ dtype_(input) = dtype
 >>
-Rule 78 (groups must be integer and should have reasonable value)
-{v_1 : int} |= v_1 < 10000
+Rule 47 (The input tensor must have 4 or 5 dimensions)
+{input : tensor} |= ndim(input) = 4 ∨ ndim(input) = 5
 >>
-Rule 79 (When kernel_size is a tuple, ensure its values are less than corresponding image dimensions)
-{v_1 : tensor, v_2 : tuple(int)} |= shape(v_1,2) > v_2[0] ∧ shape(v_1,3) > v_2[1] ∧ shape(v_1,4) > v_2[2]
+Rule 50 (If kernel_size is an integer, and input has 4 dimensions, then in_channels must be equal to the first dimension of the input tensor)
+{input : tensor, in_channels : int} |= if ndim(input) = 4 then in_channels = shape(input, 0)
 >>
-Rule 80 (Check the valid value of group.)
-{v_1 : int, v_2 : int} |= v_2 > 0 ∧ v_1 > 0 ∧ v_2 ≤ v_1
->>
-Rule 81 (If output padding is a tuple, all values should be non negative)
-{v_1 : tuple(int)} |= v_1[0] ≥ 0 ∧ v_1[1] ≥ 0 ∧ v_1[2] ≥ 0
->>
-Rule 82 (Relationship between output_padding, stride, kernel_size.)
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 ≥ 0 ∧ v_1 < v_2 + v_3
->>
-Rule 86 (check value of bias)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
->>
-Rule 92 (groups should be less than or equal to both in_channels and out_channels)
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 ≤ v_2 ∧ v_1 ≤ v_3
->>
-Rule 94 (Stride elements should be positive)
-{v_1 : tuple(int)} |= v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0
->>
-Rule 105 (groups relationship with in_channels and out_channels)
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 % v_2 = 0 ∧ v_3 % v_2 = 0
->>
-Rule 109 (Input tensor must have 4 or 5 dimensions)
-{v_1 : tensor} |= ndim(v_1) = 4 ∨ ndim(v_1) = 5
->>
-Rule 111 (In channels, out channels and groups should be reasonable)
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 < 10000 ∧ v_2 < 10000 ∧ v_3 < 10000
->>
-Rule 112 (If the input tensor is 5D then the output tensor must also be 5D)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 5 then ndim(v_2) = 5
->>
-Rule 114 (If bias is False, there are no bias terms)
-{v_1 : bool} |= if v_1 = false then true
->>
-Rule 115 (If padding is a tuple, check it meets some size constraints)
-{v_1 : tensor, v_2 : tuple(int)} |= shape(v_1, 2) > v_2[0] ∧ shape(v_1, 3) > v_2[1] ∧ shape(v_1, 4) > v_2[2] ∧ v_2.len = 3
->>
-Rule 117 (Groups must have a valid value)
-{v_1 : int, v_2 : int} |= v_1 % v_2 = 0
->>
-Rule 118 (Groups must divide both in_channels and out_channels)
-{v_1 : int, v_2 : int, v_3 : int} |= (v_1 % v_2) = 0 ∧ (v_3 % v_2) = 0
->>
-Rule 123 (All API params except bias should be reasonable value)
-{v_1 : int, v_2 : int, v_3: int, v_4 : int, v_5 : int} |= v_1 < 10000 ∧ v_2 < 10000 ∧ v_3 < 10000 ∧ v_4 < 10000 ∧ v_5 < 10000
+Rule 52 (If kernel_size is a tuple and the input has 5 dimensions, then in_channels must be equal to the second dimension of the input tensor)
+{input : tensor, in_channels : int} |= if ndim(input) = 5 then in_channels = shape(input, 1)

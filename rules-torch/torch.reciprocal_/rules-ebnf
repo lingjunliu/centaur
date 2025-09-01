@@ -1,96 +1,45 @@
 >>
-Rule 1 (Input tensor dtype is compatible with output dtype)
-{v_1 : tensor, v_2 : dtype} |= (dtype_(v_1) = v_2) ∨ (dtype_(v_1) = "float32" ∧ v_2 = "float64") ∨ (dtype_(v_1) = "float16" ∧ v_2 = "float32") ∨ (dtype_(v_1) = "float16" ∧ v_2 = "float64")
+Rule 1 (Input tensor's dtype should be floating-point or complex to avoid casting errors with reciprocal)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 2 (The result type should be able to represent the input tensor's data type)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = "float32" then v_2 = "float32" ∨ v_2 = "float64" else if dtype_(v_1) = "float64" then v_2 = "float64"
+Rule 2 (Input tensor's dtype should be floating-point or complex if desired output type is not specified to avoid casting errors to less precise types)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 3 (Output dtype must be a floating point type or complex type when input is float or complex)
-{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = "float16") ∨ (dtype_(v_1) = "float32") ∨ (dtype_(v_1) = "float64") ∨ (dtype_(v_1) = "complex64") ∨ (dtype_(v_1) = "complex128") then (v_2 = "float16") ∨ (v_2 = "float32") ∨ (v_2 = "float64") ∨ (v_2 = "complex64") ∨ (v_2 = "complex128")
+Rule 3 (Input tensor's dtype should not be bool if desired output type is not specified because bool is not automatically promoted to float)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 4 (Output dtype must be able to represent the reciprocal of the input dtype)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = "int32" then v_2 = "float32" ∨ v_2 = "float64" else if dtype_(v_1) = "int64" then v_2 = "float64" else if dtype_(v_1) = "float16" then v_2 = "float16" ∨ v_2 = "float32" ∨ v_2 = "float64" else if dtype_(v_1) = "float32" then v_2 = "float32" ∨ v_2 = "float64" else if dtype_(v_1) = "float64" then v_2 = "float64"
+Rule 4 (Input tensor's dtype must be castable to Float if a character dtype is not allowed)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
 >>
-Rule 5 (If input is bool, output should be bool)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = "bool" then v_2 = "bool"
+Rule 5 (Input tensor should have a dtype that can be promoted to Float)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
 >>
-Rule 6 (If input is complex, output should be complex)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = "complex64" then v_2 = "complex64" ∨ v_2 = "complex128" else if dtype_(v_1) = "complex128" then v_2 = "complex128"
+Rule 6 (If the input tensor has integer type, it should be promoted to float)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then true else dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 7 (Output dtype must be float or complex if input is int)
-{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = "int8") ∨ (dtype_(v_1) = "int16") ∨ (dtype_(v_1) = "int32") ∨ (dtype_(v_1) = "int64") ∨ (dtype_(v_1) = "uint8") then (v_2 = "float16") ∨ (v_2 = "float32") ∨ (v_2 = "float64") ∨ (v_2 = "complex64") ∨ (v_2 = "complex128")
+Rule 7 (The data type of the input tensor must be compatible with float output.)
+{v_1 : tensor} |=  if dtype_(v_1) = 0 then false
 >>
-Rule 9 (The output dtype cannot be Char)
-{v_1 : dtype} |= v_1 ≠ "str"
+Rule 8 (If the input tensor has integer type, it should be able to be safely cast to a float)
+{v_1 : tensor} |= if dtype_(v_1) = 1 then false
 >>
-Rule 10 (The output dtype should be either a float or a complex number)
-{v_1 : dtype} |= (v_1 = "float16") ∨ (v_1 = "float32") ∨ (v_1 = "float64") ∨ (v_1 = "complex64") ∨ (v_1 = "complex128")
+Rule 9 (The input tensor should be of a type that can be cast to float without loss of precision if character type isn't allowed.)
+{v_1 : tensor} |= if dtype_(v_1) = 11 then false
 >>
-Rule 11 (Input tensor dtype and specified result dtype should be compatible)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = "float32" then (v_2 = "float32") ∨ (v_2 = "float64") else if dtype_(v_1) = "float16" then (v_2 = "float16") ∨ (v_2 = "float32") ∨ (v_2 = "float64") else if dtype_(v_1) = "complex64" then (v_2 = "complex64") ∨ (v_2 = "complex128") else if dtype_(v_1) = "complex128" then (v_2 = "complex128") else (v_2 = "float32") ∨ (v_2 = "float64")
+Rule 10 (Input tensor should be of floating-point type for accurate reciprocal calculation.)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 12 (Output dtype must be a valid dtype)
-{v_1 : dtype} |= (v_1 = "bool") ∨ (v_1 = "int8") ∨ (v_1 = "int16") ∨ (v_1 = "int32") ∨ (v_1 = "int64") ∨ (v_1 = "uint8") ∨ (v_1 = "float16") ∨ (v_1 = "float32") ∨ (v_1 = "float64") ∨ (v_1 = "complex64") ∨ (v_1 = "complex128")
+Rule 11 (Input tensor must have a dtype that can be safely promoted to float, or must already be float. Disallow Bool and String directly.)
+{v_1 : tensor} |=  dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 11
 >>
-Rule 14 (The specified output dtype cannot be an integer or boolean)
-{v_1 : dtype} |= (v_1 ≠ "int8") ∧ (v_1 ≠ "int16") ∧ (v_1 ≠ "int32") ∧ (v_1 ≠ "int64") ∧ (v_1 ≠ "uint8") ∧ (v_1 ≠ "bool")
+Rule 13 (If the input tensor is of type np.int8, np.int16, np.int32, np.int64, np.uint8 then it is ok to calculate the reciprocal.)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
 >>
-Rule 15 (The input tensor dtype should allow reciprocal operation)
-{v_1 : tensor} |= (dtype_(v_1) = "float16") ∨ (dtype_(v_1) = "float32") ∨ (dtype_(v_1) = "float64") ∨ (dtype_(v_1) = "complex64") ∨ (dtype_(v_1) = "complex128") ∨ (dtype_(v_1) = "int8") ∨ (dtype_(v_1) = "int16") ∨ (dtype_(v_1) = "int32") ∨ (dtype_(v_1) = "int64") ∨ (dtype_(v_1) = "uint8")
+Rule 20 (If the reciprocal cannot be safely calculated due to dtype, prevent the calculation. Specifically, Bool is problematic)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then false
 >>
-Rule 16 (If the input is bool, the output must be bool or a float type)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = "bool" then (v_2 = "bool") ∨ (v_2 = "float16") ∨ (v_2 = "float32") ∨ (v_2 = "float64")
+Rule 23 (Reciprocal calculation requires a float or integer tensor.)
+{v_1 : tensor} |= (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) ∨ (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)
 >>
-Rule 17 (If the input tensor has a quantized dtype, the output dtype should also be a quantized dtype)
-{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = "uint8") then (v_2 = "float16") ∨ (v_2 = "float32") ∨ (v_2 = "float64") else if (dtype_(v_1) = "int8") ∨ (dtype_(v_1) = "int16") ∨ (dtype_(v_1) = "int32") ∨ (dtype_(v_1) = "int64") then (v_2 = "float16") ∨ (v_2 = "float32") ∨ (v_2 = "float64")
->>
-Rule 19 (Output cannot be bool if input is int)
-{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = "int8") ∨ (dtype_(v_1) = "int16") ∨ (dtype_(v_1) = "int32") ∨ (dtype_(v_1) = "int64") ∨ (dtype_(v_1) = "uint8") then (v_2 ≠ "bool")
->>
-Rule 20 (If input is integer type, then output cannot be same integer type.)
-{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = "int8") then (v_2 ≠ "int8") else if (dtype_(v_1) = "int16") then (v_2 ≠ "int16") else if (dtype_(v_1) = "int32") then (v_2 ≠ "int32") else if (dtype_(v_1) = "int64") then (v_2 ≠ "int64") else if (dtype_(v_1) = "uint8") then (v_2 ≠ "uint8")
->>
-Rule 21 (If the input is complex type, then output must be complex type)
-{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = "complex64") then (v_2 = "complex64") ∨ (v_2 = "complex128") else if (dtype_(v_1) = "complex128") then (v_2 = "complex128")
->>
-Rule 22 (Output dtype must be larger or equal to the input dtype's precision)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = "float16" then (v_2 = "float16") ∨ (v_2 = "float32") ∨ (v_2 = "float64") else if dtype_(v_1) = "float32" then (v_2 = "float32") ∨ (v_2 = "float64") else if dtype_(v_1) = "complex64" then (v_2 = "complex64") ∨ (v_2 = "complex128") else if dtype_(v_1) = "int8" then (v_2 = "float16") ∨ (v_2 = "float32") ∨ (v_2 = "float64") else if dtype_(v_1) = "int16" then (v_2 = "float16") ∨ (v_2 = "float32") ∨ (v_2 = "float64") else if dtype_(v_1) = "int32" then (v_2 = "float16") ∨ (v_2 = "float32") ∨ (v_2 = "float64") else if dtype_(v_1) = "int64" then (v_2 = "float16") ∨ (v_2 = "float32") ∨ (v_2 = "float64") else if dtype_(v_1) = "uint8" then (v_2 = "float16") ∨ (v_2 = "float32") ∨ (v_2 = "float64")
->>
-Rule 23 (Input tensor cannot be quantized if output is complex128)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = "complex128" then (dtype_(v_1) ≠ "int8") ∧ (dtype_(v_1) ≠ "int16") ∧ (dtype_(v_1) ≠ "int32") ∧ (dtype_(v_1) ≠ "int64") ∧ (dtype_(v_1) ≠ "uint8")
->>
-Rule 24 (If the input dtype is int8, int16, int32, int64 or uint8, then output dtype should not be bool)
-{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = "int8") ∨ (dtype_(v_1) = "int16") ∨ (dtype_(v_1) = "int32") ∨ (dtype_(v_1) = "int64") ∨ (dtype_(v_1) = "uint8") then v_2 ≠ "bool"
->>
-Rule 26 (Input tensor should not have a quantized dtype if result type is complex128)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = "complex128" then (dtype_(v_1) ≠ "uint8") ∧ (dtype_(v_1) ≠ "int8") ∧ (dtype_(v_1) ≠ "int16") ∧ (dtype_(v_1) ≠ "int32") ∧ (dtype_(v_1) ≠ "int64")
->>
-Rule 27 (If the input tensor has float16 dtype and output dtype is complex, then the output dtype should be complex128)
-{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = "float16") ∧ (v_2 = "complex64") then false
->>
-Rule 28 (The float64 should be the output if any int is provided as input and precision is not provided)
-{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = "int8") ∨ (dtype_(v_1) = "int16") ∨ (dtype_(v_1) = "int32") ∨ (dtype_(v_1) = "int64") ∨ (dtype_(v_1) = "uint8") then (v_2 = "float64")
->>
-Rule 29 (If input is uint8 output must be float16, float32, or float64)
-{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = "uint8") then (v_2 = "float16") ∨ (v_2 = "float32") ∨ (v_2 = "float64")
->>
-Rule 30 (if input dtype is bool, then output dtype cannot be complex)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = "bool" then (v_2 ≠ "complex64") ∧ (v_2 ≠ "complex128")
->>
-Rule 31 (If Input is a boolean tensor, the output cannot be integer dtypes)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = "bool" then (v_2 ≠ "int8") ∧ (v_2 ≠ "int16") ∧ (v_2 ≠ "int32") ∧ (v_2 ≠ "int64") ∧ (v_2 ≠ "uint8")
->>
-Rule 32 (If input type is complex64, then output cannot be float16/float32/float64)
-{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = "complex64") then (v_2 ≠ "float16") ∧ (v_2 ≠ "float32") ∧ (v_2 ≠ "float64")
->>
-Rule 33 (If input type is complex128, then output cannot be float16/float32/float64/complex64)
-{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = "complex128") then (v_2 ≠ "float16") ∧ (v_2 ≠ "float32") ∧ (v_2 ≠ "float64") ∧ (v_2 ≠ "complex64")
->>
-Rule 34 (Output dtype and input dtype cannot be the same)
-{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) ≠ v_2
->>
-Rule 35 (The output dtype should be larger than the input if the input is an integer)
-{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = "int8") then (v_2 = "float16") ∨ (v_2 = "float32") ∨ (v_2 = "float64") ∨ (v_2 = "complex64") ∨ (v_2 = "complex128") else if (dtype_(v_1) = "int16") then (v_2 = "float32") ∨ (v_2 = "float64") ∨ (v_2 = "complex64") ∨ (v_2 = "complex128") else if (dtype_(v_1) = "int32") then (v_2 = "float32") ∨ (v_2 = "float64") ∨ (v_2 = "complex64") ∨ (v_2 = "complex128") else if (dtype_(v_1) = "int64") then (v_2 = "float64") ∨ (v_2 = "complex128") else if (dtype_(v_1) = "uint8") then (v_2 = "float16") ∨ (v_2 = "float32") ∨ (v_2 = "float64") ∨ (v_2 = "complex64") ∨ (v_2 = "complex128")
->>
-Rule 36 (Complex output type can only be achieved if complex input is supplied.)
-{v_1 : tensor, v_2 : dtype} |= if (v_2 = "complex64") ∨ (v_2 = "complex128") then (dtype_(v_1) = "complex64") ∨ (dtype_(v_1) = "complex128")
+Rule 24 (The tensor must be of a numeric type other than Bool, preventing errors when casting to float for reciprocal calculation.)
+{v_1 : tensor} |= (dtype_(v_1) ≠ 0)

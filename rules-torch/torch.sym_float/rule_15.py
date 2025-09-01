@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor must be a scalar or a single-element tensor to prevent ValueError (Rule 15)
+# tensor is 0-dimensional OR all dimensions are 1 (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_ndim"] == 0, (Or([And(k < (v["arg1_ndim"] - 1 + 1), And((Select(v["arg1_shape"], k) > 0), (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Or((i == k), (Select(v["arg1_shape"], i) == 1))) for i in range(6)])))) for k in range(6)])))) if n else
-          Or(v["arg1_ndim"] == 0, (Or([And(k < (v["arg1_ndim"] - 1 + 1), And((Select(v["arg1_shape"], k) > 0), (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Or((i == k), (Select(v["arg1_shape"], i) == 1))) for i in range(6)])))) for k in range(6)]))))
+    s.add(Not(Or(v["arg1_ndim"] == 0, (Or([And(i < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], i) == 1, (And([Implies(j < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], j) == 1) for j in range(6)])))) for i in range(6)])))) if n else
+          Or(v["arg1_ndim"] == 0, (Or([And(i < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], i) == 1, (And([Implies(j < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], j) == 1) for j in range(6)])))) for i in range(6)]))))
 )
 
 def rule_15_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_15_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 15
-        rule_15(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_15(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_15(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_15(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

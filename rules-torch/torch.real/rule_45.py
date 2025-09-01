@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Output tensor dtype must be the corresponding real dtype of the input tensor. (Rule 45)
+# if dtype of input is float16 API returns without copying, if dtype of input is float32 API returns without copying, if dtype of input is float64 API returns without copying (Rule 45)
 
 rule_45 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 10, v["arg1_dtype"] == 7, If(v["arg1_dtype"] == 11, v["arg1_dtype"] == 8, If(v["arg1_dtype"] == 6, v["arg1_dtype"] == 6, If(v["arg1_dtype"] == 7, v["arg1_dtype"] == 7, If(v["arg1_dtype"] == 8, v["arg1_dtype"] == 8, If(v["arg1_dtype"] == 1, v["arg1_dtype"] == 1, If(v["arg1_dtype"] == 2, v["arg1_dtype"] == 2, If(v["arg1_dtype"] == 3, v["arg1_dtype"] == 3, If(v["arg1_dtype"] == 4, v["arg1_dtype"] == 4, If(v["arg1_dtype"] == 5, v["arg1_dtype"] == 5, False))))))))))) if n else
-          If(v["arg1_dtype"] == 10, v["arg1_dtype"] == 7, If(v["arg1_dtype"] == 11, v["arg1_dtype"] == 8, If(v["arg1_dtype"] == 6, v["arg1_dtype"] == 6, If(v["arg1_dtype"] == 7, v["arg1_dtype"] == 7, If(v["arg1_dtype"] == 8, v["arg1_dtype"] == 8, If(v["arg1_dtype"] == 1, v["arg1_dtype"] == 1, If(v["arg1_dtype"] == 2, v["arg1_dtype"] == 2, If(v["arg1_dtype"] == 3, v["arg1_dtype"] == 3, If(v["arg1_dtype"] == 4, v["arg1_dtype"] == 4, If(v["arg1_dtype"] == 5, v["arg1_dtype"] == 5, False)))))))))))
+    s.add(Not(If(v["arg1_dtype"] == 6, True, If(v["arg1_dtype"] == 7, True, If(v["arg1_dtype"] == 8, True, False)))) if n else
+          If(v["arg1_dtype"] == 6, True, If(v["arg1_dtype"] == 7, True, If(v["arg1_dtype"] == 8, True, False))))
 )
 
 def rule_45_func(arg1, solver=None, neg=False):

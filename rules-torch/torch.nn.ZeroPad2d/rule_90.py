@@ -5,33 +5,41 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check for non-negativity on the first shape dimension, avoids errors during allocation. (Rule 90)
+# If the padding is a tuple, and has 4 elements then check if the tensor shape values are acceptable for calculation, avoid big tensors in tuple (Rule 90)
 
 rule_90 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) >= 0) if n else
-          Select(v["arg1_shape"], 0) >= 0)
+    s.add(Not(If(v["arg1_length"] == 4, And(And(And(And(And(Select(v["arg2_shape"], 0) < 5000, Select(v["arg2_shape"], 1) < 5000), Select(v["arg1_values"], 0) < 10000), Select(v["arg1_values"], 1) < 10000), Select(v["arg1_values"], 2) < 10000), Select(v["arg1_values"], 3) < 10000), True)) if n else
+          If(v["arg1_length"] == 4, And(And(And(And(And(Select(v["arg2_shape"], 0) < 5000, Select(v["arg2_shape"], 1) < 5000), Select(v["arg1_values"], 0) < 10000), Select(v["arg1_values"], 1) < 10000), Select(v["arg1_values"], 2) < 10000), Select(v["arg1_values"], 3) < 10000), True))
 )
 
-def rule_90_func(arg1, solver=None, neg=False):
+def rule_90_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+            return False
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_length = Int('arg1_length')
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_length == len(arg1))
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 90
-        rule_90(solver, {'arg1_shape': arg1_shape})
+        rule_90(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values, 'arg2_shape': arg2_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_90(solver, {'arg1_shape': arg1['shape']}, neg)
+        rule_90(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values'], 'arg2_shape': arg2['shape']}, neg)

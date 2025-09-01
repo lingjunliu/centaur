@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# divisibility by groups (Rule 18)
+# Enforce dimension constraint and group divisibility (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(Or((And(v["arg1_ndim"] >= 1, Select(v["arg1_shape"], 0) % v["arg2_value"] == 0)), v["arg2_value"] == 1)) if n else
-          Or((And(v["arg1_ndim"] >= 1, Select(v["arg1_shape"], 0) % v["arg2_value"] == 0)), v["arg2_value"] == 1))
+    s.add(Not(And((Or(Or(v["arg1_ndim"] == 3, v["arg1_ndim"] == 4), v["arg1_ndim"] == 5)), (If(v["arg2_value"] > 1, (Select(v["arg1_shape"], 0) % v["arg2_value"] == 0), True)))) if n else
+          And((Or(Or(v["arg1_ndim"] == 3, v["arg1_ndim"] == 4), v["arg1_ndim"] == 5)), (If(v["arg2_value"] > 1, (Select(v["arg1_shape"], 0) % v["arg2_value"] == 0), True))))
 )
 
 def rule_18_func(arg1, arg2, solver=None, neg=False):

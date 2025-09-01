@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# output_size.size( (Rule 6)
+# If output_size is a tuple, it must have length 2 (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
     s.add(Not(v["arg1_length"] == 2) if n else

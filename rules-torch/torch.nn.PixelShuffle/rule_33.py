@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The input should be a tensor with at least 3 dimensions and upscale_factor should be positive. (Rule 33)
+# upscale_factor should be positive, input should have at least 3 dimensions, and channel dimension should be divisible by upscale_factor squared, and the channel size is > 0 if input has >= 3 dimensions (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] >= 3, v["arg2_value"] > 0)) if n else
-          And(v["arg1_ndim"] >= 3, v["arg2_value"] > 0))
+    s.add(Not(And(And(And(v["arg2_value"] > 0, v["arg1_ndim"] >= 3), (Select(v["arg1_shape"], v["arg1_ndim"] - 3) % (v["arg2_value"] * v["arg2_value"]) == 0)), (If(v["arg1_ndim"] >= 3, Select(v["arg1_shape"], v["arg1_ndim"] - 3) > 0, True)))) if n else
+          And(And(And(v["arg2_value"] > 0, v["arg1_ndim"] >= 3), (Select(v["arg1_shape"], v["arg1_ndim"] - 3) % (v["arg2_value"] * v["arg2_value"]) == 0)), (If(v["arg1_ndim"] >= 3, Select(v["arg1_shape"], v["arg1_ndim"] - 3) > 0, True))))
 )
 
 def rule_33_func(arg1, arg2, solver=None, neg=False):
@@ -26,16 +26,19 @@ def rule_33_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg2_value = Int('arg2_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 33
-        rule_33(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_33(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_33(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)
+        rule_33(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

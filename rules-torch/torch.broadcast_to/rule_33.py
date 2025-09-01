@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The expanded size of the tensor must match the existing size at non-singleton dimension (Rule 33)
+# If a dim is zero, it must match, otherwise, existing dims needs to be 1 to expand (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), If(Select(v["arg1_shape"], i) != 1, Select(v["arg1_shape"], i) == Select(v["arg2_values"], i), False)) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_ndim"] - 1 + 1), If(Select(v["arg1_shape"], i) != 1, Select(v["arg1_shape"], i) == Select(v["arg2_values"], i), False)) for i in range(6)]))
+    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), If(Select(v["arg1_shape"], i) == 0, Select(v["arg2_values"], i) == 0, If(Select(v["arg2_values"], i) != Select(v["arg1_shape"], i), Select(v["arg1_shape"], i) == 1, True))) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_ndim"] - 1 + 1), If(Select(v["arg1_shape"], i) == 0, Select(v["arg2_values"], i) == 0, If(Select(v["arg2_values"], i) != Select(v["arg1_shape"], i), Select(v["arg1_shape"], i) == 1, True))) for i in range(6)]))
 )
 
 def rule_33_func(arg1, arg2, solver=None, neg=False):
@@ -37,9 +37,9 @@ def rule_33_func(arg1, arg2, solver=None, neg=False):
             arg2_values = Store(arg2_values, i, arg2[i])
 
         # Constraints for rule 33
-        rule_33(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_values': arg2_values})
+        rule_33(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_values': arg2_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_33(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_values': arg2['values']}, neg)
+        rule_33(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_values': arg2['values']}, neg)

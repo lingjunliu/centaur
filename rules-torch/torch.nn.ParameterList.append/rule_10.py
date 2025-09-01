@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If tensor, min value must be less than max value (Rule 10)
+# The tensor should not have NaN values (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1)) if n else
-          Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1))
+    s.add(Not(Select(v["arg1_range"], 0) > -10000000000.0) if n else
+          Select(v["arg1_range"], 0) > -10000000000.0)
 )
 
 def rule_10_func(arg1, solver=None, neg=False):

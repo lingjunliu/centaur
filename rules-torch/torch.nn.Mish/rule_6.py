@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor's dtype should not be Char (index 0 (Rule 6)
+# Input tensor should have floating point or integer dtype (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 0) if n else
-          v["arg1_dtype"] != 0)
+    s.add(Not(If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), True, If(And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8), True, False))) if n else
+          If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), True, If(And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8), True, False)))
 )
 
 def rule_6_func(arg1, solver=None, neg=False):

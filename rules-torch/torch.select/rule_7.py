@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# index must be less than the size of the dimension (Rule 7)
+# Index should be within the valid range for the given dimension (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(v["arg3_value"] < Select(v["arg1_shape"], v["arg2_value"])) if n else
-          v["arg3_value"] < Select(v["arg1_shape"], v["arg2_value"]))
+    s.add(Not(And(And(Select(v["arg1_shape"], v["arg2_value"]) > 0, v["arg3_value"] >= 0), v["arg3_value"] < Select(v["arg1_shape"], v["arg2_value"]))) if n else
+          And(And(Select(v["arg1_shape"], v["arg2_value"]) > 0, v["arg3_value"] >= 0), v["arg3_value"] < Select(v["arg1_shape"], v["arg2_value"])))
 )
 
 def rule_7_func(arg1, arg2, arg3, solver=None, neg=False):

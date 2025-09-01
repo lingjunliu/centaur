@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor must have a floating-point dtype, and not bool or string (Rule 3)
+# input tensor's dtype should not be float if the desired result type is char (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] > 5, v["arg1_dtype"] < 9)) if n else
-          And(v["arg1_dtype"] > 5, v["arg1_dtype"] < 9))
+    s.add(Not(If(v["arg1_dtype"] == 8, False, True)) if n else
+          If(v["arg1_dtype"] == 8, False, True))
 )
 
 def rule_3_func(arg1, solver=None, neg=False):

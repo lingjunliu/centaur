@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# target tensor must have elements -1 or 1 (Rule 6)
+# The target values should be -1 or 1 (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(Or(Or((And(Select(v["arg1_range"], 0) == -1, Select(v["arg1_range"], 1) == 1)), (And(Select(v["arg1_range"], 0) == 1, Select(v["arg1_range"], 1) == 1))), (And(Select(v["arg1_range"], 0) == -1, Select(v["arg1_range"], 1) == -1)))) if n else
-          Or(Or((And(Select(v["arg1_range"], 0) == -1, Select(v["arg1_range"], 1) == 1)), (And(Select(v["arg1_range"], 0) == 1, Select(v["arg1_range"], 1) == 1))), (And(Select(v["arg1_range"], 0) == -1, Select(v["arg1_range"], 1) == -1))))
+    s.add(Not(And(Select(v["arg1_range"], 0) >= -1, Select(v["arg1_range"], 1) <= 1)) if n else
+          And(Select(v["arg1_range"], 0) >= -1, Select(v["arg1_range"], 1) <= 1))
 )
 
 def rule_6_func(arg1, solver=None, neg=False):

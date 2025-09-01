@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The maximum value must be positive and less than a reasonable upper limit to avoid overflows. (Rule 47)
+# Check to ensure that the lower bound can result in stable calculation, cannot be too close to zero if performing a calculation (Rule 47)
 
 rule_47 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] > 0, v["arg1_value"] < 1.7976931348623157e+308)) if n else
-          And(v["arg1_value"] > 0, v["arg1_value"] < 1.7976931348623157e+308))
+    s.add(Not(If(v["arg1_value"] > 0, v["arg1_value"] > 1e-8, True)) if n else
+          If(v["arg1_value"] > 0, v["arg1_value"] > 1e-8, True))
 )
 
 def rule_47_func(arg1, solver=None, neg=False):

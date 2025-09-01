@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input and output dtypes must be the same if output is specified. (Rule 34)
+# If the input tensor's dtype is floating point or complex, the output tensor, if provided, must have a dtype capable of representing floating point values without loss of precision. (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_ndim"] > 0, v["arg1_dtype"] == v["arg2_dtype"], False)) if n else
-          If(v["arg2_ndim"] > 0, v["arg1_dtype"] == v["arg2_dtype"], False))
+    s.add(Not(If(v["arg1_dtype"] > 5, v["arg2_dtype"] > 5, True)) if n else
+          If(v["arg1_dtype"] > 5, v["arg2_dtype"] > 5, True))
 )
 
 def rule_34_func(arg1, arg2, solver=None, neg=False):
@@ -26,18 +26,16 @@ def rule_34_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
-        arg2_ndim = Int('arg2_ndim')
         arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_ndim == arg2.ndim)
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 34
-        rule_34(solver, {'arg1_dtype': arg1_dtype, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype})
+        rule_34(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_34(solver, {'arg1_dtype': arg1['dtype'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_34(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The size of all dimensions should be an integer. (Rule 30)
+# The number of dimensions should not be greater than 32. (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), If(v["arg1_ndim"] > 0, True, False)) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_ndim"] - 1 + 1), If(v["arg1_ndim"] > 0, True, False)) for i in range(6)]))
+    s.add(Not(v["arg1_ndim"] <= 32) if n else
+          v["arg1_ndim"] <= 32)
 )
 
 def rule_30_func(arg1, solver=None, neg=False):

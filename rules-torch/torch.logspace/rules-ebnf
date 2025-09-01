@@ -2,32 +2,62 @@
 Rule 1 (steps must be non-negative)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 2 (start should be a float or tensor with dimension 0)
+Rule 2 (start must be a 0-dimensional tensor if it's a tensor)
 {v_1 : tensor} |= ndim(v_1) = 0
 >>
-Rule 34 (If start is a tensor, then end must be a tensor and have dimension 0)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 0 ∧ ndim(v_2) = 0
->>
-Rule 38 (If start and end are tensors, they must have the same dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
->>
-Rule 62 (If layout is not torch.strided, then it must be a layout)
-{v_1 : str} |= v_1 = "torch.strided"
->>
-Rule 71 (dtype must be selected from given list.)
-{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 12
->>
-Rule 74 (base has to be greater than 0)
+Rule 4 (base must be positive)
 {v_1 : float} |= v_1 > 0
 >>
-Rule 86 (out must be a tensor with the appropriate shape)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) = 1 ∧ shape(v_1,0) = v_2
+Rule 5 (check if start and end are equal when steps is 1)
+{v_1 : float, v_2 : float, v_3 : int} |= if v_3 = 1 then v_1 = v_2
 >>
-Rule 89 (device must be valid.)
-{v_1 : str} |= v_1 = "cpu" ∨ v_1 = "cuda"
+Rule 20 (If start is a tensor, check its dimension)
+{v_1 : float ⊎ tensor} |= if v_1 = true then ndim(v_1) = 0
 >>
-Rule 102 (device must be a valid string)
-{v_1: str} |= v_1 = "cpu" ∨ v_1 = "cuda"
+Rule 23 (If start is a tensor, check its dimension)
+{v_1 : float ⊎ tensor} |= if v_1 = true then ndim(v_1) = 0 else if v_1 = false then true else ndim(v_1) = 0
 >>
-Rule 105 (If layout is specified, it has to be "torch.strided")
+Rule 30 (If start is a tensor, check its dimension)
+{v_1 : float ⊎ tensor} |= if v_1 = tensor then ndim(v_1) = 0
+>>
+Rule 36 (check if start and end types are tensors, and if so, they have same dtype)
+{v_1 : float ⊎ tensor, v_2 : float ⊎ tensor} |= if v_1 = tensor ∧ v_2 = tensor then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 39 (If end is a tensor, check its dimension and type consistency with start)
+{v_1 : float ⊎ tensor, v_2 : float ⊎ tensor} |= if v_2 = tensor then (ndim(v_2) = 0 ∧ if v_1 = tensor then dtype_(v_1) = dtype_(v_2))
+>>
+Rule 42 (Layout must be strided)
 {v_1: str} |= v_1 = "torch.strided"
+>>
+Rule 60 (start and end must be the same type)
+{v_1 : float ⊎ tensor, v_2 : float ⊎ tensor} |= (v_1 = tensor ∧ v_2 = tensor) ∨ (v_1 = float ∧ v_2 = float)
+>>
+Rule 68 (If start is a Tensor, end must also be a Tensor)
+{v_1 : float ⊎ tensor, v_2 : float ⊎ tensor} |= if v_1 = tensor then v_2 = tensor
+>>
+Rule 74 (check type compatibility of start and end)
+{v_1 : float ⊎ tensor, v_2 : float ⊎ tensor} |= (v_1 = tensor) = (v_2 = tensor)
+>>
+Rule 77 (if start is a Tensor, end must also be a Tensor and check the shape of out)
+{v_1 : float ⊎ tensor, v_2 : float ⊎ tensor, v_3 : tensor, v_4 : int} |= if v_1 = tensor then (v_2 = tensor ∧ shape(v_3, 0) = v_4)
+>>
+Rule 82 (If either start or end are tensors, check that start and end are of the same type)
+{v_1 : float ⊎ tensor, v_2 : float ⊎ tensor} |= if v_1 = tensor then v_2 = tensor else if v_2 = tensor then v_1 = tensor
+>>
+Rule 88 (if start and end are tensors, out must be of correct shape)
+{v_1 : float ⊎ tensor, v_2 : float ⊎ tensor, v_3 : int, v_4: tensor} |= if (v_1=tensor) ∧ (v_2=tensor) then shape(v_4, 0) = v_3
+>>
+Rule 91 (layout must be a string and equal to "torch.strided")
+{v_1 : str} |= v_1 = "torch.strided"
+>>
+Rule 94 (if base is not 10, steps > 1)
+{v_1 : float, v_2: int} |= if v_1 ≠ 10 then v_2 > 1
+>>
+Rule 100 (base should be greater than 0)
+{v_1: float} |= v_1 > 0
+>>
+Rule 109 (dtype_ should be in the valid range)
+{v_1 : dtype} |= 0 ≤ v_1 ∧ v_1 ≤ 12
+>>
+Rule 112 (If steps=0, start=end)
+{v_1: int, v_2 : float, v_3: float} |= if v_1 = 0 then v_2 = v_3

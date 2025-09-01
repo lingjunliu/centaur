@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# running_mean's dtype must be floating point (Rule 30)
+# input tensor cannot have dtype of int16 (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 6)) if n else
-          Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 6))
+    s.add(Not(v["arg1_dtype"] != 2) if n else
+          v["arg1_dtype"] != 2)
 )
 
 def rule_30_func(arg1, solver=None, neg=False):

@@ -5,40 +5,42 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If target tensor's values are zero, then input should be -Inf if log_target = false (Rule 40)
+# If reduction is not none then number of dimensions of the input and target should be greater than 0 (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == False, (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_range"], 0) == -100000000000000000.0) for i in range(6)])), False)) if n else
-          If(v["arg2_value"] == False, (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_range"], 0) == -100000000000000000.0) for i in range(6)])), False))
+    s.add(Not(If(v["arg1_value"] != 6, And(v["arg2_ndim"] > 0, v["arg3_ndim"] > 0), True)) if n else
+          If(v["arg1_value"] != 6, And(v["arg2_ndim"] > 0, v["arg3_ndim"] > 0), True))
 )
 
-def rule_40_func(arg1, arg2, solver=None, neg=False):
+def rule_40_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, str):
             return False
-        if not isinstance(arg2, bool):
+        if not isinstance(arg2, np.ndarray):
+            return False
+        if not isinstance(arg3, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_value = Bool('arg2_value')
+        arg1_value = String('arg1_value')
+        arg2_ndim = Int('arg2_ndim')
+        arg3_ndim = Int('arg3_ndim')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        solver.add(arg2_value == arg2)
+        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
+        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg3_ndim == arg3.ndim)
 
         # Constraints for rule 40
-        rule_40(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_40(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim, 'arg3_ndim': arg3_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_40(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)
+        rule_40(solver, {'arg1_value': arg1['value'], 'arg2_ndim': arg2['ndim'], 'arg3_ndim': arg3['ndim']}, neg)

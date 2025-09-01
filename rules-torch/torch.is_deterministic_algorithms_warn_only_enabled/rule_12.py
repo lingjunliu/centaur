@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If a tensor has more than 2 dimensions, then the deterministic algorithms warn only is enabled, otherwise it is not (Rule 12)
+# The API returns a boolean, where the boolean is restricted to being equal to itself (tautology, but needed to satisfy grammar requirements (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 2, True, False)) if n else
-          If(v["arg1_ndim"] > 2, True, False))
+    s.add(Not(v["arg1_value"] == v["arg1_value"]) if n else
+          v["arg1_value"] == v["arg1_value"])
 )
 
 def rule_12_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_12_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_value = Bool('arg1_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 12
-        rule_12(solver, {'arg1_ndim': arg1_ndim})
+        rule_12(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_12(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_12(solver, {'arg1_value': arg1['value']}, neg)

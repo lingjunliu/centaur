@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensors must have the same dtype as out tensor, if out tensor is provided, and is integer. (Rule 23)
+# If input or other is complex, then out must also be complex (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg3_ndim"] > 0, And(And(v["arg1_dtype"] == v["arg3_dtype"], v["arg2_dtype"] == v["arg3_dtype"]), (Or(Or(Or(Or(v["arg3_dtype"] == 1, v["arg3_dtype"] == 2), v["arg3_dtype"] == 3), v["arg3_dtype"] == 4), v["arg3_dtype"] == 5))), False)) if n else
-          If(v["arg3_ndim"] > 0, And(And(v["arg1_dtype"] == v["arg3_dtype"], v["arg2_dtype"] == v["arg3_dtype"]), (Or(Or(Or(Or(v["arg3_dtype"] == 1, v["arg3_dtype"] == 2), v["arg3_dtype"] == 3), v["arg3_dtype"] == 4), v["arg3_dtype"] == 5))), False))
+    s.add(Not(If(Or((Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11)), (Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 11))), (Or(v["arg3_dtype"] == 10, v["arg3_dtype"] == 11)), True)) if n else
+          If(Or((Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11)), (Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 11))), (Or(v["arg3_dtype"] == 10, v["arg3_dtype"] == 11)), True))
 )
 
 def rule_23_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -30,19 +30,17 @@ def rule_23_func(arg1, arg2, arg3, solver=None, neg=False):
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
         arg2_dtype = Int('arg2_dtype')
-        arg3_ndim = Int('arg3_ndim')
         arg3_dtype = Int('arg3_dtype')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
-        solver.add(arg3_ndim == arg3.ndim)
         solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
 
         # Constraints for rule 23
-        rule_23(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_ndim': arg3_ndim, 'arg3_dtype': arg3_dtype})
+        rule_23(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_23(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_ndim': arg3['ndim'], 'arg3_dtype': arg3['dtype']}, neg)
+        rule_23(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype']}, neg)

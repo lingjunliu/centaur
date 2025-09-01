@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If affine is true, prevent num_features from overflowing during gamma/beta allocation (Rule 24)
+# If input is provided, its dtype should be consistent with what the InstanceNorm3d module expects, which is a floating or complex type (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, v["arg2_value"] < 30000, False)) if n else
-          If(v["arg1_value"] == True, v["arg2_value"] < 30000, False))
+    s.add(Not(And((Or(Or(Or(v["arg2_value"] == 7, v["arg2_value"] == 8), v["arg2_value"] == 9), v["arg2_value"] == 10)), v["arg1_dtype"] == v["arg2_value"])) if n else
+          And((Or(Or(Or(v["arg2_value"] == 7, v["arg2_value"] == 8), v["arg2_value"] == 9), v["arg2_value"] == 10)), v["arg1_dtype"] == v["arg2_value"]))
 )
 
 def rule_24_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,24 @@ def rule_24_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
+        arg1_dtype = Int('arg1_dtype')
         arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
 
         # Constraints for rule 24
-        rule_24(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_24(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_24(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_24(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

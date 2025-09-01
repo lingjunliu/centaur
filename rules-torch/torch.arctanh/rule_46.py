@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If 'out' is given and the input is of a floating type, 'out' needs to be a floating or complex dtype of adequate size (Rule 46)
+# If input is float type (float16, float32, float64 (Rule 46)
 
 rule_46 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] > 6, v["arg2_dtype"] > 6, False)) if n else
-          If(v["arg1_dtype"] > 6, v["arg2_dtype"] > 6, False))
+    s.add(Not(If((v["arg1_dtype"] == 6), (v["arg2_dtype"] >= 7), If((v["arg1_dtype"] == 7), (v["arg2_dtype"] >= 7), If((v["arg1_dtype"] == 8), (v["arg2_dtype"] >= 8), True)))) if n else
+          If((v["arg1_dtype"] == 6), (v["arg2_dtype"] >= 7), If((v["arg1_dtype"] == 7), (v["arg2_dtype"] >= 7), If((v["arg1_dtype"] == 8), (v["arg2_dtype"] >= 8), True))))
 )
 
 def rule_46_func(arg1, arg2, solver=None, neg=False):

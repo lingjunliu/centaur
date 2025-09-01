@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input A's dimension must be greater or equal to Input B's dimension and (input A's dimension - input B's dimension (Rule 5)
+# input.dim( (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
     s.add(Not(And(v["arg1_ndim"] >= v["arg2_ndim"], (v["arg1_ndim"] - v["arg2_ndim"]) <= 1)) if n else

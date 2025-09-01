@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check dtype is not int8, int16, int32, int64 or uint8, i.e., not 1, 2, 3, 4, or 5 (Rule 10)
+# The input tensor must not be Half (float16 (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(And(v["arg1_dtype"] != 1, v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5)) if n else
-          And(And(And(And(v["arg1_dtype"] != 1, v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5))
+    s.add(Not(v["arg1_dtype"] != 6) if n else
+          v["arg1_dtype"] != 6)
 )
 
 def rule_10_func(arg1, solver=None, neg=False):

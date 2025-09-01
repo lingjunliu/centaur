@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input is ComplexDouble, then output must be ComplexDouble (Rule 13)
+# if input tensor is complex128, and output tensor is bool, then the output tensor should not be bool (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11, False)) if n else
-          If(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11, False))
+    s.add(Not(If(And(v["arg1_dtype"] == 11, v["arg2_dtype"] == 0), False, True)) if n else
+          If(And(v["arg1_dtype"] == 11, v["arg2_dtype"] == 0), False, True))
 )
 
 def rule_13_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the input tensor is integer and out is given, the out tensor cannot have dtype lesser than Float (dtype 7 (Rule 40)
+# If input is complex, output cannot be int or float but must be complex (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(If((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)), (v["arg2_dtype"] >= 7), False)) if n else
-          If((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)), (v["arg2_dtype"] >= 7), False))
+    s.add(Not(If((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), True)) if n else
+          If((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), True))
 )
 
 def rule_40_func(arg1, arg2, solver=None, neg=False):

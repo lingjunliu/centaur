@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check that output_padding is within a reasonable range compared to kernel size and stride (Rule 45)
+# If bias is False, then convTranspose3d layer must be of floating point or complex type and input and weight type must match (Rule 45)
 
 rule_45 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] >= 0, v["arg1_value"] < v["arg2_value"] + v["arg3_value"])) if n else
-          And(v["arg1_value"] >= 0, v["arg1_value"] < v["arg2_value"] + v["arg3_value"]))
+    s.add(Not(If(v["arg1_value"] == False, And((Or(Or(Or(Or((v["arg2_value"] == 6), (v["arg2_value"] == 7)), (v["arg2_value"] == 8)), (v["arg2_value"] == 9)), (v["arg2_value"] == 10))), v["arg3_dtype"] == v["arg2_value"]), True)) if n else
+          If(v["arg1_value"] == False, And((Or(Or(Or(Or((v["arg2_value"] == 6), (v["arg2_value"] == 7)), (v["arg2_value"] == 8)), (v["arg2_value"] == 9)), (v["arg2_value"] == 10))), v["arg3_dtype"] == v["arg2_value"]), True))
 )
 
 def rule_45_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -19,28 +19,28 @@ def rule_45_func(arg1, arg2, arg3, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not isinstance(arg1, bool):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
             return False
-        if not (isinstance(arg3, (int, np.integer)) and not isinstance(arg3, bool)):
+        if not isinstance(arg3, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_value = Bool('arg1_value')
         arg2_value = Int('arg2_value')
-        arg3_value = Int('arg3_value')
+        arg3_dtype = Int('arg3_dtype')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        solver.add(arg2_value == int(arg2))
-        solver.add(arg3_value == int(arg3))
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
+        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
 
         # Constraints for rule 45
-        rule_45(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
+        rule_45(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_dtype': arg3_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_45(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)
+        rule_45(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value'], 'arg3_dtype': arg3['dtype']}, neg)

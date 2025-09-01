@@ -1,171 +1,156 @@
 >>
-Rule 2 (align_corners only has effect when mode is linear, bilinear, bicubic, or trilinear)
-{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 = "linear" ∨ v_2 = "bilinear" ∨ v_2 = "bicubic" ∨ v_2 = "trilinear"
+Rule 1 (Either size or scale_factor should be defined, but not both)
+{v_1: int ⊎ tuple(int), v_2: float ⊎ tuple(float)} |= (v_1 = 0) ∨ (v_2 = 0)
 >>
-Rule 3 (scale_factor must be passed in when recompute_scale_factor is True)
-{v_1 : bool, v_2 : tuple(float) ⊎ float} |= if v_1 = true then v_2 ≠ 0
+Rule 2 (If align_corners is True, mode must be linear, bilinear, bicubic, or trilinear)
+{v_1: bool, v_2: str} |= if v_1 = true then (v_2 = "linear" ∨ v_2 = "bilinear" ∨ v_2 = "bicubic" ∨ v_2 = "trilinear")
 >>
-Rule 4 (scale_factor has to match input size if it is a tuple)
-{v_1 : tuple(float), v_2 : tensor} |= v_1.len = shape(v_2, ndim(v_2) - 1)
+Rule 3 (scale_factor must be positive if it's a float)
+{v_1: float} |= v_1 > 0
 >>
-Rule 5 (mode should be a valid string)
-{v_1 : str} |= v_1 = "nearest" ∨ v_1 = "linear" ∨ v_1 = "bilinear" ∨ v_1 = "bicubic" ∨ v_1 = "trilinear"
->>
-Rule 6 (size should be a valid tuple of ints representing dimensions)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
->>
-Rule 8 (if size is int, then it should be positive)
-{v_1 : int} |= v_1 > 0
->>
-Rule 9 (If recompute_scale_factor is true, scale_factor should be defined)
-{v_1 : bool, v_2 : tuple(float) ⊎ float} |= if v_1 = true then v_2 > 0
->>
-Rule 10 (Only one of size or scale_factor should be defined - using if-then-else)
-{v_1 : tuple(int) ⊎ int, v_2 : tuple(float) ⊎ float} |= if v_1 ≠ 0 then v_2 = 0 else if v_2 ≠ 0 then v_1 = 0
->>
-Rule 13 (scale_factor has to match input size if it is a tuple, and input is a 3D tensor)
-{v_1 : tuple(float), v_2 : tensor} |= if ndim(v_2) = 3 then v_1.len = 1
->>
-Rule 16 (scale_factor should be a positive float or tuple of floats)
-{v_1 : tuple(float)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
->>
-Rule 19 (Only one of size or scale_factor should be defined - checking equality with zero)
-{v_1 : tuple(int) ⊎ int, v_2 : tuple(float) ⊎ float} |= (v_1 = 0 ∧ v_2 ≠ 0) ∨ (v_1 ≠ 0 ∧ v_2 = 0) ∨ (v_1 = 0 ∧ v_2 = 0)
->>
-Rule 20 (align_corners is only valid when mode is not nearest)
-{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 ≠ "nearest"
->>
-Rule 21 (scale_factor elements must be positive)
-{v_1 : tuple(float)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0.0
->>
-Rule 22 (if size is a tuple, its length must be 1, 2, or 3)
-{v_1 : tuple(int)} |= v_1.len = 1 ∨ v_1.len = 2 ∨ v_1.len = 3
->>
-Rule 23 (recompute_scale_factor is bool)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
->>
-Rule 24 (if scale_factor is float, it must be greater than 0)
-{v_1 : float} |= v_1 > 0.0
->>
-Rule 26 (If mode is linear, bilinear, bicubic, or trilinear, then align_corners can be true or false)
-{v_1 : str, v_2 : bool} |= if v_1 = "linear" ∨ v_1 = "bilinear" ∨ v_1 = "bicubic" ∨ v_1 = "trilinear" then true else v_2 = false
->>
-Rule 27 (size as int should be positive)
-{v_1: int} |= v_1 > 0
->>
-Rule 32 (If mode is linear, bilinear, bicubic, or trilinear, then align_corners can be true or false - more concise)
-{v_1 : str, v_2 : bool} |= (v_1 = "nearest") ∨ (v_2 = true ∨ v_2 = false)
->>
-Rule 35 (Only one of size or scale_factor can be defined using XOR)
-{v_1 : tuple(int) ⊎ int, v_2 : tuple(float) ⊎ float} |= (v_1 = 0 ∧ v_2 ≠ 0) ∨ (v_1 ≠ 0 ∧ v_2 = 0)
->>
-Rule 36 (If mode is nearest, then align_corners must be False)
-{v_1 : str, v_2 : bool} |= if v_1 = "nearest" then v_2 = false
->>
-Rule 37 (If recompute_scale_factor is True and size specified, size has to be positive)
-{v_1 : bool, v_2 : tuple(int) ⊎ int} |= if v_1 = true then v_2 > 0
->>
-Rule 38 (If align_corners is True and input is a tensor with ndim 4, then shapes are positive)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true ∧ ndim(v_2) = 4 then ∀i ∈ [0, 3] : shape(v_2, i) > 0
->>
-Rule 39 (Only one of size or scale_factor can be defined, using a combined condition)
-{v_1 : tuple(int) ⊎ int, v_2 : tuple(float) ⊎ float} |= (v_1 = 0) = (v_2 ≠ 0)
->>
-Rule 40 (If mode is bilinear, bicubic, or trilinear, input tensor must have appropriate dimensions.)
-{v_1 : str, v_2 : tensor} |= if v_1 = "bilinear" then ndim(v_2) = 4 else if v_1 = "trilinear" ∨ v_1 = "bicubic" then ndim(v_2) = 5
->>
-Rule 41 (If size is a tuple and recompute_scale_factor is True, then all size elements are > 0)
-{v_1 : tuple(int), v_2 : bool} |= if v_2 = true then ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
->>
-Rule 42 (If align_corners is True, the shape of input must be at least 2)
-{v_1: bool, v_2: tensor} |= if v_1 = true then ndim(v_2) ≥ 2
->>
-Rule 44 (If align_corners is False and recompute_scale_factor is True, then size can be anything)
-{v_1 : bool, v_2 : bool, v_3: tuple(int) ⊎ int} |= if v_1 = false ∧ v_2 = true then v_3 ≥ 0
->>
-Rule 46 (If recompute_scale_factor is true and scale_factor is specified and is a tuple, then each element of scale_factor must be greater than 0)
-{v_1: bool, v_2: tuple(float)} |= if v_1 = true then ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
->>
-Rule 49 (If recompute_scale_factor is True, then scale_factor must have been specified.)
-{v_1: bool, v_2: float ⊎ tuple(float)} |= if v_1 = true then v_2 ≠ 0
->>
-Rule 50 (When mode is linear, bilinear, bicubic, trilinear, align_corners must be specified)
-{v_1 : str, v_2: bool} |= if v_1 = "linear" ∨ v_1 = "bilinear" ∨ v_1 = "bicubic" ∨ v_1 = "trilinear" then v_2 = true ∨ v_2 = false
->>
-Rule 53 (if recompute_scale_factor is True, and size is specified and a tuple, all size elements are > 0)
-{v_1 : bool, v_2 : tuple(int)} |= if v_1 = true then ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
->>
-Rule 54 (If recompute_scale_factor is True, and scale factor is a tuple then scale factor dimensions and input tensor dimensions must conform)
-{v_1 : bool, v_2 : tuple(float), v_3 : tensor} |= if v_1 = true then v_2.len = ndim(v_3)-2
->>
-Rule 55 (size or scale_factor defined, but not both)
-{v_1 : tuple(int) ⊎ int, v_2 : tuple(float) ⊎ float} |= if v_1 = 0 then v_2 ≠ 0 else if v_2 = 0 then v_1 ≠ 0 else false
->>
-Rule 56 (If align_corners is False and input ndim > 2, then scale_factor must be specified)
-{v_1 : bool, v_2 : tensor, v_3 : tuple(float) ⊎ float} |= if v_1 = false ∧ ndim(v_2) > 2 then v_3 ≠ 0
->>
-Rule 58 (If align_corners is False, recompute_scale_factor has no effect)
-{v_1 : bool, v_2 : bool} |= if v_1= false then v_2 = true ∨ v_2 = false
->>
-Rule 61 (recompute_scale_factor is True, scale_factor is specified, input tensor dimensions need to match scale_factor dimensions)
-{v_1 : bool, v_2 : tuple(float), v_3 : tensor} |= if v_1 = true then v_2.len = ndim(v_3) - 2
->>
-Rule 64 (If recompute_scale_factor is False, align_corners does not matter and can be any bool value)
-{v_1: bool, v_2: bool} |= if v_1 = false then v_2 = true ∨ v_2 = false
->>
-Rule 65 (If size is specified and it is a tuple, then all elements of the size have to be positive integers)
-{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
->>
-Rule 70 (recompute_scale_factor is True, then scale_factor has to be a float, and >0)
-{v_1: bool, v_2 : float } |= if v_1 = true then v_2 > 0
->>
-Rule 72 (If mode is not nearest, then align_corners is considered)
-{v_1: str, v_2: bool} |= if v_1 ≠ "nearest" then true else v_2 = false
->>
-Rule 73 (if recompute_scale_factor is True, a float scale factor should be greater than zero.)
-{v_1: bool, v_2: float} |= if v_1 = true then v_2 > 0
->>
-Rule 74 (If the scale_factor is a tuple, then all the elements should be floats and greater than zero.)
+Rule 4 (Each element in scale_factor tuple must be positive)
 {v_1: tuple(float)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 76 (If mode is not nearest, then align_corners has to be a valid boolean.)
-{v_1 : str, v_2 : bool} |= if v_1 ≠ "nearest" then v_2 = true ∨ v_2 = false
+Rule 5 (size must be positive if it's an integer)
+{v_1: int} |= v_1 > 0
 >>
-Rule 77 (if recompute_scale_factor is True, scale_factor is specified as a tuple, and that tuple must have all values > 0)
-{v_1 : bool, v_2 : tuple(float)} |= if v_1 = true then ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
+Rule 6 (Each element in size tuple must be positive)
+{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 79 (Only size is specified)
-{v_1 : tuple(int) ⊎ int} |= v_1 ≠ 0
+Rule 8 (Mode must be one of the allowed strings)
+{v_1: str} |= v_1 = "nearest" ∨ v_1 = "linear" ∨ v_1 = "bilinear" ∨ v_1 = "bicubic" ∨ v_1 = "trilinear"
 >>
-Rule 81 (recompute_scale_factor is True, scale_factor is specified, input tensor has to have correct dimensions)
-{v_1 : bool, v_2 : tuple(float), v_3: tensor} |= if v_1 = true then v_2.len = ndim(v_3)-2
+Rule 9 (If recompute_scale_factor is True, scale_factor must be provided)
+{v_1: bool, v_2: float ⊎ tuple(float)} |= if v_1 = true then v_2 ≠ 0
 >>
-Rule 84 (If recompute_scale_factor is True and if the mode is bilinear/bicubic/trilinear, then align_corners can be True or False)
-{v_1: bool, v_2: str, v_3: bool} |= if v_1 = true ∧ (v_2 = "bilinear" ∨ v_2 = "bicubic" ∨ v_2 = "trilinear") then v_3 = true ∨ v_3 = false
+Rule 10 (Number of elements in size tuple should match the expected input dimension minus 2 (N, C, ...))
+{v_1 : tuple(int), v_2: tensor} |= v_1.len = ndim(v_2) - 2
 >>
-Rule 86 (If align_corners is set to True, and recompute_scale_factor is true, then the tensor should have at least 2 dimensions)
-{v_1: bool, v_2: bool, v_3: tensor} |= if v_1 = true ∧ v_2 = true then ndim(v_3) ≥ 2
+Rule 11 (Number of elements in scale_factor tuple should match the expected input dimension minus 2 (N, C, ...))
+{v_1 : tuple(float), v_2: tensor} |= v_1.len = ndim(v_2) - 2
 >>
-Rule 89 (if align_corners is True, tensor must have a float datatype)
-{v_1: bool, v_2: tensor} |= if v_1 = true then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+Rule 22 (When recompute_scale_factor is true, it should imply size is zero.)
+{v_1 : bool, v_2: int ⊎ tuple(int)} |= if v_1 = true then v_2 = 0
 >>
-Rule 90 (If size is a tuple, its length should be 1,2 or 3)
-{v_1: tuple(int)} |= v_1.len = 1 ∨ v_1.len = 2 ∨ v_1.len = 3
+Rule 23 (Either size or scale_factor should be defined, ensure only one is non-zero)
+{v_1: int ⊎ tuple(int), v_2: float ⊎ tuple(float)} |= if v_1 = 0 then v_2 ≠ 0 else if v_2 = 0 then v_1 ≠ 0 else false
 >>
-Rule 92 (if recompute_scale_factor is True, a scale factor needs to be specified)
-{v_1: bool, v_2 : tuple(float) ⊎ float} |= if v_1 = true then v_2 ≠ 0
+Rule 31 (Size tuple length should match number of spatial dimensions in tensor)
+{v_1: tuple(int), v_2: tensor} |= v_1.len = ndim(v_2) - 2
 >>
-Rule 93 (if align_corners is True, tensor must have a float datatype)
-{v_1: bool, v_2: tensor} |= if v_1 = true then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+Rule 32 (Scale factor tuple length should match number of spatial dimensions in tensor)
+{v_1: tuple(float), v_2: tensor} |= v_1.len = ndim(v_2) - 2
 >>
-Rule 101 (If align_corners is True, then mode should not be nearest)
+Rule 33 (If size is provided, then recompute_scale_factor must be false.)
+{v_1 : int ⊎ tuple(int), v_2 : bool} |= if v_1 ≠ 0 then v_2 = false
+>>
+Rule 46 (Either size or scale_factor should be defined; one must be provided. Use XOR)
+{v_1: int ⊎ tuple(int), v_2: float ⊎ tuple(float)} |= ((v_1 = 0) ∧ (v_2 ≠ 0)) ∨ ((v_1 ≠ 0) ∧ (v_2 = 0))
+>>
+Rule 57 (If recompute_scale_factor is True, size should be 0 or None)
+{v_1: bool, v_2: int ⊎ tuple(int)} |= if v_1 = true then v_2 = 0
+>>
+Rule 60 (Check that scale_factor is provided as float, if not recompute_scale_factor is false)
+{v_1: float, v_2 : bool} |= if v_1 = 0 then v_2 = false
+>>
+Rule 61 (Check that scale_factor as tuple is provided, if not recompute_scale_factor is false)
+{v_1: tuple(float), v_2 : bool} |= if v_1 = 0 then v_2 = false
+>>
+Rule 62 (Check that given mode is supported when align corners is enabled)
+{v_1: str, v_2: bool} |= if v_2 = true then (v_1 = "linear" ∨ v_1 = "bilinear" ∨ v_1 = "bicubic" ∨ v_1 = "trilinear")
+>>
+Rule 63 (If size is integer, recompute_scale_factor should be false)
+{v_1: int, v_2 : bool} |= if v_1 ≠ 0 then v_2 = false
+>>
+Rule 64 (If size is Tuple(int), recompute_scale_factor should be false)
+{v_1: tuple(int), v_2 : bool} |= if v_1 ≠ 0 then v_2 = false
+>>
+Rule 65 (If align corners is true, input should be at least 3D.)
+{v_1: bool, v_2 : tensor} |= if v_1 = true then ndim(v_2) ≥ 3
+>>
+Rule 66 (Mode linear is only supported when input is 3D)
+{v_1: str, v_2 : tensor} |= if v_1 = "linear" then ndim(v_2) = 3
+>>
+Rule 69 (if mode is linear, align corners should be defined)
+{v_1 : str} |= if v_1 = "linear" then true
+>>
+Rule 78 (Scale factor must be positive, handles float or tuple; simplified condition)
+{v_1: float ⊎ tuple(float)} |= if v_1 = 0 then true else if (v_1 > 0) then true else ∀i ∈ [0, if v_1.len > 0 then v_1.len else 0 - 1] : v_1[i] > 0
+>>
+Rule 88 (if align_corners is False mode must not be linear, bilinear, bicubic, or trilinear)
+{v_1: bool, v_2: str} |= if v_1 = false then (v_2 ≠ "linear" ∧ v_2 ≠ "bilinear" ∧ v_2 ≠ "bicubic" ∧ v_2 ≠ "trilinear")
+>>
+Rule 89 (if mode is area, align corners should be false)
+{v_1 : str, v_2: bool} |= if v_1 = "area" then v_2 = false
+>>
+Rule 90 (If scale_factor is provided, recompute_scale_factor is allowed)
+{v_1: float ⊎ tuple(float), v_2 : bool} |= if v_1 ≠ 0 then true else v_2 = false
+>>
+Rule 91 (If align corners is true, input should be at least 3D, and mode is linear or similar)
+{v_1: bool, v_2 : tensor, v_3: str} |= if v_1 = true then ndim(v_2) ≥ 3 ∧ (v_3 = "linear" ∨ v_3 = "bilinear" ∨ v_3 = "bicubic" ∨ v_3 = "trilinear")
+>>
+Rule 93 (If mode is bilinear, input should be 4D)
+{v_1: str, v_2 : tensor} |= if v_1 = "bilinear" then ndim(v_2) = 4
+>>
+Rule 94 (If mode is trilinear, input should be 5D)
+{v_1: str, v_2 : tensor} |= if v_1 = "trilinear" then ndim(v_2) = 5
+>>
+Rule 96 (scale_factor cannot be both 0 and recomputed)
+{v_1: float ⊎ tuple(float), v_2: bool} |= if v_1 = 0 then v_2 = false
+>>
+Rule 104 (When recompute_scale_factor is true, scale_factor should be float. Remove type)
+{v_1 : bool, v_2: float} |= if v_1 = true then v_2 > 0
+>>
+Rule 106 (If scale_factor is 0 then recompute_scale_factor is false)
+{v_1: float, v_2: bool} |= if v_1 = 0 then v_2 = false
+>>
+Rule 115 (If scale_factor is a tuple, recompute_scale_factor is false.)
+{v_1: tuple(float), v_2: bool} |= if v_1 = 0 then v_2 = false
+>>
+Rule 116 (If size is given, recompute scale factor is false)
+{v_1: int ⊎ tuple(int), v_2: bool} |= if v_1 ≠ 0 then v_2 = false
+>>
+Rule 118 (When align corners is false, mode must be nearest)
+{v_1: bool, v_2: str} |= if v_1 = false then v_2 = "nearest"
+>>
+Rule 124 (If scale_factor is a float, recompute_scale_factor is true)
+{v_1: float, v_2: bool} |= if v_1 ≠ 0 then v_2 = true
+>>
+Rule 125 (If scale_factor is a tuple, recompute_scale_factor is true)
+{v_1: tuple(float), v_2: bool} |= if v_1 ≠ 0 then v_2 = true
+>>
+Rule 126 (align_corners only has an effect when mode is one of linear, bilinear, bicubic, or trilinear)
+{v_1: str, v_2 : bool} |= if (v_1 = "linear" ∨ v_1 = "bilinear" ∨ v_1 = "bicubic" ∨ v_1 = "trilinear") then true else v_2 = false
+>>
+Rule 130 (If align corners is true, it also dictates a minimum number of dimensions of the tensor)
+{v_1: bool, v_2: tensor} |= if v_1 = true then ndim(v_2) ≥ 3
+>>
+Rule 136 (if scale_factor is zero both recompute_scale_factor and size are invalid)
+{v_1: float ⊎ tuple(float), v_2: bool, v_3 : int ⊎ tuple(int)} |= if v_1 = 0 then v_2 = false ∧ v_3 = 0
+>>
+Rule 140 (If align corners is true and mode nearest return false)
 {v_1: bool, v_2 : str} |= if v_1 = true then v_2 ≠ "nearest"
 >>
-Rule 106 (When recompute_scale_factor is True and size is specified and a tuple, then all size elements are positive and scale_factor is a default value)
-{v_1: bool, v_2 : tuple(int)} |= if v_1= true then ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
+Rule 141 (If scale_factor is to be recomputed, make sure the type of it is a floating number)
+{v_1: float, v_2 : bool} |= if v_2 = true then v_1 ≠ 0
 >>
-Rule 112 (if recompute_scale_factor is True, a scale factor needs to be specified and greater than zero.)
-{v_1: bool, v_2 : float} |= if v_1 = true then v_2 > 0
+Rule 143 (If size is zero, both scale_factor and recompute scale factor cannot be defined)
+{v_1: int ⊎ tuple(int), v_2: float ⊎ tuple(float), v_3 : bool} |= if v_1 = 0 then (v_2 = 0 ∨ v_3 = false)
 >>
-Rule 114 (If size and scale_factor are both specified as zero, then it must be a tensor input, where ndim>0)
-{v_1 : tuple(int) ⊎ int, v_2 : tuple(float) ⊎ float, v_3 : tensor} |= if v_1 = 0 ∧ v_2 = 0 then ndim(v_3) > 0
+Rule 144 (If recompute scale factor is true, check that scale factor is greater than zero and is also a float)
+{v_1: bool, v_2: float} |= if v_1 = true then v_2 > 0
+>>
+Rule 145 (Check input dimension is at least 3D, if the align_corners is enabled along the mode)
+{v_1: bool, v_2 : tensor, v_3 : str} |= if v_1 = true then ndim(v_2) ≥ 3 ∧ (v_3 = "linear" ∨ v_3 = "bilinear" ∨ v_3 = "bicubic" ∨ v_3 = "trilinear")
+>>
+Rule 146 (Check to confirm that when you want trilinear the given tensor should be 5D.)
+{v_1 : str, v_2 : tensor} |= if v_1 = "trilinear" then ndim(v_2) = 5
+>>
+Rule 147 (If recompute scale factor is true, both size and scale factor are invalid)
+{v_1: bool, v_2: int ⊎ tuple(int), v_3: float ⊎ tuple(float)} |= if v_1 = true then v_2 = 0 ∧ v_3 ≠ 0
+>>
+Rule 148 (When align corners is false mode must be nearest, or size or scale_factor must be passed)
+{v_1: bool, v_2: str, v_3: int ⊎ tuple(int), v_4: float ⊎ tuple(float)} |= if v_1 = false then v_2 = "nearest" ∨ (v_3 ≠ 0 ∨ v_4 ≠ 0)
+>>
+Rule 150 (If scale factor is to be recomputed, make sure it is passed with scale_factor and scale_factor is float type)
+{v_1: bool, v_2: float, v_3 : int ⊎ tuple(int)} |= if v_1 = true then v_2 ≠ 0 ∧ v_3 = 0

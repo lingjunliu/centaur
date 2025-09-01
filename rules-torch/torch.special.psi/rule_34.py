@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Output Tensor must be same dtype as Input Tensor. (Rule 34)
+# The output tensor has a dtype greater than or equal to the input tensor's dtype, and if the input tensor is an integer, the output can be a float (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else
-          v["arg1_dtype"] == v["arg2_dtype"])
+    s.add(Not(If((And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 5)), Or((And((v["arg2_dtype"] >= v["arg1_dtype"]), (v["arg2_dtype"] <= 5))), (And((v["arg2_dtype"] >= 6), (v["arg2_dtype"] <= 8)))), If((And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 8)), (v["arg2_dtype"] == v["arg1_dtype"]), True))) if n else
+          If((And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 5)), Or((And((v["arg2_dtype"] >= v["arg1_dtype"]), (v["arg2_dtype"] <= 5))), (And((v["arg2_dtype"] >= 6), (v["arg2_dtype"] <= 8)))), If((And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 8)), (v["arg2_dtype"] == v["arg1_dtype"]), True)))
 )
 
 def rule_34_func(arg1, arg2, solver=None, neg=False):

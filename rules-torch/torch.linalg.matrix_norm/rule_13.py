@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# dim tuple indices should be within the range of dimensions of the input tensor (Rule 13)
+# Dimensions in dim must be valid dimensions of the input tensor, taking into account negative indexing (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(And(Select(v["arg2_values"], 0) + v["arg1_ndim"] >= 0, Select(v["arg2_values"], 0) < v["arg1_ndim"]), Select(v["arg2_values"], 1) + v["arg1_ndim"] >= 0), Select(v["arg2_values"], 1) < v["arg1_ndim"]), Select(v["arg2_values"], 0) != Select(v["arg2_values"], 1))) if n else
-          And(And(And(And(Select(v["arg2_values"], 0) + v["arg1_ndim"] >= 0, Select(v["arg2_values"], 0) < v["arg1_ndim"]), Select(v["arg2_values"], 1) + v["arg1_ndim"] >= 0), Select(v["arg2_values"], 1) < v["arg1_ndim"]), Select(v["arg2_values"], 0) != Select(v["arg2_values"], 1)))
+    s.add(Not(And([Implies(i < (1 + 1), If(Select(v["arg2_values"], i) < 0, Select(v["arg2_values"], i) >= (0 - v["arg1_ndim"]), Select(v["arg2_values"], i) < v["arg1_ndim"])) for i in range(6)])) if n else
+          And([Implies(i < (1 + 1), If(Select(v["arg2_values"], i) < 0, Select(v["arg2_values"], i) >= (0 - v["arg1_ndim"]), Select(v["arg2_values"], i) < v["arg1_ndim"])) for i in range(6)]))
 )
 
 def rule_13_func(arg1, arg2, solver=None, neg=False):

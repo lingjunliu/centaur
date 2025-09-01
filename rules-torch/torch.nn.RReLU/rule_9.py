@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# lower bound should be non-negative if upper bound is non-negative, avoiding large negative values for 'a' (Rule 9)
+# lower and upper must be different values when using RReLU (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] >= 0, v["arg1_value"] >= 0, False)) if n else
-          If(v["arg2_value"] >= 0, v["arg1_value"] >= 0, False))
+    s.add(Not(v["arg1_value"] != v["arg2_value"]) if n else
+          v["arg1_value"] != v["arg2_value"])
 )
 
 def rule_9_func(arg1, arg2, solver=None, neg=False):

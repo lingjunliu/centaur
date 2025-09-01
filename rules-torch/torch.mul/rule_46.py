@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Result dtype should be at least as high as the highest input dtype (Rule 46)
+# Output tensor dtype must be compatible with input and other tensor dtypes. Suppress "result type Float can't be cast to the desired output type Short" (Rule 46)
 
 rule_46 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg3_dtype"] >= v["arg1_dtype"], v["arg3_dtype"] >= v["arg2_dtype"])) if n else
-          And(v["arg3_dtype"] >= v["arg1_dtype"], v["arg3_dtype"] >= v["arg2_dtype"]))
+    s.add(Not(Or(Or(Or(Or(Or(Or((v["arg3_dtype"] == v["arg1_dtype"]), (v["arg3_dtype"] == v["arg2_dtype"])), (And((And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8)), v["arg3_dtype"] == 8))), (And((And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7)), v["arg3_dtype"] == 7))), (And((And(v["arg1_dtype"] == 6, v["arg2_dtype"] == 6)), v["arg3_dtype"] == 6))), (And((And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 7)), v["arg3_dtype"] == 8))), (And(And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 8), v["arg3_dtype"] == 8)))) if n else
+          Or(Or(Or(Or(Or(Or((v["arg3_dtype"] == v["arg1_dtype"]), (v["arg3_dtype"] == v["arg2_dtype"])), (And((And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8)), v["arg3_dtype"] == 8))), (And((And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7)), v["arg3_dtype"] == 7))), (And((And(v["arg1_dtype"] == 6, v["arg2_dtype"] == 6)), v["arg3_dtype"] == 6))), (And((And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 7)), v["arg3_dtype"] == 8))), (And(And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 8), v["arg3_dtype"] == 8))))
 )
 
 def rule_46_func(arg1, arg2, arg3, solver=None, neg=False):

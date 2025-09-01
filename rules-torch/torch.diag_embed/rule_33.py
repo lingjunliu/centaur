@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If dim1 or dim2 are not -1 or -2, and ndim(v_1 (Rule 33)
+# Check if the dimensions are valid given a specific number of dimensions for the tensor (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(If(Or((And(v["arg2_value"] != -1, v["arg2_value"] != -2)), (And(v["arg3_value"] != -1, v["arg3_value"] != -2))), If(v["arg1_ndim"] < (If((If(v["arg2_value"] < 0, (0 - v["arg2_value"]), v["arg2_value"])) > (If(v["arg3_value"] < 0, (0 - v["arg3_value"]), v["arg3_value"])), (If(v["arg2_value"] < 0, (0 - v["arg2_value"]), v["arg2_value"])), (If(v["arg3_value"] < 0, (0 - v["arg3_value"]), v["arg3_value"])))), False, False), False)) if n else
-          If(Or((And(v["arg2_value"] != -1, v["arg2_value"] != -2)), (And(v["arg3_value"] != -1, v["arg3_value"] != -2))), If(v["arg1_ndim"] < (If((If(v["arg2_value"] < 0, (0 - v["arg2_value"]), v["arg2_value"])) > (If(v["arg3_value"] < 0, (0 - v["arg3_value"]), v["arg3_value"])), (If(v["arg2_value"] < 0, (0 - v["arg2_value"]), v["arg2_value"])), (If(v["arg3_value"] < 0, (0 - v["arg3_value"]), v["arg3_value"])))), False, False), False))
+    s.add(Not(If(v["arg1_ndim"] == 2, (And(And(And(v["arg2_value"] >= -2, v["arg2_value"] <= 1), v["arg3_value"] >= -2), v["arg3_value"] <= 1)), True)) if n else
+          If(v["arg1_ndim"] == 2, (And(And(And(v["arg2_value"] >= -2, v["arg2_value"] <= 1), v["arg3_value"] >= -2), v["arg3_value"] <= 1)), True))
 )
 
 def rule_33_func(arg1, arg2, arg3, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The dimension must be an integer or None and less than the number of dimensions of the input tensor (Rule 64)
+# If input tensor's dtype is complex, then out tensor's dtype should be complex too, and vice-versa (Rule 64)
 
 rule_64 = lambda s, v, n=False: (
-    s.add(Not(Or((And(v["arg2_value"] == (v["arg2_value"] + 0), v["arg2_value"] < v["arg1_ndim"])), v["arg2_value"] == 6)) if n else
-          Or((And(v["arg2_value"] == (v["arg2_value"] + 0), v["arg2_value"] < v["arg1_ndim"])), v["arg2_value"] == 6))
+    s.add(Not((Or(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg1_dtype"] == 11)) == (Or(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), v["arg2_dtype"] == 11))) if n else
+          (Or(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg1_dtype"] == 11)) == (Or(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), v["arg2_dtype"] == 11)))
 )
 
 def rule_64_func(arg1, arg2, solver=None, neg=False):
@@ -20,20 +20,22 @@ def rule_64_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)) or isinstance(arg2, str)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_dtype = Int('arg1_dtype')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 64
-        rule_64(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_64(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_64(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)
+        rule_64(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)

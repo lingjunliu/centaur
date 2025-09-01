@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the input tensor has at least 3 dimensions, then the product of downscale factor squared must be less than or equal to the number of elements. (Rule 51)
+# Final pixel_unshuffle validation - incorporates all known constraints (Rule 51)
 
 rule_51 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] >= 3, (v["arg2_value"] * v["arg2_value"]) <= (Select(v["arg1_shape"], v["arg1_ndim"] - 2) * Select(v["arg1_shape"], v["arg1_ndim"] - 1)), False)) if n else
-          If(v["arg1_ndim"] >= 3, (v["arg2_value"] * v["arg2_value"]) <= (Select(v["arg1_shape"], v["arg1_ndim"] - 2) * Select(v["arg1_shape"], v["arg1_ndim"] - 1)), False))
+    s.add(Not(And(And(v["arg2_value"] > 0, (Or(v["arg1_ndim"] >= 3, (And(And(v["arg1_ndim"] >= 0, Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0), Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0))))), (If(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 2) % v["arg2_value"] == 0, True)))) if n else
+          And(And(v["arg2_value"] > 0, (Or(v["arg1_ndim"] >= 3, (And(And(v["arg1_ndim"] >= 0, Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0), Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0))))), (If(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 2) % v["arg2_value"] == 0, True))))
 )
 
 def rule_51_func(arg1, arg2, solver=None, neg=False):

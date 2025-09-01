@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensors should have at least one dimension (Rule 8)
+# anchor, positive, negative tensors should have dimension > 0 (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_ndim"] >= 1, v["arg2_ndim"] >= 1), v["arg3_ndim"] >= 1)) if n else
-          And(And(v["arg1_ndim"] >= 1, v["arg2_ndim"] >= 1), v["arg3_ndim"] >= 1))
+    s.add(Not(And(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), v["arg3_ndim"] > 0)) if n else
+          And(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), v["arg3_ndim"] > 0))
 )
 
 def rule_8_func(arg1, arg2, arg3, solver=None, neg=False):

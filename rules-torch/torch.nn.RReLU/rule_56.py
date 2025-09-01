@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the tensor data type is float16, then the lower cannot be greater than 6.5504E+04 (Rule 56)
+# If lower bound is positive, ensure upper bound is greater or equal to it. (Rule 56)
 
 rule_56 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 6, v["arg2_value"] <= 65504.0, False)) if n else
-          If(v["arg1_value"] == 6, v["arg2_value"] <= 65504.0, False))
+    s.add(Not(If(v["arg1_value"] > 0, v["arg2_value"] >= v["arg1_value"], True)) if n else
+          If(v["arg1_value"] > 0, v["arg2_value"] >= v["arg1_value"], True))
 )
 
 def rule_56_func(arg1, arg2, solver=None, neg=False):
@@ -18,18 +18,18 @@ def rule_56_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
+        if not isinstance(arg1, (float, np.floating)):
             return False
         if not isinstance(arg2, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_value = Real('arg1_value')
         arg2_value = Real('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
+        solver.add(arg1_value == arg1)
         solver.add(arg2_value == arg2)
 
         # Constraints for rule 56

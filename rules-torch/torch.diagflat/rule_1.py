@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Prevent excessively large tensor input, catching potential allocation overflow (Rule 1)
+# input tensor should have a reasonable number of elements to avoid memory overflow (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_shape"], 0) < 10000, Select(v["arg1_shape"], 1) < 10000)) if n else
-          And(Select(v["arg1_shape"], 0) < 10000, Select(v["arg1_shape"], 1) < 10000))
+    s.add(Not(Select(v["arg1_shape"], 0) < 1000000000) if n else
+          Select(v["arg1_shape"], 0) < 1000000000)
 )
 
 def rule_1_func(arg1, solver=None, neg=False):

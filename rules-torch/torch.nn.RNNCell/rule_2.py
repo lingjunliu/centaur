@@ -8,8 +8,8 @@ from z3 import *
 # nonlinearity should be either 'tanh' or 'relu' (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_value"] == 13, v["arg1_value"] == 12)) if n else
-          Or(v["arg1_value"] == 13, v["arg1_value"] == 12))
+    s.add(Not(Or(v["arg1_value"] == 12, v["arg1_value"] == 11)) if n else
+          Or(v["arg1_value"] == 12, v["arg1_value"] == 11))
 )
 
 def rule_2_func(arg1, solver=None, neg=False):

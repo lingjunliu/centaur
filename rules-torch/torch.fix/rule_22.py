@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input is float and out tensor is provided, both input and out must be of type float64 (Rule 22)
+# If output tensor is present, its data type has to be compatible with the input; If the input is float, the output must be double, otherwise the data type of input and output must match (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 6), v["arg1_dtype"] == 8), And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8), False)) if n else
-          If(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 6), v["arg1_dtype"] == 8), And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8), False))
+    s.add(Not(If((Or([And(v_out < (0 + 1), True) for v_out in range(6)])), If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 8, v["arg1_dtype"] == v["arg2_dtype"]), True)) if n else
+          If((Or([And(v_out < (0 + 1), True) for v_out in range(6)])), If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 8, v["arg1_dtype"] == v["arg2_dtype"]), True))
 )
 
 def rule_22_func(arg1, arg2, solver=None, neg=False):

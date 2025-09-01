@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# window_length must be a small value when requires_grad is true, due to memory requirements (Rule 9)
+# If periodic is true, window length should be at least 2 (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == True, v["arg1_value"] < 10000, False)) if n else
-          If(v["arg2_value"] == True, v["arg1_value"] < 10000, False))
+    s.add(Not(If(v["arg2_value"], v["arg1_value"] >= 2, True)) if n else
+          If(v["arg2_value"], v["arg1_value"] >= 2, True))
 )
 
 def rule_9_func(arg1, arg2, solver=None, neg=False):

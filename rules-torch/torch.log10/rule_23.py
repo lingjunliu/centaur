@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# output dtype must be float if input dtype requires it, and cannot be short (Rule 23)
+# If the input tensor is complex128, then the output tensor's dtype should be complex128 (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_dtype"] < 7), (And(v["arg2_dtype"] > 6, v["arg2_dtype"] != 2)), False)) if n else
-          If((v["arg1_dtype"] < 7), (And(v["arg2_dtype"] > 6, v["arg2_dtype"] != 2)), False))
+    s.add(Not(If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, True)) if n else
+          If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, True))
 )
 
 def rule_23_func(arg1, arg2, solver=None, neg=False):

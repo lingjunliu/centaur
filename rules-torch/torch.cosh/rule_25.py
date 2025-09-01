@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the input is an integer type and an out tensor is provided, then the out tensor's dtype must be at least float32. (Rule 25)
+# If input is a floating point tensor of certain precision, the out tensor must be a floating point tensor or a complex tensor with at least the same precision, to avoid underflow and overflow and potential casting errors (Rule 25)
 
 rule_25 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] < 6, v["arg2_dtype"] >= 7, False)) if n else
-          If(v["arg1_dtype"] < 6, v["arg2_dtype"] >= 7, False))
+    s.add(Not(Or(Or(Or(Or((And(v["arg1_dtype"] == 6, (Or(Or(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10)))), (And(v["arg1_dtype"] == 7, (Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10))))), (And(v["arg1_dtype"] == 8, (Or(Or(v["arg2_dtype"] == 8, v["arg2_dtype"] == 9), v["arg2_dtype"] == 10))))), (And(v["arg1_dtype"] == 9, (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10))))), (And(v["arg1_dtype"] == 10, (v["arg2_dtype"] == 10))))) if n else
+          Or(Or(Or(Or((And(v["arg1_dtype"] == 6, (Or(Or(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10)))), (And(v["arg1_dtype"] == 7, (Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10))))), (And(v["arg1_dtype"] == 8, (Or(Or(v["arg2_dtype"] == 8, v["arg2_dtype"] == 9), v["arg2_dtype"] == 10))))), (And(v["arg1_dtype"] == 9, (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10))))), (And(v["arg1_dtype"] == 10, (v["arg2_dtype"] == 10)))))
 )
 
 def rule_25_func(arg1, arg2, solver=None, neg=False):

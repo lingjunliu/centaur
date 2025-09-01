@@ -5,37 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# lower bound and upper bound should be within a reasonable range, avoiding overflow (Rule 2)
+# inplace should be a boolean (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] > -1000000.0, v["arg2_value"] < 1000000.0)) if n else
-          And(v["arg1_value"] > -1000000.0, v["arg2_value"] < 1000000.0))
+    s.add(Not(Or(v["arg1_value"] == True, v["arg1_value"] == False)) if n else
+          Or(v["arg1_value"] == True, v["arg1_value"] == False))
 )
 
-def rule_2_func(arg1, arg2, solver=None, neg=False):
+def rule_2_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
-            return False
-        if not isinstance(arg2, (float, np.floating)):
+        if not isinstance(arg1, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
-        arg2_value = Real('arg2_value')
+        arg1_value = Bool('arg1_value')
 
         # Value assignments
         solver.add(arg1_value == arg1)
-        solver.add(arg2_value == arg2)
 
         # Constraints for rule 2
-        rule_2(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_2(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_2(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_2(solver, {'arg1_value': arg1['value']}, neg)

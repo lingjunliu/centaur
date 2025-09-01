@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The tensor should have same value in each element (Rule 59)
+# The number of dimensions must be in the range of [0, MAX_TENSOR_DIMS] (Rule 59)
 
 rule_59 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) == Select(v["arg1_range"], 1)) if n else
-          Select(v["arg1_range"], 0) == Select(v["arg1_range"], 1))
+    s.add(Not(And(v["arg1_ndim"] >= 0, v["arg1_ndim"] <= 8)) if n else
+          And(v["arg1_ndim"] >= 0, v["arg1_ndim"] <= 8))
 )
 
 def rule_59_func(arg1, solver=None, neg=False):
@@ -22,16 +22,15 @@ def rule_59_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_ndim == arg1.ndim)
 
         # Constraints for rule 59
-        rule_59(solver, {'arg1_range': arg1_range})
+        rule_59(solver, {'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_59(solver, {'arg1_range': arg1['range']}, neg)
+        rule_59(solver, {'arg1_ndim': arg1['ndim']}, neg)

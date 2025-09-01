@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If weight is provided, input and weight tensors must have float dtype. (Rule 82)
+# if a weight tensor is provided, its dtype must agree with input tensor (Rule 82)
 
 rule_82 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_ndim"] > 0, And(And(v["arg1_dtype"] == 7, Or(v["arg2_dtype"] == 7, v["arg1_dtype"] == 8)), v["arg2_dtype"] == 8), False)) if n else
-          If(v["arg2_ndim"] > 0, And(And(v["arg1_dtype"] == 7, Or(v["arg2_dtype"] == 7, v["arg1_dtype"] == 8)), v["arg2_dtype"] == 8), False))
+    s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else
+          v["arg1_dtype"] == v["arg2_dtype"])
 )
 
 def rule_82_func(arg1, arg2, solver=None, neg=False):
@@ -26,18 +26,16 @@ def rule_82_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
-        arg2_ndim = Int('arg2_ndim')
         arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_ndim == arg2.ndim)
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 82
-        rule_82(solver, {'arg1_dtype': arg1_dtype, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype})
+        rule_82(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_82(solver, {'arg1_dtype': arg1['dtype'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_82(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)

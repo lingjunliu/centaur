@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If copy is False and the object is a sequence and the requested dtype is different from the object's dtype, it will fail (Rule 34)
+# If requires_grad is true, dtype must be float or complex (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == False, v["arg1_value"] == 0, False)) if n else
-          If(v["arg2_value"] == False, v["arg1_value"] == 0, False))
+    s.add(Not(If(v["arg2_value"], Or(Or(Or(v["arg1_value"] == 7, v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10), True)) if n else
+          If(v["arg2_value"], Or(Or(Or(v["arg1_value"] == 7, v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10), True))
 )
 
 def rule_34_func(arg1, arg2, solver=None, neg=False):

@@ -2,296 +2,95 @@
 Rule 1 (d_model must be divisible by nhead)
 {v_1 : int, v_2 : int} |= v_1 % v_2 = 0
 >>
-Rule 2 (d_model must be greater than 0)
-{v_1 : int} |= v_1 > 0
+Rule 2 (embed_dim and num_heads must be greater than 0)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
 >>
-Rule 4 (dropout must be between 0 and 1 inclusive)
-{v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 1
+Rule 3 (dropout value must be between 0 and 1 inclusive)
+{v_1 : float} |= v_1 ≥ 0.0 ∧ v_1 ≤ 1.0
 >>
-Rule 5 (layer_norm_eps must be greater than 0)
-{v_1 : float} |= v_1 > 0
+Rule 4 (layer_norm_eps must be a positive float)
+{v_1 : float} |= v_1 > 0.0
 >>
-Rule 6 (activation must be relu or gelu)
+Rule 5 (activation must be either relu or gelu if it is a string)
 {v_1 : str} |= v_1 = "relu" ∨ v_1 = "gelu"
 >>
-Rule 7 (batch_first is a boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 8 (d_model must be greater than 0)
+{v_1 : int} |= v_1 > 0
 >>
-Rule 12 (If batch_first is True, then input tensor should have 3 dimensions)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then ndim(v_1) = 3
+Rule 11 (src must be a tensor of at least 2 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
 >>
-Rule 13 (activation must be a string if it's not a callable)
-{v_1 : str ⊎ tensor} |= if dtype_(v_1) = str then v_1 = "relu" ∨ v_1 = "gelu"
+Rule 15 (If batch_first is True, src and src_key_padding_mask should have compatible shapes)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 ∧ v_2 then shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 14 (d_model is positive and nhead is positive.)
-{v_1: int, v_2: int} |= v_1 > 0 ∧ v_2 > 0
+Rule 17 (layer_norm_eps cannot be negative)
+{v_1 : float} |= v_1 ≥ 0.0
 >>
-Rule 15 (If bias is false, all biases should be initialized to zero)
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then min(v_1) = 0 ∧ max(v_1) = 0
+Rule 19 (d_model has to be equal to the last dimension of src when batch_first is True)
+{v_1 : int, v_2 : tensor, v_3 : bool} |= if v_3 then v_1 = shape(v_2, 2)
 >>
-Rule 16 (d_model and nhead cannot be both zero)
-{v_1 : int, v_2 : int} |= (v_1 = 0 ∧ v_2 = 0) = false
+Rule 27 (src_mask and src have same batch dimension when batch_first is true)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_2 ∧ v_3 then shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 21 (d_model and nhead cannot be both zero)
-{v_1 : int, v_2 : int} |= if v_1 = 0 then v_2 ≠ 0
+Rule 32 (The activation string must be in the defined string list)
+{v_1 : str} |= v_1 = "relu" ∨ v_1 = "gelu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "swish" ∨ v_1 = "softplus" ∨ v_1 = "linear"
 >>
-Rule 22 (If batch_first is true the dimension 0 of the tensor must be greater than 0.)
-{v_1: tensor, v_2 : bool} |= if v_2 = true then shape(v_1, 0) > 0
+Rule 33 (src_mask's first dimension should match src's batch dimension if src_mask is 3D and batch_first is true)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if ndim(v_2) = 3 ∧ v_3 then shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 23 (If training is disabled, then the input cannot requires_grad.)
-{v_1 : tensor} |= if true then (shape(v_1, 0) > 0)
+Rule 34 (src_mask's second dimension should match src's sequence dimension if src_mask is 3D and batch_first is true)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if ndim(v_2) = 3 ∧ v_3 then shape(v_1, 1) = shape(v_2, 1)
 >>
-Rule 24 (layer_norm_eps should be small enough)
-{v_1 : float} |= v_1 < 1
+Rule 43 (src_mask and src have same batch dimension when batch_first is true)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 25 (dim_feedforward should not be too big)
-{v_1: int} |= v_1 < 4096
+Rule 45 (d_model has to be equal to the last dimension of src when batch_first is False)
+{v_1 : int, v_2 : tensor} |= if batch_first = false then v_1 = shape(v_2, 2)
 >>
-Rule 26 (d_model and nhead are both even or odd)
-{v_1 : int, v_2 : int} |= (v_1 % 2 = 0 ∧ v_2 % 2 = 0) ∨ (v_1 % 2 ≠ 0 ∧ v_2 % 2 ≠ 0)
+Rule 46 (d_model has to be equal to the last dimension of src when batch_first is True)
+{v_1 : int, v_2 : tensor} |= if batch_first = true then v_1 = shape(v_2, 2)
 >>
-Rule 28 (Check if layer_norm_eps is within a reasonable range)
-{v_1 : float} |= v_1 > 1e-6 ∧ v_1 < 1e-4
+Rule 51 (src_mask's first dimension should match src's sequence dimension if src_mask is 3D and batch_first is false)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 3 ∧ (batch_first = false) then shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 29 (If batch_first is true dimension order should be correct)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then true else shape(v_1,0) > shape(v_1,1)
+Rule 52 (src_mask's second dimension should match src's batch dimension if src_mask is 3D and batch_first is false)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 3 ∧ (batch_first = false) then shape(v_1, 1) = shape(v_2, 1)
 >>
-Rule 30 (If activation is tanh, then dropout must be 0)
-{v_1: str, v_2: float} |= if v_1 = "tanh" then v_2 = 0
+Rule 53 (src and src_key_padding_mask should have compatible sequence lengths if batch_first is False)
+{v_1 : tensor, v_2 : tensor} |= if batch_first = false then shape(v_1, 0) = shape(v_2, 1)
 >>
-Rule 32 (If bias is True, the min and max should not be the same)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then min(v_1) ≠ max(v_1)
+Rule 54 (src and src_key_padding_mask should have compatible sequence lengths if batch_first is True)
+{v_1 : tensor, v_2 : tensor} |= if batch_first = true then shape(v_1, 1) = shape(v_2, 1)
 >>
-Rule 37 (If bias is True, the tensor's dtype must be floating point or complex)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 61 (if src_mask is not none then the dtype of src and src_mask should be same)
+{v_1: tensor, v_2: tensor} |= if v_2 ≠ false then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 38 (If norm_first is true, then d_model is equal to the size of the last tensor's dimention)
-{v_1 : tensor, v_2 : int, v_3 : bool} |= if v_3 = true then v_2 = shape(v_1, ndim(v_1) - 1)
+Rule 62 (if src requires grad, then dtype should be floating point or complex)
+{v_1: tensor} |= if true then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 39 (If batch_first is false, the seq_len of input tensor must be positive.)
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then shape(v_1, 0) > 0
+Rule 64 (src and src_key_padding_mask should have compatible batch lengths)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then shape(v_1, 0) = shape(v_2, 0) else shape(v_1,1) = shape(v_2,0)
 >>
-Rule 40 (d_model is less than dim_feedforward)
-{v_1: int, v_2: int} |= v_1 < v_2
+Rule 83 (src_key_padding_mask and src must have the same sequence dimension)
+{v_1: tensor, v_2: tensor, v_3 : bool} |= if v_3 then shape(v_1, 0) = shape(v_2, 0) else shape(v_1, 1) = shape(v_2, 0)
 >>
-Rule 41 (d_model must be divisible by nhead, and both can not be zero at the same time.)
-{v_1 : int, v_2 : int} |= v_1 % v_2 = 0 ∧ (v_1=0 ∧ v_2=0) = false
+Rule 84 (if src_mask's shape is (S,S) then S must equal sequence length dimension of src if batch_first is False)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 2 then shape(v_2,0) = shape(v_1,0)
 >>
-Rule 46 (d_model must be divisible by nhead, and both must be positive)
-{v_1 : int, v_2 : int} |= v_1 % v_2 = 0 ∧ v_1 > 0 ∧ v_2 > 0
+Rule 85 (if src_mask's shape is (S,S) then S must equal sequence length dimension of src if batch_first is True)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 2 then shape(v_2,0) = shape(v_1,1)
 >>
-Rule 48 (If activation is not relu or gelu, then optimized path can't be used)
-{v_1: str} |= v_1 = "relu" ∨ v_1 = "gelu"
+Rule 94 (src_key_padding_mask and src must have the same batch dimension, considering batch_first)
+{v_1 : tensor, v_2 : tensor, v_3: bool} |= if v_3 then shape(v_1,0) = shape(v_2, 0) else shape(v_1, 1) = shape(v_2, 0)
 >>
-Rule 49 (If batch_first is true dimension 1 must be less than 2048.)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then shape(v_1, 1) < 2048
+Rule 96 (if src_mask's shape is (S,S) then S must equal sequence length dimension of src if batch_first is True)
+{v_1 : tensor, v_2 : tensor, v_3: bool} |= if ndim(v_2) = 2 ∧ v_3 then shape(v_2,0) = shape(v_1,1)
 >>
-Rule 50 (If dropout is greater than zero, then bias must be false)
-{v_1: float, v_2: bool} |= if v_1 > 0 then v_2 = false
+Rule 107 (The dtype of src must be equal to dtype)
+{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) = v_2
 >>
-Rule 52 (If bias is True, the tensor must requires_grad is false, the tensor's dtype must be floating point or complex)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then (∀i ∈ [0, ndim(v_1) -1]: shape(v_1, i) > 0)
+Rule 115 (if src requires grad, then dtype should be floating point or complex)
+{v_1: tensor} |= if true then dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 56 (d_model must be divisible by nhead, and the result should be positive)
-{v_1 : int, v_2 : int} |= v_1 % v_2 = 0 ∧ v_1 / v_2 > 0
->>
-Rule 57 (If bias is True, then the input tensor must have positive values.)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then min(v_1) > 0
->>
-Rule 58 (If activation is not relu or gelu, and optimized path can't be used, then batch_first should be false)
-{v_1: str} |= if v_1 ≠ "relu" ∧ v_1 ≠ "gelu" then true
->>
-Rule 59 (If batch_first is true dimension 1 must be less than 2048 and norm_first is false.)
-{v_1 : tensor, v_2 : bool, v_3 : bool} |= if v_2 = true then shape(v_1, 1) < 2048 ∧ v_3 = false
->>
-Rule 60 (dim_feedforward should be divisible by d_model)
-{v_1: int, v_2: int} |= v_1 % v_2 = 0
->>
-Rule 61 (d_model must be divisible by nhead, and the result should be positive and nhead is not zero)
-{v_1 : int, v_2 : int} |= v_1 % v_2 = 0 ∧ v_1 / v_2 > 0 ∧ v_2 ≠ 0
->>
-Rule 62 (If bias is True, then the input tensor must have positive values or zero only)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then min(v_1) ≥ 0
->>
-Rule 63 (If activation is not relu or gelu, and optimized path can't be used, then bias should be false)
-{v_1: str, v_2: bool} |= if v_1 ≠ "relu" ∧ v_1 ≠ "gelu" then v_2 = false
->>
-Rule 64 (If layer_norm_eps is less than 1e-5 then the optimized path can't be used.)
-{v_1: float} |= v_1 ≥ 1e-5
->>
-Rule 65 (dim_feedforward should be greater than d_model)
-{v_1: int, v_2: int} |= v_1 > v_2
->>
-Rule 67 (If bias is False, then the input tensor's mean should be close to 0)
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then min(v_1) ≥ -1e-3 ∧ max(v_1) ≤ 1e-3
->>
-Rule 68 (If activation is not relu or gelu, then dropout should not be more than 0.5.)
-{v_1: str, v_2: float} |= if v_1 ≠ "relu" ∧ v_1 ≠ "gelu" then v_2 ≤ 0.5
->>
-Rule 69 (layer_norm_eps must be a small positive number less than 0.1)
-{v_1: float} |= v_1 > 0 ∧ v_1 < 0.1
->>
-Rule 70 (If batch_first is False, then dimension 1 of input tensor should be less then d_model + dim_feedforward)
-{v_1:tensor, v_2:bool, v_3:int, v_4:int} |= if v_2 = false then shape(v_1, 1) < v_3 + v_4
->>
-Rule 71 (d_model must be divisible by nhead, and both must be positive. Also, the result shouldn't be too big)
-{v_1 : int, v_2 : int} |= v_1 % v_2 = 0 ∧ v_1 > 0 ∧ v_2 > 0 ∧ v_1 / v_2 < 1024
->>
-Rule 72 (If bias is False, then the input tensor's variance should be small)
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then max(v_1) - min(v_1) < 1e-2
->>
-Rule 73 (If activation is not relu or gelu, then the gradient of input tensor must be small)
-{v_1: str, v_2: tensor} |= if v_1 ≠ "relu" ∧ v_1 ≠ "gelu" then max(v_2) < 1e-3
->>
-Rule 74 (layer_norm_eps must be a small positive number and should be close to 1e-5)
-{v_1: float} |= v_1 > 1e-6 ∧ v_1 < 1e-4
->>
-Rule 76 (d_model must be divisible by nhead, and both must be positive. And d_model should be greater than 16.)
-{v_1 : int, v_2 : int} |= v_1 % v_2 = 0 ∧ v_1 > 0 ∧ v_2 > 0 ∧ v_1 > 16
->>
-Rule 78 (If activation is not relu or gelu, then dropout should be in (0, 0.5))
-{v_1: str, v_2: float} |= if v_1 ≠ "relu" ∧ v_1 ≠ "gelu" then v_2 > 0 ∧ v_2 < 0.5
->>
-Rule 79 (layer_norm_eps must be a small positive number and less then 0.01)
-{v_1: float} |= v_1 > 0 ∧ v_1 < 0.01
->>
-Rule 80 (nhead should be less than d_model)
-{v_1: int, v_2: int} |= v_2 < v_1
->>
-Rule 81 (d_model must be divisible by nhead, and both must be positive. And d_model should be greater than 16 and less than 2048.)
-{v_1 : int, v_2 : int} |= v_1 % v_2 = 0 ∧ v_1 > 0 ∧ v_2 > 0 ∧ v_1 > 16 ∧ v_1 < 2048
->>
-Rule 82 (If bias is False, then the l1 norm of the input tensor should be small)
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then min(v_1) ≥ -0.1 ∧ max(v_1) <= 0.1
->>
-Rule 83 (If activation is not relu or gelu, then dropout should be in (0, 0.5), and bias must be false.)
-{v_1: str, v_2: float, v_3: bool} |= if v_1 ≠ "relu" ∧ v_1 ≠ "gelu" then v_2 > 0 ∧ v_2 < 0.5 ∧ v_3 = false
->>
-Rule 84 (layer_norm_eps must be a small positive number and less then 0.01 and greater than 1e-6)
-{v_1: float} |= v_1 > 1e-6 ∧ v_1 < 0.01
->>
-Rule 85 (nhead should be less than d_model and smaller than 128)
-{v_1: int, v_2: int} |= v_2 < v_1 ∧ v_2 < 128
->>
-Rule 86 (d_model must be divisible by nhead, both must be positive, and the result should be at most 512)
-{v_1 : int, v_2 : int} |= v_1 % v_2 = 0 ∧ v_1 > 0 ∧ v_2 > 0 ∧ v_1 / v_2 ≤ 512
->>
-Rule 87 (If bias is False, then the max of the input tensor should be small and positive and min should be small and negative)
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then max(v_1) < 0.1 ∧ min(v_1) > -0.1
->>
-Rule 88 (If activation is not relu or gelu, then dropout should be in (0, 0.5), bias must be false, and the output has to have more than 2 dimensions.)
-{v_1: str, v_2: float, v_3: bool, v_4: tensor} |= if v_1 ≠ "relu" ∧ v_1 ≠ "gelu" then v_2 > 0 ∧ v_2 < 0.5 ∧ v_3 = false ∧ ndim(v_4) > 2
->>
-Rule 89 (layer_norm_eps should be smaller than dropout)
-{v_1: float, v_2: float} |= v_1 < v_2
->>
-Rule 90 (nhead should be less than d_model and d_model must be positive)
-{v_1: int, v_2: int} |= v_2 < v_1 ∧ v_1 > 0
->>
-Rule 91 (d_model must be divisible by nhead, positive and less than 2048)
-{v_1 : int, v_2 : int} |= v_1 % v_2 = 0 ∧ v_1 > 0 ∧ v_1 < 2048
->>
-Rule 92 (If bias is True, then the dtype of the tensor must be floating-point)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
->>
-Rule 93 (If activation is not relu or gelu, and bias is false, then layer_norm_eps must be greater than 1e-05)
-{v_1: str, v_2: float, v_3 : bool} |= if v_1 ≠ "relu" ∧ v_1 ≠ "gelu" ∧ v_3 = false then v_2 > 1e-05
->>
-Rule 94 (layer_norm_eps must be a small positive number and less then 0.01 and greater than 1e-6 and smaller than dropout)
-{v_1: float, v_2: float} |= v_1 > 1e-6 ∧ v_1 < 0.01 ∧ v_1 < v_2
->>
-Rule 95 (d_model must be greater than zero and less than dim_feedforward)
-{v_1: int, v_2: int} |= v_1 > 0 ∧ v_1 < v_2
->>
-Rule 96 (d_model must be divisible by nhead, greater than 0, and not exceeding 2048)
-{v_1 : int, v_2 : int} |= v_1 % v_2 = 0 ∧ v_1 > 0 ∧ v_1 ≤ 2048
->>
-Rule 97 (If bias is False, then the input tensor's range should be smaller than dropout)
-{v_1 : tensor, v_2 : bool, v_3 : float} |= if v_2 = false then max(v_1) - min(v_1) < v_3
->>
-Rule 98 (If activation is not relu or gelu, and bias is false, then the variance of input tensor should be small than 0.01.)
-{v_1: str, v_2: tensor, v_3 : bool} |= if v_1 ≠ "relu" ∧ v_1 ≠ "gelu" ∧ v_3 = false then max(v_2) - min(v_2) < 0.01
->>
-Rule 99 (layer_norm_eps must be a small positive number, within (1e-06, 0.001))
-{v_1: float} |= v_1 > 1e-6 ∧ v_1 < 0.001
->>
-Rule 100 (nhead should be a power of 2)
-{v_1: int} |= ∃i ∈ [0, 10] : v_1 = 2 * i
->>
-Rule 101 (d_model must be divisible by nhead, positive, and not exceed 2048, dim feedforward has to be positive as well)
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 % v_2 = 0 ∧ v_1 > 0 ∧ v_1 ≤ 2048 ∧ v_3 > 0
->>
-Rule 102 (If bias is False, then the max and the min of the input tensor should be close to zero)
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then max(v_1) < 1e-3 ∧ min(v_1) > -1e-3
->>
-Rule 103 (If activation is not relu or gelu, and bias is false, then the variance of input tensor should be less than 0.01 and the gradient also has to be smaller)
-{v_1: str, v_2: tensor, v_3 : bool} |= if v_1 ≠ "relu" ∧ v_1 ≠ "gelu" ∧ v_3 = false then max(v_2) - min(v_2) < 0.01 ∧ max(v_2) < 1e-3
->>
-Rule 104 (layer_norm_eps must be a small positive number, within (1e-06, 0.001) and smaller than dropout and bias must be true)
-{v_1: float, v_2: float, v_3: bool} |= v_1 > 1e-6 ∧ v_1 < 0.001 ∧ v_1 < v_2 ∧ v_3 = true
->>
-Rule 105 (nhead should be less than d_model, d_model must be positive, and norm_first must be a bool )
-{v_1: int, v_2: int, v_3: bool} |= v_2 < v_1 ∧ v_1 > 0 ∧ (v_3 = true ∨ v_3 = false)
->>
-Rule 107 (If bias is True, then the dtype of the tensor must be floating-point, smaller than dropout and the range should be minimal)
-{v_1 : tensor, v_2 : bool, v_3 : float} |= if v_2 = true then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∧ max(v_1) - min(v_1) < 0.1 ∧ v_3 > 1e-06
->>
-Rule 108 (If activation is not relu or gelu, and bias is false, then the variance of input tensor should be less than 0.01 and the gradient also has to be smaller, d_model must be greater than zero)
-{v_1: str, v_2: tensor, v_3 : bool, v_4: int} |= if v_1 ≠ "relu" ∧ v_1 ≠ "gelu" ∧ v_3 = false then max(v_2) - min(v_2) < 0.01 ∧ max(v_2) < 1e-3 ∧ v_4 > 0
->>
-Rule 109 (layer_norm_eps must be a small positive number, within (1e-06, 0.001) and smaller than dropout and batch_first should be a bool)
-{v_1: float, v_2: float, v_3: bool} |= v_1 > 1e-6 ∧ v_1 < 0.001 ∧ v_1 < v_2 ∧ (v_3 = true ∨ v_3 = false)
->>
-Rule 110 (nhead should be less than d_model, d_model must be positive, and dropout has to be in (0, 0.5))
-{v_1: int, v_2: int, v_3: float} |= v_2 < v_1 ∧ v_1 > 0 ∧ v_3 > 0 ∧ v_3 < 0.5
->>
-Rule 111 (d_model must be divisible by nhead, positive, at least 16, and less than 2048.)
-{v_1 : int, v_2 : int} |= v_1 % v_2 = 0 ∧ v_1 > 0 ∧ v_1 ≥ 16 ∧ v_1 < 2048
->>
-Rule 112 (If bias is False, then the maximum value of the input tensor should be small.)
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then max(v_1) < 0.01
->>
-Rule 113 (If activation is not relu or gelu, and bias is false, dropout must be small)
-{v_1: str, v_2: float, v_3 : bool} |= if v_1 ≠ "relu" ∧ v_1 ≠ "gelu" ∧ v_3 = false then v_2 < 0.2
->>
-Rule 114 (layer_norm_eps should be a small positive number, within (1e-06, 0.001) and smaller than dropout)
-{v_1: float, v_2: float} |= v_1 > 1e-6 ∧ v_1 < 0.001 ∧ v_1 < v_2
->>
-Rule 115 (nhead should be less than d_model, d_model must be positive, dropout has to be in (0, 0.5) and dim_feedforward must be positive)
-{v_1: int, v_2: int, v_3: float, v_4 : int} |= v_2 < v_1 ∧ v_1 > 0 ∧ v_3 > 0 ∧ v_3 < 0.5 ∧ v_4 > 0
->>
-Rule 116 (d_model is divisible by nhead and the result should be at most 512, nhead must also be smaller than 1000, )
-{v_1 : int, v_2 : int} |= v_1 % v_2 = 0 ∧ v_1 / v_2 ≤ 512 ∧ v_2 < 1000
->>
-Rule 118 (If activation is not relu or gelu, and bias is false, dim_feedforward must be positive)
-{v_1: str, v_2: int, v_3 : bool} |= if v_1 ≠ "relu" ∧ v_1 ≠ "gelu" ∧ v_3 = false then v_2 > 0
->>
-Rule 119 (layer_norm_eps must be a small positive number, within (1e-06, 0.001) and d_model must be divisible by 8)
-{v_1: float, v_2: int} |= v_1 > 1e-6 ∧ v_1 < 0.001 ∧ v_2 % 8 = 0
->>
-Rule 120 (nhead should be less than d_model, dim_feedforward must be a positive integer, and batch_first must be a boolean )
-{v_1: int, v_2: int, v_3: bool} |= v_2 < v_1 ∧ v_3 = true ∨ v_3 = false
->>
-Rule 121 (d_model must be divisible by nhead, greater than 0, and not exceed 2048, nhead must be greater than 0)
-{v_1 : int, v_2 : int} |= v_1 % v_2 = 0 ∧ v_1 > 0 ∧ v_1 < 2048 ∧ v_2 > 0
->>
-Rule 123 (If activation is not relu or gelu, and bias is false, dropout and layer_norm_eps must be smaller than 0.3 and greater than 0.0001)
-{v_1: str, v_2: float, v_3 : bool, v_4:float} |= if v_1 ≠ "relu" ∧ v_1 ≠ "gelu" ∧ v_3 = false then v_2 > 0 ∧ v_2 < 0.3 ∧ v_4 > 0.0001 ∧ v_4 < 0.3
->>
-Rule 124 (layer_norm_eps must be a small positive number, within (1e-06, 0.001) and must be smaller than 1e-04)
-{v_1: float} |= v_1 > 1e-6 ∧ v_1 < 0.001 ∧ v_1 < 1e-04
->>
-Rule 125 (If batch_first is false, then seq_len should be greater than 0 and dropout must be smaller than 0.8)
-{v_1:tensor, v_2:bool, v_3: float} |= if v_2 = false then shape(v_1, 0) > 0 ∧ v_3 < 0.8
->>
-Rule 126 (d_model must be divisible by nhead, positive and less than 2048, also, d_model must be at least 16.)
-{v_1 : int, v_2 : int} |= v_1 % v_2 = 0 ∧ v_1 > 0 ∧ v_1 < 2048 ∧ v_1 >= 16
->>
-Rule 127 (If bias is True, then the tensor must have a floating point type, dropout value must be greater than 0.)
-{v_1 : tensor, v_2 : bool, v_3 : float} |= if v_2 = true then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∧ v_3 > 0
->>
-Rule 128 (If activation is not relu or gelu, and bias is false, then dim_feedforward must be positive and less than 4096)
-{v_1: str, v_2: int, v_3 : bool} |= if v_1 ≠ "relu" ∧ v_1 ≠ "gelu" ∧ v_3 = false then v_2 > 0 ∧ v_2 < 4096
->>
-Rule 129 (layer_norm_eps must be a small positive number, within (1e-06, 0.001), batch_first has to be bool, and d_model must be a multiple of 8 )
-{v_1: float, v_2: bool, v_3: int} |= v_1 > 1e-6 ∧ v_1 < 0.001 ∧ (v_2 = true ∨ v_2 = false) ∧ v_3 % 8 = 0
+Rule 128 (if src_mask's shape is (S,S) then, if batch_first is False, S must be same as sequence dimension of src)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 2 ∧ (batch_first = false) then shape(v_2,0) = shape(v_1,0)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# String must be specified (Rule 56)
+# v_1 must possess the required _forward_pre_hooks attributes. In other words, it must be of type Module or something equivalent that won't throw an AttributeError when accessing its internal methods and properties. (Rule 56)
 
 rule_56 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] == v["arg1_value"]) if n else
-          v["arg1_value"] == v["arg1_value"])
+    s.add(Not(Select(v["arg1_range"], 0) > -10000) if n else
+          Select(v["arg1_range"], 0) > -10000)
 )
 
 def rule_56_func(arg1, solver=None, neg=False):
@@ -17,20 +17,21 @@ def rule_56_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, str):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 56
-        rule_56(solver, {'arg1_value': arg1_value})
+        rule_56(solver, {'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_56(solver, {'arg1_value': arg1['value']}, neg)
+        rule_56(solver, {'arg1_range': arg1['range']}, neg)

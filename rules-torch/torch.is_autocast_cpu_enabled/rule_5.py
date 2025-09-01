@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# torch.is_autocast_cpu_enabled implicitly returns v_1 which should be a boolean (Rule 5)
+# If precision is set to half, Autocast CPU should be enabled. (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"], True, False)) if n else
-          If(v["arg1_value"], True, False))
+    s.add(Not(If(v["arg1_value"] == 6, is_autocast_cpu_enabled == True, True)) if n else
+          If(v["arg1_value"] == 6, is_autocast_cpu_enabled == True, True))
 )
 
 def rule_5_func(arg1, solver=None, neg=False):
@@ -17,15 +17,15 @@ def rule_5_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 5
         rule_5(solver, {'arg1_value': arg1_value})

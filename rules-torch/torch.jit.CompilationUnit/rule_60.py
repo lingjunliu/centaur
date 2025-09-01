@@ -5,41 +5,35 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check if the sum of all the elements is greater than a threshold (Rule 60)
+# Check that the first element of the tuple must be equal to the second element plus one (Rule 60)
 
 rule_60 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) * Select(v["arg1_shape"], 0) > v["arg2_value"]) if n else
-          Select(v["arg1_range"], 0) * Select(v["arg1_shape"], 0) > v["arg2_value"])
+    s.add(Not(If(v["arg1_length"] == 2, Select(v["arg1_values"], 0) == Select(v["arg1_values"], 1) + 1, True)) if n else
+          If(v["arg1_length"] == 2, Select(v["arg1_values"], 0) == Select(v["arg1_values"], 1) + 1, True))
 )
 
-def rule_60_func(arg1, arg2, solver=None, neg=False):
+def rule_60_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
-            return False
-        if not isinstance(arg2, (float, np.floating)):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_value = Real('arg2_value')
+        arg1_length = Int('arg1_length')
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        solver.add(arg2_value == arg2)
+        solver.add(arg1_length == len(arg1))
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 60
-        rule_60(solver, {'arg1_range': arg1_range, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_60(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_60(solver, {'arg1_range': arg1['range'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_60(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values']}, neg)

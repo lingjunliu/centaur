@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor should not be complex (Rule 25)
+# The input tensor 'input' must not have a complex dtype to avoid RuntimeError: signbit is not implemented for complex tensors, and the data type has to be a real number, not boolean (Rule 25)
 
 rule_25 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11), False, False)) if n else
-          If(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11), False, False))
+    s.add(Not(And(v["arg1_dtype"] < 9, v["arg1_dtype"] > 0)) if n else
+          And(v["arg1_dtype"] < 9, v["arg1_dtype"] > 0))
 )
 
 def rule_25_func(arg1, solver=None, neg=False):

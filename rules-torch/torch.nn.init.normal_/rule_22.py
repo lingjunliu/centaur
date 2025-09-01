@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor must have a floating-point or complex dtype, and the standard deviation must be a non-negative float. (Rule 22)
+# The tensor must have a floating point or complex dtype and the standard deviation must be non-negative. (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(And((Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)), (v["arg2_value"] >= 0.0))) if n else
-          And((Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)), (v["arg2_value"] >= 0.0)))
+    s.add(Not(And((Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)), v["arg2_value"] >= 0.0)) if n else
+          And((Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)), v["arg2_value"] >= 0.0))
 )
 
 def rule_22_func(arg1, arg2, solver=None, neg=False):

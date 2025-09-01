@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The autocast_cpu_dtype must not be BFloat16. (Rule 15)
+# autocast_cpu_dtype must not be a string (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] != 13) if n else
-          v["arg1_value"] != 13)
+    s.add(Not(v["arg1_value"] != 12) if n else
+          v["arg1_value"] != 12)
 )
 
 def rule_15_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If output is provided, its dtype must be at least as high as the smallest float dtype, unless input is complex (Rule 33)
+# If input is of integer type, then out cannot be short (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] < 9, v["arg2_dtype"] >= 6, False)) if n else
-          If(v["arg1_dtype"] < 9, v["arg2_dtype"] >= 6, False))
+    s.add(Not(If(v["arg1_dtype"] == 1, (v["arg2_dtype"] != 2), True)) if n else
+          If(v["arg1_dtype"] == 1, (v["arg2_dtype"] != 2), True))
 )
 
 def rule_33_func(arg1, arg2, solver=None, neg=False):

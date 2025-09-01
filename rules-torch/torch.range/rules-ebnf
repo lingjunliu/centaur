@@ -1,33 +1,162 @@
 >>
-Rule 1 (Step size should not be zero to avoid infinite loop)
+Rule 1 (step cannot be zero)
 {v_1 : float} |= v_1 ≠ 0
 >>
-Rule 4 (Step size cannot be too large compared to end - start)
-{v_1 : float, v_2 : float, v_3 : float} |= (v_2 - v_1) / v_3 > -10000 ∧ (v_2 - v_1) / v_3 < 10000
+Rule 3 (out tensor must be one dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
 >>
-Rule 8 (If out is specified, its shape must be appropriate for the range)
-{v_1 : tensor, v_2 : float, v_3 : float, v_4 : float} |= shape(v_1, 0) = (v_3 - v_2) / v_4 + 1
+Rule 4 (if out is provided, the dtype of out must be the same as the dtype argument if it is provided)
+{v_1 : tensor, v_2 : dtype} |= (v_2 = None) ∨ dtype_(v_1) = v_2
 >>
-Rule 13 (If out is specified, its shape must be appropriate for the range)
-{v_1 : tensor, v_2 : float, v_3 : float, v_4 : float} |= shape(v_1, 0) ≥ 0 ∧ shape(v_1, 0) = (v_3 - v_2) / v_4 + 1
->>
-Rule 14 (requires_grad is a boolean that determines if autograd records operations)
+Rule 5 (requires_grad should be a boolean value)
 {v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 15 (Start must be less than end if step is positive)
-{v_1 : float, v_2 : float, v_3 : float} |= if v_3 > 0 then v_1 < v_2
+Rule 6 (start and end must be comparable if a step size is specified)
+{v_1 : float, v_2 : float, v_3 : float} |= (v_3 > 0 ∧ v_2 > v_1) ∨ (v_3 < 0 ∧ v_2 < v_1) ∨ (v_3 = 0 ∧ v_1 = v_2)
 >>
-Rule 16 (Start must be greater than end if step is negative)
-{v_1 : float, v_2 : float, v_3 : float} |= if v_3 < 0 then v_1 > v_2
+Rule 7 (start, end and step must have consistent dtypes if no explicit dtype is specified)
+{v_1 : float, v_2 : float, v_3 : float, v_4 : dtype} |= (v_4 ≠ None) ∨ (dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_2) = dtype_(v_3))
 >>
-Rule 21 (If out is specified, its shape must be appropriate for the range, and non negative)
-{v_1 : tensor, v_2 : float, v_3 : float, v_4 : float} |= shape(v_1, 0) = ((v_3 - v_2) / v_4) + 1 ∧ shape(v_1,0) >=0
+Rule 10 (dtype should be specified if start is None, end is None, and step is None)
+{v_1 : dtype, v_2 : float, v_3 : float, v_4 : float} |= if v_1 ≠ None then (v_2 ≠ None) ∨ (v_3 ≠ None) ∨ (v_4 ≠ None)
 >>
-Rule 24 (Step cannot be too large or too small)
-{v_1 : float, v_2 : float, v_3 : float} |= (v_2 - v_1) / v_3 > -1000 ∧ (v_2 - v_1) / v_3 < 1000
+Rule 12 (if out is provided, the dtype of out must be the same as the dtype argument if it is provided)
+{v_1 : tensor, v_2 : dtype} |= if v_1 ≠ None ∧ v_2 ≠ None then dtype_(v_1) = v_2
 >>
-Rule 43 (The 'end' argument must be present)
-{end : int ⊎ float} |= end > -10000 ∧ end < 10000
+Rule 14 (start and end must be comparable if a step size is specified)
+{v_1 : float, v_2 : float, v_3 : float} |= if v_3 > 0 then v_2 > v_1 else if v_3 < 0 then v_2 < v_1 else v_1 = v_2
 >>
-Rule 48 (The end argument is required to be a float or int)
-{v_end : int ⊎ float} |= v_end > -10000 ∧ v_end < 10000
+Rule 16 (if out is specified, the number of elements must be compatible with start, end and step. Simplified equation and assuming integer values for simplicity.)
+{v_1 : tensor, v_2 : float, v_3 : float, v_4 : float} |= if v_1 ≠ None then shape(v_1, 0) = (v_3 - v_2) / v_4 + 1
+>>
+Rule 17 (end argument must be specified)
+{v_1 : float} |= v_1 ≠ None
+>>
+Rule 18 (if out is provided, its dtype should be float if start, end or step are float)
+{v_1 : tensor, v_2 : float, v_3 : float, v_4 : float} |= if v_1 ≠ None then if v_2 ≠ 0.0 ∨ v_3 ≠ 0.0 ∨ v_4 ≠ 1.0 then dtype_(v_1) = 8
+>>
+Rule 19 (layout must be "strided")
+{v_1 : str} |= v_1 = "strided"
+>>
+Rule 21 (if out is provided, its dtype must be compatible with start, end and step, assuming they are all integers.)
+{v_1 : tensor, v_2 : float, v_3 : float, v_4 : float} |= if v_1 ≠ None then if (v_2 % 1 = 0) ∧ (v_3 % 1 = 0) ∧ (v_4 % 1 = 0) then dtype_(v_1) = 4
+>>
+Rule 26 (if dtype is not None, it must be a valid dtype, expressed using comparison operators)
+{v_1 : dtype} |= v_1 ≥ 0 ∧ v_1 ≤ 12
+>>
+Rule 31 (If requires_grad is specified then the dtype should be a floating point or complex number)
+{v_1: bool, v_2: dtype} |= if v_1 = true then (v_2 ≥ 6 ∧ v_2 ≤ 11)
+>>
+Rule 38 (If start is specified, it must be a number.)
+{v_1 : float} |= v_1 = v_1
+>>
+Rule 39 (If device is specified, it must be a valid string.)
+{v_1 : str} |= v_1 = "cpu" ∨ v_1 = "cuda"
+>>
+Rule 40 (If dtype is specified, and start, end, and step are integers, the dtype must be int64)
+{v_1 : dtype, v_2 : float, v_3 : float, v_4 : float} |= if v_1 ≠ None then if (v_2 % 1 = 0) ∧ (v_3 % 1 = 0) ∧ (v_4 % 1 = 0) then v_1 = 4
+>>
+Rule 43 (If out is provided, the number of elements must be non-negative.)
+{v_1 : tensor} |= if v_1 ≠ None then shape(v_1, 0) ≥ 0
+>>
+Rule 49 (if device is specified it must contain only alphabetic characters)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z")
+>>
+Rule 52 (If requires_grad is true then start, end and step has to be a floating point number.)
+{v_1 : bool, v_2 : float, v_3 : float, v_4 : float} |= if v_1 = true then (v_2 = v_2 ∧ v_3 = v_3 ∧ v_4 = v_4)
+>>
+Rule 53 (The data type of start, end and step must be the same.)
+{v_1 : float, v_2 : float, v_3 : float} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_2) = dtype_(v_3)
+>>
+Rule 55 (if out is provided, its dtype can only be float32, float64 or int64.)
+{v_1 : tensor} |= if v_1 ≠ None then dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 57 (If dtype is specified it cannot be a bool or a string.)
+{v_1 : dtype} |= v_1 ≠ 0 ∧ v_1 ≠ 11
+>>
+Rule 59 (if out is provided, it must be a 1-D tensor.)
+{v_1 : tensor} |= if v_1 ≠ None then ndim(v_1) = 1
+>>
+Rule 60 (The start and end values must be of same type)
+{v_1 : float, v_2 : float} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 61 (If dtype is int then the step must be an integer)
+{v_1 : dtype, v_2 : float} |= if v_1 = 4 then v_2 % 1 = 0
+>>
+Rule 63 (If requires_grad is true then the dtype must be a float or complex)
+{v_1 : bool, v_2 : dtype} |= if v_1 = true then (v_2 ≥ 7 ∧ v_2 ≤ 11)
+>>
+Rule 64 (If start is specified and dtype is None then it cannot be a string)
+{v_1 : float, v_2 : dtype} |= if v_1 ≠ 0.0 then v_2 ≠ 11
+>>
+Rule 65 (If the step is 0 then the end and the start values should be the same.)
+{v_1 : float, v_2 : float, v_3 : float} |= if v_3 = 0 then v_1 = v_2
+>>
+Rule 67 (If start or step are defined, and dtype is specified, then the dtype must be float or int)
+{v_1 : float, v_2 : float, v_3 : dtype} |= if v_1 ≠ 0.0 ∨ v_2 ≠ 1.0 then (v_3 ≥ 1 ∧ v_3 ≤ 8)
+>>
+Rule 68 (start , end and step has to be positive if dtype is unsigned int )
+{v_1 : float, v_2 : float, v_3 : float, v_4 : dtype} |= if v_4 = 5 then (v_1 ≥ 0 ∧ v_2 ≥ 0 ∧ v_3 ≥ 0)
+>>
+Rule 69 (If the start or end are non-zero, requires_grad must be false)
+{v_1: float, v_2: float, v_3: bool} |= if v_1 ≠ 0.0 ∨ v_2 ≠ 0.0 then v_3 = false
+>>
+Rule 71 (If the dtype is complex, start, end and step values must also be complex or float)
+{v_1 : dtype, v_2 : float, v_3 : float, v_4 : float} |= if v_1 = 9 ∨ v_1 = 10 then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) ∧ (dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 9 ∨ dtype_(v_3) = 10) ∧ (dtype_(v_4) = 7 ∨ dtype_(v_4) = 8 ∨ dtype_(v_4) = 9 ∨ dtype_(v_4) = 10)
+>>
+Rule 73 (If requires_grad is true then the step has to be specified.)
+{v_1 : bool, v_2 : float} |= if v_1 = true then v_2 ≠ 1.0
+>>
+Rule 76 (If dtype is specified, then the start, end, and step have to be specified and of the same kind.)
+{v_1 : dtype, v_2 : float, v_3 : float, v_4 : float} |= if v_1 ≠ None then (v_2 ≠ 0.0 ∧ v_3 ≠ 0.0 ∧ v_4 ≠ 1.0)
+>>
+Rule 79 (If requires_grad is specified, and out is specified, requires_grad of out must be true, assuming requires_grad function exists)
+{v_1: bool, v_2: tensor} |= if v_1 = true ∧ v_2 ≠ None then v_1 = true
+>>
+Rule 81 (if step is equal to 0 then start and end should also be equal.)
+{v_1: float, v_2: float, v_3: float} |= if v_3 = 0 then v_1 = v_2
+>>
+Rule 83 (If start and end are int types and their values are very big, then specify the dtype as float)
+{v_1 : float, v_2 : float, v_3 : dtype} |= if v_1 > 1000000000 ∧ v_2 > 1000000000 then v_3 ≥ 6
+>>
+Rule 84 (If requires_grad is true then the start, end and step must be a float and specified.)
+{v_1 : bool, v_2 : float, v_3 : float, v_4 : float} |= if v_1 = true then v_2 ≠ 0.0 ∧ v_3 ≠ 0.0 ∧ v_4 ≠ 1.0
+>>
+Rule 86 (If dtype is a complex type, requires_grad must be true.)
+{v_1 : dtype, v_2 : bool} |= if v_1 = 9 ∨ v_1 = 10 then v_2 = true
+>>
+Rule 87 (if requires_grad is specified then dtype has to be one of the valid dtypes for it)
+{v_1 : bool, v_2 : dtype} |= if v_1 = true then (v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10)
+>>
+Rule 89 (If layout is specified, it must be equal to the string "strided")
+{v_1:str} |= v_1 = "strided"
+>>
+Rule 93 (if start or end or step are floating-point numbers and dtype is int64 then it would lead to an error)
+{v_1 : float, v_2 : float, v_3 : float, v_4 : dtype} |= if v_4 = 4 then v_1 % 1 = 0 ∧ v_2 % 1 = 0 ∧ v_3 % 1 = 0
+>>
+Rule 94 (The value of requires_grad can not be none)
+{v_1: bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 96 (If start and end are specified and the step is not then the start cannot be greater than end)
+{v_1: float, v_2: float, v_3: float} |= if v_3 = 1 then v_1 ≤ v_2
+>>
+Rule 97 (If start, end and step are specified, start + step cannot be equal to end if only one element is desired.)
+{v_1 : float, v_2 : float, v_3 : float} |= if v_1 + v_3 = v_2 then v_3 = 0
+>>
+Rule 99 (If out tensor is specified, its shape cannot be greater than maximum value of int32)
+{v_1 : tensor} |= if v_1 ≠ None then shape(v_1, 0) ≤ 2147483647
+>>
+Rule 103 (The number of elements of the output tensor has to be a valid integer)
+{v_1 : float, v_2 : float, v_3 : float} |= (v_2 - v_1) / v_3 + 1 = ((v_2 - v_1) / v_3 + 1)
+>>
+Rule 106 (The size of the output tensor can not be negative)
+{v_1 : float, v_2 : float, v_3 : float} |= (v_2 - v_1) / v_3 + 1 ≥ 0
+>>
+Rule 109 (If dtype is None then start, end and step cannot be none.)
+{v_1 : dtype, v_2 : float, v_3 : float, v_4 : float} |= if v_1 = None then (v_2 ≠ 0 ∨ v_3 ≠ 0 ∨ v_4 ≠ 1)
+>>
+Rule 115 (If device is not None, then it has to be either "cpu" or "cuda")
+{v_1 : str} |= if v_1 ≠ None then v_1 = "cpu" ∨ v_1 = "cuda"
+>>
+Rule 130 (If layout is not None, it must be strided)
+{v_1: str} |= if v_1 ≠ None then v_1 = "strided"

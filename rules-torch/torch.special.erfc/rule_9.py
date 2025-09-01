@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input is complex, output should be complex to prevent casting errors (Rule 9)
+# If output tensor is provided, its dtype should be compatible with the erfc operation on the input tensor. (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(If((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (v["arg2_dtype"] == v["arg1_dtype"]), False)) if n else
-          If((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (v["arg2_dtype"] == v["arg1_dtype"]), False))
+    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg2_dtype"] == v["arg1_dtype"], True)) if n else
+          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg2_dtype"] == v["arg1_dtype"], True))
 )
 
 def rule_9_func(arg1, arg2, solver=None, neg=False):

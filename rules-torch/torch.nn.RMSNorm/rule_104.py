@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Dimensions should not exceed this otherwise, the allocation is impossible (Rule 104)
+# If the shape is a list and the data type is int64, then the shape must have less than 1024  (Rule 104)
 
 rule_104 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] < 9) if n else
-          v["arg1_ndim"] < 9)
+    s.add(Not(v["arg1_length"] < 1024) if n else
+          v["arg1_length"] < 1024)
 )
 
 def rule_104_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_104_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_length = Int('arg1_length')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_length == len(arg1))
 
         # Constraints for rule 104
-        rule_104(solver, {'arg1_ndim': arg1_ndim})
+        rule_104(solver, {'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_104(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_104(solver, {'arg1_length': arg1['length']}, neg)

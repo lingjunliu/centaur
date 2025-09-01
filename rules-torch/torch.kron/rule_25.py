@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The product of number of elements of both tensors is less than max size allowed (Rule 25)
+# Limit the total elements to avoid memory allocation error. (Rule 25)
 
 rule_25 = lambda s, v, n=False: (
-    s.add(Not((Select(v["arg1_shape"], 0) * Select(v["arg2_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg2_shape"], 1)) < 100000) if n else
-          (Select(v["arg1_shape"], 0) * Select(v["arg2_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg2_shape"], 1)) < 100000)
+    s.add(Not(And(And((Select(v["arg1_shape"], 0) * Select(v["arg2_shape"], 0) < 200000000), (Select(v["arg1_shape"], 1) * Select(v["arg2_shape"], 1) < 200000000)), (Select(v["arg1_shape"], 2) * Select(v["arg2_shape"], 2) < 200000000))) if n else
+          And(And((Select(v["arg1_shape"], 0) * Select(v["arg2_shape"], 0) < 200000000), (Select(v["arg1_shape"], 1) * Select(v["arg2_shape"], 1) < 200000000)), (Select(v["arg1_shape"], 2) * Select(v["arg2_shape"], 2) < 200000000)))
 )
 
 def rule_25_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input tensor values are less than 1, the arccosh result is complex; the output should be complex64 or complex128 (Rule 33)
+# If the input tensor has a floating-point dtype of float16 or float32, and an output tensor is specified, then ensure that the output tensor's dtype is not int8, int16, int32, int64, or uint8 (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_range"], 0) < 1, (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), False)) if n else
-          If(Select(v["arg1_range"], 0) < 1, (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), False))
+    s.add(Not(If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), And(And(And(And(And(v["arg2_dtype"] != 1, v["arg2_dtype"] != 2), v["arg2_dtype"] != 3), v["arg2_dtype"] != 4), v["arg2_dtype"] != 5), v["arg2_dtype"] != 6), True)) if n else
+          If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), And(And(And(And(And(v["arg2_dtype"] != 1, v["arg2_dtype"] != 2), v["arg2_dtype"] != 3), v["arg2_dtype"] != 4), v["arg2_dtype"] != 5), v["arg2_dtype"] != 6), True))
 )
 
 def rule_33_func(arg1, arg2, solver=None, neg=False):
@@ -25,18 +25,17 @@ def rule_33_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
         arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 33
-        rule_33(solver, {'arg1_range': arg1_range, 'arg2_dtype': arg2_dtype})
+        rule_33(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_33(solver, {'arg1_range': arg1['range'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_33(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)

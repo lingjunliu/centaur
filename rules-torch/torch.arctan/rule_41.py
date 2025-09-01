@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Given a specified output tensor, if the input is a Short, the output cannot be a Boolean, int8, int16. Since the function requires higher precision (Rule 41)
+# In the presence of the `out` tensor `v_2`, if the input is `float16`, the output must also be at least `float16` to support writing the results, thus precluding type casting errors. (Rule 41)
 
 rule_41 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 2, And(And(v["arg2_dtype"] != 0, v["arg2_dtype"] != 1), v["arg2_dtype"] != 2), False)) if n else
-          If(v["arg1_dtype"] == 2, And(And(v["arg2_dtype"] != 0, v["arg2_dtype"] != 1), v["arg2_dtype"] != 2), False))
+    s.add(Not(If(v["arg1_dtype"] == 6, v["arg2_dtype"] >= 6, True)) if n else
+          If(v["arg1_dtype"] == 6, v["arg2_dtype"] >= 6, True))
 )
 
 def rule_41_func(arg1, arg2, solver=None, neg=False):

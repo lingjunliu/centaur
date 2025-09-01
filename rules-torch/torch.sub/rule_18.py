@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# alpha must be an integer for integral input tensors (Rule 18)
+# If input tensor is integral, alpha must not be a floating point number. Here, we approximate integral as dtype between 1 and 5 inclusive (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If((Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6)), (v["arg2_value"] == (v["arg2_value"] - (0 * v["arg2_value"]))), False)) if n else
-          If((Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6)), (v["arg2_value"] == (v["arg2_value"] - (0 * v["arg2_value"]))), False))
+    s.add(Not(If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), v["arg2_value"] == 1, True)) if n else
+          If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), v["arg2_value"] == 1, True))
 )
 
 def rule_18_func(arg1, arg2, solver=None, neg=False):

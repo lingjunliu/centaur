@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Dimension must be a valid dimension index for the input tensor if it's an integer or None (Rule 56)
+# If the input tensor is a float16 tensor, then the output tensor should also be a float16 tensor. (Rule 56)
 
 rule_56 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == (v["arg2_value"] + 0), And((0 - v["arg1_ndim"]) <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"]), v["arg2_value"] == 6)) if n else
-          If(v["arg2_value"] == (v["arg2_value"] + 0), And((0 - v["arg1_ndim"]) <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"]), v["arg2_value"] == 6))
+    s.add(Not(If(v["arg1_dtype"] == 6, v["arg2_dtype"] == 6, True)) if n else
+          If(v["arg1_dtype"] == 6, v["arg2_dtype"] == 6, True))
 )
 
 def rule_56_func(arg1, arg2, solver=None, neg=False):
@@ -20,20 +20,22 @@ def rule_56_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)) or isinstance(arg2, str)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_dtype = Int('arg1_dtype')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 56
-        rule_56(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_56(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_56(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)
+        rule_56(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)

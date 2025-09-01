@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Avoid output tensor overflow by ensuring v_2 dtype is wider than input tensor v_1's dtype if v_1 is integer (Rule 12)
+# input must be float, double, half or bfloat16 if out is provided and short (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 1, v["arg2_dtype"] > 1, If(v["arg1_dtype"] == 2, v["arg2_dtype"] > 2, If(v["arg1_dtype"] == 3, v["arg2_dtype"] > 3, If(v["arg1_dtype"] == 4, v["arg2_dtype"] > 4, If(v["arg1_dtype"] == 5, v["arg2_dtype"] > 5, False)))))) if n else
-          If(v["arg1_dtype"] == 1, v["arg2_dtype"] > 1, If(v["arg1_dtype"] == 2, v["arg2_dtype"] > 2, If(v["arg1_dtype"] == 3, v["arg2_dtype"] > 3, If(v["arg1_dtype"] == 4, v["arg2_dtype"] > 4, If(v["arg1_dtype"] == 5, v["arg2_dtype"] > 5, False))))))
+    s.add(Not(If(v["arg2_dtype"] == 2, Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 13), True)) if n else
+          If(v["arg2_dtype"] == 2, Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 13), True))
 )
 
 def rule_12_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The dropout probability must be a valid probability between 0 and 1 (Rule 11)
+# Dropout probability must be a value between 0 and 1 inclusive (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(And((v["arg1_value"] >= 0), (v["arg1_value"] <= 1))) if n else
-          And((v["arg1_value"] >= 0), (v["arg1_value"] <= 1)))
+    s.add(Not(And(v["arg1_value"] >= 0, v["arg1_value"] <= 1)) if n else
+          And(v["arg1_value"] >= 0, v["arg1_value"] <= 1))
 )
 
 def rule_11_func(arg1, solver=None, neg=False):

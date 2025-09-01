@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Ensure that total size after tiling is reasonable to prevent memory issues and potential crashes during tensor creation. (Rule 58)
+# Ensure the product of dimensions in 'dims' does not cause memory overflow and shape products are limited to be smaller than maximum signed 32 int. (Rule 58)
 
 rule_58 = lambda s, v, n=False: (
-    s.add(Not((Select(v["arg1_shape"], 0) * Select(v["arg2_values"], 0)) * (Select(v["arg1_shape"], 1) * Select(v["arg2_values"], 1)) * (Select(v["arg1_shape"], 2) * Select(v["arg2_values"], 2)) * (Select(v["arg1_shape"], 3) * Select(v["arg2_values"], 3)) < 500000000) if n else
-          (Select(v["arg1_shape"], 0) * Select(v["arg2_values"], 0)) * (Select(v["arg1_shape"], 1) * Select(v["arg2_values"], 1)) * (Select(v["arg1_shape"], 2) * Select(v["arg2_values"], 2)) * (Select(v["arg1_shape"], 3) * Select(v["arg2_values"], 3)) < 500000000)
+    s.add(Not(And(Or((Or(v["arg1_ndim"] == 0, v["arg2_length"] == 0)), (And(And(Select(v["arg1_shape"], 0) < 1000, Select(v["arg2_values"], 0) < 1000), Select(v["arg1_shape"], 0) * Select(v["arg2_values"], 0) < 1000000000))), Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) < 2147483)) if n else
+          And(Or((Or(v["arg1_ndim"] == 0, v["arg2_length"] == 0)), (And(And(Select(v["arg1_shape"], 0) < 1000, Select(v["arg2_values"], 0) < 1000), Select(v["arg1_shape"], 0) * Select(v["arg2_values"], 0) < 1000000000))), Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) < 2147483))
 )
 
 def rule_58_func(arg1, arg2, solver=None, neg=False):
@@ -25,19 +25,23 @@ def rule_58_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
+        arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_length = Int('arg2_length')
         arg2_values = Array('arg2_values', IntSort(), IntSort())
 
         # Value assignments
+        solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg2_length == len(arg2))
         for i in range(len(arg2)):
             arg2_values = Store(arg2_values, i, arg2[i])
 
         # Constraints for rule 58
-        rule_58(solver, {'arg1_shape': arg1_shape, 'arg2_values': arg2_values})
+        rule_58(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length, 'arg2_values': arg2_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_58(solver, {'arg1_shape': arg1['shape'], 'arg2_values': arg2['values']}, neg)
+        rule_58(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length'], 'arg2_values': arg2['values']}, neg)

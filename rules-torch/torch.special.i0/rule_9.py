@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# out tensor's dtype must be at least float32 if input is float32 or higher (Rule 9)
+# if input tensor is complex128, then output tensor must be complex64 or complex128 (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] >= 8, v["arg2_dtype"] >= 8, False)) if n else
-          If(v["arg1_dtype"] >= 8, v["arg2_dtype"] >= 8, False))
+    s.add(Not(If(v["arg1_dtype"] == 11, (Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 11)), True)) if n else
+          If(v["arg1_dtype"] == 11, (Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 11)), True))
 )
 
 def rule_9_func(arg1, arg2, solver=None, neg=False):

@@ -1,117 +1,183 @@
 >>
-Rule 1 (input tensors must have the same size at the specified dimension)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_1, v_3) = shape(v_2, v_3)
->>
-Rule 3 (input tensors must have floating point dtype)
-{v_1 : tensor, v_2 : tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8)
->>
-Rule 4 (epsilon should be a non-negative float)
+Rule 2 (eps should be a non-negative float to avoid division by zero)
 {v_1 : float} |= v_1 ≥ 0
 >>
-Rule 5 (the number of dimensions should match)
+Rule 3 (input tensors should have the same number of dimensions)
 {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 7 (dimension should be within the valid range)
+Rule 4 (Input tensors must have floating point dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6 ∧ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 6
+>>
+Rule 5 (Input tensors dimensions should match at specified dimension)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_1, v_3) = shape(v_2, v_3)
+>>
+Rule 6 (dim should be within the valid range based on input1 dimension)
 {v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
 >>
-Rule 13 (If dim is negative, its absolute value must not exceed the number of dimensions.)
-{v_1 : tensor, v_2 : int} |= if v_2 < 0 then (0 - ndim(v_1)) ≤ v_2
+Rule 11 (dim should not be equal to the number of dimensions of the input tensor)
+{v_1 : tensor, v_2 : int} |= v_2 ≠ ndim(v_1)
 >>
-Rule 14 (Both tensors must have same type)
+Rule 12 (eps should be smaller than max value of input tensors)
+{v_1 : tensor, v_2 : tensor, v_3 : float} |= v_3 < max(v_1) ∧ v_3 < max(v_2)
+>>
+Rule 13 (The shape of input tensors at other dimensions than dim must be broadcastable)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= ∀i ∈ [0, ndim(v_1) - 1] : (i = v_3) ∨ (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
+>>
+Rule 14 (Input tensors must not be boolean dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0
+>>
+Rule 15 (If dim is negative, convert it to a positive dimension index)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then v_2 + ndim(v_1) ≥ 0
+>>
+Rule 16 (shape of input1 at dim must be greater than 0)
+{v_1 : tensor, v_2 : int} |= shape(v_1, v_2) > 0
+>>
+Rule 18 (Avoid nan/inf in input tensors)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) > (0 - 1000000) ∧ max(v_1) < 1000000 ∧ min(v_2) > (0 - 1000000) ∧ max(v_2) < 1000000
+>>
+Rule 19 (If one input tensor is empty, another input tensor must be empty too)
+{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) = (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0)
+>>
+Rule 20 (eps should be smaller than 1)
+{v_1 : float} |= v_1 < 1
+>>
+Rule 21 (The size of input tensors must match at specified non-singleton dimension)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if shape(v_1, v_3) ≠ 1 ∧ shape(v_2, v_3) ≠ 1 then shape(v_1, v_3) = shape(v_2, v_3)
+>>
+Rule 24 (Input tensors should have the same dtype)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 15 (Shape at non dim index should be broadcastable)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= ∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_3 then shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1
+Rule 25 (eps should be a small positive number)
+{v_1 : float} |= v_1 > 0 ∧ v_1 < 1
 >>
-Rule 16 (Input tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
->>
-Rule 21 (The dimension along which cosine similarity is computed must be less than the number of dimensions in input tensor)
-{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
->>
-Rule 22 (The dimension along which cosine similarity is computed must be greater than negative number of dimensions in input tensor)
+Rule 26 (dim cannot be less than negative number of dimensions)
 {v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1))
 >>
-Rule 24 (At least one of the dimensions should be positive)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 27 (Input tensors should not have zero dimensions at specified dimension)
+{v_1 : tensor, v_2 : int} |= shape(v_1, v_2) ≠ 0 ∧ shape(v_2, v_2) ≠ 0
 >>
-Rule 27 (Epsilon is a non-negative number)
-{v_1 : float} |= v_1 >= 0
+Rule 28 (Input tensors must have floating point dtype and dtypes should be equal)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6) ∧ dtype_(v_1) = dtype_(v_2)
 >>
-Rule 30 (The dimension along which cosine similarity is computed must be a valid dimension for both input tensors)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= (v_3 < ndim(v_1) ∧ v_3 ≥ (0 - ndim(v_1))) ∧ (v_3 < ndim(v_2) ∧ v_3 ≥ (0 - ndim(v_2)))
+Rule 29 (If dim is out of range and negative, it should not result in a valid dimension)
+{v_1 : tensor, v_2 : int} |= if v_2 < (0 - ndim(v_1)) then (v_2 + ndim(v_1)) < 0
 >>
-Rule 32 (If one of the tensors has boolean dtype, the other one should not be float)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then (dtype_(v_2) < 6 ∨ dtype_(v_2) > 8) else if dtype_(v_2) = 0 then (dtype_(v_1) < 6 ∨ dtype_(v_1) > 8)
+Rule 37 (The absolute value of dim is less than number of dimensions)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ 0 - ndim(v_1) ∧ v_2 < ndim(v_1)
 >>
-Rule 36 (If tensors have different dtypes, their dtypes must be both floating point)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ dtype_(v_2) then (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8)
+Rule 39 (Input tensors must have same floating point dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∧ dtype_(v_2) = 7 ∨ dtype_(v_1) = 8 ∧ dtype_(v_2) = 8 ∨ dtype_(v_1) = 6 ∧ dtype_(v_2) = 6
 >>
-Rule 39 (The size of tensors must match at non singleton dimensions)
-{v_1 : tensor, v_2 : tensor, v_3: int} |=  ∀i ∈ [0, ndim(v_1) - 1]: if i ≠ v_3 then (shape(v_1, i) = shape(v_2, i)) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1
+Rule 40 (Ensure eps is a positive number)
+{v_1 : float} |= v_1 > 0
 >>
-Rule 43 (The dimension along which cosine similarity is computed must be a valid dimension for both input tensors)
-{v_1 : tensor, v_2 : int} |= (v_2 < ndim(v_1) ∧ v_2 ≥ (0 - ndim(v_1)))
+Rule 41 (Ensure input tensors are not scalars if dim is specified)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
 >>
-Rule 44 (If the tensors have boolean dtype, the other one should have boolean dtype)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0 else if dtype_(v_2) = 0 then dtype_(v_1) = 0
+Rule 43 (One of the dimension sizes at dim should be 1 if other dimensions do not match.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (shape(v_1, v_3) = 1) ∨ (shape(v_2, v_3) = 1) ∨ (shape(v_1, v_3) = shape(v_2, v_3))
 >>
-Rule 47 (The size of the input tensors must match at the specified dimension)
-{v_1 : tensor, v_2 : tensor, v_3: int} |=  shape(v_1, v_3) = shape(v_2, v_3)
+Rule 48 (Input tensors must have floating point dtype)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 6)
 >>
-Rule 48 (Tensors should have same floating point dtype)
-{v_1 : tensor, v_2 : tensor} |= if (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) then (6 <= dtype_(v_2) ∧ dtype_(v_2) <= 8) else false
+Rule 49 (dim must be a valid dimension after accounting for potential negative indexing)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then v_2 + ndim(v_1) ≥ 0 ∧ v_2 + ndim(v_1) < ndim(v_1) else v_2 ≥ 0 ∧ v_2 < ndim(v_1)
 >>
-Rule 50 (The size of the input tensors must match at the specified dimension if the specified dimension is a valid dimension)
-{v_1 : tensor, v_2 : tensor, v_3: int} |=  if v_3 < ndim(v_1) ∧ v_3 >= (0 - ndim(v_1)) then shape(v_1, v_3) = shape(v_2, v_3)
+Rule 50 (Ensure eps is a positive number smaller than the maximum possible float value)
+{v_1 : float} |= v_1 > 0 ∧ v_1 < 1000000
 >>
-Rule 51 (If tensors have different dtypes, their dtypes must be both floating point)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ dtype_(v_2) then (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∧ (6 <= dtype_(v_2) ∧ dtype_(v_2) <= 8)
+Rule 51 (Check if both inputs are scalars or not)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) = (ndim(v_2) = 0)
 >>
-Rule 54 (The size of the input tensors must match at the specified dimension if the specified dimension is a valid dimension and is smaller than number of dimensions of both tensors)
-{v_1 : tensor, v_2 : tensor, v_3: int} |=  if (v_3 < ndim(v_1) ∧ v_3 >= (0 - ndim(v_1)) ∧ v_3 < ndim(v_2) ∧ v_3 >= (0 - ndim(v_2))) then shape(v_1, v_3) = shape(v_2, v_3)
+Rule 52 (Input tensors must be of same shape along dim if they are non-singleton dimensions)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if shape(v_1, v_3) > 1 ∧ shape(v_2, v_3) > 1 then shape(v_1, v_3) = shape(v_2, v_3)
 >>
-Rule 56 (Atleast one dimension of the tensor must be positive)
-{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0
+Rule 54 (If dim is negative and out of range, it is still invalid)
+{v_1 : tensor, v_2 : int} |= if v_2 < (0 - ndim(v_1)) then v_2 + ndim(v_1) < 0
 >>
-Rule 60 (If the specified dimension is out of range, then it should not be considered)
-{v_1 : tensor, v_2: int} |= if v_2 >= ndim(v_1) ∨ v_2 < (0 - ndim(v_1)) then true else 0 <= v_2 ∧ v_2 < ndim(v_1)
+Rule 55 (eps should not be too large)
+{v_1 : float} |= v_1 < 1000
 >>
-Rule 62 (Input Tensors must have same floating point dtype)
-{v_1 : tensor, v_2 : tensor} |= (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∧ (6 <= dtype_(v_2) ∧ dtype_(v_2) <= 8)
+Rule 58 (Input tensors must have floating point dtype and equal)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6)
 >>
-Rule 63 (Dimension is within range)
-{v_1: tensor, v_2: int} |= v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+Rule 59 (If dim is out of range after adjusting negative indices, the error is still raised.)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then v_2 + ndim(v_1) < 0 else v_2 ≥ ndim(v_1)
 >>
-Rule 71 (Tensors should have the same dtype or both be floating point dtypes)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = dtype_(v_2)) ∨ ((6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∧ (6 <= dtype_(v_2) ∧ dtype_(v_2) <= 8))
+Rule 60 (eps should not be zero)
+{v_1 : float} |= v_1 ≠ 0
 >>
-Rule 73 (The size of the input tensors must match at the specified dimension if the specified dimension is a valid dimension for both tensors)
-{v_1 : tensor, v_2 : tensor, v_3: int} |= if v_3 < ndim(v_1) ∧ v_3 >= (0 - ndim(v_1)) ∧ v_3 < ndim(v_2) ∧ v_3 >= (0 - ndim(v_2)) then shape(v_1, v_3) = shape(v_2, v_3)
+Rule 63 (If one dtype is float16, the other should also be)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6
 >>
-Rule 74 (If tensors have different dtypes, their dtypes must be both floating point or both boolean)
-{v_1 : tensor, v_2 : tensor} |= ((6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∧ (6 <= dtype_(v_2) ∧ dtype_(v_2) <= 8)) ∨ ((dtype_(v_1) = 0) ∧ (dtype_(v_2) = 0))
+Rule 64 (If the dimension is specified as out-of-range, an error must be raised.)
+{v_1 : tensor, v_2 : int} |= if v_2 < (0 - ndim(v_1)) then true else if v_2 >= ndim(v_1) then true else false
 >>
-Rule 77 (If the tensors have different dtypes, both must be a floating point dtype or both tensors must have the same dtype)
-{v_1 : tensor, v_2 : tensor} |= ((6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∧ (6 <= dtype_(v_2) ∧ dtype_(v_2) <= 8)) ∨ (dtype_(v_1) = dtype_(v_2))
+Rule 68 (Enforce matching dtypes for floating-point tensors.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7 else if dtype_(v_1) = 8 then dtype_(v_2) = 8 else if dtype_(v_1) = 6 then dtype_(v_2) = 6
 >>
-Rule 79 (The size of the input tensors must match at the specified dimension if the specified dimension is a valid dimension for both tensors, unless one of shapes is 1, then its valid )
-{v_1 : tensor, v_2 : tensor, v_3: int} |= if v_3 < ndim(v_1) ∧ v_3 >= (0 - ndim(v_1)) ∧ v_3 < ndim(v_2) ∧ v_3 >= (0 - ndim(v_2)) then shape(v_1, v_3) = shape(v_2, v_3) ∨ shape(v_1,v_3) = 1 ∨ shape(v_2, v_3) = 1
+Rule 74 (Out-of-range dimension results in error.)
+{v_1 : tensor, v_2 : int} |= (v_2 < (0 - ndim(v_1))) ∨ (v_2 ≥ ndim(v_1))
 >>
-Rule 80 (Tensors must have the same dtype or both be a floating point dtype or both tensors must have the same dtype if bool)
-{v_1 : tensor, v_2 : tensor} |= ((6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∧ (6 <= dtype_(v_2) ∧ dtype_(v_2) <= 8)) ∨ (dtype_(v_1) = dtype_(v_2)) ∨ ((dtype_(v_1) = 0) ∧ (dtype_(v_2) = 0))
+Rule 77 (If dim is a valid dimension, the shapes of the input tensors along that dim must match if both dimensions are non-singleton)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if (v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) then (if (shape(v_1, v_3) > 1 ∧ shape(v_2, v_3) > 1) then (shape(v_1, v_3) = shape(v_2, v_3)))
 >>
-Rule 82 (Tensors have same dtype or both tensors are floating point type tensors or tensors must have same dtype (bool))
-{v_1: tensor, v_2: tensor} |= (dtype_(v_1) = dtype_(v_2)) ∨ ((6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∧ (6 <= dtype_(v_2) ∧ dtype_(v_2) <= 8))
+Rule 80 (Eps must be a positive number that's not too large)
+{v_1 : float} |= 0 < v_1 ∧ v_1 < 1000
 >>
-Rule 88 (The size of the input tensors must match at the specified dimension if the dimension is valid for both tensors considering singleton dimensions)
-{v_1 : tensor, v_2 : tensor, v_3: int} |=  if v_3 < ndim(v_1) ∧ v_3 >= (0 - ndim(v_1)) ∧ v_3 < ndim(v_2) ∧ v_3 >= (0 - ndim(v_2)) then (shape(v_1, v_3) = shape(v_2, v_3) ∨ shape(v_1,v_3) = 1 ∨ shape(v_2, v_3) = 1)
+Rule 82 (If dim is a valid dimension, then shapes of v1 and v2 along that dimension must match if those dimensions are larger than 1)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if (v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) then (if ((shape(v_1, v_3) > 1) ∧ (shape(v_2, v_3) > 1)) then (shape(v_1, v_3) = shape(v_2, v_3)))
 >>
-Rule 89 (If one tensor is Bool, then both tensors are Bool)
-{v_1 : tensor, v_2: tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0 else if dtype_(v_2) = 0 then dtype_(v_1) = 0
+Rule 84 (Valid dimension)
+{v_1 : tensor, v_2 : int} |= (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1))
 >>
-Rule 92 (If dimension is in range, shapes must match, considering singleton dimensions)
-{v_1 : tensor, v_2 : tensor, v_3: int} |= if v_3 < ndim(v_1) ∧ v_3 >= (0 - ndim(v_1)) ∧ v_3 < ndim(v_2) ∧ v_3 >= (0 - ndim(v_2)) then (shape(v_1, v_3) = shape(v_2, v_3) ∨ shape(v_1,v_3) = 1 ∨ shape(v_2, v_3) = 1)
+Rule 85 (Epsilon should be positive and sufficiently small)
+{v_1 : float} |= 0 < v_1 ∧ v_1 < 0.1
 >>
-Rule 103 (The tensors do not have different dtypes and either of them is a floating point, the both must be of floating point. In any other case, dtypes should be equal )
-{v_1 : tensor, v_2: tensor} |= if (dtype_(v_1) ≠ dtype_(v_2)) then ((6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∧ (6 <= dtype_(v_2) ∧ dtype_(v_2) <= 8))
+Rule 88 (Matching dtypes for float16)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 6) then (dtype_(v_2) = 6)
+>>
+Rule 90 (Eps is a small positive constant)
+{v_1 : float} |= 0 < v_1 ∧ v_1 < 1
+>>
+Rule 91 (Dim is invalid if input is scalar)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_2) = 0)
+>>
+Rule 94 (Valid dimension range)
+{v_1 : tensor, v_2 : int} |= (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∨ (v_2 ≥ 0 ∧ v_2 < ndim(v_1))
+>>
+Rule 95 (Epsilon should be reasonable.)
+{v_1 : float} |= (0 < v_1) ∧ (v_1 < 0.1)
+>>
+Rule 96 (Either tensors should not have a dimension)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) > 0) ∨ (ndim(v_2) > 0)
+>>
+Rule 97 (Shape along `dim` should be same for both if non-singleton)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if (v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) then ((shape(v_1, v_3) ≤ 1) ∨ (shape(v_2, v_3) ≤ 1) ∨ (shape(v_1, v_3) = shape(v_2, v_3)))
+>>
+Rule 98 (Float16 requires matching dtypes)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ 6) ∨ (dtype_(v_2) = 6)
+>>
+Rule 100 (Epsilon should be positive)
+{v_1 : float} |= (0 < v_1)
+>>
+Rule 102 (If valid dim, and size > 1 for both, then shapes should match)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ((v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) ∧ ((shape(v_1, v_3) > 1) ∧ (shape(v_2, v_3) > 1))) then (shape(v_1, v_3) = shape(v_2, v_3))
+>>
+Rule 113 (Float16 tensors require each other)
+{v_1 : tensor, v_2 : tensor} |= ((dtype_(v_1) = 6) = (dtype_(v_2) = 6))
+>>
+Rule 117 (If a valid dimension, the shapes of v1 and v2 along that dimension should match or the sizes should be 1)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ((v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) ∧ (shape(v_1, v_3) > 1) ∧ (shape(v_2, v_3) > 1)) then (shape(v_1, v_3) = shape(v_2, v_3))
+>>
+Rule 118 (If dtype is float16, both inputs need to be float16.)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ 6) ∨ (dtype_(v_2) = 6) ∧ (dtype_(v_2) ≠ 6) ∨ (dtype_(v_1) = 6)
+>>
+Rule 119 (Check dimension validity, post adjustments.)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then (v_2 + ndim(v_1) ≥ 0 ∧ v_2 + ndim(v_1) < ndim(v_1)) else (v_2 ≥ 0 ∧ v_2 < ndim(v_1))
+>>
+Rule 132 (Shape match, or at least one has dimension 1)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if (v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) then ( (shape(v_1, v_3) = shape(v_2, v_3)) ∨ (shape(v_1, v_3) = 1) ∨ (shape(v_2, v_3) = 1))
+>>
+Rule 138 (Enforce matching float16 datatypes.)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6) = (dtype_(v_2) = 6)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if input is a tensor and has 3D or more then return false. (Rule 24)
+# If input tensor is 1D, it can have only one dimension. (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] >= 3, False, False)) if n else
-          If(v["arg1_ndim"] >= 3, False, False))
+    s.add(Not(If(v["arg1_ndim"] == 1, True, If(v["arg1_ndim"] == 0, True, v["arg1_ndim"] == 2))) if n else
+          If(v["arg1_ndim"] == 1, True, If(v["arg1_ndim"] == 0, True, v["arg1_ndim"] == 2)))
 )
 
 def rule_24_func(arg1, solver=None, neg=False):

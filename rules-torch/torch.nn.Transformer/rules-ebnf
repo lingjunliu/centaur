@@ -1,216 +1,201 @@
 >>
-Rule 1 (d_model should be a positive integer)
-{v_1 : int} |= v_1 > 0
+Rule 1 (d_model must be positive)
+{d_model : int} |= d_model > 0
 >>
-Rule 3 (num_encoder_layers should be a non-negative integer)
-{v_1 : int} |= v_1 ≥ 0
+Rule 2 (nhead must be positive)
+{nhead : int} |= nhead > 0
 >>
-Rule 6 (dropout should be between 0 and 1 inclusive)
-{v_1 : float} |= 0 ≤ v_1 ∧ v_1 ≤ 1
+Rule 3 (num_encoder_layers must be non-negative)
+{num_encoder_layers : int} |= num_encoder_layers ≥ 0
 >>
-Rule 7 (layer_norm_eps should be a positive float)
-{v_1 : float} |= v_1 > 0
+Rule 4 (num_decoder_layers must be non-negative)
+{num_decoder_layers : int} |= num_decoder_layers ≥ 0
 >>
-Rule 8 (nhead must evenly divide d_model)
-{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0 ∧ v_2 % v_1 = 0
+Rule 5 (dim_feedforward must be positive)
+{dim_feedforward : int} |= dim_feedforward > 0
 >>
-Rule 9 (src tensor must have at least two dimensions to avoid IndexError)
-{v_1 : tensor} |= ndim(v_1) ≥ 2
+Rule 6 (dropout must be between 0 and 1 inclusive)
+{dropout : float} |= 0 ≤ dropout ∧ dropout ≤ 1
 >>
-Rule 11 (batch size of src and tgt must be equal to avoid RuntimeError, assuming batch_first=False which is default)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) = shape(v_2, 1)
+Rule 7 (activation must be either 'relu' or 'gelu' or a unary callable, checking string case)
+{activation : str} |= activation = "relu" ∨ activation = "gelu"
 >>
-Rule 12 (batch size of src and tgt must be equal to avoid RuntimeError, assuming batch_first=True)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 8 (layer_norm_eps must be positive)
+{layer_norm_eps : float} |= layer_norm_eps > 0
 >>
-Rule 13 (activation can be either 'relu' or 'gelu')
-{v_1 : str} |= v_1 = "relu" ∨ v_1 = "gelu"
+Rule 9 (nhead must divide d_model evenly)
+{d_model : int, nhead : int} |= d_model % nhead = 0
 >>
-Rule 14 (Check d_model value is within reasonable bounds for memory usage)
-{v_1 : int} |= v_1 < 4096
+Rule 10 (src and tgt must have the same batch number to avoid runtime error)
+{src : tensor, tgt : tensor, batch_first : bool} |= if batch_first = true then shape(src, 0) = shape(tgt, 0) else shape(src, 1) = shape(tgt, 1)
 >>
-Rule 15 (Check nhead value is within reasonable bounds)
-{v_1 : int} |= v_1 < 64
+Rule 11 (src tensor must have at least two dimensions to avoid index error)
+{src : tensor} |= ndim(src) ≥ 2
 >>
-Rule 16 (if batch_first is True, the first dimension of the input tensors should match)
-{v_1 : tensor, v_2 : tensor, v_3: bool} |= if v_3 then shape(v_1, 0) = shape(v_2, 0)
+Rule 12 (tgt tensor must have at least two dimensions to avoid index error)
+{tgt : tensor} |= ndim(tgt) ≥ 2
 >>
-Rule 18 (d_model should be a positive integer and less than max value)
-{v_1 : int} |= v_1 > 0 ∧ v_1 < 2048
+Rule 13 (src_mask should have appropriate dimensions, assuming batch_first is false)
+{src : tensor, src_mask : tensor} |= if ndim(src_mask) = 2 then shape(src,0) = shape(src_mask,0) ∧ shape(src,0) = shape(src_mask,1) else if ndim(src_mask) = 3 then shape(src,1) = shape(src_mask,1) ∧ shape(src,0) = shape(src_mask,0) else false
 >>
-Rule 19 (nhead should be a positive integer and less than max value)
-{v_1 : int} |= v_1 > 0 ∧ v_1 < 32
+Rule 14 (memory_mask should have appropriate dimensions, assuming batch_first is false)
+{src : tensor, memory_mask : tensor} |= if ndim(memory_mask) = 2 then shape(src,0) = shape(memory_mask,0) ∧ shape(src,0) = shape(memory_mask,1) else if ndim(memory_mask) = 3 then shape(src,1) = shape(memory_mask,1) ∧ shape(src,0) = shape(memory_mask,0) else false
 >>
-Rule 20 (num_encoder_layers should be a non-negative integer and less than max value)
-{v_1 : int} |= v_1 ≥ 0 ∧ v_1 < 15
+Rule 15 (tgt_mask should have appropriate dimensions, assuming batch_first is false)
+{tgt : tensor, tgt_mask : tensor} |= if ndim(tgt_mask) = 2 then shape(tgt,0) = shape(tgt_mask,0) ∧ shape(tgt,0) = shape(tgt_mask,1) else if ndim(tgt_mask) = 3 then shape(tgt,1) = shape(tgt_mask,1) ∧ shape(tgt,0) = shape(tgt_mask,0) else false
 >>
-Rule 22 (dim_feedforward should be a positive integer and less than max value)
-{v_1 : int} |= v_1 > 0 ∧ v_1 < 8192
+Rule 16 (src_key_padding_mask should have appropriate dimensions, assuming batch_first is false)
+{src : tensor, src_key_padding_mask : tensor} |= if ndim(src_key_padding_mask) = 2 then shape(src,1) = shape(src_key_padding_mask,0) ∧ shape(src,0) = shape(src_key_padding_mask,1) else ndim(src_key_padding_mask) = 1 ∧ shape(src,0) = shape(src_key_padding_mask,0)
 >>
-Rule 23 (dropout should be between 0 and 1 inclusive and not near 1 to avoid dropping all connections)
-{v_1 : float} |= 0 ≤ v_1 ∧ v_1 ≤ 0.9
+Rule 17 (tgt_key_padding_mask should have appropriate dimensions, assuming batch_first is false)
+{tgt : tensor, tgt_key_padding_mask : tensor} |= if ndim(tgt_key_padding_mask) = 2 then shape(tgt,1) = shape(tgt_key_padding_mask,0) ∧ shape(tgt,0) = shape(tgt_key_padding_mask,1) else ndim(tgt_key_padding_mask) = 1 ∧ shape(tgt,0) = shape(tgt_key_padding_mask,0)
 >>
-Rule 25 (nhead must evenly divide d_model)
-{v_1 : int, v_2 : int} |= v_2 % v_1 = 0
+Rule 18 (memory_key_padding_mask should have appropriate dimensions, assuming batch_first is false)
+{src : tensor, memory_key_padding_mask : tensor} |= if ndim(memory_key_padding_mask) = 2 then shape(src,1) = shape(memory_key_padding_mask,0) ∧ shape(src,0) = shape(memory_key_padding_mask,1) else ndim(memory_key_padding_mask) = 1 ∧ shape(src,0) = shape(memory_key_padding_mask,0)
 >>
-Rule 30 (activation can be either 'relu' or 'gelu' or 'tanh')
-{v_1 : str} |= v_1 = "relu" ∨ v_1 = "gelu" ∨ v_1 = "tanh"
+Rule 19 (if batch_first is True, src and tgt tensors must have at least 3 dimensions)
+{src : tensor, tgt: tensor, batch_first : bool} |= if batch_first = true then ndim(src) ≥ 3 ∧ ndim(tgt) ≥ 3
 >>
-Rule 40 (src tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 20 (When batch_first is False, src and tgt must have at least 2 dimensions)
+{src : tensor, tgt: tensor, batch_first : bool} |= if batch_first = false then ndim(src) ≥ 2 ∧ ndim(tgt) ≥ 2
 >>
-Rule 42 (Check that d_model and shape of src are compatible)
-{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 1) = v_2
+Rule 21 (If batch_first is true, src_key_padding_mask should have appropriate dimensions)
+{src : tensor, src_key_padding_mask : tensor, batch_first : bool} |= if batch_first = true then (if ndim(src_key_padding_mask) = 2 then shape(src,0) = shape(src_key_padding_mask,0) ∧ shape(src,1) = shape(src_key_padding_mask,1) else ndim(src_key_padding_mask) = 1 ∧ shape(src,0) = shape(src_key_padding_mask,0))
 >>
-Rule 44 (layer_norm_eps should be a small positive float)
-{v_1 : float} |= v_1 > 0 ∧ v_1 < 0.1
+Rule 22 (If batch_first is true, tgt_key_padding_mask should have appropriate dimensions)
+{tgt : tensor, tgt_key_padding_mask : tensor, batch_first : bool} |= if batch_first = true then (if ndim(tgt_key_padding_mask) = 2 then shape(tgt,0) = shape(tgt_key_padding_mask,0) ∧ shape(tgt,1) = shape(tgt_key_padding_mask,1) else ndim(tgt_key_padding_mask) = 1 ∧ shape(tgt,0) = shape(tgt_key_padding_mask,0))
 >>
-Rule 45 (Check that num_encoder_layers and num_decoder_layers is not too big to avoid stack overflow)
-{v_1 : int, v_2 : int} |= v_1 + v_2 < 20
+Rule 23 (If batch_first is true, memory_key_padding_mask should have appropriate dimensions)
+{src : tensor, memory_key_padding_mask : tensor, batch_first : bool} |= if batch_first = true then (if ndim(memory_key_padding_mask) = 2 then shape(src,0) = shape(memory_key_padding_mask,0) ∧ shape(src,1) = shape(memory_key_padding_mask,1) else ndim(memory_key_padding_mask) = 1 ∧ shape(src,0) = shape(memory_key_padding_mask,0))
 >>
-Rule 46 (src tensor must have at least one dimension to avoid index error)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 24 (If src_is_causal, the first dimension of src must be greater than 0)
+{src : tensor, src_is_causal : bool} |= if src_is_causal = true then shape(src, 0) > 0
 >>
-Rule 49 (If batch_first is True, src and tgt must have the same sequence length)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then shape(v_1, 1) = shape(v_2, 1)
+Rule 25 (If tgt_is_causal, the first dimension of tgt must be greater than 0)
+{tgt : tensor, tgt_is_causal : bool} |= if tgt_is_causal = true then shape(tgt, 0) > 0
 >>
-Rule 56 (If not batch_first, src and tgt must have the same sequence length)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then shape(v_1, 0) = shape(v_2, 0)
+Rule 26 (If memory_is_causal, the first dimension of src must be greater than 0)
+{src : tensor, memory_is_causal : bool} |= if memory_is_causal = true then shape(src, 0) > 0
 >>
-Rule 57 (If batch_first, src and tgt must have the same batch length)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then shape(v_1, 0) = shape(v_2, 0)
+Rule 27 (src and memory must have the same number of features if batch_first is False)
+{src : tensor, memory : tensor, d_model : int, batch_first : bool} |= if batch_first = false then shape(src, 2) = d_model ∧ shape(memory, 2) = d_model else shape(src, 1) = d_model ∧ shape(memory, 1) = d_model
 >>
-Rule 62 (src and tgt must have the same batch size to avoid RuntimeError, when batch_first=False)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then shape(v_1, 1) = shape(v_2, 1)
+Rule 28 (src and memory must have the same number of features if batch_first is True)
+{src : tensor, memory : tensor, d_model : int, batch_first : bool} |= if batch_first = true then shape(src, 2) = d_model ∧ shape(memory, 2) = d_model else shape(src, 1) = d_model ∧ shape(memory, 1) = d_model
 >>
-Rule 72 (src and tgt must have at least one dimension, when batch_first is False)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then ndim(v_1) > 0 ∧ ndim(v_2) > 0
+Rule 29 (If norm_first is True, d_model must be greater than 0)
+{d_model : int, norm_first : bool} |= if norm_first = true then d_model > 0
 >>
-Rule 73 (src and tgt must have at least one dimension, when batch_first is True)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then ndim(v_1) > 0 ∧ ndim(v_2) > 0
+Rule 30 (If bias is False, then bias term should not exist in Linear and LayerNorm Layers)
+{bias : bool} |= bias = true
 >>
-Rule 74 (src must have enough dimensions)
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then ndim(v_1) > 1 else ndim(v_1) > 0
+Rule 43 (src_mask should have appropriate dimensions, assuming batch_first is false)
+{src : tensor, src_mask : tensor} |= if ndim(src_mask) = 2 then shape(src,0) = shape(src_mask,0) ∧ shape(src,0) = shape(src_mask,1) else if ndim(src_mask) = 3 then shape(src,1) = shape(src_mask,1) ∧ shape(src,0) = shape(src_mask,0)
 >>
-Rule 77 (src must have enough dimensions when batch_first is False)
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then ndim(v_1) > 1
+Rule 44 (memory_mask should have appropriate dimensions, assuming batch_first is false)
+{src : tensor, memory_mask : tensor} |= if ndim(memory_mask) = 2 then shape(src,0) = shape(memory_mask,0) ∧ shape(src,0) = shape(memory_mask,1) else if ndim(memory_mask) = 3 then shape(src,1) = shape(memory_mask,1) ∧ shape(src,0) = shape(memory_mask,0)
 >>
-Rule 79 (src must have enough dimensions when batch_first is True)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then ndim(v_1) > 1
+Rule 45 (tgt_mask should have appropriate dimensions, assuming batch_first is false)
+{tgt : tensor, tgt_mask : tensor} |= if ndim(tgt_mask) = 2 then shape(tgt,0) = shape(tgt_mask,0) ∧ shape(tgt,0) = shape(tgt_mask,1) else if ndim(tgt_mask) = 3 then shape(tgt,1) = shape(tgt_mask,1) ∧ shape(tgt,0) = shape(tgt_mask,0)
 >>
-Rule 83 (If batch_first is False, src and tgt must have the same sequence length and sufficient dimensions)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then shape(v_1, 0) = shape(v_2, 0) ∧ ndim(v_1) > 1 ∧ ndim(v_2) > 1
+Rule 64 (If src_mask is provided, its first dimension must match the sequence length of src)
+{src : tensor, src_mask : tensor} |=  shape(src, 0) = shape(src_mask,0)
 >>
-Rule 84 (If batch_first is True, src and tgt must have the same batch size and sufficient dimensions)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then shape(v_1, 0) = shape(v_2, 0) ∧ ndim(v_1) > 1 ∧ ndim(v_2) > 1
+Rule 65 (If tgt_mask is provided, its first dimension must match the sequence length of tgt)
+{tgt : tensor, tgt_mask : tensor} |=  shape(tgt, 0) = shape(tgt_mask,0)
 >>
-Rule 95 (src and tgt tensors must have at least 2 dimensions, when batch_first = False)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2
+Rule 66 (src and memory must have at least 3 dimensions if memory_key_padding_mask is a tensor)
+{src : tensor, memory : tensor, memory_key_padding_mask : tensor ⊎ bool} |= if memory_key_padding_mask = false then true else ndim(src) ≥ 3 ∧ ndim(memory) ≥ 3
 >>
-Rule 96 (src and tgt tensors must have at least 2 dimensions, when batch_first = True)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2
+Rule 67 (tgt and memory must have at least 3 dimensions if tgt_key_padding_mask is a tensor)
+{tgt : tensor, memory : tensor, tgt_key_padding_mask : tensor ⊎ bool} |= if tgt_key_padding_mask = false then true else ndim(tgt) ≥ 3 ∧ ndim(memory) ≥ 3
 >>
-Rule 97 (src and tgt dimensions must align when not using batch_first)
-{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 = false then ndim(v_1) > 1 ∧ ndim(v_2) > 1 ∧ shape(v_1, 0) = shape(v_2, 0)
+Rule 68 (src and memory must have at least 3 dimensions if src_key_padding_mask is a tensor)
+{src : tensor, memory : tensor, src_key_padding_mask : tensor ⊎ bool} |= if src_key_padding_mask = false then true else ndim(src) ≥ 3 ∧ ndim(memory) ≥ 3
 >>
-Rule 98 (src and tgt dimensions must align when using batch_first)
-{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 = true then ndim(v_1) > 1 ∧ ndim(v_2) > 1 ∧ shape(v_1, 0) = shape(v_2, 0)
+Rule 69 (If src_mask is provided, its first dimension must match the sequence length of src when batch_first is False)
+{src : tensor, src_mask : tensor, batch_first : bool} |= if batch_first = false then shape(src, 0) = shape(src_mask,0) else shape(src, 1) = shape(src_mask, 0)
 >>
-Rule 99 (d_model should be a positive integer)
-{v_1: int} |= v_1 > 0
+Rule 70 (If tgt_mask is provided, its first dimension must match the sequence length of tgt when batch_first is False)
+{tgt : tensor, tgt_mask : tensor, batch_first : bool} |= if batch_first = false then shape(tgt, 0) = shape(tgt_mask,0) else shape(tgt, 1) = shape(tgt_mask, 0)
 >>
-Rule 101 (num_encoder_layers must be non-negative)
-{v_1: int} |= v_1 ≥ 0
+Rule 71 (If src_mask is provided and batch_first is True, its first dimension must match the batch length of src)
+{src : tensor, src_mask : tensor, batch_first : bool} |= if batch_first = true then shape(src, 0) = shape(src_mask, 0)
 >>
-Rule 103 (d_model should be a positive integer and small enough)
-{v_1: int} |= v_1 > 0 ∧ v_1 < 4096
+Rule 72 (If tgt_mask is provided and batch_first is True, its first dimension must match the batch length of tgt)
+{tgt : tensor, tgt_mask : tensor, batch_first : bool} |= if batch_first = true then shape(tgt, 0) = shape(tgt_mask, 0)
 >>
-Rule 104 (nhead should be a positive integer and small enough)
-{v_1: int} |= v_1 > 0 ∧ v_1 < 64
+Rule 73 (If memory_mask is provided and batch_first is True, its first dimension must match the batch length of src)
+{src : tensor, memory_mask : tensor, batch_first : bool} |= if batch_first = true then shape(src, 0) = shape(memory_mask, 0)
 >>
-Rule 105 (num_encoder_layers must be non-negative and small enough)
-{v_1: int} |= v_1 ≥ 0 ∧ v_1 < 20
+Rule 74 (If src_key_padding_mask is provided and batch_first is True, its first dimension must match batch size of src)
+{src : tensor, src_key_padding_mask : tensor, batch_first : bool} |= if batch_first = true then shape(src, 0) = shape(src_key_padding_mask, 0)
 >>
-Rule 109 (If batch_first is False, src and tgt must have >= 2 dimensions)
-{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 = false then ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2
+Rule 75 (If tgt_key_padding_mask is provided and batch_first is True, its first dimension must match batch size of tgt)
+{tgt : tensor, tgt_key_padding_mask : tensor, batch_first : bool} |= if batch_first = true then shape(tgt, 0) = shape(tgt_key_padding_mask, 0)
 >>
-Rule 110 (If batch_first is True, src and tgt must have >= 2 dimensions)
-{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 = true then ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2
+Rule 76 (If memory_key_padding_mask is provided and batch_first is True, its first dimension must match batch size of src)
+{src : tensor, memory_key_padding_mask : tensor, batch_first : bool} |= if batch_first = true then shape(src, 0) = shape(memory_key_padding_mask, 0)
 >>
-Rule 115 (If batch_first is False, src and tgt sequence lengths and minimum dimensions)
-{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 = false then shape(v_1, 0) = shape(v_2, 0) ∧ ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2
+Rule 82 (If src_mask is provided and batch_first is True, its first dimension must match the batch length of src)
+{src : tensor, src_mask : tensor, batch_first : bool} |= if src_mask = false then true else if batch_first = true then shape(src, 0) = shape(src_mask, 0)
 >>
-Rule 116 (If batch_first is True, src and tgt batch lengths and minimum dimensions)
-{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 = true then shape(v_1, 0) = shape(v_2, 0) ∧ ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2
+Rule 83 (If tgt_mask is provided and batch_first is True, its first dimension must match the batch length of tgt)
+{tgt : tensor, tgt_mask : tensor, batch_first : bool} |= if tgt_mask = false then true else if batch_first = true then shape(tgt, 0) = shape(tgt_mask, 0)
 >>
-Rule 117 (d_model should be a positive integer less than 2048)
-{v_1: int} |= v_1 > 0 ∧ v_1 < 2048
+Rule 84 (If memory_mask is provided and batch_first is True, its first dimension must match the batch length of src)
+{src : tensor, memory_mask : tensor, batch_first : bool} |= if memory_mask = false then true else if batch_first = true then shape(src, 0) = shape(memory_mask, 0)
 >>
-Rule 118 (nhead should be a positive integer less than 32)
-{v_1: int} |= v_1 > 0 ∧ v_1 < 32
+Rule 85 (If src_key_padding_mask is provided and batch_first is True, its first dimension must match batch size of src)
+{src : tensor, src_key_padding_mask : tensor, batch_first : bool} |=  if src_key_padding_mask = false then true else if batch_first = true then shape(src, 0) = shape(src_key_padding_mask, 0)
 >>
-Rule 119 (num_encoder_layers must be non-negative and less than 15)
-{v_1: int} |= v_1 ≥ 0 ∧ v_1 < 15
+Rule 86 (If tgt_key_padding_mask is provided and batch_first is True, its first dimension must match batch size of tgt)
+{tgt : tensor, tgt_key_padding_mask : tensor, batch_first : bool} |= if tgt_key_padding_mask = false then true else if batch_first = true then shape(tgt, 0) = shape(tgt_key_padding_mask, 0)
 >>
-Rule 123 (d_model must be divisible by nhead)
-{v_1: int, v_2: int} |= v_1 > 0 ∧ v_2 > 0 ∧ v_1 % v_2 = 0
+Rule 87 (If memory_key_padding_mask is provided and batch_first is True, its first dimension must match batch size of src)
+{src : tensor, memory_key_padding_mask : tensor, batch_first : bool} |= if memory_key_padding_mask = false then true else if batch_first = true then shape(src, 0) = shape(memory_key_padding_mask, 0)
 >>
-Rule 126 (Number of Encoder and Decoder layers must be reasonable)
-{v_1: int, v_2: int} |= v_1 + v_2 < 30
+Rule 88 (src and memory dimension check based on key padding masks)
+{src : tensor, memory : tensor, memory_key_padding_mask : tensor ⊎ bool, tgt_key_padding_mask : tensor ⊎ bool, src_key_padding_mask : tensor ⊎ bool} |= (memory_key_padding_mask = false ∧ tgt_key_padding_mask = false ∧ src_key_padding_mask = false) ∨ (ndim(src) ≥ 3 ∧ ndim(memory) ≥ 3)
 >>
-Rule 127 (If batch_first is False, check sequence length and ndim of inputs)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then shape(v_1, 0) = shape(v_2, 0) ∧ ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2
+Rule 89 (src_mask dimension check based on batch_first)
+{src : tensor, src_mask : tensor, batch_first : bool} |= if src_mask = false then true else if batch_first = false then shape(src, 0) = shape(src_mask,0) else shape(src, 1) = shape(src_mask, 0)
 >>
-Rule 128 (If batch_first is True, check batch size and ndim of inputs)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then shape(v_1, 0) = shape(v_2, 0) ∧ ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2
+Rule 90 (tgt_mask dimension check based on batch_first)
+{tgt : tensor, tgt_mask : tensor, batch_first : bool} |= if tgt_mask = false then true else if batch_first = false then shape(tgt, 0) = shape(tgt_mask,0) else shape(tgt, 1) = shape(tgt_mask, 0)
 >>
-Rule 129 (d_model must be divisible by nhead)
-{v_1: int, v_2: int} |= v_1 % v_2 = 0
+Rule 91 (key_padding_mask dimension check based on batch_first, combine all key_padding_mask )
+{src: tensor, memory:tensor, tgt: tensor, src_key_padding_mask : tensor ⊎ bool, tgt_key_padding_mask : tensor ⊎ bool, memory_key_padding_mask : tensor ⊎ bool, batch_first: bool} |= if src_key_padding_mask = false ∧ tgt_key_padding_mask = false ∧ memory_key_padding_mask = false then true else if batch_first= true then true
 >>
-Rule 130 (d_model should be a reasonable positive integer)
-{v_1: int} |= 0 < v_1 ∧ v_1 < 2048
+Rule 92 (src dimension check based on src_key_padding_mask and batch_first)
+{src: tensor, src_key_padding_mask : tensor ⊎ bool, batch_first: bool} |= if src_key_padding_mask = false then true else if batch_first= true then shape(src, 0) = shape(src_key_padding_mask, 0) else shape(src, 1) = shape(src_key_padding_mask, 0)
 >>
-Rule 131 (nhead should be a reasonable positive integer)
-{v_1: int} |= 0 < v_1 ∧ v_1 < 32
+Rule 93 (tgt dimension check based on tgt_key_padding_mask and batch_first)
+{tgt: tensor, tgt_key_padding_mask : tensor ⊎ bool, batch_first: bool} |= if tgt_key_padding_mask = false then true else if batch_first= true then shape(tgt, 0) = shape(tgt_key_padding_mask, 0) else shape(tgt, 1) = shape(tgt_key_padding_mask, 0)
 >>
-Rule 132 (num_encoder_layers should be a reasonable non-negative integer)
-{v_1: int} |= 0 ≤ v_1 ∧ v_1 < 15
+Rule 94 (memory dimension check based on memory_key_padding_mask and batch_first)
+{src: tensor, memory_key_padding_mask : tensor ⊎ bool, batch_first: bool} |= if memory_key_padding_mask = false then true else if batch_first= true then shape(src, 0) = shape(memory_key_padding_mask, 0) else shape(src, 1) = shape(memory_key_padding_mask, 0)
 >>
-Rule 134 (src and tgt tensors need correct dimensions, and matching sequence lengths if batch_first is False)
-{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 = false then ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 0)
+Rule 95 (src and tgt batch equality based on batch_first)
+{src: tensor, tgt: tensor, batch_first: bool} |= if batch_first = true then shape(src, 0) = shape(tgt, 0) else shape(src, 1) = shape(tgt, 1)
 >>
-Rule 135 (src and tgt tensors need correct dimensions, and matching batch sizes if batch_first is True)
-{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 = true then ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 0)
+Rule 96 (src_mask dimension check based on src and batch_first)
+{src : tensor, src_mask : tensor ⊎ bool, batch_first : bool} |= if src_mask = false then true else if batch_first = false then shape(src, 0) = shape(src_mask,0) else shape(src, 0) = shape(src_mask, 1)
 >>
-Rule 136 (When not using custom encoder/decoder, d_model should be divisible by nhead for multihead attention)
-{v_1: int, v_2: int, v_3: tensor, v_4: tensor} |= v_1 % v_2 = 0 ∧ v_3 = none ∧ v_4 = none
+Rule 97 (tgt_mask dimension check based on tgt and batch_first)
+{tgt : tensor, tgt_mask : tensor ⊎ bool, batch_first : bool} |= if tgt_mask = false then true else if batch_first = false then shape(tgt, 0) = shape(tgt_mask,0) else shape(tgt, 0) = shape(tgt_mask, 1)
 >>
-Rule 143 (If custom_encoder and custom_decoder are none, d_model and nhead relation)
-{v_1: int, v_2: int, v_3: str, v_4: str} |= if v_3 = "none" ∧ v_4 = "none" then v_1 % v_2 = 0
+Rule 104 (key_padding_mask dimension check based on src/tgt/memory and batch_first)
+{src: tensor, tgt: tensor, memory: tensor, src_key_padding_mask : tensor ⊎ bool, tgt_key_padding_mask : tensor ⊎ bool, memory_key_padding_mask : tensor ⊎ bool, batch_first: bool} |= (if src_key_padding_mask ≠ false then (if batch_first = true then shape(src, 0) = shape(src_key_padding_mask, 0) else shape(src, 1) = shape(src_key_padding_mask, 0))) ∧ (if tgt_key_padding_mask ≠ false then (if batch_first = true then shape(tgt, 0) = shape(tgt_key_padding_mask, 0) else shape(tgt, 1) = shape(tgt_key_padding_mask, 0))) ∧ (if memory_key_padding_mask ≠ false then (if batch_first = true then shape(src, 0) = shape(memory_key_padding_mask, 0) else shape(src, 1) = shape(memory_key_padding_mask, 0)))
 >>
-Rule 144 (If layer_norm_eps is provided, must be greater than 0)
-{v_1: float} |= v_1 > 0
+Rule 105 (mask dimension check based on src/tgt and batch_first)
+{src : tensor, tgt: tensor, src_mask : tensor ⊎ bool, tgt_mask : tensor ⊎ bool, batch_first : bool} |= (if src_mask = false then true else if batch_first = false then shape(src, 0) = shape(src_mask,0) else shape(src, 0) = shape(src_mask, 1)) ∧ (if tgt_mask = false then true else if batch_first = false then shape(tgt, 0) = shape(tgt_mask,0) else shape(tgt, 0) = shape(tgt_mask, 1))
 >>
-Rule 149 (Check src and tgt for dimension compatibility and sequence length agreement, depending on batch_first)
-{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 = false then ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 0) else shape(v_1, 0) = shape(v_2, 0) ∧ ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2
+Rule 109 (Combined dimension and batch equality checks for masks and src/tgt)
+{src: tensor, tgt: tensor, memory: tensor, src_mask : tensor ⊎ bool, tgt_mask : tensor ⊎ bool, src_key_padding_mask : tensor ⊎ bool, tgt_key_padding_mask : tensor ⊎ bool, memory_key_padding_mask : tensor ⊎ bool, batch_first: bool} |= (if batch_first = true then shape(src, 0) = shape(tgt, 0) else shape(src, 1) = shape(tgt, 1)) ∧ (if src_key_padding_mask ≠ false then (if batch_first = true then shape(src, 0) = shape(src_key_padding_mask, 0) else shape(src, 1) = shape(src_key_padding_mask, 0))) ∧ (if tgt_key_padding_mask ≠ false then (if batch_first = true then shape(tgt, 0) = shape(tgt_key_padding_mask, 0) else shape(tgt, 1) = shape(tgt_key_padding_mask, 0))) ∧ (if memory_key_padding_mask ≠ false then (if batch_first = true then shape(src, 0) = shape(memory_key_padding_mask, 0) else shape(src, 1) = shape(memory_key_padding_mask, 0))) ∧ (if src_mask ≠ false then (if batch_first = false then shape(src, 0) = shape(src_mask,0) else shape(src, 0) = shape(src_mask, 1))) ∧ (if tgt_mask ≠ false then (if batch_first = false then shape(tgt, 0) = shape(tgt_mask,0) else shape(tgt, 0) = shape(tgt_mask, 1)))
 >>
-Rule 152 (The feature dimension of src and tgt has to match d_model, when custom encoder/decoder are not used and batch_first is False)
-{v_1: tensor, v_2: tensor, v_3: int, v_4 : str, v_5 : str, v_6 : bool} |= if v_4 = "none" ∧ v_5 = "none" ∧ v_6 = false then shape(v_1, 2) = v_3 ∧ shape(v_2, 2) = v_3
+Rule 110 (Combined dimension and batch equality checks for masks and src/tgt)
+{src: tensor, tgt: tensor, memory: tensor, src_mask : tensor ⊎ bool, tgt_mask : tensor ⊎ bool, src_key_padding_mask : tensor ⊎ bool, tgt_key_padding_mask : tensor ⊎ bool, memory_key_padding_mask : tensor ⊎ bool, batch_first: bool} |= (if batch_first = true then shape(src, 0) = shape(tgt, 0) else shape(src, 1) = shape(tgt, 1)) ∧ (if src_key_padding_mask ≠ false then (if batch_first = true then shape(src, 0) = shape(src_key_padding_mask, 0) else shape(src, 1) = shape(src_key_padding_mask, 0))) ∧ (if tgt_key_padding_mask ≠ false then (if batch_first = true then shape(tgt, 0) = shape(tgt_key_padding_mask, 0) else shape(tgt, 1) = shape(tgt_key_padding_mask, 0))) ∧ (if memory_key_padding_mask ≠ false then (if batch_first = true then shape(memory, 0) = shape(memory_key_padding_mask, 0) else shape(memory, 1) = shape(memory_key_padding_mask, 0))) ∧ (if src_mask ≠ false then (if batch_first = false then shape(src, 0) = shape(src_mask,0) else shape(src, 0) = shape(src_mask, 1))) ∧ (if tgt_mask ≠ false then (if batch_first = false then shape(tgt, 0) = shape(tgt_mask,0) else shape(tgt, 0) = shape(tgt_mask, 1)))
 >>
-Rule 157 (Check if shape is valid)
-{v_1: tensor, v_2: tensor, v_3: bool} |= (if v_3 = false then (shape(v_1, 0) = shape(v_2, 0) ∧ ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2) else (shape(v_1, 0) = shape(v_2, 0) ∧ ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2))
->>
-Rule 158 (if custom encoder and decoder are none, d_model should be divisible by nhead)
-{v_1: int, v_2: int, v_3: str, v_4: str} |= if v_3 = "none" ∧ v_4 = "none" then (v_1 % v_2) = 0
->>
-Rule 159 (Check if feature dimension of source and target matches d_model and other requirements)
-{v_1: tensor, v_2: tensor, v_3: int, v_4: str, v_5: str, v_6: bool} |= if (v_4 = "none" ∧ v_5 = "none") then ((if v_6 = false then (shape(v_1, 2) = v_3 ∧ shape(v_2, 2) = v_3)) ∧ (if v_6 = true then (shape(v_1, 1) = v_3 ∧ shape(v_2, 1) = v_3)))
->>
-Rule 160 (Check bias parameter for boolean value)
-{v_1: bool} |= true = v_1 ∨ false = v_1
->>
-Rule 167 (If not custom encoder or decoder, the feature dimension has to match d_model based on batch_first)
-{v_1: tensor, v_2: tensor, v_3: int, v_4: str, v_5: str, v_6: bool} |= if v_4 = "none" ∧ v_5 = "none" ∧ v_6 = false then shape(v_1, 2) = v_3 ∧ shape(v_2, 2) = v_3 else if v_4 = "none" ∧ v_5 = "none" ∧ v_6 = true then shape(v_1, 1) = v_3 ∧ shape(v_2, 1) = v_3
->>
-Rule 176 (Enforce feature dimension compatibility based on batch_first when not using custom encoders and decoders)
-{v_1: tensor, v_2: tensor, v_3: int, v_4: str, v_5: str, v_6: bool} |= if v_4 = "none" ∧ v_5 = "none" then (if v_6 = false then (shape(v_1, 2) = v_3 ∧ shape(v_2, 2) = v_3) else (shape(v_1, 1) = v_3 ∧ shape(v_2, 1) = v_3))
+Rule 111 (Combined dimension and batch equality checks for masks and src/tgt)
+{src: tensor, tgt: tensor, memory: tensor, src_mask : tensor ⊎ bool, tgt_mask : tensor ⊎ bool, memory_mask: tensor ⊎ bool, src_key_padding_mask : tensor ⊎ bool, tgt_key_padding_mask : tensor ⊎ bool, memory_key_padding_mask : tensor ⊎ bool, batch_first: bool} |= (if batch_first = true then shape(src, 0) = shape(tgt, 0) else shape(src, 1) = shape(tgt, 1)) ∧ (if src_key_padding_mask ≠ false then (if batch_first = true then shape(src, 0) = shape(src_key_padding_mask, 0) else shape(src, 1) = shape(src_key_padding_mask, 0))) ∧ (if tgt_key_padding_mask ≠ false then (if batch_first = true then shape(tgt, 0) = shape(tgt_key_padding_mask, 0) else shape(tgt, 1) = shape(tgt_key_padding_mask, 0))) ∧ (if memory_key_padding_mask ≠ false then (if batch_first = true then shape(memory, 0) = shape(memory_key_padding_mask, 0) else shape(memory, 1) = shape(memory_key_padding_mask, 0))) ∧ (if src_mask ≠ false then (if batch_first = false then shape(src, 0) = shape(src_mask,0) else  shape(src, 0) = shape(src_mask, shape(src_mask, ndim(src_mask)-1)))) ∧ (if tgt_mask ≠ false then (if batch_first = false then shape(tgt, 0) = shape(tgt_mask,0) else shape(tgt, 0) = shape(tgt_mask, shape(tgt_mask, ndim(tgt_mask)-1)))) ∧ (if memory_mask ≠ false then (if batch_first = false then shape(memory, 0) = shape(memory_mask,0) else shape(memory, 0) = shape(memory_mask, shape(memory_mask, ndim(memory_mask)-1))))

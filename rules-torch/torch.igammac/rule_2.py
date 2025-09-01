@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor's dtype should be castable to output tensor's dtype. (Rule 2)
+# input tensor should have same dtype as other tensor (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 1, v["arg2_dtype"] == 1, If(v["arg1_dtype"] == 2, v["arg2_dtype"] == 2, If(v["arg1_dtype"] == 3, v["arg2_dtype"] == 3, If(v["arg1_dtype"] == 4, v["arg2_dtype"] == 4, If(v["arg1_dtype"] == 5, v["arg2_dtype"] == 5, False)))))) if n else
-          If(v["arg1_dtype"] == 1, v["arg2_dtype"] == 1, If(v["arg1_dtype"] == 2, v["arg2_dtype"] == 2, If(v["arg1_dtype"] == 3, v["arg2_dtype"] == 3, If(v["arg1_dtype"] == 4, v["arg2_dtype"] == 4, If(v["arg1_dtype"] == 5, v["arg2_dtype"] == 5, False))))))
+    s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else
+          v["arg1_dtype"] == v["arg2_dtype"])
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):

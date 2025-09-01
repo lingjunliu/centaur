@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# ModuleDict clear takes no arguments, using a dummy variable to satisfy grammar requirements (Rule 50)
+# If maximum is smaller than 10, then the first dimension of shape is also less than 10. (Rule 50)
 
 rule_50 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_value"] == 9, v["arg1_value"] != 9)) if n else
-          Or(v["arg1_value"] == 9, v["arg1_value"] != 9))
+    s.add(Not(If(Select(v["arg1_range"], 1) < 10, Select(v["arg1_shape"], 0) < 10, True)) if n else
+          If(Select(v["arg1_range"], 1) < 10, Select(v["arg1_shape"], 0) < 10, True))
 )
 
 def rule_50_func(arg1, solver=None, neg=False):
@@ -17,20 +17,24 @@ def rule_50_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, str):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 50
-        rule_50(solver, {'arg1_value': arg1_value})
+        rule_50(solver, {'arg1_shape': arg1_shape, 'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_50(solver, {'arg1_value': arg1['value']}, neg)
+        rule_50(solver, {'arg1_shape': arg1['shape'], 'arg1_range': arg1['range']}, neg)

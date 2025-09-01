@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# num_classes should be a positive integer when not -1 (Rule 4)
+# num_classes must be a positive integer (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] != -1, v["arg1_value"] > 0, False)) if n else
-          If(v["arg1_value"] != -1, v["arg1_value"] > 0, False))
+    s.add(Not(v["arg1_value"] > 0) if n else
+          v["arg1_value"] > 0)
 )
 
 def rule_4_func(arg1, solver=None, neg=False):

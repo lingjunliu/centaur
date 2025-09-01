@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the out tensor is provided, and if the input tensor's dtype is float16, float32 or float64 and if all input values are non-negative, then the output tensor's dtype cannot be int8 or int16. (Rule 41)
+# Comprehensive rule for 'out' tensor dtype validity (Rule 41)
 
 rule_41 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or((v["arg1_dtype"] == 7), (v["arg1_dtype"] == 8)), (v["arg1_dtype"] == 9)), If(Select(v["arg1_range"], 0) >= 0, And((v["arg2_dtype"] != 1), (v["arg2_dtype"] != 2)), False), False)) if n else
-          If(Or(Or((v["arg1_dtype"] == 7), (v["arg1_dtype"] == 8)), (v["arg1_dtype"] == 9)), If(Select(v["arg1_range"], 0) >= 0, And((v["arg2_dtype"] != 1), (v["arg2_dtype"] != 2)), False), False))
+    s.add(Not(And((v["arg2_dtype"] != 2), (If(And((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8))), Select(v["arg1_range"], 0) >= 0, If(And((And(9 <= v["arg1_dtype"], v["arg1_dtype"] <= 10)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8))), True, If(And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8), v["arg1_dtype"] <= v["arg2_dtype"], If(And(9 <= v["arg2_dtype"], v["arg2_dtype"] <= 10), v["arg1_dtype"] <= v["arg2_dtype"], If(Or(Or(v["arg2_dtype"] == 0, v["arg2_dtype"] == 11), v["arg2_dtype"] == 12), False, True)))))))) if n else
+          And((v["arg2_dtype"] != 2), (If(And((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8))), Select(v["arg1_range"], 0) >= 0, If(And((And(9 <= v["arg1_dtype"], v["arg1_dtype"] <= 10)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8))), True, If(And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8), v["arg1_dtype"] <= v["arg2_dtype"], If(And(9 <= v["arg2_dtype"], v["arg2_dtype"] <= 10), v["arg1_dtype"] <= v["arg2_dtype"], If(Or(Or(v["arg2_dtype"] == 0, v["arg2_dtype"] == 11), v["arg2_dtype"] == 12), False, True))))))))
 )
 
 def rule_41_func(arg1, arg2, solver=None, neg=False):

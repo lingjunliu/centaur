@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Output tensor's dtype should be able to represent the multiplied values (Rule 10)
+# Output tensor dtype must be compatible with input and other tensor dtypes. Suppress "result type Float can't be cast to the desired output type Short" (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7), Or(v["arg3_dtype"] == 7, v["arg3_dtype"] == 8), False)) if n else
-          If(And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7), Or(v["arg3_dtype"] == 7, v["arg3_dtype"] == 8), False))
+    s.add(Not(Or(Or((v["arg3_dtype"] == v["arg1_dtype"]), (v["arg3_dtype"] == v["arg2_dtype"])), (And(And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8), v["arg3_dtype"] == 8)))) if n else
+          Or(Or((v["arg3_dtype"] == v["arg1_dtype"]), (v["arg3_dtype"] == v["arg2_dtype"])), (And(And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8), v["arg3_dtype"] == 8))))
 )
 
 def rule_10_func(arg1, arg2, arg3, solver=None, neg=False):

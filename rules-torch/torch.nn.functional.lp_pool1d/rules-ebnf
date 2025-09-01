@@ -2,173 +2,110 @@
 Rule 1 (Input tensor should have 2 or 3 dimensions)
 {v_1 : tensor} |= ndim(v_1) = 2 ∨ ndim(v_1) = 3
 >>
-Rule 2 (pad should be at most half of effective kernel size, assuming dilation=1)
-{v_1 : int, v_2 : int} |= v_1 ≤ v_2 / 2
->>
-Rule 3 (stride should be greater than zero)
+Rule 2 (Kernel size should be positive)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 4 (Check for division by zero)
-{v_1 : float} |= v_1 ≠ 0
->>
-Rule 5 (Check for zero stride)
-{v_1 : int} |= v_1 ≠ 0
->>
-Rule 6 (input tensor should not be complex double)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11
->>
-Rule 7 (Input tensor should be 3D or 4D)
-{v_1 : tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4
->>
-Rule 8 (Calculated output size must be positive)
-{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= (shape(v_1, 2) + 2 * v_3 - v_2) / v_4 + 1 > 0
->>
-Rule 9 (value should not overflow half type)
-{v_1 : float} |= v_1 < 65500 ∧ v_1 > -65500
->>
-Rule 10 (power p must be positive)
+Rule 4 (Norm type should be non-negative)
 {v_1 : float} |= v_1 > 0
 >>
-Rule 12 (Pad size compared to kernel size, dilation = 1)
-{v_1 : int, v_2 : int} |= v_1 ≤ (v_2 / 2)
->>
-Rule 19 (Value within half-precision float range)
-{v_1 : float} |= v_1 > -65504 ∧ v_1 < 65504
->>
-Rule 20 (power p should be non-negative)
-{v_1 : float} |= v_1 ≥ 0
->>
-Rule 21 (Input tensor should have appropriate dimensions)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ ndim(v_1) ≤ 3
->>
-Rule 23 (pad size should be reasonable when kernel size is provided)
-{v_1 : int, v_2 : int} |= if v_2 > 0 then v_1 ≥ 0
->>
-Rule 24 (Ensure no division by zero in output calculation - considering dilation=1, pad=0)
-{v_1 : tensor, v_2 : int, v_3 : int} |= v_3 > 0 ∧ ((shape(v_1, 2) - v_2) / v_3 + 1) > 0
->>
-Rule 25 (Power p should be a valid number)
-{v_1 : float} |= v_1 > 0 ∨ v_1 < 0
->>
-Rule 26 (Check for allowed data types)
+Rule 5 (Check for complex dtype to avoid error)
 {v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
 >>
-Rule 28 (Pad size should be reasonable when kernel size is provided)
-{v_1 : int, v_2 : int} |= v_1 * 2 ≤ v_2
+Rule 6 (Avoid division by zero if norm_type is close to zero)
+{v_1 : float, v_2 : tensor} |= if v_1 < 0.000001 then min(v_2) ≥ 0
 >>
-Rule 30 (Ensure no division by zero in power average)
-{v_1 : tensor, v_2 : float} |= min(v_1) > 0 ∨ v_2 = 0
+Rule 11 (Norm type should be non-negative)
+{v_1 : float} |= v_1 ≥ 0
 >>
-Rule 40 (Pad size is non-negative)
-{v_1 : int} |= v_1 ≥ 0
+Rule 13 (Avoid division by zero if norm_type is close to zero and input has small values)
+{v_1 : float, v_2 : tensor} |= if v_1 < 0.000001 then ∃i ∈ [0, shape(v_2, 0) -1 ] : v_2[i] ≥ 0
 >>
-Rule 42 (Check for half overflow explicitly)
-{v_1 : float} |= v_1 < 65504 ∧ v_1 > -65504
+Rule 14 (Kernel size should not be greater than input size)
+{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 1) ≥ v_2
 >>
-Rule 43 (Input must not be 1 dimensional)
-{v_1 : tensor} |= ndim(v_1) ≠ 1
+Rule 15 (Input tensor dimension check)
+{v_1 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_1) ≤ 3
 >>
-Rule 44 (Kernel size is within reasonable bounds relative to input size)
-{v_1 : tensor, v_2 : int} |= v_2 < shape(v_1, 2)
+Rule 18 (Avoid zero division by ensuring norm is not close to zero)
+{v_1 : float} |= v_1 > 0.00000001
 >>
-Rule 45 (Input tensor shape dimensions should not be zero)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+Rule 20 (Check kernel size is not larger than input size)
+{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 1) > 0 ∧ v_2 <= shape(v_1, ndim(v_1) - 1)
 >>
-Rule 54 (Ensure that pad is not excessively large.)
-{v_1: int, v_2: int} |= v_1 <= v_2
+Rule 25 (Norm type cannot be zero)
+{v_1 : float} |= v_1 > 0.0000001
 >>
-Rule 57 (kernel_size should be positive)
-{v_1: int} |= v_1 > 0
+Rule 27 (Output size must be positive)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if shape(v_1, ndim(v_1)-1) > 0 ∧ v_2 > 0 ∧ v_3 > 0 then (shape(v_1, ndim(v_1)-1) - v_2) / v_3 + 1 > 0
 >>
-Rule 58 (Value within valid range for half type)
-{v_1: float} |= v_1 > -65535.0 ∧ v_1 < 65535.0
+Rule 28 (Kernel size cannot be larger than input)
+{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, ndim(v_1) - 1)
 >>
-Rule 59 (Input tensor has valid dimension)
-{v_1: tensor} |= ndim(v_1) > 1 ∧ ndim(v_1) < 4
->>
-Rule 61 (Value within valid range for half type)
-{v_1: float} |= v_1 > -65500.0 ∧ v_1 < 65500.0
->>
-Rule 62 (Input tensor has valid dimension: not 1D)
-{v_1: tensor} |= ndim(v_1) ≠ 1
->>
-Rule 63 (Pad is reasonable compared to kernel size - handles negative kernel)
-{v_1 : int, v_2: int} |= if v_2 > 0 then v_1 <= v_2/2
->>
-Rule 64 (Handle cases where dilation would result in zero kernel size)
-{v_1 : int, v_2 : int} |= v_1 > 0 ∨ v_2 ≤ 0
->>
-Rule 65 (Ensure stride is positive - accounts for different naming)
-{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
->>
-Rule 69 (Input tensor is not one dimensional)
+Rule 30 (Check input tensor dimensions)
 {v_1 : tensor} |= ndim(v_1) > 1 ∧ ndim(v_1) < 4
 >>
-Rule 70 (Output size should be greater than 0)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 2) > v_2
+Rule 35 (Check input size vs kernel size and stride to prevent negative output size)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if shape(v_1, ndim(v_1) - 1) > 0 ∧ v_2 > 0 ∧ v_3 > 0 then (shape(v_1, ndim(v_1) - 1) + v_3 - v_2) ≥ 0
 >>
-Rule 72 (Ensure the power is not being applied to a non-positive number)
-{v_1 : tensor} |= min(v_1) > 0
+Rule 37 (Avoid very small norm type value)
+{v_1 : float, v_2 : tensor} |= if v_1 < 0.000001 then min(v_2) > -1000
 >>
-Rule 73 (Ensure power value is not too large)
-{v_1: float} |= v_1 < 1000
+Rule 43 (Ensure positive output size calculation)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if shape(v_1, ndim(v_1) - 1) > 0 ∧ v_2 > 0 ∧ v_3 > 0 then (shape(v_1, ndim(v_1) - 1) - v_2 + v_3) / v_3 > 0
 >>
-Rule 77 (Ensure that a zero value will not cause zero division later)
-{v_1: tensor} |= min(v_1) > 0
+Rule 46 (Norm should not be excessively small relative to input)
+{v_1 : float, v_2 : tensor} |= if v_1 < 0.0001 then min(v_2) > -100
 >>
-Rule 78 (Value within valid range for half type)
-{v_1: float} |= v_1 > -65000.0 ∧ v_1 < 65000.0
+Rule 52 (Output size calculation valid)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if shape(v_1, ndim(v_1) - 1) > 0 ∧ v_2 > 0 ∧ v_3 > 0 then (shape(v_1, ndim(v_1) - 1) - v_2 + v_3) > 0
 >>
-Rule 81 (Check for 3D or 4D (batch mode) tensor input dimensions)
-{v_1: tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4
+Rule 54 (Ceil mode boolean - use in conditional expression)
+{v_1 : tensor, v_2 : bool} |= if v_2 then shape(v_1, ndim(v_1)-1) > 0
 >>
-Rule 83 (Pad is not too large)
-{v_1 : int, v_2: tensor} |= v_1 <= shape(v_2, 2)
+Rule 64 (Adjust stride to avoid ZeroDivisionError)
+{v_1 : float, v_2 : tensor, v_3 : int} |= if v_1 < 0.0001 then if min(v_2) > -100 then v_3 > 0
 >>
-Rule 87 (Valid input is not complex)
-{v_1: tensor} |= dtype_(v_1) != 10 ∧ dtype_(v_1) != 11
+Rule 65 (Ensure kernel size and stride are compatible to avoid negative output size.)
+{v_1 : tensor, v_2 : int, v_3: int} |= if shape(v_1, ndim(v_1) - 1) > 0 ∧ v_2 > 0 ∧ v_3 > 0 then shape(v_1, ndim(v_1) - 1) ≥ v_2 - v_3
 >>
-Rule 90 (Output size > 0 , checking the formula explicitly with pad=0)
-{v_1: tensor, v_2: int} |= shape(v_1, 2) - v_2 + 1 > 0
+Rule 73 (Ensure ceil_mode is boolean by using it in a boolean context)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 94 ( Ensure a value can be safely converted to float16 )
-{v_1 : float} |= v_1 >= -65000.0 ∧ v_1 <= 65000.0
+Rule 74 (Norm check, and kernel within input bounds)
+{v_1 : float, v_2 : tensor, v_3 : int} |= if v_1 < 0.0001 then if min(v_2) > -100 then shape(v_2, ndim(v_2) - 1) ≥ v_3
 >>
-Rule 95 (Ensure that dimension is more than 1 )
+Rule 80 (Valid output size based on input, kernel, stride)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if shape(v_1, ndim(v_1) - 1) > 0 ∧ v_2 > 0 ∧ v_3 > 0 then shape(v_1, ndim(v_1) - 1) ≥ v_2 - v_3
+>>
+Rule 84 (Combined kernel and stride rule to prevent negative output size)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if shape(v_1, ndim(v_1) - 1) > 0 ∧ v_2 > 0 ∧ v_3 > 0 then shape(v_1, ndim(v_1) - 1) + v_3 > v_2
+>>
+Rule 92 (Ceil mode must be boolean (expressed with AND))
+{v_1 : bool} |= v_1 = true ∧ v_1 = true
+>>
+Rule 94 (If ceil_mode is true, then output size must be at least 1)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4: bool} |= if v_4 then if shape(v_1, ndim(v_1) - 1) > 0 ∧ v_2 > 0 ∧ v_3 > 0 then shape(v_1, ndim(v_1) - 1) + v_3 ≥ v_2
+>>
+Rule 100 (Output calculation - avoid negative output)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if shape(v_1, ndim(v_1) - 1) > 0 ∧ v_2 > 0 ∧ v_3 > 0 then shape(v_1, ndim(v_1) - 1) + v_3 ≥ v_2
+>>
+Rule 104 (Kernel and Stride compatibility)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if shape(v_1, ndim(v_1) - 1) > 0 ∧ v_2 > 0 ∧ v_3 > 0 then shape(v_1, ndim(v_1) - 1) > v_2 - v_3 -1
+>>
+Rule 105 (Half overflow protection)
+{v_1 : tensor} |= dtype_(v_1) ≠ 6
+>>
+Rule 111 (Check for positive output size)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if shape(v_1, ndim(v_1) - 1) > 0 ∧ v_2 > 0 ∧ v_3 > 0 then shape(v_1, ndim(v_1) - 1) > v_2 - v_3 - 1
+>>
+Rule 114 (Ceil mode should be boolean - expressed through if/else)
+{v_1 : bool} |= if v_1 then true
+>>
+Rule 116 (Stride is not zero)
+{v_1 : int} |= v_1 ≠ 0
+>>
+Rule 125 (Use Bool in valid context - avoids type issues.)
+{v_1 : bool} |= if v_1 then true else false
+>>
+Rule 139 (Input dimension check to protect against avg_pool1d dimension exceptions.)
 {v_1 : tensor} |= ndim(v_1) > 1
->>
-Rule 98 (Stride should be non zero to prevent inf size.)
-{v_1 : int} |= v_1 != 0
->>
-Rule 100 (Output size should be greater than zero)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 2) - v_2 > 0
->>
-Rule 105 (Tensor is of type 2 or 3 dimensions)
-{v_1: tensor} |= ndim(v_1) = 2 ∨ ndim(v_1) = 3
->>
-Rule 106 (Stride cannot be zero)
-{v_1: int} |= v_1 != 0
->>
-Rule 110 (Ensure pad is small if negative kernel size)
-{v_1: int, v_2: int} |= if v_2 < 0 then v_1 < 1
->>
-Rule 112 (Pad must not be negative value)
-{v_1: int} |= v_1 >= 0
->>
-Rule 113 (Input not have only one dimension)
-{v_1: tensor} |= ndim(v_1) != 1
->>
-Rule 114 (Padding must be less than or equal to keneral size / 2)
-{v_1 : int , v_2 : int} |= v_1 <= (v_2 / 2)
->>
-Rule 118 (Half overflow check with float tensor input)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then min(v_1) > -65500 ∧ max(v_1) < 65500
->>
-Rule 123 (Value should be within range that can be converted to half)
-{v_1: float} |= v_1 > -65000 ∧ v_1 < 65000
->>
-Rule 124 (Check for values close to maximum float16 value)
-{v_1: float} |= v_1 < 65000.0 ∧ v_1 > -65000.0
->>
-Rule 125 (Tensor must have dimension greater than 1.)
-{v_1: tensor} |= ndim(v_1) >= 2

@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# dim argument must have the same length as s argument, if both are given (Rule 2)
+# The length of dim and s should be the same if both are given (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
     s.add(Not(v["arg1_length"] == v["arg2_length"]) if n else

@@ -5,37 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if probability is greater than 1, training must be disabled (Rule 24)
+# If p is not between 0 and 1 raise Value Error (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] > 1, v["arg2_value"] == False, False)) if n else
-          If(v["arg1_value"] > 1, v["arg2_value"] == False, False))
+    s.add(Not(If((Or(v["arg1_value"] < 0, v["arg1_value"] > 1)), False, True)) if n else
+          If((Or(v["arg1_value"] < 0, v["arg1_value"] > 1)), False, True))
 )
 
-def rule_24_func(arg1, arg2, solver=None, neg=False):
+def rule_24_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, (float, np.floating)):
             return False
-        if not isinstance(arg2, bool):
-            return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = Real('arg1_value')
-        arg2_value = Bool('arg2_value')
 
         # Value assignments
         solver.add(arg1_value == arg1)
-        solver.add(arg2_value == arg2)
 
         # Constraints for rule 24
-        rule_24(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_24(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_24(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_24(solver, {'arg1_value': arg1['value']}, neg)

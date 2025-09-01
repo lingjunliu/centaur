@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check for integer out of range - using a reasonable bound (Rule 8)
+# kernel_size must be a single int, or a tuple of two ints (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] < 2147483647, v["arg1_value"] > -2147483648)) if n else
-          And(v["arg1_value"] < 2147483647, v["arg1_value"] > -2147483648))
+    s.add(Not(v["arg1_length"] == 2) if n else
+          v["arg1_length"] == 2)
 )
 
 def rule_8_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_8_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_length = Int('arg1_length')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
+        solver.add(arg1_length == len(arg1))
 
         # Constraints for rule 8
-        rule_8(solver, {'arg1_value': arg1_value})
+        rule_8(solver, {'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_8(solver, {'arg1_value': arg1['value']}, neg)
+        rule_8(solver, {'arg1_length': arg1['length']}, neg)

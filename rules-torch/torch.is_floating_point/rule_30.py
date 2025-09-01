@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The dtype of input tensor is not dtype (Rule 30)
+# The input must be a tensor with a dtype that is NOT numpy.float64 (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not((v["arg1_dtype"] != 13)) if n else
-          (v["arg1_dtype"] != 13))
+    s.add(Not(And(True, v["arg1_dtype"] != 8)) if n else
+          And(True, v["arg1_dtype"] != 8))
 )
 
 def rule_30_func(arg1, solver=None, neg=False):

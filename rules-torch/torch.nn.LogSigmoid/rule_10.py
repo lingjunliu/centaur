@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor dtype should not be bool, int8, int16, int32, int64, uint8 (Rule 10)
+# Ensure the input tensor is not of type 'Char' by requiring a floating-point or complex dtype (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
     s.add(Not(And(And(And(And(And(v["arg1_dtype"] != 0, v["arg1_dtype"] != 1), v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5)) if n else

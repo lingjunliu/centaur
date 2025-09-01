@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Valid negative dimension index (Rule 78)
+# A must be 1D or 2D when ord is not None and dim is None. (Rule 78)
 
 rule_78 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_value"] > (0 - v["arg1_ndim"] - 1)) if n else
-          v["arg2_value"] > (0 - v["arg1_ndim"] - 1))
+    s.add(Not(If(v["arg2_value"] != 0.0, Or(v["arg1_ndim"] == 1, v["arg1_ndim"] == 2), True)) if n else
+          If(v["arg2_value"] != 0.0, Or(v["arg1_ndim"] == 1, v["arg1_ndim"] == 2), True))
 )
 
 def rule_78_func(arg1, arg2, solver=None, neg=False):
@@ -20,17 +20,17 @@ def rule_78_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg2, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg2_value = Int('arg2_value')
+        arg2_value = Real('arg2_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 78
         rule_78(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})

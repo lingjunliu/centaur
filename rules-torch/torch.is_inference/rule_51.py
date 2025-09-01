@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# All tensor elements must be greater or equal to minimum value allowed for their dtype (Rule 51)
+# Check all the values are integer if dtype is int (Rule 51)
 
 rule_51 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_dtype"] == 1), Select(v["arg1_range"], 0) >= -128, If((v["arg1_dtype"] == 2), Select(v["arg1_range"], 0) >= -32768, If((v["arg1_dtype"] == 3), Select(v["arg1_range"], 0) >= -2147483648, If((v["arg1_dtype"] == 4), Select(v["arg1_range"], 0) >= -9223372036854775808, If((v["arg1_dtype"] == 5), Select(v["arg1_range"], 0) >= 0, False)))))) if n else
-          If((v["arg1_dtype"] == 1), Select(v["arg1_range"], 0) >= -128, If((v["arg1_dtype"] == 2), Select(v["arg1_range"], 0) >= -32768, If((v["arg1_dtype"] == 3), Select(v["arg1_range"], 0) >= -2147483648, If((v["arg1_dtype"] == 4), Select(v["arg1_range"], 0) >= -9223372036854775808, If((v["arg1_dtype"] == 5), Select(v["arg1_range"], 0) >= 0, False))))))
+    s.add(Not(If(Or(Or(Or(Or((v["arg1_dtype"] == 1), (v["arg1_dtype"] == 2)), (v["arg1_dtype"] == 3)), (v["arg1_dtype"] == 4)), (v["arg1_dtype"] == 5)), True, True)) if n else
+          If(Or(Or(Or(Or((v["arg1_dtype"] == 1), (v["arg1_dtype"] == 2)), (v["arg1_dtype"] == 3)), (v["arg1_dtype"] == 4)), (v["arg1_dtype"] == 5)), True, True))
 )
 
 def rule_51_func(arg1, solver=None, neg=False):
@@ -23,17 +23,14 @@ def rule_51_func(arg1, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 51
-        rule_51(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_51(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_51(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
+        rule_51(solver, {'arg1_dtype': arg1['dtype']}, neg)

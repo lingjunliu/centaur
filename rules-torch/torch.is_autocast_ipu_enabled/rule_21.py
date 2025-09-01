@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If dimension of a tensor is greater than 2, and second variable is string, the value should be mean. (Rule 21)
+# An integer should be less than the maximum value of a tensor (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 2, v["arg2_value"] == 7, False)) if n else
-          If(v["arg1_ndim"] > 2, v["arg2_value"] == 7, False))
+    s.add(Not(v["arg1_value"] < Select(v["arg2_range"], 1)) if n else
+          v["arg1_value"] < Select(v["arg2_range"], 1))
 )
 
 def rule_21_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,25 @@ def rule_21_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
-        if not isinstance(arg2, str):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_value = String('arg2_value')
+        arg1_value = Int('arg1_value')
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_value == list_of_string_values_torch.index(arg2))
+        solver.add(arg1_value == int(arg1))
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 21
-        rule_21(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_21(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_21(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)
+        rule_21(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range']}, neg)

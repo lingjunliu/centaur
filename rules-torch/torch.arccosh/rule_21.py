@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input is np.int16 and output is provided, the output type can be float16, float32, float64, complex64, complex128 (Rule 21)
+# If `out` tensor is provided, its dtype must be at least as precise as the arccosh result from the input tensor, considering potential complex results (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_dtype"] == 2), Or(Or(Or(Or((v["arg2_dtype"] == 6), (v["arg2_dtype"] == 7)), (v["arg2_dtype"] == 8)), (v["arg2_dtype"] == 9)), (v["arg2_dtype"] == 10)), False)) if n else
-          If((v["arg1_dtype"] == 2), Or(Or(Or(Or((v["arg2_dtype"] == 6), (v["arg2_dtype"] == 7)), (v["arg2_dtype"] == 8)), (v["arg2_dtype"] == 9)), (v["arg2_dtype"] == 10)), False))
+    s.add(Not(If(v["arg1_dtype"] == 7, Or(Or(Or(v["arg2_dtype"] == 8, v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), v["arg2_dtype"] == 11), If(v["arg1_dtype"] == 8, Or(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), v["arg2_dtype"] == 11), If(v["arg1_dtype"] == 9, Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 11), If(v["arg1_dtype"] == 10, Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 11), v["arg2_dtype"] == 11))))) if n else
+          If(v["arg1_dtype"] == 7, Or(Or(Or(v["arg2_dtype"] == 8, v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), v["arg2_dtype"] == 11), If(v["arg1_dtype"] == 8, Or(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), v["arg2_dtype"] == 11), If(v["arg1_dtype"] == 9, Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 11), If(v["arg1_dtype"] == 10, Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 11), v["arg2_dtype"] == 11)))))
 )
 
 def rule_21_func(arg1, arg2, solver=None, neg=False):

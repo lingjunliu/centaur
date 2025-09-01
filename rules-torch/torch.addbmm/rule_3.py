@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# batch1's m dimension must match batch2's m dimension (Rule 3)
+# inner dimension of batch1 should match first inner dimension of batch2 (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
     s.add(Not(Select(v["arg1_shape"], 2) == Select(v["arg2_shape"], 1)) if n else

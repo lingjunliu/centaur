@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If v_2 is specified as output, its dtype must be float if input is int to hold result. (Rule 23)
+# Input and output tensors dtypes should be consistent, and should not be integer (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] < 7, Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), False)) if n else
-          If(v["arg1_dtype"] < 7, Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), False))
+    s.add(Not(And((v["arg1_dtype"] == v["arg2_dtype"]), (And(And(And(And(v["arg1_dtype"] != 1, v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5)))) if n else
+          And((v["arg1_dtype"] == v["arg2_dtype"]), (And(And(And(And(v["arg1_dtype"] != 1, v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5))))
 )
 
 def rule_23_func(arg1, arg2, solver=None, neg=False):

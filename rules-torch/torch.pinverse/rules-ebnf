@@ -1,126 +1,129 @@
 >>
-Rule 1 (input tensor should have 2 or more dimensions)
+Rule 1 (input tensor must have 2 or more dimensions)
 {v_1 : tensor} |= ndim(v_1) ≥ 2
 >>
-Rule 2 (input tensor's dtype should be float, double, cfloat, or cdouble)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 9
+Rule 2 (input tensor must have a floating-point or complex dtype)
+{v_1 : tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∨ (9 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10)
 >>
-Rule 3 (input tensor should be of floating or complex type)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
->>
-Rule 4 (rcond should be a non-negative float)
+Rule 3 (rcond should be a non-negative float)
 {v_1 : float} |= v_1 ≥ 0
 >>
-Rule 5 (input tensor can't have dimension size of 0)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+Rule 5 (input tensor dimension must be greater than 1)
+{v_1 : tensor} |= ndim(v_1) > 1
 >>
-Rule 6 (rcond should be less than 1)
-{v_1 : float} |= v_1 ≤ 1
+Rule 7 (input tensor must be of type float, double, cfloat or cdouble)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 7 (rcond should be a finite number)
-{v_1 : float} |= v_1 > -100000000000000000000000000000000000 ∧ v_1 < 100000000000000000000000000000000000
+Rule 8 (rcond must be a float and not NaN)
+{v_1 : float} |= v_1 = v_1
 >>
-Rule 8 (Check for valid tensor and rcond combination)
-{v_1 : tensor, v_2 : float} |= (ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ v_2 ≥ 0)
+Rule 9 (if input is complex, rcond should not be too small)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_2 ≥ 1e-20
 >>
-Rule 9 (Ensure rcond is not too small to prevent numerical instability)
-{v_1 : float} |= v_1 ≥ 1e-20
+Rule 10 (rcond is finite)
+{v_1 : float} |= min(v_1) ≠ min(v_1) ∨ max(v_1) ≠ max(v_1)
 >>
-Rule 10 (Ensure rcond is a reasonable value)
-{v_1 : float} |= v_1 > 0 ∧ v_1 < 1
+Rule 11 (input tensor should not have inf or NaN values)
+{v_1 : tensor} |= min(v_1) = min(v_1) ∧ max(v_1) = max(v_1)
 >>
-Rule 11 (input must not be bool type)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 12 (if input tensor has dimension 2, then the shape[0] should not be zero)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 0
 >>
-Rule 13 (Enforce dimension constraints and type simultaneously)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+Rule 13 (if input tensor has dimension greater than 2, then the last two dimensions should not be zero)
+{v_1 : tensor} |= if ndim(v_1) > 2 then shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0
 >>
-Rule 14 (input tensor must be float16, float32, float64, complex64, or complex128)
+Rule 14 (input tensor shape should be valid for matrix inversion.)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) = shape(v_1, 1)
+>>
+Rule 15 (input tensor must be a matrix)
+{v_1 : tensor} |= ndim(v_1) = 2
+>>
+Rule 16 (input tensor should not contain only zeros)
+{v_1 : tensor} |= max(v_1) > min(v_1)
+>>
+Rule 17 (If the tensor has two or more dimensions, at least one value should be different than the others, so there is some variance)
+{v_1 : tensor} |= if ndim(v_1) ≥ 2 then ∃i ∈ [0, shape(v_1, 0) - 1] : ∃j ∈ [0, shape(v_1, 1) - 1]: v_1[i] ≠ v_1[j]
+>>
+Rule 18 (If the input tensor's dimension is between 2 and 10, rcond value should also be greater than or equal to 0)
+{v_1 : tensor, v_2 : float} |= if 2 ≤ ndim(v_1) ∧ ndim(v_1) ≤ 10 then v_2 ≥ 0
+>>
+Rule 19 (If input tensor is not a matrix then rcond value should not affect the calculation)
+{v_1 : tensor, v_2 : float} |= if ndim(v_1) ≠ 2 then v_2 = v_2
+>>
+Rule 20 (If the input tensor's dtype is float16, rcond should be greater than the minimum value of float16)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 then v_2 > 5.96e-08
+>>
+Rule 21 (If the input tensor's dtype is float16 or float32, rcond should be small enough)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 then v_2 < 10000 else if dtype_(v_1) = 7 then v_2 < 100000
+>>
+Rule 22 (If the input tensor's dtype is complex64 or complex128, rcond should be a value appropriate for these dtypes)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_2 > 1e-30
+>>
+Rule 23 (If input tensor is of double type, rcond should have high enough precision)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 8 then v_2 < 1e10
+>>
+Rule 24 (If the last two dimensions are equal, then the tensor can be considered for pinverse calculation )
+{v_1 : tensor} |= if ndim(v_1) ≥ 2 then shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
+>>
+Rule 25 (The last two dimensions of the input tensor should be greater than 0)
+{v_1 : tensor} |= if ndim(v_1) ≥ 2 then shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0
+>>
+Rule 30 (If tensor dimension is 2 or more, and dtype is double, then rcond is positive)
+{v_1 : tensor, v_2 : float} |= if ndim(v_1) ≥ 2 ∧ dtype_(v_1) = 8 then v_2 > 0
+>>
+Rule 31 (If the input tensor's dtype is complex64 or complex128, the rcond value should not be greater than 1.)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_2 ≤ 1
+>>
+Rule 36 (The tensor input should not have a dimension size equal to zero)
+{v_1 : tensor} |=  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+>>
+Rule 38 (If the tensor is real valued, then it must be a float, double or half)
+{v_1 : tensor} |= if dtype_(v_1) < 9 then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 39 (Double tensors should have more than 0 elements)
+{v_1 : tensor} |= if dtype_(v_1) = 8 then ∃i ∈ [0, ndim(v_1) -1]: shape(v_1, i) > 0
+>>
+Rule 40 (If the input tensor is Double, it should have at least two dimensions)
+{v_1 : tensor} |= if dtype_(v_1) = 8 then ndim(v_1) ≥ 2
+>>
+Rule 41 (The input tensor must be one of the allowed dtypes.)
 {v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 15 (Combination rule for valid input tensor)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0)
+Rule 42 (The shape should be defined)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_1, i)
 >>
-Rule 16 (Final comprehensive check)
-{v_1 : tensor, v_2 : float} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0) ∧ v_2 ≥ 0 ∧ v_2 < 1
+Rule 43 (The dtype of the input tensor should exist.)
+{v_1: tensor} |= dtype_(v_1) = dtype_(v_1)
 >>
-Rule 17 (rcond should not be Nan or Infinity)
-{v_1 : float} |= v_1 = v_1 ∧ (v_1 < 100000000000000000000000000000000000 ∧ v_1 > -100000000000000000000000000000000000)
+Rule 46 (If the tensor has complex type, ensure real and imaginary parts are not NaN)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) = min(v_1) ∧ max(v_1) = max(v_1)
 >>
-Rule 19 (More elaborate rcond check)
-{v_1 : float} |= v_1 > 0 ∧ v_1 < 1 ∧ v_1 = v_1
+Rule 49 (Input tensor with more than two dimensions should have the last dimension less than 1000)
+{v_1 : tensor} |= if ndim(v_1) > 2 then shape(v_1, ndim(v_1) -1) < 1000
 >>
-Rule 20 (rcond has default value or satisfies constraints)
-{v_1 : float} |= v_1 = 1e-15 ∨ (v_1 > 0 ∧ v_1 < 1 ∧ v_1 = v_1)
+Rule 50 (The tensor with at least two dimensions should have shape dimensions smaller than 2^16.)
+{v_1 : tensor} |= if ndim(v_1) ≥ 2 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 65536
 >>
-Rule 21 (Tensor is not complex if rcond is provided)
-{v_1 : tensor, v_2 : float} |= if v_2 = 1e-15 then true else dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 51 (If input tensor is of type Double, its last dimension must be less than a reasonable amount)
+{v_1 : tensor} |= if dtype_(v_1) = 8 then shape(v_1, ndim(v_1) - 1) < 2048
 >>
-Rule 22 (If rcond is specified, tensor cannot be bool, int, or str)
-{v_1 : tensor, v_2 : float} |= if v_2 = 1e-15 then true else dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5 ∧ dtype_(v_1) ≠ 11
+Rule 52 (If tensor is Double and has two or more dimensions then it should have a reasonable number of elements)
+{v_1 : tensor} |= if dtype_(v_1) = 8 ∧ ndim(v_1) ≥ 2 then ∃i ∈ [0, ndim(v_1)-1]: shape(v_1,i) < 4096
 >>
-Rule 23 (Final check of the rcond)
-{v_1 : float} |= v_1 ≥ 0 ∧ v_1 < 1 ∧ v_1 = v_1
+Rule 54 (If the input tensor is of Double type, it should not have NaN or Inf values)
+{v_1 : tensor} |= if dtype_(v_1) = 8 then min(v_1) = min(v_1) ∧ max(v_1) = max(v_1)
 >>
-Rule 24 (The most comprehensive check.)
-{v_1 : tensor, v_2 : float} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0) ∧ v_2 ≥ 0 ∧ v_2 < 1 ∧ v_2 = v_2
+Rule 55 (Input tensor must be of type float, double, cfloat, or cdouble and have at least two dimensions)
+{v_1 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ ndim(v_1) ≥ 2
 >>
-Rule 25 (The most comprehensive check without repeated checks)
-{v_1 : tensor, v_2 : float} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ v_2 ≥ 0 ∧ v_2 < 1 ∧ v_2 = v_2
+Rule 56 (If the input tensor has at least two dimensions, then it should not contain NaN or Inf values)
+{v_1 : tensor} |= if ndim(v_1) ≥ 2 then min(v_1) = min(v_1) ∧ max(v_1) = max(v_1)
 >>
-Rule 27 (Final, most concise check.)
-{v_1 : tensor, v_2 : float} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ 0 ≤ v_2 ∧ v_2 < 1
+Rule 58 (If input has at least two dimensions, then the product of the dimensions must be less than some large number)
+{v_1 : tensor} |= if ndim(v_1) ≥ 2 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 4096
 >>
-Rule 28 (Final, most concise check, fixed grammar.)
-{v_1 : tensor, v_2 : float} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (v_2 ≥ 0 ∧ v_2 < 1)
+Rule 59 (If at least two dimensions, they all must be positive)
+{v_1 : tensor} |= if ndim(v_1) ≥ 2 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 29 (Comprehensive Check - v3)
-{v_1 : tensor, v_2 : float} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (v_2 ≥ 0 ∧ v_2 < 1) ∧ v_2 = v_2
->>
-Rule 30 (Final, Comprehensive and Correct)
-{v_1 : tensor, v_2 : float} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (v_2 ≥ 0 ∧ v_2 < 1 ∧ v_2 = v_2)
->>
-Rule 33 (Slightly less trivial, always true but uses rcond)
-{v_1 : float} |= v_1 = v_1 ∨ true
->>
-Rule 36 (Input must have at least one non-zero dimension)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 37 (rcond and Tensor Interaction)
-{v_1 : tensor, v_2 : float} |= if ndim(v_1) > 1 then v_2 ≥ 0
->>
-Rule 38 (Another rcond and Tensor Interaction)
-{v_1 : tensor, v_2 : float} |= if (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then v_2 = v_2
->>
-Rule 39 (Another rcond and Tensor Interaction - stricter type)
-{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 7 then v_2 ≥ 0 ∧ v_2 < 1
->>
-Rule 40 (Combining size constraints with rcond)
-{v_1 : tensor, v_2 : float} |= if ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 then v_2 ≥ 0
->>
-Rule 41 (If the tensor has a dimension equal to zero, rcond must be zero.)
-{v_1 : tensor, v_2 : float} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then v_2 = 0
->>
-Rule 42 (Even more interaction: tensor size and type with rcond)
-{v_1 : tensor, v_2 : float} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then v_2 ≥ 0 ∧ v_2 < 1
->>
-Rule 43 (Check the valid number of dimension with rcond value)
-{v_1 : tensor, v_2 : float} |= if (v_2 > 0) then ndim(v_1) ≥ 2
->>
-Rule 44 (Check the valid type with rcond value)
-{v_1 : tensor, v_2 : float} |= if (v_2 < 1) then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
->>
-Rule 45 (All possible restrictions, still different enough)
-{v_1 : tensor, v_2 : float} |= if ndim(v_1) ≥ 2 then if (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then (v_2 ≥ 0 ∧ v_2 < 1 ∧ v_2 = v_2)
->>
-Rule 46 (The Final Rule - Check the dtype of input tensor if rcond is 0)
-{v_1 : tensor, v_2 : float} |= if (v_2 = 0) then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
->>
-Rule 47 (Check valid rcond value for valid tensor shape)
-{v_1 : tensor, v_2 : float} |= if ndim(v_1) ≥ 2 then (v_2 ≥ 0 ∧ v_2 < 1)
->>
-Rule 49 (The ultimate all-encompassing rule to check for everything - Fixed)
-{v_1 : tensor, v_2 : float} |= if ndim(v_1) ≥ 2 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (v_2 ≥ 0 ∧ v_2 < 1 ∧ v_2 = v_2)
->>
-Rule 51 (rcond should have reasonable value with a check of tensor dimension, fixed.)
-{v_1 : tensor, v_2 : float} |= if ndim(v_1) ≥ 2 then (v_2 ≥ 0 ∧ v_2 ≤ 1)
+Rule 60 (If the shape of last two dimensions are the same)
+{v_1 : tensor} |= if ndim(v_1) ≥ 2 then shape(v_1, ndim(v_1)-1) = shape(v_1, ndim(v_1)-2)

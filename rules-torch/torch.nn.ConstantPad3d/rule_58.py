@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The input size plus padding cannot be negative for int padding (Rule 58)
+# If the total padding is large, ensure the product of dimensions isn't too large, int case (Rule 58)
 
 rule_58 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(Or((And(And(And(v["arg1_ndim"] == 5, Select(v["arg1_shape"], 2) + 2 * v["arg2_value"] >= 0), Select(v["arg1_shape"], 3) + 2 * v["arg2_value"] >= 0), Select(v["arg1_shape"], 4) + 2 * v["arg2_value"] >= 0)), (And(And(And(v["arg1_ndim"] == 4, Select(v["arg1_shape"], 1) + 2 * v["arg2_value"] >= 0), Select(v["arg1_shape"], 2) + 2 * v["arg2_value"] >= 0), Select(v["arg1_shape"], 3) + 2 * v["arg2_value"] >= 0))), (And(And(And(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) + 2 * v["arg2_value"] >= 0), Select(v["arg1_shape"], 1) + 2 * v["arg2_value"] >= 0), Select(v["arg1_shape"], 2) + 2 * v["arg2_value"] >= 0))), (v["arg1_ndim"] < 3)), (v["arg1_ndim"] > 5))) if n else
-          Or(Or(Or(Or((And(And(And(v["arg1_ndim"] == 5, Select(v["arg1_shape"], 2) + 2 * v["arg2_value"] >= 0), Select(v["arg1_shape"], 3) + 2 * v["arg2_value"] >= 0), Select(v["arg1_shape"], 4) + 2 * v["arg2_value"] >= 0)), (And(And(And(v["arg1_ndim"] == 4, Select(v["arg1_shape"], 1) + 2 * v["arg2_value"] >= 0), Select(v["arg1_shape"], 2) + 2 * v["arg2_value"] >= 0), Select(v["arg1_shape"], 3) + 2 * v["arg2_value"] >= 0))), (And(And(And(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) + 2 * v["arg2_value"] >= 0), Select(v["arg1_shape"], 1) + 2 * v["arg2_value"] >= 0), Select(v["arg1_shape"], 2) + 2 * v["arg2_value"] >= 0))), (v["arg1_ndim"] < 3)), (v["arg1_ndim"] > 5)))
+    s.add(Not(If(2 * v["arg2_value"] > 10, Select(v["arg1_shape"], 0 + v["arg1_ndim"] - 3) * Select(v["arg1_shape"], 1 + v["arg1_ndim"] - 3) * Select(v["arg1_shape"], 2 + v["arg1_ndim"] - 3) < 1000, True)) if n else
+          If(2 * v["arg2_value"] > 10, Select(v["arg1_shape"], 0 + v["arg1_ndim"] - 3) * Select(v["arg1_shape"], 1 + v["arg1_ndim"] - 3) * Select(v["arg1_shape"], 2 + v["arg1_ndim"] - 3) < 1000, True))
 )
 
 def rule_58_func(arg1, arg2, solver=None, neg=False):

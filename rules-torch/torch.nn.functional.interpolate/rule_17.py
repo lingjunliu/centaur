@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor must be 3D, 4D, or 5D, and mode is not none (Rule 17)
+# only one of size or scale_factor should be defined when size is a tuple and scale_factor is a tuple. (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(And((Or(Or(v["arg1_ndim"] == 3, v["arg1_ndim"] == 4), v["arg1_ndim"] == 5)), (v["arg2_value"] != 6))) if n else
-          And((Or(Or(v["arg1_ndim"] == 3, v["arg1_ndim"] == 4), v["arg1_ndim"] == 5)), (v["arg2_value"] != 6)))
+    s.add(Not(If(v["arg1_length"] > 0, v["arg2_length"] == 0, True)) if n else
+          If(v["arg1_length"] > 0, v["arg2_length"] == 0, True))
 )
 
 def rule_17_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,24 @@ def rule_17_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
-        if not isinstance(arg2, str):
+        if not (isinstance(arg2, tuple) and all(isinstance(e, (float, np.floating)) for e in arg2)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_value = String('arg2_value')
+        arg1_length = Int('arg1_length')
+        arg2_length = Int('arg2_length')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_value == list_of_string_values_torch.index(arg2))
+        solver.add(arg1_length == len(arg1))
+        solver.add(arg2_length == len(arg2))
 
         # Constraints for rule 17
-        rule_17(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_17(solver, {'arg1_length': arg1_length, 'arg2_length': arg2_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_17(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)
+        rule_17(solver, {'arg1_length': arg1['length'], 'arg2_length': arg2['length']}, neg)

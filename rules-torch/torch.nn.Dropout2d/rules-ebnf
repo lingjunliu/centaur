@@ -1,87 +1,102 @@
 >>
-Rule 1 (Dropout probability should be between 0 and 1)
-{v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 1
+Rule 1 (Dropout probability must be between 0 and 1 inclusive)
+{v_1 : float} |= v_1 ≥ 0.0 ∧ v_1 ≤ 1.0
 >>
-Rule 4 (Input tensor must have at least 2 dimensions)
-{v_1 : tensor} |= ndim(v_1) ≥ 2
+Rule 2 (inplace should be a boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 6 (Shape of input tensor must have at least 3 dimensions to be treated as batched)
+Rule 3 (Input tensor should have at least 3 dimensions)
 {v_1 : tensor} |= ndim(v_1) ≥ 3
 >>
-Rule 7 (If input tensor has 3 dimensions then last dimension must be positive)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 2) > 0
+Rule 4 (Input tensor should have 4 dimensions)
+{v_1 : tensor} |= ndim(v_1) = 4
 >>
-Rule 9 (If input tensor has 3 dimensions then it's treated as NCL format)
-{v_1 : tensor} |= if ndim(v_1) = 3 then true else if ndim(v_1) = 4 then true else false
+Rule 5 (Input tensor should have 3 dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3
 >>
-Rule 13 (When inplace is true, input tensor must have a floating-point dtype)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64"
+Rule 6 (Check if probability and inplace are valid)
+{v_1 : float, v_2 : bool} |= v_1 ≥ 0.0 ∧ v_1 ≤ 1.0 ∧ (v_2 = true ∨ v_2 = false)
 >>
-Rule 15 (Input tensor must have 3 or 4 dimensions)
-{v_1 : tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4
+Rule 7 (If input is 3D, only dropout1d should be called)
+{v_1 : tensor} |= if ndim(v_1) = 3 then false
 >>
-Rule 17 (For 4D input, all dimensions must be positive)
-{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+Rule 10 (If p is 0, inplace should be false)
+{v_1 : float, v_2 : bool} |= if v_1 = 0.0 then v_2 = false
 >>
-Rule 21 (For 3D input, all dimensions must be positive)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+Rule 11 (If p is 1, inplace should be false)
+{v_1 : float, v_2 : bool} |= if v_1 = 1.0 then v_2 = false
 >>
-Rule 22 (If input is 3D, the first dimension must be batch size)
-{v_1 : tensor} |= if ndim(v_1) = 3 then true
+Rule 12 (Input tensor has valid dimensions based on probability)
+{v_1 : tensor, v_2 : float} |= (ndim(v_1) = 4 ∨ ndim(v_1) = 3) ∧ v_2 ≥ 0.0 ∧ v_2 ≤ 1.0
 >>
-Rule 26 (If input is 3D, the channel dimension must be positive)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 1) > 0
+Rule 13 (Check if probability is valid given the input tensor's shape)
+{v_1 : tensor, v_2 : float} |= if ndim(v_1) = 3 then v_2 ≥ 0.0 ∧ v_2 ≤ 1.0 else if ndim(v_1) = 4 then v_2 ≥ 0.0 ∧ v_2 ≤ 1.0 else false
 >>
-Rule 30 (If input is 4D, the channel dimension must be positive)
-{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 1) > 0
+Rule 14 (Ensure inplace is a boolean given a probability value)
+{v_1 : float, v_2 : bool} |= (v_2 = true ∨ v_2 = false) ∧ v_1 ≥ 0.0 ∧ v_1 ≤ 1.0
 >>
-Rule 31 (For 3D input, batch and channel dimensions must be positive)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+Rule 15 (Check tensor dimension and p value)
+{v_1 : tensor, v_2 : float} |= (ndim(v_1) = 3 ∨ ndim(v_1) = 4) ∧ v_2 >= 0.0 ∧ v_2 <= 1.0
 >>
-Rule 35 (If input is 3D or 4D, the channel dimension must be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) = 3 ∨ ndim(v_1) = 4 then shape(v_1, 1) > 0
+Rule 16 (Probability is valid when the input is a 3D or 4D tensor)
+{v_1 : tensor, v_2 : float} |= (ndim(v_1) = 3 ∨ ndim(v_1) = 4) ∧ v_2 ≥ 0 ∧ v_2 ≤ 1
 >>
-Rule 39 (If input is 4D, the batch size dimension must be positive)
-{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 0) > 0
+Rule 17 (Check tensor dtype and probability)
+{v_1 : tensor, v_2 : float} |= (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∧ v_2 >= 0.0 ∧ v_2 <= 1.0
 >>
-Rule 43 (If input is 4D, the height and width dimensions must be positive)
-{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+Rule 18 (Probability is valid and tensor is float type)
+{v_1 : tensor, v_2 : float} |= v_2 ≥ 0.0 ∧ v_2 ≤ 1.0 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
 >>
-Rule 55 (If input is 4D, the dimensions 0 and 1 should be positive)
-{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+Rule 19 (Probability is valid, and the tensor has either 3 or 4 dimensions)
+{v_1 : float, v_2 : tensor} |= v_1 >= 0.0 ∧ v_1 <= 1.0 ∧ (ndim(v_2) = 3 ∨ ndim(v_2) = 4)
 >>
-Rule 74 (All dimensions of input tensors with ndim = 3 or 4 must be positive)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 else if ndim(v_1) = 4 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+Rule 20 (If the tensor is of complex type then the probability should be 0)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then v_2 = 0.0 else v_2 >= 0.0 ∧ v_2 <= 1.0
 >>
-Rule 78 (If input is 3D the dimensions 1 and 2 should not be equal)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 1) ≠ shape(v_1, 2)
+Rule 21 (If probability is not between 0 and 1, then an error should be raised)
+{v_1 : float} |= if v_1 < 0.0 ∨ v_1 > 1.0 then false
 >>
-Rule 82 (if ndim = 3, shape[1] and shape[2] must not be zero)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+Rule 22 (Probability should be within the range [0, 1] and inplace should be a boolean value)
+{v_1 : float, v_2 : bool} |= v_1 >= 0.0 ∧ v_1 <= 1.0 ∧ (v_2 = true ∨ v_2 = false)
 >>
-Rule 86 (If input tensor has 4 dimensions, then channels, height and width must be different)
-{v_1: tensor} |= if ndim(v_1) = 4 then shape(v_1, 1) ≠ shape(v_1, 2) ∧ shape(v_1, 1) ≠ shape(v_1, 3) ∧ shape(v_1, 2) ≠ shape(v_1, 3)
+Rule 23 (If the input tensor does not have the appropriate dimensions, then the probability is ignored)
+{v_1 : tensor, v_2 : float} |= if ndim(v_1) ≠ 3 ∧ ndim(v_1) ≠ 4 then true else v_2 >= 0.0 ∧ v_2 <= 1.0
 >>
-Rule 90 (The second dimension of input (Channels) must be positive)
-{v_1: tensor} |= shape(v_1, 1) > 0
+Rule 26 (Valid probability and ensure input tensor is not complex)
+{v_1 : float, v_2 : tensor} |= v_1 >= 0.0 ∧ v_1 <= 1.0 ∧ (dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11)
 >>
-Rule 98 (If input tensor has 4 dimensions then batch and channels must be positive)
-{v_1: tensor} |= if ndim(v_1) = 4 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+Rule 27 (If probability is not a number, then an error will be thrown.)
+{v_1 : float} |= (v_1 + 0) = (v_1 + 0)
 >>
-Rule 106 (If input is 3D, at least one dimension should be different from the others)
-{v_1 : tensor} |= if ndim(v_1) = 3 then (shape(v_1, 0) ≠ shape(v_1, 1)) ∨ (shape(v_1, 1) ≠ shape(v_1, 2)) ∨ (shape(v_1, 0) ≠ shape(v_1, 2))
+Rule 28 (Valid probability, valid boolean for inplace, and valid tensor dimension)
+{v_1 : float, v_2 : bool, v_3 : tensor} |= v_1 >= 0.0 ∧ v_1 <= 1.0 ∧ (v_2 = true ∨ v_2 = false) ∧ (ndim(v_3) = 3 ∨ ndim(v_3) = 4)
 >>
-Rule 110 (If input is 4D, ensure that dimension 1 is less or equal to dimension 2)
-{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 1) ≤ shape(v_1, 2)
+Rule 29 (If probability is out of bound, it should raise a value error.)
+{v_1 : float} |= if v_1 < 0.0 ∨ v_1 > 1.0 then ∃i ∈ [0, 0] : false
 >>
-Rule 114 (Check input shape is valid. For NCL: N,C,L > 0. For NCHW: N,C,H,W > 0)
-{v_1: tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 else if ndim(v_1) = 4 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+Rule 30 (If probability is not between 0 and 1 or tensor dimension is not appropriate, then it results into value error)
+{v_1 : float, v_2 : tensor} |= if (v_1 < 0.0 ∨ v_1 > 1.0) ∨ (ndim(v_2) ≠ 3 ∧ ndim(v_2) ≠ 4) then ∃i ∈ [0, 0] : false
 >>
-Rule 118 (If input tensor has 4 dimensions then channels and width must not be equal)
-{v_1: tensor} |= if ndim(v_1) = 4 then shape(v_1, 1) ≠ shape(v_1, 3)
+Rule 31 (Probability should be within range [0,1] and Input tensor dimension validation)
+{v_1 : float, v_2 : tensor} |= (v_1 >= 0.0 ∧ v_1 <= 1.0) ∧ (ndim(v_2) = 3 ∨ ndim(v_2) = 4)
 >>
-Rule 122 (If input is 4D, the dimensions must be less than a constant)
-{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 0) < 100 ∧ shape(v_1, 1) < 100 ∧ shape(v_1, 2) < 100 ∧ shape(v_1, 3) < 100
+Rule 33 (Probability is within bounds, tensor dimension is acceptable, and tensor dtype is floating point)
+{v_1 : float, v_2 : tensor} |= (v_1 >= 0.0 ∧ v_1 <= 1.0) ∧ (ndim(v_2) = 3 ∨ ndim(v_2) = 4) ∧ (6 <= dtype_(v_2) ∧ dtype_(v_2) <= 8)
 >>
-Rule 126 (If the input tensor is 4D and all dimensions are positive, then the minimum value in the tensor must be greater or equal to 0)
-{v_1 : tensor} |= if ndim(v_1) = 4 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 then min(v_1) ≥ 0
+Rule 34 (Probability is within the range [0, 1], and tensor must be of float type with dimension 3 or 4)
+{v_1 : float, v_2 : tensor} |= (v_1 >= 0.0 ∧ v_1 <= 1.0) ∧ ((ndim(v_2) = 3 ∨ ndim(v_2) = 4) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 6))
+>>
+Rule 35 (If probability is not a float between 0 and 1 throw value error)
+{v_1 : float} |= if (v_1 < 0.0) ∨ (v_1 > 1.0) then ∃ x ∈ [0,0] : false
+>>
+Rule 36 (If probability is invalid and ndim is valid then raise value error)
+{v_1 : float, v_2 : tensor} |= if (v_1 < 0.0 ∨ v_1 > 1.0) ∧ (ndim(v_2) = 3 ∨ ndim(v_2) = 4) then ∃i ∈ [0, 0] : false
+>>
+Rule 44 (Probability should be between 0 and 1 and tensor dimension must be 3 or 4)
+{v_1 : float, v_2 : tensor} |= (v_1 >= 0.0 ∧ v_1 <= 1.0) ∨ (ndim(v_2) = 3 ∨ ndim(v_2) = 4)
+>>
+Rule 45 (Probability must be within range, Tensor must have a floating point dtype and the tensor dimension has to be either 3 or 4)
+{v_1 : float, v_2 : tensor} |= (v_1 >= 0.0 ∧ v_1 <= 1.0) ∧ ((ndim(v_2) = 3 ∨ ndim(v_2) = 4) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8))
+>>
+Rule 46 (Valid parameters)
+{v_1 : float, v_2 : tensor} |= (v_1 >= 0.0 ∧ v_1 <= 1.0) ∧ (ndim(v_2) = 3 ∨ ndim(v_2) = 4) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)

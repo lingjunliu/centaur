@@ -1,117 +1,123 @@
 >>
-Rule 1 (The output type should be able to represent the input type after reciprocal square root.)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 1 then v_2 = 7 else if dtype_(v_1) = 2 then v_2 = 7 else if dtype_(v_1) = 3 then v_2 = 7 else if dtype_(v_1) = 4 then v_2 = 7
+Rule 1 (input tensor must have a floating-point dtype to prevent casting errors)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 2 (Output dtype must be a floating-point type if the input is a floating-point type)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then v_2 = 7 ∨ v_2 = 8
+Rule 3 (input tensor's dtype cannot be bool)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 3 (If the desired output type is char, the input type must also be char)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then dtype_(v_1) = 1
+Rule 4 (input tensor's dtype cannot be str)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
 >>
-Rule 4 (The input tensor's dtype should be compatible with the specified output dtype.)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 7 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 5 (input tensor's dtype cannot be complex)
+{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
 >>
-Rule 5 (If the desired output type is char, the input tensor's values must be within the char range)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then min(v_1) ≥ -128 ∧ max(v_1) ≤ 127
+Rule 6 (input tensor's dtype cannot be np.dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 12
 >>
-Rule 7 (If output dtype is specified as not the default dtype, it must be a float type)
-{v_1 : dtype} |= if v_1 ≠ 13 then v_1 = 7 ∨ v_1 = 8
+Rule 7 (ensure the input tensor is not empty, i.e., has at least one element)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 8 (The output dtype must be float if input contains negative numbers)
-{v_1 : tensor, v_2 : dtype} |= if min(v_1) < 0 then v_2 = 7 ∨ v_2 = 8
+Rule 8 (if input tensor has int dtype, it should be castable to float without overflow)
+{v_1 : tensor} |= if dtype_(v_1) = 1 then max(v_1) < 2147483647 else if dtype_(v_1) = 2 then max(v_1) < 2147483647 else if dtype_(v_1) = 3 then max(v_1) < 2147483647
 >>
-Rule 9 (The output dtype must be float if the input dtype is complex)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then v_2 = 7 ∨ v_2 = 8
+Rule 9 (input tensor's values should be non-negative to avoid complex numbers after rsqrt)
+{v_1 : tensor} |= min(v_1) ≥ 0
 >>
-Rule 10 (If the input is a bool tensor, the output cannot be char)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 0 then v_2 ≠ 1
+Rule 10 (If the input is an integer type, ensure no division by zero after conversion to float)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then min(v_1) > 0
 >>
-Rule 12 (If the input is integer dtype, the output cannot be char)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5 then v_2 ≠ 1
+Rule 12 (Ensure that the values in the tensor do not cause overflow during reciprocal)
+{v_1 : tensor} |= min(v_1) > -1e-8 ∧ max(v_1) < 1e8
 >>
-Rule 13 (If the input dtype is bool, the output cannot be int8, int16, int32, int64)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 0 then v_2 ≠ 1 ∧ v_2 ≠ 2 ∧ v_2 ≠ 3 ∧ v_2 ≠ 4
+Rule 13 (Prevent zero values to avoid division by zero in rsqrt)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) > 0
 >>
-Rule 14 (Float cannot be cast to char if any value becomes infinity during rsqrt.)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then min(v_1) > 0
+Rule 14 (If the input is half precision, ensure no small values causing overflow)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > 1e-4
 >>
-Rule 15 (If input is int, it should not produce values outside of the range of char after rsqrt calculation when output is char.)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) >= 1 ∧ dtype_(v_1) <= 5 ∧ v_2 = 1 then min(v_1) > 0 ∧ max(v_1) < 100000000
+Rule 15 (ensure that the input tensor's values are not NaN or Inf)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) ≠ "nan" ∧ max(v_1) ≠ "inf"
 >>
-Rule 17 (If trying to cast to char, and there are very small positive float value that is near zero, it will become infinity.)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then max(v_1) > 0
+Rule 16 (The input tensor must have a defined shape)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 19 (If trying to cast to char and rsqrt operation produces large values exceeding the char range)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then max(v_1) < 10000
+Rule 17 (prevent zero values to avoid division by zero, accounting for possible small negative values due to precision)
+{v_1 : tensor} |= min(v_1) > -1e-6 ∧ ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 21 (If the input dtype is complex, the output dtype cannot be an integer)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then v_2 < 6
+Rule 18 (If the input contains integer types, its value must not exceed the maximum value representable for Float type)
+{v_1 : tensor} |= if dtype_(v_1) = 1 then max(v_1) < 3.4028235e+38 else if dtype_(v_1) = 2 then max(v_1) < 3.4028235e+38 else if dtype_(v_1) = 3 then max(v_1) < 3.4028235e+38 else if dtype_(v_1) = 4 then max(v_1) < 3.4028235e+38 else if dtype_(v_1) = 5 then max(v_1) < 3.4028235e+38
 >>
-Rule 22 (If the input is of type uint8, the output cannot be char)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 5 then v_2 ≠ 1
+Rule 19 (prevent zero values in floating point tensors for stability)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) > 1e-9 ∨ max(v_1) < -1e-9
 >>
-Rule 23 (If the output dtype is specified, it must be compatible with the input dtype after rsqrt operation.)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then dtype_(v_1) = 1 else if v_2 = 7 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 else if v_2 = 8 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+Rule 20 (If input tensor is quantized, ensure its scale is not zero)
+{v_1 : tensor} |= if dtype_(v_1) = 1 then true else if dtype_(v_1) = 2 then true else if dtype_(v_1) = 3 then true else if dtype_(v_1) = 4 then true else if dtype_(v_1) = 5 then true
 >>
-Rule 25 (If outputting to Char, values cannot be negative.)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then min(v_1) >= 0
+Rule 22 (if the input tensor requires gradients, it should have float dtype to prevent casting issues during backward pass)
+{v_1 : tensor} |= if true then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 26 (When the output is Char, the input must be an unsigned integer and all values cannot be zero.)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then dtype_(v_1) = 5 ∧ min(v_1) > 0
+Rule 23 (If the input tensor is uint8, its value must be greater or equal to zero)
+{v_1 : tensor} |= if dtype_(v_1) = 5 then min(v_1) >= 0
 >>
-Rule 27 (The input tensor's dtype should be compatible with the specified output dtype or vice versa.)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then dtype_(v_1) = 1 else if dtype_(v_1) = 1 then v_2 = 1 else if v_2 = 7 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8  else if dtype_(v_1) = 7 then v_2 = 7 ∨ v_2 = 8 else if dtype_(v_1) = 8 then v_2 = 7 ∨ v_2 = 8
+Rule 25 (if the input is float16, make sure its values are in the valid range of float16)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) ≥ -65500 ∧ max(v_1) ≤ 65500
 >>
-Rule 28 (When the desired output type is Char, the range of the values after the reciprocal square root cannot exceed the range of Char.)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then ∀i ∈ [0, ndim(v_1) -1] : shape(v_1,i) > 0 ∧ max(v_1) < 1000
+Rule 26 (If the input tensor has a floating-point data type, its values should not be extremely close to zero to avoid potential division by zero during rsqrt operation and gradient calculation.)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) > 1e-10 ∨ max(v_1) < -1e-10
 >>
-Rule 29 (If trying to cast to char, no value can be too close to zero such that rsqrt leads to overflow.)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then min(v_1) > 0.000001
+Rule 28 (prevent int8 type to avoid potential overflow)
+{v_1 : tensor} |= dtype_(v_1) ≠ 1
 >>
-Rule 30 (If outputting to Char, ensure that after the rsqrt, the max value is less than 127.)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then max(v_1) > 0.000001
+Rule 29 (Prevent denormal values to avoid undefined behavior)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) = 0 ∨ max(v_1) > 1.175494351e-38
 >>
-Rule 32 (If the input tensor's minimum is close to 0, and the output is Char, the operation may fail.)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then min(v_1) > 0.001
+Rule 32 (if the input is of integer type, it must be representable as float)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then max(v_1) < 1e+9 ∧ min(v_1) > -1e+9
 >>
-Rule 34 (Char is only allowed if the operation results in no value exceeding char range.)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then min(v_1) > 0 ∧ max(v_1) < 1000
+Rule 34 (if the input requires grad then it should be a float type )
+{v_1 : tensor} |= if dtype_(v_1) ≠ 0 then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 35 (if trying to cast a float to char, need to make sure rsqrt results in a valid value that can be casted.)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∧ min(v_1) > 0 ∧ max(v_1) < 10000
+Rule 36 (Check if the input tensor values are valid for rsqrt (>=0) and not too close to zero for numerical stability, particularly for float16.)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > 1e-5 else min(v_1) >= 0
 >>
-Rule 37 (It is impossible to convert a complex number to Char.)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+Rule 37 (if the input is bfloat16, check if it can be promoted to float32 safely)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > -3.389531387583075e+38 ∧ max(v_1) < 3.389531387583075e+38
 >>
-Rule 38 (If the target is char, ensure the source isn't complex or the operation doesn't lead to negative values or overflow.)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11 ∧ min(v_1) > 0 ∧ max(v_1) < 1000
+Rule 38 (For complex tensors, the real part of any number must not be less than zero.)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) >= 0
 >>
-Rule 40 (If the output is Char, ensure the result isn't infinity or NaN due to negative input.)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then dtype_(v_1) = 5
+Rule 39 (Ensure no integer overflows to prevent incorrect conversions to floats)
+{v_1 : tensor} |= if dtype_(v_1) = 2 then min(v_1) >= -32768 ∧ max(v_1) <= 32767 else if dtype_(v_1) = 3 then min(v_1) >= -2147483648 ∧ max(v_1) <= 2147483647 else if dtype_(v_1) = 4 then min(v_1) >= -9223372036854775808 ∧ max(v_1) <= 9223372036854775807
 >>
-Rule 41 (Cannot cast Float to Char when rsqrt will result in infinity.)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ min(v_1) > 0
+Rule 41 (input tensor's dtype cannot be uint8)
+{v_1 : tensor} |= dtype_(v_1) ≠ 5
 >>
-Rule 42 (Prevent potential Char overflow in rsqrt by limiting the range of float before conversion)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∧ max(v_1) < 1000
+Rule 43 (Check for positive values to prevent complex result with integer tensor input, check if the integer tensor values can convert to floats.)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then min(v_1) > 0 ∧ max(v_1) < 1e+9
 >>
-Rule 44 (Check if rsqrt(min(v_1)) is less than 127 to avoid overflow when casting to char)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∧ 1 / (min(v_1)) < 16129
+Rule 44 (If the input tensor has an integer dtype, check for zero values after converting to float)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then min(v_1) ≠ 0
 >>
-Rule 45 (If you are going to convert to char, there must not be a possibility of generating NaN)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then ∀i ∈ [0, ndim(v_1) -1] : min(v_1) >= 0
+Rule 45 (If it's an unsigned integer tensor, ensure no values beyond representable range after type conversion)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then max(v_1) <= 255
 >>
-Rule 47 (When the operation requires a float output due to the input dtype, the target dtype should not be char.)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then v_2 ≠ 1
+Rule 47 (Prevent NaN and Inf values)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) ≠ "nan" ∧ min(v_1) ≠ "inf" ∧ max(v_1) ≠ "nan" ∧ max(v_1) ≠ "inf"
 >>
-Rule 48 (When converting integer values, the values cannot be too large for char.)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then dtype_(v_1) < 6 ∧ max(v_1) < 1000000
+Rule 48 (Check tensor memory layout is valid.)
+{v_1: tensor} |= ndim(v_1) >= 0
 >>
-Rule 49 (Char is not compatible with complex numbers, or operations that create infinities.)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then dtype_(v_1) < 7 ∧ min(v_1) > 0
+Rule 49 (Check if the input tensor is quantized to prevent casting issues)
+{v_1 : tensor} |= dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5
 >>
-Rule 50 (If target is Char and source is integer values, ensure no overflow or invalid negative values exist)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then dtype_(v_1) < 7 ∧ min(v_1) > 0 ∧ max(v_1) < 1000000
+Rule 52 (prevent rsqrt of small negative numbers)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) ≥ 0
 >>
-Rule 52 (Char only works with unsigned 8 bit inputs that will still yield char values after calculation)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then dtype_(v_1) = 5 ∧ min(v_1) > 0 ∧ max(v_1) < 16129
+Rule 53 (For bfloat16, the scale should be non-zero to prevent NaN or inf)
+{v_1: tensor} |= if dtype_(v_1) = 6 then min(v_1) > 0 else True
+>>
+Rule 54 (If the input contains small floating values, it must be greater than the smallest representable number.)
+{v_1: tensor} |= if dtype_(v_1) = 7 then min(v_1) > 1.175494351e-38 else if dtype_(v_1) = 8 then min(v_1) > 2.2250738585072014e-308 else True
+>>
+Rule 55 (If a float type is used, then avoid overflow by keeping values below max)
+{v_1: tensor} |= if dtype_(v_1) = 7 then max(v_1) <= 3.4028235e+38 else if dtype_(v_1) = 8 then max(v_1) <= 1.7976931348623157e+308 else True

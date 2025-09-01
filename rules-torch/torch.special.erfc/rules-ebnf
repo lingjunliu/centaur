@@ -1,108 +1,159 @@
 >>
-Rule 1 (input tensor should not be a complex type to avoid "erfc_vml_cpu" error)
+Rule 1 (Input tensor must not have complex dtype to avoid "erfc_vml_cpu" not implemented error.)
 {v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
 >>
-Rule 2 (output tensor's dtype should be compatible with boolean type to avoid casting error)
+Rule 2 (Output tensor dtype should be compatible with bool to avoid can't be cast error.)
 {v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 0 then dtype_(v_1) = 0
 >>
-Rule 4 (output tensor should not be boolean when input is complex to prevent casting error)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) ≠ 0
+Rule 3 (Input tensor must have a valid numerical dtype (preventing implicit casting issues))
+{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10
 >>
-Rule 5 (input tensor should have a real dtype, and output tensor should be float if input is int)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10) ∧ if (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5) then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+Rule 4 (Input tensor must have a real dtype to avoid "erfc_vml_cpu" error.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
 >>
-Rule 6 (If input is complex, output should also be complex, preventing casting errors)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 then dtype_(v_2) = 9 else if dtype_(v_1) = 10 then dtype_(v_2) = 10
+Rule 5 (If the output tensor has a boolean dtype, the input tensor must also have a boolean dtype or a real dtype to avoid "can't be cast" error)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 0 then (dtype_(v_1) = 0 ∨ (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8))
 >>
-Rule 7 (Prevent complex input with boolean output by ensuring compatible dtypes)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) else if dtype_(v_2) = 0 then (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10)
+Rule 6 (Output tensor dtype should not be complex if the input tensor is real.)
+{v_1 : tensor, v_2 : tensor} |= if (1 <= dtype_(v_1) ∧ dtype_(v_1) <=8) then (dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10)
 >>
-Rule 8 (Input cannot be complex if out is boolean.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 0 then (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10)
->>
-Rule 9 (If input is complex, output should be complex to prevent casting errors)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) = dtype_(v_1))
->>
-Rule 10 (Complex input tensors require complex output tensors)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
->>
-Rule 11 (Input and output dtypes must be compatible; prevent bool output for complex input)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) else if dtype_(v_2) = 0 then (dtype_(v_1) < 9 ∨ dtype_(v_1) > 10)
->>
-Rule 12 (Avoid complex input leading to erfc_vml_cpu error)
+Rule 7 (Input tensor must not be complex to avoid "erfc_vml_cpu" error.)
 {v_1 : tensor} |= dtype_(v_1) < 9 ∨ dtype_(v_1) > 10
 >>
-Rule 13 (If the output dtype is boolean, the input dtype cannot be complex)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 0 then dtype_(v_1) < 9 ∨ dtype_(v_1) > 10
+Rule 9 (If output tensor is provided, its dtype should be compatible with the erfc operation on the input tensor.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = dtype_(v_1)
 >>
-Rule 16 (Only allow complex input if the output tensor is also complex.)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) < 9 ∨ dtype_(v_1) > 10) ∨ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+Rule 11 (If output tensor is boolean, input should also be boolean or floating-point to avoid casting errors)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 0 then (dtype_(v_1) = 0 ∨ (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8))
 >>
-Rule 17 (If input is ComplexDouble, then 'out' must be specified and also be ComplexDouble)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 10
+Rule 12 (If the output tensor's dtype is specified, it must be able to represent the result of erfc on the input tensor's dtype.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) ≠ 12 then (if dtype_(v_1) < 9 ∧ dtype_(v_1) > 0 then (dtype_(v_2) < 9 ∧ dtype_(v_2) > 0))
 >>
-Rule 18 (if input is ComplexDouble, output must be ComplexDouble or Complex128)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then (dtype_(v_2) = 10 ∨ dtype_(v_2) = 11)
+Rule 13 (Input tensor must have a floating-point or integer dtype to be compatible with erfc.)
+{v_1 : tensor} |= (1 <= dtype_(v_1) ∧ dtype_(v_1) <= 8)
 >>
-Rule 19 (Prevent ComplexDouble input, or force ComplexDouble output to prevent casting error)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ 10) ∨ (dtype_(v_2) = 10)
+Rule 15 (If an output tensor is specified and the input is floating-point or integer, the output must also be floating-point or integer to avoid casting errors.)
+{v_1 : tensor, v_2 : tensor} |= if (1 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∧ (dtype_(v_2) != 12) then (1 <= dtype_(v_2) ∧ dtype_(v_2) <= 8)
 >>
-Rule 20 (Do not allow a complex input tensor if the output tensor is specified as boolean)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 0 then (dtype_(v_1) < 9 ∨ dtype_(v_1) > 10)
+Rule 17 (If output tensor is explicitly specified, and the input is not boolean, the output cannot be boolean to prevent casting errors.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) ≠ 0) then (dtype_(v_2) ≠ 0)
 >>
-Rule 23 (Input can't be ComplexDouble if output is anything other than ComplexDouble)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) ≠ 10 then dtype_(v_1) ≠ 10
+Rule 20 (If the output tensor is explicitly specified and is of boolean type, then the input tensor must be of boolean type.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) = 0) then (dtype_(v_1) = 0)
 >>
-Rule 26 (Prevent bool output with complex input. Input and output must both be ComplexDouble or neither.)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 10 ∧ dtype_(v_2) = 10) ∨ (dtype_(v_1) ≠ 10 ∧ dtype_(v_2) ≠ 0)
+Rule 21 (If the output tensor's dtype is specified, and the input is numerical, then if the input is an integer, the output must be an integer or float.)
+{v_1 : tensor, v_2 : tensor} |= if (1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5) ∧ (dtype_(v_2) != 12) then (1 <= dtype_(v_2) ∧ dtype_(v_2) <= 8)
 >>
-Rule 27 (If input tensor has ComplexDouble dtype, then the output tensor must have a dtype that is also a complex number)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11)
+Rule 23 (If output tensor is explicitly specified and is of boolean type, then the input tensor must be of boolean type, or int or float type)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) = 0) then (dtype_(v_1) = 0 ∨ (1<=dtype_(v_1) ∧ dtype_(v_1) <=8))
 >>
-Rule 28 (If Input is complex, output must be complex)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11)
+Rule 24 (If the output tensor's dtype is specified and if it is complex, then input dtype must also be complex)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
 >>
-Rule 29 (Prevent complex input with non-complex out by ensuring that if input is complex, the output is also complex)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11)
+Rule 25 (Output tensor cannot be boolean if input is integer)
+{v_1 : tensor, v_2 : tensor} |= if (1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5) then dtype_(v_2) != 0
 >>
-Rule 30 (Avoid ComplexDouble input; if complex input, 'out' must be ComplexDouble.)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 10 ∨ dtype_(v_2) = 10
+Rule 27 (Input tensor dtype should be numerical (integer or floating point) or boolean.)
+{v_1 : tensor} |= (0 <= dtype_(v_1) ∧ dtype_(v_1) <= 8)
 >>
-Rule 35 (If you have a complex input, you need a complex output, and you can't use ComplexDouble because it's not implemented.)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 10) ∧ (dtype_(v_2) = 11) ∨ (dtype_(v_1) < 9) ∨ (dtype_(v_1) > 10)
+Rule 28 (Output tensor cannot be boolean if input is integer or float)
+{v_1 : tensor, v_2 : tensor} |= if (1 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) then dtype_(v_2) ≠ 0
 >>
-Rule 36 (Only use Complex128 or below as input. Force output to be Complex128 if the input is ComplexDouble.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 11 else dtype_(v_1) < 11
+Rule 30 (Input tensor dtype should be numerical (integer or floating point) or boolean to avoid errors)
+{v_1 : tensor} |= (0 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∨ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
 >>
-Rule 37 (Don't allow ComplexDouble input, or boolean output with complex input, to prevent runtime errors.)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ 10) ∧ (dtype_(v_1) < 9 ∨ dtype_(v_1) > 10 ∨ dtype_(v_2) ≠ 0)
+Rule 31 (Output tensor cannot be boolean if input is not boolean)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) ≠ 0) then dtype_(v_2) ≠ 0
 >>
-Rule 38 (If input is ComplexDouble, output must be Complex128 to avoid erfc_vml_cpu, and if the output is Bool, then the input cannot be complex)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 10 ∧ dtype_(v_2) = 11) ∨ (dtype_(v_2) = 0 ∧ dtype_(v_1) < 9 ∧ dtype_(v_1) > 10) ∨ (dtype_(v_1) < 9) ∨ (dtype_(v_1) > 10)
+Rule 32 (If the input is complex, the output must be complex)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
 >>
-Rule 39 (Input should not be ComplexDouble, or if it is, output should be specified as Complex128. Also, prevent Complex inputs if the output is Bool)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ 10) ∧ ((dtype_(v_1) < 9) ∨ (dtype_(v_1) > 10) ∨ (dtype_(v_2) ≠ 0)) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_2) = 11)
+Rule 33 (Input tensor dtype should be numerical (integer or floating point) or boolean to avoid errors)
+{v_1 : tensor} |= (0 <= dtype_(v_1) ∧ dtype_(v_1) <= 10)
 >>
-Rule 40 (Input cannot be ComplexDouble, or prevent the output from being boolean if input is complex.)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ 10) ∨ ((dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ dtype_(v_2) ≠ 0)
+Rule 34 (If output tensor is explicitly specified, the output dtype must be compatible with the input dtype.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) != 12) then (((0 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∧ (0 <= dtype_(v_2) ∧ dtype_(v_2) <= 8)) ∨ ((dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)) ∨ ((dtype_(v_1) = 0) ∧ (dtype_(v_2) = 0)))
 >>
-Rule 41 (ComplexDouble is not supported, and bool output with complex input will cause errors, so prevent this)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) < 9 ∨ dtype_(v_1) > 10) ∧ (dtype_(v_2) ≠ 0 ∨ dtype_(v_1) < 9 ∨ dtype_(v_1) > 10)
+Rule 36 (If output tensor is explicitly specified, and the input is not complex, the output cannot be complex)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) < 9) then (dtype_(v_2) < 9)
 >>
-Rule 42 (Disallow ComplexDouble input OR require Complex128 output OR disallow Bool output)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 10 ∨ dtype_(v_2) = 11 ∨ dtype_(v_2) ≠ 0
+Rule 38 (The output tensor's shape must match the input tensor's shape.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 43 (If input is ComplexDouble, output must be Complex128; and if output is Bool, input cannot be Complex or Str)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 10 ∧ dtype_(v_2) = 11) ∨ (dtype_(v_2) = 0 ∧ (dtype_(v_1) < 9 ∧ dtype_(v_1) > 10) ∧ dtype_(v_1) ≠ 11) ∨ (dtype_(v_1) < 10)
+Rule 39 (If the input is complex, the output must be complex or have the same dtype as the input)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then ((dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) ∨ (dtype_(v_2) = dtype_(v_1)))
 >>
-Rule 44 (If the input is ComplexDouble, the output must be Complex128; and the input cannot be complex if the output is bool.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 11 else if dtype_(v_2) = 0 then dtype_(v_1) < 9 ∨ dtype_(v_1) > 10
+Rule 41 (The input tensor must be of a supported dtype: bool, int, float or complex)
+{v_1: tensor} |= (0 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∨ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
 >>
-Rule 45 (To avoid errors, either input is not ComplexDouble, or if it is, then the output must be Complex128 and the output can't be Bool.)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ 10) ∨ ((dtype_(v_2) = 11) ∧ (dtype_(v_2) ≠ 0))
+Rule 42 (If the input is complex, the output must be complex, and same type)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) = dtype_(v_1))
 >>
-Rule 46 (Avoid ComplexDouble as input, and if output is Bool, don't allow Complex as input (9,10,11)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 10 ∧ if dtype_(v_2) = 0 then dtype_(v_1) < 9 ∨ dtype_(v_1) > 10
+Rule 44 (If an output tensor is specified, its dtype must be large enough to store the result)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 1) then (dtype_(v_2) >= 1 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 2) then (dtype_(v_2) >= 2 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 3) then (dtype_(v_2) >= 3 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 4) then (dtype_(v_2) >= 4 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 5) then (dtype_(v_2) >= 5 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 6) then (dtype_(v_2) >= 6 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 7) then (dtype_(v_2) >= 7 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 8) then (dtype_(v_2) >= 8 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 9) then (dtype_(v_2) >= 9 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 10) then (dtype_(v_2) = 10)
 >>
-Rule 47 (Input should be real, or if output is explicitly Bool, input must be real)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) < 9 ∨ dtype_(v_1) > 10) ∧ (if dtype_(v_2) = 0 then dtype_(v_1) < 9 ∨ dtype_(v_1) > 10)
+Rule 46 (If an output tensor is specified, its dtype must be large enough to store the result)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 1) then (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 2) then (dtype_(v_2) ≥ 2 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 3) then (dtype_(v_2) ≥ 3 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 4) then (dtype_(v_2) ≥ 4 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 5) then (dtype_(v_2) ≥ 5 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 6) then (dtype_(v_2) >= 6 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 7) then (dtype_(v_2) >= 7 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 8) then (dtype_(v_2) >= 8 ∧ dtype_(v_2) <= 10)
+>>
+Rule 47 (Input tensor cannot be ComplexDouble)
+{v_1: tensor} |= dtype_(v_1) ≠ 10
+>>
+Rule 48 (If an output tensor is specified, its dtype must be large enough to store the result, and cannot be boolean if input is numerical.)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 1) then (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 2) then (dtype_(v_2) ≥ 2 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 3) then (dtype_(v_2) ≥ 3 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 4) then (dtype_(v_2) ≥ 4 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 5) then (dtype_(v_2) ≥ 5 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 6) then (dtype_(v_2) >= 6 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 7) then (dtype_(v_2) >= 7 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 8) then (dtype_(v_2) >= 8 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 9) then (dtype_(v_2) = 9) else if (dtype_(v_1) = 10) then (dtype_(v_2) = 10) ∧ if (0 < dtype_(v_1) ∧ dtype_(v_1) < 9) then dtype_(v_2) ≠ 0
+>>
+Rule 50 (If the input is ComplexFloat, the output must also be ComplexFloat)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9) then (dtype_(v_2) = 9)
+>>
+Rule 51 (If the input is complex, the output must be complex or have compatible complex dtypes.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then ((dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) ∧ if dtype_(v_1) = 9 then dtype_(v_2) = 9 else dtype_(v_2) = 10)
+>>
+Rule 52 (If an output tensor is specified, its dtype must be large enough to store the result, and cannot be boolean if input is numerical, and if input is complexFloat it must have the same dtype)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 1) then (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 2) then (dtype_(v_2) ≥ 2 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 3) then (dtype_(v_2) ≥ 3 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 4) then (dtype_(v_2) ≥ 4 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 5) then (dtype_(v_2) ≥ 5 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 6) then (dtype_(v_2) >= 6 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 7) then (dtype_(v_2) >= 7 ∧ dtype_(v_2) <= 10) else if (dtype_(v_1) = 8) then (dtype_(v_2) >= 8 ∧ dtype_(v_2) <= 10) ∧ if (0 < dtype_(v_1) ∧ dtype_(v_1) < 9) then dtype_(v_2) ≠ 0 ∧ if (dtype_(v_1) = 9) then (dtype_(v_2) = 9)
+>>
+Rule 55 (If an output tensor is specified, and input is numerical (int/float), then output must have the same dtype or a floating point dtype, and no boolean.)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) >= 1 ∧ dtype_(v_1) <=8) then ((dtype_(v_2) >= 1 ∧ dtype_(v_2) <= 8))
+>>
+Rule 59 (Input tensor cannot be ComplexDouble to prevent erfc_vml_cpu error)
+{v_1: tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 61 (If an output tensor is specified, and input is numerical (int/float/complexFloat), then the output must have a numerical dtype compatible)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) >= 1 ∧ dtype_(v_1) <=9) then ((dtype_(v_2) >= 1 ∧ dtype_(v_2) <= 9))
+>>
+Rule 63 (If an output tensor is specified, it must have a numerical dtype compatible with the input, or ComplexFloat for ComplexFloat, and the same size)
+{v_1: tensor, v_2: tensor} |= (if (dtype_(v_1) >= 1 ∧ dtype_(v_1) <=8) then ((dtype_(v_2) >= 1 ∧ dtype_(v_2) <= 8) ∧ ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) else if (dtype_(v_1) = 9) then (dtype_(v_2) = 9 ∧ ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)))
+>>
+Rule 65 (If the output tensor has smaller precision than input one, there will be information loss, so prevent that)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) < dtype_(v_2) ∧ dtype_(v_1) > 0 ∧ dtype_(v_1) < 9) then false
+>>
+Rule 66 (If an output tensor is specified, it must have a numerical dtype compatible with the input, with certain conditions to avoid the "can't be cast" error.)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 0) then (dtype_(v_2) = 0) else if (dtype_(v_1) >= 1 ∧ dtype_(v_1) <=9) then ((dtype_(v_2) >= 1 ∧ dtype_(v_2) <= 9))
+>>
+Rule 67 (If the output tensor has smaller precision than input one, there will be information loss, so prevent that unless output type is bool)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_2) != 0) then if (dtype_(v_1) < dtype_(v_2) ∧ dtype_(v_1) > 0 ∧ dtype_(v_1) < 9) then false
+>>
+Rule 69 (If the output tensor has smaller precision than input one, there will be information loss, so prevent that unless output type is bool or dtypes are same)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_2) ≠ 0) then if (dtype_(v_1) < dtype_(v_2) ∧ dtype_(v_1) > 0 ∧ dtype_(v_1) < 9) then false else if (dtype_(v_1) = dtype_(v_2)) then true
+>>
+Rule 71 (If input is ComplexFloat, output must be ComplexFloat and have the same shape)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 9) then ((dtype_(v_2) = 9) ∧ (ndim(v_1) = ndim(v_2)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)))
+>>
+Rule 75 (Input must not be complexDouble. If the output tensor is specified, its dtype must be large enough to store the result, or same shape for complexfloat, unless the output type is bool. Also smaller precision than input one will cause information loss, so prevent that if possible)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) ≠ 10 ∧ (if (dtype_(v_1) = 0) then (dtype_(v_2) = 0) else if (dtype_(v_1) >= 1 ∧ dtype_(v_1) <= 9) then (if (dtype_(v_1) < dtype_(v_2) ∧ dtype_(v_1) > 0 ∧ dtype_(v_1) < 9) then false else (if (dtype_(v_1) = 9) then (dtype_(v_2) = 9 ∧ (ndim(v_1) = ndim(v_2)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))))))
+>>
+Rule 76 (Input must not be complexDouble. If the output tensor is specified, its dtype must be compatible with the input, and smaller precision is not accepted. Also it must have the same shape.)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) ≠ 10 ∧ (if (dtype_(v_2) = 12) then true else if (dtype_(v_1) = 0) then (dtype_(v_2) = 0) else if (dtype_(v_1) >= 1 ∧ dtype_(v_1) <= 9) then ((dtype_(v_2) >= dtype_(v_1) ∧ dtype_(v_2) <= 9) ∧ (ndim(v_1) = ndim(v_2)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))))
+>>
+Rule 77 (Main rule: Check to prevent "erfc_vml_cpu" error by excluding ComplexDouble as input, and perform checks that the output dtype is valid, has correct shape, and has appropriate precision compared to the input. This also covers the "can't be cast to the desired output type Bool" error.)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) ≠ 10 ∧ (if (dtype_(v_2) = 12) then true else if (dtype_(v_1) = 0) then (dtype_(v_2) = 0) else if (dtype_(v_1) >= 1 ∧ dtype_(v_1) <= 9) then ((dtype_(v_2) >= dtype_(v_1) ∧ dtype_(v_2) <= 9) ∧ (ndim(v_1) = ndim(v_2)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)))) ∧ (if (dtype_(v_1) = 9) then dtype_(v_2) = 9)
+>>
+Rule 78 (Main rule: Comprehensive checks to prevent erfc-related errors by validating dtype and other tensor properties to avoid runtime errors.)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) ≠ 10 ∧ ((dtype_(v_2) = 12) ∨ (if (dtype_(v_1) = 0) then (dtype_(v_2) = 0) else if (dtype_(v_1) >= 1 ∧ dtype_(v_1) <= 9) then ((dtype_(v_2) >= dtype_(v_1) ∧ dtype_(v_2) <= 9) ∧ (ndim(v_1) = ndim(v_2)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)))))
+>>
+Rule 79 (Main rule: Comprehensive checks for preventing erfc errors concerning dtypes and shapes by validation to meet function requirements.)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) ≠ 10 ∧ (dtype_(v_2) = 12 ∨ (dtype_(v_1) = 0 ∧ dtype_(v_2) = 0) ∨ (dtype_(v_1) >= 1 ∧ dtype_(v_1) <= 9 ∧ dtype_(v_2) >= dtype_(v_1) ∧ dtype_(v_2) <= 9 ∧ ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)))
+>>
+Rule 80 (Main rule: Check input and output tensors' dtypes and shapes to prevent "erfc_vml_cpu" and "can't be cast" errors.)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) ≠ 10 ∧ (dtype_(v_2) = 12 ∨ (dtype_(v_1) = 0 ∧ dtype_(v_2) = 0) ∨ (dtype_(v_1) >= 1 ∧ dtype_(v_1) <= 9 ∧ dtype_(v_2) >= dtype_(v_1) ∧ dtype_(v_2) <= 9 ∧ ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))))
+>>
+Rule 81 (Main rule to prevent erfc-related errors by validating input's dtype, and to ensure that output dtype and shape are correctly set. if the output tensor is not specified then dtype is correct.)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) ≠ 10 ∧ (dtype_(v_2) = 12 ∨ ((dtype_(v_1) = 0 ∧ dtype_(v_2) = 0) ∨ (dtype_(v_1) >= 1 ∧ dtype_(v_1) <= 9 ∧ dtype_(v_2) >= dtype_(v_1) ∧ dtype_(v_2) <= 9 ∧ ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)))))

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The input tensor's dtype must not be boolean or complex. (Rule 33)
+# The input tensor should have dtypes float16, float32, float64 or complex64, if complex, only complex64 (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(And(And(And((v["arg1_dtype"] != 0), (v["arg1_dtype"] != 9)), (v["arg1_dtype"] != 10)), (v["arg1_dtype"] != 11))) if n else
-          And(And(And((v["arg1_dtype"] != 0), (v["arg1_dtype"] != 9)), (v["arg1_dtype"] != 10)), (v["arg1_dtype"] != 11)))
+    s.add(Not(If(v["arg1_dtype"] < 6, False, If(v["arg1_dtype"] > 9, False, True))) if n else
+          If(v["arg1_dtype"] < 6, False, If(v["arg1_dtype"] > 9, False, True)))
 )
 
 def rule_33_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the tensor has more than 31 dimensions, you can not unsqueeze at 0 (Rule 80)
+#  If the total number of dimension is greater than 0, it must be in range (Rule 80)
 
 rule_80 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 31, v["arg2_value"] != 0, False)) if n else
-          If(v["arg1_ndim"] > 31, v["arg2_value"] != 0, False))
+    s.add(Not(If(v["arg1_ndim"] > 0, And(v["arg2_value"] >= (0 - v["arg1_ndim"] - 1), v["arg2_value"] < (v["arg1_ndim"] + 1)), True)) if n else
+          If(v["arg1_ndim"] > 0, And(v["arg2_value"] >= (0 - v["arg1_ndim"] - 1), v["arg2_value"] < (v["arg1_ndim"] + 1)), True))
 )
 
 def rule_80_func(arg1, arg2, solver=None, neg=False):

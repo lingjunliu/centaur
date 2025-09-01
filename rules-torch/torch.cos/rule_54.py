@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if output tensor is specified and input tensor requires float result, out must be at least float32 (Rule 54)
+# If output is Short, the input must be Bool or Short. (Rule 54)
 
 rule_54 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or((v["arg1_dtype"] <= 5), (v["arg1_dtype"] == 6)), (v["arg1_dtype"] == 0)), (v["arg2_dtype"] >= 7), False)) if n else
-          If(Or(Or((v["arg1_dtype"] <= 5), (v["arg1_dtype"] == 6)), (v["arg1_dtype"] == 0)), (v["arg2_dtype"] >= 7), False))
+    s.add(Not(If(v["arg2_dtype"] == 2, (Or(v["arg1_dtype"] == 0, v["arg1_dtype"] == 2)), True)) if n else
+          If(v["arg2_dtype"] == 2, (Or(v["arg1_dtype"] == 0, v["arg1_dtype"] == 2)), True))
 )
 
 def rule_54_func(arg1, arg2, solver=None, neg=False):

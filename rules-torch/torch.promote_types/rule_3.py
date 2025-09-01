@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If type2 is bool, type1 cannot be complex (Rule 3)
+# If type1 is complex, then the result should be complex (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == 0, And(v["arg1_value"] != 9, v["arg1_value"] != 10), False)) if n else
-          If(v["arg2_value"] == 0, And(v["arg1_value"] != 9, v["arg1_value"] != 10), False))
+    s.add(Not(If(Or(v["arg1_value"] == 9, v["arg1_value"] == 10), (Or(Or(Or(Or(Or(v["arg2_value"] == 9, v["arg2_value"] == 10), v["arg2_value"] == 6), v["arg2_value"] == 7), v["arg2_value"] == 8), v["arg2_value"] == 0)), True)) if n else
+          If(Or(v["arg1_value"] == 9, v["arg1_value"] == 10), (Or(Or(Or(Or(Or(v["arg2_value"] == 9, v["arg2_value"] == 10), v["arg2_value"] == 6), v["arg2_value"] == 7), v["arg2_value"] == 8), v["arg2_value"] == 0)), True))
 )
 
 def rule_3_func(arg1, arg2, solver=None, neg=False):

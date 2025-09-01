@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If autocast_cpu_dtype is float16, ensure that the hardware supports it (Rule 18)
+# autocast_cpu_dtype should not be np.int16 (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 6, True, False)) if n else
-          If(v["arg1_value"] == 6, True, False))
+    s.add(Not(v["arg1_value"] != 2) if n else
+          v["arg1_value"] != 2)
 )
 
 def rule_18_func(arg1, solver=None, neg=False):

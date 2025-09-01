@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if batch_first is true, input tensor ndim must be 3 (Rule 14)
+# if batch_first is false input tensor should have two dimensions (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, v["arg2_ndim"] == 3, False)) if n else
-          If(v["arg1_value"] == True, v["arg2_ndim"] == 3, False))
+    s.add(Not(If(v["arg1_value"] == False, v["arg2_ndim"] == 2, True)) if n else
+          If(v["arg1_value"] == False, v["arg2_ndim"] == 2, True))
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):

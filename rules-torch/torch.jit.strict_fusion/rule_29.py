@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The length of a list of booleans should be greater than or equal to the number of dimension of a tensor. (Rule 29)
+# The operations inside strict_fusion must be memory access safe for all dimensions. (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_length"] >= v["arg2_ndim"]) if n else
-          v["arg1_length"] >= v["arg2_ndim"])
+    s.add(Not(And(And(v["arg1_ndim"] > 0, 0 <= v["arg2_value"]), v["arg2_value"] < Select(v["arg1_shape"], 0))) if n else
+          And(And(v["arg1_ndim"] > 0, 0 <= v["arg2_value"]), v["arg2_value"] < Select(v["arg1_shape"], 0)))
 )
 
 def rule_29_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,27 @@ def rule_29_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, list) and all(isinstance(e, bool) for e in arg1)):
+        if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
-        arg2_ndim = Int('arg2_ndim')
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
-        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 29
-        rule_29(solver, {'arg1_length': arg1_length, 'arg2_ndim': arg2_ndim})
+        rule_29(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_29(solver, {'arg1_length': arg1['length'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_29(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Output tensor's dtype should be compatible with input tensor's dtype to avoid RuntimeError: result type Float can't be cast to the desired output type Short (Rule 1)
+# out tensor must have the same dtype as the input tensor (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
     s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# dropout rate and training flag interaction. (Rule 23)
+# dropout probability must be a valid probability when training (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 0.0, True, v["arg2_value"] == True)) if n else
-          If(v["arg1_value"] == 0.0, True, v["arg2_value"] == True))
+    s.add(Not(If(v["arg2_value"], (And(v["arg1_value"] >= 0.0, v["arg1_value"] <= 1.0)), True)) if n else
+          If(v["arg2_value"], (And(v["arg1_value"] >= 0.0, v["arg1_value"] <= 1.0)), True))
 )
 
 def rule_23_func(arg1, arg2, solver=None, neg=False):

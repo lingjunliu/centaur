@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# width must be divisible by downscale_factor (Rule 26)
+# Sufficient conditions to avoid errors. More complex than previous to try to avoid being repetitive (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(Or([And(i < (Select(v["arg1_shape"], v["arg1_ndim"] - 1) - 1 + 1), i * v["arg2_value"] == Select(v["arg1_shape"], v["arg1_ndim"] - 1)) for i in range(6)])) if n else
-          Or([And(i < (Select(v["arg1_shape"], v["arg1_ndim"] - 1) - 1 + 1), i * v["arg2_value"] == Select(v["arg1_shape"], v["arg1_ndim"] - 1)) for i in range(6)]))
+    s.add(Not(If(v["arg1_ndim"] < 3, True, If(v["arg2_value"] <= 0, True, If(Select(v["arg1_shape"], v["arg1_ndim"] - 2) % v["arg2_value"] != 0, True, Select(v["arg1_shape"], v["arg1_ndim"] - 1) % v["arg2_value"] == 0)))) if n else
+          If(v["arg1_ndim"] < 3, True, If(v["arg2_value"] <= 0, True, If(Select(v["arg1_shape"], v["arg1_ndim"] - 2) % v["arg2_value"] != 0, True, Select(v["arg1_shape"], v["arg1_ndim"] - 1) % v["arg2_value"] == 0))))
 )
 
 def rule_26_func(arg1, arg2, solver=None, neg=False):
@@ -36,9 +36,9 @@ def rule_26_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 26
-        rule_26(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_26(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_26(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_26(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

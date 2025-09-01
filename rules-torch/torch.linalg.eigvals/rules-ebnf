@@ -2,68 +2,170 @@
 Rule 1 (Input tensor A must have at least 2 dimensions)
 {v_1 : tensor} |= ndim(v_1) ≥ 2
 >>
-Rule 2 (A must be batches of square matrices)
+Rule 2 (The last two dimensions of A must be equal, making it square matrices)
 {v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
 >>
-Rule 3 (Input tensor A must have a supported dtype)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 4 (If out is provided, its shape should be compatible)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = ndim(v_1) - 1 then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, i)
 >>
-Rule 6 (Check if dtype is supported to prevent runtime errors like "Half")
-{v_1 : tensor} |= dtype_(v_1) ≠ 6
+Rule 5 (Input tensor A's dtype must be float, double, cfloat, or cdouble)
+{v_1 : tensor} |= dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128"
 >>
-Rule 7 (dtype of A must be safely castable to ComplexFloat to prevent errors like "Double")
-{v_1 : tensor} |= dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 8 (Output tensor's dtype must be complex)
+{v_2 : tensor} |= dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128"
 >>
-Rule 8 (A must be batches of square matrices, shape must be positive)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2) ∧ shape(v_1, ndim(v_1) - 1) > 0
+Rule 9 (If out is provided, its shape should be compatible)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (ndim(v_2) = ndim(v_1) - 1 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, i))
 >>
-Rule 9 (Check if dtype is supported to prevent runtime errors like "Half" or "Char")
-{v_1 : tensor} |= dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 12
+Rule 11 (If input dtype is float16, then it is invalid)
+{v_1 : tensor} |= dtype_(v_1) ≠ "float16"
 >>
-Rule 10 (Input tensor A must have at least 2 dimensions and shape must be positive)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+Rule 12 (Input tensor A must have at least 2 dimensions and be square)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
 >>
-Rule 11 (A must be batches of square matrices with positive dimensions and at least two dimensions)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2) ∧ shape(v_1, ndim(v_1) - 1) > 0
+Rule 13 (Input tensor A's dtype must be one of the supported types)
+{v_1 : tensor} |= dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128"
 >>
-Rule 13 (Combining dimension check and positive shape to avoid size issues)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (∀i ∈ [0, 1] : shape(v_1, i) > 0)
+Rule 17 (Input A must have >= 2 dimensions and be square, or the shape is invalid)
+{v_1 : tensor} |= ndim(v_1) < 2 ∨ shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
 >>
-Rule 14 (Check dtype to explicitly exclude Half and Char, allowing only supported types)
-{v_1 : tensor} |= dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 12 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+Rule 18 (Output dtype must be complex if the `out` tensor is specified)
+{v_2 : tensor} |= if ndim(v_2) > 0 then (dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128")
 >>
-Rule 15 (A must be batches of square matrices and dimensions should be valid)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2) ∧ (shape(v_1, ndim(v_1) - 1) > 0 ∨ shape(v_1, ndim(v_1) - 2) > 0)
+Rule 21 (If out tensor is specified, its shape must be correct)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (ndim(v_2) = ndim(v_1) -1 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, i))
 >>
-Rule 16 (Enforce square matrix dimensions even with batch dimensions)
-{v_1 : tensor} |= if ndim(v_1) > 2 then shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2) else shape(v_1, 1) = shape(v_1, 0)
+Rule 23 (Input A must have a supported dtype, excluding float16)
+{v_1 : tensor} |= (dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128")
 >>
-Rule 17 (Check for valid square matrix dimensions and ensure positive dimensions to prevent zero-sized matrices)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2) ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0
+Rule 24 (If `out` is specified, its shape and dtype must be compatible with the output)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (ndim(v_2) = ndim(v_1) - 1 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, i) ∧ (dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128"))
 >>
-Rule 19 (Combine checks for minimum dimensions, square shape, and supported dtypes)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+Rule 25 (Avoid "Unknown Complex ScalarType for Char" by not allowing string dtypes)
+{v_1 : tensor} |= dtype_(v_1) ≠ "str"
 >>
-Rule 23 (Combine dimension check, square shape, positive dimensions, and supported dtypes)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2) ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+Rule 26 (Shape elements cannot be negative to avoid zero-size matrices in the error message)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 24 (Check supported data types, explicitly excluding problematic ones)
-{v_1 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 12
+Rule 27 (If input is complex, output should have same complex dtype)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128") ∧ (ndim(v_2) > 0) then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 25 (Check for valid dimensions, square shape, and non-problematic data types)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2) ∧ dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 12
+Rule 28 (The number of elements in A should not exceed a maximum value)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000 ∧ ndim(v_1) < 5
 >>
-Rule 26 (Check shape constraints using forall)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (∀i ∈ [ndim(v_1) - 2, ndim(v_1) - 1] : shape(v_1, i) > 0)
+Rule 29 (If out tensor is specified, it should have allocated memory)
+{v_2: tensor} |= if ndim(v_2) > 0 then ∃i ∈ [0, ndim(v_2) -1] : shape(v_2, i) > 0
 >>
-Rule 28 (Check if the dimensions are greater than zero)
-{v_1 : tensor} |= ∃i ∈ [ndim(v_1) - 2, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 35 (Preventing integer input)
+{v_1 : tensor} |= dtype_(v_1) ≠ "int8" ∧ dtype_(v_1) ≠ "int16" ∧ dtype_(v_1) ≠ "int32" ∧ dtype_(v_1) ≠ "int64"
 >>
-Rule 29 (Ensure valid matrix dimensions and safe castable dtype, avoiding zero-sized matrices)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2) ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+Rule 36 (If A has a batch dimension, its size shouldn't be extremely large)
+{v_1 : tensor} |= if ndim(v_1) > 2 then shape(v_1, 0) < 10000
 >>
-Rule 30 (Excluding dtypes 'Half' and 'Char', ensuring a valid matrix)
-{v_1 : tensor} |= (dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 12) ∧ ndim(v_1) ≥ 2 ∧ (∀i ∈ [ndim(v_1) - 2, ndim(v_1) -1] : shape(v_1, i) > 0)
+Rule 37 (Output tensor number of dimensions must be greater than 0)
+{v_2 : tensor} |= if ndim(v_2) > 0 then ndim(v_2) > 0
 >>
-Rule 32 (Comprehensive check for square matrices, positive dimensions, and supported dtypes)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2) ∧ (∀i ∈ [ndim(v_1) - 2, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+Rule 38 (If out specified, its elements should be finite)
+{v_2: tensor} |= if ndim(v_2) > 0 then ∀i ∈ [0, ndim(v_2) -1] : min(v_2) > -10000 ∧ max(v_2) < 10000
+>>
+Rule 39 (The input tensor should have at least one element)
+{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0
+>>
+Rule 40 (Input A must have at least 2 dimensions)
+{v_1 : tensor} |= ndim(v_1) > 1
+>>
+Rule 41 (Input tensor A's shape should not be empty on last two dimensions)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0
+>>
+Rule 44 (If A is a batch of matrices, the batch size must be positive)
+{v_1 : tensor} |= if ndim(v_1) > 2 then shape(v_1, 0) > 0
+>>
+Rule 46 (Input A must be square matrices)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 2) = shape(v_1, ndim(v_1) - 1)
+>>
+Rule 49 (If out tensor is specified it can't have int dtype.)
+{v_2 : tensor} |= if ndim(v_2) > 0 then (dtype_(v_2) ≠ "int8" ∧ dtype_(v_2) ≠ "int16" ∧ dtype_(v_2) ≠ "int32" ∧ dtype_(v_2) ≠ "int64")
+>>
+Rule 50 (The input tensor A must have at least 2 dimensions and not be of string type.)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ dtype_(v_1) ≠ "str"
+>>
+Rule 54 (If 'out' is provided, check the shape's last dimension.)
+{v_1 : tensor, v_2 :tensor} |= if ndim(v_2) > 0 then shape(v_2, ndim(v_2)-1) = shape(v_1, ndim(v_1)-1)
+>>
+Rule 60 (The input tensor A must have at least 2 dimensions and is not a string.)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ if dtype_(v_1) = "str" then false
+>>
+Rule 61 (The output tensor is allowed if it is not an integer type)
+{v_2 : tensor} |= if ndim(v_2) > 0 then (if (dtype_(v_2) = "int8" ∨ dtype_(v_2) = "int16" ∨ dtype_(v_2) = "int32" ∨ dtype_(v_2) = "int64") then false)
+>>
+Rule 62 (If A is not a square matrix)
+{v_1 : tensor} |= if shape(v_1, ndim(v_1) - 1) ≠ shape(v_1, ndim(v_1) - 2) then false
+>>
+Rule 63 (If the input tensor is float32, float64, complex64, or complex128)
+{v_1 : tensor} |= if (dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128") then true else false
+>>
+Rule 64 (Shape[v_2] == shape[v_1])
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (if shape(v_2, ndim(v_2) - 1) = shape(v_1, ndim(v_1) - 1) then true else false)
+>>
+Rule 65 (Two dimensions and not string)
+{v_1 : tensor} |= if ndim(v_1) ≥ 2 then (if dtype_(v_1) = "str" then false) else false
+>>
+Rule 67 (Must be a square matrix or there's a problem.)
+{v_1 : tensor} |= if shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2) then true else false
+>>
+Rule 69 (If the out tensor is specified, its shape must be correct )
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (if shape(v_2, ndim(v_2) - 1) = shape(v_1, ndim(v_1) - 1) then true else false )
+>>
+Rule 71 (Square matrix)
+{v_1 : tensor} |= shape(v_1, ndim(v_1)-1) = shape(v_1, ndim(v_1)-2)
+>>
+Rule 72 (Cannot have shape = 0, and A must have supported dtype)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0 ∧ (dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128")
+>>
+Rule 74 (If out specified it's good)
+{v_1 : tensor, v_2 : tensor} |=  if ndim(v_2) > 0 then (ndim(v_2) = ndim(v_1) - 1 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, i))
+>>
+Rule 75 (Cannot have shape = 0, and A must have supported dtype, at least 2 dimensions)
+{v_1 : tensor} |= ndim(v_1) >= 2 ∧ ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0 ∧ (dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128")
+>>
+Rule 79 (Make sure that type is not a string)
+{v_1 : tensor} |= dtype_(v_1) != "str"
+>>
+Rule 82 (A must have at least two dimensions and it's square matrix)
+{v_1 : tensor} |= if ndim(v_1) >= 2 then (shape(v_1, ndim(v_1)-1) = shape(v_1, ndim(v_1)-2)  ) else false
+>>
+Rule 84 (If out is specified, dimensions are fine)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if ndim(v_2) = ndim(v_1) - 1 then true else false
+>>
+Rule 89 (If 'out' is provided, its shape must be aligned with A)
+{v_1 : tensor, v_2 :tensor} |= if ndim(v_2) > 0 then if ndim(v_1) > 1 then (ndim(v_2) = ndim(v_1) - 1 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, i)) else false
+>>
+Rule 92 (A must be a valid tensor, with non-zero dimensions)
+{v_1 : tensor} |= if (ndim(v_1) > 1) then (∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0) else false
+>>
+Rule 101 (A must have valid dtype, exclude string)
+{v_1 : tensor} |= if dtype_(v_1) = "str" then false else (dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128")
+>>
+Rule 103 (If out given valid dtype, not int)
+{v_2 : tensor} |= if ndim(v_2) > 0 then (if (dtype_(v_2) = "int8" ∨ dtype_(v_2) = "int16" ∨ dtype_(v_2) = "int32" ∨ dtype_(v_2) = "int64") then false )
+>>
+Rule 104 (Ensure all shape dimensions are positive.)
+{v_1 : tensor} |=  ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+>>
+Rule 105 (A must be a valid dtype,exclude string and half)
+{v_1 : tensor} |= (dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128") ∧ dtype_(v_1) ≠ "str" ∧ dtype_(v_1) ≠ "float16"
+>>
+Rule 106 (A must have at least two dimensions, positive shape)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+>>
+Rule 108 (A must be a square matrix if ndim >=2)
+{v_1 : tensor} |= if ndim(v_1) >= 2 then shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
+>>
+Rule 110 (A has the correct dtype and is not a string)
+{v_1 : tensor} |= (dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128") ∧ dtype_(v_1) ≠ "str"
+>>
+Rule 113 (If out is specified enforce compatible dtype, exclude int)
+{v_2 : tensor} |= if ndim(v_2) > 0 then (if (dtype_(v_2) = "int8" ∨ dtype_(v_2) = "int16" ∨ dtype_(v_2) = "int32" ∨ dtype_(v_2) = "int64") then false else (dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128"))
+>>
+Rule 114 (If out dimensions correct shape)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if ndim(v_2) = ndim(v_1) - 1 then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, i)) else false

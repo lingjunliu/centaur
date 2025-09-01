@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Avoid causing out-of-memory during allocation by having the shape and dimensions be within reasonable levels.  (Rule 61)
+# The resulting element size should be smaller than max long long int. (Rule 61)
 
 rule_61 = lambda s, v, n=False: (
-    s.add(Not((Select(v["arg1_shape"], 0) * Select(v["arg2_values"], 0)) * (Select(v["arg1_shape"], 1) * Select(v["arg2_values"], 1)) < 1000000000) if n else
-          (Select(v["arg1_shape"], 0) * Select(v["arg2_values"], 0)) * (Select(v["arg1_shape"], 1) * Select(v["arg2_values"], 1)) < 1000000000)
+    s.add(Not(Select(v["arg1_shape"], 0) * Select(v["arg2_values"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg2_values"], 1) < 9000000) if n else
+          Select(v["arg1_shape"], 0) * Select(v["arg2_values"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg2_values"], 1) < 9000000)
 )
 
 def rule_61_func(arg1, arg2, solver=None, neg=False):

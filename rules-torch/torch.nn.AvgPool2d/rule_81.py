@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Prevent IndexError: dimension out of range using min ndim as 3 (Rule 81)
+# check tensor dimension range (Rule 81)
 
 rule_81 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] >= 3) if n else
-          v["arg1_ndim"] >= 3)
+    s.add(Not(Or(v["arg1_ndim"] == 3, v["arg1_ndim"] == 4)) if n else
+          Or(v["arg1_ndim"] == 3, v["arg1_ndim"] == 4))
 )
 
 def rule_81_func(arg1, solver=None, neg=False):

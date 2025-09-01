@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# num_embeddings and padding_idx relationship - avoiding previous patterns (Rule 29)
+# The product of num_embeddings and embedding_dim should fit within int64 range (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] >= 0, v["arg2_value"] < v["arg1_value"], False)) if n else
-          If(v["arg2_value"] >= 0, v["arg2_value"] < v["arg1_value"], False))
+    s.add(Not(v["arg1_value"] * v["arg2_value"] < 9223372036854775807) if n else
+          v["arg1_value"] * v["arg2_value"] < 9223372036854775807)
 )
 
 def rule_29_func(arg1, arg2, solver=None, neg=False):

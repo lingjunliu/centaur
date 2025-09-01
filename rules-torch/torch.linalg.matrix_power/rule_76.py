@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If n = 0, then all dimensions must be non-zero. (Rule 76)
+# If A has more than one dimension, the last two dimensions must match if n=0 and ndim < 5 (Rule 76)
 
 rule_76 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == 0, And([Implies(i < (If(v["arg1_ndim"] > 0, v["arg1_ndim"] - 1, 0) + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]), False)) if n else
-          If(v["arg2_value"] == 0, And([Implies(i < (If(v["arg1_ndim"] > 0, v["arg1_ndim"] - 1, 0) + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]), False))
+    s.add(Not(If(And(And(v["arg1_ndim"] > 1, v["arg2_value"] == 0), v["arg1_ndim"] < 5), Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2), True)) if n else
+          If(And(And(v["arg1_ndim"] > 1, v["arg2_value"] == 0), v["arg1_ndim"] < 5), Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2), True))
 )
 
 def rule_76_func(arg1, arg2, solver=None, neg=False):

@@ -5,32 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Dtype should not be bool (Rule 117)
+# The disable_torch_function parameter, when specified, must be a Boolean value; if it's true, enable must be false. (Rule 117)
 
 rule_117 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] != 0) if n else
-          v["arg1_value"] != 0)
+    s.add(Not(If(v["arg2_value"], And(Or(v["arg2_value"] == True, v["arg2_value"] == False), v["arg1_value"] == False), True)) if n else
+          If(v["arg2_value"], And(Or(v["arg2_value"] == True, v["arg2_value"] == False), v["arg1_value"] == False), True))
 )
 
-def rule_117_func(arg1, solver=None, neg=False):
+def rule_117_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
+        if not isinstance(arg1, bool):
+            return False
+        if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_value = Bool('arg1_value')
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 117
-        rule_117(solver, {'arg1_value': arg1_value})
+        rule_117(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_117(solver, {'arg1_value': arg1['value']}, neg)
+        rule_117(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

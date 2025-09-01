@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The length of size and stride should be the same if size.len > 0 and stride.len > 0 (Rule 12)
+# If size is non-empty, stride should also be non-empty (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_length"] > 0, v["arg2_length"] > 0), v["arg1_length"] == v["arg2_length"], False)) if n else
-          If(And(v["arg1_length"] > 0, v["arg2_length"] > 0), v["arg1_length"] == v["arg2_length"], False))
+    s.add(Not(If(v["arg1_length"] > 0, v["arg2_length"] > 0, True)) if n else
+          If(v["arg1_length"] > 0, v["arg2_length"] > 0, True))
 )
 
 def rule_12_func(arg1, arg2, solver=None, neg=False):

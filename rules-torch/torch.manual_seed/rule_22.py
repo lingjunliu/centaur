@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# seed value is int and within unsigned 64 bit range (Rule 22)
+# Seed remapping is performed for negative values (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] >= 0, v["arg1_value"] <= 18446744073709551615)) if n else
-          And(v["arg1_value"] >= 0, v["arg1_value"] <= 18446744073709551615))
+    s.add(Not(If(v["arg1_value"] < 0, v["arg1_value"] + 18446744073709551616 >= -9223372036854775808, v["arg1_value"] >= -9223372036854775808)) if n else
+          If(v["arg1_value"] < 0, v["arg1_value"] + 18446744073709551616 >= -9223372036854775808, v["arg1_value"] >= -9223372036854775808))
 )
 
 def rule_22_func(arg1, solver=None, neg=False):

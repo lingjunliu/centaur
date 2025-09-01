@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# String cant be in the list of those values (Rule 119)
+# If ord is an invalid number, should raise error. (Rule 119)
 
 rule_119 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_value"] != 0, v["arg1_value"] != 1), v["arg1_value"] != 2)) if n else
-          And(And(v["arg1_value"] != 0, v["arg1_value"] != 1), v["arg1_value"] != 2))
+    s.add(Not(And(And(And(v["arg1_value"] != 0.5, v["arg1_value"] != -0.5), v["arg1_value"] != 3.0), v["arg1_value"] != -3.0)) if n else
+          And(And(And(v["arg1_value"] != 0.5, v["arg1_value"] != -0.5), v["arg1_value"] != 3.0), v["arg1_value"] != -3.0))
 )
 
 def rule_119_func(arg1, solver=None, neg=False):
@@ -17,15 +17,15 @@ def rule_119_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, str):
+        if not isinstance(arg1, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
+        arg1_value = Real('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 119
         rule_119(solver, {'arg1_value': arg1_value})

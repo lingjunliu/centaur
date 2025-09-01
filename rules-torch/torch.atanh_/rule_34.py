@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check if the input tensor has elements between -1 and 1 to avoid domain error (Rule 34)
+# Values inside the input tensor has to be between -1 and 1 (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(And(And((Select(v["arg1_range"], 0) > -1), (Select(v["arg1_range"], 1) < 1)), (v["arg1_ndim"] > 0))) if n else
-          And(And((Select(v["arg1_range"], 0) > -1), (Select(v["arg1_range"], 1) < 1)), (v["arg1_ndim"] > 0)))
+    s.add(Not(And(Select(v["arg1_range"], 1) <= 1, Select(v["arg1_range"], 0) >= -1)) if n else
+          And(Select(v["arg1_range"], 1) <= 1, Select(v["arg1_range"], 0) >= -1))
 )
 
 def rule_34_func(arg1, solver=None, neg=False):
@@ -22,18 +22,16 @@ def rule_34_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
         arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
         arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 34
-        rule_34(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim})
+        rule_34(solver, {'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_34(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_34(solver, {'arg1_range': arg1['range']}, neg)

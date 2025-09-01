@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If output tensor's dtype is short (np.int16, index 2 (Rule 10)
+# If out is provided with a specific dtype, the input tensor should be of a compatible dtype to prevent cast errors. (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_dtype"] == 2, v["arg1_dtype"] < 7, False)) if n else
-          If(v["arg2_dtype"] == 2, v["arg1_dtype"] < 7, False))
+    s.add(Not(If(v["arg2_dtype"] == 1, False, If(v["arg2_dtype"] == 2, (Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)), If(v["arg2_dtype"] == 3, (Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)), If(v["arg2_dtype"] == 4, (Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)), If(v["arg2_dtype"] == 5, (Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)), If(v["arg2_dtype"] == 6, (Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)), If(v["arg2_dtype"] == 7, (Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)), If(v["arg2_dtype"] == 8, (v["arg1_dtype"] == 8), If(v["arg2_dtype"] == 9, (Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), If(v["arg2_dtype"] == 10, (v["arg1_dtype"] == 10), True))))))))))) if n else
+          If(v["arg2_dtype"] == 1, False, If(v["arg2_dtype"] == 2, (Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)), If(v["arg2_dtype"] == 3, (Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)), If(v["arg2_dtype"] == 4, (Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)), If(v["arg2_dtype"] == 5, (Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)), If(v["arg2_dtype"] == 6, (Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)), If(v["arg2_dtype"] == 7, (Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)), If(v["arg2_dtype"] == 8, (v["arg1_dtype"] == 8), If(v["arg2_dtype"] == 9, (Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), If(v["arg2_dtype"] == 10, (v["arg1_dtype"] == 10), True)))))))))))
 )
 
 def rule_10_func(arg1, arg2, solver=None, neg=False):

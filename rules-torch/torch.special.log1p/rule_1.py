@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor should not be boolean if out tensor is complex (Rule 1)
+# input tensor's dtype should not be complex when out tensor's dtype is boolean (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), v["arg1_dtype"] != 0, False)) if n else
-          If(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), v["arg1_dtype"] != 0, False))
+    s.add(Not(If(v["arg2_dtype"] == 0, Or(v["arg1_dtype"] < 10, v["arg1_dtype"] > 11), True)) if n else
+          If(v["arg2_dtype"] == 0, Or(v["arg1_dtype"] < 10, v["arg1_dtype"] > 11), True))
 )
 
 def rule_1_func(arg1, arg2, solver=None, neg=False):

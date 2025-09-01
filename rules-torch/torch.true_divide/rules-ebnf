@@ -1,57 +1,57 @@
 >>
-Rule 3 (dividend and divisor should have the same dtype to avoid unexpected casting)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 1 (Input tensors should have compatible shapes to avoid size mismatch errors)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀ i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1
 >>
-Rule 4 (dividend should have larger or equal dimensions than divisor, for broadcasting)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ ndim(v_2)
+Rule 2 (Dividend's dtype should be castable to Divisor's dtype)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ 10) ∨ (dtype_(v_2) ≠ 8)
 >>
-Rule 7 (if one tensor is complex, the other should be as well, to prevent casting errors)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128" then dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128"
+Rule 3 (Ensure compatible shapes, handling singleton dimensions explicitly)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀ i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i)) ∨ (shape(v_1, i) = 1) ∨ (shape(v_2, i) = 1)
 >>
-Rule 8 (if dividend's dtype is float64, divisor's dtype should not be complex128)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "float64" then dtype_(v_2) ≠ "complex128"
+Rule 4 (Prevent incompatible dtype casting from ComplexDouble to Double)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ 10) ∨ (dtype_(v_2) ≠ 7 ∧ dtype_(v_2) ≠ 8)
 >>
-Rule 9 (dividend shape must be greater than or equal to divisor when broadcasting)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > ndim(v_1) then false
+Rule 6 (If divisor is Double, dividend can't be ComplexDouble to prevent casting errors.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 8 then dtype_(v_1) ≠ 10
 >>
-Rule 11 (if one tensor is complex, the other should be as well, to prevent casting errors)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128" then dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128" else if dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128" then dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128"
+Rule 14 (Prevent incompatible dtype casting from ComplexDouble to Double, expressed using !=)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_2) ≠ 8) ∨ (dtype_(v_1) ≠ 10)
 >>
-Rule 15 (if one tensor is complex, the other should be as well, to prevent casting errors)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128") then (dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128") else if (dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128") then (dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128")
+Rule 15 (Shapes are broadcastable or at least one has size 1 in the non-matching dimension, trying simpler forall)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀ i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
 >>
-Rule 17 (the number of dimensions of the divisor cannot exceed dividend)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≤ ndim(v_1)
+Rule 19 (Shapes are broadcastable or at least one has size 1, avoid min/max)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ ndim(v_2) ∧ ∀ i ∈ [0, ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_1, ndim(v_1) - ndim(v_2) + i) = 1 ∨ shape(v_2, i) = 1)) ∨ (ndim(v_2) ≥ ndim(v_1) ∧ ∀ i ∈ [0, ndim(v_1) - 1] : (shape(v_2, ndim(v_2) - ndim(v_1) + i) = shape(v_1, i) ∨ shape(v_2, ndim(v_2) - ndim(v_1) + i) = 1 ∨ shape(v_1, i) = 1))
 >>
-Rule 22 (If dividend is bool, divisor also should be bool)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "bool" then dtype_(v_2) = "bool"
+Rule 22 (Prevent ComplexDouble -> Double casting, using if-then-else)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) ≠ 8
 >>
-Rule 27 (divisor should not be a zero tensor)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 26 (Prevent ComplexDouble -> Double casting, using !=, part 2)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 10 ∨ dtype_(v_2) ≠ 8
 >>
-Rule 32 (dividend should be able to be divided by divisor's type)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = "int" then dtype_(v_1) ≠ "bool"
+Rule 35 (Shapes are broadcastable, rewritten without the forall)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (if ndim(v_1) ≥ ndim(v_2) then ∀ i ∈ [0, ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_1, ndim(v_1) - ndim(v_2) + i) = 1 ∨ shape(v_2, i) = 1) else ∀ i ∈ [0, ndim(v_1) - 1] : (shape(v_2, ndim(v_2) - ndim(v_1) + i) = shape(v_1, i) ∨ shape(v_2, ndim(v_2) - ndim(v_1) + i) = 1 ∨ shape(v_1, i) = 1))
 >>
-Rule 36 (both tensors cannot be boolean. If dividend is bool, divisor also should be bool)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "bool" then dtype_(v_2) = "bool" else if dtype_(v_2) = "bool" then dtype_(v_1) = "bool"
+Rule 39 (Shapes are broadcastable, and version without forall)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1 then ((ndim(v_1) ≥ ndim(v_2) ∧ ∀ i ∈ [0, ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_1, ndim(v_1) - ndim(v_2) + i) = 1 ∨ shape(v_2, i) = 1)) ∨ (ndim(v_2) ≥ ndim(v_1) ∧ ∀ i ∈ [0, ndim(v_1) - 1] : (shape(v_2, ndim(v_2) - ndim(v_1) + i) = shape(v_1, i) ∨ shape(v_2, ndim(v_2) - ndim(v_1) + i) = 1 ∨ shape(v_1, i) = 1)))
 >>
-Rule 41 (both tensors cannot be boolean. If one is bool, then another should be bool)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = "bool" ∧ dtype_(v_2) = "bool") ∨ ((dtype_(v_1) ≠ "bool") ∧ (dtype_(v_2) ≠ "bool"))
+Rule 42 (Prevent ComplexDouble -> Double casting, combined and/or, complicated)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ 10 ∨ dtype_(v_2) ≠ 8) ∧ (dtype_(v_1) = 10 ∨ dtype_(v_2) = 8 ∨ (dtype_(v_1) ≠ 10 ∧ dtype_(v_2) ≠ 8))
 >>
-Rule 42 (the shape of divisor cannot be zero)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+Rule 44 (Prevent ComplexDouble -> Double casting, different structure with implication)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then (if dtype_(v_2) = 8 then false)
 >>
-Rule 47 (avoid division by zero)
-{v_1 : tensor} |= min(v_1) ≠ 0
+Rule 48 (Prevent ComplexDouble -> Double casting, another different structure)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) = 8) then (dtype_(v_1) ≠ 10)
 >>
-Rule 51 (If one is bool, then another should be bool or both shouldn't be bool)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = "bool" ∧ dtype_(v_2) = "bool") ∨ (dtype_(v_1) ≠ "bool" ∧ dtype_(v_2) ≠ "bool")
+Rule 54 (Prevent ComplexDouble -> Double casting, if-then)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 10) then (dtype_(v_2) ≠ 8)
 >>
-Rule 52 (divisor should not have zero in its elements)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≠ 0
+Rule 60 (Prevent ComplexDouble -> Double casting, if and only if)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 10) = (dtype_(v_2) ≠ 8)
 >>
-Rule 57 (the minimum value of the divisor tensor cannot be zero)
-{v_1 : tensor} |= min(v_1) > 0
+Rule 62 (Prevent ComplexDouble -> Double casting, if-then-else)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then (dtype_(v_2) ≠ 8)
 >>
-Rule 77 (divisor tensor should not have zero elements)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≠ 0.0
+Rule 68 (Prevent ComplexDouble -> Double casting if and only if, reversed )
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_2) ≠ 8) = (dtype_(v_1) = 10)

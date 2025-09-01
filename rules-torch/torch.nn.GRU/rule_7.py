@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if bidirectional is false, hidden state dimension should match hidden_size (Rule 7)
+# If bidirectional is True, h_0's first dimension must be twice num_layers. (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == False, Select(v["arg3_shape"], 2) == v["arg2_value"], False)) if n else
-          If(v["arg1_value"] == False, Select(v["arg3_shape"], 2) == v["arg2_value"], False))
+    s.add(Not(If(v["arg1_value"], Select(v["arg3_shape"], 0) == 2 * v["arg2_value"], Select(v["arg3_shape"], 0) == v["arg2_value"])) if n else
+          If(v["arg1_value"], Select(v["arg3_shape"], 0) == 2 * v["arg2_value"], Select(v["arg3_shape"], 0) == v["arg2_value"]))
 )
 
 def rule_7_func(arg1, arg2, arg3, solver=None, neg=False):

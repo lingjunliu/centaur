@@ -1,237 +1,183 @@
 >>
-Rule 1 (Input tensor should have at least two dimensions when training)
-{v_1 : tensor} |= ndim(v_1) > 1
+Rule 1 (Input tensor dimension check for InstanceNorm)
+{input : tensor} |= ndim(input) > 1
 >>
-Rule 3 (Number of dimensions of repeat dims can not be smaller than number of dimensions of tensor)
-{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) ≤ v_2.len
+Rule 2 (momentum value should be in range [0, 1])
+{momentum : float} |= momentum ≥ 0 ∧ momentum ≤ 1
 >>
-Rule 5 (Dimension should be within the range of [-input.dim(), input.dim()])
-{v_1 : tensor, v_2 : int} |= v_2 ≥ 0 - ndim(v_1) ∧ v_2 ≤ ndim(v_1) - 1
+Rule 3 (eps value should be non-negative)
+{eps : float} |= eps ≥ 0
 >>
-Rule 7 (Input tensor's shape should have at least one element greater than 1)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1
+Rule 4 (Running mean and running variance should have same shape when use_input_stats is false.)
+{running_mean : tensor, running_var : tensor, use_input_stats : bool, input: tensor} |= if use_input_stats = false then shape(running_mean, 0) = shape(running_var, 0) else shape(input, 1) = shape(running_mean, 0) ∧ shape(input, 1) = shape(running_var, 0)
 >>
-Rule 8 (If input tensor has only one dimension, then the size of that dimension should be greater than 1)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) > 1
+Rule 5 (Weight and bias should have the same shape.)
+{weight : tensor, bias : tensor} |= shape(weight, 0) = shape(bias, 0)
 >>
-Rule 9 (Input tensor should have positive shape in all dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 6 (Weight and running_mean (or input at dimension 1) shapes should match.)
+{weight : tensor, running_mean : tensor, use_input_stats: bool, input: tensor} |= if use_input_stats = false then shape(weight, 0) = shape(running_mean, 0) else shape(weight, 0) = shape(input, 1)
 >>
-Rule 10 (If input tensor has shape 0 in first dimension, other dimensions should also be zero.)
-{v_1 : tensor} |= if shape(v_1, 0) = 0 then ∀i ∈ [1, ndim(v_1) - 1] : shape(v_1, i) = 0
+Rule 7 (Input shape constraints: spatial dimensions more than 1 when training.)
+{input: tensor, use_input_stats: bool} |= if use_input_stats = true then shape(input, 1) > 0
 >>
-Rule 11 (Dimension index should be less than the number of dimensions if non-negative)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then v_2 < ndim(v_1)
+Rule 9 (Input tensor dimension check)
+{input : tensor} |= ndim(input) ≥ 2
 >>
-Rule 12 (Input cannot have dimension size zero if ndim > 0)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+Rule 10 (eps value should be small and non-negative)
+{eps : float} |= eps > 0 ∧ eps < 1
 >>
-Rule 13 (If input tensor has any dimension size equal to zero, ndim must be greater than 1)
-{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then ndim(v_1) > 1
+Rule 11 (Relationship between input shape and running statistics when not using input statistics)
+{input : tensor, running_mean : tensor, use_input_stats : bool} |= if use_input_stats = false then shape(running_mean, 0) = shape(input, 1)
 >>
-Rule 14 (Number of dimensions must be 1, 2 or 3)
-{v_1 : tensor} |= ndim(v_1) = 1 ∨ ndim(v_1) = 2 ∨ ndim(v_1) = 3
+Rule 12 (Check that the running statistics are not None when use_input_stats is false)
+{running_mean : tensor, running_var : tensor, use_input_stats: bool} |= if use_input_stats = false then ndim(running_mean) = 1 ∧ ndim(running_var) = 1
 >>
-Rule 15 (If input tensor's ndim is one, the shape in dim 0 cannot be 0)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) > 0
+Rule 13 (Running mean and running variance should have the same dtype)
+{running_mean : tensor, running_var : tensor} |= dtype_(running_mean) = dtype_(running_var)
 >>
-Rule 16 (If input tensor's ndim is greater than 1, at least one dimension should be greater than 1)
-{v_1 : tensor} |= if ndim(v_1) > 1 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1
+Rule 14 (Weight should be defined if bias is defined)
+{weight : tensor, bias : tensor} |= if ndim(bias) > 0 then ndim(weight) > 0
 >>
-Rule 17 (If a dimension size is 0, ndim must be > 1)
-{v_1: tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then ndim(v_1) > 1
+Rule 15 (If using input stats, input tensor spatial dimensions should be > 0)
+{input : tensor, use_input_stats : bool} |= if use_input_stats = true then shape(input, 2) > 0 ∧ shape(input, ndim(input) -1) > 0
 >>
-Rule 18 (The dimension specified must be a valid dimension of the input.)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+Rule 16 (Weight and Bias types should match.)
+{weight: tensor, bias: tensor} |= dtype_(weight) = dtype_(bias)
 >>
-Rule 19 (Shape of the input must be greater than 0 in at least two dimensions)
-{v_1 : tensor} |= (ndim(v_1) > 1) ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ ∃j ∈ [0, ndim(v_1) - 1] : shape(v_1, j) > 0 ∧ i ≠ j)
+Rule 17 (Check that momentum is a valid float)
+{momentum : float} |= momentum ≥ 0.0 ∧ momentum ≤ 1.0
 >>
-Rule 20 (If ndim is greater than 0, at least one element in the shape is not 0)
-{v_1 : tensor} |= if ndim(v_1) > 0 then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0)
+Rule 18 (Running mean and var should have same type as input)
+{input: tensor, running_mean: tensor, running_var: tensor, use_input_stats: bool} |= if use_input_stats = false then dtype_(input) = dtype_(running_mean) ∧ dtype_(input) = dtype_(running_var)
 >>
-Rule 21 (When ndim is 2 and dim 0 has shape of 0, dim 1 has shape of 0)
-{v_1 : tensor} |= if ndim(v_1) = 2 ∧ shape(v_1, 0) = 0 then shape(v_1, 1) = 0
+Rule 20 (Number of features should be greater than 0)
+{input: tensor} |= shape(input, 1) > 0
 >>
-Rule 22 (If the input is 2D, both dimensions should be greater than 1 to have more than 1 spatial element)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 1 ∧ shape(v_1, 1) > 1
+Rule 21 (If weight is present, bias must also be present, and their dimensions should be compatible.)
+{weight : tensor, bias : tensor} |= if ndim(weight) > 0 then ndim(bias) > 0 ∧ shape(weight, 0) = shape(bias, 0) else if ndim(bias) > 0 then ndim(weight) > 0 ∧ shape(weight, 0) = shape(bias, 0)
 >>
-Rule 23 (The number of spatial dimensions must be greater than or equal to 1)
-{v_1 : tensor} |= if ndim(v_1) > 0 then (ndim(v_1) - 1) >= 1
+Rule 22 (Check if running_mean and running_var are 1D tensors with a valid number of features equal to input channel dimension.)
+{input : tensor, running_mean : tensor, running_var : tensor, use_input_stats : bool} |= if use_input_stats = false then ndim(running_mean) = 1 ∧ ndim(running_var) = 1 ∧ shape(running_mean, 0) = shape(input, 1) ∧ shape(running_var, 0) = shape(input, 1)
 >>
-Rule 24 (If ndim is 2, then the first dim cannot be 0 and the second dim can't be less than 2)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 1
+Rule 23 (Running statistics should be of floating point type)
+{running_mean : tensor, running_var: tensor} |= (dtype_(running_mean) = 6) ∨ (dtype_(running_mean) = 7) ∨ (dtype_(running_mean) = 8) ∧ (dtype_(running_var) = 6) ∨ (dtype_(running_var) = 7) ∨ (dtype_(running_var) = 8)
 >>
-Rule 25 (If input is 2D and shape[0] is 0, shape[1] should not be greater than 1.)
-{v_1 : tensor} |= if ndim(v_1) = 2 ∧ shape(v_1, 0) = 0 then shape(v_1, 1) ≤ 1
+Rule 24 (If weight is given, its shape must match the number of channels in the input)
+{input : tensor, weight : tensor} |= if ndim(weight) > 0 then shape(weight, 0) = shape(input, 1)
 >>
-Rule 26 (If input is 2D, the product of shape[0] and shape[1] must be greater than 1)
-{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) > 1
+Rule 25 (The input tensor needs to have at least two dimensions: batch and channel)
+{input : tensor} |= ndim(input) >= 2
 >>
-Rule 27 (If input is 2D, both shapes must be positive or at least one shape > 1)
-{v_1 : tensor} |= if ndim(v_1) = 2 then (shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0) ∨ (shape(v_1, 0) > 1 ∨ shape(v_1, 1) > 1)
+Rule 26 (When use_input_stats is true, the mini-batch statistics are used, and the input needs to have a valid batch size and channel dimension)
+{input : tensor, use_input_stats : bool} |= if use_input_stats = true then shape(input, 0) > 0 ∧ shape(input, 1) > 0
 >>
-Rule 28 (Shape cannot be zero if number of dimensions > 1)
-{v_1 : tensor} |= if ndim(v_1) > 1 then ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+Rule 27 (Momentum must be within [0,1] inclusive)
+{momentum: float} |= momentum >= 0 ∧ momentum <= 1
 >>
-Rule 29 (When tensor's ndim is greater than or equal to 2, there exists at least one shape greater than 1)
-{v_1 : tensor} |= if ndim(v_1) ≥ 2 then ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 1
+Rule 28 (The channel dimension should be a valid index)
+{input : tensor} |= 1 < ndim(input)
 >>
-Rule 30 (If the shape on axis 0 is zero, make sure ndim > 1)
-{v_1: tensor} |= if shape(v_1, 0) = 0 then ndim(v_1) > 1
+Rule 29 (If not using input stats, running_mean and running_var must be defined)
+{running_mean: tensor, running_var: tensor, use_input_stats: bool} |= if use_input_stats = false then ndim(running_mean) > 0 ∧ ndim(running_var) > 0
 >>
-Rule 32 (If tensor has 2 or more dimensions, then it must have more than one spatial element)
-{v_1 : tensor} |= if ndim(v_1) >= 2 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1
+Rule 30 (If affine, weight and bias must be defined.)
+{weight: tensor, bias: tensor} |= (ndim(weight) > 0) = (ndim(bias) > 0)
 >>
-Rule 33 (When shape at 0 is 0, then ndim should be at least 2 and the shape at other axis should not be greater than 1)
-{v_1 : tensor} |= if shape(v_1, 0) = 0 then ndim(v_1) ≥ 2 ∧ ∀i ∈ [1, ndim(v_1) - 1] : shape(v_1, i) ≤ 1
+Rule 31 (Input tensor should have the same dtype as running mean, and running variance.)
+{input: tensor, running_mean: tensor, running_var: tensor} |= dtype_(input) = dtype_(running_mean) ∧ dtype_(input) = dtype_(running_var)
 >>
-Rule 34 (If tensor has 2 or more dimensions, then it must have more than one spatial element)
-{v_1 : tensor} |= if ndim(v_1) ≥ 2 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1
+Rule 32 (If use_input_stats is true, then input must have more than one spatial element.)
+{input: tensor, use_input_stats: bool} |= if use_input_stats = true then ndim(input) > 2
 >>
-Rule 36 (When shape at 0 is zero then, any shape[i] with i > 0 cannot be larger than 1, given that ndim >=2)
-{v_1 : tensor} |= if shape(v_1, 0) = 0 ∧ ndim(v_1) ≥ 2 then ∀i ∈ [1, ndim(v_1) - 1] : shape(v_1, i) ≤ 1
+Rule 33 (Eps must be a non-negative float)
+{eps: float} |= eps >= 0
 >>
-Rule 38 (If ndim is exactly 2 and first shape is zero, then second shape must be less than 2)
-{v_1 : tensor} |= if ndim(v_1) = 2 ∧ shape(v_1, 0) = 0 then shape(v_1, 1) < 2
+Rule 34 (If using input stats, input tensor needs to have spatial dimensions greater than 0)
+{input: tensor, use_input_stats: bool} |= if use_input_stats = true then ndim(input) > 2 ∧ shape(input, 2) > 0
 >>
-Rule 39 (If ndim is exactly 2, then at least one of the shapes must be greater than 1)
-{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 1 ∨ shape(v_1, 1) > 1
+Rule 35 (When use_input_stats is True, there must be at least one batch size.)
+{input: tensor, use_input_stats: bool} |= if use_input_stats = true then shape(input, 0) > 0
 >>
-Rule 42 (If tensor has fewer than two spatial dimensions, its shape must be greater than zero on the first dimension)
-{v_1 : tensor} |= if ndim(v_1) < 2 then shape(v_1, 0) > 0
+Rule 36 (If weight and bias are provided, ensure the input tensor has sufficient dimensions)
+{input: tensor, weight: tensor, bias: tensor} |= if ndim(weight) > 0 ∧ ndim(bias) > 0 then ndim(input) > 1
 >>
-Rule 44 (Dimension of the input tensor must be positive)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 37 (If weight and bias are not None, they should be the same dtype as input)
+{input: tensor, weight: tensor, bias: tensor} |= if ndim(weight) > 0 ∧ ndim(bias) > 0 then dtype_(input) = dtype_(weight) ∧ dtype_(input) = dtype_(bias)
 >>
-Rule 46 (If a dimension is specified, then the tensor must have that dimension or more)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) > v_2
+Rule 38 (If use_input_stats is True, then input spatial dimensions cannot be zero)
+{input: tensor, use_input_stats: bool} |= if use_input_stats = true then ∀i ∈ [2, ndim(input) -1] : shape(input, i) > 0
 >>
-Rule 47 (The spatial dimensions (all dimensions except the first) must have size > 1 if ndim > 1)
-{v_1 : tensor} |= if ndim(v_1) > 1 then ∀i ∈ [1, ndim(v_1) - 1] : shape(v_1, i) > 1
+Rule 39 (If `use_input_stats` is True and input is 2D, the number of features must be at least 1.)
+{input: tensor, use_input_stats: bool} |= if use_input_stats = true ∧ ndim(input) = 2 then shape(input, 1) > 0
 >>
-Rule 48 (If at least one of spatial dimensions (all dimensions except the first) has size 0, then ndim must be greater than 2)
-{v_1 : tensor} |= if ∃i ∈ [1, ndim(v_1) - 1] : shape(v_1, i) = 0 then ndim(v_1) > 2
+Rule 41 (Shape of weight and bias must match the number of input channels if use_input_stats is False)
+{input: tensor, weight: tensor, bias: tensor, use_input_stats: bool} |= if use_input_stats = false then if ndim(weight) > 0 then shape(weight, 0) = shape(input, 1) ∧ if ndim(bias) > 0 then shape(bias, 0) = shape(input, 1)
 >>
-Rule 49 (If at least one of spatial dimensions (all dimensions except the first) has size less or equal than 1, then ndim must be greater than 2)
-{v_1 : tensor} |= if ∃i ∈ [1, ndim(v_1) - 1] : shape(v_1, i) ≤ 1 then ndim(v_1) > 2
+Rule 42 (The running mean and running variance must have the correct number of features)
+{input: tensor, running_mean: tensor, running_var: tensor, use_input_stats: bool} |= if use_input_stats = false then shape(running_mean,0) = shape(input,1) ∧ shape(running_var, 0) = shape(input, 1)
 >>
-Rule 50 (If the input tensor is 2D, make sure that both dimensions have size greater than 0.)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+Rule 43 (If weight is specified, it must have the same dtype as input)
+{input: tensor, weight: tensor} |= if ndim(weight) > 0 then dtype_(input) = dtype_(weight)
 >>
-Rule 51 (If ndim is at least 2 and the first dimension is 0, then all subsequent dimensions are 1)
-{v_1 : tensor} |= if ndim(v_1) >= 2 ∧ shape(v_1, 0) = 0 then ∀i ∈ [1, ndim(v_1) - 1] : shape(v_1, i) = 1
+Rule 44 (If bias is specified, it must have the same dtype as input)
+{input: tensor, bias: tensor} |= if ndim(bias) > 0 then dtype_(input) = dtype_(bias)
 >>
-Rule 52 (If there is any spatial dimension, it's size should be > 1)
-{v_1: tensor} |= if ndim(v_1) > 1 then ∃i ∈ [1, ndim(v_1)-1] : shape(v_1, i) > 1
+Rule 49 (If using input stats, require more than one spatial element shape to be greater than 0.)
+{input: tensor, use_input_stats: bool} |= if use_input_stats = true then if ndim(input) > 2 then ∀i ∈ [2, ndim(input) - 1] : shape(input, i) > 0
 >>
-Rule 53 (When all dimensions (except first) are size 1 and ndim > 1, the first dimension must have at least two elements)
-{v_1: tensor} |= if (ndim(v_1) > 1) ∧ (∀i ∈ [1, ndim(v_1)-1] : shape(v_1, i) = 1) then shape(v_1, 0) > 1
+Rule 50 (Ensure running_mean and running_var has the same shape)
+{running_mean : tensor, running_var : tensor} |= shape(running_mean, 0) = shape(running_var, 0)
 >>
-Rule 54 (For input where Ndim is 2, the multiplication of shape 0 and 1 should be greater than 1)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) > 1
+Rule 51 (running_mean and running_var should be one dimensional tensors)
+{running_mean: tensor, running_var: tensor} |= ndim(running_mean) = 1 ∧ ndim(running_var) = 1
 >>
-Rule 55 (For 2D input tensors, spatial dimensions should have a product greater than one and all are larger than 0)
-{v_1 : tensor} |= if ndim(v_1) = 2 then (shape(v_1, 0) * shape(v_1, 1) > 1) ∧ (shape(v_1, 0) > 0) ∧ (shape(v_1, 1) > 0)
+Rule 52 (The input, running_mean, running_var must all be of the same dtype, only when use_input_stats is false)
+{input: tensor, running_mean: tensor, running_var: tensor, use_input_stats: bool} |= if use_input_stats = false then dtype_(input) = dtype_(running_mean) ∧ dtype_(running_mean) = dtype_(running_var)
 >>
-Rule 56 (Number of dimensions for the input must be between 2 and 5.)
-{v_1 : tensor} |= (ndim(v_1) ≥ 2) ∧ (ndim(v_1) ≤ 5)
+Rule 53 (If running_mean is passed, running_var should also be passed)
+{running_mean: tensor, running_var: tensor} |= (ndim(running_mean) > 0) = (ndim(running_var) > 0)
 >>
-Rule 57 (The second dimension must have a non-zero size.)
-{v_1 : tensor} |= shape(v_1, 1) > 0
+Rule 54 (The input, weight, bias, running_mean, and running_var should all be the same dtype)
+{input: tensor, weight: tensor, bias: tensor, running_mean: tensor, running_var: tensor, use_input_stats: bool} |= if use_input_stats = false then dtype_(input) = dtype_(weight) ∧ dtype_(input) = dtype_(bias) ∧ dtype_(input) = dtype_(running_mean) ∧ dtype_(input) = dtype_(running_var)
 >>
-Rule 58 (If dim is 0, the number of spatial dimension should be 0.)
-{v_1 : tensor} |= if shape(v_1, 0) = 0 then (ndim(v_1) = 0)
+Rule 56 (If weight and bias are given, their shape must match the number of channels in the input tensor)
+{input: tensor, weight: tensor, bias: tensor} |= if ndim(weight) > 0 ∧ ndim(bias) > 0 then shape(weight, 0) = shape(input, 1) ∧ shape(bias, 0) = shape(input, 1)
 >>
-Rule 59 (If shape[0] is 0 and there are spatial dimensions, the spatial dimensions must have size 1)
-{v_1 : tensor} |= if ndim(v_1) > 1 ∧ shape(v_1, 0) = 0 then ∀i ∈ [1, ndim(v_1) - 1] : shape(v_1, i) = 1
+Rule 57 (Input tensor dimension should be within the range of 2 to 5 (inclusive))
+{input : tensor} |= 2 ≤ ndim(input) ∧ ndim(input) ≤ 5
 >>
-Rule 60 (If the tensor has any spatial dimensions, make sure they are all > 1)
-{v_1: tensor} |= if ndim(v_1) > 1 then (∀i ∈ [1, ndim(v_1) -1] : shape(v_1, i) > 1)
+Rule 60 (if input is two-dimensional and use_input_stats is True, then the channel dimension of input must be greater than 1.)
+{input: tensor, use_input_stats: bool} |= if (ndim(input) = 2) ∧ (use_input_stats = true) then shape(input, 1) > 1
 >>
-Rule 61 (Tensor with more than 1 dimensions must have non-zero size for all dimensions except the first.)
-{v_1 : tensor} |= if ndim(v_1) > 1 then ∀i ∈ [1, ndim(v_1)-1] : shape(v_1, i) ≠ 0
+Rule 61 (if the weight is defined, it should have dimension 1)
+{weight: tensor} |= if ndim(weight) > 0 then ndim(weight) = 1
 >>
-Rule 62 (If the first dimension is 0, then there is only one spatial dimension)
-{v_1 : tensor} |= if shape(v_1, 0) = 0 then ndim(v_1) <= 2
+Rule 62 (if the bias is defined, it should have dimension 1)
+{bias: tensor} |= if ndim(bias) > 0 then ndim(bias) = 1
 >>
-Rule 63 (If ndim > 1 and all spatial dimensions are 1, then shape[0] > 1 )
-{v_1 : tensor} |= if ndim(v_1) > 1 ∧ ∀i ∈ [1, ndim(v_1)-1] : shape(v_1, i) = 1 then shape(v_1, 0) > 1
+Rule 63 (If weight or bias are specified, ensure input channel dimension is the same as weight shape 0, only if not using input_stats)
+{input: tensor, weight: tensor, bias: tensor, use_input_stats: bool} |= if (ndim(weight) > 0 ∨ ndim(bias) > 0) ∧ use_input_stats = false then shape(input, 1) = shape(weight, 0)
 >>
-Rule 64 (At least one dimension needs to be bigger than 1 to have spatial information if it's not one dimensional)
-{v_1: tensor} |= if ndim(v_1) != 1 then ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 1
+Rule 64 (if running_mean/var are present, input must have at least two dimensions.)
+{input : tensor, running_mean : tensor, running_var : tensor} |= if ndim(running_mean) > 0 ∧ ndim(running_var) > 0 then ndim(input) >= 2
 >>
-Rule 67 (At least one dimension needs to be bigger than 1 to have spatial information if it's not one dimensional)
-{v_1: tensor} |= if ndim(v_1) ≠ 1 then ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 1
+Rule 65 (if use_input_stats = False and weight and bias are given they must match running mean/var)
+{input: tensor, weight: tensor, bias: tensor, running_mean: tensor, running_var: tensor, use_input_stats: bool} |= if (ndim(weight) > 0 ∧ ndim(bias) > 0) ∧ (use_input_stats = false) then shape(weight, 0) = shape(running_mean, 0) ∧ shape(bias, 0) = shape(running_var, 0)
 >>
-Rule 69 (If dim 0 is one and ndim > 1, then it does not have spatial element )
-{v_1: tensor} |= if shape(v_1, 0) = 1 ∧ ndim(v_1) > 1 then false
+Rule 67 (The running_mean and running_var must be present only when use_input_stats is False.)
+{running_mean: tensor, running_var: tensor, use_input_stats: bool} |= if use_input_stats = true then ndim(running_mean) = 0 ∧ ndim(running_var) = 0 else ndim(running_mean) > 0 ∧ ndim(running_var) > 0
 >>
-Rule 72 (Shape needs to be positive on second axis)
-{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, 1) > 0
+Rule 68 (if momentum is defined, use_input_stats should be true)
+{momentum: float, use_input_stats: bool} |= if ndim(momentum) > 0 then use_input_stats = true
 >>
-Rule 73 (If Ndim >=2 and if any spatial dimension is 0, number of spatial dimensions has to be equal to Ndim -1)
-{v_1 : tensor} |= if (ndim(v_1) >= 2) ∧ (∃i ∈ [1, ndim(v_1)-1] : shape(v_1, i) = 0) then (∀i ∈ [1, ndim(v_1)-1] : shape(v_1, i) = 0)
+Rule 69 (Check for valid channel dimension, only when use_input_stats is true.)
+{input: tensor, use_input_stats: bool} |= if use_input_stats then shape(input, 1) > 0
 >>
-Rule 74 (If Ndim >= 2 and shape at axis 0 equals 0, then shapes at axis 1 and beyond must equal 1)
-{v_1 : tensor} |= if ndim(v_1) >= 2 ∧ shape(v_1, 0) = 0 then ∀i ∈ [1, ndim(v_1)-1] : shape(v_1, i) = 1
+Rule 70 (When use_input_stats is False, ensure that number of features/channels are equal to the number of channels in the input tensor)
+{input: tensor, running_mean: tensor, use_input_stats: bool} |= if use_input_stats = false then shape(running_mean, 0) = shape(input, 1)
 >>
-Rule 75 (If ndim >= 2, at least one of dimension 0 or 1 should be more than 1)
-{v_1 : tensor} |= if ndim(v_1) >= 2 then (shape(v_1, 0) > 1) ∨ (shape(v_1, 1) > 1)
+Rule 71 (If weight is defined, the number of features (channels) must be greater than 0.)
+{weight: tensor} |= if ndim(weight) > 0 then shape(weight, 0) > 0
 >>
-Rule 76 (If ndim >= 2 and shape at axis 0 is zero, then shape at axis 1 has to be greater than one to have one spatial element)
-{v_1 : tensor} |= if ndim(v_1) >= 2 ∧ shape(v_1, 0) = 0 then shape(v_1, 1) = 1
->>
-Rule 77 (Shape is always non-negative on the second dimension)
-{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, 1) >= 0
->>
-Rule 78 (Dimension 1 needs to be greater than 1 for the expected ValueError condition to be solved)
-{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, 1) > 1
->>
-Rule 79 (Input tensor with one spatial dimension, needs to have shape > 1 on spatial dimension)
-{v_1 : tensor} |= if (ndim(v_1) > 1) ∧ (ndim(v_1) < 3) then shape(v_1, 1) > 1
->>
-Rule 80 (The first dimension of the input cannot be of size zero)
-{v_1 : tensor} |= shape(v_1, 0) ≠ 0
->>
-Rule 84 (Make sure the input is not of shape torch.Size([0, 9]))
-{v_1: tensor} |= (ndim(v_1) ≠ 2) ∨ (shape(v_1, 0) ≠ 0) ∨ (shape(v_1, 1) ≠ 9)
->>
-Rule 85 (Shape at 0 must be different from 0 if spatial dimension exists)
-{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, 0) ≠ 0
->>
-Rule 87 (If there are two dimensions, then not torch.Size([0,9]))
-{v_1: tensor} |= if ndim(v_1) = 2 then (shape(v_1, 0) ≠ 0 ∨ shape(v_1, 1) ≠ 9)
->>
-Rule 89 (The first two shapes cannot be zero together)
-{v_1: tensor} |= (shape(v_1, 0) = 0) ∨ (shape(v_1, 1) ≠ 0)
->>
-Rule 92 (If there are two dimensions, then it's not torch.Size([0,9]))
-{v_1: tensor} |= if ndim(v_1) = 2 then (shape(v_1, 0) ≠ 0) ∨ (shape(v_1, 1) ≠ 9)
->>
-Rule 93 (For all dimensions if ndim is 2 and shape[0] is 0 shape[1] can't be > 1 if true the error will raise up)
-{v_1: tensor} |= if ndim(v_1) = 2 ∧ shape(v_1, 0) = 0 then shape(v_1, 1) ≤ 1
->>
-Rule 96 (For all dimensions if ndim is 2 shape[0] needs to be greater than 1 and shape[1] greater than 1)
-{v_1: tensor} |= if ndim(v_1) = 2 then (shape(v_1, 0) > 1 ∧ shape(v_1, 1) > 1 )
->>
-Rule 98 (Two dimensions and first dim is 0 then second dim is not > 2)
-{v_1: tensor} |= if ndim(v_1) = 2 ∧ shape(v_1, 0) = 0 then shape(v_1, 1) < 2
->>
-Rule 99 (If ndim is 2 AND (shape[0] is not zero OR shape[1] isnt 9)))
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) ≠ 0 ∨ shape(v_1, 1) ≠ 9
->>
-Rule 101 (If there are two dimensions, then (shape 0 is not 0 AND shape 1 != 9) AND ALSO (shape 0 is not 0 or shape 1 is > 1))
-{v_1 : tensor} |= if ndim(v_1) = 2 then (shape(v_1, 0) ≠ 0 ∧ shape(v_1, 1) ≠ 9) ∧ (shape(v_1, 0) > 1 ∨ shape(v_1, 1) > 1)
->>
-Rule 102 (if ndim is 2 and the tensor is the wrong shape, something different must be true)
-{v_1 : tensor} |= if ndim(v_1) = 2 then (shape(v_1, 0) ≠ 0 ∧ shape(v_1, 1) ≠ 9)
->>
-Rule 105 (If spatial dimensions exist, then the shape must be greater than or equal to 2 at dim 1.)
-{v_1: tensor} |= if ndim(v_1) > 1 then shape(v_1, 1) >= 2
->>
-Rule 106 (If two dimensions exist, both dimensions should either not be 0, and if first dimension is 0 the second can't be larger than 1)
-{v_1 : tensor} |= if ndim(v_1) = 2 then (shape(v_1, 0) ≠ 0 ∧ shape(v_1, 1) ≠ 9 ) ∧ (if shape(v_1, 0) = 0 then shape(v_1, 1) < 2)
->>
-Rule 108 (For 2D tensor , both spatial dimension sizes are more than one)
-{v_1 : tensor} |= if ndim(v_1) = 2 then (shape(v_1, 0) > 1 ∧ shape(v_1, 1) > 1 )
+Rule 72 (if bias is defined, the number of features (channels) must be greater than 0.)
+{bias: tensor} |= if ndim(bias) > 0 then shape(bias, 0) > 0

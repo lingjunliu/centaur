@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the length of list is more then three then the dimension of tensor should be one. (Rule 71)
+# If the number of dimensions for the tensor is equal to 2, the str value must not be area (Rule 71)
 
 rule_71 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_length"] > 3, v["arg1_ndim"] == 1, False)) if n else
-          If(v["arg2_length"] > 3, v["arg1_ndim"] == 1, False))
+    s.add(Not(If(v["arg1_ndim"] == 2, v["arg2_value"] != 29, True)) if n else
+          If(v["arg1_ndim"] == 2, v["arg2_value"] != 29, True))
 )
 
 def rule_71_func(arg1, arg2, solver=None, neg=False):
@@ -20,22 +20,22 @@ def rule_71_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not isinstance(arg2, str):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg2_length = Int('arg2_length')
+        arg2_value = String('arg2_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_length == len(arg2))
+        solver.add(arg2_value == list_of_string_values_torch.index(arg2))
 
         # Constraints for rule 71
-        rule_71(solver, {'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length})
+        rule_71(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_71(solver, {'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length']}, neg)
+        rule_71(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

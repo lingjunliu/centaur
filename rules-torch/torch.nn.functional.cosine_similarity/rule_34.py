@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# At least one tensor should be of floating or complex type if dtypes are different (Rule 34)
+# If one tensor is a floating point type, the other tensor must also be a floating point type to avoid type errors (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] != v["arg2_dtype"], Or((v["arg1_dtype"] >= 6), (v["arg2_dtype"] >= 6)), False)) if n else
-          If(v["arg1_dtype"] != v["arg2_dtype"], Or((v["arg1_dtype"] >= 6), (v["arg2_dtype"] >= 6)), False))
+    s.add(Not((Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9)) == (Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9))) if n else
+          (Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9)) == (Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9)))
 )
 
 def rule_34_func(arg1, arg2, solver=None, neg=False):

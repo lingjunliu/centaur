@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# other tensor and input tensor must have compatible dtypes (Rule 30)
+# If input is int dtype, other cannot be complex (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or((And(v["arg1_dtype"] == 1, v["arg2_dtype"] == 1)), (And(v["arg1_dtype"] == 2, v["arg2_dtype"] == 2))), (And(v["arg1_dtype"] == 3, v["arg2_dtype"] == 3))), (And(v["arg1_dtype"] == 4, v["arg2_dtype"] == 4))), (And(v["arg1_dtype"] == 5, v["arg2_dtype"] == 5))), (And(v["arg1_dtype"] == 6, v["arg2_dtype"] == 6))), (And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7))), (And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8))), (And(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9))), (And(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10))), (And(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11)))) if n else
-          Or(Or(Or(Or(Or(Or(Or(Or(Or(Or((And(v["arg1_dtype"] == 1, v["arg2_dtype"] == 1)), (And(v["arg1_dtype"] == 2, v["arg2_dtype"] == 2))), (And(v["arg1_dtype"] == 3, v["arg2_dtype"] == 3))), (And(v["arg1_dtype"] == 4, v["arg2_dtype"] == 4))), (And(v["arg1_dtype"] == 5, v["arg2_dtype"] == 5))), (And(v["arg1_dtype"] == 6, v["arg2_dtype"] == 6))), (And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7))), (And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8))), (And(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9))), (And(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10))), (And(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11))))
+    s.add(Not(If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), Or(v["arg2_dtype"] < 9, v["arg2_dtype"] > 10), True)) if n else
+          If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), Or(v["arg2_dtype"] < 9, v["arg2_dtype"] > 10), True))
 )
 
 def rule_30_func(arg1, arg2, solver=None, neg=False):

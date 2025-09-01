@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The dimension tuple's length must be less than or equal to the tensor's number of dimensions (Rule 14)
+# if dim is a tuple of integer, the length of the tuple should not exceed number of dimensions (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
     s.add(Not(v["arg2_length"] <= v["arg1_ndim"]) if n else

@@ -1,63 +1,138 @@
 >>
-Rule 1 (LU_data and b must have the same dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 1 (LU_data and b should have the same dtype)
+{b : tensor, LU_data : tensor} |= dtype_(b) = dtype_(LU_data)
 >>
-Rule 2 (LU_pivots should be a Tensor of scalar type torch.int32 (represented as type 3))
-{v_1 : tensor} |= dtype_(v_1) = 3
+Rule 2 (LU_pivots should be of int32 dtype)
+{LU_pivots : tensor} |= dtype_(LU_pivots) = 2
 >>
-Rule 3 (LU_data must be a floating point or complex tensor)
-{v_1 : tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10)
+Rule 3 (b and LU_data must be floating point or complex tensors)
+{b : tensor, LU_data : tensor} |= dtype_(b) = 7 ∨ dtype_(b) = 8 ∨ dtype_(b) = 9 ∨ dtype_(b) = 10 ∧ dtype_(LU_data) = 7 ∨ dtype_(LU_data) = 8 ∨ dtype_(LU_data) = 9 ∨ dtype_(LU_data) = 10
 >>
-Rule 4 (The last dimension of LU_data must be equal to the second last dimension of LU_data.)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
+Rule 4 (Pivots should be greater or equal to 1)
+{LU_pivots : tensor} |= min(LU_pivots) ≥ 1
 >>
-Rule 5 (The last dimension of b must be equal to the second last dimension of LU_data if b has more than 1 dim)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 then shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 1)
+Rule 5 (b and LU_data should have same number of dimensions)
+{b : tensor, LU_data : tensor} |= ndim(b) = ndim(LU_data)
 >>
-Rule 6 (Pivots size check against LU_data)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 1)
+Rule 6 (LU_pivots should have number of dimensions equal to dimensions of LU_data minus 1)
+{LU_data : tensor, LU_pivots : tensor} |= ndim(LU_pivots) = ndim(LU_data) - 1
 >>
-Rule 9 (LU_data must be a floating point or complex tensor to avoid unsupported type error)
-{v_1 : tensor} |= (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)
+Rule 7 (LU_data must have at least 2 dimensions)
+{LU_data : tensor} |= ndim(LU_data) ≥ 2
 >>
-Rule 10 (The number of batch dimensions of LU_data and LU_pivots should be equal)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) - 2 = ndim(v_2) - 1
+Rule 8 (LU_data should be square matrix at last two dimensions)
+{LU_data : tensor} |= shape(LU_data, ndim(LU_data) - 1) = shape(LU_data, ndim(LU_data) - 2)
 >>
-Rule 11 (LU_pivots values check >=1)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, ndim(v_1) - 1) - 1] : v_1[i] ≥ 1
+Rule 9 (LU_data and b last but one dimension should match)
+{b : tensor, LU_data : tensor} |= shape(b, ndim(b) - 2) = shape(LU_data, ndim(LU_data) - 2)
 >>
-Rule 12 (LU_data should have at least 2 dimensions)
-{v_1 : tensor} |= ndim(v_1) ≥ 2
+Rule 10 (LU_pivots last dimension should match LU_data last but one dimension)
+{LU_data : tensor, LU_pivots : tensor} |= shape(LU_pivots, ndim(LU_pivots) - 1) = shape(LU_data, ndim(LU_data) - 2)
 >>
-Rule 14 (The batch dimensions of LU_pivots must be equal to the batch dimensions of LU_data and b.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) - 2 = ndim(v_2) - 1 ∧ ndim(v_3) - 2 = ndim(v_2) - 1
+Rule 11 (LU_data and b should have compatible batch dimensions)
+{b : tensor, LU_data : tensor, LU_pivots: tensor} |= if ndim(b) > 2 then if ndim(LU_data) > 2 then if ndim(LU_pivots) > 1 then ∀i ∈ [0, ndim(LU_pivots)-1] : shape(b, i) = shape(LU_data, i) ∧ shape(b, i) = shape(LU_pivots, i)
 >>
-Rule 15 (The m dimension of LU_data and LU_pivots should be equal.)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 1)
+Rule 13 (LU_pivots should be of int32 dtype)
+{LU_pivots : tensor} |= dtype_(LU_pivots) = 3
 >>
-Rule 20 (The batch dimensions of LU_data and b should be equal.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) - 2 = ndim(v_2) - 2
+Rule 14 (b and LU_data must be floating point or complex tensors)
+{b : tensor, LU_data : tensor} |= (dtype_(b) = 7 ∨ dtype_(b) = 8 ∨ dtype_(b) = 9 ∨ dtype_(b) = 10) ∧ (dtype_(LU_data) = 7 ∨ dtype_(LU_data) = 8 ∨ dtype_(LU_data) = 9 ∨ dtype_(LU_data) = 10)
 >>
-Rule 21 (The number of elements in LU_pivots should match the dimension of LU_data)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, ndim(v_2)-1) = shape(v_1, ndim(v_1)-2)
+Rule 16 (b and LU_data should have same number of dimensions if they are greater than 2)
+{b : tensor, LU_data : tensor} |= if ndim(b) > 2 ∧ ndim(LU_data) > 2 then ndim(b) = ndim(LU_data)
 >>
-Rule 22 (LU_pivots elements check if they are valid indices for LU_data)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, ndim(v_2) - 1) - 1] : v_2[i] ≤ shape(v_1, ndim(v_1) - 1)
+Rule 17 (LU_pivots should have number of dimensions equal to dimensions of LU_data minus 1, when LU_data has more than 1 dimension)
+{LU_data : tensor, LU_pivots : tensor} |= if ndim(LU_data) > 1 then ndim(LU_pivots) = ndim(LU_data) - 1
 >>
-Rule 24 (The last but one dimension of LU_data must be equal to the last but one dimension of b)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 2)
+Rule 22 (LU_pivots should be of int32 dtype, only if it has more than 0 dimensions)
+{LU_pivots : tensor} |= if ndim(LU_pivots) > 0 then dtype_(LU_pivots) = 3
 >>
-Rule 25 (Values in pivots should be within [1, shape(LU_data, -1)])
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, ndim(v_1) - 1) - 1] : (1 ≤ v_1[i] ∧ v_1[i] ≤ shape(v_2, ndim(v_2) - 1))
+Rule 23 (b and LU_data must be floating point or complex tensors, individual conditions)
+{b : tensor} |= dtype_(b) = 7 ∨ dtype_(b) = 8 ∨ dtype_(b) = 9 ∨ dtype_(b) = 10
 >>
-Rule 26 (The number of dimensions of b must be greater than or equal to the number of dimensions of LU_pivots)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ ndim(v_2)
+Rule 24 (LU_data must be floating point or complex tensors, individual conditions)
+{LU_data : tensor} |= dtype_(LU_data) = 7 ∨ dtype_(LU_data) = 8 ∨ dtype_(LU_data) = 9 ∨ dtype_(LU_data) = 10
 >>
-Rule 27 (The pivots values must be valid indices for the last dimension of LU_data)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, ndim(v_1) -1)-1] : v_1[i] ≥ 1 ∧ v_1[i] ≤ shape(v_2, ndim(v_2)-1)
+Rule 25 (Pivots must be greater or equal to 1, check for empty tensor)
+{LU_pivots : tensor} |= if ndim(LU_pivots) > 0 then min(LU_pivots) ≥ 1
 >>
-Rule 29 (LU_pivots must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 26 (b and LU_data should have same number of dimensions if they are greater than or equal to 2)
+{b : tensor, LU_data : tensor} |= if ndim(b) ≥ 2 ∧ ndim(LU_data) ≥ 2 then ndim(b) = ndim(LU_data)
 >>
-Rule 38 (LU_pivots values should be within the valid range [1, m] where LU_data's shape is (*, m, m))
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, ndim(v_1) - 1) - 1] : (v_1[i] ≥ 1) ∧ (v_1[i] ≤ shape(v_2, ndim(v_2) - 1)) ∧ shape(v_2, ndim(v_2) - 1) = shape(v_2, ndim(v_2) - 2)
+Rule 27 (LU_pivots and LU_data batch dimensions equality, rewritten)
+{LU_data : tensor, LU_pivots : tensor} |= if ndim(LU_data) > 1 ∧ ndim(LU_pivots) > 0 then ∀i ∈ [0, if ndim(LU_pivots) < ndim(LU_data) - 1 then ndim(LU_pivots) else ndim(LU_data)-2] : shape(LU_data, i) = shape(LU_pivots, i)
+>>
+Rule 28 (LU_data and b should have the same dtype unless one of them is complex, then they are allowed different)
+{b : tensor, LU_data : tensor} |= if dtype_(b) ≥ 9 ∨ dtype_(LU_data) ≥ 9 then true else dtype_(b) = dtype_(LU_data)
+>>
+Rule 30 (If any input is short type it should be rejected)
+{b : tensor, LU_data : tensor, LU_pivots: tensor} |= dtype_(b) ≠ 2 ∧ dtype_(LU_data) ≠ 2 ∧ dtype_(LU_pivots) ≠ 2
+>>
+Rule 34 (If any input is short type it should be rejected without using negation)
+{b : tensor, LU_data : tensor, LU_pivots: tensor} |= (dtype_(b) ≠ 2) ∧ (dtype_(LU_data) ≠ 2) ∧ (if ndim(LU_pivots) > 0 then dtype_(LU_pivots) ≠ 2)
+>>
+Rule 38 (Reject short, prevent complex, or require same dtype for LU_data and b)
+{b : tensor, LU_data : tensor} |= (dtype_(b) ≠ 2) ∧ (dtype_(LU_data) ≠ 2) ∧ (if (dtype_(b) < 9) ∧ (dtype_(LU_data) < 9) then dtype_(b) = dtype_(LU_data))
+>>
+Rule 39 (LU_pivots must be int32 or absent)
+{LU_pivots : tensor} |= if ndim(LU_pivots) > 0 then dtype_(LU_pivots) = 3 else ndim(LU_pivots) = 0
+>>
+Rule 41 (LU_pivots Absent Check)
+{LU_pivots : tensor} |= ndim(LU_pivots) = 0 ∨ dtype_(LU_pivots) = 3
+>>
+Rule 42 (Short type is not supported, avoided negation)
+{b : tensor, LU_data : tensor} |= (dtype_(b) ≠ 2) ∧ (dtype_(LU_data) ≠ 2)
+>>
+Rule 45 (Disallow Short Dtype entirely)
+{b: tensor, LU_data: tensor, LU_pivots: tensor} |= dtype_(b) ≠ 2 ∧ dtype_(LU_data) ≠ 2 ∧ (ndim(LU_pivots) = 0 ∨ dtype_(LU_pivots) ≠ 2)
+>>
+Rule 49 (LU_pivots Absent Check - explicit Absent requirement)
+{LU_pivots : tensor} |= (ndim(LU_pivots) = 0) ∨ ((ndim(LU_pivots) > 0) ∧ (dtype_(LU_pivots) = 3))
+>>
+Rule 53 (Pivots must be int32 or dimension zero)
+{LU_pivots:tensor} |= ndim(LU_pivots) = 0 ∨ (dtype_(LU_pivots) = 3)
+>>
+Rule 54 (Ensure no Short type and dtypes match if not complex)
+{b : tensor, LU_data : tensor} |= (dtype_(b) ≠ 2 ∧ dtype_(LU_data) ≠ 2) ∧ (if (dtype_(b) < 9) ∧ (dtype_(LU_data) < 9) then dtype_(b) = dtype_(LU_data))
+>>
+Rule 57 (If pivots present - int32 - otherwise don't care about their dtype)
+{LU_pivots: tensor} |= (ndim(LU_pivots) = 0) ∨ (dtype_(LU_pivots) = 3)
+>>
+Rule 59 (Pivots must be int32 or absent (explicit ndim check))
+{LU_pivots: tensor} |= if ndim(LU_pivots) > 0 then (dtype_(LU_pivots) = 3)
+>>
+Rule 63 (LU_pivots Absent or Int32)
+{LU_pivots : tensor} |= if ndim(LU_pivots) > 0 then (dtype_(LU_pivots) = 3)
+>>
+Rule 65 (If LU_pivots exists they must be int32)
+{LU_pivots: tensor} |= if ndim(LU_pivots) > 0 then dtype_(LU_pivots) = 3
+>>
+Rule 67 (If pivots present then must be Int32. Implies Pivots don't have a default)
+{LU_pivots: tensor} |= if ndim(LU_pivots) > 0 then dtype_(LU_pivots) = 3 else false
+>>
+Rule 71 (Pivots must be Int32 or non existent)
+{LU_pivots:tensor} |= if ndim(LU_pivots) > 0 then dtype_(LU_pivots) = 3
+>>
+Rule 72 (Rejects Short; Require same type unless complex)
+{b : tensor, LU_data : tensor} |= (dtype_(b) ≠ 2) ∧ (dtype_(LU_data) ≠ 2) ∧ if (dtype_(b) < 9) ∧ (dtype_(LU_data) < 9) then dtype_(b) = dtype_(LU_data)
+>>
+Rule 75 (b and LU_data should not be short, individual)
+{b : tensor, LU_data : tensor} |= dtype_(b) ≠ 2 ∧ dtype_(LU_data) ≠ 2
+>>
+Rule 94 (If pivots are present they must be Int32, must be present)
+{LU_pivots: tensor} |= ndim(LU_pivots) > 0 ∧ dtype_(LU_pivots) = 3
+>>
+Rule 95 (LU and B must not have dtype Short)
+{LU_data : tensor, b : tensor} |= dtype_(LU_data) ≠ 2 ∧ dtype_(b) ≠ 2
+>>
+Rule 97 (B and LU_data dtypes can't be Short individually)
+{b: tensor, LU_data: tensor} |= dtype_(b) ≠ 2 ∧ dtype_(LU_data) ≠ 2
+>>
+Rule 99 (Pivots with Int32 or no Pivots must be in the range)
+{LU_pivots : tensor} |= if ndim(LU_pivots) > 0 then (∀i ∈ [0, ndim(LU_pivots) - 1] : LU_pivots[i] ≥ 1) ∧ dtype_(LU_pivots) = 3
+>>
+Rule 101 (Pivots need to be int32 and > = 1 if ndim greater than zero.)
+{LU_pivots : tensor} |= if ndim(LU_pivots) > 0 then (dtype_(LU_pivots) = 3 ∧ ∀i ∈ [0, ndim(LU_pivots) - 1] : LU_pivots[i] ≥ 1)
+>>
+Rule 103 (Pivots: only ints >= 1 or no tensor)
+{LU_pivots : tensor} |= (ndim(LU_pivots) = 0) ∨ (ndim(LU_pivots) > 0 ∧ dtype_(LU_pivots) = 3 ∧ (∀i ∈ [0, shape(LU_pivots, ndim(LU_pivots)-1) -1] : LU_pivots[i] ≥ 1))

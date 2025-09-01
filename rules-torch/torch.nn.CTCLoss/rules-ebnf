@@ -1,147 +1,168 @@
 >>
-Rule 1 (reduction parameter should be one of the valid string values)
+Rule 1 (reduction must be a valid string)
 {v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
 >>
-Rule 2 (blank label should be a non-negative integer)
+Rule 2 (blank must be a non-negative integer)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 3 (input_lengths must be less than or equal to the input length T)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≤ shape(v_1, 0)
->>
-Rule 5 (target lengths must add up to the total length of target when target is 1D)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 1) ∧ (shape(v_1, 0) = 0) ∨ (shape(v_1, 0) > 0 ∧ (∃i ∈ [0, shape(v_2, 0) - 1] : shape(v_1, 0) = shape(v_2, 0)))
->>
-Rule 6 (zero_infinity must be a boolean value)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
->>
-Rule 7 (input tensor must have ndim 3 or 2)
+Rule 6 (log_probs must have dimension of 2 or 3)
 {v_1 : tensor} |= ndim(v_1) = 2 ∨ ndim(v_1) = 3
 >>
-Rule 8 (target tensor must have ndim 2 or 1)
+Rule 7 (target tensor must be 1D or 2D)
 {v_1 : tensor} |= ndim(v_1) = 1 ∨ ndim(v_1) = 2
 >>
-Rule 9 (input_lengths must have ndim 1 or 0)
-{v_1 : tensor} |= ndim(v_1) = 0 ∨ ndim(v_1) = 1
+Rule 10 (zero_infinity must be a boolean value)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 11 (If CuDNN is used, target must be concatenated format)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : int} |= (dtype_(v_2) = 3) ∧ (∀i ∈ [0, shape(v_3, 0) - 1] : v_3[i] = shape(v_1,0)) ∧ (v_4 = 0) ∧ (shape(v_4,0) ≤ 256)
+Rule 13 (input_lengths must be less than or equal to input length)
+{v_1 : tuple(int), v_2 : tensor} |= ∀ i ∈ [0, v_1.len - 1] : v_1[i] ≤ shape(v_2, 0)
 >>
-Rule 12 (If CuDNN is used, integer arguments must be of dtype torch.int32)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 3) ∧ (dtype_(v_2) = 3)
+Rule 14 (target_lengths must be less than or equal to target length when target is padded)
+{v_1 : tuple(int), v_2 : tensor} |= if ndim(v_2) = 2 then ∀ i ∈ [0, v_1.len - 1] : v_1[i] ≤ shape(v_2, 1)
 >>
-Rule 13 (input_lengths must have positive values)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1,0)-1] : v_1[i] > 0
+Rule 15 (target_lengths must add up to the total length of the target tensor when target is unpadded)
+{v_1 : tuple(int), v_2 : tensor} |= if ndim(v_2) = 1 then (∃ sum_len ∈ [0,1000] : sum_len = 0 ∧ (∀ i ∈ [0, v_1.len - 1] : sum_len = sum_len + v_1[i]) ∧ sum_len = shape(v_2, 0))
 >>
-Rule 17 (targets cannot contain the blank label)
-{v_1 : tensor, v_2 : int} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ v_2
+Rule 18 (input_lengths must be a tuple or tensor of size N or empty tuple)
+{v_1 : tuple(int), v_2 : tensor} |= if ndim(v_2) = 3 then v_1.len = shape(v_2, 1) ∨ v_1.len = 0 else if ndim(v_2) = 2 then v_1.len = 1 ∨ v_1.len = 0
 >>
-Rule 18 (If target is unpadded and unbatched, input length must be > 0)
-{v_1 : tensor, v_2: int} |= (ndim(v_1) = 1) ∧ (v_2 > 0)
+Rule 19 (target_lengths must be a tuple or tensor of size N or empty tuple)
+{v_1 : tuple(int), v_2 : tensor} |= if ndim(v_2) = 2 then v_1.len = shape(v_2, 0) ∨ v_1.len = 0
 >>
-Rule 19 (Input tensor shape must be valid)
-{v_1 : tensor} |= (ndim(v_1) = 3) ∧ (shape(v_1, 0) > 0) ∧ (shape(v_1, 1) > 0) ∧ (shape(v_1, 2) > 0) ∨ (ndim(v_1) = 2) ∧ (shape(v_1,0) > 0) ∧ (shape(v_1,1) > 0)
+Rule 21 (input_lengths must be non-negative)
+{v_1 : tuple(int)} |= ∀ i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 20 (Target tensor shape must be valid)
-{v_1 : tensor} |= (ndim(v_1) = 2) ∧ (shape(v_1, 0) > 0) ∧ (shape(v_1, 1) > 0) ∨ (ndim(v_1) = 1) ∧ (shape(v_1, 0) > 0)
+Rule 23 (input_lengths and target_lengths have same batch size if log_probs has dimension 3 and target has dimension 2)
+{v_1 : tuple(int), v_2 : tuple(int), v_3 : tensor, v_4 : tensor} |= if ndim(v_3) = 3 ∧ ndim(v_4) = 2 then v_1.len = v_2.len
 >>
-Rule 21 (Input and target lengths must be greater than 0)
-{v_1 : tensor, v_2: tensor} |= (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0) ∧ (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] > 0)
+Rule 25 (if log_probs has dimension 2, then input_lengths and target_lengths must have length 0)
+{v_1 : tuple(int), v_2 : tuple(int), v_3 : tensor} |= if ndim(v_3) = 2 then v_1.len = 0 ∧ v_2.len = 0
 >>
-Rule 24 (Blank label cannot be negative when CuDNN is enabled)
-{v_1: int} |= v_1 ≥ 0
+Rule 26 (input_lengths and log_probs must have the same length if log_probs has dimension 3)
+{v_1 : tuple(int), v_2 : tensor} |= if ndim(v_2) = 3 then v_1.len = shape(v_2, 1)
 >>
-Rule 25 (target_lengths must be <= 256 when CuDNN is enabled)
-{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≤ 256
+Rule 27 (target_lengths and targets must have the same length if targets has dimension 2)
+{v_1 : tuple(int), v_2 : tensor} |= if ndim(v_2) = 2 then v_1.len = shape(v_2, 0)
 >>
-Rule 26 (If the target is given as a 1d tensor, then target_lengths shape must equal shape(target, 0))
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then shape(v_2, 0) = shape(v_1, 0)
+Rule 28 (if targets is 1D then the sum of target_lengths should equal targets' length)
+{v_1 : tuple(int), v_2 : tensor} |= if ndim(v_2) = 1 then ∃ sum_len ∈ [0, 1000] : (sum_len = 0 ∧ (∀ i ∈ [0, v_1.len - 1] : sum_len = sum_len + v_1[i]) ∧ sum_len = shape(v_2, 0))
 >>
-Rule 27 (Target values should be less than number of classes)
-{v_1: tensor, v_2: int} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < v_2
+Rule 29 (blank must be less than the number of classes)
+{v_1 : int, v_2 : tensor} |= v_1 < shape(v_2, 2)
 >>
-Rule 28 (Input lengths shape must match batch size)
-{v_1: tensor, v_2: tensor} |= shape(v_1, 0) = shape(v_2, 1)
+Rule 36 (input_lengths and log_probs must have compatible batch sizes)
+{v_1 : tuple(int), v_2 : tensor} |= if ndim(v_2) = 3 then v_1.len = shape(v_2, 1) else if ndim(v_2) = 2 then v_1.len = 0
 >>
-Rule 30 (Input tensor should not be empty)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+Rule 37 (target_lengths and targets must have compatible batch sizes)
+{v_1 : tuple(int), v_2 : tensor} |= if ndim(v_2) = 2 then v_1.len = shape(v_2, 0) else if ndim(v_2) = 1 then true else false
 >>
-Rule 32 (If the log_probs is batched, input_lengths must be batched)
-{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 3 then ndim(v_2) = 1 else if ndim(v_1) = 2 then ndim(v_2) = 0 else false
+Rule 38 (if targets is 1D then the sum of target_lengths should equal targets' length)
+{v_1 : tuple(int), v_2 : tensor} |= if ndim(v_2) = 1 then ∃ sum_len ∈ [0, 2000] : (sum_len = 0 ∧ (∀ i ∈ [0, v_1.len - 1] : sum_len = sum_len + v_1[i]) ∧ sum_len = shape(v_2, 0))
 >>
-Rule 36 (If targets are padded, the shape of input_lengths matches batch size)
-{v_1: tensor, v_2: tensor, v_3: tensor} |= if ndim(v_2) = 2 then shape(v_1, 0) = shape(v_3, 0)
+Rule 40 (blank label must be less than number of classes)
+{v_1 : int, v_2 : tensor} |= v_1 < shape(v_2, if ndim(v_2) = 3 then 2 else 1)
 >>
-Rule 38 (The length of each sequence in target_lengths must be positive)
-{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
+Rule 42 (input_lengths must be less than or equal to the log_probs length if unbatched)
+{v_1 : int, v_2 : tensor} |= if ndim(v_2) = 2 then v_1 ≤ shape(v_2, 0)
 >>
-Rule 40 (Input and Target lengths must be compatible to use cudnn)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : shape(v_1,0) = v_2[i]
+Rule 43 (target_lengths must be less or equal to targets length if unbatched)
+{v_1 : int, v_2 : tensor} |= if ndim(v_2) = 1 then v_1 ≤ shape(v_2, 0)
 >>
-Rule 41 (If targets are padded, shape of log_probs matches batch size)
-{v_1: tensor, v_2: tensor, v_3: tensor} |= if ndim(v_2) = 2 then shape(v_1, 1) = shape(v_3, 0)
+Rule 44 (log_probs must be log_softmax)
+{v_1 : tensor} |= ∃ i ∈ [0, shape(v_1, if ndim(v_1) = 3 then 2 else 1)-1] : min(v_1) < 0
 >>
-Rule 42 (If targets are unpadded, target length must match 0 dimension of the input)
-{v_1: tensor, v_2: tensor} |= if ndim(v_2) = 1 then shape(v_1,0) = shape(v_2, 0)
+Rule 45 (blank must be int32 when using CuDNN)
+{v_1 : int} |= v_1 < 2147483647
 >>
-Rule 43 (If targets are unpadded, target length must be less than sequence length)
-{v_1: tensor, v_2: tensor} |= if ndim(v_2) = 1 then shape(v_2,0) <= shape(v_1,0)
+Rule 49 (log_probs must have negative values)
+{v_1 : tensor} |= ∃ i ∈ [0, shape(v_1, if ndim(v_1) = 3 then 2 else 1) - 1] : min(v_1) < 0
 >>
-Rule 44 (target values are positive integers less than classes)
-{v_1: tensor, v_2: int} |= ∀i ∈ [0, shape(v_1,0)-1] : v_1[i] ≥ 0 ∧ v_1[i] < v_2
+Rule 50 (blank must be smaller than target_lengths values for padded targets)
+{v_1 : int, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_1 < v_2[i]
 >>
-Rule 45 (blank value is non-negative)
-{v_1: int} |= v_1 >= 0
+Rule 52 (input_lengths must be less than or equal to the input length which is the first dimension of log_probs)
+{v_1 : int, v_2 : tensor} |= if ndim(v_2) = 2 then v_1 ≤ shape(v_2, 0) else if ndim(v_2) = 3 then v_1 ≤ shape(v_2, 0)
 >>
-Rule 46 (If targets are unpadded, input length must be less than or equal to log_prob length)
-{v_1: tensor, v_2: tensor} |= if ndim(v_2) = 1 then shape(v_2,0) ≤ shape(v_1, 0)
+Rule 53 (target_lengths must be less or equal to targets length if targets are padded)
+{v_1 : int, v_2 : tensor} |= if ndim(v_2) = 2 then v_1 ≤ shape(v_2, 1)
 >>
-Rule 47 (reduction string can only be none, mean, or sum)
-{v_1: str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
+Rule 55 (target_lengths must be less or equal to 256 for CuDNN)
+{v_1 : tuple(int)} |= ∀ i ∈ [0, v_1.len - 1] : v_1[i] ≤ 256
 >>
-Rule 48 (When using CuDNN, input_lengths must equal T)
-{v_1: tensor, v_2: tensor} |= ∀i ∈ [0, shape(v_1,0) - 1] : v_1[i] = shape(v_2, 0)
+Rule 59 (log_probs must have minimum value)
+{v_1 : tensor} |= min(v_1) < 0
 >>
-Rule 49 (If input lengths is a scalar, then log_prob must be unbatched)
-{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 2
+Rule 63 (input_lengths values must be within acceptable range)
+{v_1 : tuple(int), v_2 : tensor} |= ∀ i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ shape(v_2, 0)
 >>
-Rule 51 (If the reduction is none, the result size must match the batch size.)
-{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "none" then shape(v_1, 1) = shape(v_2, 0)
+Rule 65 (CuDNN requires targets to be concatenated format)
+{v_1 : tensor} |= ndim(v_1) = 1
 >>
-Rule 53 (If the reduction is none, the output must be a tensor)
-{v_1: tensor, v_2: str} |= if v_2 = "none" then ndim(v_1) > 0
+Rule 70 (targets must be int32 to use cudnn)
+{v_1 : tensor} |= dtype_(v_1) = 3
 >>
-Rule 54 (Targets values are class indices. And the target index cannot be blank)
-{v_1: tensor, v_2: int} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ v_2
+Rule 73 (input_lengths for each sequence must be valid)
+{v_1 : tuple(int), v_2 : tensor} |= if ndim(v_2) = 3 then ∀ i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_1[i] <= shape(v_2, 0) else if ndim(v_2) = 2 then ∀ i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_1[i] <= shape(v_2,0)
 >>
-Rule 55 (When reduction is none, the log_prob has to be batched)
-{v_1: tensor, v_2: str} |= if v_2 = "none" then ndim(v_1) = 3
+Rule 74 (target_lengths for unpadded targets must sum to total length)
+{v_1 : tuple(int), v_2 : tensor} |= if ndim(v_2) = 1 then (∃ sum_len ∈ [0, 2000] : (sum_len = 0 ∧ (∀ i ∈ [0, v_1.len - 1] : sum_len = sum_len + v_1[i]) ∧ sum_len = shape(v_2, 0)))
 >>
-Rule 56 (If reduction is mean, input lengths and target lengths shape 0 should be equal)
-{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "mean" then shape(v_1, 0) = shape(v_2, 0)
+Rule 75 (targets length for CuDNN must be <=256)
+{v_1 : tuple(int)} |= ∀ i ∈ [0, v_1.len - 1] : v_1[i] <= 256
 >>
-Rule 57 (if reduction is sum, the output must be a scalar)
-{v_1: tensor, v_2: str} |= if v_2 = "sum" then ndim(v_1) = 0
+Rule 77 (input_lengths must be in a valid range given log_probs dimensions)
+{v_1 : tuple(int), v_2 : tensor} |= if ndim(v_2) = 3 then ∀ i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ shape(v_2, 0) else if ndim(v_2) = 2 then ∀ i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ shape(v_2, 0)
 >>
-Rule 58 (If reduction is mean, the input lengths and target lengths shape 0 should be greater than 0)
-{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "mean" then shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0
+Rule 79 (blank must be non-negative)
+{v_1 : int} |= v_1 >= 0
 >>
-Rule 59 (zero_infinity must be boolean.)
-{v_1: bool} |= v_1 = true ∨ v_1 = false
+Rule 83 (blank should be less than num_classes)
+{v_1 : int, v_2 : tensor} |= v_1 < shape(v_2, ndim(v_2)-1)
 >>
-Rule 60 (If target is 2D, then input_lengths and target_lengths must have the same shape)
-{v_1: tensor, v_2: tensor, v_3: tensor} |= if ndim(v_1) = 2 then shape(v_2, 0) = shape(v_3, 0)
+Rule 84 (when using CuDNN all input_lengths must be equal to T)
+{v_1 : tuple(int), v_2 : tensor} |= if dtype_(v_2) = 3 then ∀ i ∈ [0, v_1.len - 1] : v_1[i] = shape(v_2, 0)
 >>
-Rule 62 (if target is unpadded, input length must be present.)
-{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 1 then ndim(v_2) = 1
+Rule 87 (Input lengths must be positive and smaller than the input length of log_probs)
+{v_1 : tuple(int), v_2 : tensor} |= ∀ i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_1[i] <= shape(v_2, 0)
 >>
-Rule 64 (The first dimension of log_probs must be greater or equal than the max(input_lengths) when target is unpadded)
-{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 1 then shape(v_2, 0) ≥ max(v_1)
+Rule 92 (Log probs values are negative indicating log softmax)
+{v_1 : tensor} |= ∃ idx ∈ [0, shape(v_1, if ndim(v_1) = 3 then 2 else 1) - 1] : min(v_1) < 0
 >>
-Rule 65 (The shape of target lengths should equal the shape of input lengths when the target is unpadded and log_probs is batched.)
-{v_1: tensor, v_2: tensor, v_3: tensor} |= if ndim(v_1) = 1 ∧ ndim(v_3) = 3 then shape(v_1, 0) = shape(v_2, 0)
+Rule 93 (Input lengths must be positive, and smaller than the timestep T of log_probs)
+{v_1 : tuple(int), v_2 : tensor} |= ∀ idx ∈ [0, v_1.len - 1] : v_1[idx] ≥ 0 ∧ v_1[idx] ≤ shape(v_2, 0)
 >>
-Rule 66 (The first dimension of log_probs must be greater than or equal to each element in input lengths if it is batched)
-{v_1: tensor, v_2: tensor} |= if ndim(v_2) = 1 then ∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_1, 0) ≥ v_2[i]
+Rule 94 (if targets is concatenated, the sum of target_lengths must match the targets length)
+{v_1 : tuple(int), v_2 : tensor} |= if ndim(v_2) = 1 then (∃ sum_len ∈ [0, 2000] : (sum_len = 0 ∧ (∀ idx ∈ [0, v_1.len - 1] : sum_len = sum_len + v_1[idx]) ∧ sum_len = shape(v_2, 0)))
 >>
-Rule 68 (If target is unpadded, log_probs must be batched)
-{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 1 then ndim(v_2) = 3
+Rule 95 (blank label must be a valid integer index with respect to num_classes)
+{v_1 : int, v_2 : tensor} |= v_1 >= 0 ∧ v_1 < shape(v_2, if ndim(v_2) = 3 then 2 else 1)
+>>
+Rule 98 (Target must contain values above zero)
+{v_1 : tensor} |= min(v_1) >= 0
+>>
+Rule 102 (Input lengths must be valid sequence lengths)
+{v_1 : tuple(int), v_2 : tensor} |= ∀ idx ∈ [0, v_1.len - 1] : v_1[idx] ≥ 0 ∧ v_1[idx] <= shape(v_2, 0)
+>>
+Rule 103 (targets shape has to conform to specific requirements)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 2 then v_1.len = v_2.len
+>>
+Rule 105 (target lengths smaller than 256 to use CuDNN)
+{v_1 : tuple(int)} |= ∀ idx ∈ [0, v_1.len - 1] : v_1[idx] <= 256
+>>
+Rule 107 (input lengths are valid and non-negative)
+{v_1 : tuple(int), v_2 : tensor} |= ∀ idx ∈ [0, v_1.len - 1] : v_1[idx] >= 0 ∧ v_1[idx] <= shape(v_2, 0)
+>>
+Rule 108 (All target_lengths needs to have a valid value to sum to total length of targets)
+{v_1 : tuple(int)} |= ∀ idx ∈ [0, v_1.len - 1] : v_1[idx] >= 0
+>>
+Rule 112 (input_lengths must be non-negative and smaller or equal to the sequence length of the log_probs tensor)
+{v_1 : tuple(int), v_2 : tensor} |= ∀ i ∈ [0, v_1.len - 1] : v_1[i] >= 0 ∧ v_1[i] <= shape(v_2, 0)
+>>
+Rule 120 (Target length must be a valid integer)
+{v_1 : tuple(int)} |= ∀ idx ∈ [0, v_1.len - 1] : v_1[idx] ≥ 0
+>>
+Rule 124 (targets must be of type Long)
+{v_1 : tensor} |= dtype_(v_1) = 4
+>>
+Rule 127 (Blank label must be less than sequence length of log_probs)
+{v_1 : int, v_2 : tensor} |= v_1 < shape(v_2, 0)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If v_1 and v_2 are integer types, output dtype should also be integer, or floating point (Rule 21)
+# Output tensor dtype must be compatible with input and other tensor dtypes. Suppress "result type Float can't be cast to the desired output type Short" (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_dtype"] < 6, v["arg2_dtype"] < 6), v["arg3_dtype"] < 9, False)) if n else
-          If(And(v["arg1_dtype"] < 6, v["arg2_dtype"] < 6), v["arg3_dtype"] < 9, False))
+    s.add(Not(Or(Or((v["arg3_dtype"] == v["arg1_dtype"]), (v["arg3_dtype"] == v["arg2_dtype"])), (And((And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8)), (v["arg3_dtype"] == 8))))) if n else
+          Or(Or((v["arg3_dtype"] == v["arg1_dtype"]), (v["arg3_dtype"] == v["arg2_dtype"])), (And((And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8)), (v["arg3_dtype"] == 8)))))
 )
 
 def rule_21_func(arg1, arg2, arg3, solver=None, neg=False):

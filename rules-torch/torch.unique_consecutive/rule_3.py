@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor should be a valid dtype (Rule 3)
+# Enforce input tensor to be a non-complex dtype, addressing the RuntimeError (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] != 11, v["arg1_dtype"] != 12)) if n else
-          And(v["arg1_dtype"] != 11, v["arg1_dtype"] != 12))
+    s.add(Not(And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10)) if n else
+          And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10))
 )
 
 def rule_3_func(arg1, solver=None, neg=False):

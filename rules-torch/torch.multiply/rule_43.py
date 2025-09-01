@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If v_1 is complex and v_2 is not complex then v_3 (out (Rule 43)
+# If input is integral and other is floating-point, out should be floating-point (Rule 43)
 
 rule_43 = lambda s, v, n=False: (
-    s.add(Not(If(And((Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11)), (And((v["arg2_dtype"] != 10), (v["arg2_dtype"] != 11)))), (Or(v["arg3_dtype"] == 10, v["arg3_dtype"] == 11)), False)) if n else
-          If(And((Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11)), (And((v["arg2_dtype"] != 10), (v["arg2_dtype"] != 11)))), (Or(v["arg3_dtype"] == 10, v["arg3_dtype"] == 11)), False))
+    s.add(Not(If(And((And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 5)), (And(v["arg2_dtype"] >= 6, v["arg2_dtype"] <= 8))), (And(v["arg3_dtype"] >= 6, v["arg3_dtype"] <= 8)), True)) if n else
+          If(And((And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 5)), (And(v["arg2_dtype"] >= 6, v["arg2_dtype"] <= 8))), (And(v["arg3_dtype"] >= 6, v["arg3_dtype"] <= 8)), True))
 )
 
 def rule_43_func(arg1, arg2, arg3, solver=None, neg=False):

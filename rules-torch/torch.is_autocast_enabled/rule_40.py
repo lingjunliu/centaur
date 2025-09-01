@@ -5,37 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The number of dimensions of a tensor can't exceed the length of a tuple (Rule 40)
+# If the architecture of GPU is greater than specific value, then only Autocast can be enabled (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] <= v["arg2_length"]) if n else
-          v["arg1_ndim"] <= v["arg2_length"])
+    s.add(Not(v["arg1_value"] > 70) if n else
+          v["arg1_value"] > 70)
 )
 
-def rule_40_func(arg1, arg2, solver=None, neg=False):
+def rule_40_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
-            return False
-        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_length = Int('arg2_length')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_length == len(arg2))
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 40
-        rule_40(solver, {'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length})
+        rule_40(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_40(solver, {'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length']}, neg)
+        rule_40(solver, {'arg1_value': arg1['value']}, neg)

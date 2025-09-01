@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Only use Complex128 or below as input. Force output to be Complex128 if the input is ComplexDouble. (Rule 36)
+# If output tensor is explicitly specified, and the input is not complex, the output cannot be complex (Rule 36)
 
 rule_36 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 11, v["arg1_dtype"] < 11)) if n else
-          If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 11, v["arg1_dtype"] < 11))
+    s.add(Not(If((v["arg1_dtype"] < 9), (v["arg2_dtype"] < 9), True)) if n else
+          If((v["arg1_dtype"] < 9), (v["arg2_dtype"] < 9), True))
 )
 
 def rule_36_func(arg1, arg2, solver=None, neg=False):

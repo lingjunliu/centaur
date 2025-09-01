@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The function is not implemented for complex floats (Rule 40)
+# If the output dtype is short, the operation is not supported (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10)) if n else
-          And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10))
+    s.add(Not(v["arg1_dtype"] != 2) if n else
+          v["arg1_dtype"] != 2)
 )
 
 def rule_40_func(arg1, solver=None, neg=False):

@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# kernel_size must be a tuple of two positive integers (Rule 2)
+# kernel_size must be a positive integer or a tuple of two positive integers (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
     s.add(Not(And(And(v["arg1_length"] == 2, Select(v["arg1_values"], 0) > 0), Select(v["arg1_values"], 1) > 0)) if n else
@@ -31,9 +31,9 @@ def rule_2_func(arg1, solver=None, neg=False):
             arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 2
-        rule_2(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length})
+        rule_2(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_2(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length']}, neg)
+        rule_2(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values']}, neg)

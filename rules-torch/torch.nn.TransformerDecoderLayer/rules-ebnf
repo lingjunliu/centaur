@@ -1,303 +1,57 @@
 >>
 Rule 1 (embed_dim must be divisible by num_heads)
-{v_1 : int, v_2 : int} |= v_1 % v_2 = 0
+{d_model : int, nhead : int} |= d_model % nhead = 0
 >>
 Rule 2 (dropout probability has to be between 0 and 1)
-{v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 1
+{dropout : float} |= dropout ≥ 0 ∧ dropout ≤ 1
 >>
 Rule 3 (embed_dim and num_heads must be greater than 0)
-{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+{d_model : int, nhead : int} |= d_model > 0 ∧ nhead > 0
 >>
 Rule 4 (layer_norm_eps must be greater than 0)
-{v_1 : float} |= v_1 > 0
+{layer_norm_eps : float} |= layer_norm_eps > 0
 >>
-Rule 5 (activation must be "relu" or "gelu")
-{v_1 : str} |= v_1 = "relu" ∨ v_1 = "gelu"
+Rule 5 (activation must be relu or gelu)
+{activation : str} |= activation = "relu" ∨ activation = "gelu"
 >>
-Rule 6 (d_model must be a positive integer)
-{v_1 : int} |= v_1 > 0
+Rule 16 (if batch_first is true, tgt and memory have compatible shapes)
+{batch_first : bool, tgt : tensor, memory : tensor, d_model : int} |= if batch_first = true then shape(tgt, 2) = d_model ∧ shape(memory, 2) = d_model
 >>
-Rule 14 (bias must be a boolean value)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 17 (if batch_first is false, tgt and memory have compatible shapes)
+{batch_first : bool, tgt : tensor, memory : tensor, d_model : int} |= if batch_first = false then shape(tgt, 2) = d_model ∧ shape(memory, 2) = d_model
 >>
-Rule 17 (embed_dim must be divisible by num_heads, and both are positive)
-{v_1 : int, v_2 : int} |= v_1 % v_2 = 0 ∧ v_1 > 0 ∧ v_2 > 0
+Rule 22 (memory and tgt tensors must have the same dtype)
+{memory : tensor, tgt : tensor} |= dtype_(memory) = dtype_(tgt)
 >>
-Rule 18 (dropout is within range, and layer_norm_eps is positive)
-{v_1 : float, v_2 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 1 ∧ v_2 > 0
+Rule 25 (d_model should be greater than 0)
+{d_model : int} |= d_model > 0
 >>
-Rule 19 (activation is either relu or gelu, bias is a boolean)
-{v_1 : str, v_2 : bool} |= (v_1 = "relu" ∨ v_1 = "gelu") ∧ (v_2 = true ∨ v_2 = false)
+Rule 26 (nhead should be greater than 0)
+{nhead : int} |= nhead > 0
 >>
-Rule 20 (batch_first and norm_first are boolean values)
-{v_1 : bool, v_2 : bool} |= (v_1 = true ∨ v_1 = false) ∧ (v_2 = true ∨ v_2 = false)
+Rule 31 (memory and tgt tensors must have the same dtype if both are provided)
+{memory : tensor, tgt : tensor} |= if (ndim(memory) > 0) ∧ (ndim(tgt) > 0) then dtype_(memory) = dtype_(tgt)
 >>
-Rule 21 (d_model is a positive integer and dim_feedforward is also a positive integer)
-{v_1: int, v_2: int} |= v_1 > 0 ∧ v_2 > 0
+Rule 32 (if batch_first is true, tgt and memory have compatible batch dimensions)
+{batch_first : bool, tgt : tensor, memory : tensor} |= if batch_first = true then shape(tgt, 0) = shape(memory, 0)
 >>
-Rule 22 (nhead is a positive integer, and less than or equal to d_model)
-{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_1 ≤ v_2
+Rule 33 (if batch_first is false, tgt and memory have compatible sequence dimensions)
+{batch_first : bool, tgt : tensor, memory : tensor} |= if batch_first = false then shape(tgt, 1) = shape(memory, 1)
 >>
-Rule 23 (embed_dim and num_heads relationship with dim_feedforward)
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 > 0 ∧ v_2 > 0 ∧ v_3 > 0 ∧ v_3 ≥ v_1 ∧ v_3 ≥ v_2
+Rule 34 (tgt_key_padding_mask must have the correct shape relative to tgt if batch_first is true)
+{batch_first : bool, tgt : tensor, tgt_key_padding_mask : tensor} |= if batch_first = true then shape(tgt, 0) = shape(tgt_key_padding_mask, 0) ∧ shape(tgt, 1) = shape(tgt_key_padding_mask, 1)
 >>
-Rule 24 (Checking valid values for multiple parameters)
-{v_1 : float, v_2 : bool} |= (v_1 ≥ 0 ∧ v_1 ≤ 1) ∧ (v_2 = true ∨ v_2 = false)
+Rule 35 (tgt_key_padding_mask must have the correct shape relative to tgt if batch_first is false)
+{batch_first : bool, tgt : tensor, tgt_key_padding_mask : tensor} |= if batch_first = false then shape(tgt, 1) = shape(tgt_key_padding_mask, 0) ∧ shape(tgt, 0) = shape(tgt_key_padding_mask, 1)
 >>
-Rule 25 (String activation and integer parameter)
-{v_1 : str, v_2 : int} |= (v_1 = "relu" ∨ v_1 = "gelu") ∧ v_2 > 0
+Rule 40 (memory_key_padding_mask must have the correct shape relative to memory if batch_first is true)
+{batch_first : bool, memory : tensor, memory_key_padding_mask : tensor} |= if batch_first = true then shape(memory, 0) = shape(memory_key_padding_mask, 0) ∧ shape(memory, 1) = shape(memory_key_padding_mask, 1)
 >>
-Rule 26 (Checking divisibility and positivity of embed_dim and nhead)
-{v_1 : int, v_2 : int} |= (v_1 % v_2 = 0) ∧ (v_1 > 0) ∧ (v_2 > 0)
+Rule 41 (memory_key_padding_mask must have the correct shape relative to memory if batch_first is false)
+{batch_first : bool, memory : tensor, memory_key_padding_mask : tensor} |= if batch_first = false then shape(memory, 1) = shape(memory_key_padding_mask, 0) ∧ shape(memory, 0) = shape(memory_key_padding_mask, 1)
 >>
-Rule 27 (Boolean parameter with positive float parameter)
-{v_1 : bool, v_2 : float} |= (v_1 = true ∨ v_1 = false) ∧ (v_2 > 0)
+Rule 58 (layer_norm_eps must be non-negative)
+{layer_norm_eps : float} |= layer_norm_eps ≥ 0
 >>
-Rule 28 (d_model and layer_norm_eps relation)
-{v_1 : int, v_2 : float} |= v_1 > 0 ∧ v_2 > 0 ∧ v_1 * v_2 < 10000
->>
-Rule 29 (dropout, layer_norm_eps and bias constraints)
-{v_1 : float, v_2 : float, v_3 : bool} |= (v_1 ≥ 0 ∧ v_1 ≤ 1) ∧ (v_2 > 0) ∧ (v_3 = true ∨ v_3 = false)
->>
-Rule 30 (nhead and d_model relation, and batch_first constraint)
-{v_1 : int, v_2 : int, v_3 : bool} |= (v_1 > 0 ∧ v_2 > 0 ∧ v_1 ≤ v_2) ∧ (v_3 = true ∨ v_3 = false)
->>
-Rule 31 (activation string with dim_feedforward greater than d_model)
-{v_1 : str, v_2 : int, v_3 : int} |= (v_1 = "relu" ∨ v_1 = "gelu") ∧ (v_2 > 0) ∧ (v_3 > v_2)
->>
-Rule 32 (norm_first boolean constraint and d_model should be positive)
-{v_1 : bool, v_2 : int} |= (v_1 = true ∨ v_1 = false) ∧ v_2 > 0
->>
-Rule 33 (All parameters should be valid)
-{v_1 : int, v_2 : int, v_3 : int, v_4 : float, v_5 : str, v_6 : float, v_7 : bool, v_8 : bool, v_9 : bool} |= (v_1 > 0) ∧ (v_2 > 0) ∧ (v_1 % v_2 = 0) ∧ (v_3 > 0) ∧ (v_4 ≥ 0 ∧ v_4 ≤ 1) ∧ (v_5 = "relu" ∨ v_5 = "gelu") ∧ (v_6 > 0) ∧ (v_7 = true ∨ v_7 = false) ∧ (v_8 = true ∨ v_8 = false) ∧ (v_9 = true ∨ v_9 = false)
->>
-Rule 34 (Combined constraint on d_model, nhead and dim_feedforward)
-{v_1 : int, v_2 : int, v_3 : int} |= (v_1 > 0) ∧ (v_2 > 0) ∧ (v_3 > 0) ∧ (v_1 % v_2 = 0) ∧ (v_3 ≥ v_1)
->>
-Rule 35 (Activation and layer_norm_eps relation)
-{v_1 : str, v_2 : float} |= (v_1 = "relu" ∨ v_1 = "gelu") ∧ (v_2 > 0)
->>
-Rule 36 (dropout and batch_first with norm_first)
-{v_1 : float, v_2 : bool, v_3 : bool} |= (v_1 ≥ 0 ∧ v_1 ≤ 1) ∧ (v_2 = true ∨ v_2 = false) ∧ (v_3 = true ∨ v_3 = false)
->>
-Rule 37 (bias, embed_dim, num_heads positive)
-{v_1 : bool, v_2 : int, v_3 : int} |= (v_1 = true ∨ v_1 = false) ∧ (v_2 > 0) ∧ (v_3 > 0)
->>
-Rule 38 (Check d_model is int and nhead is positive int)
-{v_1 : int, v_2 : int} |= (v_1 > 0) ∧ (v_2 > 0)
->>
-Rule 39 (Combined check of all key parameters)
-{v_1 : int, v_2 : int, v_3 : int, v_4 : float, v_5 : str, v_6 : float, v_7 : bool, v_8 : bool, v_9 : bool} |= (v_1 > 0 ∧ v_2 > 0 ∧ v_1 % v_2 = 0) ∧ (v_3 > 0) ∧ (v_4 ≥ 0 ∧ v_4 ≤ 1) ∧ (v_5 = "relu" ∨ v_5 = "gelu") ∧ (v_6 > 0) ∧ (v_7 = true ∨ v_7 = false) ∧ (v_8 = true ∨ v_8 = false) ∧ (v_9 = true ∨ v_9 = false) ∧ (v_3 ≥ v_1)
->>
-Rule 40 (If batch_first is true, norm_first must be false)
-{v_1 : bool, v_2 : bool} |= if v_1 = true then v_2 = false
->>
-Rule 41 (d_model, nhead and dropout conditions)
-{v_1 : int, v_2 : int, v_3 : float} |= v_1 > 0 ∧ v_2 > 0 ∧ v_3 ≥ 0 ∧ v_3 ≤ 1 ∧ v_1 > v_2
->>
-Rule 42 (activation check and layer_norm_eps)
-{v_1 : str, v_2 : float} |= (v_1 = "relu" ∨ v_1 = "gelu") ∧ v_2 > 0
->>
-Rule 45 (Combined conditions for d_model, nhead, dim_feedforward and dropout)
-{v_1 : int, v_2 : int, v_3 : int, v_4 : float} |= (v_1 > 0 ∧ v_2 > 0 ∧ v_3 > 0) ∧ (v_4 ≥ 0 ∧ v_4 ≤ 1) ∧ (v_1 % v_2 = 0) ∧ (v_3 > v_1)
->>
-Rule 46 (Check activation function and batch_first, norm_first boolean values)
-{v_1 : str, v_2 : bool, v_3 : bool} |= (v_1 = "relu" ∨ v_1 = "gelu") ∧ (v_2 = true ∨ v_2 = false) ∧ (v_3 = true ∨ v_3 = false)
->>
-Rule 49 (Combination of dropout and layer_norm_eps checks)
-{v_1: float, v_2: float} |= (v_1 ≥ 0 ∧ v_1 ≤ 1) ∧ (v_2 > 0)
->>
-Rule 52 (Check for embed_dim, num_heads and bias condition)
-{v_1: int, v_2: int, v_3: bool} |= v_1 > 0 ∧ v_2 > 0 ∧ (v_3 = true ∨ v_3 = false) ∧ v_1 > v_2
->>
-Rule 53 (Check dropout range and positivity for layer_norm_eps, and d_model > 10)
-{v_1: float, v_2: float, v_3: int} |= v_1 ≥ 0 ∧ v_1 ≤ 1 ∧ v_2 > 0 ∧ v_3 > 10
->>
-Rule 54 (Complex condition involving multiple parameters)
-{v_1 : int, v_2 : int, v_3 : float, v_4 : str, v_5 : bool} |= (v_1 > 0 ∧ v_2 > 0 ∧ v_1 % v_2 = 0) ∧ (v_3 ≥ 0 ∧ v_3 ≤ 1) ∧ (v_4 = "relu" ∨ v_4 = "gelu") ∧ (v_5 = true ∨ v_5 = false)
->>
-Rule 57 (batch_first, norm_first, and bias validity.)
-{v_1 : bool, v_2 : bool, v_3 : bool} |= (v_1 = true ∨ v_1 = false) ∧ (v_2 = true ∨ v_2 = false) ∧ (v_3 = true ∨ v_3 = false)
->>
-Rule 58 (dropout must be between 0 and 1, and nhead must divide d_model)
-{v_1 : float, v_2 : int, v_3 : int} |= (v_1 ≥ 0 ∧ v_1 ≤ 1) ∧ (v_2 > 0 ∧ v_3 > 0 ∧ v_3 % v_2 = 0)
->>
-Rule 59 (Complex condition involving multiple parameters using and/or)
-{v_1 : int, v_2 : int, v_3 : float, v_4 : str, v_5 : bool} |= (v_1 > 0 ∧ v_2 > 0 ∧ v_1 % v_2 = 0) ∧ (v_3 ≥ 0 ∧ v_3 ≤ 1) ∧ ((v_4 = "relu") ∨ (v_4 = "gelu")) ∧ (v_5 = true ∨ v_5 = false)
->>
-Rule 60 (Relationship between d_model and dim_feedforward, using >=)
-{v_1: int, v_2: int} |= v_1 > 0 ∧ v_2 > 0 ∧ v_2 ≥ v_1
->>
-Rule 61 (Activation string and layer_norm_eps positive check using or and and)
-{v_1: str, v_2: float} |= ((v_1 = "relu") ∨ (v_1 = "gelu")) ∧ (v_2 > 0)
->>
-Rule 63 (dropout must be between 0 and 1, and nhead must divide d_model with comparison)
-{v_1 : float, v_2 : int, v_3 : int} |= (v_1 ≥ 0 ∧ v_1 ≤ 1) ∧ (v_2 > 0 ∧ v_3 > 0 ∧ v_3 % v_2 = 0) ∧ (v_3 > v_2)
->>
-Rule 64 (Constraints on d_model, nhead, dropout, and a boolean parameter)
-{v_1 : int, v_2 : int, v_3 : float, v_4 : bool} |= (v_1 > 0 ∧ v_2 > 0 ∧ v_1 % v_2 = 0) ∧ (v_3 ≥ 0 ∧ v_3 ≤ 1) ∧ (v_4 = true ∨ v_4 = false)
->>
-Rule 65 (Activation must be ReLU or GELU and layer_norm_eps must be positive)
-{v_1: str, v_2: float} |= (v_1 = "relu" ∨ v_1 = "gelu") ∧ (v_2 > 0)
->>
-Rule 66 (Ensuring d_model, dim_feedforward, and nhead are positive)
-{v_1: int, v_2: int, v_3: int} |= v_1 > 0 ∧ v_2 > 0 ∧ v_3 > 0
->>
-Rule 67 (Ensuring dropout is within [0, 1] and layer_norm_eps is positive)
-{v_1: float, v_2: float} |= v_1 ≥ 0 ∧ v_1 ≤ 1 ∧ v_2 > 0
->>
-Rule 68 (Ensuring bias, batch_first, and norm_first are boolean)
-{v_1 : bool, v_2 : bool, v_3 : bool} |= (v_1 = true ∨ v_1 = false) ∧ (v_2 = true ∨ v_2 = false) ∧ (v_3 = true ∨ v_3 = false) ∧ if v_1=true then v_2=false
->>
-Rule 69 (Check on d_model and nhead, requiring divisibility and positivity)
-{v_1 : int, v_2 : int} |= (v_1 > 0) ∧ (v_2 > 0) ∧ (v_1 % v_2 = 0)
->>
-Rule 70 (Activation check and a boolean check using if-then-else)
-{v_1 : str, v_2 : bool} |= if v_1 = "relu" then v_2 = true else if v_1 = "gelu" then v_2 = false
->>
-Rule 71 (Multiple conditions combined: dropout, layer_norm_eps, d_model, and nhead)
-{v_1 : float, v_2 : float, v_3 : int, v_4 : int} |= (v_1 ≥ 0 ∧ v_1 ≤ 1) ∧ (v_2 > 0) ∧ (v_3 > 0 ∧ v_4 > 0 ∧ v_3 % v_4 = 0)
->>
-Rule 72 (Combined bool checks and int checks)
-{v_1: bool, v_2: bool, v_3: int, v_4: int} |= (v_1 = true ∨ v_1 = false) ∧ (v_2 = true ∨ v_2 = false) ∧ (v_3 > 0) ∧ (v_4 > 0) ∧ (v_3 > v_4)
->>
-Rule 73 (All parameters combined)
-{v_1 : int, v_2 : int, v_3 : int, v_4 : float, v_5 : str, v_6 : float, v_7 : bool, v_8 : bool, v_9 : bool} |= (v_1 > 0 ∧ v_2 > 0 ∧ v_1 % v_2 = 0 ∧ v_3 > 0 ∧ v_3 >= v_1) ∧ (v_4 >= 0 ∧ v_4 <= 1) ∧ (v_5 = "relu" ∨ v_5 = "gelu") ∧ (v_6 > 0) ∧ (v_7 = true ∨ v_7 = false) ∧ (v_8 = true ∨ v_8 = false) ∧ (v_9 = true ∨ v_9 = false)
->>
-Rule 74 (d_model positivity and nhead must be divisor of d_model with if expression)
-{v_1 : int, v_2 : int} |= (v_1 > 0) ∧ if v_1 % v_2 = 0 then v_2 > 0 else false
->>
-Rule 75 (Activation check and positivity of dim_feedforward using or and and)
-{v_1: str, v_2: int} |= ((v_1 = "relu") ∨ (v_1 = "gelu")) ∧ (v_2 > 0)
->>
-Rule 76 (Checking boolean parameters with a float parameter combined with and)
-{v_1 : bool, v_2 : bool, v_3 : float} |= (v_1 = true ∨ v_1 = false) ∧ (v_2 = true ∨ v_2 = false) ∧ (v_3 >= 0 ∧ v_3 <= 1)
->>
-Rule 77 (Layer Norm epsilon should be positive and less than 0.1)
-{v_1 : float} |= (v_1 > 0) ∧ (v_1 < 0.1)
->>
-Rule 78 (dropout, layer_norm_eps should be positive and bool must be a boolean )
-{v_1 : float, v_2 : float, v_3:bool} |= v_1 ≥ 0 ∧ v_1 ≤ 1 ∧ v_2 > 0 ∧ (v_3=true ∨ v_3=false)
->>
-Rule 79 (Complete condition check for all parameters with a > comparison)
-{v_1 : int, v_2 : int, v_3 : int, v_4 : float, v_5 : str, v_6 : float, v_7 : bool, v_8 : bool, v_9 : bool} |= (v_1 > 0 ∧ v_2 > 0 ∧ v_1 % v_2 = 0 ∧ v_3 > v_1) ∧ (v_4 >= 0 ∧ v_4 <= 1) ∧ (v_5 = "relu" ∨ v_5 = "gelu") ∧ (v_6 > 0) ∧ (v_7 = true ∨ v_7 = false) ∧ (v_8 = true ∨ v_8 = false) ∧ (v_9 = true ∨ v_9 = false)
->>
-Rule 81 (Activation and boolean parameter bias check combined with if and using and)
-{v_1:str, v_2:bool} |= ((v_1 = "relu") ∨ (v_1 = "gelu")) ∧ if v_2 = true then true else false
->>
-Rule 82 (Checking multiple boolean params and comparing integer parameter with <)
-{v_1 : bool, v_2 : bool, v_3 : int, v_4 : int} |= (v_1 = true ∨ v_1 = false) ∧ (v_2 = true ∨ v_2 = false) ∧ (v_3 > 0) ∧ (v_4 > 0) ∧ (v_4 < v_3)
->>
-Rule 83 (Combined conditions for d_model, nhead, dim_feedforward using not equal)
-{v_1 : int, v_2 : int, v_3 : int} |= (v_1 > 0 ∧ v_2 > 0 ∧ v_3 > 0) ∧ v_1 ≠ v_2 ∧ v_2 ≠ v_3
->>
-Rule 84 (Complete condition check for all parameters)
-{v_1 : int, v_2 : int, v_3 : int, v_4 : float, v_5 : str, v_6 : float, v_7 : bool, v_8 : bool, v_9 : bool} |= (v_1 > 0 ∧ v_2 > 0 ∧ v_1 % v_2 = 0 ∧ v_3 ≥ v_1) ∧ (v_4 ≥ 0 ∧ v_4 ≤ 1) ∧ (v_5 = "relu" ∨ v_5 = "gelu") ∧ (v_6 > 0) ∧ (v_7 = true ∨ v_7 = false) ∧ (v_8 = true ∨ v_8 = false) ∧ (v_9 = true ∨ v_9 = false)
->>
-Rule 85 (Check for dropout, layer_norm_eps along with d_model%nhead==0 )
-{v_1: float, v_2: float, v_3: int, v_4:int} |= (v_1 ≥ 0 ∧ v_1 ≤ 1) ∧ (v_2 > 0) ∧ (v_3>0 ∧ v_4>0 ∧ v_3 % v_4 = 0)
->>
-Rule 88 (Combined conditions for d_model, nhead, dim_feedforward using not equal)
-{v_1 : int, v_2 : int, v_3 : int} |= (v_1 > 0) ∧ (v_2 > 0) ∧ (v_3 > 0) ∧ (v_1 ≠ v_2) ∧ (v_2 ≠ v_3)
->>
-Rule 89 (Activation and boolean parameter bias check combined with if and using and, different boolean condition)
-{v_1:str, v_2:bool} |= ((v_1 = "relu") ∨ (v_1 = "gelu")) ∧ if v_2 = false then true else false
->>
-Rule 90 (Checking multiple boolean params and comparing integer parameter, using >= and not =)
-{v_1 : bool, v_2 : bool, v_3 : int, v_4 : int} |= (v_1 = true ∨ v_1 = false) ∧ (v_2 = true ∨ v_2 = false) ∧ (v_3 > 0) ∧ (v_4 > 0) ∧ (v_4 ≥ v_3) ∧ v_3 ≠ v_4
->>
-Rule 91 (Combined conditions for d_model, nhead, dim_feedforward using not equal, different combinations )
-{v_1 : int, v_2 : int, v_3 : int} |= (v_1 > 0) ∧ (v_2 > 0) ∧ (v_3 > 0) ∧ (v_1 ≠ v_2) ∧ (v_1 ≠ v_3)
->>
-Rule 92 (Checking multiple bool and relation with int )
-{v_1: bool, v_2: bool, v_3: int} |= (v_1 = true ∨ v_1 = false) ∧ (v_2 = true ∨ v_2 = false) ∧ (v_3 > 0)
->>
-Rule 93 (Checking Activation String and int type with < condition)
-{v_1 : str, v_2 : int} |= (v_1 = "relu" ∨ v_1 = "gelu") ∧ (v_2 < 10000)
->>
-Rule 94 (Complex boolean + integer check using implication )
-{v_1 : bool, v_2 : bool, v_3 : int} |= (v_1 = true ∨ v_1 = false) ∧ (v_2 = true ∨ v_2 = false) ∧ if v_1 = true then v_3 > 0 else v_3 = 0
->>
-Rule 95 (str check with multiple or condition)
-{v_1: str} |= (v_1 = "relu") ∨ (v_1 = "gelu") ∨ (v_1 = "tanh")
->>
-Rule 96 (Ensuring positivity for d_model and checking relation with nhead using if-else)
-{v_1 : int, v_2 : int} |= (v_1 > 0) ∧ if v_2 > 0 then v_1 % v_2 = 0
->>
-Rule 97 (Combined int and float condition , checking with < and >)
-{v_1 : int, v_2 : float} |= (v_1 > 100) ∧ (v_2 < 0.5)
->>
-Rule 98 (Checking multiple integer and float params and comparing with > and and)
-{v_1 : int, v_2 : float, v_3 : int} |= (v_1 > 0) ∧ (v_2 > 0) ∧ (v_3 > 0) ∧ (v_1 > v_2) ∧ (v_1 > v_3)
->>
-Rule 99 (Combine all conditions with !=)
-{v_1 : int, v_2 : int, v_3 : int, v_4 : float, v_5 : str, v_6 : float, v_7 : bool, v_8 : bool, v_9 : bool} |= (v_1 ≠ 0 ∧ v_2 ≠ 0 ∧ v_1 % v_2 = 0 ∧ v_3 ≠ v_1) ∧ (v_4 >= 0 ∧ v_4 <= 1) ∧ (v_5 = "relu" ∨ v_5 = "gelu") ∧ (v_6 > 0) ∧ (v_7 = true ∨ v_7 = false) ∧ (v_8 = true ∨ v_8 = false) ∧ (v_9 = true ∨ v_9 = false)
->>
-Rule 100 (Check different bool, int and relation)
-{v_1 : bool, v_2 : bool, v_3 : int, v_4 : int} |= (v_1 = true ∨ v_1 = false) ∧ (v_2 = true ∨ v_2 = false) ∧ (v_3 > 0) ∧ (v_4 > 0) ∧ (v_4 ≤ v_3)
->>
-Rule 101 (Activation check and relation between int and float)
-{v_1: str, v_2: float, v_3: int} |= ((v_1 = "relu") ∨ (v_1 = "gelu")) ∧ (v_2 > 0) ∧ (v_3 > 10)
->>
-Rule 102 (Check if one int greater than the other)
-{v_1 : int , v_2 : int} |= (v_1 > 0) ∧ (v_2 > 0) ∧ (v_1 > v_2)
->>
-Rule 103 (str should not be none)
-{v_1: str} |= v_1 ≠ "none"
->>
-Rule 104 (All params combined with AND and checking with >= and <=)
-{v_1 : int, v_2 : int, v_3 : int, v_4 : float, v_5 : str, v_6 : float, v_7 : bool, v_8 : bool, v_9 : bool} |= (v_1 > 0 ∧ v_2 > 0 ∧ v_1 % v_2 = 0 ∧ v_3 >= v_1) ∧ (v_4 >= 0 ∧ v_4 <= 1) ∧ (v_5 = "relu" ∨ v_5 = "gelu") ∧ (v_6 > 0) ∧ (v_7 = true ∨ v_7 = false) ∧ (v_8 = true ∨ v_8 = false) ∧ (v_9 = true ∨ v_9 = false)
->>
-Rule 105 (Str,int and bool relation with > and or operator)
-{v_1 : str, v_2 : int, v_3 : bool} |= ((v_1 = "relu") ∨ (v_1 = "gelu")) ∧ (v_2 > 0) ∧ (v_3 = true ∨ v_3 = false)
->>
-Rule 106 (If Activation function is relu then batch_first must be true)
-{v_1 : str, v_2 : bool} |= if v_1 = "relu" then v_2 = true
->>
-Rule 107 (Different relation between bool and int)
-{v_1 : bool, v_2 : int} |= (v_1 = true ∨ v_1 = false) ∧ (v_2 > -10)
->>
-Rule 108 (float should not be a specific number)
-{v_1 : float} |= v_1 ≠ 100.0
->>
-Rule 109 (Ensuring bias defaults to true)
-{v_1: bool} |= v_1 = true
->>
-Rule 110 (Combined int and float values must not be negative)
-{v_1: int, v_2: float} |= v_1 ≥ 0 ∧ v_2 ≥ 0
->>
-Rule 111 (Dropout must not be equal to 0.5)
-{v_1: float} |= v_1 ≠ 0.5
->>
-Rule 112 (if activation is gelu layer_norm_eps must be 1e-05 )
-{v_1 : str, v_2 : float} |= if v_1 = "gelu" then v_2 = 0.00001
->>
-Rule 113 (bool checks with ! symbol)
-{v_1 : bool, v_2 : bool} |= (v_1 = true ∨ v_1 = false) ∧ (v_2 = true ∨ v_2 = false) ∧ v_1 ≠ v_2
->>
-Rule 114 (str value should not be an empty string)
-{v_1: str} |= v_1 ≠ ""
->>
-Rule 115 (Checking dropout and combination of two int)
-{v_1: float, v_2: int, v_3: int} |= (v_1 ≥ 0 ∧ v_1 ≤ 1) ∧ (v_2 + v_3 > 0)
->>
-Rule 116 (d_model not equal to dim_feedforward)
-{v_1: int, v_2: int} |= v_1 ≠ v_2
->>
-Rule 117 (If bias is false then layer_norm_eps must be greater than 0)
-{v_1 : bool, v_2 : float} |= if v_1 = false then v_2 > 0
->>
-Rule 118 (Different check on d_model and nhead )
-{v_1 : int, v_2 : int} |= (v_1 > 100) ∧ (v_2 < 10)
->>
-Rule 119 (Complete parameter check and d_model should be greater than 100 )
-{v_1 : int, v_2 : int, v_3 : int, v_4 : float, v_5 : str, v_6 : float, v_7 : bool, v_8 : bool, v_9 : bool} |= (v_1 > 100 ∧ v_2 > 0 ∧ v_1 % v_2 = 0 ∧ v_3 >= v_1) ∧ (v_4 >= 0 ∧ v_4 <= 1) ∧ (v_5 = "relu" ∨ v_5 = "gelu") ∧ (v_6 > 0) ∧ (v_7 = true ∨ v_7 = false) ∧ (v_8 = true ∨ v_8 = false) ∧ (v_9 = true ∨ v_9 = false)
->>
-Rule 120 (Checking for activation, and combination of 2 bool)
-{v_1 : str, v_2 : bool, v_3 : bool} |= (v_1 = "relu" ∨ v_1 = "gelu") ∧ (v_2 = true ∨ v_2 = false) ∧ (v_3 = true ∨ v_3 = false) ∧ if v_2=true then v_3=false
->>
-Rule 122 (Embed_dim,nhead and layer_norm_eps are positive)
-{v_1 : int, v_2 : int, v_3 : float} |= (v_1>0) ∧ (v_2 > 0) ∧ (v_3 > 0) ∧ (v_1 > v_2)
->>
-Rule 123 (Check bias to be true and a string is relu)
-{v_1: bool, v_2: str} |= (v_1 = true ∨ v_1 = false) ∧ (v_2 = "relu")
+Rule 62 (dim_feedforward must be positive)
+{dim_feedforward : int} |= dim_feedforward > 0

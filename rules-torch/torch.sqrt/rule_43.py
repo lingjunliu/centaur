@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the out tensor is provided, and the input tensor is float or complex and non-negative, then the out tensor's dtype should not be short. (Rule 43)
+# The 'out' tensor must have a suitable dtype for the square root, avoiding 'Short' and ensuring correct handling of integer, negative, and complex inputs. (Rule 43)
 
 rule_43 = lambda s, v, n=False: (
-    s.add(Not(If(And((Or(Or(Or((v["arg1_dtype"] == 7), (v["arg1_dtype"] == 8)), (v["arg1_dtype"] == 9)), (v["arg1_dtype"] == 10))), (Select(v["arg1_range"], 0) >= 0)), And((v["arg2_dtype"] != 1), (v["arg2_dtype"] != 2)), False)) if n else
-          If(And((Or(Or(Or((v["arg1_dtype"] == 7), (v["arg1_dtype"] == 8)), (v["arg1_dtype"] == 9)), (v["arg1_dtype"] == 10))), (Select(v["arg1_range"], 0) >= 0)), And((v["arg2_dtype"] != 1), (v["arg2_dtype"] != 2)), False))
+    s.add(Not(And((v["arg2_dtype"] != 2), (If(And((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8))), Select(v["arg1_range"], 0) >= 0, If((And(9 <= v["arg1_dtype"], v["arg1_dtype"] <= 10)), True, If(And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8), v["arg1_dtype"] <= v["arg2_dtype"], If(And(9 <= v["arg2_dtype"], v["arg2_dtype"] <= 10), v["arg1_dtype"] <= v["arg2_dtype"], (v["arg2_dtype"] >= 6)))))))) if n else
+          And((v["arg2_dtype"] != 2), (If(And((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8))), Select(v["arg1_range"], 0) >= 0, If((And(9 <= v["arg1_dtype"], v["arg1_dtype"] <= 10)), True, If(And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8), v["arg1_dtype"] <= v["arg2_dtype"], If(And(9 <= v["arg2_dtype"], v["arg2_dtype"] <= 10), v["arg1_dtype"] <= v["arg2_dtype"], (v["arg2_dtype"] >= 6))))))))
 )
 
 def rule_43_func(arg1, arg2, solver=None, neg=False):

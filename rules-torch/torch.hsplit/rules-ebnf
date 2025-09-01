@@ -1,78 +1,183 @@
 >>
-Rule 1 (indices_or_sections should be positive)
-{v_2 : int} |= v_2 > 0
+Rule 4 (indices_or_sections must evenly divide the split dimension if it is an integer and input has two or more dimensions)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) ≥ 2 then shape(v_1, 1) % v_2 = 0
 >>
-Rule 2 (indices_or_sections cannot cause dimension size to be zero after split)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 1) / v_2 > 0
+Rule 5 (the values in indices_or_sections list should be less than shape(v_1,1) when ndim(v_1) >= 2)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) >= 2 then ∀i ∈ [0, v_2.len - 1] : v_2[i] < shape(v_1, 1)
 >>
-Rule 3 (indices_or_sections should not be an integer that underflows when converted to SymInt)
-{v_2 : int} |= v_2 > -2147483648 ∧ v_2 < 2147483647
+Rule 6 (the values in indices_or_sections tuple should be less than shape(v_1,1) when ndim(v_1) >= 2)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) >= 2 then ∀i ∈ [0, v_2.len - 1] : v_2[i] < shape(v_1, 1)
 >>
-Rule 4 (indices_or_sections should be less than the size of the split dimension)
-{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, 1)
+Rule 9 (indices_or_sections must be larger than 0 when it is an integer)
+{v_1 : int} |= v_1 > 0
 >>
-Rule 7 (indices_or_sections cannot cause dimension size to be zero after split, equivalent expression)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 1) > 0 ∧ v_2 > 0
+Rule 10 (values in indices_or_sections list must be non-negative)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 11 (indices_or_sections must evenly divide the split dimension, avoiding modulo)
-{v_1 : tensor, v_2 : int} |= ∃i ∈ [0, shape(v_1, 1) -1]: (i + 1) * v_2 = shape(v_1, 1)
+Rule 11 (values in indices_or_sections tuple must be non-negative)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 12 (indices_or_sections is a list and must have a positive length)
-{v_2 : list(int)} |= v_2.len > 0
+Rule 13 (the values in indices_or_sections list should be less than shape(v_1,1) when ndim(v_1) >= 2)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) ≥ 2 then ∀i ∈ [0, v_2.len - 1] : v_2[i] < shape(v_1, 1)
 >>
-Rule 13 (indices_or_sections is a list and all elements must be non-negative)
-{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+Rule 14 (the values in indices_or_sections tuple should be less than shape(v_1,1) when ndim(v_1) >= 2)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) ≥ 2 then ∀i ∈ [0, v_2.len - 1] : v_2[i] < shape(v_1, 1)
 >>
-Rule 14 (indices_or_sections is a list of ints, and the elements are strictly increasing)
-{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i + 1]
+Rule 15 (the number of sections should be non-negative when indices_or_sections is a list)
+{v_1 : list(int)} |= v_1.len ≥ 0
 >>
-Rule 15 (If indices_or_sections is a list, the maximum value should be less than the split dimension)
-{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then v_2[v_2.len -1] < shape(v_1, 1)
+Rule 16 (the number of sections should be non-negative when indices_or_sections is a tuple)
+{v_1 : tuple(int)} |= v_1.len ≥ 0
 >>
-Rule 16 (indices_or_sections cannot cause dimension size to be zero after split when it is a list)
-{v_1: tensor, v_2: list(int)} |= (v_2.len = 0) ∨ (∀i ∈ [0, v_2.len - 1] : v_2[i] < shape(v_1, 1))
+Rule 20 (if indices_or_sections is an int, it must be a positive integer)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 2 then true else v_2 > 0
 >>
-Rule 17 (indices_or_sections is a tuple, and all elements must be non-negative)
-{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+Rule 25 (indices_or_sections must evenly divide the split dimension if it is an integer and input has two or more dimensions)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) ≥ 2 then (shape(v_1, 1) % v_2 = 0) ∨ (v_2 <= 0)
 >>
-Rule 18 (indices_or_sections is a tuple of ints, and the elements are strictly increasing)
-{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i + 1]
+Rule 26 (if indices_or_sections is an int, and input tensor has more than one dimension, input's dimension 1 must be divisible by indices_or_sections)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 1 then shape(v_1, 1) % v_2 = 0
 >>
-Rule 19 (If indices_or_sections is a tuple, the maximum value should be less than the split dimension)
-{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then v_2[v_2.len -1] < shape(v_1, 1)
+Rule 27 (If indices_or_sections is an integer, the value must not be 0)
+{v_1: int} |= v_1 != 0
 >>
-Rule 20 (If indices_or_sections is a tuple, it must have a positive length)
-{v_2 : tuple(int)} |= v_2.len > 0
+Rule 28 (If indices_or_sections is a list, the length must be non negative)
+{v_1 : list(int)} |= v_1.len >= 0
 >>
-Rule 25 (indices_or_sections is int ⊎ list(int) ⊎ tuple(int) and must be positive if it is an int.)
-{v_2 : int ⊎ list(int) ⊎ tuple(int)} |= if ndim(v_2) = 0 then v_2 > 0
+Rule 29 (If indices_or_sections is a tuple, the length must be non negative)
+{v_1 : tuple(int)} |= v_1.len >= 0
 >>
-Rule 29 (The tensor must have at least 2 dimensions.)
-{v_1 : tensor} |= ndim(v_1) ≥ 2
+Rule 30 (If indices_or_sections is a list, elements must be non-negative)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] >= 0
 >>
-Rule 32 (indices_or_sections is int ⊎ list(int) ⊎ tuple(int) and must be positive if it is an int.)
-{v_2 : int ⊎ list(int) ⊎ tuple(int)} |= if ∃i ∈ [0, 0] : shape(v_2, i) = 0 ∧ v_2[i] < 0 then false
+Rule 31 (If indices_or_sections is a tuple, elements must be non-negative)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] >= 0
 >>
-Rule 37 (If indices_or_sections is a list, all its elements cannot be greater than a maximum value)
-{v_2 : list(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : v_2[i] < 2147483647
+Rule 40 (indices_or_sections is list and all the elements sum is less than shape(v_1, 1))
+{v_1 : tensor, v_2 : list(int)} |=  (v_2.len = 0) ∨ (if ndim(v_1) > 1 then (∃sum_ ∈ [0, shape(v_1,1)] : (∀i ∈ [0, v_2.len-1] : sum_ = sum_ - v_2[i]) ∧ (sum_ >= 0)))
 >>
-Rule 39 (If indices_or_sections is a list, its elements must be representable as SymInt)
-{v_2 : list(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : v_2[i] > -2147483648 ∧ v_2[i] < 2147483647
+Rule 41 (indices_or_sections is tuple and all the elements sum is less than shape(v_1, 1))
+{v_1 : tensor, v_2 : tuple(int)} |=  (v_2.len = 0) ∨ (if ndim(v_1) > 1 then (∃sum_ ∈ [0, shape(v_1,1)] : (∀i ∈ [0, v_2.len-1] : sum_ = sum_ - v_2[i]) ∧ (sum_ >= 0)))
 >>
-Rule 41 (If indices_or_sections is a list, its elements must be representable as SymInt and be valid int)
-{v_2 : list(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : (v_2[i] > -2147483648) ∧ (v_2[i] < 2147483647)
+Rule 42 (if indices_or_sections is an int, and input tensor has more than one dimension, input's dimension 1 must be divisible by indices_or_sections or indices_or_sections is zero)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 1 then (shape(v_1, 1) % v_2 = 0) ∨ (v_2 = 0)
 >>
-Rule 43 (If indices_or_sections is a tuple, its elements must be representable as SymInt and valid)
-{v_2 : tuple(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : (v_2[i] > -2147483648) ∧ (v_2[i] < 2147483647)
+Rule 43 (If indices_or_sections is a list, then each element must be less than the size of dimension 1)
+{v_1: tensor, v_2: list(int)} |= if ndim(v_1) > 1 then ∀i ∈ [0, v_2.len-1] : v_2[i] < shape(v_1, 1)
 >>
-Rule 48 (If indices_or_sections is a list, its elements must be representable as SymInt, avoiding quantifiers)
-{v_2 : list(int)} |= if v_2.len > 0 then (min(v_2) > -2147483648) ∧ (max(v_2) < 2147483647)
+Rule 44 (If indices_or_sections is a tuple, then each element must be less than the size of dimension 1)
+{v_1: tensor, v_2: tuple(int)} |= if ndim(v_1) > 1 then ∀i ∈ [0, v_2.len-1] : v_2[i] < shape(v_1, 1)
 >>
-Rule 56 (indices_or_sections, if a list or tuple, should not have elements that are too large)
-{v_2 : list(int) ⊎ tuple(int)} |= if v_2.len > 0 then max(v_2) < 2000000000
+Rule 45 (If indices_or_sections is an int, value should not be too large to be a SymInt)
+{v_1 : int} |= v_1 < 5995577176393296313 ∧ v_1 > -5995577176393296313
 >>
-Rule 59 (indices_or_sections, if a list or tuple, should not have elements that are too large, using forall to say no element can be too large)
-{v_2 : list(int) ⊎ tuple(int)} |= ∀i ∈ [0, v_2.len-1]: v_2[i] < 2000000000
+Rule 46 (If indices_or_sections is a list, values must not be too large to be a SymInt)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len-1] : v_1[i] < 5995577176393296313 ∧ v_1[i] > -5995577176393296313
 >>
-Rule 62 (indices_or_sections is int ⊎ list(int) ⊎ tuple(int) and must be positive if it is an int, getting rid of type check and just checking greater than or equals 0)
-{v_2 : int ⊎ list(int) ⊎ tuple(int)} |= v_2 ≥ 0
+Rule 47 (If indices_or_sections is a tuple, values must not be too large to be a SymInt)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len-1] : v_1[i] < 5995577176393296313 ∧ v_1[i] > -5995577176393296313
+>>
+Rule 49 (If indices_or_sections is a list, then the values in the list must be strictly increasing.)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 2] : v_1[i] < v_1[i+1]
+>>
+Rule 50 (If indices_or_sections is a tuple, then the values in the tuple must be strictly increasing.)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 2] : v_1[i] < v_1[i+1]
+>>
+Rule 55 (If indices_or_sections is a list, then the values in the list must be strictly increasing and non-negative.)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 2] : v_1[i] < v_1[i+1] ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] >= 0
+>>
+Rule 56 (If indices_or_sections is a tuple, then the values in the tuple must be strictly increasing and non-negative.)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 2] : v_1[i] < v_1[i+1] ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] >= 0
+>>
+Rule 57 (If indices_or_sections is an int, value should not be too large to be a SymInt and value should be positive.)
+{v_1 : int} |= v_1 < 5995577176393296313 ∧ v_1 > -5995577176393296313 ∧ v_1 > 0
+>>
+Rule 58 (indices_or_sections should not be larger than the split dimension when indices_or_sections is a list)
+{v_1: tensor, v_2: list(int)} |= if ndim(v_1) > 1 then v_2.len < shape(v_1, 1)
+>>
+Rule 59 (indices_or_sections should not be larger than the split dimension when indices_or_sections is a tuple)
+{v_1: tensor, v_2: tuple(int)} |= if ndim(v_1) > 1 then v_2.len < shape(v_1, 1)
+>>
+Rule 60 (If input tensor has more than one dimension and indices_or_sections is an int, input's dimension 1 must be divisible by indices_or_sections, when indices_or_sections is positive)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 1 then if v_2 > 0 then shape(v_1, 1) % v_2 = 0
+>>
+Rule 61 (If indices_or_sections is a list, then the values in the list must be strictly increasing and non-negative.)
+{v_1 : list(int)} |= (v_1.len = 0) ∨ (∀i ∈ [0, v_1.len - 2] : v_1[i] < v_1[i+1] ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] >= 0)
+>>
+Rule 62 (If indices_or_sections is a tuple, then the values in the tuple must be strictly increasing and non-negative.)
+{v_1 : tuple(int)} |= (v_1.len = 0) ∨ (∀i ∈ [0, v_1.len - 2] : v_1[i] < v_1[i+1] ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] >= 0)
+>>
+Rule 66 (If input tensor has more than one dimension and indices_or_sections is an int, input's dimension 1 must be divisible by indices_or_sections, when indices_or_sections is positive)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 1 then (shape(v_1, 1) % v_2 = 0) ∨ (v_2 <= 0)
+>>
+Rule 67 (If indices_or_sections is a list, then the values in the list must be strictly increasing and non-negative and the length should be less than split dimension.)
+{v_1 : tensor, v_2 : list(int)} |= (v_2.len = 0) ∨ (∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1] ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] >= 0 ∧ if ndim(v_1) > 1 then v_2.len < shape(v_1, 1))
+>>
+Rule 68 (If indices_or_sections is a tuple, then the values in the tuple must be strictly increasing and non-negative and the length should be less than split dimension.)
+{v_1 : tensor, v_2 : tuple(int)} |= (v_2.len = 0) ∨ (∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1] ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] >= 0 ∧ if ndim(v_1) > 1 then v_2.len < shape(v_1, 1))
+>>
+Rule 69 (If indices_or_sections is an int, value should not be too large to be a SymInt and value should be positive.)
+{v_1 : int} |= v_1 < 5995577176393296313 ∧ v_1 > -5995577176393296313 ∧ v_1 >= 0
+>>
+Rule 88 (If indices_or_sections is a list, values can be represented as SymInt)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len-1] : (v_1[i] < 2147483647 ∧ v_1[i] > -2147483648)
+>>
+Rule 89 (If indices_or_sections is a tuple, values can be represented as SymInt)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len-1] : (v_1[i] < 2147483647 ∧ v_1[i] > -2147483648)
+>>
+Rule 90 (If input tensor has more than one dimension and indices_or_sections is an int, input's dimension 1 must be divisible by indices_or_sections, when indices_or_sections is positive, and indices_or_sections is not too large)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 1 then (shape(v_1, 1) % v_2 = 0) ∨ (v_2 <= 0) ∧ v_2 < 5995577176393296313 ∧ v_2 > -5995577176393296313
+>>
+Rule 91 (If indices_or_sections is a list, then the values in the list must be strictly increasing and non-negative and the length should be less than split dimension, values must be SymInt representable)
+{v_1 : tensor, v_2 : list(int)} |= (v_2.len = 0) ∨ (∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1] ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] >= 0 ∧ if ndim(v_1) > 1 then v_2.len < shape(v_1, 1) ∧ ∀i ∈ [0, v_2.len-1] : (v_2[i] < 2147483647 ∧ v_2[i] > -2147483648))
+>>
+Rule 92 (If indices_or_sections is a tuple, then the values in the tuple must be strictly increasing and non-negative and the length should be less than split dimension, values must be SymInt representable)
+{v_1 : tensor, v_2 : tuple(int)} |= (v_2.len = 0) ∨ (∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1] ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] >= 0 ∧ if ndim(v_1) > 1 then v_2.len < shape(v_1, 1) ∧ ∀i ∈ [0, v_2.len-1] : (v_2[i] < 2147483647 ∧ v_2[i] > -2147483648))
+>>
+Rule 96 (If indices_or_sections is an int, value should be non-negative and can be represented as SymInt)
+{v_1 : int} |= (v_1 < 2147483647 ∧ v_1 > -2147483648) ∧ v_1 >= 0
+>>
+Rule 97 (If input tensor has more than 1 dimension, and indices_or_sections is an int, then shape(v_1, 1) should be greater than indices_or_sections)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 1 then shape(v_1, 1) > v_2
+>>
+Rule 98 (If the input is one-dimensional, indices_or_sections can be an int less than the length of the tensor)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then v_2 < shape(v_1, 0)
+>>
+Rule 99 (If input tensor has more than one dimension and indices_or_sections is an int, input's dimension 1 must be divisible by indices_or_sections, when indices_or_sections is positive, and indices_or_sections is not too large or is non-positive.)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 1 then (shape(v_1, 1) % v_2 = 0) ∨ (v_2 <= 0 ∧ v_2 > -2147483648 ∧ v_2 < 2147483647 )
+>>
+Rule 102 (If input tensor has more than one dimension and indices_or_sections is an int, input's dimension 1 must be divisible by indices_or_sections, when indices_or_sections is positive, and indices_or_sections is not too large or is non-positive, and if the input has 1 dimension, the value should not be negative)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 1 then (shape(v_1, 1) % v_2 = 0) ∨ (v_2 <= 0 ) else if ndim(v_1) = 1 then v_2 >= 0
+>>
+Rule 103 (If indices_or_sections is a list, then the values in the list must be strictly increasing and non-negative and the length should be less than split dimension and values must be SymInt representable and the values are less than shape(v_1,1))
+{v_1 : tensor, v_2 : list(int)} |= (v_2.len = 0) ∨ (∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1] ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] >= 0 ∧ if ndim(v_1) > 1 then v_2.len < shape(v_1, 1) ∧ ∀i ∈ [0, v_2.len - 1] : (v_2[i] < 2147483647 ∧ v_2[i] > -2147483648) ∧ v_2[i] < shape(v_1, 1))
+>>
+Rule 104 (If indices_or_sections is a tuple, then the values in the tuple must be strictly increasing and non-negative and the length should be less than split dimension and values must be SymInt representable and the values are less than shape(v_1,1))
+{v_1 : tensor, v_2 : tuple(int)} |= (v_2.len = 0) ∨ (∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1] ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] >= 0 ∧ if ndim(v_1) > 1 then v_2.len < shape(v_1, 1) ∧ ∀i ∈ [0, v_2.len - 1] : (v_2[i] < 2147483647 ∧ v_2[i] > -2147483648) ∧ v_2[i] < shape(v_1, 1))
+>>
+Rule 106 (If indices_or_sections is a list, then the values in the list must be strictly increasing and non-negative and the length should be less than or equal to split dimension and values must be SymInt representable and the values are less than shape(v_1,1), and v_2.len > 0 then v_2[v_2.len - 1] < shape(v_1,1))
+{v_1 : tensor, v_2 : list(int)} |= (v_2.len = 0) ∨ (∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1] ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] >= 0 ∧ if ndim(v_1) > 1 then v_2.len <= shape(v_1, 1) ∧ ∀i ∈ [0, v_2.len - 1] : (v_2[i] < 2147483647 ∧ v_2[i] > -2147483648) ∧ v_2[v_2.len - 1] < shape(v_1, 1))
+>>
+Rule 107 (If indices_or_sections is a tuple, then the values in the tuple must be strictly increasing and non-negative and the length should be less than or equal to split dimension and values must be SymInt representable, and v_2.len > 0 then v_2[v_2.len - 1] < shape(v_1,1))
+{v_1 : tensor, v_2 : tuple(int)} |= (v_2.len = 0) ∨ (∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1] ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] >= 0 ∧ if ndim(v_1) > 1 then v_2.len <= shape(v_1, 1) ∧ ∀i ∈ [0, v_2.len - 1] : (v_2[i] < 2147483647 ∧ v_2[i] > -2147483648) ∧ v_2[v_2.len - 1] < shape(v_1, 1))
+>>
+Rule 109 (If indices_or_sections is a list, then the values in the list must be strictly increasing and non-negative, the length should be less than or equal to split dimension, values must be SymInt representable, and v_2.len > 0 then v_2[v_2.len - 1] < shape(v_1,1). Also, the dimension should be greater than 1)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) > 1 then (v_2.len = 0) ∨ (∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1] ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] >= 0 ∧  v_2.len <= shape(v_1, 1) ∧ ∀i ∈ [0, v_2.len - 1] : (v_2[i] < 2147483647 ∧ v_2[i] > -2147483648) ∧ v_2[v_2.len - 1] < shape(v_1, 1))
+>>
+Rule 110 (If indices_or_sections is a tuple, then the values in the tuple must be strictly increasing and non-negative, the length should be less than or equal to split dimension, values must be SymInt representable, v_2.len > 0 then v_2[v_2.len - 1] < shape(v_1,1) and dimension should be greater than 1)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) > 1 then (v_2.len = 0) ∨ (∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1] ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] >= 0 ∧ v_2.len <= shape(v_1, 1) ∧ ∀i ∈ [0, v_2.len - 1] : (v_2[i] < 2147483647 ∧ v_2[i] > -2147483648) ∧ v_2[v_2.len - 1] < shape(v_1, 1))
+>>
+Rule 111 (If input tensor has more than one dimension and indices_or_sections is an int, input's dimension 1 must be divisible by indices_or_sections, when indices_or_sections is positive, and if the input has 1 dimension, the value should not be negative and not too large)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 1 then (shape(v_1, 1) % v_2 = 0) ∨ (v_2 <= 0 ) else if ndim(v_1) = 1 then v_2 >= 0 ∧ v_2 < 2147483647 ∧ v_2 > -2147483648
+>>
+Rule 112 (If indices_or_sections is a list, then the values in the list must be strictly increasing and non-negative, the length should be less than or equal to split dimension, and values must be SymInt representable and the values are less than shape(v_1,1). Also, if dimension is more than 1, v_2.len > 0 then v_2[v_2.len - 1] < shape(v_1,1))
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) > 1 then (v_2.len = 0) ∨ (∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1] ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] >= 0 ∧  v_2.len <= shape(v_1, 1) ∧ (v_2[v_2.len - 1] < shape(v_1, 1)))
+>>
+Rule 113 (If indices_or_sections is a tuple, then the values in the tuple must be strictly increasing and non-negative, the length should be less than or equal to split dimension, values must be SymInt representable, and if the dimension is greater than 1, v_2.len > 0 then v_2[v_2.len - 1] < shape(v_1,1))
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) > 1 then (v_2.len = 0) ∨ (∀i ∈ [0, v_2.len - 2] : v_2[i] < v_2[i+1] ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] >= 0 ∧ v_2.len <= shape(v_1, 1) ∧ v_2[v_2.len - 1] < shape(v_1, 1))
+>>
+Rule 114 (The elements in list must not be too large or small such that it can be represented by symInt)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] < 2147483647 ∧ v_1[i] > -2147483648)
+>>
+Rule 115 (The elements in tuple must not be too large or small such that it can be represented by symInt)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] < 2147483647 ∧ v_1[i] > -2147483648)

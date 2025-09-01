@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Weight tensor dimensions must not exceed a limit to prevent overflow errors (Rule 42)
+# Input2 must be a tensor with a small number of dimensions - limiting complexity (Rule 42)
 
 rule_42 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] <= 4) if n else
-          v["arg1_ndim"] <= 4)
+    s.add(Not(v["arg1_ndim"] <= 3) if n else
+          v["arg1_ndim"] <= 3)
 )
 
 def rule_42_func(arg1, solver=None, neg=False):

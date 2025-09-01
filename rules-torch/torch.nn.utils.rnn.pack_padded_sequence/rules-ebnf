@@ -1,159 +1,351 @@
 >>
-Rule 1 (lengths argument should be a 1D CPU int64 tensor)
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ dtype_(v_1) = 4
+Rule 1 (lengths tensor must be 1D)
+{v_2 : tensor} |= ndim(v_2) = 1
 >>
-Rule 2 (Expected `len(lengths)` to be equal to batch_size)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then shape(v_2, 0) = shape(v_1, 1) else shape(v_2, 0) = shape(v_1, 0)
+Rule 2 (lengths tensor must be on CPU)
+{v_2 : tensor} |= dtype_(v_2) = 4
 >>
-Rule 3 (Length of all samples has to be greater than 0)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
+Rule 3 (all lengths must be greater than 0)
+{v_2 : tensor} |= ∀ i ∈ [0, shape(v_2, 0) - 1] : v_2[i] > 0
 >>
-Rule 4 (input tensor should have at least two dimensions)
+Rule 4 (batch size and length tensor size must match)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then shape(v_1, 0) = shape(v_2,0) else shape(v_1,1) = shape(v_2,0)
+>>
+Rule 5 (input tensor must have at least two dimensions)
 {v_1 : tensor} |= ndim(v_1) ≥ 2
 >>
-Rule 5 (enforce_sorted should be a boolean value)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 6 (length of each sequence must be less than or equal to the maximum sequence length in dimension 1 if batch_first is false, otherwise in dimension 0)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then ∀ i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≤ shape(v_1, 1) else ∀ i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≤ shape(v_1, 0)
 >>
-Rule 10 (Expected `len(lengths)` to be equal to batch_size, considering batch_first)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then shape(v_2, 0) = shape(v_1, 0) else shape(v_2, 0) = shape(v_1, 1)
+Rule 8 (input tensor cannot be empty)
+{v_1 : tensor} |= ∀ i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 13 (If enforce_sorted is true, then the first element of lengths should be greater or equal to the last element)
-{v_1 : tensor, v_2 : bool} |= if v_2 then v_1[0] ≥ v_1[shape(v_1, 0) - 1]
+Rule 9 (lengths tensor values must be integers)
+{v_2 : tensor} |= (dtype_(v_2) = 1) ∨ (dtype_(v_2) = 2) ∨ (dtype_(v_2) = 3) ∨ (dtype_(v_2) = 4) ∨ (dtype_(v_2) = 5)
 >>
-Rule 14 (lengths argument should be a 1D tensor)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 10 (check for index out of bounds when accessing tensor, shape should be greater than index)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 0) > v_2
 >>
-Rule 18 (Lengths tensor and input tensor must have compatible sizes)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1,0) ≤ shape(v_2, 0) ∨ shape(v_1, 0) ≤ shape(v_2, 1)
+Rule 11 (ensure dimension is within range, at least one dimension exists)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 20 (lengths tensor should be int64)
-{v_1: tensor} |= dtype_(v_1) = 4
+Rule 12 (check that lengths are not empty)
+{v_2 : tensor} |= shape(v_2, 0) > 0
 >>
-Rule 21 (The values in the lengths tensor should be less than or equal to the sequence length)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≤ shape(v_2, 1) else ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≤ shape(v_2, 0)
+Rule 19 (enforce_sorted must be a boolean value)
+{v_4 : bool} |= true ∨ false = v_4
 >>
-Rule 22 (lengths should not be an empty tensor)
-{v_1: tensor} |= shape(v_1, 0) > 0
+Rule 25 (lengths tensor must be on CPU and have the correct dtype)
+{v_2 : tensor} |= dtype_(v_2) = 4 ∧ ndim(v_2) = 1
 >>
-Rule 28 (The dimension of lengths should be less than 2)
-{v_1 : tensor} |= ndim(v_1) < 2
+Rule 26 (input tensor must have at least two dimensions and non-empty shape)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ ∀ i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 29 (lengths argument should be a CPU tensor with int64 dtype)
-{v_1 : tensor} |= dtype_(v_1) = 4
->>
-Rule 30 (The values in the lengths tensor should be less than or equal to the sequence length, batch_first considered)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≤ shape(v_2, 0) else ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≤ shape(v_2, 1)
->>
-Rule 31 (The input must have at least dimension 1 if lengths are provided)
-{v_1: tensor, v_2: tensor} |= ndim(v_2) > 0 ∧ ndim(v_1) >= 1
->>
-Rule 32 (Lengths tensor must have the same size as the batch size of the input, batch_first considered)
+Rule 27 (batch size and length tensor size must match, based on batch_first)
 {v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then shape(v_1, 0) = shape(v_2, 0) else shape(v_1, 1) = shape(v_2, 0)
 >>
-Rule 38 (Input tensor must have at least two dimensions)
-{v_1 : tensor} |= ndim(v_1) >= 2
+Rule 28 (length values must be positive and within input tensor dimensions)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= ∀ i ∈ [0, shape(v_2, 0) - 1] : v_2[i] > 0 ∧ (if v_3 then v_2[i] ≤ shape(v_1, 1) else v_2[i] ≤ shape(v_1, 0))
 >>
-Rule 40 (The values in the lengths tensor should be valid indices for the input tensor)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] < shape(v_2, 0) else ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] < shape(v_2, 1)
+Rule 29 (enforce_sorted can only be true if lengths is valid)
+{v_2 : tensor, v_4 : bool} |= if shape(v_2, 0) > 0 then true else v_4 = false
 >>
-Rule 43 (If enforce_sorted is true, then lengths must be sorted in descending order)
-{v_1 : tensor, v_2 : bool} |= if v_2 then ∀i ∈ [0, shape(v_1, 0) - 2] : v_1[i] ≥ v_1[i+1]
+Rule 30 (Example demonstrating str type with enforce_sorted)
+{v_4: bool, v_5 : str} |= if v_4 then v_5 = "none"
 >>
-Rule 45 (lengths tensor values must be within range given input tensor shape)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ shape(v_2, 0) else ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ shape(v_2, 1)
+Rule 32 (batch_first must be a valid boolean value, alternative approach)
+{v_3: bool} |= v_3 = true ∨ v_3 = false
 >>
-Rule 48 (If lengths is provided, input must have at least one dimension)
-{v_1 : tensor, v_2 : tensor} |=  ndim(v_2) > 0 ∧ ndim(v_1) > 0
+Rule 34 (Another valid range check - demonstrating usage of constant)
+{v_1 : tensor} |= ndim(v_1) > -1
 >>
-Rule 61 (If enforce_sorted is true, the lengths should be sorted in descending order)
-{v_1 : tensor, v_2 : bool} |= if v_2 then ∀i ∈ [0, shape(v_1, 0) - 2] : v_1[i] ≥ v_1[i + 1]
+Rule 36 (Testing tuple with values condition)
+{v_2: tuple(int)} |= v_2.len <= 10
 >>
-Rule 62 (input tensor should have at least 2 dimensions)
-{v_1: tensor} |= ndim(v_1) >= 2
+Rule 42 (Example demonstrating str type with enforce_sorted - NOT applicable, creating an artificial one to demonstrate string)
+{v_5 : str} |= v_5 = "none" ∨ v_5 = "mean"
 >>
-Rule 63 (Lengths should not be an empty tensor)
+Rule 43 (Check on the indices being non-negative - showing constant usage correctly)
 {v_1 : tensor} |= shape(v_1, 0) > 0
 >>
-Rule 65 (Lengths values should be valid, w.r.t batch_first)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < shape(v_2, 0) else ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < shape(v_2, 1)
+Rule 45 (Valid range for a length value, example of combining functions)
+{v_2: tensor} |= 0 ≤ shape(v_2,0)
 >>
-Rule 69 (Lengths tensor must have int64 dtype and be 1D)
-{v_1 : tensor} |= dtype_(v_1) = 4 ∧ ndim(v_1) = 1
+Rule 46 (Another valid range check - demonstrating usage of constant)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 70 (lengths values must be non-negative)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
+Rule 47 (Index range, to showcase tuples)
+{v_2: tuple(int)} |= v_2.len > 0
 >>
-Rule 71 (The input tensor must not be empty)
+Rule 50 (lengths tensor has a reasonable number of dimensions)
+{v_2: tensor} |= ndim(v_2) ≤ 2
+>>
+Rule 51 (Dimension size of the input should not be zero)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+>>
+Rule 52 (lengths should be less than a maximum value)
+{v_2: tensor} |= max(v_2) < 10000
+>>
+Rule 53 (batch_first is either true or false)
+{v_3 : bool} |= v_3 = true ∨ v_3 = false
+>>
+Rule 54 (If lengths is not available enforce sorted can't be used)
+{v_2: tensor, v_4: bool} |= if shape(v_2, 0) > 0 then true else v_4 = false
+>>
+Rule 55 (Another check on data type)
+{v_1 : tensor} |= (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)
+>>
+Rule 56 (String type check)
+{v_5 : str} |= v_5 = "none" ∨ v_5 = "linear"
+>>
+Rule 57 (Lengths can't be too negative)
+{v_2 : tensor} |= min(v_2) > -10
+>>
+Rule 58 (Ensuring reasonable batch size)
+{v_1: tensor, v_3: bool} |= if v_3 then shape(v_1, 0) < 1000 else shape(v_1, 1) < 1000
+>>
+Rule 59 (Tuple length is within bounds)
+{v_6: tuple(int)} |= v_6.len < 5
+>>
+Rule 60 (Demonstration that a shape can be defined)
+{v_1: tensor} |= ndim(v_1) < 5
+>>
+Rule 61 (lengths tensor should have a valid number of elements for batch_first=True)
+{v_1 : tensor, v_2: tensor} |= shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 62 (lengths tensor should have a valid number of elements for batch_first=False)
+{v_1 : tensor, v_2: tensor} |= shape(v_1, 1) = shape(v_2, 0)
+>>
+Rule 63 (Input dimension should be within a reasonable limit)
+{v_1: tensor} |= ndim(v_1) < 6
+>>
+Rule 64 (Dtype of input cannot be string)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 66 (Batch size must be positive, batch_first=True)
+{v_1: tensor} |= shape(v_1, 0) > 0
+>>
+Rule 67 (Batch size must be positive, batch_first=False)
+{v_1: tensor} |= shape(v_1, 1) > 0
+>>
+Rule 68 (The values in the lengths tensor must be reasonable)
+{v_2 : tensor} |= max(v_2) < 2000
+>>
+Rule 69 (The minimum values in the lengths tensor must be non-negative)
+{v_2: tensor} |= min(v_2) >= 0
+>>
+Rule 70 (Example of enforcing reasonable shape limit)
+{v_1 : tensor} |= shape(v_1, 0) < 500
+>>
+Rule 71 (Ensure dimension is within range)
+{v_1 : tensor} |= ndim(v_1) > 1
+>>
+Rule 72 (Showing the use of tuple, length of it must be positive)
+{v_6: tuple(int)} |= v_6.len >= 0
+>>
+Rule 73 (lengths tensor should have a valid number of elements for batch_first=True, demonstrating bool usage)
+{v_1 : tensor, v_2: tensor, v_3: bool} |= if v_3 then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 74 (lengths tensor should have a valid number of elements for batch_first=False, demonstrating bool usage)
+{v_1 : tensor, v_2: tensor, v_3: bool} |= if v_3 then true else shape(v_1, 1) = shape(v_2, 0)
+>>
+Rule 77 (Batch size must be positive, batch_first=True)
+{v_1: tensor, v_3 : bool} |= if v_3 then shape(v_1, 0) > 0
+>>
+Rule 78 (Batch size must be positive, batch_first=False)
+{v_1: tensor, v_3 : bool} |= if v_3 then true else shape(v_1, 1) > 0
+>>
+Rule 83 (Showing the use of tuple, length of it should be within range)
+{v_6: tuple(int)} |= v_6.len < 10
+>>
+Rule 84 (Example to use int⊎float type )
+{v_1 : int ⊎ float} |= v_1 < 10000
+>>
+Rule 85 (Checking dimension range of input tensor)
+{v_1: tensor} |= ndim(v_1) >=2 ∧ ndim(v_1) <=5
+>>
+Rule 86 (Checking reasonable value for enforce_sorted, use of Bool)
+{v_4:bool} |= v_4 = true ∨ v_4 = false
+>>
+Rule 87 (Lengths tensor dimension check with constant)
+{v_2: tensor} |= ndim(v_2) <= 2
+>>
+Rule 88 (Lengths tensor dtype check using comparison operator)
+{v_2: tensor} |= dtype_(v_2) < 6
+>>
+Rule 89 (Checking limits of input, use cases of batch_first using if and equal compop)
+{v_1: tensor, v_3: bool} |= if v_3 then shape(v_1,0) = 1 else shape(v_1, 1) = 1
+>>
+Rule 90 (Ensuring all sequence lengths are less than a certain threshold)
+{v_2 : tensor} |= ∀ i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < 1500
+>>
+Rule 91 (Lengths elements must be positive)
+{v_2 : tensor} |= ∀ i ∈ [0, shape(v_2, 0) - 1] : v_2[i] >= 0
+>>
+Rule 92 (Using String - selecting a valid combination, showcasing 'Tanh' option)
+{v_3:bool, v_5: str} |= if v_3 then v_5 = "tanh" else v_5 = "relu"
+>>
+Rule 93 (Ensure that max dimension is within an acceptable bound and not infinite)
+{v_1:tensor} |= shape(v_1, 0) <= 500
+>>
+Rule 94 (Input tensor should not be empty)
 {v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 76 (The input must have at least one element)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+Rule 96 (The tensor must be on CPU and have int64 type. This checks if it *is* CPU, instead of what it should be )
+{v_2:tensor} |= dtype_(v_2) = 4
 >>
-Rule 77 (The length of lengths should not exceed max sequence length if enforce_sorted is True)
-{v_1: tensor, v_2 : tensor, v_3: bool} |= if v_3 then v_1[0] <= shape(v_2, 0) ∨ v_1[0] <= shape(v_2, 1)
+Rule 98 (Ensuring minimum length has to be 0 which is less than all sample lengths)
+{v_2 : tensor} |= min(v_2) >= 0
 >>
-Rule 78 (If batch_first is true, batch size and length of lengths should align)
-{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 then shape(v_2, 0) = shape(v_1, 0) else shape(v_2, 0) = shape(v_1, 1)
+Rule 99 (Ensuring String is either linear or constant, if not boolean)
+{v_3:bool, v_5: str} |= if v_3 then v_5 = "linear" else v_5 = "constant"
 >>
-Rule 79 (If lengths are provided, input must have at least two dimensions)
-{v_1: tensor, v_2: tensor} |= ndim(v_2) > 0 ∧ ndim(v_1) >= 2
+Rule 100 (Ensure dtype of length tensor is integer type.)
+{v_2: tensor} |= 1 <= dtype_(v_2) ∧ dtype_(v_2) <= 5
 >>
-Rule 81 (The lengths values must be smaller or equal to max sequence length w.r.t. batch_first.)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≤ shape(v_1, 1) else ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≤ shape(v_1, 0)
+Rule 101 (Number of dimensions for lengths tensor should be exactly 1)
+{v_2:tensor} |= ndim(v_2) = 1
 >>
-Rule 86 (The lengths values should be smaller than or equal to max sequence length. )
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] <= shape(v_1, 0) ∨ ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] <= shape(v_1, 1)
+Rule 102 (batch_first can be used only if dimensions > 1)
+{v_1: tensor, v_3: bool} |= if ndim(v_1) > 1 then true else v_3 = false
 >>
-Rule 90 (Input must have at least one sequence to pack if lengths are passed)
-{v_1: tensor, v_2: tensor} |=  ndim(v_2) > 0 ∧ ndim(v_1) >= 2
+Rule 103 (Check shape, batch_first=True)
+{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 then shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 92 (The values from lengths should be less than the sequence length)
-{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 then ∀i ∈ [0, shape(v_2, 0)-1]: v_2[i] <= shape(v_1, 1) else ∀i ∈ [0, shape(v_2, 0)-1]: v_2[i] <= shape(v_1, 0)
+Rule 104 (Check shape batch_first = false)
+{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 then true else shape(v_1, 1) = shape(v_2, 0)
 >>
-Rule 97 (Lengths must be non-negative)
-{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1]: v_1[i] >= 0
+Rule 106 (Valid Dtype checks)
+{v_1: tensor} |= (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3)
 >>
-Rule 99 (If lengths are provided, input needs two or more dimensions for packing to work)
-{v_1: tensor, v_2: tensor} |= ndim(v_1) >= 2 ∧ ndim(v_2) > 0
+Rule 107 (Demonstrating list use.)
+{v_2 : list(int)} |= v_2.len > 0
 >>
-Rule 101 (The values inside lengths are valid and not out of DATA bounds)
-{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 then ∀i ∈ [0, shape(v_2, 0) - 1]: v_2[i] <= shape(v_1, 1) ∧ v_2[i] >= 0 else ∀i ∈ [0, shape(v_2, 0)-1]: v_2[i] <= shape(v_1, 0) ∧ v_2[i] >= 0
+Rule 108 (Ensuring a reasonable range for sequence lengths - lower bound and upper bound check)
+{v_2: tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] >= 0 ∧ v_2[i] < 2048
 >>
-Rule 102 (All values from lengths must be positive)
-{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1]: v_1[i] > 0
+Rule 109 (Checking compatibility between input tensor and lengths tensor based on batch_first)
+{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 then shape(v_1, 0) = shape(v_2, 0) else shape(v_1, 1) = shape(v_2, 0)
 >>
-Rule 103 (If enforce_sorted, lengths must be descending or same length)
-{v_1 : tensor, v_2 : bool} |= if v_2 then ∀i ∈ [0, shape(v_1, 0) - 2] : v_1[i] >= v_1[i + 1]
+Rule 110 (Ensuring a valid data type for enforce_sorted - it must be a bool.)
+{v_4 : bool} |= v_4 = true ∨ v_4 = false
 >>
-Rule 105 (Values from lengths are valid and in DATA bounds, considering batch_first)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then ∀i ∈ [0, shape(v_2, 0) - 1]: v_2[i] <= shape(v_1, 1) ∧ v_2[i] >= 0 else ∀i ∈ [0, shape(v_2, 0)-1]: v_2[i] <= shape(v_1, 0) ∧ v_2[i] >= 0
+Rule 111 (Ensuring input tensor has at least two dimensions)
+{v_1: tensor} |= ndim(v_1) >= 2
 >>
-Rule 110 (The length values need to be in range with respect to batch_first)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1]: v_2[i] < shape(v_1, 0) ∨ ∀i ∈ [0, shape(v_2, 0)-1]: v_2[i] < shape(v_1, 1)
+Rule 112 (Ensure Dtype of the tensor is a floating point number 6,7, or 8)
+{v_1: tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 117 (The sum of lengths elements should be at least 1)
-{v_1 : tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1]: v_1[i] > 0
+Rule 113 (Limiting the Maximum Dimensions of the Input)
+{v_1: tensor} |= ndim(v_1) <= 5
 >>
-Rule 119 (Values of lengths must be less than or equal to the max sequence length)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then ∀i ∈ [0, shape(v_2, 0) - 1]: v_2[i] <= shape(v_1, 1) else ∀i ∈ [0, shape(v_2, 0)-1]: v_2[i] <= shape(v_1, 0)
+Rule 115 (Showing use case of tuple with more constraints )
+{v_6: tuple(int)} |=  v_6.len >=0 ∧ v_6.len <10
 >>
-Rule 120 (Input must contain sequences and the shape must be larger than zero.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) >= 2 ∧ ndim(v_2) > 0
+Rule 117 (Use Case with Tensor dimension and limits imposed )
+{v_1: tensor, v_3: bool} |= if v_3 then shape(v_1, 0) > 0 else shape(v_1, 1) > 0
 >>
-Rule 123 (If the lengths of all samples are zero the algorithm will not pack.)
-{v_1:tensor} |= ∃i ∈ [0, shape(v_1, 0)-1]: v_1[i] > 0
+Rule 118 ( String check demonstration)
+{v_1: tensor, v_5 :str} |= if shape(v_1, 0)>0 then v_5 = "linear" else v_5 = "tanh"
 >>
-Rule 124 (lengths values are in DATA bound, considering batch_first)
-{v_1: tensor, v_2: tensor} |= ∀i ∈ [0, shape(v_2, 0)-1]: v_2[i] < shape(v_1, 0) ∨ ∀i ∈ [0, shape(v_2, 0)-1]: v_2[i] < shape(v_1, 1)
+Rule 119 (Ensuring that input shape is always more than zero )
+{v_1 : tensor} |= shape(v_1,0) > 0
 >>
-Rule 130 (If enforce_sorted then must be in decreasing order, enforce_sorted can be only true or false)
-{v_1 : tensor, v_2 : bool} |= (if v_2 then ∀i ∈ [0, shape(v_1, 0) - 2] : v_1[i] >= v_1[i + 1]) ∧ (v_2 = true ∨ v_2 = false)
+Rule 120 (Ensuring that the lengths values do not exceed dimension 0 size of input )
+{v_1: tensor, v_2: tensor, v_3: bool} |= ∀ i ∈ [0, shape(v_2, 0) - 1] : if v_3 then v_2[i] <= shape(v_1, 1) else v_2[i] <= shape(v_1, 0)
 >>
-Rule 131 (Input tensor is not an empty tensor)
-{v_1:tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 121 (If batch_first is false and length is non zero, data type of input is between 6 and 8 )
+{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 ∨ shape(v_2, 0) = 0 then true else (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
 >>
-Rule 134 (length values inside of the boundaries from input depending on batch_first)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0)-1]: v_2[i] < shape(v_1, 0) ∨ ∀i ∈ [0, shape(v_2, 0)-1]: v_2[i] < shape(v_1, 1)
+Rule 122 (All the dimension sizes should be positive)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
 >>
-Rule 135 (It needs to have more than one element if lengths values exist or are defined as an argument)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 123 (Shape check of lengths tensor)
+{v_2: tensor} |= shape(v_2,0) > 0
+>>
+Rule 125 (Maximum dimension size check)
+{v_1 : tensor} |= ndim(v_1) < 5
+>>
+Rule 126 (Check shape in the lengths, greater)
+{v_2: tensor} |= shape(v_2, 0) < 10000
+>>
+Rule 127 (String Type verification if dim greater else string has to be linear )
+{v_1: tensor, v_5: str } |= if ndim(v_1)>2 then v_5 = "linear" else v_5 = "none"
+>>
+Rule 128 (Check for minimum value of tuples)
+{v_1 : tuple(int)} |= v_1.len >= 0
+>>
+Rule 130 (Limits on min and max length)
+{v_2: tensor} |= max(v_2) < 2000
+>>
+Rule 131 (Show the use case with list length verification )
+{v_6: list(int)} |= v_6.len > 0
+>>
+Rule 132 (Lengths should never be a negative value)
+{v_2:tensor} |= ∀ i ∈ [0, shape(v_2, 0)-1]: v_2[i] >= 0
+>>
+Rule 133 (Length of input tensor and the sequence should match with respect to batch_first)
+{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 then shape(v_1, 0) = shape(v_2,0) else shape(v_1, 1) = shape(v_2, 0)
+>>
+Rule 134 (batch_first has to be properly defined as boolean, different syntax this time around for OR operator)
+{v_3: bool} |= (v_3 = true) ∨ (v_3 = false)
+>>
+Rule 135 (If enforce_sorted = true then lengths shape must always be >0. It can be 0 if it is false )
+{v_2 : tensor, v_4: bool} |= if v_4 then shape(v_2, 0) > 0
+>>
+Rule 137 (Maximum Length value )
+{v_2:tensor} |= ∀ i ∈ [0, shape(v_2, 0)-1]: v_2[i] < 2048
+>>
+Rule 138 (String Verifier, either RELU/TANH - if the shape is zero and non-zero, has to satisfy these string check)
+{v_1: tensor, v_5:str} |= if shape(v_1, 0) > 0 then (v_5 = "relu" ∨ v_5 = "tanh") else ( v_5 = "linear" ∨ v_5 = "none")
+>>
+Rule 139 (Minimum Shape should never be less than -1)
+{v_1: tensor} |= shape(v_1, 0) > -1
+>>
+Rule 140 (Validating Length of Tuple)
+{v_6: tuple(int)} |= v_6.len >= 0 ∧ v_6.len < 10
+>>
+Rule 142 (Lengths tensor dtype should have valid integer dtype)
+{v_2: tensor} |= (dtype_(v_2) = 1) ∨ (dtype_(v_2) = 2) ∨ (dtype_(v_2) = 3) ∨ (dtype_(v_2) = 4) ∨ (dtype_(v_2) = 5)
+>>
+Rule 144 (If enforce_sorted is false, its shape cannot be non-zero, and use this to limit that )
+{v_2 : tensor, v_4: bool} |= if v_4 then true else shape(v_2, 0)= 0
+>>
+Rule 145 (If you don't pass any input then enforce_sorted can be true, but only for that edge case )
+{v_1 : tensor, v_4: bool} |= if ndim(v_1) < 2 then v_4 = true
+>>
+Rule 146 (Max limit on valid indices of tensor dimension can not be more than 4, else some other value is passed )
+{v_1: tensor} |= ndim(v_1) <=4
+>>
+Rule 147 (The string passed must be "none" if length's shape == 0)
+{v_2 : tensor, v_5: str} |= if shape(v_2, 0) = 0 then v_5 = "none" else (v_5 = "linear" ∨ v_5 = "tanh")
+>>
+Rule 148 (Show List property as valid list for list of integers )
+{v_1:list(int)} |= v_1.len < 5
+>>
+Rule 149 (Use the list property when using list with all values greater than 0)
+{v_2: list(float)} |=  v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
+>>
+Rule 150 (Max shape of tensor should not be greater than certain number )
+{v_1:tensor} |= shape(v_1, 0) < 5000
+>>
+Rule 151 (Minimum shape requirement to be valid)
+{v_1: tensor} |= ndim(v_1) >= 0
+>>
+Rule 152 (If the batch first is true then enforce should also be true )
+{v_3: bool, v_4: bool} |= if v_3 then v_4 = true
+>>
+Rule 153 (Use Tuple property with various checks )
+{v_6: tuple(int)} |= v_6.len > 0
+>>
+Rule 154 (If input is empty then make it satisfy these cases )
+{v_2:tensor, v_4: bool} |= if shape(v_2, 0) = 0 then v_4 = false
+>>
+Rule 156 (If input tensor is 2-dimensional then lengths needs to be less than certain threshold )
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 2 then max(v_2) < 100
+>>
+Rule 157 (Dtype of length tensor to be integer + smaller verification)
+{v_2 : tensor} |= dtype_(v_2) < 6
+>>
+Rule 158 (If tuple elements has to be less than 1 then length has to be less than 10 - Tuple is limited )
+{v_6: tuple(int)} |= if v_6.len < 10 then true else v_6.len <1

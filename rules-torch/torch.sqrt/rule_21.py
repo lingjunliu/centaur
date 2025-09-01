@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the out tensor is provided and the input is of floating point type, the out tensor cannot be of integer type (Rule 21)
+# If out is complex, input must also be complex (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or((v["arg1_dtype"] == 7), (v["arg1_dtype"] == 8)), (v["arg1_dtype"] == 9)), If(Or(Or(Or(Or(Or((v["arg2_dtype"] == 1), (v["arg2_dtype"] == 2)), (v["arg2_dtype"] == 3)), (v["arg2_dtype"] == 4)), (v["arg2_dtype"] == 5)), (v["arg2_dtype"] == 6)), False, False), False)) if n else
-          If(Or(Or((v["arg1_dtype"] == 7), (v["arg1_dtype"] == 8)), (v["arg1_dtype"] == 9)), If(Or(Or(Or(Or(Or((v["arg2_dtype"] == 1), (v["arg2_dtype"] == 2)), (v["arg2_dtype"] == 3)), (v["arg2_dtype"] == 4)), (v["arg2_dtype"] == 5)), (v["arg2_dtype"] == 6)), False, False), False))
+    s.add(Not(If(And(9 <= v["arg2_dtype"], v["arg2_dtype"] <= 10), And(9 <= v["arg1_dtype"], v["arg1_dtype"] <= 10), True)) if n else
+          If(And(9 <= v["arg2_dtype"], v["arg2_dtype"] <= 10), And(9 <= v["arg1_dtype"], v["arg1_dtype"] <= 10), True))
 )
 
 def rule_21_func(arg1, arg2, solver=None, neg=False):

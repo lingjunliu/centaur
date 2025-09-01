@@ -1,198 +1,69 @@
 >>
-Rule 2 (input tensor dtype should be float or double)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 1 (dim should be within the valid range based on the input tensor's dimensions to prevent IndexError)
+{v_1 : tensor, v_2 : int} |= -1 * ndim(v_1) ≤ v_2 ∧ v_2 < ndim(v_1)
 >>
-Rule 3 (dimension should be non-negative)
-{v_1 : int} |= v_1 ≥ 0
+Rule 2 (input tensor's dtype should not be Char to prevent RuntimeError.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 12
 >>
-Rule 5 (input tensor must have shape within allowed memory)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2147483647
+Rule 3 (dim should be within the valid range based on the input tensor's dimensions to prevent IndexError. It also addresses the edge case where the tensor has 0 dimensions)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then v_2 = 0 else -1 * ndim(v_1) ≤ v_2 ∧ v_2 < ndim(v_1)
 >>
-Rule 9 (input tensor must have at least one dimension if dim is to be specified)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) > 0 ∨ v_2 = 0
+Rule 8 (dim must be a valid index for the input tensor)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 11 (dim should be within the valid range)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+Rule 9 (dim should be within the valid range based on the input tensor's dimensions to prevent IndexError)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then true else v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 13 (ensure dim is within a reasonable range for small tensors)
-{v_1 : int} |= v_1 < 100 ∧ v_1 > -100
+Rule 17 (Dimension should be less than the maximum integer value to avoid potential overflow errors.)
+{v_2: int} |= v_2 < 2147483647
 >>
-Rule 14 (tensor ndim must be positive when dim is used)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 then ndim(v_1) > 0
+Rule 23 (dimension must be an integer)
+{v_1 : int ⊎ float} |= if v_1 > 2147483647 then false
 >>
-Rule 15 (if dim is 0, tensor must have at least one dimension)
-{v_1 : tensor, v_2 : int} |= if v_2 = 0 then ndim(v_1) > 0
+Rule 26 (Dimension value should not be too small or too large to avoid overflow)
+{v_1 : int} |= v_1 > -2147483648 ∧ v_1 < 2147483647
 >>
-Rule 17 (input tensor dtype should be float16, float32, float64, complex64, complex128)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 32 (Dimension must be an integer value)
+{v_1: int ⊎ float} |= ∃x ∈ [1,1]: (v_1 * x) % x = 0
 >>
-Rule 21 (dim should be within the valid range)
-{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
+Rule 35 (dimension must be a whole number)
+{v_1: int ⊎ float} |= v_1 = min(v_1)
 >>
-Rule 22 (input tensor dtype must not be a character)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11
+Rule 38 (dimension must be a whole number (integer))
+{v_1: int ⊎ float} |= v_1 % 1 = 0
 >>
-Rule 23 (tensor should have at least one element)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 1
+Rule 41 (dimension value must be a non-fractional number, which means it's an Integer)
+{v_1: int ⊎ float} |= (v_1 - min(v_1)) = 0
 >>
-Rule 24 (if dim is equal to ndim, it should be a positive number)
-{v_1 : tensor, v_2 : int} |= if v_2 = ndim(v_1) then v_2 > 0
+Rule 44 (Dimension must be a proper integer number)
+{v_1: int ⊎ float} |= (v_1 - (v_1 % 1)) = v_1
 >>
-Rule 25 (if tensor is a vector, dim should not be greater than 0)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then v_2 ≤ 0 ∧ v_2 > -2
+Rule 47 (dimension should not be a floating-point representation of an integer)
+{v_1: int ⊎ float} |= (v_1 % 1) = 0.0
 >>
-Rule 28 (tensor should have a valid shape, no dimension equal to 0)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+Rule 53 (dimension should not lead to integer overflow or underflow during calculations)
+{v_1: int} |= v_1 > -2147483648 ∧ v_1 < 2147483647
 >>
-Rule 29 (if dim is equal to ndim, then it must be less or equal than zero)
-{v_1 : tensor, v_2 : int} |= if v_2 = ndim(v_1) then v_2 ≤ 0
+Rule 56 (Dimension should be within the representable range of integers)
+{v_1: int} |= (v_1 > (0 - (2147483647 + 1))) ∧ (v_1 < 2147483647)
 >>
-Rule 30 (if tensor is a vector, dim should not be greater than 0)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then v_2 ≤ 0 ∧ v_2 ≥ (0 - ndim(v_1))
+Rule 66 (Combined rule for valid dimension and dtype)
+{v_1 : tensor, v_2 : int} |= (dtype_(v_1) ≠ 12) ∧ (if ndim(v_1) = 0 then true else v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1))
 >>
-Rule 32 (input tensor dtype should be compatible, not str, bool, etc.)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5 ∧ dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 12
+Rule 68 (Conditional rule for Char dtype and valid dimension)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 12 then (if ndim(v_1) = 0 then true else v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1))
 >>
-Rule 34 (if dim is negative, must be within range of negative tensor dimension)
-{v_1 : tensor, v_2 : int} |= if v_2 < 0 then v_2 ≥ (0 - ndim(v_1))
+Rule 72 (dim should be a reasonable value related to input tensor dimensions)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) < 1 then v_2 = 0 else v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 35 (if tensor has a small number of dimensions, limit dim)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) < 3 then v_2 < 3 ∧ v_2 > -3
+Rule 75 (input tensor's dtype must not be Char to prevent RuntimeError.)
+{v_1 : tensor} |= (dtype_(v_1) = 0) ∨ (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) ∨ (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) ∨ (dtype_(v_1) = 11)
 >>
-Rule 37 (input tensor dtype should be compatible, not str, bool, etc. - alternative)
-{v_1 : tensor} |= dtype_(v_1) > 5 ∧ dtype_(v_1) < 11
+Rule 76 (A dimension must be specified for tensors with more than zero dimensions)
+{v_1: tensor, v_2: int} |= if ndim(v_1) > 0 then true else v_2 = 0
 >>
-Rule 41 (dim should be within the valid range using min/max, avoiding function in arith_expr)
-{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1) ∧ v_2 ≥ -2147483647 ∧ v_2 < 2147483647
+Rule 88 (Dimension check for IndexError, slightly rephrased)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) < 1 then v_2 = 0 else (v_2 + ndim(v_1)) >= 0 ∧ (v_2 - ndim(v_1)) < 0
 >>
-Rule 43 (if tensor dimension is zero, the dim argument must be 0)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then v_2 = 0
->>
-Rule 48 (if dim is greater than or equal to 0, the dimension must be less than the ndim)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then v_2 < ndim(v_1)
->>
-Rule 50 (tensor can not have inf or nan value.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1] : min(v_1) > -10000000000.0 ∧ max(v_1) < 10000000000.0
->>
-Rule 57 (input tensor dtype must be a valid numerical type, avoid bool and string)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 11
->>
-Rule 58 (if dim is greater than or equal to 0, the dimension must be less than the ndim, and not exceed max int size)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then v_2 < ndim(v_1) ∧ v_2 < 2147483647
->>
-Rule 59 (dim must be within reasonable bounds)
-{v_1: int} |= v_1 > -2147483647 ∧ v_1 < 2147483647
->>
-Rule 60 (tensor can not have inf or nan value.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1] : min(v_1) > -1000.0 ∧ max(v_1) < 1000.0
->>
-Rule 61 (dim should be within the valid range, reformulated)
-{v_1 : tensor, v_2 : int} |= (v_2 + ndim(v_1)) ≥ 0 ∧ (v_2 - ndim(v_1)) < 0
->>
-Rule 63 (if the tensor is empty then dimension is not important )
-{v_1 : tensor , v_2 : int } |= if ndim(v_1) = 0 then true else  (v_2 + ndim(v_1)) ≥ 0 ∧ (v_2 - ndim(v_1)) < 0
->>
-Rule 70 (Tensor should have positive shape)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
->>
-Rule 72 (input tensor dtype must be a valid numerical type but not Complex)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
->>
-Rule 73 (Do not compute if the given tensor is string)
-{v_1: tensor} |= dtype_(v_1) ≠ 11
->>
-Rule 75 (if the tensor is of a character type, dim must be 0)
-{v_1 : tensor, v_2:int} |= if dtype_(v_1) = 11 then v_2 = 0
->>
-Rule 76 (dim should be within the valid range using arithmetics)
-{v_1 : tensor, v_2 : int} |= (v_2 + ndim(v_1)) ≥ 0 ∧ (v_2 - (ndim(v_1) -1 )) ≤ 0
->>
-Rule 78 (Check tensor dimension size)
-{v_1 : tensor} |= ndim(v_1) < 100
->>
-Rule 79 (if dtype is character then dim = -1)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 11 then v_2 = -1
->>
-Rule 80 (check if dim = ndim -1 )
-{v_1:tensor , v_2:int} |= if v_2 = ndim(v_1) - 1 then true else false
->>
-Rule 81 (dim should be within the valid range and ndim)
-{v_1 : tensor, v_2 : int} |= (v_2 + ndim(v_1)) ≥ 0 ∧ (v_2 < ndim(v_1))
->>
-Rule 82 (if it is character type dimension should be zero)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 11 then v_2=0
->>
-Rule 84 (if the tensor is of a character type, all shapes must be 1)
-{v_1 : tensor} |= if dtype_(v_1) = 11 then ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 1
->>
-Rule 85 (if dim = -1 or dim = ndim then there must be only one element or ndim = 0)
-{v_1:tensor , v_2:int} |= if v_2 = -1 ∨ v_2 = ndim(v_1)  then (∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 1) ∨ ndim(v_1) = 0
->>
-Rule 86 (dim should be within the valid range using arithmetics and bound values)
-{v_1 : tensor, v_2 : int} |= (v_2 + ndim(v_1)) ≥ 0 ∧ (v_2 - (ndim(v_1) -1 )) ≤ 0 ∧ v_2 > -2147483647 ∧ v_2 < 2147483647
->>
-Rule 89 (if dim = -1 or dim = ndim then there must be only one element or ndim = 0, valid last dim processing)
-{v_1:tensor , v_2:int} |= if v_2 = -1 ∨ v_2 = ndim(v_1) -1  then (∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 1) ∨ ndim(v_1) = 0
->>
-Rule 94 (if dim = -1 then tensor should not be empty)
-{v_1:tensor , v_2:int} |= if v_2 = -1  then  ndim(v_1) > 0
->>
-Rule 95 (If the tensor is more than 2 dimension and the shape of one of dimension is not one, then it is valid)
-{v_1 : tensor} |= if ndim(v_1) > 2 then (∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) ≠ 1)
->>
-Rule 99 (if dim = -1 or dim = ndim -1 then it is true and vice versa - covering index error )
-{v_1:tensor , v_2:int} |= (v_2 = -1 ∨ v_2 = ndim(v_1) -1 )
->>
-Rule 100 (Check that if tensor's dimension is more than 5, check if shape is between zero and one - prevent index error )
-{v_1 : tensor} |= if ndim(v_1) > 5 then (∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0 ∧ shape(v_1, i) < 2 )
->>
-Rule 101 (dim should be within the valid range covering both cases)
-{v_1 : tensor, v_2 : int} |=  (v_2 + ndim(v_1)) ≥ 0 ∧ (v_2 < ndim(v_1))
->>
-Rule 104 (Check that if dim=-1 then shape of the last dim must greater than 0 prevent index error)
-{v_1:tensor , v_2:int} |= if v_2 = -1 then shape(v_1, ndim(v_1)-1) > 0
->>
-Rule 108 (If input is character, then the dimension must be 0, kernel error)
-{v_1: tensor, v_2:int} |= if dtype_(v_1) = 11 then v_2 = 0
->>
-Rule 110 (If dimension is negative then check is it in the valid range , index error)
-{v_1 : tensor , v_2:int} |= if v_2 < 0 then v_2 ≥ (0-ndim(v_1))
->>
-Rule 114 (the tensor must be of rank at least 1)
-{v_1:tensor} |= ndim(v_1) ≥ 1
->>
-Rule 115 (Dimension must be lesser that fixed number)
-{v_1 : int} |= v_1 < 1000
->>
-Rule 118 (If dim=-1, then tensor must not be a scalar tensor which does not have any dimension to log-softmax over)
-{v_1:tensor, v_2:int} |= if v_2 = -1 then ndim(v_1) > 0
->>
-Rule 119 (Prevent zero dimension size tensors)
-{v_1:tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) ≠ 0
->>
-Rule 120 (check if size of the dimension to be computed is >0 to prevent further errors in log calculation )
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 ∧ v_2 < ndim(v_1) then shape(v_1, v_2) > 0
->>
-Rule 121 (dim should be within the valid range using arithmetic expression, handling negative values carefully and preventing index error)
-{v_1 : tensor, v_2 : int} |= (v_2 > (0 - (ndim(v_1) + 1))) ∧ (v_2 < ndim(v_1))
->>
-Rule 123 (If computing over last dim, there must be more than one element within that dim - prevent log error and dimension error in C++)
-{v_1:tensor , v_2:int} |= if v_2 = -1  then shape(v_1, ndim(v_1) -1) > 0
->>
-Rule 125 (Shape should be positive for every dimension)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1,i) > 0
->>
-Rule 129 (prevent computing softmax for a tensor with no dimensions)
-{v_1 : tensor} |= ndim(v_1) > 0
->>
-Rule 130 (If dim = ndim, then invalid, preventing index error in C++ because LogSoftmax over a non existant dimension)
-{v_1 : tensor, v_2: int} |= if (v_2 = ndim(v_1)) then false
->>
-Rule 131 (Combined dimension checks, covering negative and positive cases, preventing out of range index access)
-{v_1 : tensor, v_2 : int} |= (v_2 ≥ (0 - ndim(v_1))) ∧ (v_2 < ndim(v_1))
->>
-Rule 134 (If performing operation along dimension then do not allow scalar tensor, preventing C++ out of bounds access or a divide by zero/log zero)
-{v_1 : tensor, v_2 : int} |= if v_2 = -1 ∨ v_2 = ndim(v_1)-1 then ndim(v_1) ≥ 1
->>
-Rule 135 (Dimensions in a tensor should not be zero, prevent errors related to operations on zero sized tensors)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 95 (Dtype check for RuntimeError, rephrased using if-then)
+{v_1 : tensor} |= if dtype_(v_1) = 12 then false

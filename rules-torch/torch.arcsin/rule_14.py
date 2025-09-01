@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the input tensor's dtype is uint8, the output dtype must be at least float32 (Rule 14)
+# If the input tensor has an integer dtype that cannot precisely represent floating-point values and the output tensor is Short, a casting error can occur as the arcsin result will be a floating point number and Short is not sufficient. (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 5, v["arg2_dtype"] >= 7, False)) if n else
-          If(v["arg1_dtype"] == 5, v["arg2_dtype"] >= 7, False))
+    s.add(Not(If(v["arg2_dtype"] == 2, If(v["arg1_dtype"] == 1, False, True), True)) if n else
+          If(v["arg2_dtype"] == 2, If(v["arg1_dtype"] == 1, False, True), True))
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):

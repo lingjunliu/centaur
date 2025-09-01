@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# must be at least 2 dimensions and not a higher dimension tensor (Rule 28)
+# minimum dimension of 2 (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] >= 2, v["arg1_ndim"] <= 5)) if n else
-          And(v["arg1_ndim"] >= 2, v["arg1_ndim"] <= 5))
+    s.add(Not(2 <= v["arg1_ndim"]) if n else
+          2 <= v["arg1_ndim"])
 )
 
 def rule_28_func(arg1, solver=None, neg=False):

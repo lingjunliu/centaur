@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# check if padding value can cause memory allocation error (Rule 20)
+# Ensure output dimensions remain valid, int padding (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 4, And(Select(v["arg1_shape"], 2) + 2 * v["arg2_value"] < 200000, Select(v["arg1_shape"], 3) + 2 * v["arg2_value"] < 200000), False)) if n else
-          If(v["arg1_ndim"] == 4, And(Select(v["arg1_shape"], 2) + 2 * v["arg2_value"] < 200000, Select(v["arg1_shape"], 3) + 2 * v["arg2_value"] < 200000), False))
+    s.add(Not(If(v["arg1_ndim"] == 3, And(Select(v["arg1_shape"], 1) + 2 * v["arg2_value"] >= 0, Select(v["arg1_shape"], 2) + 2 * v["arg2_value"] >= 0), And(Select(v["arg1_shape"], 2) + 2 * v["arg2_value"] >= 0, Select(v["arg1_shape"], 3) + 2 * v["arg2_value"] >= 0))) if n else
+          If(v["arg1_ndim"] == 3, And(Select(v["arg1_shape"], 1) + 2 * v["arg2_value"] >= 0, Select(v["arg1_shape"], 2) + 2 * v["arg2_value"] >= 0), And(Select(v["arg1_shape"], 2) + 2 * v["arg2_value"] >= 0, Select(v["arg1_shape"], 3) + 2 * v["arg2_value"] >= 0)))
 )
 
 def rule_20_func(arg1, arg2, solver=None, neg=False):

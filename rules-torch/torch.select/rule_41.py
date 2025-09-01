@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Dimension and index must both be valid. (Rule 41)
+# Dimension and Index within valid ranges based on tensor's shape (Rule 41)
 
 rule_41 = lambda s, v, n=False: (
-    s.add(Not(And((And((0 - v["arg1_ndim"]) <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"])), (And((0 - Select(v["arg1_shape"], v["arg2_value"])) <= v["arg3_value"], v["arg3_value"] < Select(v["arg1_shape"], v["arg2_value"]))))) if n else
-          And((And((0 - v["arg1_ndim"]) <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"])), (And((0 - Select(v["arg1_shape"], v["arg2_value"])) <= v["arg3_value"], v["arg3_value"] < Select(v["arg1_shape"], v["arg2_value"])))))
+    s.add(Not(If(And(And(v["arg1_ndim"] > 0, v["arg2_value"] >= (0 - v["arg1_ndim"])), v["arg2_value"] < v["arg1_ndim"]), And(v["arg3_value"] >= 0, v["arg3_value"] < Select(v["arg1_shape"], v["arg2_value"])), True)) if n else
+          If(And(And(v["arg1_ndim"] > 0, v["arg2_value"] >= (0 - v["arg1_ndim"])), v["arg2_value"] < v["arg1_ndim"]), And(v["arg3_value"] >= 0, v["arg3_value"] < Select(v["arg1_shape"], v["arg2_value"])), True))
 )
 
 def rule_41_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -41,9 +41,9 @@ def rule_41_func(arg1, arg2, arg3, solver=None, neg=False):
         solver.add(arg3_value == int(arg3))
 
         # Constraints for rule 41
-        rule_41(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
+        rule_41(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_41(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)
+        rule_41(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check supported dtype, and exclude Char, bool and string (Rule 27)
+# Input tensor's data type must be a subtype of float or complex to avoid "log_sigmoid_cpu" error when it is Char (Rule 27)
 
 rule_27 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 1, False, If(v["arg1_dtype"] == 0, False, If(v["arg1_dtype"] == 11, False, False)))) if n else
-          If(v["arg1_dtype"] == 1, False, If(v["arg1_dtype"] == 0, False, If(v["arg1_dtype"] == 11, False, False))))
+    s.add(Not(v["arg1_dtype"] > 5) if n else
+          v["arg1_dtype"] > 5)
 )
 
 def rule_27_func(arg1, solver=None, neg=False):

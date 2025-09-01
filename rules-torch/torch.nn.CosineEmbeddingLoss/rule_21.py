@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if inputs are ND, target is N (Rule 21)
+# If one of the inputs is 1D, the other input must also be 1D, and their sizes must be equal, except when target is 0D (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), If(v["arg1_ndim"] == v["arg2_ndim"], If(v["arg3_ndim"] == v["arg1_ndim"] - 1, True, False), False), False)) if n else
-          If(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), If(v["arg1_ndim"] == v["arg2_ndim"], If(v["arg3_ndim"] == v["arg1_ndim"] - 1, True, False), False), False))
+    s.add(Not(If((v["arg1_ndim"] == 1), Or((And(v["arg2_ndim"] == 1, Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0))), v["arg3_ndim"] == 0), True)) if n else
+          If((v["arg1_ndim"] == 1), Or((And(v["arg2_ndim"] == 1, Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0))), v["arg3_ndim"] == 0), True))
 )
 
 def rule_21_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -29,18 +29,24 @@ def rule_21_func(arg1, arg2, arg3, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg2_ndim = Int('arg2_ndim')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
         arg3_ndim = Int('arg3_ndim')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg2_ndim == arg2.ndim)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
         solver.add(arg3_ndim == arg3.ndim)
 
         # Constraints for rule 21
-        rule_21(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim, 'arg3_ndim': arg3_ndim})
+        rule_21(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg3_ndim': arg3_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_21(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim'], 'arg3_ndim': arg3['ndim']}, neg)
+        rule_21(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_ndim': arg3['ndim']}, neg)

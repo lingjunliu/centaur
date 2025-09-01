@@ -1,90 +1,84 @@
 >>
-Rule 1 (kernel_size must be a positive integer or a tuple of positive integers)
-{v_1 : int} |= v_1 > 0
+Rule 1 (kernel_size must be a tuple of integers or a single integer. This rule checks if kernel_size is a tuple, then each element must be an integer and positive)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
 >>
-Rule 2 (kernel_size must be a positive integer or a tuple of positive integers)
-{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 3 (output_ratio must be a tuple of floats or a single float between 0 and 1. If it's a tuple, check the range of each value.)
+{v_1 : tuple(float)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0 ∧ v_1[i] < 1
 >>
-Rule 5 (output_ratio must be a float or a tuple of floats between 0 and 1)
-{v_1 : float} |= 0 < v_1 ∧ v_1 < 1
->>
-Rule 6 (output_ratio must be a float or a tuple of floats between 0 and 1)
-{v_1 : tuple(float)} |= v_1.len = 2 ∧ ∀i ∈ [0, v_1.len - 1] : 0 < v_1[i] ∧ v_1[i] < 1
->>
-Rule 7 (return_indices must be a boolean value)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
->>
-Rule 10 (If output_ratio is given as float, it must be between 0 and 1)
+Rule 4 (output_ratio must be a tuple of floats or a single float between 0 and 1. If it's a float, check range)
 {v_1 : float} |= v_1 > 0 ∧ v_1 < 1
 >>
-Rule 11 (input tensor should have at least 2 dimensions)
+Rule 5 (Check if return_indices is a boolean value)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 6 (kernel_size must be a tuple of integers or a single integer. This rule checks if kernel_size is a single integer and positive)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 8 (input tensor must have at least 2 dimensions)
 {v_1 : tensor} |= ndim(v_1) ≥ 2
 >>
-Rule 13 (Prevent negative dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 9 (If output_size is specified as a tuple, then kernel_size must also be a tuple or int)
+{v_1 : tuple(int), v_2 : int} |= v_1.len = 2 ∧ v_2 > 0
 >>
-Rule 17 (kernel_size must be a tuple of positive integers of length 2)
-{v_1 : tuple(int)} |= v_1.len = 2 ∧ v_1[0] > 0 ∧ v_1[1] > 0
+Rule 10 (If output_ratio is specified as a tuple, then kernel_size must also be a tuple or int)
+{v_1 : tuple(float), v_2 : int} |= v_1.len = 2 ∧ v_2 > 0
 >>
-Rule 21 (output_ratio must be a tuple of floats between 0 and 1 of length 2)
-{v_1 : tuple(float)} |= v_1.len = 2 ∧ v_1[0] > 0 ∧ v_1[0] < 1 ∧ v_1[1] > 0 ∧ v_1[1] < 1
+Rule 11 (If _random_samples is not None, it must be of floating type to satisfy check_uniform_bounds)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 23 (_random_samples should be a tensor)
-{v_1 : tensor} |= ndim(v_1) > 0
->>
-Rule 28 (Ensure all dimensions of the input tensor are non-negative)
+Rule 12 (input tensor must have non-negative dimensions)
 {v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 29 (If output_size is a tuple, the length has to be 2)
-{v_1 : tuple(int)} |= v_1.len = 2
+Rule 13 (kernel_size can be a tuple or an int, if output_size is specified as a tuple)
+{v_1 : tuple(int), v_2 : tuple(int)} |= v_1.len = 2 ∧ v_2.len = 2
 >>
-Rule 30 (If output_ratio is a tuple, the length has to be 2)
-{v_1 : tuple(float)} |= v_1.len = 2
+Rule 14 (kernel_size can be a tuple or an int, if output_ratio is specified as a tuple)
+{v_1 : tuple(float), v_2 : tuple(int)} |= v_1.len = 2 ∧ v_2.len = 2
 >>
-Rule 38 (_random_samples should have the same number of dimensions as the input tensor)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Rule 15 (If _random_samples is not None, input must be of floating type to satisfy check_uniform_bounds)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
 >>
-Rule 45 (_random_samples should be a tensor with positive dimensions)
-{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 16 (kernel_size can be a tuple or an int.  Must be int if output size/ratio are ints)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
 >>
-Rule 75 (If shape of input tensor is 0, min of the tensor should not be checked)
-{v_1: tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ min(v_1) < max(v_1)
+Rule 22 (output_size must be a tuple or an int if specified)
+{v_1: tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
 >>
-Rule 86 (If shape of input tensor is 0, min of the tensor should not be checked and max should be greater than 0)
-{v_1: tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ max(v_1) > 0
+Rule 23 (output_ratio must be a tuple or float if specified)
+{v_1: tuple(float)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0 ∧ v_1[i] < 1
 >>
-Rule 87 (kernel_size should be smaller than the input size)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 2) > v_2 ∧ shape(v_1, 3) > v_2
+Rule 24 (kernel_size must be an integer or a tuple of integers. If int, must be positive)
+{v_1: int} |= v_1 > 0
 >>
-Rule 88 (_random_samples's dimension 0 should be the same as input's dimension 0)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 28 (output_ratio must be a tuple or float if specified. If float, it must be between 0 and 1)
+{v_1: float} |= v_1 > 0 ∧ v_1 < 1
 >>
-Rule 102 (If input tensor has 4 dimensions, the 2nd and 3rd dimensions should be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+Rule 30 (If _random_samples is not None, it must be of floating type. Also, input must be float.)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
 >>
-Rule 108 (input tensor should have at least 2 dimensions and all dimensions > 0)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 36 (_random_samples should be float type if not none and input should be float)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
 >>
-Rule 109 (If _random_samples is provided, its first dimension should be less than input's dimensions)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then shape(v_2, 0) ≤ shape(v_1, 0)
+Rule 78 (kernel_size is a tuple of integers with length 2 and positive values)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ v_1[0] > 0 ∧ v_1[1] > 0
 >>
-Rule 110 (if input is 4D tensor then its spatial dimensions should be large enough compared to kernel size)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then shape(v_1, 2) > v_2 ∧ shape(v_1, 3) > v_2
+Rule 82 (output_ratio is a tuple of floats with length 2 and values between 0 and 1)
+{v_1 : tuple(float)} |= v_1.len = 2 ∧ v_1[0] > 0 ∧ v_1[0] < 1 ∧ v_1[1] > 0 ∧ v_1[1] < 1
 >>
-Rule 111 (Shape of _random_samples should be the same, and it must be positive)
-{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧  ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+Rule 90 (_random_samples is valid)
+{v_1 : tensor, v_2 : tensor} |= (v_2 = none) ∨ ((dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8))
 >>
-Rule 122 (If shape of input tensor is 0, max value must be greater than 0)
-{v_1: tensor} |=  ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 ∨ max(v_1) > 0
+Rule 96 (_random_samples is a float tensor, and input is also a float tensor, if _random_samples is not none)
+{v_1 : tensor, v_2 : tensor} |= (v_2 = none) ∨ ((dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8))
 >>
-Rule 126 (input tensor's spatial dimensions must be large enough)
-{v_1: tensor, v_2: int} |= if ndim(v_1) > 2 then shape(v_1, ndim(v_1) - 2) > v_2 ∧ shape(v_1, ndim(v_1) - 1) > v_2
+Rule 108 (_random_samples is valid, and if it is not none, its dtype and input's dtype must be float)
+{v_1 : tensor, v_2 : tensor} |= (v_2 = none) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_2) = 7)
 >>
-Rule 137 (If shape of input tensor is 0, max value must be greater than 0)
-{v_1: tensor} |=  (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ max(v_1) > 0
+Rule 114 (_random_samples is valid)
+{v_1 : tensor, v_2 : tensor} |= if (v_2 ≠ none) then (dtype_(v_1) = 7 ∧ dtype_(v_2) = 7)
 >>
-Rule 138 (kernel_size should be smaller than the input size)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 2 then shape(v_1, ndim(v_1)-2) > v_2 ∧ shape(v_1, ndim(v_1)-1) > v_2
+Rule 120 (_random_samples is a float tensor if not none)
+{v_1 : tensor} |= (v_1 = none) ∨ (dtype_(v_1) = 7)
 >>
-Rule 140 (kernel_size must have integer type if it's a tensor)
-{v_1: tensor} |= if ndim(v_1) > 0 then 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5
+Rule 121 (if _random_samples is not none, the input is also a float tensor)
+{v_1 : tensor, v_2 : tensor} |= (v_2 = none) ∨ (dtype_(v_1) = 7)

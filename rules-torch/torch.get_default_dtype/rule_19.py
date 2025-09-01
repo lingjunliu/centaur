@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the default dtype is not float16, then the default dtype can be float32 or float64 (Rule 19)
+# The default dtype is not an integer type. (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] != 6, Or(v["arg1_value"] == 7, v["arg1_value"] == 8), False)) if n else
-          If(v["arg1_value"] != 6, Or(v["arg1_value"] == 7, v["arg1_value"] == 8), False))
+    s.add(Not(Or((v["arg1_value"] < 1), (v["arg1_value"] > 5))) if n else
+          Or((v["arg1_value"] < 1), (v["arg1_value"] > 5)))
 )
 
 def rule_19_func(arg1, solver=None, neg=False):

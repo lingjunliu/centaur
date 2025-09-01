@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor A must be a batch of square matrices (Rule 7)
+# A must be batches of square matrices: A's last two dimensions should be the same (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2))) if n else
-          And(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2)))
+    s.add(Not(Select(v["arg1_shape"], v["arg1_ndim"] - 2) == Select(v["arg1_shape"], (v["arg1_ndim"] - 1))) if n else
+          Select(v["arg1_shape"], v["arg1_ndim"] - 2) == Select(v["arg1_shape"], (v["arg1_ndim"] - 1)))
 )
 
 def rule_7_func(arg1, solver=None, neg=False):

@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Signal length must be positive to avoid zero data points error (Rule 1)
+# Signal length 'n' must be greater than 0 to avoid invalid number of data points error (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
     s.add(Not(v["arg1_value"] > 0) if n else

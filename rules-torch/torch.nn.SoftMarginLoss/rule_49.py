@@ -5,18 +5,17 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the output shape does not match the expected shape given input and target, and the reduction is not "none", throw error (Rule 49)
+# if the reduction mode is not "none", the input and target tensor shapes should match to support element-wise loss calculations. If the shape doesnt match, one should be castable to another using broadcast semantic (Rule 49)
 
 rule_49 = lambda s, v, n=False: (
-    s.add(Not(If((And([Implies(i < (v["arg3_ndim"] - 1 + 1), (Or(Or((And(i < v["arg1_ndim"], Select(v["arg3_shape"], i) == Select(v["arg1_shape"], i))), (And(i < v["arg2_ndim"], Select(v["arg3_shape"], i) == Select(v["arg2_shape"], i)))), Select(v["arg3_shape"], i) == 1))) for i in range(6)])), True, v["arg4_value"] == 6)) if n else
-          If((And([Implies(i < (v["arg3_ndim"] - 1 + 1), (Or(Or((And(i < v["arg1_ndim"], Select(v["arg3_shape"], i) == Select(v["arg1_shape"], i))), (And(i < v["arg2_ndim"], Select(v["arg3_shape"], i) == Select(v["arg2_shape"], i)))), Select(v["arg3_shape"], i) == 1))) for i in range(6)])), True, v["arg4_value"] == 6))
+    s.add(Not(If(v["arg3_value"] != 6, And(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])), True)) if n else
+          If(v["arg3_value"] != 6, And(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])), True))
 )
 
-def rule_49_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
+def rule_49_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
     arg3 = next(iter(arg3.values()))
-    arg4 = next(iter(arg4.values()))
 
     # Invariant learning phase
     if not solver:
@@ -24,9 +23,7 @@ def rule_49_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
-        if not isinstance(arg3, np.ndarray):
-            return False
-        if not isinstance(arg4, str):
+        if not isinstance(arg3, str):
             return False
 
         # Variable declarations
@@ -35,9 +32,7 @@ def rule_49_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg2_ndim = Int('arg2_ndim')
         arg2_shape = Array('arg2_shape', IntSort(), IntSort())
-        arg3_ndim = Int('arg3_ndim')
-        arg3_shape = Array('arg3_shape', IntSort(), IntSort())
-        arg4_value = String('arg4_value')
+        arg3_value = String('arg3_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
@@ -46,15 +41,12 @@ def rule_49_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         solver.add(arg2_ndim == arg2.ndim)
         for i in range(arg2.ndim):
             arg2_shape = Store(arg2_shape, i, arg2.shape[i])
-        solver.add(arg3_ndim == arg3.ndim)
-        for i in range(arg3.ndim):
-            arg3_shape = Store(arg3_shape, i, arg3.shape[i])
-        solver.add(arg4_value == list_of_string_values_torch.index(arg4))
+        solver.add(arg3_value == list_of_string_values_torch.index(arg3))
 
         # Constraints for rule 49
-        rule_49(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape, 'arg3_ndim': arg3_ndim, 'arg3_shape': arg3_shape, 'arg4_value': arg4_value})
+        rule_49(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_49(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape'], 'arg3_ndim': arg3['ndim'], 'arg3_shape': arg3['shape'], 'arg4_value': arg4['value']}, neg)
+        rule_49(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_value': arg3['value']}, neg)

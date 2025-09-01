@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# group divisibility check (Rule 7)
+# groups must be an integer, greater than zero and less than or equal to the first dimension of the tensor (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(Or(Select(v["arg1_shape"], 0) % v["arg2_value"] == 0, v["arg2_value"] == 1)) if n else
-          Or(Select(v["arg1_shape"], 0) % v["arg2_value"] == 0, v["arg2_value"] == 1))
+    s.add(Not(And(And(v["arg2_value"] > 0, v["arg2_value"] <= Select(v["arg1_shape"], 0)), Select(v["arg1_shape"], 0) % v["arg2_value"] == 0)) if n else
+          And(And(v["arg2_value"] > 0, v["arg2_value"] <= Select(v["arg1_shape"], 0)), Select(v["arg1_shape"], 0) % v["arg2_value"] == 0))
 )
 
 def rule_7_func(arg1, arg2, solver=None, neg=False):

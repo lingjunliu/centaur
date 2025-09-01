@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor must be a numeric type, and cannot be bool or str. (Rule 28)
+# The input tensor's dtype must be numerical (not boolean or string (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
     s.add(Not(And(v["arg1_dtype"] != 0, v["arg1_dtype"] != 11)) if n else

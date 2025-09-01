@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Prevent incompatible dtypes; avoid Half did not match Double, etc. (Rule 86)
+# check the data type (Rule 86)
 
 rule_86 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(And(And(And(And(And(And(And(And(And((Or(v["arg1_dtype"] != 6, v["arg2_dtype"] != 8)), (Or(v["arg1_dtype"] != 0, v["arg2_dtype"] != 10))), (Or(v["arg1_dtype"] != 1, v["arg2_dtype"] != 2))), (Or(v["arg1_dtype"] != 2, v["arg2_dtype"] != 1))), (Or(v["arg1_dtype"] != 10, v["arg2_dtype"] != 0))), (Or(v["arg1_dtype"] != 3, v["arg2_dtype"] != 4))), (Or(v["arg1_dtype"] != 1, v["arg2_dtype"] != 3))), (Or(v["arg1_dtype"] != 4, v["arg2_dtype"] != 2))), (Or(v["arg1_dtype"] != 5, v["arg2_dtype"] != 0))), (Or(v["arg1_dtype"] != 4, v["arg2_dtype"] != 1))), (Or(v["arg1_dtype"] != 2, v["arg2_dtype"] != 4))), (Or(v["arg1_dtype"] != 3, v["arg2_dtype"] != 1))), (Or(v["arg1_dtype"] != 5, v["arg2_dtype"] != 2)))) if n else
-          And(And(And(And(And(And(And(And(And(And(And(And((Or(v["arg1_dtype"] != 6, v["arg2_dtype"] != 8)), (Or(v["arg1_dtype"] != 0, v["arg2_dtype"] != 10))), (Or(v["arg1_dtype"] != 1, v["arg2_dtype"] != 2))), (Or(v["arg1_dtype"] != 2, v["arg2_dtype"] != 1))), (Or(v["arg1_dtype"] != 10, v["arg2_dtype"] != 0))), (Or(v["arg1_dtype"] != 3, v["arg2_dtype"] != 4))), (Or(v["arg1_dtype"] != 1, v["arg2_dtype"] != 3))), (Or(v["arg1_dtype"] != 4, v["arg2_dtype"] != 2))), (Or(v["arg1_dtype"] != 5, v["arg2_dtype"] != 0))), (Or(v["arg1_dtype"] != 4, v["arg2_dtype"] != 1))), (Or(v["arg1_dtype"] != 2, v["arg2_dtype"] != 4))), (Or(v["arg1_dtype"] != 3, v["arg2_dtype"] != 1))), (Or(v["arg1_dtype"] != 5, v["arg2_dtype"] != 2))))
+    s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else
+          v["arg1_dtype"] == v["arg2_dtype"])
 )
 
 def rule_86_func(arg1, arg2, solver=None, neg=False):

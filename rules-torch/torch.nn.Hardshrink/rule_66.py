@@ -5,40 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Hardshrink API input must be valid to prevent runtime errors. (Rule 66)
+# The input tensor must have a floating-point dtype that's compatible with the CPU implementation and the conversion to half-precision floats. Only float32 is truly safe (Rule 66)
 
 rule_66 = lambda s, v, n=False: (
-    s.add(Not(And((v["arg1_value"] >= 0), (Or((And(And(And(v["arg2_dtype"] == 6, v["arg1_value"] < 100), Select(v["arg2_range"], 0) > -50000), Select(v["arg2_range"], 1) < 50000)), (Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10)))))) if n else
-          And((v["arg1_value"] >= 0), (Or((And(And(And(v["arg2_dtype"] == 6, v["arg1_value"] < 100), Select(v["arg2_range"], 0) > -50000), Select(v["arg2_range"], 1) < 50000)), (Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10))))))
+    s.add(Not(v["arg1_dtype"] == 7) if n else
+          v["arg1_dtype"] == 7)
 )
 
-def rule_66_func(arg1, arg2, solver=None, neg=False):
+def rule_66_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
-            return False
-        if not isinstance(arg2, np.ndarray):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
-        arg2_dtype = Int('arg2_dtype')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 66
-        rule_66(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype, 'arg2_range': arg2_range})
+        rule_66(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_66(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype'], 'arg2_range': arg2['range']}, neg)
+        rule_66(solver, {'arg1_dtype': arg1['dtype']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The difference between the upper and lower bounds should be small enough to avoid extreme values for 'a' (Rule 24)
+# If upper is very small, lower cannot be negative (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_value"] - v["arg1_value"] < 100.0) if n else
-          v["arg2_value"] - v["arg1_value"] < 100.0)
+    s.add(Not(If(v["arg2_value"] < 0.1, v["arg1_value"] >= 0, True)) if n else
+          If(v["arg2_value"] < 0.1, v["arg1_value"] >= 0, True))
 )
 
 def rule_24_func(arg1, arg2, solver=None, neg=False):

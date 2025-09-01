@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor has at least one dimension (Rule 16)
+# input tensor's dimension should not exceed maximum limit. (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] >= 1) if n else
-          v["arg1_ndim"] >= 1)
+    s.add(Not(v["arg1_ndim"] <= 6) if n else
+          v["arg1_ndim"] <= 6)
 )
 
 def rule_16_func(arg1, solver=None, neg=False):

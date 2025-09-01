@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check for bounds around 17 (Rule 32)
+# output_size should have length 1 or 3 and all elements should be positive (Rule 32)
 
 rule_32 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_values"], 0) >= -2433441011494186151, Select(v["arg1_values"], 0) <= -2433441011494185907)) if n else
-          And(Select(v["arg1_values"], 0) >= -2433441011494186151, Select(v["arg1_values"], 0) <= -2433441011494185907))
+    s.add(Not(And((Or(v["arg1_length"] == 1, v["arg1_length"] == 3)), And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) > 0) for i in range(6)]))) if n else
+          And((Or(v["arg1_length"] == 1, v["arg1_length"] == 3)), And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) > 0) for i in range(6)])))
 )
 
 def rule_32_func(arg1, solver=None, neg=False):
@@ -22,16 +22,18 @@ def rule_32_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
+        arg1_length = Int('arg1_length')
         arg1_values = Array('arg1_values', IntSort(), IntSort())
 
         # Value assignments
+        solver.add(arg1_length == len(arg1))
         for i in range(len(arg1)):
             arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 32
-        rule_32(solver, {'arg1_values': arg1_values})
+        rule_32(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_32(solver, {'arg1_values': arg1['values']}, neg)
+        rule_32(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values']}, neg)

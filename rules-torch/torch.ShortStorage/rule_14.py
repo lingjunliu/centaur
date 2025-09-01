@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The size, when multiplied by the element size, should be reasonable, not exceeding a safe memory limit (Rule 14)
+# storage size must be a reasonable integer (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] * 2 < 3221225472) if n else
-          v["arg1_value"] * 2 < 3221225472)
+    s.add(Not(Select(v["arg1_shape"], 0) < 2147483647) if n else
+          Select(v["arg1_shape"], 0) < 2147483647)
 )
 
 def rule_14_func(arg1, solver=None, neg=False):
@@ -17,20 +17,21 @@ def rule_14_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 14
-        rule_14(solver, {'arg1_value': arg1_value})
+        rule_14(solver, {'arg1_shape': arg1_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_14(solver, {'arg1_value': arg1['value']}, neg)
+        rule_14(solver, {'arg1_shape': arg1['shape']}, neg)

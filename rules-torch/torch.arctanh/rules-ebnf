@@ -1,111 +1,192 @@
 >>
-Rule 1 (input tensor must have a floating-point or complex dtype)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 1 (output tensor dtype must be able to accommodate the input tensor dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≤ dtype_(v_2)
 >>
-Rule 2 (output tensor's dtype must be compatible with input tensor's dtype)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 7 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 2 (input tensor should have float or complex dtype)
+{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11
 >>
-Rule 3 (out tensor and input tensor must have same shape)
+Rule 3 (Check if the out tensor has the correct shape as the input tensor)
 {v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 4 (input tensor's values should be within the domain of arctanh)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : min(v_1) ≥ -1 ∧ max(v_1) ≤ 1
+Rule 4 (out tensor should be floating type or complex type)
+{v_2 : tensor} |= 6 <= dtype_(v_2) ∧ dtype_(v_2) <= 11
 >>
-Rule 5 (if out tensor is provided, it must have a compatible dtype with the input tensor)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 8 then dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 9 then dtype_(v_2) = 9 else if dtype_(v_1) = 10 then dtype_(v_2) = 10
+Rule 5 (Prevent casting error: output tensor must have a data type that can accommodate the input tensor's data type.)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_2) ≥ dtype_(v_1)
 >>
-Rule 6 (input and output tensors must have the same number of dimensions)
+Rule 6 (Input tensor values must be within the domain of arctanh, i.e., [-1, 1])
+{v_1 : tensor} |= min(v_1) ≥ -1 ∧ max(v_1) ≤ 1
+>>
+Rule 7 (If output tensor is provided, its shape should match the input tensor's shape)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) else false
+>>
+Rule 8 (Output tensor dtype should be at least float16 to avoid casting errors when input is float)
+{v_2 : tensor} |= dtype_(v_2) ≥ 6
+>>
+Rule 9 (Input tensor should contain values between -1 and 1 inclusive.)
+{v_1 : tensor} |= max(v_1) ≤ 1 ∧ min(v_1) ≥ -1
+>>
+Rule 11 (Input tensor's values should be in the range of (-1, 1) to avoid nan/inf results.)
+{v_1 : tensor} |= min(v_1) > -1 ∧ max(v_1) < 1
+>>
+Rule 12 (If out is provided, it should have floating or complex dtype.)
+{v_2 : tensor} |= 6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 11
+>>
+Rule 13 (The input tensor must be floating or complex)
+{v_1 : tensor} |= 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 11
+>>
+Rule 14 (Input values must be strictly between -1 and 1 for arctanh to produce finite results.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : min(v_1) > -1 ∧ max(v_1) < 1
+>>
+Rule 16 (When an out tensor is provided, its dtype should be able to represent the arctanh values.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 9 then dtype_(v_2) ≥ 7 else dtype_(v_2) ≥ 9
+>>
+Rule 17 (Out tensor must have a compatible dtype with Float, if input is float)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 9 then dtype_(v_2) ≥ 7
+>>
+Rule 18 (The values within the input tensor should be in range (-1, 1))
+{v_1 : tensor} |= max(v_1) < 1 ∧ min(v_1) > -1
+>>
+Rule 19 (The out tensor, if provided, should be of the same size as the input tensor)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 20 (If the output tensor is provided, its dtype must be at least float32 if the input tensor is float32)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) ≥ 7
+>>
+Rule 22 (If an out tensor is provided, its size must match the input tensor's size)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) else false
+>>
+Rule 26 (The input tensor must contain values strictly between -1 and 1)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : min(v_1) > -1 ∧ max(v_1) < 1
+>>
+Rule 27 (If an output tensor is provided, ensure its shape is the same as the input tensor's shape)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 28 (To prevent potential casting errors, require that if an output tensor is provided and the input tensor's dtype is float16, the output dtype be at least float32)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) ≥ 7
+>>
+Rule 29 (The input values must be within the open interval (-1, 1).)
+{v_1 : tensor} |= (min(v_1) > -1) ∧ (max(v_1) < 1)
+>>
+Rule 30 (If an output tensor is supplied, it should have the same shape as the input tensor)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = shape(v_2, i) else false
+>>
+Rule 31 (If an output tensor is provided and the input is float, then output should be atleast float)
+{v_1 : tensor, v_2 : tensor} |= if 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8 then 6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8
+>>
+Rule 32 (Input tensor should have values in range (-1, 1) to prevent nan values)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : (v_1[i] > -1) ∧ (v_1[i] < 1)
+>>
+Rule 34 (The data type of the output tensor must be able to hold the values resulting from arctanh calculation)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) ≥ 7 else if dtype_(v_1) = 9 then dtype_(v_2) ≥ 10
+>>
+Rule 37 (If an out tensor is provided, it must have at least the same number of elements as the input tensor.)
+{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≤ shape(v_2, i)
+>>
+Rule 41 (Values of the input tensor must fall within the open interval (-1, 1) to ensure the function returns real numbers.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : v_1[i] < 1 ∧ v_1[i] > -1
+>>
+Rule 42 (If `out` tensor is given, its shape must match the `input` tensor's shape.)
+{v_1 : tensor, v_2 : tensor} |= (shape(v_1, 0) = shape(v_2, 0)) ∧ (ndim(v_1) = ndim(v_2))
+>>
+Rule 44 (Input values should be strictly between -1 and 1)
+{v_1 : tensor} |= ∀x ∈ [0, ndim(v_1)-1]: v_1[x] < 1 ∧ v_1[x] > -1
+>>
+Rule 45 (If out is specified, its shape should be same as input's shape)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then (shape(v_1,0) = shape(v_2, 0)) else false
+>>
+Rule 46 (If input is float type (float16, float32, float64) and out is specified, out's dtype should also be a float type with at least same precision)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 6) then (dtype_(v_2) ≥ 7) else if (dtype_(v_1) = 7) then (dtype_(v_2) ≥ 7) else if (dtype_(v_1) = 8) then (dtype_(v_2) ≥ 8)
+>>
+Rule 47 (Input values must be within the open interval (-1, 1))
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : v_1[i] > -1 ∧ v_1[i] < 1
+>>
+Rule 49 (If an out tensor is provided, the dtype must be large enough to accommodate the result. Specifically, out.dtype >= input.dtype.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) ≥ 7 else if dtype_(v_1) = 7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 else if dtype_(v_1) = 8 then dtype_(v_2) = 8 else if dtype_(v_1) = 9 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11 else if dtype_(v_1) = 10 then dtype_(v_2) = 10 ∨ dtype_(v_2) = 11 else if dtype_(v_1) = 11 then dtype_(v_2) = 11
+>>
+Rule 51 (If `out` is provided, it must have the same number of elements as the `input`)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) = shape(v_2, i)
+>>
+Rule 52 (If input is float16 and out tensor is specified, out tensor's dtype should be at least float32 to avoid casting issues)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11
+>>
+Rule 53 (If `out` tensor is given, it must be of floating point or complex data type)
+{v_2 : tensor} |= (dtype_(v_2) ≥ 6) ∧ (dtype_(v_2) ≤ 11)
+>>
+Rule 54 (Input tensor must be of floating point or complex data type)
+{v_1 : tensor} |= (dtype_(v_1) ≥ 6) ∧ (dtype_(v_1) ≤ 11)
+>>
+Rule 55 (If input is float16 and out tensor is specified, out tensor's dtype should be at least float32)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 6) then (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8)
+>>
+Rule 59 (If an output tensor `out` is provided, ensure that it's shape is equivalent to the input's shape, across all dimensions.)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1)-1]: (shape(v_1, i) = shape(v_2, i))
+>>
+Rule 61 (If input is float16 and an out tensor is supplied, the out tensor's dtype must be at least float32)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8) ∨ (dtype_(v_2) = 9) ∨ (dtype_(v_2) = 10) ∨ (dtype_(v_2) = 11)
+>>
+Rule 63 (If `out` is provided, the output must have the same size as the input.)
+{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i))
+>>
+Rule 65 (The input must contain only values that are strictly between -1 and 1 for arctanh to be defined.)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1)-1] : (min(v_1) > -1) ∧ (max(v_1) < 1)
+>>
+Rule 66 (If an out tensor is specified, its datatype must be at least as high precision as that of input tensor to avoid a "type can't be cast" runtime error.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11) else if dtype_(v_1) = 7 then (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8) ∨ (dtype_(v_2) = 9) ∨ (dtype_(v_2) = 10) ∨ (dtype_(v_2) = 11) else if dtype_(v_1) = 8 then (dtype_(v_2) = 8) ∨ (dtype_(v_2) = 9) ∨ (dtype_(v_2) = 10) ∨ (dtype_(v_2) = 11) else if dtype_(v_1) = 9 then (dtype_(v_2) = 9) ∨ (dtype_(v_2) = 10) ∨ (dtype_(v_2) = 11) else if dtype_(v_1) = 10 then (dtype_(v_2) = 10) ∨ (dtype_(v_2) = 11) else if dtype_(v_1) = 11 then (dtype_(v_2) = 11)
+>>
+Rule 67 (Input must contain values within (-1, 1), exclusive)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : (v_1[i] > -1) ∧ (v_1[i] < 1)
+>>
+Rule 69 (Out tensor type must be high enough to avoid casting errors if input is a float or complex tensor)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 6) then (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8) ∨ (dtype_(v_2) = 9) ∨ (dtype_(v_2) = 10) ∨ (dtype_(v_2) = 11) else if (dtype_(v_1) = 7) then (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8) ∨ (dtype_(v_2) = 9) ∨ (dtype_(v_2) = 10) ∨ (dtype_(v_2) = 11) else if (dtype_(v_1) = 8) then (dtype_(v_2) = 8) ∨ (dtype_(v_2) = 9) ∨ (dtype_(v_2) = 10) ∨ (dtype_(v_2) = 11) else if (dtype_(v_1) = 9) then (dtype_(v_2) = 9) ∨ (dtype_(v_2) = 10) ∨ (dtype_(v_2) = 11) else if (dtype_(v_1) = 10) then (dtype_(v_2) = 10) ∨ (dtype_(v_2) = 11) else if (dtype_(v_1) = 11) then (dtype_(v_2) = 11)
+>>
+Rule 72 (If 'out' is provided, then its number of dimensions must be the same as the input's)
 {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 7 (output tensor dtype must be able to represent input tensor values after arctanh)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) else if dtype_(v_1) = 8 then (dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) else if dtype_(v_1) = 9 then (dtype_(v_2) = 9) else if dtype_(v_1) = 10 then (dtype_(v_2) = 10)
+Rule 73 (Input must be within the domain of arctanh, that is (-1, 1))
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1)-1]: (v_1[i] > -1) ∧ (v_1[i] < 1)
 >>
-Rule 8 (if out is provided, its dtype must be at least as precise as the input's dtype to avoid potential casting errors)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) ≥ 7 else if dtype_(v_1) = 8 then dtype_(v_2) ≥ 8 else if dtype_(v_1) = 9 then dtype_(v_2) ≥ 9 else if dtype_(v_1) = 10 then dtype_(v_2) ≥ 10
+Rule 74 (If an out tensor is supplied, then it needs to be a data type that can store a float if the input is a float.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 6) then (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8) ∨ (dtype_(v_2) = 9) ∨ (dtype_(v_2) = 10) ∨ (dtype_(v_2) = 11) else if (dtype_(v_1) = 7) then (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8) ∨ (dtype_(v_2) = 9) ∨ (dtype_(v_2) = 10) ∨ (dtype_(v_2) = 11) else if (dtype_(v_1) = 8) then (dtype_(v_2) = 8) ∨ (dtype_(v_2) = 9) ∨ (dtype_(v_2) = 10) ∨ (dtype_(v_2) = 11)
 >>
-Rule 9 (input tensor's dtype should not be a low-precision type if the out tensor has a higher precision)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 8 then dtype_(v_1) ≥ 7 else if dtype_(v_2) = 9 then dtype_(v_1) ≥ 7 else if dtype_(v_2) = 10 then dtype_(v_1) ≥ 7
+Rule 75 (Input tensor must contain only values within (-1, 1) non-inclusive)
+{v_1 : tensor} |= ∃x ∈ [0, ndim(v_1)-1]: min(v_1) > -1 ∧ max(v_1) < 1
 >>
-Rule 10 (If out tensor is provided, ensure its dtype can represent the arctanh result to prevent casting errors.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) else if dtype_(v_1) = 8 then (dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) else if dtype_(v_1) = 9 then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) else if dtype_(v_1) = 10 then (dtype_(v_2) = 10)
+Rule 78 (The values in the input tensor must be strictly between -1 and 1, for tanh inverse domain)
+{v_1 : tensor} |= ∀x ∈ [0, ndim(v_1)-1]: v_1[x] > -1 ∧ v_1[x] < 1
 >>
-Rule 11 (If an 'out' tensor is specified, its dtype must be able to accommodate the arctanh computation result, preventing data type underflow/overflow.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) ≥ 6 else if dtype_(v_1) = 7 then dtype_(v_2) ≥ 7 else if dtype_(v_1) = 8 then dtype_(v_2) ≥ 8 else if dtype_(v_1) = 9 then dtype_(v_2) ≥ 9 else if dtype_(v_1) = 10 then dtype_(v_2) ≥ 10
+Rule 79 (If out tensor is specified, the elements in out tensor must be equal or greater to elements in the input tensor)
+{v_1 : tensor, v_2 : tensor} |= ∃x ∈ [0, ndim(v_1)-1]: shape(v_1, x) ≤ shape(v_2, x)
 >>
-Rule 13 (If the output tensor is provided, its dtype must be at least as precise to avoid potential casting issues and data loss.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then (dtype_(v_2) > 2 ∧ dtype_(v_2) < 11) else if dtype_(v_1) = 8 then (dtype_(v_2) > 7 ∧ dtype_(v_2) < 11) else if dtype_(v_1) = 9 then (dtype_(v_2) > 8 ∧ dtype_(v_2) < 11) else if dtype_(v_1) = 10 then (dtype_(v_2) > 9 ∧ dtype_(v_2) < 11)
+Rule 80 (If an out tensor is provided and the input is a float, then the out tensor dtype must be able to store at least a float value)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) ≥ 6) ∧ (dtype_(v_1) ≤ 8) then (dtype_(v_2) ≥ 6) ∧ (dtype_(v_2) ≤ 8)
 >>
-Rule 14 (When providing an output tensor, ensure that its data type can accurately represent the result of arctanh, preventing potential underflow errors resulting from type casting.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) ≥ 7 else if dtype_(v_1) = 8 then dtype_(v_2) ≥ 8 else if dtype_(v_1) = 9 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 10 then dtype_(v_2) = 10
+Rule 81 (Input tensor's values must be within the open interval (-1, 1).)
+{v_1 : tensor} |= ∀x ∈ [0, ndim(v_1) - 1] : (v_1[x] > -1) ∧ (v_1[x] < 1)
 >>
-Rule 15 (If out is specified, its dtype must be able to represent the resulting values, or a cast to Short will cause an error; complex types are also acceptable)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 7 then dtype_(v_2) ≥ 7
+Rule 83 (The values in the input tensor must be strictly within (-1, 1), as the function is not defined otherwise)
+{v_1 : tensor} |= ∃x ∈ [0, ndim(v_1) - 1] : (v_1[x] > -1) ∧ (v_1[x] < 1)
 >>
-Rule 16 (If an out tensor is provided, its dtype must be sufficient for arctanh calculation on the input, otherwise a cast will occur)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 7 then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+Rule 85 (If an `out` is specified, dtype should be same or higher to avoid potential casting error)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) < 9) then dtype_(v_2) ≥ 7 else dtype_(v_2) ≥ 9
 >>
-Rule 17 (If the 'out' tensor has a lower floating point precision than the input, the results of arctanh may be truncated. Prevent this cast.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) ≥ 7 else if dtype_(v_1) = 8 then dtype_(v_2) ≥ 8 else if dtype_(v_1) = 9 then dtype_(v_2) = 9 else if dtype_(v_1) = 10 then dtype_(v_2) = 10
+Rule 86 (The values in the input tensor must be strictly within -1 and 1 for arctanh to be defined)
+{v_1 : tensor} |= ∃x ∈ [0, ndim(v_1)-1]: (v_1[x] > -1) ∧ (v_1[x] < 1)
 >>
-Rule 19 (If `out` is provided and the input is of type Float, `out` must be Float, Double, ComplexFloat, or ComplexDouble)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+Rule 89 (To avoid undefined values from arctanh, input tensor values should lie strictly between -1 and 1)
+{v_1 : tensor} |= ∀x ∈ [0, ndim(v_1)-1]: (v_1[x] > -1) ∧ (v_1[x] < 1)
 >>
-Rule 20 (Avoid casting errors by ensuring 'out' is a float or higher if the input isn't already; also accept complex)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 7 then dtype_(v_2) > 6
+Rule 90 (If out is provided, it must have enough elements to store the output, at least equal to that of the input tensor.)
+{v_1 : tensor, v_2 : tensor} |= ∃x ∈ [0, ndim(v_1) - 1] : shape(v_1, x) ≤ shape(v_2, x)
 >>
-Rule 23 (The output tensor should have dtype greater than float16 (6), or be a complex number, to avoid potential casting to 'Short' and resulting data loss)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 7 then (dtype_(v_2) > 6 ∨ dtype_(v_2) > 8)
+Rule 92 (When the parameter 'out' is specified the storage requirements must be fulfilled.)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≤ shape(v_2, i)
 >>
-Rule 24 (If a float input is used, and 'out' is supplied, the 'out' tensor must have a floating point or complex dtype with sufficient precision to avoid a downcast to Short)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) > 6 ∧ dtype_(v_1) < 9 then dtype_(v_2) > 6
+Rule 93 (If input is a float tensor, then an `out` tensor should also have a floating-point dtype greater or equal than float32 to prevent casting error)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) ≥ 6) ∧ (dtype_(v_1) ≤ 8) then (dtype_(v_2) ≥ 7) ∧ (dtype_(v_2) ≤ 8)
 >>
-Rule 29 (If 'out' is provided, it should be float32, float64, complex64, or complex128 to prevent casting errors)
-{v_1 : tensor} |= 7 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10
+Rule 94 (If out tensor is provided, its shape must be the same or compatible with the input tensor shape)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 32 (To avoid a 'Float can't be cast to the desired output type Short' error, ensure that if an 'out' tensor is provided, its type is sufficient to hold floating point values from the input)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 7 then (dtype_(v_2) > 6)
->>
-Rule 33 (If 'out' is specified, prevent float to short casting by enforcing a float-capable dtype (or higher) on 'out')
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 7 then (dtype_(v_2) ≥ 7)
->>
-Rule 34 (If `out` is provided, it prevents float->short casting if it's float, double, complexfloat, or complexdouble)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 7 then (7 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 10)
->>
-Rule 37 (Prevent Float can't be cast to Short by ensuring out is at least Float32 if the input has a float-compatible datatype)
-{v_1 : tensor, v_2 : tensor} |= if 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8 then dtype_(v_2) ≥ 7
->>
-Rule 38 (If providing `out`, it must be a dtype that can store the result without unwanted casting. Protect against potential Short casting errors)
-{v_1 : tensor, v_2 : tensor} |= if 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10 then dtype_(v_2) ≥ 7
->>
-Rule 39 (If an `out` tensor is provided, its `dtype` should be able to contain the `arctanh` result (prevent `Float` to `Short` casts)
-{v_1 : tensor, v_2 : tensor} |= if 6 <= dtype_(v_1) ∧ dtype_(v_1) <=10 then dtype_(v_2) >=7
->>
-Rule 40 (Prevent the Float -> Short casting by ensuring out is at least Float (dtype 7) if the input is of floating or complex type and an out tensor is supplied)
-{v_1 : tensor, v_2 : tensor} |= if 6 <= dtype_(v_1) then (dtype_(v_2) >= 7)
->>
-Rule 41 (If 'out' is specified and input has a float dtype, the output must also be float or complex to avoid information loss)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) > 6 then dtype_(v_2) > 6
->>
-Rule 42 (Ensure `out` tensor is of a sufficient dtype to prevent "Float can't be cast to Short" error if 'out' is passed and the input is floating or complex.)
-{v_1 : tensor, v_2 : tensor} |= if 6 <= dtype_(v_1) then dtype_(v_2) >= 7
->>
-Rule 44 (If `out` is specified, and the input tensor has float or complex dtype, ensure `out` can hold the range of potential arctanh values)
-{v_1 : tensor, v_2 : tensor} |= if 6 <= dtype_(v_1) then dtype_(v_2) > 6
->>
-Rule 45 (Require that if an out tensor is provided and the input's dtype is a float or complex type, the out tensor must also be a float or complex with sufficient precision to prevent the error.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) > 6 then dtype_(v_2) >=7
->>
-Rule 46 (If 'out' is given and the input is of a floating type, 'out' needs to be a floating or complex dtype of adequate size)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) > 6 then dtype_(v_2) > 6
->>
-Rule 48 (If "out" is specified, and input is any float or complex dtype, "out" needs to be at least Float to not lose data)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) >= 6 then dtype_(v_2) >= 7
->>
-Rule 49 (If providing 'out', make sure it's at least Float32 if the input is a float or complex type, or a cast exception will be raised)
-{v_1: tensor, v_2: tensor} |= if 6 <= dtype_(v_1) then dtype_(v_2) > 6
->>
-Rule 50 (If the input tensor is float/complex and an output tensor is provided, then the output tensor's type must also be a float or complex type to avoid potential data loss.)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) >= 6 then dtype_(v_2) >= 7
->>
-Rule 52 (If a float-like tensor is passed, and 'out' is supplied, prevent it from being downcast to Short by being *at least* Float)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) >= 6 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+Rule 96 (In order to prevent the casting error with Float output type, the output tensor, if one is provided must have type float or complex)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) ≥ 6) ∧ (dtype_(v_1) ≤ 8) then (dtype_(v_2) ≥ 6) ∧ (dtype_(v_2) ≤ 8) else if (dtype_(v_1) ≥ 9) ∧ (dtype_(v_1) ≤ 11) then (dtype_(v_2) ≥ 9) ∧ (dtype_(v_2) ≤ 11)

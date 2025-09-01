@@ -1,141 +1,75 @@
 >>
-Rule 1 (input and out tensors should have compatible dtypes)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 2 (output tensor's dtype should not be short if input tensor is float)
+{v_2 : tensor} |= dtype_(v_2) ≠ 2
 >>
-Rule 3 (if out is provided, its shape should be compatible with input)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_2, 1) ∧ shape(v_1, 2) = shape(v_2, 2) ∧ shape(v_1, 3) = shape(v_2, 3)
+Rule 3 (if input is float, output should also be float or complex)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
 >>
-Rule 4 (input tensor cannot be bool type)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 4 (if input tensor is float16, output tensor cannot be int8, int16, or int32)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3
 >>
-Rule 5 (input tensor cannot be int8 type if out is float16)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 6 then dtype_(v_1) ≠ 1
+Rule 5 (if input is integer type, output should not be bool)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5 then dtype_(v_2) ≠ 0
 >>
-Rule 6 (input tensor should be of floating point or complex type if out tensor is specified.)
-{v_1 : tensor} |= (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)
+Rule 6 (If input dtype is complex, output dtype must also be complex)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
 >>
-Rule 8 (if out is provided, its shape should be compatible with input)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 7 (If the input requires grad, the output must also require grad)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) > -1 then shape(v_2, 0) > -1
 >>
-Rule 10 (if out is float16, input should be at least float16.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 6 then (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)
+Rule 8 (If input and output tensors are provided, they must have compatible dtypes to avoid casting issues.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 7 then dtype_(v_2) ≥ dtype_(v_1) else dtype_(v_2) ≥ 7
 >>
-Rule 11 (if output is short, input should not be float)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then (dtype_(v_1) ≠ 7) ∧ (dtype_(v_1) ≠ 8) ∧ (dtype_(v_1) ≠ 9)
+Rule 9 (The output tensor's dtype should be at least as precise as the input tensor's dtype.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) > 6 else if dtype_(v_1) = 7 then dtype_(v_2) > 7 else if dtype_(v_1) = 8 then dtype_(v_2) > 8
 >>
-Rule 12 (if output is short, input should not be complex)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then (dtype_(v_1) ≠ 9) ∧ (dtype_(v_1) ≠ 10)
+Rule 11 (If output is specified, its dtype must be able to hold the result of log1p.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) ≥ 7 else if dtype_(v_1) = 2 then dtype_(v_2) > 2
 >>
-Rule 13 (if out is provided, its type should be able to represent the result of log1p(input))
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then dtype_(v_1) < 2
+Rule 12 (If the input is float16, the output must be at least float16)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) ≥ 6
 >>
-Rule 14 (if the input is float32 and out is given, out cannot be int8, int16 or bool.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then (dtype_(v_2) ≠ 0) ∧ (dtype_(v_2) ≠ 1) ∧ (dtype_(v_2) ≠ 2)
+Rule 13 (If the input is a floating-point type, the output type should also be a floating-point type or complex type with sufficient precision)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) ≥ 7 else if dtype_(v_1) = 8 then dtype_(v_2) ≥ 8 else if dtype_(v_1) = 6 then dtype_(v_2) ≥ 6
 >>
-Rule 15 (the input must be a tensor)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
+Rule 14 (If the input is float, the output can't be short.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) ≠ 2
 >>
-Rule 16 (if the output type is int, the input type should also be int)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) = 1) ∨ (dtype_(v_2) = 2) ∨ (dtype_(v_2) = 3) ∨ (dtype_(v_2) = 4) ∨ (dtype_(v_2) = 5) then (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5)
+Rule 15 (If the output tensor is specified, its data type must have sufficient precision to store the result of the log1p operation on the input tensor.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
 >>
-Rule 17 (if the output type is short, the input type should also be short or lower)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2)
+Rule 16 (The output tensor, if provided, should have a dtype that is at least as wide as short when the input is float.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) > 2
 >>
-Rule 18 (if the input is float, the output should also be float)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) then (dtype_(v_2) = 6) ∨ (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8)
+Rule 18 (If output is specified, its dtype must be float or higher if input is float)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) ≥ 7
 >>
-Rule 19 (if the input is a complex number, the output must be a complex number)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) then (dtype_(v_2) = 9) ∨ (dtype_(v_2) = 10)
+Rule 20 (The output tensor should have at least the same floating-point precision as the input tensor.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) ≥ 6 else if dtype_(v_1) = 7 then dtype_(v_2) ≥ 7 else if dtype_(v_1) = 8 then dtype_(v_2) ≥ 8
 >>
-Rule 20 (if input is a float type, output cannot be of type bool or int8)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) then (dtype_(v_2) ≠ 0) ∧ (dtype_(v_2) ≠ 1)
+Rule 23 (If the input tensor's data type is a floating point (float16, float32, float64) type, the output tensor's data type should also be a floating point or complex type.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
 >>
-Rule 21 (if the output is of type Short, then the input must not be Float or Double.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then (dtype_(v_1) ≠ 7) ∧ (dtype_(v_1) ≠ 8)
+Rule 25 (Output must be float or complex if input is float, and output must have enough precision)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 6 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 8 then dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
 >>
-Rule 23 (the input tensor must be of numeric type)
-{v_1 : tensor} |= (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) ∨ (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)
+Rule 26 (If output is specified, its dtype must be able to accommodate Float if input is Float)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) > 1
 >>
-Rule 24 (If output tensor is specified, then the output and input tensor types must be compatible)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (dtype_(v_1) = dtype_(v_2))
+Rule 28 (if input tensor is float type, output tensor cannot be int16 type)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_2) ≠ 2
 >>
-Rule 25 (if input tensor is of type float16 then output tensor cannot be of type bool, int8, int16)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then (dtype_(v_2) ≠ 0) ∧ (dtype_(v_2) ≠ 1) ∧ (dtype_(v_2) ≠ 2)
+Rule 34 (If the input tensor's dtype is floating point or complex, the output tensor, if provided, must have a dtype capable of representing floating point values without loss of precision.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) > 5 then dtype_(v_2) > 5
 >>
-Rule 27 (if the output is of type Short and Input is a floating point type , then it is invalid )
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then (dtype_(v_1) ≠ 7) ∧ (dtype_(v_1) ≠ 8) ∧ (dtype_(v_1) ≠ 9) ∧ (dtype_(v_1) ≠ 10)
+Rule 42 (If the input tensor's dtype requires high precision, make sure the out tensor can hold it to avoid data loss)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_2) > 1
 >>
-Rule 32 (input must be a tensor of numerical type)
-{v_1 : tensor} |= (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 10)
+Rule 43 (If input dtype is float, the output dtype should be at least Float)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 6
 >>
-Rule 33 (if out tensor is specified, input and out tensors must have compatible shapes.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 48 (If input is a float type, output, if provided, must also be float to prevent the RuntimeError: result type Float can't be cast to the desired output type Short)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
 >>
-Rule 34 (input and output dtypes must be the same if output is specified.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then dtype_(v_1) = dtype_(v_2)
->>
-Rule 37 (If the input is Float, the output should be at least Float.)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) then (dtype_(v_2) ≥ 6)
->>
-Rule 38 (If the out tensor is specified, its dimension has to match the input tensor's dimension)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ndim(v_1) = ndim(v_2)
->>
-Rule 39 (if the out tensor is specified, and its dtype is int16, the input tensor cannot be float32 or float64 or complex64 or complex128)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_2) > 0) ∧ (dtype_(v_2) = 2) then (dtype_(v_1) ≠ 7) ∧ (dtype_(v_1) ≠ 8) ∧ (dtype_(v_1) ≠ 9) ∧ (dtype_(v_1) ≠ 10)
->>
-Rule 40 (The input tensor must be of numeric type to perform log1p operation.)
-{v_1 : tensor} |= (dtype_(v_1) > 0) ∧ (dtype_(v_1) < 11)
->>
-Rule 42 (If the input is Float32 or Float64, the output should be at least Float16)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) then (dtype_(v_2) ≥ 6)
->>
-Rule 43 (If the input is Complex64 or Complex128, the output should be at least Complex64)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) then (dtype_(v_2) ≥ 9)
->>
-Rule 44 (If out tensor is specified, the output and input tensor types must be compatible, and shapes should be the same)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (dtype_(v_1) = dtype_(v_2)) ∧ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
->>
-Rule 51 (If out tensor is specified and is Short, the input tensor must also be a Short or Int8)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_2) > 0) ∧ (dtype_(v_2) = 2) then (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2)
->>
-Rule 52 (If the input tensor is a Float tensor, the out tensor must also be a float tensor (at least Float16) if provided.)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) then (ndim(v_2) = 0) ∨ (dtype_(v_2) > 5)
->>
-Rule 53 (If the output tensor is provided, its shape must match the input's)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (ndim(v_1) = ndim(v_2)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
->>
-Rule 56 (If out tensor is specified and is Short, the input tensor must also be a Short or Int8 or Int16)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_2) > 0) ∧ (dtype_(v_2) = 2) then (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3)
->>
-Rule 57 (If the input tensor is a Float tensor, the out tensor must also be a float tensor if provided.)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) then (ndim(v_2) = 0) ∨ (dtype_(v_2) > 5)
->>
-Rule 63 (If the input is not numeric type then return false)
-{v_1 : tensor} |= (dtype_(v_1) ≠ 0) ∧ (dtype_(v_1) ≠ 11) ∧ (dtype_(v_1) ≠ 12)
->>
-Rule 66 (If the output is Short, the input tensor must also be a Short or Int8 or Int16 or smaller.)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_2) > 0) ∧ (dtype_(v_2) = 2) then (dtype_(v_1) ≤ 3) ∧ (dtype_(v_1) > 0)
->>
-Rule 67 (If the input tensor is a Float or Complex tensor, the out tensor must also be a float or complex tensor if provided.)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) > 5) ∧ (dtype_(v_1) < 11) then (ndim(v_2) = 0) ∨ (dtype_(v_2) > 5)
->>
-Rule 69 (If out tensor is specified, the shape and the dtype must match input, if no out tensor specified then it's true.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (ndim(v_1) = ndim(v_2)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∧ (dtype_(v_1) = dtype_(v_2))
->>
-Rule 74 (if the output tensor is provided, its shape must match the input's, and its dtype must be able to be casted to by the input)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (ndim(v_1) = ndim(v_2)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∧ (dtype_(v_1) ≤ dtype_(v_2))
->>
-Rule 78 (The input must be a numerical tensor. That is not string nor bool nor dtype)
-{v_1 : tensor} |= (dtype_(v_1) ≠ 0) ∧ (dtype_(v_1) < 11)
->>
-Rule 86 (If the output is Short and specified, the input cannot be Float or Double or Complex, because they cannot be downcasted to short.)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_2) > 0) ∧ (dtype_(v_2) = 2) then (dtype_(v_1) < 7)
->>
-Rule 91 (If the output is Short and specified, the input must be an integer type)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_2) > 0) ∧ (dtype_(v_2) = 2) then (dtype_(v_1) < 7) ∧ (dtype_(v_1) > 0)
->>
-Rule 105 (If the output is specified, ensure that its values aren't overflowing after the application of log1p)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (min(v_1) > -1)
->>
-Rule 110 (Enforce some value constraints)
-{v_1 : tensor} |= min(v_1) > -1
+Rule 49 (if the input is a floating-point tensor, the specified output tensor should be a floating-point type with at least the same precision.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_2) ≥ dtype_(v_1)

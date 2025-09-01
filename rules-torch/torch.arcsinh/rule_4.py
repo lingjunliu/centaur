@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Prevent casting error: result type Float can't be cast to the desired output type Short - ensure output dtype is compatible (Rule 4)
+# If out is specified, its dtype should be float if input is float, and complex if input is complex (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_dtype"] == 1, Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), False)) if n else
-          If(v["arg2_dtype"] == 1, Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), False))
+    s.add(Not(If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), True))) if n else
+          If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), True)))
 )
 
 def rule_4_func(arg1, arg2, solver=None, neg=False):

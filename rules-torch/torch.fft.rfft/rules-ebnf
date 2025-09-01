@@ -1,81 +1,240 @@
 >>
-Rule 2 (n must be greater than 0 to avoid invalid number of data points)
-{v_2 : int} |= v_2 > 0
+Rule 1 (Signal length must be non-negative to avoid invalid number of data points)
+{v_1 : int} |= v_1 > 0
 >>
-Rule 5 (norm must be one of the allowed strings)
-{v_4 : str} |= v_4 = "forward" ∨ v_4 = "backward" ∨ v_4 = "ortho"
+Rule 2 (Output tensor must have complex dtype to avoid RuntimeError)
+{v_1 : tensor} |= dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 6 (input tensor must have a floating-point or integer dtype)
-{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 9
->>
-Rule 7 (input tensor's dtype should not be Half (5))
+Rule 3 (Input tensor should not have Half dtype due to Unsupported dtype Half error)
 {v_1 : tensor} |= dtype_(v_1) ≠ 6
 >>
-Rule 8 (n must be greater than or equal to 0)
-{v_2 : int} |= v_2 ≥ 0
+Rule 7 (Norm must be a valid string if provided to rfft function)
+{v_1: str} |= v_1 = "forward" ∨ v_1 = "backward" ∨ v_1 = "ortho"
 >>
-Rule 9 (dim must be less than the number of dimensions)
-{v_1 : tensor, v_3 : int} |= v_3 < ndim(v_1)
+Rule 8 (If signal length n is provided, it should not be larger than the size of the input tensor)
+{v_1: tensor, v_2: int, v_3: int} |= if v_2 ≠ -1 then v_3 ≤ shape(v_1, v_2)
 >>
-Rule 10 (dim must be greater than or equal to the negative number of dimensions)
-{v_1 : tensor, v_3 : int} |= v_3 ≥ (0 - ndim(v_1))
+Rule 12 (Dimension must be within valid range based on input tensor ndim to avoid IndexError)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ 0 - ndim(v_1) ∧ v_2 < ndim(v_1)
 >>
-Rule 13 (output tensor should not have dtype double if input is complex)
-{v_1 : tensor, v_5 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then dtype_(v_5) ≠ 8
+Rule 14 (If signal length n is provided, it should not be larger than the size of the input tensor in a specific dimension if specified)
+{v_1: tensor, v_2: int, v_3: int} |= if v_3 ≠ -1 then v_2 ≤ shape(v_1, v_3)
 >>
-Rule 15 (if n is given, it should be less than or equal to the size of the dimension dim)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 ≠ None then v_2 ≤ shape(v_1, v_3)
+Rule 15 (Signal length must be non-negative to avoid invalid number of data points, checked using if)
+{v_1 : int} |= if v_1 < 0 then false
 >>
-Rule 17 (if n is given, and dim is not default, n should be positive)
-{v_2 : int, v_3 : int} |= if v_2 ≠ None ∧ v_3 ≠ -1 then v_2 > 0
+Rule 16 (Input tensor dimension should be greater than zero)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 18 (if n is explicitly zero, raise error.)
-{v_2 : int} |= if v_2 = 0 then false
+Rule 17 (Dimension must be within valid range based on input tensor ndim + add condition of dim = -1 is always true)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ 0 - ndim(v_1) ∧ v_2 < ndim(v_1) ∨ v_2 = -1
 >>
-Rule 19 (if n is given, it should be different from zero)
-{v_2 : int} |= if v_2 ≠ None then v_2 ≠ 0
+Rule 18 (Output tensor should have floating point or complex dtype, if provided.)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 20 (norm parameter should be chosen from allowed list if it is given)
-{v_4 : str} |= if v_4 ≠ None then v_4 = "forward" ∨ v_4 = "backward" ∨ v_4 = "ortho"
+Rule 20 (Input tensor must be a real tensor)
+{v_1: tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
 >>
-Rule 21 (the output tensor 'out' should be of complex type)
-{v_5 : tensor} |= dtype_(v_5) = 9 ∨ dtype_(v_5) = 10
+Rule 26 (if norm is provided, then it cannot be none)
+{v_1: str} |= v_1 ≠ "none"
 >>
-Rule 24 (if out is given, the input tensor and out tensor's dimension should match)
-{v_1 : tensor, v_5 : tensor} |= if v_5 ≠ None then ndim(v_1) = ndim(v_5)
+Rule 27 (Signal length should be less than maximum integer value)
+{v_1 : int} |= v_1 < 2147483647
 >>
-Rule 25 (out should be complex if input is complex)
-{v_1 : tensor, v_5 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_5) = 9 ∨ dtype_(v_5) = 10
+Rule 28 (Norm parameter is valid only when dim is specified )
+{v_1: str, v_2: int} |= if v_2 = -1 then v_1 = "backward" else v_1 = "forward" ∨ v_1 = "backward" ∨ v_1 = "ortho"
 >>
-Rule 26 (if input tensor is half, CUDA SM53 or greater is required, but this cannot be expressed)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then true
+Rule 29 (If signal length is given, it should be greater or equal than 1)
+{v_1 : int} |= v_1 ≥ 1
 >>
-Rule 27 (If out is specified, its dtype should not be half)
-{v_5 : tensor} |= if v_5 ≠ None then dtype_(v_5) ≠ 6
+Rule 30 (input tensor's dtype must be one of valid real dtypes)
+{v_1: tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 28 (If input dtype is half, output dtype should also be half if out is given)
-{v_1 : tensor, v_5 : tensor} |= if dtype_(v_1) = 6 ∧ v_5 ≠ None then dtype_(v_5) = 6
+Rule 31 (Output tensor dimension must be same as input tensor dimension if provided)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 34 (If the input is real, and the output is real, but should be complex based on parameters n, then reject)
-{v_1 : tensor, v_5 : tensor, v_2 : int} |= if (dtype_(v_1) < 9) ∧ (dtype_(v_5) < 9) ∧ (v_2 ≠ None) then false
+Rule 32 (Input Tensor should have at least one element to avoid zero data points)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 35 (If dim is out of range, reject)
-{v_1: tensor, v_3: int} |= if ndim(v_1) = 0 then v_3 = -1 else if v_3 < (0 - ndim(v_1)) ∨ v_3 ≥ ndim(v_1) then false
+Rule 33 (Signal length should be a power of 2 if using half precision.)
+{v_1 : int, v_2 : tensor} |= if dtype_(v_2) = 6 then ∃i ∈ [0, 31] : v_1 = 2 * i
 >>
-Rule 37 (If dim is out of range, reject - alternative version using min and max)
-{v_1: tensor, v_3: int} |= if ndim(v_1) > 0 then v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) else v_3 = -1
+Rule 34 (If dim is specified, input tensor needs to have more than 0 dimension)
+{v_1: tensor, v_2: int} |= if v_2 ≠ -1 then ndim(v_1) > 0
 >>
-Rule 39 (dim cannot be greater or equal to the number of dimensions if the number of dimensions is positive)
-{v_1 : tensor, v_3 : int} |= if ndim(v_1) > 0 then v_3 < ndim(v_1)
+Rule 35 (If norm is provided, dim should also be provided.)
+{v_1 : str, v_2 : int} |= if v_1 ≠ "backward" then v_2 ≠ -1
 >>
-Rule 40 (dim cannot be greater or equal to the number of dimensions if the number of dimensions is positive)
-{v_1: tensor, v_3: int} |= if ndim(v_1) > 0 then v_3 < ndim(v_1)
+Rule 36 (If signal length n is provided, the output tensor shape on the specified dimension should match n // 2 + 1 )
+{v_1: tensor, v_2: int, v_3: int} |= if v_2 ≠ -1 ∧ v_3 ≠ -1 then shape(v_1, v_3) = v_2 / 2 + 1
 >>
-Rule 41 (Reject cases that would clearly cause the TypeError about out not being a Tensor)
-{v_2 : int, v_3 : int, v_4 : str} |= if v_2 = None ∧ v_3 = -1 ∧ v_4 = "backward" then false
+Rule 37 (Input tensor cannot have boolean dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 43 (Reject calls that are MOST LIKELY to be intending to specify the out parameter wrong, causing the TypeError.)
-{v_2 : int, v_3 : int, v_4 : str, v_1 : tensor} |= if v_2 = None ∧ v_3 = -1 ∧ v_4 = "backward" ∧ ndim(v_1) = 0 then false
+Rule 44 (Signal length must be positive, and if norm is ortho, dim can't be -1)
+{v_1 : int, v_2 : str, v_3: int} |= v_1 > 0 ∧ if v_2 = "ortho" then v_3 ≠ -1
 >>
-Rule 45 (If the input tensor has more than one dimension and n is equal to 0, then reject.)
-{v_1: tensor, v_2: int} |= if ndim(v_1) > 1 ∧ v_2 = 0 then false
+Rule 45 (input and output tensor must have same dimension and if n is none, shape of input and output must match along dim)
+{v_1 : tensor, v_2 : tensor, v_3: int, v_4: int} |= ndim(v_1) = ndim(v_2) ∧ if v_4 = -1 then shape(v_1, v_3) = shape(v_2,v_3)
+>>
+Rule 46 (if input tensor has half dtype, signal length should not be zero)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 6 then v_2 > 0
+>>
+Rule 47 (if norm is forward or ortho, then input tensor must not have half dtype)
+{v_1 : str, v_2: tensor} |= if v_1 = "forward" ∨ v_1 = "ortho" then dtype_(v_2) ≠ 6
+>>
+Rule 48 (The dim value should be less than the max integer value.)
+{v_1: int} |= v_1 < 2147483647
+>>
+Rule 49 (Signal length must be a non-negative integer)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 54 (Signal length must be a non-negative integer, and less than the maximum int)
+{v_1 : int} |= v_1 ≥ 0 ∧ v_1 < 2147483647
+>>
+Rule 57 (Norm must be one of the allowed strings)
+{v_1 : str} |= v_1 = "forward" ∨ v_1 = "backward" ∨ v_1 = "ortho"
+>>
+Rule 61 (Dimension must be within the valid range for the input tensor, or -1)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∨ v_2 = -1
+>>
+Rule 64 (If n is specified and is 0, raise error)
+{v_1: int} |= v_1 ≠ 0
+>>
+Rule 65 (If input is half, n must be power of 2)
+{v_1: tensor, v_2: int} |= if dtype_(v_1) = 6 then (v_2 = 2 ∨ v_2 = 4 ∨ v_2 = 8 ∨ v_2 = 16 ∨ v_2 = 32 ∨ v_2 = 64 ∨ v_2 = 128 ∨ v_2 = 256 ∨ v_2 = 512 ∨ v_2 = 1024)
+>>
+Rule 67 (If norm = forward or ortho, input can't be complex)
+{v_1: str, v_2: tensor} |= if v_1 = "forward" ∨ v_1 = "ortho" then dtype_(v_2) < 9
+>>
+Rule 68 (Output tensor needs complex dtype)
+{v_1: tensor} |= dtype_(v_1) > 8
+>>
+Rule 71 (Dimension must be within the valid range for the input tensor to avoid IndexError)
+{v_1: tensor, v_2: int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∨ v_2 = -1
+>>
+Rule 72 (Norm = forward or ortho, input can't be double to avoid rfft expects a complex output tensor, but got Double)
+{v_1: str, v_2: tensor} |= if v_1 = "forward" ∨ v_1 = "ortho" then dtype_(v_2) ≠ 8
+>>
+Rule 78 (If n is specified and the input tensor is not empty then n must be less or equal than the number of elements of the input tensor to avoid 'Invalid number of data points (0) specified' error.)
+{v_1: int, v_2: tensor} |= if (v_1 > 0) then (v_1 <= shape(v_2, 0))
+>>
+Rule 80 (Norm value should be Backward to avoid errors 'rfft expects a complex output tensor, but got Double')
+{v_1: str} |= v_1 = "backward"
+>>
+Rule 81 (If `dim` is greater than the number of dimensions of the input tensor it should trigger `IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)' error)
+{v_1: tensor, v_2: int} |= v_2 < ndim(v_1)
+>>
+Rule 82 (If `out` is specified the shape of out must be equal the shape of input to avoid errors )
+{v_1: tensor, v_2: tensor} |= shape(v_1,0) = shape(v_2, 0)
+>>
+Rule 93 (input tensor must have a dtype greater than zero)
+{v_1 : tensor} |= dtype_(v_1) > 0
+>>
+Rule 95 (Dimension must be greater or equal to negative one)
+{v_1 : int} |= v_1 ≥ -1
+>>
+Rule 96 (Norm must be 'backward')
+{v_1 : str} |= v_1 = "backward"
+>>
+Rule 98 (Input Tensor dtype must be less than 11)
+{v_1 : tensor} |= dtype_(v_1) < 11
+>>
+Rule 99 (signal length is greater or equal than 0 and less than 10000)
+{v_1 : int} |= v_1 ≥ 0 ∧ v_1 < 10000
+>>
+Rule 100 (Dimension must be less than 100)
+{v_1 : int} |= v_1 < 100
+>>
+Rule 101 (Norm must not be 'none')
+{v_1 : str} |= v_1 ≠ "none"
+>>
+Rule 102 (out dtype must be between 8 and 11)
+{v_1: tensor} |= dtype_(v_1) > 8 ∧ dtype_(v_1) < 12
+>>
+Rule 104 (signal length is greater or equal than 0 and less than 10000 and divisible by 2)
+{v_1 : int} |= v_1 ≥ 0 ∧ v_1 < 10000 ∧ v_1 % 2 = 0
+>>
+Rule 105 (Dimension must be less than 100 and greater than -100)
+{v_1 : int} |= v_1 < 100 ∧ v_1 > -100
+>>
+Rule 106 (Norm must not be 'none' and length must be greater than 2)
+{v_1 : str} |= v_1 ≠ "none" ∧ v_1.len > 2
+>>
+Rule 107 (out dtype must be between 8 and 11 and must be greater than input dtype)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) > 8 ∧ dtype_(v_1) < 12 ∧ dtype_(v_1) > dtype_(v_2)
+>>
+Rule 108 (Input Tensor dtype must be less than 7)
+{v_1 : tensor} |= dtype_(v_1) < 7
+>>
+Rule 109 (signal length is greater or equal than 1 and less than 10000 and divisible by 2)
+{v_1 : int} |= v_1 ≥ 1 ∧ v_1 < 10000 ∧ v_1 % 2 = 0
+>>
+Rule 110 (Dimension must be less than 100 and greater than -100 or equal to -1)
+{v_1 : int} |= v_1 < 100 ∧ v_1 > -100 ∨ v_1 = -1
+>>
+Rule 111 (Norm must not be 'none' and length must be greater than 2 and first char must be 'b')
+{v_1 : str} |= v_1 ≠ "none" ∧ v_1.len > 2 ∧ v_1 = "backward"
+>>
+Rule 117 (if input exists, its ndim must be less than 5)
+{v_1: tensor} |= ndim(v_1) < 5
+>>
+Rule 118 (Input Tensor dtype must be less than 6)
+{v_1 : tensor} |= dtype_(v_1) < 6
+>>
+Rule 119 (signal length is greater or equal than 2 and less than 10000 and divisible by 2)
+{v_1 : int} |= v_1 ≥ 2 ∧ v_1 < 10000 ∧ v_1 % 2 = 0
+>>
+Rule 120 (Dimension must be less than 100 and greater than -100 and not equal 0)
+{v_1 : int} |= v_1 < 100 ∧ v_1 > -100 ∧ v_1 ≠ 0
+>>
+Rule 121 (Norm must not be 'none' and length must be greater than 2 and first char must be 'b' or 'f')
+{v_1 : str} |= v_1 ≠ "none" ∧ v_1.len > 2 ∧ (v_1 = "backward" ∨ v_1 = "forward")
+>>
+Rule 122 (if input exists, its ndim must be less than 4)
+{v_1: tensor} |= ndim(v_1) < 4
+>>
+Rule 123 (Input Tensor dtype must be less than 5)
+{v_1 : tensor} |= dtype_(v_1) < 5
+>>
+Rule 124 (signal length is greater or equal than 2 and less than 1000 and divisible by 2 and greater than 10)
+{v_1 : int} |= v_1 ≥ 2 ∧ v_1 < 1000 ∧ v_1 % 2 = 0 ∧ v_1 > 10
+>>
+Rule 125 (Dimension must be less than 50 and greater than -50 and not equal 0 and greater than 10)
+{v_1 : int} |= v_1 < 50 ∧ v_1 > -50 ∧ v_1 ≠ 0 ∧ v_1 > 10
+>>
+Rule 126 (Norm must not be 'none' and length must be greater than 3 and first char must be 'b' or last char must be 'd')
+{v_1 : str} |= v_1 ≠ "none" ∧ v_1.len > 3 ∧ (v_1 = "backward" ∨ v_1 = "forward" ∨ v_1 = "ortho")
+>>
+Rule 127 (Input tensor ndim must be less than 3 and has shape 1 in its first dimension)
+{v_1: tensor} |= ndim(v_1) < 3 ∧ shape(v_1, 0) = 1
+>>
+Rule 128 (Input Tensor dtype must be less than 4)
+{v_1 : tensor} |= dtype_(v_1) < 4
+>>
+Rule 129 (signal length is greater or equal than 4 and less than 500 and divisible by 2 and greater than 10)
+{v_1 : int} |= v_1 ≥ 4 ∧ v_1 < 500 ∧ v_1 % 2 = 0 ∧ v_1 > 10
+>>
+Rule 130 (Dimension must be less than 25 and greater than -25 and not equal 0 and greater than 10)
+{v_1 : int} |= v_1 < 25 ∧ v_1 > -25 ∧ v_1 ≠ 0 ∧ v_1 > 10
+>>
+Rule 131 (Norm must not be 'none' and length must be greater than 3 and first char must be 'b' or last char must be 'o')
+{v_1 : str} |= v_1 ≠ "none" ∧ v_1.len > 3 ∧ (v_1 = "backward" ∨ v_1 = "ortho")
+>>
+Rule 132 (Input tensor ndim must be less than 2 and has shape 1 in its first dimension)
+{v_1: tensor} |= ndim(v_1) < 2 ∧ shape(v_1, 0) = 1
+>>
+Rule 133 (Input Tensor dtype must be greater than 0 and less than 3)
+{v_1 : tensor} |= dtype_(v_1) > 0 ∧ dtype_(v_1) < 3
+>>
+Rule 134 (signal length is greater or equal than 4 and less than 250 and divisible by 4 and greater than 10)
+{v_1 : int} |= v_1 ≥ 4 ∧ v_1 < 250 ∧ v_1 % 4 = 0 ∧ v_1 > 10
+>>
+Rule 135 (Dimension must be less than 12 and greater than -12 and not equal 0 and greater than 2)
+{v_1 : int} |= v_1 < 12 ∧ v_1 > -12 ∧ v_1 ≠ 0 ∧ v_1 > 2
+>>
+Rule 136 (Norm must not be 'none' and length must be greater than 4 and second char must be 'a')
+{v_1 : str} |= v_1 ≠ "none" ∧ v_1.len > 4 ∧ v_1 = "backward"
+>>
+Rule 137 (Input tensor ndim must be less than 2 and has shape 1 in its first dimension or shape 2 in second dimension)
+{v_1: tensor} |= ndim(v_1) < 2 ∧ (shape(v_1, 0) = 1 ∨ shape(v_1, 0) = 2)

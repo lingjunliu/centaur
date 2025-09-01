@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# String is not equal to none (Rule 48)
+# Check that an integer is positive (Rule 48)
 
 rule_48 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] != 6) if n else
-          v["arg1_value"] != 6)
+    s.add(Not(v["arg1_value"] > 0) if n else
+          v["arg1_value"] > 0)
 )
 
 def rule_48_func(arg1, solver=None, neg=False):
@@ -17,15 +17,15 @@ def rule_48_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, str):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 48
         rule_48(solver, {'arg1_value': arg1_value})

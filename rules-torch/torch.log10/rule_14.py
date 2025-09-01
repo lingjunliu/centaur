@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The output tensor should have dtype no less than the input tensor's dtype to accommodate for possible precision loss (Rule 14)
+# If input tensor's dtype is int64, then output tensor's dtype must be float32, float64, complex64, or complex128 (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_dtype"] < 7), (v["arg2_dtype"] >= 7), If((v["arg1_dtype"] < 8), (v["arg2_dtype"] >= 8), False))) if n else
-          If((v["arg1_dtype"] < 7), (v["arg2_dtype"] >= 7), If((v["arg1_dtype"] < 8), (v["arg2_dtype"] >= 8), False)))
+    s.add(Not(If(v["arg1_dtype"] == 4, (Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10)), True)) if n else
+          If(v["arg1_dtype"] == 4, (Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10)), True))
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If layout is not specified, the row and col should be the same value. (Rule 55)
+# The product of row and column must fit within the range of int64 to prevent overflow errors during index calculations (Rule 55)
 
 rule_55 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] == v["arg2_value"]) if n else
-          v["arg1_value"] == v["arg2_value"])
+    s.add(Not(If(v["arg1_value"] > 0, v["arg2_value"] <= 9223372036854775807 / v["arg1_value"], True)) if n else
+          If(v["arg1_value"] > 0, v["arg2_value"] <= 9223372036854775807 / v["arg1_value"], True))
 )
 
 def rule_55_func(arg1, arg2, solver=None, neg=False):

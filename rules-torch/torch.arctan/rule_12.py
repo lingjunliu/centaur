@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if output tensor is of type int, then input tensor must be of type int. (Rule 12)
+# The output tensor's dtype should allow casting from float32 or higher, to avoid the "result type Float can't be cast to the desired output type Short" error. This allows upcasting. (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_dtype"] < 6, v["arg1_dtype"] < 6, False)) if n else
-          If(v["arg2_dtype"] < 6, v["arg1_dtype"] < 6, False))
+    s.add(Not(If(v["arg1_dtype"] == 6, v["arg2_dtype"] >= 6, If(v["arg1_dtype"] == 7, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 8, v["arg2_dtype"] >= 8, If(v["arg1_dtype"] == 9, v["arg2_dtype"] >= 9, v["arg2_dtype"] >= 10))))) if n else
+          If(v["arg1_dtype"] == 6, v["arg2_dtype"] >= 6, If(v["arg1_dtype"] == 7, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 8, v["arg2_dtype"] >= 8, If(v["arg1_dtype"] == 9, v["arg2_dtype"] >= 9, v["arg2_dtype"] >= 10)))))
 )
 
 def rule_12_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if output tensor is provided and is double, then input should also be double (Rule 5)
+# if input tensor is double, out tensor must also be double (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_dtype"] == 8, v["arg1_dtype"] == 8, False)) if n else
-          If(v["arg2_dtype"] == 8, v["arg1_dtype"] == 8, False))
+    s.add(Not(If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8, True)) if n else
+          If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8, True))
 )
 
 def rule_5_func(arg1, arg2, solver=None, neg=False):

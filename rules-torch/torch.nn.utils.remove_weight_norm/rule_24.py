@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Module must be a tensor with non-negative number of dimensions and the maximum value should be less than 100. (Rule 24)
+# module parameter v_1 must be an instance of nn.Module, meaning it must have an attribute called _forward_pre_hooks. Check for the existence of SOME attribute (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] >= 0, Select(v["arg1_range"], 1) < 100)) if n else
-          And(v["arg1_ndim"] >= 0, Select(v["arg1_range"], 1) < 100))
+    s.add(Not(Or([And(v_2 < (0 + 1), Select(v["arg1_shape"], v_2) >= -100000) for v_2 in range(6)])) if n else
+          Or([And(v_2 < (0 + 1), Select(v["arg1_shape"], v_2) >= -100000) for v_2 in range(6)]))
 )
 
 def rule_24_func(arg1, solver=None, neg=False):
@@ -22,18 +22,16 @@ def rule_24_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 24
-        rule_24(solver, {'arg1_ndim': arg1_ndim, 'arg1_range': arg1_range})
+        rule_24(solver, {'arg1_shape': arg1_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_24(solver, {'arg1_ndim': arg1['ndim'], 'arg1_range': arg1['range']}, neg)
+        rule_24(solver, {'arg1_shape': arg1['shape']}, neg)

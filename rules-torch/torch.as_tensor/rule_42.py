@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Prevent integer operation with float16, when dtype not specified (Rule 42)
+# If data is an integer, and a dtype is provided, then dtype cannot be float16 (Rule 42)
 
 rule_42 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, False, False)) if n else
-          If(v["arg1_dtype"] == 6, False, False))
+    s.add(Not((v["arg1_value"] != 6)) if n else
+          (v["arg1_value"] != 6))
 )
 
 def rule_42_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_42_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
 
         # Constraints for rule 42
-        rule_42(solver, {'arg1_dtype': arg1_dtype})
+        rule_42(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_42(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_42(solver, {'arg1_value': arg1['value']}, neg)

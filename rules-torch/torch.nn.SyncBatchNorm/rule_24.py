@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# eps must be a non-negative float, and less than 1 to avoid div by zero (Rule 24)
+# momentum near to 1 or 0 may cause unstable statistics (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] >= 0, v["arg1_value"] < 1)) if n else
-          And(v["arg1_value"] >= 0, v["arg1_value"] < 1))
+    s.add(Not(And(v["arg1_value"] > 0.001, v["arg1_value"] < 0.999)) if n else
+          And(v["arg1_value"] > 0.001, v["arg1_value"] < 0.999))
 )
 
 def rule_24_func(arg1, solver=None, neg=False):

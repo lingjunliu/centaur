@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If tensors have different dtypes, their dtypes must be both floating point or both boolean (Rule 74)
+# Out-of-range dimension results in error. (Rule 74)
 
 rule_74 = lambda s, v, n=False: (
-    s.add(Not(Or((And((And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8)))), (And((v["arg1_dtype"] == 0), (v["arg2_dtype"] == 0))))) if n else
-          Or((And((And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8)))), (And((v["arg1_dtype"] == 0), (v["arg2_dtype"] == 0)))))
+    s.add(Not(Or((v["arg2_value"] < (0 - v["arg1_ndim"])), (v["arg2_value"] >= v["arg1_ndim"]))) if n else
+          Or((v["arg2_value"] < (0 - v["arg1_ndim"])), (v["arg2_value"] >= v["arg1_ndim"])))
 )
 
 def rule_74_func(arg1, arg2, solver=None, neg=False):
@@ -20,22 +20,22 @@ def rule_74_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 74
-        rule_74(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_74(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_74(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_74(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

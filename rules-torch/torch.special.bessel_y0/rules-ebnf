@@ -1,57 +1,42 @@
 >>
-Rule 1 (input tensor should not have Half dtype to avoid "bessel_y0_cpu" not implemented)
-{v_1 : tensor} |= dtype_(v_1) ≠ "float16"
+Rule 1 (input tensor should not be Half (float16) to avoid RuntimeError: "bessel_y0_cpu" not implemented for 'Half')
+{v_1 : tensor} |= dtype_(v_1) ≠ 7
 >>
-Rule 3 (input tensor's dtype must be either float32, float64, complex64, or complex128)
-{v_1 : tensor} |= dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128"
+Rule 3 (input tensor should be either float or complex)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 4 (if input is float16, then out must be float16)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "float16" then dtype_(v_2) = "float16"
+Rule 4 (output tensor's dtype should be same as input tensor's dtype, if output tensor is provided)
+{v_1 : tensor, v_2 : tensor} |= if v_2 then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 5 (if out is provided, input and out tensors must have the same dtype unless input is half, where out can be float)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "float16" then dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" else dtype_(v_1) = dtype_(v_2)
+Rule 5 (output tensor's shape should be same as input tensor's shape, if output tensor is provided)
+{v_1 : tensor, v_2 : tensor} |= if v_2 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 6 (input can not be bool tensor)
-{v_1 : tensor} |= dtype_(v_1) ≠ "bool"
+Rule 6 (input tensor must be a floating point tensor)
+{v_1 : tensor} |= dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
 >>
-Rule 7 (input tensor should have at least one element)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 8 (if out is specified, the output tensor must have the same shape as the input tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
->>
-Rule 10 (out tensor must have a compatible dtype with input tensor)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "float16" then dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" else dtype_(v_1) = dtype_(v_2) ∨ (dtype_(v_1) = "float32" ∧ dtype_(v_2) = "float64") ∨ (dtype_(v_1) = "float64" ∧ dtype_(v_2) = "float32") ∨ (dtype_(v_1) = "complex64" ∧ dtype_(v_2) = "complex128") ∨ (dtype_(v_1) = "complex128" ∧ dtype_(v_2) = "complex64")
->>
-Rule 11 (input tensor should be real valued)
-{v_1 : tensor} |= dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64"
->>
-Rule 12 (input tensor should be real valued and out should be real valued)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64") ∧ (dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64")
->>
-Rule 13 (if out tensor is provided, input and output should have compatible dtypes)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (dtype_(v_1) = "float32" ∧ dtype_(v_2) = "float32") ∨ (dtype_(v_1) = "float64" ∧ dtype_(v_2) = "float64")
->>
-Rule 14 (if out tensor is provided, it should be on the same device as the input tensor. This is an implicit check and not directly encoded in the provided grammar.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0
->>
-Rule 17 (If the out tensor is provided, then it should be a tensor)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
->>
-Rule 18 (input tensor's values should be within the domain of bessel_y0)
+Rule 12 (input tensor must have positive values)
 {v_1 : tensor} |= min(v_1) > 0
 >>
-Rule 26 (Guarantee input is not a float16 tensor)
-{v_1 : tensor} |= (dtype_(v_1) = "float32") ∨ (dtype_(v_1) = "float64") ∨ (dtype_(v_1) = "complex64") ∨ (dtype_(v_1) = "complex128")
+Rule 15 (Input tensor must have values greater than or equal to zero.)
+{v_1 : tensor} |= min(v_1) ≥ 0
 >>
-Rule 28 (The dtype of the input tensor must not be float16.)
-{v_1 : tensor} |= if dtype_(v_1) = "float16" then false
+Rule 16 (Input tensor must not contain NaN values.)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
 >>
-Rule 29 (If input tensor is provided, check its data type to be float32, float64)
-{v_1 : tensor} |= (dtype_(v_1) = "float32") ∨ (dtype_(v_1) = "float64")
+Rule 18 (Input tensor must have a valid shape, i.e. no dimension has size 0 if ndim > 0)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 30 (The input tensor must have a floating point type other than half precision)
-{v_1 : tensor} |= if dtype_(v_1) = "float16" then false else (dtype_(v_1) = "float32") ∨ (dtype_(v_1) = "float64")
+Rule 21 (Input tensor should be a floating-point or complex tensor)
+{v_1 : tensor} |= dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
 >>
-Rule 32 (It cannot process Half type data)
-{v_1 : tensor} |= (dtype_(v_1) ≠ "float16")
+Rule 23 (If an output tensor is specified, its dtype should be float or complex and match the input's if it is float, or complex if the input is complex)
+{v_1 : tensor, v_2 : tensor} |= if v_2 then (if dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 then dtype_(v_2) = dtype_(v_1) else dtype_(v_2) = 10 ∨ dtype_(v_2) = 11)
+>>
+Rule 24 (If input dtype is complex, out must also be complex)
+{v_1 : tensor, v_2 : tensor} |= if v_2 then (if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_2) = 10 ∨ dtype_(v_2) = 11)
+>>
+Rule 37 (If an output tensor is provided, it cannot be of dtype float16)
+{v_2 : tensor} |= dtype_(v_2) ≠ 7
+>>
+Rule 46 (The input tensor should have a data type that is permissible, i.e., not float16)
+{v_1 : tensor} |= (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) ∨ (dtype_(v_1) = 11)

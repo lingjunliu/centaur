@@ -1,63 +1,105 @@
 >>
-Rule 1 (beta should be non-negative to avoid RuntimeError: smooth_l1_loss does not support negative values for beta.)
-{v_1 : float} |= v_1 ≥ 0
->>
-Rule 2 (input and target tensors must have the same shape to avoid RuntimeError: The size of tensor a (0) must match the size of tensor b (5) at non-singleton dimension 1)
+Rule 1 (input and target tensors must have the same size at all dimensions, addressing "The size of tensor a (0) must match the size of tensor b (5) at non-singleton dimension 1")
 {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 3 (reduction parameter must be one of 'none', 'mean', or 'sum')
+Rule 2 (beta must be non-negative, addressing "smooth_l1_loss does not support negative values for beta.")
+{v_1 : float} |= v_1 ≥ 0
+>>
+Rule 3 (input and target tensors must not be of Long type, addressing "smooth_l1_cpu" not implemented for 'Long'")
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 4 ∧ dtype_(v_2) ≠ 4
+>>
+Rule 4 (reduction must be one of 'none', 'mean', or 'sum')
 {v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
 >>
-Rule 4 (Check if the input tensor's dtype is not Long to prevent RuntimeError: "smooth_l1_cpu" not implemented for 'Long')
-{v_1 : tensor} |= dtype_(v_1) ≠ 4
+Rule 6 (beta value must be a valid floating number)
+{v_1 : float} |= v_1 < 1000000000.0 ∧ v_1 > -1000000000.0
 >>
-Rule 5 (Ensure beta is not zero when reduction is mean/sum to avoid potential division by zero errors during gradient calculation when using L2 portion)
-{v_1 : float, v_2 : str} |= if v_2 = "mean" ∨ v_2 = "sum" then v_1 > 0
+Rule 7 (if size_average is true, then reduce cannot be false when reduction is not none)
+{v_1 : bool, v_2 : bool, v_3 : str} |= if v_1 = true then if v_3 ≠ "none" then v_2 = true
 >>
-Rule 7 (if size_average is false, reduce must be false)
-{v_1 : bool, v_2 : bool} |= if v_1 = true then v_2 = true
+Rule 9 (shape of input tensor is not zero)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 8 (If reduction is none, the output should not be reduced)
-{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "none" then ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)
+Rule 15 (Check valid range for beta)
+{v_1: float} |= v_1 ≥ 0.0 ∧ v_1 < 1000.0
 >>
-Rule 24 (check that input and target tensors have the same dtype.)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 16 (If reduction is none, then the output tensor has the same shape with the input tensor)
+{v_1: str, v_2: tensor, v_3: tensor} |= if v_1 = "none" then ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)
 >>
-Rule 32 (Input tensor must have a floating point or integer dtype)
-{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 9
+Rule 18 (size_average and reduce interact as documented)
+{v_1 : str, v_2 : bool, v_3 : bool} |= if v_1 ≠ "none" then (v_2 ∨ v_3)
 >>
-Rule 40 (input tensor should have at least one dimension)
-{v_1: tensor} |= ndim(v_1) > 0
+Rule 19 (input and target must have floating point type)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∧ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
 >>
-Rule 53 (size_average and reduce are not both specified. size_average overrides reduction)
-{v_1: bool, v_2: bool, v_3: str} |= if v_1 = true then v_3 = "mean" else if v_2=true then v_3 = "mean"
+Rule 21 (input and target must have compatible dtypes to avoid overflow)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = dtype_(v_2)) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_2) = 8) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 7)
 >>
-Rule 58 (size_average and reduce are mutually exclusive. if both are assigned, reduction will be overriden by them)
-{v_1: bool, v_2: bool} |= if v_1 = true then v_2 = false
+Rule 24 (if size_average is True, output tensor has to be scalar)
+{v_1: bool, v_2: tensor} |= if v_1 = true then ndim(v_2) = 0
 >>
-Rule 88 (input tensor should have floating point dtype)
-{v_1: tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 25 (if reduction is none, then size_average and reduce are ignored)
+{v_1 : str} |= if v_1 = "none" then true
 >>
-Rule 92 (Check if the input and target tensors are not empty)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+Rule 26 (input and target must have the same dtype or both float)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = dtype_(v_2)) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_2) = 7) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 8)
 >>
-Rule 96 (Input tensor v_1 should not have complex dtype to prevent calculation error)
-{v_1: tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+Rule 27 (if one is float64, the other must also be float64 if not the same type already)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) = 8 else if dtype_(v_2) = 8 then dtype_(v_1) = 8
 >>
-Rule 99 (Input and target tensors are 1-D if reduction is not None.)
-{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "none" then true else ndim(v_1) = 1 ∧ ndim(v_2) = 1
+Rule 28 (reduction cannot be none when size_average or reduce is false)
+{v_1 : str, v_2 : bool, v_3 : bool} |= if (v_2 = false) ∨ (v_3 = false) then v_1 ≠ "none"
 >>
-Rule 102 (If the input tensor is 0-dimensional, then reduction must be None.)
-{v_1 : tensor, v_2: str} |= if ndim(v_1) = 0 then v_2 = "none"
+Rule 29 (beta must be finite)
+{v_1 : float} |= v_1 < 10000000000.0 ∧ v_1 > -10000000000.0
 >>
-Rule 111 (if beta is very large, then it should act as MSELoss. beta should be smaller than a threshold)
-{v_1 : float} |= v_1 < 1e5
+Rule 35 (beta must be a non-negative finite number)
+{v_1 : float} |= v_1 ≥ 0 ∧ v_1 < 100000000.0
 >>
-Rule 114 (dtype should be valid)
-{v_1: tensor} |= 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 11
+Rule 39 (When size average or reduce are not specified, reduction has to be set)
+{v_1 : str, v_2 : bool, v_3: bool} |= if (v_2 = true) ∧ (v_3 = true) then true else v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
 >>
-Rule 117 (Input and target tensors' values cannot be NaN or inf)
-{v_1 : tensor, v_2 : tensor} |= min(v_1) ≠ "NaN" ∧ max(v_1) ≠ "NaN" ∧ min(v_1) ≠ "inf" ∧ max(v_1) ≠ "inf" ∧ min(v_2) ≠ "NaN" ∧ max(v_2) ≠ "NaN" ∧ min(v_2) ≠ "inf" ∧ max(v_2) ≠ "inf"
+Rule 44 (if size_average is true then reduce must be true or reduction must be none)
+{v_1 : bool, v_2 : bool, v_3 : str} |= if v_1 = true then (v_2 = true ∨ v_3 = "none")
 >>
-Rule 119 (If beta is zero, reduction should be none.)
-{v_1: float, v_2: str} |= if v_1 = 0 then v_2 = "none"
+Rule 54 (If size_average is specified, then reduce must be the same)
+{v_1: bool, v_2: bool} |= v_1 = v_2
+>>
+Rule 59 (If size average is specified, then reduce must be the same)
+{v_1 : bool, v_2: bool} |= if v_1 then v_2
+>>
+Rule 64 (If size_average is specified, then reduce must be the same. If size_average is not specified, then reduce does not matter.)
+{v_1: bool, v_2: bool} |= if v_1 then v_2
+>>
+Rule 69 (If size_average is true, then reduce must be true or reduction is none)
+{v_1 : bool, v_2 : bool, v_3 : str} |= if v_1 then v_2 ∨ v_3 = "none"
+>>
+Rule 74 (either size_average and reduce are both true or both false if reduction is not none)
+{v_1 : bool, v_2 : bool, v_3: str} |= if v_3 ≠ "none" then v_1 = v_2
+>>
+Rule 84 (If size average or reduce are specified, then reduction is either none, mean, or sum)
+{v_1: bool, v_2: bool, v_3: str} |= if (v_1 ∨ v_2) then (v_3 = "none" ∨ v_3 = "mean" ∨ v_3 = "sum")
+>>
+Rule 94 (if size_average or reduce are specified then their values should correspond to specified reduction )
+{v_1 : bool, v_2: bool, v_3: str} |= if (v_1 ∨ v_2) then (v_3 = "none" ∨ v_3 = "mean" ∨ v_3 = "sum")
+>>
+Rule 99 (input and target tensors have the same type, both floating or compatible)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = dtype_(v_2)) ∨ ((dtype_(v_1) = 7) ∧ (dtype_(v_2) = 8)) ∨ ((dtype_(v_1) = 8) ∧ (dtype_(v_2) = 7))
+>>
+Rule 100 (beta must be non-negative, input and target tensors should not have Long data type, input and target tensors must have the same shape and Valid options for reduction parameter)
+{v_1 : float, v_2 : tensor, v_3 : tensor, v_4: str} |= v_1 ≥ 0 ∧ dtype_(v_2) ≠ 4 ∧ dtype_(v_3) ≠ 4 ∧ ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i) ∧ (v_4 = "none" ∨ v_4 = "mean" ∨ v_4 = "sum")
+>>
+Rule 102 (if reduction is mean or sum then the output is a scalar)
+{v_1 : str, v_2 : tensor} |= if v_1 = "mean" ∨ v_1 = "sum" then ndim(v_2) = 0
+>>
+Rule 103 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_2, 0))
+>>
+Rule 104 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) - 1) + shape(v_2, 2) - 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) - 1) + shape(v_2, 3) - 2 × v_4 > 0
+>>
+Rule 105 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 107 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)

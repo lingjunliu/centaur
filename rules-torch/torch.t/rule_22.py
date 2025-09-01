@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input is a 2D tensor, both dimensions should be less than 1000 (Rule 22)
+# For non 0D input tensors, the shape should be valid, i.e., max value should be less than max int size (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 2, And(Select(v["arg1_shape"], 0) < 1000, Select(v["arg1_shape"], 1) < 1000), False)) if n else
-          If(v["arg1_ndim"] == 2, And(Select(v["arg1_shape"], 0) < 1000, Select(v["arg1_shape"], 1) < 1000), False))
+    s.add(Not(If(v["arg1_ndim"] != 0, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 2147483647) for i in range(6)]), True)) if n else
+          If(v["arg1_ndim"] != 0, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 2147483647) for i in range(6)]), True))
 )
 
 def rule_22_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_22_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 22
-        rule_22(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_22(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_22(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_22(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

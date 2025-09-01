@@ -5,32 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# v_1 is a bool and has a complement (Rule 19)
+# Compilation context affects the data type enforced during runtime (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(Or([And(x < (1 + 1), If(v["arg1_value"] == True, x == 0, x == 1)) for x in range(6)])) if n else
-          Or([And(x < (1 + 1), If(v["arg1_value"] == True, x == 0, x == 1)) for x in range(6)]))
+    s.add(Not(If(v["arg1_value"] == True, v["arg2_dtype"] == 7, True)) if n else
+          If(v["arg1_value"] == True, v["arg2_dtype"] == 7, True))
 )
 
-def rule_19_func(arg1, solver=None, neg=False):
+def rule_19_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, bool):
             return False
+        if not isinstance(arg2, np.ndarray):
+            return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = Bool('arg1_value')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
         solver.add(arg1_value == arg1)
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 19
-        rule_19(solver, {'arg1_value': arg1_value})
+        rule_19(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_19(solver, {'arg1_value': arg1['value']}, neg)
+        rule_19(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype']}, neg)

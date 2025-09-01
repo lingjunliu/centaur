@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The last value of output size must be greater than 0. (Rule 66)
+# output_size needs to be positive (Rule 66)
 
 rule_66 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_values"], v["arg1_length"] - 1) > 0) if n else
-          Select(v["arg1_values"], v["arg1_length"] - 1) > 0)
+    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) > 0) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) > 0) for i in range(6)]))
 )
 
 def rule_66_func(arg1, solver=None, neg=False):

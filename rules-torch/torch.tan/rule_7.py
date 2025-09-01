@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If out is specified, it must have the same number of dimensions as input (Rule 7)
+# Input and output tensors should have same number of dimensions (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
     s.add(Not(v["arg1_ndim"] == v["arg2_ndim"]) if n else

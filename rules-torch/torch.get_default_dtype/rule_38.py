@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Dtype must not be complex128 if ndim > 1 (Rule 38)
+# If default dtype is float32, created tensor cannot be float64. (Rule 38)
 
 rule_38 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 10, v["arg2_ndim"] <= 1, False)) if n else
-          If(v["arg1_value"] == 10, v["arg2_ndim"] <= 1, False))
+    s.add(Not(If(v["arg1_value"] == 7, v["arg2_dtype"] != 8, True)) if n else
+          If(v["arg1_value"] == 7, v["arg2_dtype"] != 8, True))
 )
 
 def rule_38_func(arg1, arg2, solver=None, neg=False):
@@ -26,16 +26,16 @@ def rule_38_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_value = Int('arg1_value')
-        arg2_ndim = Int('arg2_ndim')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
         solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
-        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 38
-        rule_38(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim})
+        rule_38(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_38(solver, {'arg1_value': arg1['value'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_38(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype']}, neg)

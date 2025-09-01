@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if the absolute value of the dimension is less than the number of dimension of the tensor, then it is a valid input, otherwise it is not a valid input (Rule 46)
+# Valid dimension if tensor has sufficient dimensions (Rule 46)
 
 rule_46 = lambda s, v, n=False: (
-    s.add(Not(If(And((0 - v["arg1_ndim"]) <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"]), True, False)) if n else
-          If(And((0 - v["arg1_ndim"]) <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"]), True, False))
+    s.add(Not(If(v["arg1_ndim"] > 0, And((0 - v["arg1_ndim"]) <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"]), True)) if n else
+          If(v["arg1_ndim"] > 0, And((0 - v["arg1_ndim"]) <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"]), True))
 )
 
 def rule_46_func(arg1, arg2, solver=None, neg=False):

@@ -1,111 +1,117 @@
 >>
-Rule 4 (Input tensors must have the same size in non-singleton dimensions, addressing the RuntimeError: The size of tensor a (0) must match the size of tensor b (5) at non-singleton dimension 1, assuming a single batch dimension.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : if shape(v_1, 0) = shape(v_2,0) then true else shape(v_1,i) = shape(v_2, i) else false
+Rule 1 (input tensors should have the same number of dimensions if batch dimension is non-zero and non-singleton)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∨ (ndim(v_1) = 1 ∧ ndim(v_2) = 1)
 >>
-Rule 5 (Subtraction with bool tensor is not supported, ensuring input tensors are not boolean tensors to avoid RuntimeError: Subtraction, the `-` operator, with a bool tensor is not supported.)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ bool ∧ dtype_(v_2) ≠ bool
+Rule 2 (input tensors should have the same shape if ndim is greater than 1)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 6 (Input tensors must have the same size in the vector dimension D, assuming input1 and input2 are (N, D) or (D))
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then (if ndim(v_1) = 2 then shape(v_1, 1) = shape(v_2, 1) else if ndim(v_1) = 1 then true else false) else false
->>
-Rule 7 (Input tensors cannot be boolean tensors, addressing subtraction error)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ "bool" ∧ dtype_(v_2) ≠ "bool"
->>
-Rule 8 (eps should be non-negative)
+Rule 3 (eps must be non-negative)
 {v_1 : float} |= v_1 ≥ 0
 >>
-Rule 9 (Input tensors must have compatible shapes, handling the size mismatch error)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))) ∨ (ndim(v_1) = 1 ∧ ndim(v_2) = 1) ∨ (ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 1))
+Rule 6 (If p is negative, eps must be non-zero to prevent division by zero)
+{v_1 : float, v_2 : float} |= if v_1 < 0 then v_2 > 0
 >>
-Rule 12 (Input tensors must have compatible shapes, handling the size mismatch error, generalized to N dimensions)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) else (ndim(v_1) = 1 ∧ ndim(v_2) = 1) ∨ (ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 1))
+Rule 8 (shapes must match when not singleton)
+{v_1 : tensor, v_2: tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 13 (At least one of the input tensors cannot have bool dtype to prevent subtraction error)
-{v_1 : tensor} |= dtype_(v_1) ≠ "bool"
+Rule 12 (Subtraction is not allowed for boolean tensors; input1 cannot be boolean.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 14 (If inputs have different dimensions, ensure they are either both 1D or both 2D with the same dimension D)
-{v_1: tensor, v_2: tensor} |= if ndim(v_1) ≠ ndim(v_2) then (ndim(v_1) = 1 ∧ ndim(v_2) = 1) ∨ (ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 1))
+Rule 17 (Input tensors have dimension 1 or the same dimensions)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 1 ∧ ndim(v_2) = 1) ∨ (ndim(v_1) = ndim(v_2))
 >>
-Rule 15 (Enforce same vector dimension D when input tensors are (N,D) or (D))
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then if ndim(v_1) = 2 then shape(v_1, 1) = shape(v_2, 1) else false
+Rule 19 (eps should be non-negative)
+{v_1 : float} |= v_1 >= 0
 >>
-Rule 16 (Ensure at least one input tensor is not boolean, preventing subtraction errors)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ "bool") ∨ (dtype_(v_2) ≠ "bool")
+Rule 23 (Input tensors should have compatible dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∨ (ndim(v_1) = 1 ∧ ndim(v_2) ≤ 2) ∨ (ndim(v_2) = 1 ∧ ndim(v_1) ≤ 2)
 >>
-Rule 17 (Input tensors must have compatible shapes to prevent size mismatch error)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) else if ndim(v_1) = 1 ∧ ndim(v_2) = 2 then shape(v_2, 1) = shape(v_1, 0) else if ndim(v_2) = 1 ∧ ndim(v_1) = 2 then shape(v_1, 1) = shape(v_2, 0) else false
+Rule 24 (input1 should be numerical tensor)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5
 >>
-Rule 18 (Prevent subtraction with bool tensor by ensuring both input tensors are not of bool dtype)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ "bool") ∧ (dtype_(v_2) ≠ "bool")
+Rule 25 (Input tensors must have matching sizes at non-singleton dimensions or one of the tensors has dimension 1)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 1 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) else (ndim(v_1) = 1 ∨ ndim(v_2) = 1)
 >>
-Rule 19 (Input tensors must have the same size along dimension D, for (N,D) or (D) tensors)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 then shape(v_1, 1) = shape(v_2, 1) else if ndim(v_1) = 1 ∧ ndim(v_2) = 1 then true else if ndim(v_1) = 1 ∧ ndim(v_2) = 2 then false else if ndim(v_1) = 2 ∧ ndim(v_2) = 1 then false
+Rule 27 (input1 should be numerical tensor)
+{v_1 : tensor} |= dtype_(v_1) > 0 ∧ dtype_(v_1) < 11
 >>
-Rule 25 (If the tensors have more than one dimension, they must have the same size in dimension 1)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 1 then shape(v_1, 1) = shape(v_2, 1)
+Rule 30 (If p is negative then eps must be greater than 0)
+{v_1: float, v_2: float} |= if v_1 < 0 then v_2 > 0
 >>
-Rule 27 (Handle size mismatch error - the vector dimension D must match if tensors are (N,D) or (D))
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 1 ∧ ndim(v_2) = 1) then true else if (ndim(v_1) = 2 ∧ ndim(v_2) = 2) then shape(v_1, 1) = shape(v_2, 1) else false
+Rule 31 (Shape compatibility for subtraction: Tensors must have the same shape)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ 0 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 31 (If the tensors have different number of dimensions, ensure that if at least one of them has more than 1 dimension, then they must have compatible shapes)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then if ndim(v_1) > 1 ∨ ndim(v_2) > 1 then (if ndim(v_1) = 2 ∧ ndim(v_2) = 1 then shape(v_1, 1) = shape(v_2, 0) else if ndim(v_2) = 2 ∧ ndim(v_1) = 1 then shape(v_2, 1) = shape(v_1, 0) else false)
+Rule 33 (Enforce numerical tensor type to allow subtraction)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_1) > 0 ∧ dtype_(v_1) < 11) ∧ (dtype_(v_2) > 0 ∧ dtype_(v_2) < 11)
 >>
-Rule 34 (If input tensors have different dimensions, one must be a vector (1D) and another must be a matrix (2D) with compatible sizes)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then ((ndim(v_1) = 1 ∧ ndim(v_2) = 2 ∧ shape(v_1, 0) = shape(v_2, 1)) ∨ (ndim(v_2) = 1 ∧ ndim(v_1) = 2 ∧ shape(v_2, 0) = shape(v_1, 1)))
+Rule 36 (When both tensors have ndim > 1 the first dimension must match, for broadcasting semantics)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 1 then shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 36 (If input tensors have different number of dimensions, one must be a vector (1D) and another must be a matrix (2D) with compatible sizes in the 'D' dimension)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then (ndim(v_1) = 1 ∧ ndim(v_2) = 2 ∧ shape(v_1, 0) = shape(v_2, 1)) ∨ (ndim(v_2) = 1 ∧ ndim(v_1) = 2 ∧ shape(v_2, 0) = shape(v_1, 1))
+Rule 37 (Shape compatibility for subtraction: Tensors must have the same shape or at least one is a vector)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ 0 then ((ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ ndim(v_1) = 1 ∨ ndim(v_2) = 1)
 >>
-Rule 41 (At least one of the input tensors should not be of boolean type)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "bool" then dtype_(v_2) ≠ "bool"
+Rule 38 (Enforce numerical tensor type to allow subtraction of v1)
+{v_1: tensor} |= dtype_(v_1) > 0 ∧ dtype_(v_1) < 11
 >>
-Rule 42 (If one of the input tensors is (N, D) and the other is (D), ensure the sizes match along D)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 1 then shape(v_1, 1) = shape(v_2, 0) else if ndim(v_1) = 1 ∧ ndim(v_2) = 2 then shape(v_1, 0) = shape(v_2, 1)
+Rule 42 (Shape compatibility for subtraction: Tensors must have the same shape, or at least one tensor has dimension 1, OR they can be broadcasted to a common shape)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ 0 then ((ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ ndim(v_1) = 1 ∨ ndim(v_2) = 1 ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)))
 >>
-Rule 43 (If one of the input tensors is boolean, the other must also be boolean)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = "bool") = (dtype_(v_2) = "bool")
+Rule 43 (Enforce numerical tensor type to allow subtraction of v1 AND it must not be boolean)
+{v_1: tensor} |= dtype_(v_1) > 0 ∧ dtype_(v_1) < 11 ∧ dtype_(v_1) ≠ 0
 >>
-Rule 44 (When input tensors are a matrix and a vector respectively, ensure the vector and the columns of the matrix have matching dimensions)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 2 ∧ ndim(v_2) = 1) then shape(v_1, 1) = shape(v_2, 0) else if (ndim(v_1) = 1 ∧ ndim(v_2) = 2) then shape(v_1, 0) = shape(v_2, 1)
+Rule 46 (Shape compatibility - If not one dimensional tensors, shapes must match on dimension 0 or dimensions are different)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 1 then shape(v_1, 0) = shape(v_2, 0) ∨ ndim(v_1) ≠ ndim(v_2)
 >>
-Rule 45 (To prevent subtraction errors, input tensors must have numerical dtype (int, float, complex); bool is disallowed)
-{v_1: tensor, v_2: tensor} |= (dtype_(v_1) ≠ "bool") ∧ (dtype_(v_2) ≠ "bool")
+Rule 47 (Enforce numerical tensor type to allow subtraction of v1 and v2, AND they must not be boolean)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_1) > 0 ∧ dtype_(v_1) < 11 ∧ dtype_(v_1) ≠ 0) ∧ (dtype_(v_2) > 0 ∧ dtype_(v_2) < 11 ∧ dtype_(v_2) ≠ 0)
 >>
-Rule 46 (To avoid dimension mismatch, tensors must be either both ND or must have shape compatibility between 1D and 2D tensors)
-{v_1: tensor, v_2: tensor} |= (ndim(v_1) = ndim(v_2)) ∨ ((ndim(v_1) = 1 ∧ ndim(v_2) = 2 ∧ shape(v_1, 0) = shape(v_2, 1)) ∨ (ndim(v_1) = 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, 1) = shape(v_2, 0)))
+Rule 50 (Shape compatibility - at least dimension 0 must match)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 48 (If the input tensors have different dimensions, we need to guarantee shapes are aligned, either 1D and 2D tensors are provided)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∨ (ndim(v_1) = 1 ∧ ndim(v_2) = 2 ∧ shape(v_1, 0) = shape(v_2, 1)) ∨ (ndim(v_1) = 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, 1) = shape(v_2, 0))
+Rule 51 (Dimensions must match if greater than 1)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 1 then ndim(v_1) = ndim(v_2)
 >>
-Rule 50 (When operating on vectors and matrices, they should be compatible, specifically shape-wise.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then (ndim(v_1) = 1 ∧ ndim(v_2) = 2 ∧ shape(v_1, 0) = shape(v_2, 1)) ∨ (ndim(v_1) = 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, 1) = shape(v_2, 0))
+Rule 53 (Dimensions must match if greater than 1; if 1D, dimension 0 must match, otherwise dimension 0 must match)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 1 then ndim(v_1) = ndim(v_2) ∧ shape(v_1, 0) = shape(v_2, 0) else if ndim(v_1) = 1 ∧ ndim(v_2) = 1 then shape(v_1,0) = shape(v_2, 0) else shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 51 (Prevent bool-bool subtraction. Implemented with implication logic)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "bool" then dtype_(v_2) = "bool"
+Rule 56 (Shape compatibility - If dimensions match on first tensor's dimension 0, then tensors must be broadcastable or matching size tensors.)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) = shape(v_2, 0) then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))
 >>
-Rule 52 (Compatible vector and matrix shapes for subtraction)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 1) ∧ (ndim(v_2) = 2) then (shape(v_1, 0) = shape(v_2, 1)) else if (ndim(v_1) = 2) ∧ (ndim(v_2) = 1) then (shape(v_1, 1) = shape(v_2, 0))
+Rule 58 (Shape compatibility: must be same or at least dimension 0)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 53 (Either at least one of the input tensors is not a boolean tensor, or they are of the same shape so the subtraction is allowed.)
-{v_1 : tensor, v_2 : tensor} |= ((dtype_(v_1) ≠ "bool") ∨ (dtype_(v_2) ≠ "bool")) ∨ (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)))
+Rule 61 (Shape compatibility: Tensors should be the same size or at least dimension 0 should be the same size, and can be broadcasted)
+{v_1 : tensor, v_2 : tensor} |= ((ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ shape(v_1, 0) = shape(v_2, 0)) ∧ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))
 >>
-Rule 56 (If the tensors do not have the same number of dimensions, then they have to be a vector and a matrix with compatible dimension size)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∨ ((ndim(v_1) = 1 ∧ ndim(v_2) = 2 ∧ shape(v_1, 0) = shape(v_2, 1)) ∨ (ndim(v_1) = 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, 1) = shape(v_2, 0)))
+Rule 63 (Shape compatibility: If tensors are not 1D, dimension 0 must be the same size or match if more than one dimension)
+{v_1 : tensor, v_2 : tensor} |=  (ndim(v_1) = 1 ∧ ndim(v_2) = 1) ∨ (ndim(v_1) > 1 ∧ ndim(v_2) > 1 ∧ shape(v_1,0) = shape(v_2, 0) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i))
 >>
-Rule 57 (The tensors must have a compatible shape for subtraction to work correctly, where compatible means both are identical tensors or one is a column matrix and the other is a row vector of same column/row size.)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))) ∨ (ndim(v_1) = 1 ∧ ndim(v_2) = 2 ∧ shape(v_1, 0) = shape(v_2, 1)) ∨ (ndim(v_1) = 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, 1) = shape(v_2, 0))
+Rule 64 (Input tensors must be numerical and not boolean. Also, both types must match to allow subtraction)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_1) > 0 ∧ dtype_(v_1) < 11 ∧ dtype_(v_1) ≠ 0) ∧ (dtype_(v_2) > 0 ∧ dtype_(v_2) < 11 ∧ dtype_(v_2) ≠ 0) ∧ (dtype_(v_1) = dtype_(v_2))
 >>
-Rule 60 (Ensure same number of elements between a vector and matrix)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 1 ∧ ndim(v_2) = 2) then shape(v_1, 0) = shape(v_2, 1) else if (ndim(v_1) = 2 ∧ ndim(v_2) = 1) then shape(v_1, 1) = shape(v_2, 0)
+Rule 65 (Shape compatibility: Tensors must be 1D, or same dimensions or at least dimension 0 must be the same size.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 1 ∧ ndim(v_2) = 1) ∨ (ndim(v_1) > 1 ∧ ndim(v_2) > 1 ∧ shape(v_1,0) = shape(v_2, 0) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i))
 >>
-Rule 64 (Shapes compatibility between tensors, where 1D is (D), and 2D is (N, D))
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 1 ∧ ndim(v_2) = 1) ∨ (ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 1)) ∨ (ndim(v_1) = 1 ∧ ndim(v_2) = 2 ∧ shape(v_1, 0) = shape(v_2, 1)) ∨ (ndim(v_1) = 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, 1) = shape(v_2, 0))
+Rule 67 (Shape compatibility: Tensors must have the same shape, or at least dimension 0 must be the same size.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i)) ∨ (shape(v_1, 0) = shape(v_2, 0))
 >>
-Rule 66 (To address the size mismatch, the size of the non-singleton dimensions should be the same.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then (∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) = shape(v_2,i)) else (ndim(v_1) = 1 ∧ ndim(v_2) = 2 ∧ shape(v_1, 0) = shape(v_2, 1)) ∨ (ndim(v_1) = 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, 1) = shape(v_2, 0))
+Rule 68 (Both input tensors must be numerical and the types must match to allow for proper subtraction. No boolean allowed.)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_1) > 0 ∧ dtype_(v_1) < 11 ∧ dtype_(v_1) ≠ 0 ∧ dtype_(v_1) = dtype_(v_2)) ∧ (dtype_(v_2) > 0 ∧ dtype_(v_2) < 11 ∧ dtype_(v_2) ≠ 0)
 >>
-Rule 67 (Ensure numerical dtype on at least one tensor, to avoid unsupported bool subtraction)
-{v_1: tensor, v_2 : tensor} |= (dtype_(v_1) ≠ "bool") ∨ (dtype_(v_2) ≠ "bool")
+Rule 69 (Shape compatibility: Either the tensors are the same dimensions with the same sizes or they are different but 0th dim same size for N > 1)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_1) > 1 ∧ ndim(v_2) > 1 ∧ shape(v_1, 0) = shape(v_2, 0))
 >>
-Rule 72 (The input tensors have to either have the same number of dimensions, or at least they have dimension compatibility: matrix column and vector size match)
-{v_1: tensor, v_2: tensor} |= if ndim(v_1) = ndim(v_2) then true else (ndim(v_1) = 1 ∧ ndim(v_2) = 2 ∧ shape(v_1, 0) = shape(v_2, 1)) ∨ (ndim(v_1) = 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, 1) = shape(v_2, 0))
+Rule 70 (Both input tensors must be numerical, not boolean, have the same dtype, and the shapes must be compatible.)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_1) > 0 ∧ dtype_(v_1) < 11 ∧ dtype_(v_1) ≠ 0) ∧ (dtype_(v_2) > 0 ∧ dtype_(v_2) < 11 ∧ dtype_(v_2) ≠ 0) ∧ (dtype_(v_1) = dtype_(v_2)) ∧ ((ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i)) ∨ (shape(v_1, 0) = shape(v_2, 0)))
+>>
+Rule 72 (Tensors must be numerical, not boolean, same dtype, and the shapes must be such that the subtraction operator will not throw an error. Same dimension 0 if ndim > 1)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_1) > 0 ∧ dtype_(v_1) < 11 ∧ dtype_(v_1) ≠ 0 ∧ dtype_(v_1) = dtype_(v_2)) ∧ (dtype_(v_2) > 0 ∧ dtype_(v_2) < 11 ∧ dtype_(v_2) ≠ 0) ∧ ((ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_1) > 1 ∧ ndim(v_2) > 1 ∧ shape(v_1, 0) = shape(v_2, 0)))
+>>
+Rule 73 (Tensors must be numerical and not boolean, dtypes must match, and shapes must be broadcastable to enable proper subtraction)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_1) > 0 ∧ dtype_(v_1) < 11 ∧ dtype_(v_1) ≠ 0) ∧ (dtype_(v_2) > 0 ∧ dtype_(v_2) < 11 ∧ dtype_(v_2) ≠ 0) ∧ (dtype_(v_1) = dtype_(v_2)) ∧ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))
+>>
+Rule 75 (Tensors must be numerical, not boolean, dtypes must match, AND shapes must be the same or broadcastable. This should handle the subtraction errors.)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_1) > 0 ∧ dtype_(v_1) < 11 ∧ dtype_(v_1) ≠ 0) ∧ (dtype_(v_2) > 0 ∧ dtype_(v_2) < 11 ∧ dtype_(v_2) ≠ 0) ∧ (dtype_(v_1) = dtype_(v_2)) ∧ if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)
+>>
+Rule 76 (Tensors must be numerical, not boolean, dtypes must match. Broadcasting is allowed, but if not possible then shapes must match, meaning no shape incompatibility error.)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_1) > 0 ∧ dtype_(v_1) < 11 ∧ dtype_(v_1) ≠ 0) ∧ (dtype_(v_2) > 0 ∧ dtype_(v_2) < 11 ∧ dtype_(v_2) ≠ 0) ∧ (dtype_(v_1) = dtype_(v_2)) ∧ (((ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)))) ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i)))

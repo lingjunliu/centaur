@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# in_channels should be divisible by groups (Rule 8)
+# If groups > 1, in_channels should be divisible by groups (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 1) / v["arg3_value"] == Select(v["arg2_shape"], 0)) if n else
-          Select(v["arg1_shape"], 1) / v["arg3_value"] == Select(v["arg2_shape"], 0))
+    s.add(Not(And(Select(v["arg1_shape"], 1) % v["arg3_value"] == 0, Select(v["arg2_shape"], 0) % v["arg3_value"] == 0)) if n else
+          And(Select(v["arg1_shape"], 1) % v["arg3_value"] == 0, Select(v["arg2_shape"], 0) % v["arg3_value"] == 0))
 )
 
 def rule_8_func(arg1, arg2, arg3, solver=None, neg=False):

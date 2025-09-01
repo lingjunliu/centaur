@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If autocast_xla_enabled is false, the tensor dimension doesn't matter (Rule 9)
+# if enabled then true else false should equal enabled (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == False, True, False)) if n else
-          If(v["arg1_value"] == False, True, False))
+    s.add(Not(If(v["arg1_value"], True, False == v["arg1_value"])) if n else
+          If(v["arg1_value"], True, False == v["arg1_value"]))
 )
 
 def rule_9_func(arg1, solver=None, neg=False):

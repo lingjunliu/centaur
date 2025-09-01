@@ -1,93 +1,30 @@
 >>
-Rule 1 (Suppresses RuntimeError: The size of tensor a (0) must match the size of tensor b (2) at non-singleton dimension 1, by requiring the shape of the two tensors to be equal.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 3 (input and other should not be complex types to avoid RuntimeError)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) < 10 ∧ dtype_(v_2) < 10
 >>
-Rule 3 (Suppresses RuntimeError: "le_cpu" not implemented for 'ComplexDouble', by requiring the input tensors not to be complex.)
+Rule 6 (input and other should have compatible shapes to avoid RuntimeError)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∨ (ndim(v_1) = 0) ∨ (ndim(v_2) = 0)
+>>
+Rule 7 (out must be a tensor when provided to avoid TypeError)
+{v_3 : tensor} |= ndim(v_3) ≥ 0
+>>
+Rule 11 (input and other should have broadcastable shapes to avoid RuntimeError)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > ndim(v_2) then (∀ i ∈ [0, ndim(v_2) - 1]: (shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_2, i) = 1)) else (∀ i ∈ [0, ndim(v_1) - 1]: (shape(v_2, ndim(v_2) - ndim(v_1) + i) = shape(v_1, i) ∨ shape(v_1, i) = 1))
+>>
+Rule 13 (input and other should not be complex types to avoid RuntimeError)
 {v_1 : tensor} |= dtype_(v_1) < 10
 >>
-Rule 4 (The other argument should have a floating-point dtype when input also has a floating point dtype)
-{v_1 : tensor, v_2 : tensor} |= if 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8 then 6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8
+Rule 15 (out, if given, should have a compatible dtype with input)
+{v_1 : tensor, v_3 : tensor} |= dtype_(v_3) = dtype_(v_1) ∨ dtype_(v_3) = 0
 >>
-Rule 7 (Suppresses TypeError: le() received an invalid combination of arguments - got (Tensor, Tensor, out=float), but expected one of: * (Tensor input, Tensor other, *, Tensor out = None) * (Tensor input, Number other, *, Tensor out = None), by restricting out to be a tensor or none)
-{v_1 : tensor, v_3 : tensor ⊎ str} |= if v_3 = "none" then true else dtype_(v_1) = dtype_(v_3)
+Rule 19 (out, if given, should have a compatible dtype with input)
+{v_1 : tensor, v_3 : tensor} |= dtype_(v_3) = dtype_(v_1) ∨ (ndim(v_3) = 0)
 >>
-Rule 9 (Requires the types of tensors to be comparable, like int to int, float to float)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5) then (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 5) else if (dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 8) then (dtype_(v_2) ≥ 6 ∧ dtype_(v_2) ≤ 8)
+Rule 20 (input and other should have broadcastable shapes to avoid RuntimeError)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∨ ndim(v_1) = 0 ∨ ndim(v_2) = 0 ∨ (if ndim(v_1) > ndim(v_2) then (∀ i ∈ [0, ndim(v_2) - 1]: (shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_2, i) = 1)) else (∀ i ∈ [0, ndim(v_1) - 1]: (shape(v_2, ndim(v_2) - ndim(v_1) + i) = shape(v_1, i) ∨ shape(v_1, i) = 1)))
 >>
-Rule 10 (Suppresses RuntimeError: The size of tensor a (0) must match the size of tensor b (2) at non-singleton dimension 1, by requiring that if one of the tensors has a dimension of size 0, the other tensor must have the same dimension with size 0 or 1.)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1)-1 else ndim(v_2)-1] : if shape(v_1, i) = 0 then shape(v_2, i) = 0 ∨ shape(v_2, i) = 1 else if shape(v_2, i) = 0 then shape(v_1, i) = 0 ∨ shape(v_1, i) = 1
+Rule 23 (out, if given, should have a boolean dtype)
+{v_3 : tensor} |= dtype_(v_3) = 0 ∨ (ndim(v_3) = 0)
 >>
-Rule 14 (Suppresses RuntimeError: The size of tensor a (0) must match the size of tensor b (2) at non-singleton dimension 1, by requiring v1 and v2 should have same shape if both dimensions > 1.)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1)-1 else ndim(v_2)-1] : if shape(v_1, i) > 1 ∧ shape(v_2, i) > 1 then shape(v_1, i) = shape(v_2, i)
->>
-Rule 16 (Suppresses RuntimeError: "le_cpu" not implemented for 'ComplexDouble', by requiring the input tensor not to be complex.)
-{v_1 : tensor} |= dtype_(v_1) < 10 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
->>
-Rule 18 (Suppresses TypeError: le() received an invalid combination of arguments - got (Tensor, Tensor, out=float), but expected one of: * (Tensor input, Tensor other, *, Tensor out = None) * (Tensor input, Number other, *, Tensor out = None), by restricting that if other is a scalar, input can not be boolean)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
->>
-Rule 19 (Suppresses RuntimeError: "le_cpu" not implemented for 'ComplexDouble', by requiring the input tensor not to be complex.)
-{v_1 : tensor} |= dtype_(v_1) < 9
->>
-Rule 28 (Ensure the other tensor has comparable dtype with input tensor: either same, or both are numerical)
-{v_1 :tensor, v_2:tensor} |= (dtype_(v_1) = dtype_(v_2)) ∨ (dtype_(v_1) <11 ∧ dtype_(v_2) < 11)
->>
-Rule 29 (Suppresses RuntimeError: The size of tensor a (0) must match the size of tensor b (2) at non-singleton dimension 1, by requiring v1 and v2 should have same size for dimensions that have size > 1 in either.)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1)-1 else ndim(v_2)-1] : if shape(v_1, i) > 1 ∨ shape(v_2, i) > 1 then shape(v_1, i) = shape(v_2, i)
->>
-Rule 30 (Suppresses TypeError: le() received an invalid combination of arguments - got (Tensor, Tensor, out=float), but expected one of: * (Tensor input, Tensor other, *, Tensor out = None) * (Tensor input, Number other, *, Tensor out = None), by preventing comparison between boolean tensor and scalar)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then false
->>
-Rule 36 (If one tensor is floating, the other should also be floating. If one is integer, the other should be integer.)
-{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) >=6 ∧ dtype_(v_1) <=8) then (dtype_(v_2) >=6 ∧ dtype_(v_2) <=8) else if (dtype_(v_1) >=1 ∧ dtype_(v_1) <=5) then (dtype_(v_2) >=1 ∧ dtype_(v_2) <=5)
->>
-Rule 37 (Suppresses RuntimeError: The size of tensor a (0) must match the size of tensor b (2) at non-singleton dimension 1, by requiring v1 and v2 should have same size for dimensions that have size > 1 in either. If one of the shapes is 1, broadcasting is possible.)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1)-1 else ndim(v_2)-1] : if shape(v_1, i) > 1 ∧ shape(v_2, i) > 1 then shape(v_1, i) = shape(v_2, i) else shape(v_1, i) = 1 ∨ shape(v_2, i) = 1 ∨ shape(v_1, i) < 2 ∧ shape(v_2, i) < 2
->>
-Rule 40 (If either tensor is of floating-point type, both tensors must be of floating-point type. This ensures that the comparison is valid.)
-{v_1: tensor, v_2: tensor} |= (dtype_(v_1) >= 6 ∧ dtype_(v_1) <= 8) = (dtype_(v_2) >= 6 ∧ dtype_(v_2) <= 8)
->>
-Rule 45 (If the input tensor has a dimension with size 0, the other tensor must also have a dimension with size 0 or 1 at the same position.)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1)-1 else ndim(v_2)-1] : if shape(v_1, i) = 0 then (shape(v_2, i) = 0 ∨ shape(v_2, i) = 1)
->>
-Rule 52 (If the input is floating type, other should be either scalar or floating type tensor)
-{v_1 : tensor} |= if dtype_(v_1) >= 6 ∧ dtype_(v_1) <= 8 then true
->>
-Rule 54 (If input dtype is boolean, other must be a tensor with bool type)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0
->>
-Rule 56 (If the input is floating type, the other should also be floating type.)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) >= 6 ∧ dtype_(v_1) <= 8) = (dtype_(v_2) >= 6 ∧ dtype_(v_2) <= 8)
->>
-Rule 58 (If input dtype is boolean, other must be a tensor with bool type or number (only 0 or 1). Comparing boolean tensor to other number is not allowed.)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then true
->>
-Rule 60 (If the input is floating type, the other should also be a floating type. Integer-float comparison is not allowed by this rule to avoid unexpected behavior.)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) >= 6 ∧ dtype_(v_1) <= 8) then (dtype_(v_2) >= 6 ∧ dtype_(v_2) <= 8)
->>
-Rule 62 (If input dtype is boolean, other must be a tensor with bool type or the same shape. To avoid comparison between bool and numbers.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then (ndim(v_1) = ndim(v_2) ∧  ∀i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1)-1 else ndim(v_2)-1] : shape(v_1, i) = shape(v_2, i)) ∨ dtype_(v_2) = 0
->>
-Rule 64 (At least one of the operands must have floating point, otherwise int-int comparison is valid.)
-{v_1: tensor, v_2: tensor} |= (dtype_(v_1) >= 6 ∧ dtype_(v_1) <= 8) ∨ (dtype_(v_2) >= 6 ∧ dtype_(v_2) <= 8)
->>
-Rule 69 (Shape of v_1 should be broadcastable to v_2. Suppresses the RuntimeError about non-matching shapes)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (i ≥ ndim(v_1) ∨ i ≥ ndim(v_2) ∨ shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i) ∨ shape(v_1, ndim(v_1) - 1 - i) = 1 ∨ shape(v_2, ndim(v_2) - 1 - i) = 1)
->>
-Rule 74 (If any tensor is a boolean, others should also be a boolean. Only boolean tensors are comparable.)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 0) = (dtype_(v_2) = 0)
->>
-Rule 76 (Integer-Float tensor comparison is not defined, dtypes of input tensors should be of the same group. The group can either be integer or floating-point or bool.)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) < 6 then dtype_(v_2) < 6 else (dtype_(v_1) >= 6 ∧ dtype_(v_1) <= 8) = (dtype_(v_2) >= 6 ∧ dtype_(v_2) <= 8)
->>
-Rule 84 (If at least one of the dtypes is floating point then the other one should also be.)
-{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) >= 6 ∧ dtype_(v_1) <= 8) then (dtype_(v_2) >= 6 ∧ dtype_(v_2) <= 8) else if (dtype_(v_2) >= 6 ∧ dtype_(v_2) <= 8) then (dtype_(v_1) >= 6 ∧ dtype_(v_1) <= 8)
->>
-Rule 90 (If both are tensors, at least one should be numerical, either int or float or complex or bool. If not number to number comparisons are not allowed.)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) < 11) ∨ (dtype_(v_2) < 11)
->>
-Rule 92 (If one is a floating point number and other is an integer or vice-versa, raise a type error. Avoid implicit type conversions.)
-{v_1: tensor, v_2: tensor} |= if ((dtype_(v_1) >= 1 ∧ dtype_(v_1) <= 5) ∧ (dtype_(v_2) >= 6 ∧ dtype_(v_2) <= 8)) then false else if ((dtype_(v_2) >= 1 ∧ dtype_(v_2) <= 5) ∧ (dtype_(v_1) >= 6 ∧ dtype_(v_1) <= 8)) then false
->>
-Rule 94 (To prevent unexpected comparison issues, both must be the same type, with bool considered numerical and comparable.)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) >= 0 ∧ dtype_(v_1) <= 8) ∧ (dtype_(v_2) >= 0 ∧ dtype_(v_2) <= 8)
+Rule 34 (out, if given, should have a boolean dtype)
+{v_3 : tensor} |= (dtype_(v_3) = 0) ∨ (ndim(v_3) = 0)

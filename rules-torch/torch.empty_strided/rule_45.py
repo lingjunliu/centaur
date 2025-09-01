@@ -5,16 +5,17 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The function arguments must be valid. (Rule 45)
+# If size contains one element and stride contains more than one element, requires_grad must be false (Rule 45)
 
 rule_45 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_length"] >= 0, v["arg2_length"] >= 0)) if n else
-          And(v["arg1_length"] >= 0, v["arg2_length"] >= 0))
+    s.add(Not(If(And(v["arg1_length"] == 1, v["arg2_length"] > 1), v["arg3_value"] == False, True)) if n else
+          If(And(v["arg1_length"] == 1, v["arg2_length"] > 1), v["arg3_value"] == False, True))
 )
 
-def rule_45_func(arg1, arg2, solver=None, neg=False):
+def rule_45_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
@@ -22,20 +23,24 @@ def rule_45_func(arg1, arg2, solver=None, neg=False):
             return False
         if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
+        if not isinstance(arg3, bool):
+            return False
 
         # Variable declarations
         solver = Solver()
         arg1_length = Int('arg1_length')
         arg2_length = Int('arg2_length')
+        arg3_value = Bool('arg3_value')
 
         # Value assignments
         solver.add(arg1_length == len(arg1))
         solver.add(arg2_length == len(arg2))
+        solver.add(arg3_value == arg3)
 
         # Constraints for rule 45
-        rule_45(solver, {'arg1_length': arg1_length, 'arg2_length': arg2_length})
+        rule_45(solver, {'arg1_length': arg1_length, 'arg2_length': arg2_length, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_45(solver, {'arg1_length': arg1['length'], 'arg2_length': arg2['length']}, neg)
+        rule_45(solver, {'arg1_length': arg1['length'], 'arg2_length': arg2['length'], 'arg3_value': arg3['value']}, neg)

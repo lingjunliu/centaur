@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If type1 is int64, type2 must be int64, float32, float64, complex64, or complex128 (Rule 36)
+# If both types are dtype and at least one of them is custom, the other must also be custom (Rule 36)
 
 rule_36 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 4, Or(Or(Or(Or(v["arg2_value"] == 4, v["arg2_value"] == 7), v["arg2_value"] == 8), v["arg2_value"] == 9), v["arg2_value"] == 10), False)) if n else
-          If(v["arg1_value"] == 4, Or(Or(Or(Or(v["arg2_value"] == 4, v["arg2_value"] == 7), v["arg2_value"] == 8), v["arg2_value"] == 9), v["arg2_value"] == 10), False))
+    s.add(Not(Or((And(v["arg1_value"] != 12, v["arg2_value"] != 12)), (And(v["arg1_value"] == 12, v["arg2_value"] == 12)))) if n else
+          Or((And(v["arg1_value"] != 12, v["arg2_value"] != 12)), (And(v["arg1_value"] == 12, v["arg2_value"] == 12))))
 )
 
 def rule_36_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if padding is a tuple, its elements should be small enough to avoid overflow (Rule 9)
+# Height after padding using tuple should be positive (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_shape"], v["arg1_ndim"] - 2) + Select(v["arg2_values"], 2) + Select(v["arg2_values"], 3) < 2048, Select(v["arg1_shape"], v["arg1_ndim"] - 1) + Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1) < 2048)) if n else
-          And(Select(v["arg1_shape"], v["arg1_ndim"] - 2) + Select(v["arg2_values"], 2) + Select(v["arg2_values"], 3) < 2048, Select(v["arg1_shape"], v["arg1_ndim"] - 1) + Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1) < 2048))
+    s.add(Not(Select(v["arg1_shape"], v["arg1_ndim"] - 2) + Select(v["arg2_values"], 2) + Select(v["arg2_values"], 3) > 0) if n else
+          Select(v["arg1_shape"], v["arg1_ndim"] - 2) + Select(v["arg2_values"], 2) + Select(v["arg2_values"], 3) > 0)
 )
 
 def rule_9_func(arg1, arg2, solver=None, neg=False):

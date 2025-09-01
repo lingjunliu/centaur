@@ -1,96 +1,99 @@
 >>
-Rule 1 (elements tensor should not be boolean)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 2 (elements must be a tensor (checking dtype is not bool since bool tensors are allowed))
+{elements : tensor} |= dtype_(elements) ≠ 0
 >>
-Rule 4 (elements tensor must have non-negative dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Rule 3 (test_elements must be a tensor (checking dtype is not bool since bool tensors are allowed))
+{test_elements : tensor} |= dtype_(test_elements) ≠ 0
 >>
-Rule 6 (assume_unique should be a boolean value)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 4 (elements tensor ndim must be greater than or equal to zero)
+{elements : tensor} |= ndim(elements) ≥ 0
 >>
-Rule 8 (elements tensor must have positive number of elements if non-scalar)
-{v_1 : tensor} |= if ndim(v_1) > 0 then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+Rule 5 (test_elements tensor ndim must be greater than or equal to zero)
+{test_elements : tensor} |= ndim(test_elements) ≥ 0
 >>
-Rule 10 (elements tensor should not have empty dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+Rule 12 (elements and test_elements cannot both be scalars - checking ndim to enforce this)
+{elements : tensor, test_elements : tensor} |= (ndim(elements) = 0) ∨ (ndim(test_elements) = 0) ∨ (ndim(elements) > 0 ∧ ndim(test_elements) > 0)
 >>
-Rule 11 (elements tensor should have a valid dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 12
+Rule 20 (If assume_unique is true, then the number of elements cannot be large. Here i am limiting it to 10 for the sake of simplicity.)
+{elements : tensor, assume_unique : bool} |= if assume_unique then shape(elements, 0) ≤ 10
 >>
-Rule 13 (If elements is scalar, test_elements must be a tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) > 0
+Rule 21 (If invert is true, the elements tensor must be of a numerical type.)
+{elements : tensor, invert : bool} |= if invert then dtype_(elements) > 0
 >>
-Rule 14 (If test_elements is scalar, elements must be a tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then ndim(v_1) > 0
+Rule 25 (elements must have the same dtype as test_elements.)
+{elements : tensor, test_elements : tensor} |= dtype_(elements) = dtype_(test_elements)
 >>
-Rule 17 (elements tensor must not have boolean or string type)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 11
+Rule 26 (If assume_unique is true, the elements cannot have many duplicate values)
+{elements: tensor, assume_unique: bool} |= if assume_unique then min(elements) ≠ max(elements)
 >>
-Rule 19 (elements tensor must have a supported dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 12
+Rule 30 (elements must have the same dtype as test_elements or at least be castable.)
+{elements : tensor, test_elements : tensor} |= if dtype_(elements) = 0 then dtype_(test_elements) = 0
 >>
-Rule 25 (elements tensor must have a supported dtype - not boolean)
-{v_1 : tensor} |= (dtype_(v_1) > 0)
+Rule 31 (elements and test_elements should have compatible shapes)
+{elements : tensor, test_elements : tensor} |= (ndim(elements) = ndim(test_elements)) ∨ (ndim(elements) = 0) ∨ (ndim(test_elements) = 0)
 >>
-Rule 33 (elements tensor must have a supported dtype)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then false else if dtype_(v_1) = 11 then false else if dtype_(v_1) = 12 then false
+Rule 35 (elements must have the same dtype as test_elements, or at least, both should be numerical types.)
+{elements : tensor, test_elements : tensor} |= (dtype_(elements) > 0) ∧ (dtype_(test_elements) > 0)
 >>
-Rule 35 (elements tensor must have a valid dtype)
-{v_1 : tensor} |=  (dtype_(v_1) ≠ 0) ∧ (dtype_(v_1) ≠ 11) ∧ (dtype_(v_1) ≠ 12)
+Rule 36 (elements and test_elements should have compatible shapes for comparison)
+{elements : tensor, test_elements : tensor} |= (ndim(elements) = ndim(test_elements)) ∨ (ndim(elements) = 0) ∨ (ndim(test_elements) = 0) ∨ (shape(elements) = shape(test_elements))
 >>
-Rule 38 (elements and test_elements must have compatible dtypes.)
-{v_1 : tensor, v_2 :tensor} |= (dtype_(v_1) = dtype_(v_2))
+Rule 37 (Either elements or test_elements must be a tensor with dimension greater than zero)
+{elements : tensor, test_elements : tensor} |= (ndim(elements) > 0) ∨ (ndim(test_elements) > 0)
 >>
-Rule 41 (elements tensor must have a valid dtype -avoid bool, string, dtype)
-{v_1 : tensor} |= if (dtype_(v_1) = 0) ∨ (dtype_(v_1) = 11) ∨ (dtype_(v_1) = 12) then false
+Rule 40 (elements must have the same dtype as test_elements, if not, one of them should be of boolean type, the operation will return boolean)
+{elements : tensor, test_elements : tensor} |= if dtype_(elements) ≠ dtype_(test_elements) then dtype_(elements) = 0 ∨ dtype_(test_elements) = 0
 >>
-Rule 42 (If assume_unique is true then elements and test_elements must contain unique elements.)
-{v_1 : tensor, v_3 : bool} |= if v_3 = true then min(v_1) = max(v_1)
+Rule 41 (elements and test_elements should have compatible shapes for comparison)
+{elements : tensor, test_elements : tensor} |= (ndim(elements) = ndim(test_elements)) ∨ (ndim(elements) = 0) ∨ (ndim(test_elements) = 0) ∨ (shape(elements, 0) = shape(test_elements, 0))
 >>
-Rule 45 (elements tensor must have a valid dtype - not boolean)
-{v_1 : tensor} |= dtype_(v_1) > 0
+Rule 43 (elements should not have boolean dtype and neither should test_elements - preventing unsupported input type)
+{elements : tensor, test_elements : tensor} |= (dtype_(elements) ≠ 0) ∧ (dtype_(test_elements) ≠ 0)
 >>
-Rule 51 (elements tensor must have a supported dtype)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then false
+Rule 48 (If element or test_elements is scalar, the non-scalar must not have boolean dtype)
+{elements : tensor, test_elements : tensor} |= if ndim(elements) = 0 then dtype_(test_elements) ≠ 0 else if ndim(test_elements) = 0 then dtype_(elements) ≠ 0
 >>
-Rule 53 (elements tensor has supported dtypes)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 50 (if both elements and test_elements are non-scalars, then they should have same shape along dimension 0)
+{elements : tensor, test_elements : tensor} |= if (ndim(elements) > 0) ∧ (ndim(test_elements) > 0) then shape(elements, 0) = shape(test_elements, 0)
 >>
-Rule 55 (elements tensor must be of supported dtypes: int, float, complex)
-{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10
+Rule 51 (Either elements or test_elements must be a tensor with dimension greater than zero, and it's invalid if both of them are scalars)
+{elements : tensor, test_elements : tensor} |= ((ndim(elements) > 0) ∨ (ndim(test_elements) > 0)) ∧ ((ndim(elements) = 0) ∧ (ndim(test_elements) = 0) = false)
 >>
-Rule 60 (test_elements must be one of supported types if element's dim is 0)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 0) then (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+Rule 56 (Either elements or test_elements must be a tensor with dimension greater than zero, and at least one argument should be provided, avoid both are scalars.)
+{elements : tensor, test_elements : tensor} |= ((ndim(elements) > 0) ∨ (ndim(test_elements) > 0)) ∧ (((ndim(elements) = 0) ∧ (ndim(test_elements) = 0)) = false)
 >>
-Rule 61 (elements tensor must have supported dtypes, and not be boolean, string, or dtype)
-{v_1 : tensor} |= (dtype_(v_1) ≠ 0) ∧ (dtype_(v_1) ≠ 11) ∧ (dtype_(v_1) ≠ 12)
+Rule 57 (the type of elements and test_elements should be compatible for comparison to avoid the unsupported input type error, neither should be boolean)
+{elements : tensor, test_elements : tensor} |= if dtype_(elements) = 0 then false else if  dtype_(test_elements) = 0 then false
 >>
-Rule 62 (If elements is scalar, test_elements must have supported dtypes.)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 0) then ((dtype_(v_2) = 1) ∨ (dtype_(v_2) = 2) ∨ (dtype_(v_2) = 3) ∨ (dtype_(v_2) = 4) ∨ (dtype_(v_2) = 5) ∨ (dtype_(v_2) = 6) ∨ (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8) ∨ (dtype_(v_2) = 9) ∨ (dtype_(v_2) = 10))
+Rule 60 (The type of elements and test_elements should be numerical to avoid the unsupported input type error, and both should have same dtype for meaningful comparison)
+{elements : tensor, test_elements : tensor} |= if (dtype_(elements) > 0) ∧ (dtype_(test_elements) > 0) then dtype_(elements) = dtype_(test_elements) else false
 >>
-Rule 70 (If elements is scalar, test_elements must have supported dtypes)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 0) then ((dtype_(v_2) > 0) ∧ (dtype_(v_2) < 11))
+Rule 62 (If the shapes are not compatible i.e. one scalar and one non scalar, ensure that the scalar can be broadcasted to the non scalar)
+{elements : tensor, test_elements : tensor} |= if (ndim(elements) = 0) ∨ (ndim(test_elements) = 0) then true else shape(elements, 0) = shape(test_elements, 0)
 >>
-Rule 74 (If elements is scalar, test_elements must have supported dtypes)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 0) then (dtype_(v_2) > 0 ∧ dtype_(v_2) < 11)
+Rule 64 (To avoid the unsupported input type error, elements and test_elements should have same numerical dtype - but boolean is supported for elements when invert is used)
+{elements : tensor, test_elements : tensor, invert: bool} |=  if invert then (dtype_(elements) = 0) ∨ (dtype_(elements) > 0 ∧ dtype_(test_elements) > 0 ∧ dtype_(elements) = dtype_(test_elements)) else (dtype_(elements) > 0 ∧ dtype_(test_elements) > 0 ∧ dtype_(elements) = dtype_(test_elements))
 >>
-Rule 77 (elements tensor must have supported dtypes)
-{v_1 : tensor} |= if (dtype_(v_1) = 0) then false else if (dtype_(v_1) = 11) then false else if (dtype_(v_1) = 12) then false
+Rule 66 (If shapes are not directly compatible i.e. one scalar and one non scalar then dimensions need to align for broadcasting, thus shape along axis=0 must be equal if both elements and test_elements are non scalar. - this could also be expressed for all dimensions)
+{elements : tensor, test_elements : tensor} |= if ((ndim(elements) > 0) ∧ (ndim(test_elements) > 0)) then shape(elements, 0) = shape(test_elements, 0)
 >>
-Rule 79 (elements tensor must have supported dtypes)
-{v_1 : tensor} |= (dtype_(v_1) > 0) ∧ (dtype_(v_1) < 11)
+Rule 68 (Ensure type compatibility to avoid 'Unsupported input type encountered' - only numerical types are supported unless invert is true then element tensor must support boolean.)
+{elements : tensor, test_elements : tensor, invert: bool} |= if invert then (dtype_(elements) = 0) ∨ (dtype_(elements) > 0 ∧ dtype_(test_elements) > 0) else (dtype_(elements) > 0 ∧ dtype_(test_elements) > 0)
 >>
-Rule 80 (If elements is scalar, test_elements must be compatible, else must also have supported dtypes)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 0) then (dtype_(v_1) = dtype_(v_2)) else ((dtype_(v_2) > 0) ∧ (dtype_(v_2) < 11))
+Rule 72 (type must be compatible; if invert=True, elements can be bool; otherwise, both must be numerical)
+{elements : tensor, test_elements : tensor, invert : bool} |= if invert then true else (dtype_(elements) > 0 ∧ dtype_(test_elements) > 0)
 >>
-Rule 85 (elements tensor must have supported dtypes)
-{v_1 : tensor} |= if (dtype_(v_1) = 0) then false else (dtype_(v_1) = 11) ∨ (dtype_(v_1) = 12)
+Rule 73 (For broadcasting, shapes must match or one must be scalar. Ensuring last dim matches seems sufficient)
+{elements : tensor, test_elements : tensor} |= if (ndim(elements) > 0) ∧ (ndim(test_elements) > 0) then shape(elements, ndim(elements)-1) = shape(test_elements, ndim(test_elements)-1)
 >>
-Rule 86 (if elements is scalar, require test_elements have the same dtype, else require test_elements have supported dtypes)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 0) then (dtype_(v_1) = dtype_(v_2)) else if (dtype_(v_2) = 0) then false else (dtype_(v_2) = 11) ∨ (dtype_(v_2) = 12)
+Rule 76 (Type of input tensors needs to be non boolean to prevent Unsupported input type encountered. Also, the dtypes must be comparable.)
+{elements : tensor, test_elements : tensor, invert : bool} |= if invert then (dtype_(elements) = 0) ∨ ((dtype_(elements) > 0) ∧ (dtype_(test_elements) > 0)) else ((dtype_(elements) > 0) ∧ (dtype_(test_elements) > 0))
 >>
-Rule 87 (elements tensor must be of supported dtypes - no bool, string, dtype)
-{v_1 : tensor} |= if (dtype_(v_1) = 0) then false else if (dtype_(v_1) = 11) then false else if(dtype_(v_1) = 12) then false
+Rule 80 (For correct set membership operation via broadcasting, if shapes differ, it needs to be because one is a scalar)
+{elements : tensor, test_elements : tensor} |= (ndim(elements) = 0) ∨ (ndim(test_elements) = 0) ∨ (ndim(elements) = ndim(test_elements))
 >>
-Rule 88 (elements scalar => test_elements same dtype, else test_elements must be of supported dtype)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 0) then (dtype_(v_1) = dtype_(v_2)) else if (dtype_(v_2) = 0) then false else if (dtype_(v_2) = 11) then false else if (dtype_(v_2) = 12) then false
+Rule 85 (For tensors of the same dimensionality, they need to match)
+{elements : tensor, test_elements : tensor} |= if (ndim(elements) > 0) ∧ (ndim(test_elements) > 0) ∧ (ndim(elements) = ndim(test_elements)) then ∀i ∈ [0, ndim(elements)-1] : shape(elements, i) = shape(test_elements, i)
+>>
+Rule 89 (If all shapes match, the dtypes should also match otherwise operation won't work - This adds additional constraints beyond Rule 89)
+{elements: tensor, test_elements: tensor} |= if (ndim(elements) > 0) ∧ (ndim(test_elements) > 0) ∧ (∀i ∈ [0, ndim(elements) - 1] : shape(elements, i) = shape(test_elements, i)) then dtype_(elements) = dtype_(test_elements)

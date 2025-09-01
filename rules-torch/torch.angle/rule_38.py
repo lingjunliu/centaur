@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input is bool, output must be float or complex (Rule 38)
+# If out tensor is provided, its dtype should be float32 when input is complex64, or float64 when input is complex128. When input is not complex, the out tensor should have the same dtype. (Rule 38)
 
 rule_38 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 0, (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 10)), False)) if n else
-          If(v["arg1_dtype"] == 0, (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 10)), False))
+    s.add(Not(If(v["arg1_dtype"] == 9, v["arg2_dtype"] == 7, If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 8, If(Or(v["arg1_dtype"] < 9, v["arg1_dtype"] > 10), v["arg1_dtype"] == v["arg2_dtype"], True)))) if n else
+          If(v["arg1_dtype"] == 9, v["arg2_dtype"] == 7, If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 8, If(Or(v["arg1_dtype"] < 9, v["arg1_dtype"] > 10), v["arg1_dtype"] == v["arg2_dtype"], True))))
 )
 
 def rule_38_func(arg1, arg2, solver=None, neg=False):

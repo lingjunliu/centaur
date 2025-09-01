@@ -5,33 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check if tensor dimension is non-zero (Rule 20)
+# min_val is not greater than max_val by a margin (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) != 0) if n else
-          Select(v["arg1_shape"], 0) != 0)
+    s.add(Not(v["arg1_value"] <= v["arg2_value"] + 0.00001) if n else
+          v["arg1_value"] <= v["arg2_value"] + 0.00001)
 )
 
-def rule_20_func(arg1, solver=None, neg=False):
+def rule_20_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, (float, np.floating)):
+            return False
+        if not isinstance(arg2, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_value = Real('arg1_value')
+        arg2_value = Real('arg2_value')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 20
-        rule_20(solver, {'arg1_shape': arg1_shape})
+        rule_20(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_20(solver, {'arg1_shape': arg1['shape']}, neg)
+        rule_20(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

@@ -1,96 +1,57 @@
 >>
-Rule 1 (p must be either 1 or 2)
-{v_1 : int} |= v_1 = 1 ∨ v_1 = 2
+Rule 1 (p should be either 1 or 2)
+{p : int} |= p = 1 ∨ p = 2
 >>
-Rule 2 (margin must be non-negative)
-{v_1 : float} |= v_1 ≥ 0
+Rule 2 (Weight size should be consistent with the number of classes in the input tensor if provided)
+{weight : tensor, input : tensor} |= (weight.len = shape(input, 1)) ∨ (ndim(input) = 1 ∧ weight.len = shape(input, 0))
 >>
-Rule 3 (weight tensor size must match the number of classes when input is a 2D tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then shape(v_2, 0) = shape(v_1, 1)
+Rule 3 (target should be long/int64)
+{target : tensor} |= dtype_(target) = 4
 >>
-Rule 4 (weight tensor size must match the number of classes when input is a 1D tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then shape(v_2, 0) = shape(v_1, 0)
+Rule 4 (reduction should be one of the allowed strings)
+{reduction : str} |= reduction = "none" ∨ reduction = "mean" ∨ reduction = "sum"
 >>
-Rule 5 (input tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 5 (input tensor should have at least one dimension)
+{input : tensor} |= ndim(input) > 0
 >>
-Rule 6 (reduction must be one of 'none', 'mean', or 'sum')
-{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
+Rule 6 (target values should be within the valid range)
+{target : tensor, input : tensor} |= ∀i ∈ [0, target.len - 1] : target[i] ≥ 0 ∧ target[i] < shape(input, 1)
 >>
-Rule 7 (target values must be non-negative when input is a 2D tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then ∀i ∈ [0, shape(v_2,0) - 1] : v_2[i] ≥ 0
+Rule 8 (margin should be greater than or equal to 0)
+{margin : float} |= margin ≥ 0
 >>
-Rule 8 (target values must be less than the number of classes when input is a 2D tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then ∀i ∈ [0, shape(v_2,0) - 1] : v_2[i] < shape(v_1, 1)
+Rule 10 (Weight size should be consistent with the number of classes in the input tensor if provided)
+{weight : tensor, input : tensor} |= if (weight ≠ None) then ((weight.len = shape(input, 1)) ∨ (ndim(input) = 1 ∧ weight.len = shape(input, 0)))
 >>
-Rule 9 (target values must be non-negative when input is a 1D tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then v_2 ≥ 0
+Rule 18 (Weight size should be consistent with the number of classes in the input tensor if provided)
+{weight : tensor, input : tensor} |= if (weight ≠ None) then ((ndim(input) = 2 ∧ weight.len = shape(input, 1)) ∨ (ndim(input) = 1 ∧ weight.len = shape(input, 0)))
 >>
-Rule 10 (target values must be less than the number of classes when input is a 1D tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then v_2 < shape(v_1, 0)
+Rule 21 (input tensor should have at least one dimension and not be empty)
+{input : tensor} |= ndim(input) > 0 ∧ ∀i ∈ [0, ndim(input) - 1] : shape(input, i) > 0
 >>
-Rule 19 (target values must be non-negative and within range when input is a 2D tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then ∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] ≥ 0 ∧ v_2[i] < shape(v_1, 1))
+Rule 24 (Input tensor should not be half type)
+{input: tensor} |= dtype_(input) ≠ 6
 >>
-Rule 20 (target values must be non-negative and within range when input is a 1D tensor)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 41 (target values should be within the valid range)
+{target : tensor, input : tensor} |= ∀i ∈ [0, target.len - 1] : target[i] ≥ 0 ∧ (if ndim(input)=2 then target[i] < shape(input, 1) else target[i] < shape(input, 0))
 >>
-Rule 21 (input tensor must not have Half dtype)
-{v_1: tensor} |= dtype_(v_1) ≠ 6
+Rule 81 (P should be an integer with valid value)
+{p: int} |= p = 1 ∨ p = 2
 >>
-Rule 22 (input tensor must have Long dtype if target is provided)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then dtype_(v_1) = 4
+Rule 91 (Size average should be boolean, checking deprecated usage and imposing constrains to reduction parameter)
+{size_average: bool, reduction : str} |= if (size_average = true ∨ size_average = false) then (reduction = "none" ∨ reduction = "mean" ∨ reduction = "sum")
 >>
-Rule 28 (target tensor elements must be valid indices if input is 1D)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then ∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] ≥ 0 ∧ v_2[i] < shape(v_1, 0))
+Rule 92 (reduce should be boolean, checking deprecated usage and imposing constrains to reduction parameter)
+{reduce: bool, reduction: str} |= if (reduce = true ∨ reduce = false) then (reduction = "none" ∨ reduction = "mean" ∨ reduction = "sum")
 >>
-Rule 29 (input tensor cannot have Half dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 6
+Rule 103 (Size average and reduce should not be specified when reduction is not None)
+{size_average: bool, reduce: bool, reduction : str} |= if (reduction ≠ "mean" ∧ reduction ≠ "sum" ∧ reduction ≠ "none") then true else (size_average = true ∨ size_average = false) ∧ (reduce = true ∨ reduce = false)
 >>
-Rule 30 (If input is a 2D tensor, then the target must be a 1D tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then ndim(v_2) = 1
+Rule 105 (Checking deprecated reduce parameter)
+{reduce: bool, reduction : str} |= if (reduce = true ∨ reduce = false) then (reduction = "none" ∨ reduction = "mean" ∨ reduction = "sum")
 >>
-Rule 31 (If input is a 1D tensor, then the target must be a 0D tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then ndim(v_2) = 0
+Rule 115 (Size average and reduce should not be specified if reduction was also specified)
+{size_average: bool, reduce: bool, reduction : str} |= if (size_average = true ∨ size_average = false ∨ reduce = true ∨ reduce = false ) then (reduction = "none" ∨ reduction = "mean" ∨ reduction = "sum")
 >>
-Rule 35 (weight cannot be float)
-{v_1 : tensor} |= dtype_(v_1) ≠ 8
->>
-Rule 37 (If input is a 2D tensor, then the target elements must be in range)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then  (min(v_2) >= 0 ∧ max(v_2) < shape(v_1, 1))
->>
-Rule 41 (weight tensor size must match the number of classes when input is a 2D tensor, and weight is defined and not empty)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 2 ∧ ndim(v_2) > 0) then shape(v_2, 0) = shape(v_1, 1)
->>
-Rule 47 (Target values must be valid if input is 2D)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then (min(v_2) ≥ 0 ∧ max(v_2) < shape(v_1, 1))
->>
-Rule 52 (input must have positive dimensions - general form)
-{v_1: tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 57 (Target values must be valid if input is 2D - alternative formulation)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then ∃i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] ≥ 0 ∧ v_2[i] < shape(v_1, 1))
->>
-Rule 59 (Input dimension must be valid (1 or 2))
-{v_1 : tensor} |= ndim(v_1) = 1 ∨ ndim(v_1) = 2
->>
-Rule 60 (if weight is specified it must be a tensor)
-{v_1 : tensor ⊎ bool} |= (v_1 = true) ∨ (v_1 ≠ true ∧ ndim(v_1) ≥ 0)
->>
-Rule 61 (check that weight is positive or 0)
-{v_1: tensor} |= min(v_1) >= 0
->>
-Rule 72 (p is integer and within valid range)
-{v_1: int} |= v_1 = 1 ∨ v_1 = 2
->>
-Rule 78 (input dimension linked to margin value)
-{v_1 : tensor, v_2 : float} |= if ndim(v_1) = 2 then v_2 > 0
->>
-Rule 79 (relation between input and weight dimension)
-{v_1 : tensor, v_2: tensor} |= if ndim(v_1) = 1 then (ndim(v_2) <=1)
->>
-Rule 93 (If the weight tensor is non-empty, its elements must be positive)
-{v_1: tensor} |= if ndim(v_1) > 0 then min(v_1) > 0
->>
-Rule 101 (If the weight tensor is non-empty, its elements must be positive)
-{v_1: tensor} |= if ndim(v_1) > 0 then min(v_1) >= 0
+Rule 126 (Size average and reduce parameters are deprecated, they should not be set together with reduction parameter)
+{size_average: bool, reduce: bool, reduction : str} |= if (reduction = "none" ∨ reduction = "mean" ∨ reduction = "sum") then true else (size_average ≠ true ∧ size_average ≠ false) ∧ (reduce ≠ true ∧ reduce ≠ false)

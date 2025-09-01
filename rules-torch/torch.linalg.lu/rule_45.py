@@ -5,42 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Elements of out, when provided, should be tensors (Rule 45)
+# Addresses RuntimeError: "lu_cpu" not implemented for 'Half' (Rule 45)
 
 rule_45 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_ndim"] >= 0, v["arg2_ndim"] >= 0), v["arg3_ndim"] >= 0)) if n else
-          And(And(v["arg1_ndim"] >= 0, v["arg2_ndim"] >= 0), v["arg3_ndim"] >= 0))
+    s.add(Not(If(v["arg1_dtype"] == 6, v["arg2_value"] == True, True)) if n else
+          If(v["arg1_dtype"] == 6, v["arg2_value"] == True, True))
 )
 
-def rule_45_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_45_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
-            return False
-        if not isinstance(arg3, np.ndarray):
+        if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_ndim = Int('arg2_ndim')
-        arg3_ndim = Int('arg3_ndim')
+        arg1_dtype = Int('arg1_dtype')
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_ndim == arg2.ndim)
-        solver.add(arg3_ndim == arg3.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 45
-        rule_45(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim, 'arg3_ndim': arg3_ndim})
+        rule_45(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_45(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim'], 'arg3_ndim': arg3['ndim']}, neg)
+        rule_45(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# set_num_threads parameter should be an integer, not a float (Rule 5)
+# Number of threads should be an integer (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] > 0, v["arg1_value"] == NUMBER, False)) if n else
-          If(v["arg1_value"] > 0, v["arg1_value"] == NUMBER, False))
+    s.add(Not(If((v["arg1_value"] - (v["arg1_value"] % 1)) == v["arg1_value"], True, False)) if n else
+          If((v["arg1_value"] - (v["arg1_value"] % 1)) == v["arg1_value"], True, False))
 )
 
 def rule_5_func(arg1, solver=None, neg=False):

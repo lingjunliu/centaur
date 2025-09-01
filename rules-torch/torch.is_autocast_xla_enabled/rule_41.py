@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check that the dimension of a tensor is less than the length of a list (Rule 41)
+# If disable_torch_function is not provided, then enabled will be set to false (Rule 41)
 
 rule_41 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] < v["arg2_length"]) if n else
-          v["arg1_ndim"] < v["arg2_length"])
+    s.add(Not(If(Or(v["arg2_value"] == True, v["arg2_value"] == False), True, v["arg1_value"] == False)) if n else
+          If(Or(v["arg2_value"] == True, v["arg2_value"] == False), True, v["arg1_value"] == False))
 )
 
 def rule_41_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,24 @@ def rule_41_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, bool):
             return False
-        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_length = Int('arg2_length')
+        arg1_value = Bool('arg1_value')
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_length == len(arg2))
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 41
-        rule_41(solver, {'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length})
+        rule_41(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_41(solver, {'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length']}, neg)
+        rule_41(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

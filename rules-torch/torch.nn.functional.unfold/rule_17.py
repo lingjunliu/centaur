@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor should be 4-dimensional and have positive dimensions (Rule 17)
+# input tensor must be 4-dimensional with positive dimensions and reasonable size (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] == 4, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]))) if n else
-          And(v["arg1_ndim"] == 4, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])))
+    s.add(Not(And(v["arg1_ndim"] == 4, And([Implies(i < (3 + 1), And(And(Select(v["arg1_shape"], i) > 0, Select(v["arg1_shape"], 2) < 5000), Select(v["arg1_shape"], 3) < 5000)) for i in range(6)]))) if n else
+          And(v["arg1_ndim"] == 4, And([Implies(i < (3 + 1), And(And(Select(v["arg1_shape"], i) > 0, Select(v["arg1_shape"], 2) < 5000), Select(v["arg1_shape"], 3) < 5000)) for i in range(6)])))
 )
 
 def rule_17_func(arg1, solver=None, neg=False):

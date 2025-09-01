@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If dtype is float16, value should be a valid half to avoid loss of precision and/or overflow (Rule 32)
+# Prevent float16 underflow/overflow by ensuring the value is representable (Rule 32)
 
 rule_32 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, And(And((-65504 <= v["arg2_value"]), (v["arg2_value"] <= 65504)), ((v["arg2_value"] * 1024) % 1 == 0)), False)) if n else
-          If(v["arg1_dtype"] == 6, And(And((-65504 <= v["arg2_value"]), (v["arg2_value"] <= 65504)), ((v["arg2_value"] * 1024) % 1 == 0)), False))
+    s.add(Not(If(v["arg1_dtype"] == 7, (And(v["arg2_value"] > -65504.0, v["arg2_value"] < 65504.0)), True)) if n else
+          If(v["arg1_dtype"] == 7, (And(v["arg2_value"] > -65504.0, v["arg2_value"] < 65504.0)), True))
 )
 
 def rule_32_func(arg1, arg2, solver=None, neg=False):

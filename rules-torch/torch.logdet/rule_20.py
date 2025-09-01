@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor must be of floating point or complex type and not char (Rule 20)
+# Combined dtype exclusion (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] > 5, v["arg1_dtype"] != 0)) if n else
-          And(v["arg1_dtype"] > 5, v["arg1_dtype"] != 0))
+    s.add(Not(And(v["arg1_dtype"] != 1, v["arg1_dtype"] != 6)) if n else
+          And(v["arg1_dtype"] != 1, v["arg1_dtype"] != 6))
 )
 
 def rule_20_func(arg1, solver=None, neg=False):

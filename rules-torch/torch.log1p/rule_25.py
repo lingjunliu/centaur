@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if input tensor is of type float16 then output tensor cannot be of type bool, int8, int16 (Rule 25)
+# Output must be float or complex if input is float, and output must have enough precision (Rule 25)
 
 rule_25 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, And(And((v["arg2_dtype"] != 0), (v["arg2_dtype"] != 1)), (v["arg2_dtype"] != 2)), False)) if n else
-          If(v["arg1_dtype"] == 6, And(And((v["arg2_dtype"] != 0), (v["arg2_dtype"] != 1)), (v["arg2_dtype"] != 2)), False))
+    s.add(Not(If(v["arg1_dtype"] == 7, Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), If(v["arg1_dtype"] == 6, Or(Or(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), If(v["arg1_dtype"] == 8, Or(Or(v["arg2_dtype"] == 8, v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), True)))) if n else
+          If(v["arg1_dtype"] == 7, Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), If(v["arg1_dtype"] == 6, Or(Or(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), If(v["arg1_dtype"] == 8, Or(Or(v["arg2_dtype"] == 8, v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), True))))
 )
 
 def rule_25_func(arg1, arg2, solver=None, neg=False):

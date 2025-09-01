@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If layout is not 0, then dtype cannot be 11. (Rule 51)
+# if row equals zero, then col must equal zero (Rule 51)
 
 rule_51 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] != 0, v["arg2_value"] != 11, False)) if n else
-          If(v["arg1_value"] != 0, v["arg2_value"] != 11, False))
+    s.add(Not(If((v["arg1_value"] == 0), (v["arg2_value"] == 0), True)) if n else
+          If((v["arg1_value"] == 0), (v["arg2_value"] == 0), True))
 )
 
 def rule_51_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# out tensor should have the same dtype as input tensor (Rule 2)
+# output tensor's data type is compatible with input tensor's data type (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else
-          v["arg1_dtype"] == v["arg2_dtype"])
+    s.add(Not(If(v["arg1_dtype"] == 6, v["arg2_dtype"] == 6, If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7, If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8, If(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9, If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, False)))))) if n else
+          If(v["arg1_dtype"] == 6, v["arg2_dtype"] == 6, If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7, If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8, If(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9, If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, False))))))
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):

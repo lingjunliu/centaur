@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check the first tensor has at most 2 dimensions (Rule 12)
+# Input tensors must be at least 2-dimensional to avoid dimension error. (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] <= 2) if n else
-          v["arg1_ndim"] <= 2)
+    s.add(Not(v["arg1_ndim"] > 1) if n else
+          v["arg1_ndim"] > 1)
 )
 
 def rule_12_func(arg1, solver=None, neg=False):

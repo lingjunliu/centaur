@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If n is provided, it must be non-negative (Rule 50)
+# The real input tensor must have a floating point dtype (Rule 50)
 
 rule_50 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] >= 0) if n else
-          v["arg1_value"] >= 0)
+    s.add(Not(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)) if n else
+          Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8))
 )
 
 def rule_50_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_50_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 50
-        rule_50(solver, {'arg1_value': arg1_value})
+        rule_50(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_50(solver, {'arg1_value': arg1['value']}, neg)
+        rule_50(solver, {'arg1_dtype': arg1['dtype']}, neg)

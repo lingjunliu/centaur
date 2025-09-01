@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor dtype should be float or complex (Rule 7)
+# out tensor should have floating point dtype (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] > 6) if n else
-          v["arg1_dtype"] > 6)
+    s.add(Not(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)) if n else
+          Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8))
 )
 
 def rule_7_func(arg1, solver=None, neg=False):

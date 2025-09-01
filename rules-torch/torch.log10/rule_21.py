@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if input tensor dtype is np.float16, np.int8, np.int16, np.int32, np.int64, np.uint8 then output tensor dtype must be at least np.float32 (Rule 21)
+# If input is float16, then output cannot be int8, int16, int32, int64, uint8. It must be at least float16 or higher (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_dtype"] < 7), (v["arg2_dtype"] > 6), False)) if n else
-          If((v["arg1_dtype"] < 7), (v["arg2_dtype"] > 6), False))
+    s.add(Not(If(v["arg1_dtype"] == 6, (v["arg2_dtype"] > 5), True)) if n else
+          If(v["arg1_dtype"] == 6, (v["arg2_dtype"] > 5), True))
 )
 
 def rule_21_func(arg1, arg2, solver=None, neg=False):

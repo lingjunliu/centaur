@@ -5,38 +5,42 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# kernel size should be limited by input size (Rule 38)
+# If bias is False, input dtype and layer dtype are the same (Rule 38)
 
 rule_38 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_value"] < Select(v["arg2_shape"], 2), v["arg1_value"] < Select(v["arg2_shape"], 3)), v["arg1_value"] < Select(v["arg2_shape"], 4))) if n else
-          And(And(v["arg1_value"] < Select(v["arg2_shape"], 2), v["arg1_value"] < Select(v["arg2_shape"], 3)), v["arg1_value"] < Select(v["arg2_shape"], 4)))
+    s.add(Not(If(v["arg1_value"] == False, v["arg3_dtype"] == v["arg2_value"], True)) if n else
+          If(v["arg1_value"] == False, v["arg3_dtype"] == v["arg2_value"], True))
 )
 
-def rule_38_func(arg1, arg2, solver=None, neg=False):
+def rule_38_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not isinstance(arg1, bool):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
+            return False
+        if not isinstance(arg3, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg1_value = Bool('arg1_value')
+        arg2_value = Int('arg2_value')
+        arg3_dtype = Int('arg3_dtype')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
+        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
 
         # Constraints for rule 38
-        rule_38(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape})
+        rule_38(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_dtype': arg3_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_38(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape']}, neg)
+        rule_38(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value'], 'arg3_dtype': arg3['dtype']}, neg)

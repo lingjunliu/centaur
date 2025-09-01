@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input is half-precision float, out must also be at least half-precision float (Rule 18)
+# If out is specified, the output tensor's dtype must be compatible with the input tensor to avoid casting (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, Or(Or(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), True)) if n else
-          If(v["arg1_dtype"] == 6, Or(Or(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), True))
+    s.add(Not(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == v["arg2_dtype"], (And(v["arg1_dtype"] == 6, v["arg2_dtype"] == 7))), (And(v["arg1_dtype"] == 6, v["arg2_dtype"] == 8))), (And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 6))), (And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 8))), (And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 6))), (And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 7)))) if n else
+          Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == v["arg2_dtype"], (And(v["arg1_dtype"] == 6, v["arg2_dtype"] == 7))), (And(v["arg1_dtype"] == 6, v["arg2_dtype"] == 8))), (And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 6))), (And(v["arg1_dtype"] == 7, v["arg2_dtype"] == 8))), (And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 6))), (And(v["arg1_dtype"] == 8, v["arg2_dtype"] == 7))))
 )
 
 def rule_18_func(arg1, arg2, solver=None, neg=False):

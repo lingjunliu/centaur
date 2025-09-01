@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input is float16, the output should be at least float16 if provided (Rule 24)
+# If the output tensor is of type short, then the input tensor's dtype must be such that the result can be safely cast to short. (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, v["arg2_dtype"] >= 6, False)) if n else
-          If(v["arg1_dtype"] == 6, v["arg2_dtype"] >= 6, False))
+    s.add(Not(If(v["arg2_dtype"] == 2, Or(v["arg1_dtype"] < 1, v["arg1_dtype"] > 5), True)) if n else
+          If(v["arg2_dtype"] == 2, Or(v["arg1_dtype"] < 1, v["arg1_dtype"] > 5), True))
 )
 
 def rule_24_func(arg1, arg2, solver=None, neg=False):

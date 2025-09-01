@@ -1,87 +1,102 @@
 >>
-Rule 1 (input tensor and output tensor should have compatible dtypes to avoid casting errors)
-{v_1 : tensor, v_2 : dtype} |= (dtype_(v_1) = v_2) ∨ (dtype_(v_1) = "float32" ∧ v_2 = "float64") ∨ (dtype_(v_1) = "float16" ∧ v_2 = "float32") ∨ (dtype_(v_1) = "float16" ∧ v_2 = "float64")
+Rule 1 (Input tensor should have a floating-point or complex dtype to avoid casting errors with tan.)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 2 (Prevent casting error by enforcing compatible data types between input and output tensors)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "float32" then dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64"
+Rule 2 (Input tensor should not have a character dtype to avoid casting errors.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 12
 >>
-Rule 3 (Ensure the output type is compatible with tan operation)
-{v_1 : dtype} |= v_1 = "float16" ∨ v_1 = "float32" ∨ v_1 = "float64" ∨ v_1 = "complex64" ∨ v_1 = "complex128"
+Rule 3 (Input tensor should not have a boolean dtype to avoid casting errors.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 4 (The input tensor's dtype must be one that supports the tan operation.)
-{v_1 : tensor} |= dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128"
+Rule 4 (Input tensor should not have an integer dtype to avoid casting errors. Specifically, disallow types 1-6.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5 ∧ dtype_(v_1) ≠ 6
 >>
-Rule 6 (If out tensor is provided, its dtype must be compatible with tan operation)
-{v_1 : tensor} |= if ndim(v_1) > 0 then (dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128")
+Rule 5 (Input tensor should not have dtype str to avoid casting errors)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
 >>
-Rule 7 (If out tensor is provided, its dtype must be the same as input tensor's dtype or be convertible to it)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (dtype_(v_1) = dtype_(v_2) ∨ (dtype_(v_1) = "float32" ∧ dtype_(v_2) = "float64"))
+Rule 6 (Input tensor's dtype should not be implicitly castable to char.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 12
 >>
-Rule 8 (Ensure output tensor has same dtype family as input tensor, preventing unintended casts)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ( (dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64") ∧ (dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64") ) ∨ ( (dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128") ∧ (dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128") )
+Rule 7 (If the input tensor's dtype is np.int8, np.int16, np.int32, np.int64, np.uint8, it should be float16, float32, float64, complex64, or complex128 to avoid casting errors.)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 9 (If a dtype is explicitly specified, the input tensor's dtype must be castable to the specified dtype without loss of precision)
-{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ "none" then ( (dtype_(v_1) = "float16" ∧ v_2 = "float32") ∨ (dtype_(v_1) = "float16" ∧ v_2 = "float64") ∨ (dtype_(v_1) = "float32" ∧ v_2 = "float64") ∨ dtype_(v_1) = v_2 )
+Rule 8 (If the input tensor has a complex dtype, it can't be cast to char)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true else dtype_(v_1) ≠ 12
 >>
-Rule 10 (Prevent casting to Char by ensuring the input and output dtype are not Char)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (dtype_(v_1) ≠ "str" ∧ dtype_(v_2) ≠ "str") else dtype_(v_1) ≠ "str"
+Rule 9 (The input tensor should have a dtype that is a subtype of float or complex)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 6
 >>
-Rule 11 (The specified dtype must be compatible with the tan operation.)
-{v_1 : dtype} |= v_1 ≠ "bool" ∧ v_1 ≠ "int" ∧ v_1 ≠ "str"
+Rule 10 (If the input tensor's dtype is bool, it should be float16, float32, float64, complex64, or complex128 to avoid casting errors)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 12 (If dtype is provided, input tensor can be casted to it)
-{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ "none" then (dtype_(v_1) = "float16" ∧ v_2 = "float32") ∨ (dtype_(v_1) = "float16" ∧ v_2 = "float64") ∨ (dtype_(v_1) = "float32" ∧ v_2 = "float64") ∨ (dtype_(v_1) = "complex64" ∧ v_2 = "complex128") ∨ (dtype_(v_1) = v_2)
+Rule 11 (Input tensor cannot be of type dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 13
 >>
-Rule 13 (Prevent integer or boolean tensors from being cast to float, causing errors)
-{v_1 : tensor} |= dtype_(v_1) ≠ "bool" ∧ dtype_(v_1) ≠ "int8" ∧ dtype_(v_1) ≠ "int16" ∧ dtype_(v_1) ≠ "int32" ∧ dtype_(v_1) ≠ "int64"
+Rule 12 (If input is int8, int16, int32, int64, or uint8 it should be castable to float)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 then true else false
 >>
-Rule 14 (Output tensor's dtype should be large enough to hold the result without overflow)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ( (dtype_(v_1) = "float16" ∧ dtype_(v_2) = "float16") ∨ (dtype_(v_1) = "float32" ∧ dtype_(v_2) = "float32") ∨ (dtype_(v_1) = "float64" ∧ dtype_(v_2) = "float64") ∨ (dtype_(v_1) = "complex64" ∧ dtype_(v_2) = "complex64") ∨ (dtype_(v_1) = "complex128" ∧ dtype_(v_2) = "complex128"))
+Rule 13 (if input is uint8, int8, int16, int32 or int64, then the minimum and maximum value must be in range of float.)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then min(v_1) > -3.402823e+38 ∧ max(v_1) < 3.402823e+38
 >>
-Rule 15 (Input tensor and specified dtype must be in the same family (float or complex))
-{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ "none" then ((dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64") ∧ (v_2 = "float16" ∨ v_2 = "float32" ∨ v_2 = "float64")) ∨ ((dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128") ∧ (v_2 = "complex64" ∨ v_2 = "complex128"))
+Rule 14 (If input is float16, the tensor should have valid values which can be cast to float)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > -65504 ∧ max(v_1) < 65504
 >>
-Rule 16 (The input and out tensors should have same dtype)
-{v_1: tensor, v_2:tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 15 (If the tensor's values are out of the range -inf and inf, they are cast to char)
+{v_1 : tensor} |= min(v_1) > -1.7976931348623157e+308 ∧ max(v_1) < 1.7976931348623157e+308
 >>
-Rule 17 (The input and output tensor need to have compatible shapes)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) = shape(v_2, i)
+Rule 16 (If the tensor's dtype is complex64 or complex128, the tensor should have valid values, to avoid casting it into char.)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true
 >>
-Rule 18 (Only allow floating point or complex input tensors.)
-{v_1 : tensor} |= (dtype_(v_1) = "float16") ∨ (dtype_(v_1) = "float32") ∨ (dtype_(v_1) = "float64") ∨ (dtype_(v_1) = "complex64") ∨ (dtype_(v_1) = "complex128")
+Rule 17 (The input tensor's dtype must be either float16, float32, float64, complex64, complex128)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 19 (Ensure that if a dtype is specified, it's a floating point or complex dtype)
-{v_1: dtype} |= v_1 = "none" ∨ v_1 = "float16" ∨ v_1 = "float32" ∨ v_1 = "float64" ∨ v_1 = "complex64" ∨ v_1 = "complex128"
+Rule 18 (If the input tensor has a dimension with size zero, it can be cast to char.)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0
 >>
-Rule 20 (Prevent complex tensors being cast to real float types which would lose information)
-{v_1: tensor, v_2: dtype} |= if (dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128") then (v_2 = "complex64" ∨ v_2 = "complex128" ∨ v_2 = "none")
+Rule 19 (If the input tensor's dtype is float64, the tensor should have valid values, to avoid casting it into char.)
+{v_1 : tensor} |= if dtype_(v_1) = 8 then min(v_1) > -1.7976931348623157e+308 ∧ max(v_1) < 1.7976931348623157e+308
 >>
-Rule 24 (Do not allow casting from higher precision to lower precision floating point type)
-{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ "none" then (dtype_(v_1) = "float64" ∧ v_2 ≠ "float32" ∧ v_2 ≠ "float16") ∧ (dtype_(v_1) = "float32" ∧ v_2 ≠ "float16")
+Rule 20 (If the input tensor's values cause overflow when cast to float, the result can not be cast to Char)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 ∨ (min(v_1) > -3.402823e+38 ∧ max(v_1) < 3.402823e+38)
 >>
-Rule 25 (Do not allow casting from higher precision to lower precision floating point type)
-{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ "none" then (if dtype_(v_1) = "float64" then v_2 ≠ "float32" ∧ v_2 ≠ "float16") ∧ (if dtype_(v_1) = "float32" then v_2 ≠ "float16")
+Rule 21 (If dtype is complex128, then its values should be in range of complex128 for correct casting.)
+{v_1 : tensor} |= if dtype_(v_1) = 10 then true
 >>
-Rule 26 (Prevent lossy casting)
-{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ "none" then if dtype_(v_1) = "float64" then v_2 ≠ "float32" ∧ v_2 ≠ "float16" else if dtype_(v_1) = "float32" then v_2 ≠ "float16"
+Rule 35 (Input tensor must have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 27 (Enforce that the output dtype can represent all possible tan values)
-{v_1: tensor, v_2: dtype} |= if v_2 ≠ "none" then ( (dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128") ∧ (v_2 = "float16" ∨ v_2 = "float32" ∨ v_2 = "float64" ∨ v_2 = "complex64" ∨ v_2 = "complex128") )
+Rule 36 (Input tensor must have non-zero shape)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 28 (Ensure input tensor is not of boolean type when a dtype is specified)
-{v_1: tensor, v_2: dtype} |= if v_2 ≠ "none" then dtype_(v_1) ≠ "bool"
+Rule 37 (Input tensor must have at least one dimension and all dimensions must have size larger than zero)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 29 (Prevent using quantized data types that would lead to incorrect results after applying tan.)
-{v_1 : tensor} |= dtype_(v_1) ≠ "np.int8" ∧ dtype_(v_1) ≠ "np.int16" ∧ dtype_(v_1) ≠ "np.int32" ∧ dtype_(v_1) ≠ "np.int64" ∧ dtype_(v_1) ≠ "np.uint8"
+Rule 38 (If the input tensor has a floating point dtype, ensure that the values are within acceptable limits)
+{v_1 : tensor} |= if dtype_(v_1) = 7 then min(v_1) > -3.402823e+38 ∧ max(v_1) < 3.402823e+38 else if dtype_(v_1) = 8 then min(v_1) > -1.7976931348623157e+308 ∧ max(v_1) < 1.7976931348623157e+308
 >>
-Rule 34 (Prevent integer tensors from being automatically promoted to float64 which can cause performance problems)
-{v_1: tensor, v_2 : dtype} |= if v_2 = "none" then (dtype_(v_1) ≠ "np.int8" ∧ dtype_(v_1) ≠ "np.int16" ∧ dtype_(v_1) ≠ "np.int32" ∧ dtype_(v_1) ≠ "np.int64" ∧ dtype_(v_1) ≠ "np.uint8")
+Rule 39 (Check if the dtype is complex and values are not NaN or inf)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) = min(v_1) ∧ max(v_1) = max(v_1)
 >>
-Rule 35 (When a specific dtype is requested, ensure that it's within the acceptable range of dtypes to prevent the "Float can't be cast to Char" error)
-{v_1 : dtype} |= v_1 = "none" ∨ v_1 = "float16" ∨ v_1 = "float32" ∨ v_1 = "float64" ∨ v_1 = "complex64" ∨ v_1 = "complex128"
+Rule 41 (If the input tensor's dtype is float16, ensure its value are within the valid range for float16)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) ≥ -65504 ∧ max(v_1) ≤ 65504
 >>
-Rule 36 (Avoid unnecessary float64 calculations when float32 would suffice and also avoid type casting error)
-{v_1: tensor, v_2: tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) = "float32" then dtype_(v_2) = "float32" else if dtype_(v_1) = "float16" then dtype_(v_2) = "float16"
+Rule 42 (If the input tensor's dtype is float16, ensure its value are within the valid range for float16)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) ≥ -65504 ∨ max(v_1) ≤ 65504
 >>
-Rule 37 (The output tensor should not have more precision than the input tensor if dtype is none)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) = "float16" then dtype_(v_2) = "float16" else if dtype_(v_1) = "float32" then (dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32")
+Rule 44 (If the input tensor's dtype is float64, ensure its values are not NaN or Inf)
+{v_1 : tensor} |= if dtype_(v_1) = 8 then min(v_1) = min(v_1) ∧ max(v_1) = max(v_1)
+>>
+Rule 47 (Check ndim is less than 10, arbitrary value)
+{v_1 : tensor} |= ndim(v_1) < 10
+>>
+Rule 48 (Input tensor should not have a large number of dimensions)
+{v_1 : tensor} |= ndim(v_1) < 5
+>>
+Rule 49 (Input tensor's first dimension must not be too large)
+{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) < 1000
+>>
+Rule 50 (The tensor's minimum value must be less than its maximum value.)
+{v_1 : tensor} |= min(v_1) ≤ max(v_1)
+>>
+Rule 52 (If the input tensor has dtype float32, ensure its value are within the valid range for float32)
+{v_1 : tensor} |= if dtype_(v_1) = 7 then min(v_1) ≥ -3.402823e+38 ∧ max(v_1) ≤ 3.402823e+38

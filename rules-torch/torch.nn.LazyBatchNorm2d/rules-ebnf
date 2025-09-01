@@ -1,66 +1,189 @@
 >>
-Rule 1 (Input tensor must be 4D to avoid ValueError)
+Rule 1 (eps should be positive for numerical stability)
+{v_1 : float} |= v_1 > 0
+>>
+Rule 2 (momentum should be between 0 and 1 inclusive for running mean/variance)
+{v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 1
+>>
+Rule 3 (input tensor must have at least 2 dimensions to avoid ValueError)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
+>>
+Rule 4 (input tensor's datatype must be a floating point or complex to allow gradients)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 5 (input tensor must have 4 dimensions to avoid ValueError when training)
 {v_1 : tensor} |= ndim(v_1) = 4
 >>
-Rule 2 (Epsilon must be a non-negative float)
+Rule 6 (check for inf or nan in momentum)
+{v_1 : float} |= v_1 < 10000000000 ∧ v_1 > -10000000000
+>>
+Rule 8 (momentum should be non-negative)
 {v_1 : float} |= v_1 ≥ 0
 >>
-Rule 3 (Momentum must be a non-negative float or None, representing cumulative moving average which we encode as -1)
-{v_1 : float} |= v_1 ≥ 0 ∨ v_1 = -1
->>
-Rule 4 (affine should be a boolean)
+Rule 10 (affine must be a boolean)
 {v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 12 (Input tensor's dtype cannot be char to avoid RuntimeError: "batch_norm" not implemented for 'Char')
-{v_1: tensor} |= dtype_(v_1) ≠ 11
+Rule 14 (dtype must be a valid dtype)
+{v_1 : dtype} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 13
 >>
-Rule 13 (tensor must have a floating-point dtype to avoid RuntimeError: Only Tensors of floating point and complex dtype can require gradients)
+Rule 15 (momentum should be less than or equal to 1)
+{v_1 : float} |= v_1 ≤ 1
+>>
+Rule 16 (dtype should not be character)
+{v_1 : dtype} |= v_1 ≠ 12
+>>
+Rule 17 (If affine is true, then track_running_stats should also be true)
+{v_1 : bool, v_2 : bool} |= if v_1 = true then v_2 = true
+>>
+Rule 18 (input tensor must have a floating point or complex dtype, if requires_grad is true)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true else false
+>>
+Rule 19 (input must be a tensor of floats if momentum is non-none)
+{v_1 : tensor, v_2 : float} |= if v_2 > 0 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 21 (check the input type of the tensor)
+{v_1 : tensor} |= dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5
+>>
+Rule 22 (input tensor and dtype must be compatible to avoid RuntimeError)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 7 then v_2 = 7 else if dtype_(v_1) = 8 then v_2 = 8 else if dtype_(v_1) = 9 then v_2 = 9 else if dtype_(v_1) = 10 then v_2 = 10
+>>
+Rule 23 (check input tensor's dtype is not char)
+{v_1 : tensor} |= dtype_(v_1) ≠ 12
+>>
+Rule 24 (check input tensor's dtype is float if momentum is not None)
+{v_1 : tensor, v_2 : float} |= if v_2 ≠ 0.1 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 26 (Check input tensor and dtype are both floating or complex to allow gradients)
+{v_1 : tensor, v_2 : dtype} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10)
+>>
+Rule 28 (input tensor dtype should be float if requires_grad is true and the parameters will have gradients)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then true else false
+>>
+Rule 29 (Check if the input tensor requires gradient)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then true else if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true else false
+>>
+Rule 30 (Ensure eps is not zero to prevent division by zero)
+{v_1 : float} |= v_1 ≠ 0
+>>
+Rule 32 (The input tensor's datatype should be float or complex if affine is true, to avoid scalar type mismatch)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 34 (Check if the input tensor's dimension is valid)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+>>
+Rule 38 (If input tensor requires gradient, it should be of floating point or complex type)
+{v_1 : tensor} |= if dtype_(v_1) < 9 then dtype_(v_1) > 6
+>>
+Rule 39 (Check that if affine is true, the input is not of int type)
+{v_1 : tensor, v_2: bool} |= if v_2 = true then dtype_(v_1) > 5
+>>
+Rule 40 (Check that input tensor's dimension >=1 to avoid index error on shape access)
+{v_1 : tensor} |= ndim(v_1) >= 1
+>>
+Rule 41 (The input tensor must be of floating point if dtype is float32)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 7 then dtype_(v_1) = 7
+>>
+Rule 44 (Check input tensor is of float type to prevent scalar type mismatch)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 7 then dtype_(v_1) = 7 else if v_2 = 8 then dtype_(v_1) = 8 else if v_2 = 9 then dtype_(v_1) = 9 else if v_2 = 10 then dtype_(v_1) = 10
+>>
+Rule 47 (check input tensor's dtype is float if affine is true, to prevent scalar type mismatch)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 51 (eps should not be a very small number to avoid numerical instability.)
+{v_1 : float} |= v_1 > 1e-10
+>>
+Rule 54 (If input has less than 4 dimensions, it won't be compatible with the 2D batchnorm)
+{v_1 : tensor} |= ndim(v_1) >= 4
+>>
+Rule 55 (Check that if the data type is float16, input has >4 dimension)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then ndim(v_1) = 4
+>>
+Rule 56 (If the input tensor is not of floating point type, report error)
+{v_1: tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 57 (If input tensor needs grad, it needs to be either float or complex)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 58 (input dtype should be float, not int)
+{v_1 : dtype} |= v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 6
+>>
+Rule 59 (Check data type is not an integer when `affine` is true)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) > 5
+>>
+Rule 60 (if input tensor requires grad, it must be float or complex)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then false
+>>
+Rule 61 (The input tensor should be float to match the scalar type of Float if momentum is used)
+{v_1 : tensor, v_2 : float} |= if v_2 > 0 then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 62 (input tensor should have > 0 dimension to avoid index error accessing the shape of the tensor)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 63 (Ensure the data type is floating point to match the parameter's requirements.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 7 then dtype_(v_1) = 7 else if v_2 = 8 then dtype_(v_1) = 8 else if v_2 = 6 then dtype_(v_1) = 6 else if v_2 = 9 then dtype_(v_1) = 9 else if v_2 = 10 then dtype_(v_1) = 10
+>>
+Rule 64 (momentum should be a reasonable small value to prevent overflow in running average)
+{v_1 : float} |= v_1 < 0.999999
+>>
+Rule 65 (If track_running_stats is false, then momentum is not needed)
+{v_1 : bool, v_2 : float} |= if v_1 = false then v_2 = 0.1
+>>
+Rule 66 (if affine is true, then the scalar type of Float is expected in parameter.)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 67 (dtype cannot be an integer to avoid scalar mismatch)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10
+>>
+Rule 68 (the input tensor's dimension should match 4 or more to accommodate indexing.)
+{v_1 : tensor} |= ndim(v_1) ≥ 4
+>>
+Rule 71 (if affine and track_running_stats are both true, expect parameter and weight to have scalar type of Float.)
+{v_1 : bool, v_2 : bool, v_3 : tensor} |= if v_1 = true ∧ v_2 = true then dtype_(v_3) = 6 ∨ dtype_(v_3) = 7 ∨ dtype_(v_3) = 8
+>>
+Rule 72 (The dtype argument must be one of the supported dtypes)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5
+>>
+Rule 74 (dtype should be consistent with input tensor to avoid data type mismatch)
+{v_1 : tensor, v_2 : dtype} |= (dtype_(v_1) = 6 ∧ v_2 = 6) ∨ (dtype_(v_1) = 7 ∧ v_2 = 7) ∨ (dtype_(v_1) = 8 ∧ v_2 = 8) ∨ (dtype_(v_1) = 9 ∧ v_2 = 9) ∨ (dtype_(v_1) = 10 ∧ v_2 = 10)
+>>
+Rule 76 (dtype parameter must be within valid range)
+{v_1 : dtype} |= v_1 > 0 ∧ v_1 < 12
+>>
+Rule 78 (eps should be a small positive number)
+{v_1 : float} |= v_1 > 0 ∧ v_1 < 1
+>>
+Rule 82 (Ensure momentum is non-negative, finite, and not too large or it causes error)
+{v_1 : float} |= v_1 ≥ 0 ∧ v_1 < 10000 ∧ v_1 ≠ "inf"
+>>
+Rule 85 (Check momentum's data type and value, and check dimension > 1)
+{v_1 : tensor} |= ndim(v_1) > 1
+>>
+Rule 87 (Check if input's dimension >= 2)
+{v_1 : tensor} |= ndim(v_1) >= 2
+>>
+Rule 88 (Input needs to be float or complex, otherwise can't require grad)
 {v_1: tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 20 (Ensure that the input tensor is float before gradient calculation.)
-{v_1: tensor} |= dtype_(v_1) = 7
+Rule 90 (The dtype should be a proper float or complex number, and the input has dimension 4 or it could be ValueError.)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∧ ndim(v_1) = 4
 >>
-Rule 21 (Ensure that the eps is float32 to prevent mixed dtype errors)
-{v_1: float} |= v_1 > 0
+Rule 93 (Momentum should be non-negative to work correctly in averaging)
+{v_1 : float} |= v_1 >= 0
 >>
-Rule 30 (Check if running_mean and running_var have the same dtype to avoid mixed dtype)
-{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 94 (if track_running_stats is false, affine should be false to avoid errors)
+{v_1 : bool, v_2 : bool} |= if v_1 = false then v_2 = false
 >>
-Rule 38 (If the input is complex, the affine parameter should be false, because complex batch norm does not support affine)
-{v_1: tensor, v_2: bool} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_2 = false
+Rule 95 (input tensor cannot be of integer type if affine is true to avoid scalar type mismatch.)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5
 >>
-Rule 44 (The dtype of the running_mean and input should be float to avoid mixed dtype errors)
-{v_1: tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 96 (For consistent behavior, the dtype should not be unspecified (None) when track_running_stats=False)
+{v_1 : dtype, v_2: bool} |= if v_2=false then v_1 ≠ 0
 >>
-Rule 46 (Check if the first input dimension is greater than zero to avoid index error)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 97 (To avoid runtime error "expected scalar type Float but got XXX", the dtype should only be set to float/double when affine=True)
+{v_1 : dtype, v_2 : bool} |= if v_2 = true then v_1 = 7 ∨ v_1 = 8
 >>
-Rule 52 (The input tensor and running mean should have the same data type)
-{v_1 : tensor} |= dtype_(v_1) = dtype_(v_1)
+Rule 102 (To prevent a Runtime error about scalar type, data type should be float or complex.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 6 then dtype_(v_1) = 6 else if v_2 = 7 then dtype_(v_1) = 7 else if v_2 = 8 then dtype_(v_1) = 8 else if v_2 = 9 then dtype_(v_1) = 9 else if v_2 = 10 then dtype_(v_1) = 10
 >>
-Rule 53 (Input tensor's dtype must be float to avoid mixed dtype errors and to allow gradient calculation)
-{v_1 : tensor} |= dtype_(v_1) = 7
->>
-Rule 54 (Input tensor's dtype cannot be integer to avoid RuntimeError: Only Tensors of floating point and complex dtype can require gradients)
-{v_1: tensor} |= dtype_(v_1) > 5
->>
-Rule 60 (Input tensor's dtype must be float to avoid RuntimeError: Only Tensors of floating point and complex dtype can require gradients)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
->>
-Rule 69 (Ensure the shape is valid. shape must be greater than 0 to prevent index error.)
-{v_1: tensor} |= shape(v_1,0) > 0
->>
-Rule 92 (Input tensor's dimension at axis 1 must be greater than 0, as it is used for lazy initialization.)
-{v_1 : tensor} |= shape(v_1, 1) > 0
->>
-Rule 99 (Avoid mixed dtype error: weight and input tensor's dtype must match.)
-{v_1 : tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
->>
-Rule 114 (Ensure the first dimension is greater than or equal to 1 before doing calculations to avoid index errors)
-{v_1: tensor} |= shape(v_1, 0) ≥ 1
->>
-Rule 115 (Check the second dimension to make sure shape is valid before calculations)
-{v_1: tensor} |= shape(v_1, 1) > 0
->>
-Rule 123 (The first dimension shape needs to be positive to prevent runtime errors and indexing errors in calculation)
-{v_1: tensor} |= shape(v_1, 0) > 0
+Rule 104 (The input tensor's data type should be valid)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 13

@@ -1,447 +1,105 @@
 >>
-Rule 1 (lower_bound must be less than or equal to upper_bound)
+Rule 1 (min_val must be less than or equal to max_val)
 {v_1 : float, v_2 : float} |= v_1 ≤ v_2
 >>
-Rule 2 (lower_bound or upper_bound is zero)
-{v_1 : float ⊎ int, v_2 : float ⊎ int} |= v_1 = 0 ∨ v_2 = 0
+Rule 2 (min_val should be a finite number)
+{v_1 : float} |= v_1 ≠ "inf" ∧ v_1 ≠ "-inf" ∧ v_1 ≠ "nan"
 >>
-Rule 3 (check if min value less than max value, type is integer or float)
-{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 < v_2
+Rule 6 (if input is empty tensor min_val and max_val does not matter)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if shape(v_1, 0) = 0 then true else v_2 ≤ v_3
 >>
-Rule 4 (check if min value and max value are equal)
-{v_1 : float ⊎ int, v_2 : float ⊎ int} |= v_1 ≠ v_2
+Rule 8 (input tensor has at least one element or the condition is trivially true)
+{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0)
 >>
-Rule 5 (Check that a shape of a tensor dimension is bigger than zero)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 9 (The max_val should be greater than zero if input tensor has only positive elements)
+{v_1 : tensor, v_2 : float} |= if (∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0) ∧ min(v_1) ≥ 0 then v_2 > 0
 >>
-Rule 6 (Check that a shape of a tensor dimension is not a negative number)
-{v_1 : tensor} |= shape(v_1, 0) ≥ 0
+Rule 10 (The min_val should be smaller than zero if input tensor has only negative elements)
+{v_1 : tensor, v_2 : float} |= if (∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0) ∧ max(v_1) ≤ 0 then v_2 < 0
 >>
-Rule 7 (A tensor's dimension is equal to a value)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) = v_2
+Rule 11 (if min_val equals max_val then tensor must have only this value)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if v_2 = v_3 then (∀i ∈ [0, ndim(v_1) - 1] : min(v_1) = v_2 ∧ max(v_1) = v_2)
 >>
-Rule 8 (Check data type of tensor)
-{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) = v_2
->>
-Rule 9 (Check if the input tensor's ndim is greater or equal to 1)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
->>
-Rule 10 (Checking the size equality of two lists)
-{v_1 : list(int), v_2 : list(int)} |= v_1.len = v_2.len
->>
-Rule 11 (lower_bound must be less than upper_bound)
-{v_1 : float, v_2 : float} |= v_1 < v_2
->>
-Rule 12 (lower_bound and upper_bound are non-negative)
-{v_1 : float, v_2 : float} |= v_1 ≥ 0 ∧ v_2 ≥ 0
->>
-Rule 13 (lower_bound and upper_bound have the same sign, or one is zero)
-{v_1 : float, v_2 : float} |= (v_1 ≥ 0 ∧ v_2 ≥ 0) ∨ (v_1 ≤ 0 ∧ v_2 ≤ 0) ∨ (v_1 = 0 ∨ v_2 = 0)
->>
-Rule 14 (lower_bound is between -1 and 1)
-{v_1 : float} |= v_1 ≥ -1 ∧ v_1 ≤ 1
->>
-Rule 16 (Check if a dimension of a tensor is greater than a constant)
-{v_1 : tensor} |= shape(v_1, 0) > 1
->>
-Rule 17 (Check if a dimension of a tensor is equal to a constant)
-{v_1 : tensor} |= shape(v_1, 0) = 1
->>
-Rule 18 (Compare the shapes of two tensors)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
->>
-Rule 19 (Check if the lower bound and upper bound are equal)
-{v_1 : float, v_2 : float} |= v_1 ≠ v_2
->>
-Rule 20 (Check if tensor dimension is non-zero)
-{v_1 : tensor} |= shape(v_1, 0) ≠ 0
->>
-Rule 22 (upper_bound is not zero when lower_bound is negative)
-{v_1 : float, v_2 : float} |= if v_1 < 0 then v_2 ≠ 0
->>
-Rule 23 (lower_bound is not zero when upper_bound is positive)
-{v_1 : float, v_2 : float} |= if v_2 > 0 then v_1 ≠ 0
->>
-Rule 24 (the range between upper and lower bound is less than 1)
-{v_1 : float, v_2 : float} |= v_2 - v_1 < 1
->>
-Rule 25 (lower bound is positive when the upper bound is greater than 10)
-{v_1 : float, v_2 : float} |= if v_2 > 10 then v_1 > 0
->>
-Rule 26 (the shape of the tensor is a square matrix)
-{v_1 : tensor} |= shape(v_1, 0) = shape(v_1, 1)
->>
-Rule 28 (lower bound must be negative, and upper bound must be positive)
-{v_1 : float, v_2 : float} |= v_1 < 0 ∧ v_2 > 0
->>
-Rule 30 (check whether the tensor dtype is float32 or float64)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
->>
-Rule 32 (lower bound must be non-positive)
-{v_1 : float} |= v_1 ≤ 0
->>
-Rule 33 (upper bound must be non-negative)
-{v_1 : float} |= v_1 ≥ 0
->>
-Rule 34 (the absolute difference between the lower and upper bounds is within a specific range.)
-{v_1 : float, v_2 : float} |= (v_2 - v_1) > 0.5 ∧ (v_2 - v_1) < 2.0
->>
-Rule 35 (The tensor's first dimension is greater than some value)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) > v_2
->>
-Rule 36 (The tensor's number of dimensions cannot be zero)
-{v_1 : tensor} |= ndim(v_1) > 0
->>
-Rule 37 (Check lower bound not bigger than zero when upper bound smaller than zero)
-{v_1 : float, v_2 : float} |= if v_2 < 0 then v_1 <= 0
->>
-Rule 38 (Check upper bound not smaller than zero when lower bound bigger than zero)
-{v_1 : float, v_2 : float} |= if v_1 > 0 then v_2 >= 0
->>
-Rule 39 (The range between the bounds cannot be zero)
-{v_1 : float, v_2 : float} |= v_1 - v_2 ≠ 0
->>
-Rule 41 (The range between the bounds cannot be negative)
+Rule 12 (The difference between max_val and min_val should be greater than or equal to zero)
 {v_1 : float, v_2 : float} |= v_2 - v_1 ≥ 0
 >>
-Rule 42 (Check if lower bound is zero when the type of lower bound is int)
-{v_1 : int} |= v_1 = 0
+Rule 15 (the tensor must have dimension greater than zero if min_val and max_val are differents)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if v_2 ≠ v_3 then ndim(v_1) > 0
 >>
-Rule 44 (If the tensor has only one dimension, its size should be one)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) = 1
+Rule 17 (if the tensor is a single element the values must respect the hardtanh condition)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if (ndim(v_1) = 0) then v_2 ≤ v_1 ∧ v_1 ≤ v_3
 >>
-Rule 45 (The tensor's first dimension is no smaller than some value)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) ≥ v_2
+Rule 18 (if the tensor has a max value smaller than min_val then it must be empty)
+{v_1 : tensor, v_2 : float} |= if max(v_1) < v_2 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0)
 >>
-Rule 46 (Check that a string is equal to "none")
-{v_1 : str} |= v_1 = "none"
+Rule 19 (if the tensor has a min value greater than max_val then it must be empty)
+{v_1 : tensor, v_2 : float} |= if min(v_1) > v_2 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0)
 >>
-Rule 47 (Check if lower bound is not infinity)
-{v_1 : float} |= v_1 ≠ NUMBER
+Rule 20 (min_val is not greater than max_val by a margin)
+{v_1 : float, v_2 : float} |= v_1 ≤ v_2 + 0.00001
 >>
-Rule 49 (Check if the lower bound and upper bound are within -100 to 100 range)
-{v_1 : float, v_2 : float} |= (v_1 >= -100 ∧ v_1 <= 100) ∧ (v_2 >= -100 ∧ v_2 <= 100)
+Rule 21 (if the tensor is a single element the values must respect the hardtanh condition, taking floating point imprecision into account)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if (ndim(v_1) = 0) then v_2 - 0.00001 ≤ v_1 ∧ v_1 ≤ v_3 + 0.00001
 >>
-Rule 50 (The data type of tensor must be either int or float)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 22 (if all elements of input tensor are greater than 0 then min_val is at most the minimum)
+{v_1 : tensor, v_2 : float} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ min(v_1) > 0 then v_2 ≤ min(v_1)
 >>
-Rule 51 (The range between the bounds must be smaller than 100)
-{v_1 : float, v_2 : float} |= v_2 - v_1 < 100
+Rule 23 (if all elements of input tensor are less than 0 then max_val is at least the maximum)
+{v_1 : tensor, v_2 : float} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ max(v_1) < 0 then v_2 ≥ max(v_1)
 >>
-Rule 52 (The upper bound must be less than or equal to 100 if the lower bound is less than or equal to -100)
-{v_1 : float, v_2 : float} |= if v_1 <= -100 then v_2 <= 100
+Rule 24 (if input is a scalar, then min_val and max_val are finite and min_val <= input <= max_val)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if ndim(v_1) = 0 then v_2 ≠ "inf" ∧ v_2 ≠ "-inf" ∧ v_2 ≤ v_1 ∧ v_3 ≠ "inf" ∧ v_3 ≠ "-inf" ∧ v_1 ≤ v_3
 >>
-Rule 53 (Tensor dimensions must be the same as tuple length if the tensor and tuple share dimensions)
-{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len
+Rule 25 (if min_val or max_val is nan, the tensor must be empty)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if v_2 = "nan" ∨ v_3 = "nan" then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0)
 >>
-Rule 54 (Tensor dimension cannot be too big compared to another integer)
-{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) > 100 then v_2 > 0
+Rule 26 (min_val must be less than the maximum value of the tensor, or tensor must be empty)
+{v_1 : tensor, v_2 : float} |= if ndim(v_1) > 0 ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then v_2 ≤ max(v_1)
 >>
-Rule 55 (The string value must be one of the allowed string values.)
-{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "constant" ∨ v_1 = "tanh"
+Rule 27 (max_val must be greater than the minimum value of the tensor, or tensor must be empty)
+{v_1 : tensor, v_2 : float} |= if ndim(v_1) > 0 ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then v_2 ≥ min(v_1)
 >>
-Rule 56 (Check if the lower and upper bounds sum to zero)
-{v_1 : float, v_2 : float} |= v_1 + v_2 = 0
+Rule 28 (if input is a scalar, then min_val and max_val are finite)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if ndim(v_1) = 0 then v_2 ≠ "inf" ∧ v_2 ≠ "-inf" ∧ v_3 ≠ "inf" ∧ v_3 ≠ "-inf"
 >>
-Rule 57 (If one of the bounds is negative the other has to be positive.)
-{v_1 : float, v_2 : float} |= if v_1 < 0 then v_2 > 0 else if v_2 < 0 then v_1 > 0
+Rule 29 (if the tensor's dtype is int, then min_val and max_val should also be integers or at least representable as integers without loss)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then v_2 % 1 = 0 ∧ v_3 % 1 = 0
 >>
-Rule 58 (If both bounds are positive, one of them has to be zero.)
-{v_1 : float, v_2 : float} |= if v_1 > 0 ∧ v_2 > 0 then v_1 = 0 ∨ v_2 = 0
+Rule 36 (if the tensor is a scalar, then min_val and max_val should bound it)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if ndim(v_1) = 0 then v_2 ≤ v_1 ∧ v_1 ≤ v_3
 >>
-Rule 59 (Check data type must be a floating number)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 42 (The max value in the tensor has to be less than or equal to max_val.)
+{v_1 : tensor, v_2 : float} |= max(v_1) ≤ v_2
 >>
-Rule 61 (The shape of the tensor at the given dimension must not be zero)
-{v_1 : tensor, v_2 : int} |= shape(v_1, v_2) ≠ 0
+Rule 43 (The min value in the tensor has to be greater or equal to min_val.)
+{v_1 : tensor, v_2 : float} |= min(v_1) ≥ v_2
 >>
-Rule 62 (At least one bound must be zero)
-{v_1 : float, v_2 : float} |= v_1 = 0 ∨ v_2 = 0
+Rule 45 (if the tensor has a maximum value, it must be less than or equal to max_val)
+{v_1 : tensor, v_2 : float} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then max(v_1) ≤ v_2
 >>
-Rule 63 (The upper bound needs to be positive if lower bound is present.)
-{v_1 : float, v_2 : float} |= if v_1 ≠ STRING then v_2 > 0
+Rule 46 (if the tensor has a minimum value, it must be greater than or equal to min_val)
+{v_1 : tensor, v_2 : float} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then min(v_1) ≥ v_2
 >>
-Rule 64 (The lower bound needs to be negative if upper bound is present.)
-{v_1 : float, v_2 : float} |= if v_2 ≠ STRING then v_1 < 0
+Rule 47 (if the tensor is empty then min_val can be greater than max_val)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then true else v_2 ≤ v_3
 >>
-Rule 65 (The upper bound cannot be less than the lower bound.)
-{v_1 : float, v_2 : float} |= v_2 ≥ v_1
+Rule 48 (min_val must be less than or equal to max_val plus some tolerance)
+{v_1 : float, v_2 : float} |= v_1 ≤ v_2 + 0.0001
 >>
-Rule 66 (Lower and upper bounds must not be too close together if they both are non-zero values)
-{v_1 : float, v_2 : float} |= if v_1 ≠ 0 ∧ v_2 ≠ 0 then v_2 - v_1 > 0.01
+Rule 49 (if the tensor has a maximum value and is not empty, it must be less than or equal to max_val)
+{v_1 : tensor, v_2 : float} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then max(v_1) ≤ v_2 + 0.0001
 >>
-Rule 67 (Check if the tensor is empty)
-{v_1 : tensor} |= shape(v_1,0) > 0
+Rule 50 (if the tensor has a minimum value and is not empty, it must be greater than or equal to min_val)
+{v_1 : tensor, v_2 : float} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then min(v_1) ≥ v_2 - 0.0001
 >>
-Rule 68 (Check that list has a valid length.)
-{v_1 : list(int)} |= v_1.len > 0
+Rule 58 (if min_val > max_val then tensor shape is zero)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if v_2 > v_3 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0)
 >>
-Rule 69 (Check that both bounds are above 0)
-{v_1 : float, v_2 : float} |= (v_1 > 0) ∧ (v_2 > 0)
+Rule 61 (if min_val > any value of the tensor, than the min_val needs to be replaced)
+{v_1 : tensor, v_2 : float} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ v_2 > min(v_1) then true
 >>
-Rule 70 (If lower bound is 0, upper bound must be greater than 0)
-{v_1 : float, v_2 : float} |= if v_1 = 0 then v_2 > 0
+Rule 66 (if min_val > max_val and tensor is not empty then this is an invalid condition)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if v_2 > v_3 ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then false
 >>
-Rule 71 (If upper bound is 0, lower bound must be less than 0)
-{v_1 : float, v_2 : float} |= if v_2 = 0 then v_1 < 0
->>
-Rule 72 (The difference between lower and upper bounds cannot be greater than the tensor's first dimension)
-{v_1 : tensor, v_2 : float, v_3 : float} |= (v_3 - v_2) ≤ shape(v_1, 0)
->>
-Rule 75 (The given dimension must be valid for the given tensor)
-{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
->>
-Rule 76 (If there is an error the message needs to be as specified.)
-{v_1 : str} |= v_1 = "Invalid module 'torch.nn.quantized.QFunctional' in API name."
->>
-Rule 77 (Lower and upper bound both must be greater than -1)
-{v_1 : float, v_2 : float} |= (v_1 > -1) ∧ (v_2 > -1)
->>
-Rule 78 (Lower and upper bound both must be smaller than 1)
-{v_1 : float, v_2 : float} |= (v_1 < 1) ∧ (v_2 < 1)
->>
-Rule 79 (Check if the lower and upper bounds are within -5 to 5 range)
-{v_1 : float, v_2 : float} |= (v_1 >= -5 ∧ v_1 <= 5) ∧ (v_2 >= -5 ∧ v_2 <= 5)
->>
-Rule 80 (Tensor shape must be within certain limits)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000
->>
-Rule 81 (Lower Bound must be negative for ReLU)
-{v_1 : float} |= v_1 < 0
->>
-Rule 82 (Upper Bound must be positive for ReLU)
-{v_1 : float} |= v_1 > 0
->>
-Rule 84 (if shape[i] is 1, dimension i should not be reduced.)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len-1] : if shape(v_1, v_2[i]) = 1 then false
->>
-Rule 85 (Check data type is not complex number)
-{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
->>
-Rule 87 (If lower bound equal to negative number, then upper bound equal to positive number)
-{v_1 : float, v_2 : float} |= if v_1 = -1 then v_2 = 1
->>
-Rule 88 (Lower bound cannot be bigger than upper bound)
-{v_1 : float, v_2 : float} |= v_1 <= v_2
->>
-Rule 89 (Check the dimension of the tensor is 3 and all the shapes are the same)
-{v_1 : tensor} |= ndim(v_1) = 3 ∧ shape(v_1, 0) = shape(v_1, 1) ∧ shape(v_1, 1) = shape(v_1, 2)
->>
-Rule 90 (A bound should never exceed a large limit)
-{v_1 : float} |= v_1 < 1000000
->>
-Rule 91 (When dimension is equal to 0, the shape also has to be 0)
-{v_1 : tensor} |= if ndim(v_1) = 0 then shape(v_1, 0) = 0
->>
-Rule 92 (Shape must be one or two dimension)
-{v_1: tensor} |= ndim(v_1) = 1 ∨ ndim(v_1) = 2
->>
-Rule 94 (Lower bound must be smaller than 1000 for stable quantization.)
-{v_1 : float} |= v_1 < 1000
->>
-Rule 95 (Check for value zero if lower bound and upper bound have the same sign.)
-{v_1 : float, v_2 : float} |= if (v_1 > 0 ∧ v_2 > 0) ∨ (v_1 < 0 ∧ v_2 < 0) then v_1 = 0 ∨ v_2 = 0
->>
-Rule 96 (If one is none, the other is also none)
-{v_1 : str, v_2 : str} |= if v_1 = "none" then v_2 = "none" else if v_2 = "none" then v_1 = "none"
->>
-Rule 97 (Check if tensors contain at least 1 dimension)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) >= 1 ∧ ndim(v_2) >= 1
->>
-Rule 98 (The range of lower and upper bound can not be zero)
-{v_1 : float, v_2 : float} |= v_2 - v_1 ≠ 0
->>
-Rule 99 (Lower Bound and Upper bound can't be too close together)
-{v_1 : float, v_2 : float} |= if (v_2 - v_1) < 0.0001 then false
->>
-Rule 100 (Check valid shape. The shape needs to be bigger than 2)
-{v_1 : tensor} |= shape(v_1, 0) > 2
->>
-Rule 101 (The product of shape of the tensor cannot exceed the maximum value.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) * shape(v_1, i) < 100000
->>
-Rule 102 (Lower bound has to be bigger or equal than minimum tensor value if lower bound exists)
-{v_1 : tensor, v_2 : float} |= if v_2 ≠ STRING then v_2 ≥ min(v_1)
->>
-Rule 103 (Upper bound has to be smaller or equal than maximum tensor value if upper bound exists)
-{v_1 : tensor, v_2 : float} |= if v_2 ≠ STRING then v_2 ≤ max(v_1)
->>
-Rule 104 (Valid tensor shape with even dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) / 2 = 0
->>
-Rule 105 (if one is None, then the other needs to be none)
-{v_1 : float, v_2 : float} |= if v_1 = STRING then v_2 = STRING else if v_2 = STRING then v_1 = STRING
->>
-Rule 106 (if lower bound is positive, then upper bound needs to be also positive.)
-{v_1 : float, v_2 : float} |= if v_1 > 0 then v_2 > 0
->>
-Rule 107 (The sum of all the dimensions needs to be bigger than zero)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 108 (The size of a given list can't exceed a certain limit)
-{v_1 : list(float)} |= v_1.len < 100
->>
-Rule 109 (Check data type of tensor should belong to the given range)
-{v_1 : tensor} |= dtype_(v_1) > 0 ∧ dtype_(v_1) < 13
->>
-Rule 110 (Check that list only contains integer values)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
->>
-Rule 111 (Check if all shapes are equal and non zero)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_1, 0) ∧ shape(v_1, i) > 0
->>
-Rule 112 (Valid check for lower and upper bound. The difference must be below a certain threshold.)
-{v_1 : float, v_2 : float} |= (v_2 - v_1) < 1000
->>
-Rule 114 (if list is empty, tensor shape at dimension 0 must be equal to 0)
-{v_1 : tensor, v_2 : list(int)} |= if v_2.len = 0 then shape(v_1, 0) = 0
->>
-Rule 115 (List needs to have a minimum size)
-{v_1 : list(int)} |= v_1.len > 2
->>
-Rule 116 (The absolute value of both bounds must be within a defined range)
-{v_1 : float, v_2 : float} |= (v_1 > -10 ∧ v_1 < 10) ∧ (v_2 > -10 ∧ v_2 < 10)
->>
-Rule 117 (If list contains int, tensor dtype needs to be int compatible)
-{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5)
->>
-Rule 118 (If list is not int, then tensor dtype needs to be a float)
-{v_1 : tensor, v_2 : list(float)} |= if v_2.len > 0 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
->>
-Rule 119 (The number of shapes must match the number of parameters)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2
->>
-Rule 120 (Check that both are positive or negative)
-{v_1 : float, v_2 : float} |= (v_1 > 0 ∧ v_2 > 0) ∨ (v_1 < 0 ∧ v_2 < 0)
->>
-Rule 123 (shape can not be zero and must have at least 1)
-{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1,0) >= 1
->>
-Rule 124 (if list is not None then tensor dtype has to be one of the allowed types)
-{v_1 : tensor, v_2 : list(float)} |= if v_2 ≠ STRING then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 13)
->>
-Rule 125 (There is at least 1 number in list that isn't zero.)
-{v_1 : list(int)} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] ≠ 0
->>
-Rule 127 (Check there's no infinity values.)
-{v_1 : float ⊎ int, v_2 : float ⊎ int} |= v_1 ≠ NUMBER ∧ v_2 ≠ NUMBER
->>
-Rule 128 (Tensor has to be at least size 1x1)
-{v_1 : tensor} |= ndim(v_1) = 2 ∧ shape(v_1, 0) ≥ 1 ∧ shape(v_1, 1) ≥ 1
->>
-Rule 129 (tensor is of shape (N, C, H, W) where N is not equal 0)
-{v_1 : tensor} |= ndim(v_1) = 4 ∧ shape(v_1, 0) ≠ 0
->>
-Rule 132 (shape is not a negative number and no zero value if ndim > 0 )
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 133 (List must contain at least two different numbers)
-{v_1 : list(float)} |= ∃i ∈ [0, v_1.len - 2] : v_1[i] ≠ v_1[i+1]
->>
-Rule 135 (List can not be empty if the hardtanh function is used.)
-{v_1 : list(float), v_2 : str} |= if v_2 = "tanh" then v_1.len > 0
->>
-Rule 136 (Make sure Lower and upper bound is the same)
-{v_1 : float, v_2 : float} |= v_1 = v_2
->>
-Rule 137 (If one bound is None, the other needs to be also None)
-{v_1 : float ⊎ str, v_2 : float ⊎ str} |= (v_1 = STRING ∧ v_2 = STRING) ∨ (v_1 ≠ STRING ∧ v_2 ≠ STRING)
->>
-Rule 138 (Tensor dimensions needs to be at least of size 1 and 2 max if list is present)
-{v_1 : tensor, v_2 : list(float)} |= if v_2.len > 0 then (ndim(v_1) = 1 ∨ ndim(v_1) = 2)
->>
-Rule 139 (If we define lower and upper bound, then the value for dimension must be one)
-{v_1 : tensor, v_2 : float, v_3 : float} |= if v_2 ≠ STRING ∧ v_3 ≠ STRING then shape(v_1, 0) = 1
->>
-Rule 140 (Shape along a dimension cannot exceed a certain value)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 5000
->>
-Rule 141 (If shape is of size three it can't be lower than 1 and has to be under 100)
-{v_1 : tensor} |= if ndim(v_1) = 3 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1 ∧ shape(v_1, i) < 100
->>
-Rule 142 (If the tensor dtype is bool, the lower and upper bound need to be 0 and 1 if they exist)
-{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 0 then (v_2 = NUMBER ∨ v_3 = NUMBER ∨ (v_2 = 0 ∧ v_3 = 1))
->>
-Rule 145 (It is mandatory for the tensor to be 4-dimensional.)
-{v_1 : tensor} |= ndim(v_1) = 4
->>
-Rule 146 (If all values are the same in the list, this is forbidden)
-{v_1 : list(float)} |= ∃i ∈ [0, v_1.len - 1] : ∃j ∈ [0, v_1.len - 1] : v_1[i] ≠ v_1[j]
->>
-Rule 147 (Must provide at least 1 number and 2 at max.)
-{v_1 : float, v_2 : float} |= v_1 ≠ STRING ∨ v_2 ≠ STRING
->>
-Rule 148 (Cannot set to true, this value can't be initialized.)
-{v_1 : bool} |= v_1 = false
->>
-Rule 149 (The Lower bound can not be greater than the upper bound unless lower is "none".)
-{v_1 : float, v_2 : float} |= if v_1 = STRING then true else v_1 ≤ v_2
->>
-Rule 151 (if type float is given, only this dtype is allowed.)
-{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
->>
-Rule 153 (The size is within specific range and a minimum size is also defined. )
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) < 2000 ∧ shape(v_1, i) > 5
->>
-Rule 154 (Lower bound has to be an integer and can only be assigned the value of -1.)
-{v_1 : int} |= v_1 = -1
->>
-Rule 155 (Can not set to false if the upper bound is bigger than one.)
-{v_1 : bool, v_2 : float} |= if v_2 > 1 then v_1 = true
->>
-Rule 156 (Tensor is an empty tensor.)
-{v_1 : tensor} |= ndim(v_1) = 0
->>
-Rule 157 (The shape of the tensor should be a cube (all dimensions equal).)
-{v_1 : tensor} |= (ndim(v_1) = 3 ∧ shape(v_1, 0) = shape(v_1, 1) ∧ shape(v_1, 1) = shape(v_1, 2))
->>
-Rule 158 (the absolute value of each element is greater than or equal to zero)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
->>
-Rule 159 (If one bound is infinity, then the other must be STRING (representing none))
-{v_1 : float ⊎ str, v_2 : float ⊎ str} |= if v_1 = NUMBER then v_2 = STRING else if v_2 = NUMBER then v_1 = STRING
->>
-Rule 160 (Shape of the tensor has to be greater than 1 in at least one dimension and the other lower or equal to 1. )
-{v_1 : tensor} |= (shape(v_1, 0) > 1 ∧ shape(v_1, 1) ≤ 1) ∨ (shape(v_1, 1) > 1 ∧ shape(v_1, 0) ≤ 1)
->>
-Rule 161 (Tensor Dtype needs to be integer if we only use int types.)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ NUMBER then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5)
->>
-Rule 162 (Minimum value is given for the list length.)
-{v_1 : list(float)} |= v_1.len > 1
->>
-Rule 163 (Tensors dimension can only have size three. )
-{v_1 : tensor} |= ndim(v_1) = 3
->>
-Rule 164 (Lower bound can not exceed Upper Bound by the value of one)
-{v_1 : float, v_2 : float} |= (v_2 - v_1) ≤ 1
->>
-Rule 165 (If the user defines just a tensor the minimum size of it's dimensions has to be one)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1
->>
-Rule 166 (String only contains supported operations.)
-{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max"
->>
-Rule 167 (check if tuple contains valid dimensions)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
->>
-Rule 170 (The lower bound should be non-positive and the upper bound non-negative to have a valid range)
-{v_1 : float, v_2 : float} |= (v_1 ≤ 0) ∧ (v_2 ≥ 0)
->>
-Rule 171 (The tensor should not have more than five dimensions to be valid)
-{v_1 : tensor} |= ndim(v_1) < 5
->>
-Rule 172 (All tuples must have valid number)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ NUMBER
->>
-Rule 173 (All elements are bigger than 0.5 and the result is bigger than certain number.)
-{v_1 : list(float)} |= v_1.len > 0 ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0.5) ∧ (∃i ∈ [0, v_1.len - 1] : v_1[i] > 10)
->>
-Rule 174 (Both, lower and upper bound must have the same sign and be valid.)
-{v_1 : float, v_2 : float} |= if v_1 > 0 then v_2 > 0 else if v_1 < 0 then v_2 < 0
->>
-Rule 176 (Must specify, if lower and upper bound are defined.)
-{v_1 : float, v_2 : float} |= (v_1 ≠ STRING ∧ v_2 ≠ STRING) ∨ (v_1 = STRING ∧ v_2 = STRING)
->>
-Rule 178 (If the length of the tuple is zero it is valid.)
-{v_1 : tuple(int)} |= v_1.len = 0
+Rule 69 (if min_val > any value of the tensor, than the hardtanh is useless)
+{v_1 : tensor, v_2 : float} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ v_2 > max(v_1) then true

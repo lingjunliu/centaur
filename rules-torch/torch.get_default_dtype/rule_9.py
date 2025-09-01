@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# get_default_dtype should not return a np.dtype dtype (Rule 9)
+# The default dtype should be a float or complex but not float16 (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] != 12) if n else
-          v["arg1_value"] != 12)
+    s.add(Not((Or(Or(Or(v["arg1_value"] == 7, v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10))) if n else
+          (Or(Or(Or(v["arg1_value"] == 7, v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10)))
 )
 
 def rule_9_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check valid range for num_features when affine is used. (Rule 22)
+# If track_running_stats is true, ensure the running_mean and running_var have appropriate size. This rule approximates a valid check (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, And(v["arg2_value"] > 0, v["arg2_value"] < 65535), False)) if n else
-          If(v["arg1_value"] == True, And(v["arg2_value"] > 0, v["arg2_value"] < 65535), False))
+    s.add(Not(If(v["arg1_value"] == True, v["arg2_value"] > 0, True)) if n else
+          If(v["arg1_value"] == True, v["arg2_value"] > 0, True))
 )
 
 def rule_22_func(arg1, arg2, solver=None, neg=False):

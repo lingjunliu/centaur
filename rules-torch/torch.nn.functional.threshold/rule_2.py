@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# value should not be too large for float16 (Rule 2)
+# Value should be a valid float to avoid overflow error when converting to half type (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] < 65500, v["arg1_value"] > -65500)) if n else
-          And(v["arg1_value"] < 65500, v["arg1_value"] > -65500))
+    s.add(Not(And(v["arg1_value"] >= -65504.0, v["arg1_value"] <= 65504.0)) if n else
+          And(v["arg1_value"] >= -65504.0, v["arg1_value"] <= 65504.0))
 )
 
 def rule_2_func(arg1, solver=None, neg=False):

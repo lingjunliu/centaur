@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input and Output Dtype should be same, when input dtype is within valid range (Rule 37)
+# if out tensor is provided, and input is complex64, out's dtype should be float32. If input is complex128, out's dtype should be float64. If the input is real, out should have the same dtype. (Rule 37)
 
 rule_37 = lambda s, v, n=False: (
-    s.add(Not(If(Or((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)), (And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 10))), v["arg1_dtype"] == v["arg2_dtype"], False)) if n else
-          If(Or((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)), (And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 10))), v["arg1_dtype"] == v["arg2_dtype"], False))
+    s.add(Not(If(v["arg1_dtype"] == 9, v["arg2_dtype"] == 7, If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 8, v["arg2_dtype"] == v["arg1_dtype"]))) if n else
+          If(v["arg1_dtype"] == 9, v["arg2_dtype"] == 7, If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 8, v["arg2_dtype"] == v["arg1_dtype"])))
 )
 
 def rule_37_func(arg1, arg2, solver=None, neg=False):

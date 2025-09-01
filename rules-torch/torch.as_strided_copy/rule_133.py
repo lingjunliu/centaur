@@ -5,32 +5,48 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The data type can only be of type half precision float or single precision float to prevent memory error (Rule 133)
+# If there are stride values, then storage must be less than a limit, or zero values should not exist as stride, as it results out of bounds  (Rule 133)
 
 rule_133 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7)) if n else
-          Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7))
+    s.add(Not(If(And((Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])), (Or([And(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) == 0) for i in range(6)]))), v["arg3_value"] < 10000000, True)) if n else
+          If(And((Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])), (Or([And(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) == 0) for i in range(6)]))), v["arg3_value"] < 10000000, True))
 )
 
-def rule_133_func(arg1, solver=None, neg=False):
+def rule_133_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
+        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+            return False
+        if not (isinstance(arg3, (int, np.integer)) and not isinstance(arg3, bool)):
+            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_length = Int('arg2_length')
+        arg2_values = Array('arg2_values', IntSort(), IntSort())
+        arg3_value = Int('arg3_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg2_length == len(arg2))
+        for i in range(len(arg2)):
+            arg2_values = Store(arg2_values, i, arg2[i])
+        solver.add(arg3_value == int(arg3))
 
         # Constraints for rule 133
-        rule_133(solver, {'arg1_dtype': arg1_dtype})
+        rule_133(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length, 'arg2_values': arg2_values, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_133(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_133(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length'], 'arg2_values': arg2['values'], 'arg3_value': arg3['value']}, neg)

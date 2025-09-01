@@ -1,51 +1,126 @@
 >>
-Rule 1 (Input tensor should not be a complex type)
+Rule 1 (min must be less than or equal to max when both are numbers)
+{v_1 : float, v_2 : float} |= v_1 ≤ v_2
+>>
+Rule 3 (input tensor's dtype cannot be complex)
 {v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
 >>
-Rule 3 (If min is a tensor, its dtype must be the same as the input tensor's dtype.)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_2) = 0) ∨ (dtype_(v_1) = dtype_(v_2))
+Rule 4 (If min and max are tensors, they must have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 4 (If max is a tensor, its dtype must be the same as the input tensor's dtype.)
-{v_1 : tensor, v_3 : tensor} |= (ndim(v_3) = 0) ∨ (dtype_(v_1) = dtype_(v_3))
+Rule 5 (if both min and max are specified as tensor, their dtype should be same.)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 5 (If min and max are provided, min must be less than or equal to max)
-{v_2 : int ⊎ float, v_3 : int ⊎ float} |= v_2 ≤ v_3
+Rule 6 (min cannot be greater than max when both min and max are tensors)
+{v_1 : tensor, v_2 : tensor} |= max(v_1) ≤ min(v_2)
 >>
-Rule 6 (If min and max are tensors, they must have the same size)
-{v_2 : tensor, v_3 : tensor} |= (ndim(v_2) = 0 ∨ ndim(v_3) = 0) ∨ (shape(v_2, 0) = shape(v_3, 0) ∧ ∀i ∈ [0, ndim(v_2) -1]: shape(v_2, i) = shape(v_3, i))
+Rule 7 (If min and max are tensors, they must have compatible dtypes with input)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = dtype_(v_2)) ∨ ((dtype_(v_1) = 7) ∧ (dtype_(v_2) = 8)) ∨ ((dtype_(v_1) = 8) ∧ (dtype_(v_2) = 7))
 >>
-Rule 9 (input tensor must be of floating or integer type if min/max is a number)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
+Rule 9 (input tensor's dtype must be float if min/max are provided as numbers)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 10 (if output is given, it must be a tensor)
-{v_4 : tensor} |= ndim(v_4) ≥ 0
+Rule 13 (When min and max are tensors, ensure that input tensor has the same number of dimensions as them)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 11 (if output is given, it must be a tensor and have the same dtype as the input)
-{v_1 : tensor, v_4 : tensor} |= ndim(v_4) ≥ 0 ∧ dtype_(v_1) = dtype_(v_4)
+Rule 14 (If max is a tensor, its elements must be greater than or equal to min of input)
+{v_1 : tensor, v_2 : tensor} |= max(v_2) ≥ min(v_1)
 >>
-Rule 12 (if output is given, it must be a tensor and have the same shape as the input)
-{v_1 : tensor, v_4 : tensor} |= ndim(v_4) = ndim(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_4, i)
+Rule 16 (If min is a tensor, its elements must be less than or equal to max of input)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) <= max(v_1)
 >>
-Rule 13 (If min is a tensor, its shape must be broadcastable to the input tensor's shape)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_2) = 0) ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_2) - 1]: shape(v_2, i) = 1 ∨ shape(v_2, i) = shape(v_1, i))
+Rule 17 (Shape of min should match shape of input if both are tensors and input has more than 0 dimensions)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) > 0) ∧ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 14 (If max is a tensor, its shape must be broadcastable to the input tensor's shape)
-{v_1 : tensor, v_3 : tensor} |= (ndim(v_3) = 0) ∨ (ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_3) - 1]: shape(v_3, i) = 1 ∨ shape(v_3, i) = shape(v_1, i))
+Rule 20 (When input is double, min and max should be double as well)
+{v_1 : tensor} |= if dtype_(v_1) = 8 then true else if dtype_(v_1) = 7 then true else dtype_(v_1) < 6
 >>
-Rule 15 (input tensor should be of Float dtype, to prevent "Found dtype Double but expected Float" error)
-{v_1 : tensor} |= dtype_(v_1) = 7
+Rule 21 (If min is a tensor, it has to be smaller or equal to max for each element in the input tensor if input is a tensor)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 46 (If min and max are tensors they should have compatible dtypes.)
-{v_2 : tensor, v_3 : tensor} |= dtype_(v_2) = dtype_(v_3)
+Rule 22 (If input is integer tensor, both min and max need to be also integer)
+{v_1 : tensor} |= if dtype_(v_1) < 6 then true else dtype_(v_1) > 6
 >>
-Rule 47 (If min is a tensor, it must either be a scalar or have a shape compatible for broadcasting with the input.)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_2) = 0) ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_2, i) = 1)
+Rule 24 (If the input tensor is a complex type, raise an error.)
+{v_1 : tensor} |= dtype_(v_1) < 10
 >>
-Rule 48 (If min is a tensor, it must either be a scalar or have a shape compatible for broadcasting with the input.)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_2) = 0) ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_2, i) = 1) ∨ (ndim(v_2) < ndim(v_1) ∧ ∀i ∈ [0, ndim(v_2) -1] : shape(v_2,i) = shape(v_1, ndim(v_1)-ndim(v_2)+i))
+Rule 26 (If min is a tensor, it has to be smaller or equal to max for each element in the input tensor if input is a tensor, and dimension should match)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 49 (If min is a tensor, it must either be a scalar or have a shape compatible for broadcasting with the input.)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_2) = 0) ∨ ((ndim(v_1) = ndim(v_2)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_2, i) = 1))) ∨ ((ndim(v_2) < ndim(v_1)) ∧ (∀i ∈ [0, ndim(v_2) -1] : (shape(v_2,i) = shape(v_1, ndim(v_1)-ndim(v_2)+i))))
+Rule 28 (Shape of min and max should match shape of input if they are tensors)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i))
 >>
-Rule 51 (If max is a tensor, it must either be a scalar or have a shape compatible for broadcasting with the input.)
-{v_1 : tensor, v_3 : tensor} |= (ndim(v_3) = 0) ∨ ((ndim(v_1) = ndim(v_3)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_3, i) ∨ shape(v_3, i) = 1))) ∨ ((ndim(v_3) < ndim(v_1)) ∧ (∀i ∈ [0, ndim(v_3) -1] : (shape(v_3,i) = shape(v_1, ndim(v_1)-ndim(v_3)+i))))
+Rule 29 (If input is float32, min and max can be either number of float32 tensor)
+{v_1 : tensor} |= if dtype_(v_1) = 7 then true else dtype_(v_1) ≠ 7
+>>
+Rule 34 (If max is a tensor, data type can not be bool)
+{v_1 : tensor} |= dtype_(v_1) > 0
+>>
+Rule 40 (If input is Double, min and max must be Double or None)
+{v_1 : tensor} |= if dtype_(v_1) = 8 then true else false
+>>
+Rule 44 (Check if the dimension of two tensors match to avoid size mismatch issue)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2))
+>>
+Rule 45 (If input is Double, min and max can only be Double or None)
+{v_1 : tensor} |= dtype_(v_1) ≠ 8 ∨ dtype_(v_1) = 8
+>>
+Rule 46 (Check min and max are consistent, if both are defined)
+{v_1 : float, v_2 : float} |= v_1 <= v_2
+>>
+Rule 54 (The shape of the min and input tensors has to be the same)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 55 (If input is Double tensor, min and max should be Double or None)
+{v_1 : tensor} |= if dtype_(v_1) = 8 then true else if dtype_(v_1) ≠ 8 then true else false
+>>
+Rule 65 (The input, min, and max tensors must have compatible data types)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) = dtype_(v_2)) ∧ (dtype_(v_1) = dtype_(v_3))
+>>
+Rule 75 (Input dtype must be consistent with min and max dtypes)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3)
+>>
+Rule 84 (Avoid TypeError: check data types)
+{v_1 : tensor} |= (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5)
+>>
+Rule 87 (Dimension of input, min and max tensors have to be same)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3)
+>>
+Rule 89 (To avoid TypeError ensure types are valid for the function i.e. not str)
+{v_1 : tensor} |= dtype_(v_1) ≠ 12
+>>
+Rule 97 (If one type is a Double, other types must be Double as well if possible)
+{v_1 : tensor} |= if dtype_(v_1) = 8 then true else dtype_(v_1) != 8
+>>
+Rule 99 (If data types of min and max are incompatible e.g. string, an error will occur)
+{v_1 : tensor} |= dtype_(v_1) < 12
+>>
+Rule 103 (To avoid type errors if given a double tensor, both min and max have to be double as well)
+{v_1 : tensor, v_2 : float ⊎ tensor, v_3 : float ⊎ tensor} |= if dtype_(v_1) = 8 then true else if dtype_(v_2) = 8 then true else if dtype_(v_3) = 8 then true else false
+>>
+Rule 108 (If double then every type must also be double)
+{v_1 : tensor} |= if dtype_(v_1) = 8 then true else if dtype_(v_1) != 8 then true else false
+>>
+Rule 109 (If one of min or max is double, all other types have to be double as well to avoid type issues such as not finding a suitable kernel)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) = 8 ∧ dtype_(v_3) = 8
+>>
+Rule 114 (To avoid a type error, if a tensor is provided as input then min and max cannot be strings)
+{v_1 : tensor} |= dtype_(v_1) != 12
+>>
+Rule 118 (To avoid data loss when a double tensor is given, both min and max must also be of dtype double)
+{v_1 : tensor, v_2 : float ⊎ tensor, v_3 : float ⊎ tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) = 8 ∧ dtype_(v_3) = 8
+>>
+Rule 119 (To avoid "Expected object of scalar type Float but got scalar type Double for argument 'other'" error, if the max is double, the input has to be double as well)
+{v_1 : tensor, v_2 : float ⊎ tensor} |= if dtype_(v_2) = 8 then dtype_(v_1) = 8
+>>
+Rule 123 (If max is of type Double, then all inputs including min, max and tensor must be double tensors.)
+{v_1 : float ⊎ tensor} |= if dtype_(v_1) = 8 then true else dtype_(v_1) != 8
+>>
+Rule 128 (If either max or min is a tensor, then their data type must agree with input)
+{v_1 : tensor} |= if dtype_(v_1) > 6 then dtype_(v_1) < 9 else if dtype_(v_1) < 6 then dtype_(v_1) > 0
+>>
+Rule 138 (Type matching between the tensors involved, the types can not be mismatched and must agree.)
+{v_1 : tensor, v_2 : float ⊎ tensor, v_3 : float ⊎ tensor} |= if dtype_(v_1) > 5 then dtype_(v_2) > 5 ∧ dtype_(v_3) > 5 else if dtype_(v_1) < 6 then dtype_(v_2) < 6 ∧ dtype_(v_3) < 6
+>>
+Rule 143 (If the input is a double tensor, the min and max need to be double, or the operation is ambiguous and won't work)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) = 8

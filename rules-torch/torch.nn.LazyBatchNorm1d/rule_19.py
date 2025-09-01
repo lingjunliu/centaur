@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor must have a floating-point or complex dtype to avoid RuntimeError: Only Tensors of floating point and complex dtype can require gradients, assuming dtype 6, 7, 8, 9, 10, 11 represent float/complex. Using if expression. (Rule 19)
+# input tensor's dtype should be float (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, True, If(v["arg1_dtype"] == 7, True, If(v["arg1_dtype"] == 8, True, If(v["arg1_dtype"] == 9, True, If(v["arg1_dtype"] == 10, True, If(v["arg1_dtype"] == 11, True, False))))))) if n else
-          If(v["arg1_dtype"] == 6, True, If(v["arg1_dtype"] == 7, True, If(v["arg1_dtype"] == 8, True, If(v["arg1_dtype"] == 9, True, If(v["arg1_dtype"] == 10, True, If(v["arg1_dtype"] == 11, True, False)))))))
+    s.add(Not(v["arg1_dtype"] == 7) if n else
+          v["arg1_dtype"] == 7)
 )
 
 def rule_19_func(arg1, solver=None, neg=False):

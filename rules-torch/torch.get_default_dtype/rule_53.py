@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If default is numpy, then each numpy array element should be greater than 0 (Rule 53)
+# if you set a default dtype you are saying all unassigned created tensors will have those properties  (Rule 53)
 
 rule_53 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 12, Select(v["arg2_range"], 0) > 0, False)) if n else
-          If(v["arg1_value"] == 12, Select(v["arg2_range"], 0) > 0, False))
+    s.add(Not(If(v["arg1_value"] == 6, v["arg2_dtype"] == 6, If(v["arg1_value"] == 7, v["arg2_dtype"] == 7, If(v["arg1_value"] == 8, v["arg2_dtype"] == 8, If(v["arg1_value"] == 9, v["arg2_dtype"] == 9, If(v["arg1_value"] == 10, v["arg2_dtype"] == 10, True)))))) if n else
+          If(v["arg1_value"] == 6, v["arg2_dtype"] == 6, If(v["arg1_value"] == 7, v["arg2_dtype"] == 7, If(v["arg1_value"] == 8, v["arg2_dtype"] == 8, If(v["arg1_value"] == 9, v["arg2_dtype"] == 9, If(v["arg1_value"] == 10, v["arg2_dtype"] == 10, True))))))
 )
 
 def rule_53_func(arg1, arg2, solver=None, neg=False):
@@ -26,17 +26,16 @@ def rule_53_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_value = Int('arg1_value')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
         solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 53
-        rule_53(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range})
+        rule_53(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_53(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range']}, neg)
+        rule_53(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype']}, neg)

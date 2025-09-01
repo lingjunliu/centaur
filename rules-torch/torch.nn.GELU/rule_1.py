@@ -8,8 +8,8 @@ from z3 import *
 # approximate argument must be either none or tanh (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_value"] == 6, v["arg1_value"] == 13)) if n else
-          Or(v["arg1_value"] == 6, v["arg1_value"] == 13))
+    s.add(Not(Or(v["arg1_value"] == 6, v["arg1_value"] == 12)) if n else
+          Or(v["arg1_value"] == 6, v["arg1_value"] == 12))
 )
 
 def rule_1_func(arg1, solver=None, neg=False):

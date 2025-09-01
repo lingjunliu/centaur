@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Tuple Padding Value Size Restriction (Rule 29)
+# If padding is a tuple, each element should be small relative to the tensor size (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 4, And(Select(v["arg1_shape"], 2) + Select(v["arg2_values"], 2) + Select(v["arg2_values"], 3) > -10000, Select(v["arg1_shape"], 3) + Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1) > -10000), False)) if n else
-          If(v["arg1_ndim"] == 4, And(Select(v["arg1_shape"], 2) + Select(v["arg2_values"], 2) + Select(v["arg2_values"], 3) > -10000, Select(v["arg1_shape"], 3) + Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1) > -10000), False))
+    s.add(Not(If(v["arg1_ndim"] == 3, And(And(And(Select(v["arg2_values"], 0) < Select(v["arg1_shape"], 2), Select(v["arg2_values"], 1) < Select(v["arg1_shape"], 2)), Select(v["arg2_values"], 2) < Select(v["arg1_shape"], 1)), Select(v["arg2_values"], 3) < Select(v["arg1_shape"], 1)), And(And(And(Select(v["arg2_values"], 0) < Select(v["arg1_shape"], 3), Select(v["arg2_values"], 1) < Select(v["arg1_shape"], 3)), Select(v["arg2_values"], 2) < Select(v["arg1_shape"], 2)), Select(v["arg2_values"], 3) < Select(v["arg1_shape"], 2)))) if n else
+          If(v["arg1_ndim"] == 3, And(And(And(Select(v["arg2_values"], 0) < Select(v["arg1_shape"], 2), Select(v["arg2_values"], 1) < Select(v["arg1_shape"], 2)), Select(v["arg2_values"], 2) < Select(v["arg1_shape"], 1)), Select(v["arg2_values"], 3) < Select(v["arg1_shape"], 1)), And(And(And(Select(v["arg2_values"], 0) < Select(v["arg1_shape"], 3), Select(v["arg2_values"], 1) < Select(v["arg1_shape"], 3)), Select(v["arg2_values"], 2) < Select(v["arg1_shape"], 2)), Select(v["arg2_values"], 3) < Select(v["arg1_shape"], 2))))
 )
 
 def rule_29_func(arg1, arg2, solver=None, neg=False):

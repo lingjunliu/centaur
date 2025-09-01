@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# height must be divisible by downscale_factor (Rule 8)
+# The height and width (last two dimensions (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not((Select(v["arg1_shape"], v["arg1_ndim"] - 2) / v["arg2_value"]) == (Select(v["arg1_shape"], v["arg1_ndim"] - 2) / v["arg2_value"])) if n else
-          (Select(v["arg1_shape"], v["arg1_ndim"] - 2) / v["arg2_value"]) == (Select(v["arg1_shape"], v["arg1_ndim"] - 2) / v["arg2_value"]))
+    s.add(Not(And(And(v["arg1_ndim"] >= 3, Select(v["arg1_shape"], v["arg1_ndim"] - 2) % v["arg2_value"] == 0), Select(v["arg1_shape"], v["arg1_ndim"] - 1) % v["arg2_value"] == 0)) if n else
+          And(And(v["arg1_ndim"] >= 3, Select(v["arg1_shape"], v["arg1_ndim"] - 2) % v["arg2_value"] == 0), Select(v["arg1_shape"], v["arg1_ndim"] - 1) % v["arg2_value"] == 0))
 )
 
 def rule_8_func(arg1, arg2, solver=None, neg=False):
@@ -36,9 +36,9 @@ def rule_8_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 8
-        rule_8(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_8(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_8(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_8(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

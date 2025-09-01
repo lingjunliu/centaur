@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input1 has a dimension with size 0, input2 and target must have size 0 on corresponding dimensions. (Rule 52)
+# If all tensors are scalars, then their shapes must equal 1. If tensors are not scalars then shapes are equal. (Rule 52)
 
 rule_52 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (If(v["arg1_ndim"] >= v["arg2_ndim"], v["arg1_ndim"] - 1, v["arg2_ndim"] - 1) + 1), (Or(Or(Or(i >= v["arg1_ndim"], i >= v["arg2_ndim"]), i >= v["arg3_ndim"]), (And(And(Select(v["arg1_shape"], i) == 0, Select(v["arg2_shape"], i) == 0), Select(v["arg3_shape"], i) == 0))))) for i in range(6)])) if n else
-          And([Implies(i < (If(v["arg1_ndim"] >= v["arg2_ndim"], v["arg1_ndim"] - 1, v["arg2_ndim"] - 1) + 1), (Or(Or(Or(i >= v["arg1_ndim"], i >= v["arg2_ndim"]), i >= v["arg3_ndim"]), (And(And(Select(v["arg1_shape"], i) == 0, Select(v["arg2_shape"], i) == 0), Select(v["arg3_shape"], i) == 0))))) for i in range(6)]))
+    s.add(Not(Or((And(And(And(And(And(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), v["arg3_ndim"] == 0), Select(v["arg1_shape"], 0) == 1), Select(v["arg2_shape"], 0) == 1), Select(v["arg3_shape"], 0) == 1)), (And(And(And(And(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), v["arg3_ndim"] > 0), v["arg1_ndim"] == v["arg2_ndim"]), v["arg2_ndim"] == v["arg3_ndim"]), (And([Implies(i < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), Select(v["arg2_shape"], i) == Select(v["arg3_shape"], i))) for i in range(6)])))))) if n else
+          Or((And(And(And(And(And(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), v["arg3_ndim"] == 0), Select(v["arg1_shape"], 0) == 1), Select(v["arg2_shape"], 0) == 1), Select(v["arg3_shape"], 0) == 1)), (And(And(And(And(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), v["arg3_ndim"] > 0), v["arg1_ndim"] == v["arg2_ndim"]), v["arg2_ndim"] == v["arg3_ndim"]), (And([Implies(i < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), Select(v["arg2_shape"], i) == Select(v["arg3_shape"], i))) for i in range(6)]))))))
 )
 
 def rule_52_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -47,9 +47,9 @@ def rule_52_func(arg1, arg2, arg3, solver=None, neg=False):
             arg3_shape = Store(arg3_shape, i, arg3.shape[i])
 
         # Constraints for rule 52
-        rule_52(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape, 'arg3_ndim': arg3_ndim, 'arg3_shape': arg3_shape})
+        rule_52(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg3_shape': arg3_shape, 'arg3_ndim': arg3_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_52(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape'], 'arg3_ndim': arg3['ndim'], 'arg3_shape': arg3['shape']}, neg)
+        rule_52(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_shape': arg3['shape'], 'arg3_ndim': arg3['ndim']}, neg)

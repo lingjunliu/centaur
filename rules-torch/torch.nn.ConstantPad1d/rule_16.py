@@ -5,37 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# padding length must be even for multi-dimensional inputs when given a tuple of size greater than 0 (Rule 16)
+# Padding value should not be too large to avoid potential overflow (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg2_ndim"] > 1, v["arg1_length"] > 0), Or([And(i < (1 + 1), v["arg1_length"] == 2 * (i + 1)) for i in range(6)]), False)) if n else
-          If(And(v["arg2_ndim"] > 1, v["arg1_length"] > 0), Or([And(i < (1 + 1), v["arg1_length"] == 2 * (i + 1)) for i in range(6)]), False))
+    s.add(Not(And(v["arg1_value"] < 1000000000, v["arg1_value"] > -1000000000)) if n else
+          And(v["arg1_value"] < 1000000000, v["arg1_value"] > -1000000000))
 )
 
-def rule_16_func(arg1, arg2, solver=None, neg=False):
+def rule_16_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
-            return False
-        if not isinstance(arg2, np.ndarray):
+        if not isinstance(arg1, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
-        arg2_ndim = Int('arg2_ndim')
+        arg1_value = Real('arg1_value')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
-        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 16
-        rule_16(solver, {'arg1_length': arg1_length, 'arg2_ndim': arg2_ndim})
+        rule_16(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_16(solver, {'arg1_length': arg1['length'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_16(solver, {'arg1_value': arg1['value']}, neg)

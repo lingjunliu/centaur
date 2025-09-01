@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If track running stats set then number of features should be positive (Rule 133)
+# momentum > 0 or eps > 0 (Rule 133)
 
 rule_133 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, v["arg2_value"] > 0, False)) if n else
-          If(v["arg1_value"] == True, v["arg2_value"] > 0, False))
+    s.add(Not(Or(v["arg1_value"] > 0, v["arg2_value"] > 0)) if n else
+          Or(v["arg1_value"] > 0, v["arg2_value"] > 0))
 )
 
 def rule_133_func(arg1, arg2, solver=None, neg=False):
@@ -18,19 +18,19 @@ def rule_133_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not isinstance(arg1, (float, np.floating)):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg2, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_value = Int('arg2_value')
+        arg1_value = Real('arg1_value')
+        arg2_value = Real('arg2_value')
 
         # Value assignments
         solver.add(arg1_value == arg1)
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 133
         rule_133(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})

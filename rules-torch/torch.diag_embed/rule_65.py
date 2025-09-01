@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The be-all and end-all rule (Rule 65)
+# If ndim(input (Rule 65)
 
 rule_65 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 0, And(v["arg2_value"] == 0, v["arg3_value"] == 0), And(And(And(And(And(And(And((v["arg1_ndim"] > 0), (If(v["arg2_value"] < 0, (0 - v["arg2_value"]), v["arg2_value"])) <= v["arg1_ndim"]), (If(v["arg3_value"] < 0, (0 - v["arg3_value"]), v["arg3_value"])) <= v["arg1_ndim"]), v["arg2_value"] >= (0 - v["arg1_ndim"])), v["arg2_value"] < v["arg1_ndim"]), v["arg3_value"] >= (0 - v["arg1_ndim"])), v["arg3_value"] < v["arg1_ndim"]), (Or(v["arg1_ndim"] < 2, v["arg2_value"] != v["arg3_value"]))))) if n else
-          If(v["arg1_ndim"] == 0, And(v["arg2_value"] == 0, v["arg3_value"] == 0), And(And(And(And(And(And(And((v["arg1_ndim"] > 0), (If(v["arg2_value"] < 0, (0 - v["arg2_value"]), v["arg2_value"])) <= v["arg1_ndim"]), (If(v["arg3_value"] < 0, (0 - v["arg3_value"]), v["arg3_value"])) <= v["arg1_ndim"]), v["arg2_value"] >= (0 - v["arg1_ndim"])), v["arg2_value"] < v["arg1_ndim"]), v["arg3_value"] >= (0 - v["arg1_ndim"])), v["arg3_value"] < v["arg1_ndim"]), (Or(v["arg1_ndim"] < 2, v["arg2_value"] != v["arg3_value"])))))
+    s.add(Not(If(v["arg1_ndim"] > 0, v["arg2_value"] != v["arg3_value"], True)) if n else
+          If(v["arg1_ndim"] > 0, v["arg2_value"] != v["arg3_value"], True))
 )
 
 def rule_65_func(arg1, arg2, arg3, solver=None, neg=False):

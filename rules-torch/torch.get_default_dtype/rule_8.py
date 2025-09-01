@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# get_default_dtype should not return a complex dtype (Rule 8)
+# The current default dtype must be a floating point or complex type. (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] != 9, v["arg1_value"] != 10)) if n else
-          And(v["arg1_value"] != 9, v["arg1_value"] != 10))
+    s.add(Not(And(6 <= v["arg1_value"], v["arg1_value"] <= 10)) if n else
+          And(6 <= v["arg1_value"], v["arg1_value"] <= 10))
 )
 
 def rule_8_func(arg1, solver=None, neg=False):

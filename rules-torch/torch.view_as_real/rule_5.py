@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor's dtype must not be one of the non-complex dtypes (Rule 5)
+# input tensor dtype is either complex64 or complex128 (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(And(And(And(And(And(v["arg1_dtype"] != 0, v["arg1_dtype"] != 1), v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5), v["arg1_dtype"] != 6), v["arg1_dtype"] != 7), v["arg1_dtype"] != 8)) if n else
-          And(And(And(And(And(And(And(And(v["arg1_dtype"] != 0, v["arg1_dtype"] != 1), v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5), v["arg1_dtype"] != 6), v["arg1_dtype"] != 7), v["arg1_dtype"] != 8))
+    s.add(Not(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 9)) if n else
+          Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 9))
 )
 
 def rule_5_func(arg1, solver=None, neg=False):

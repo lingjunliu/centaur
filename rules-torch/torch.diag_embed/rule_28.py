@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If dim1 and dim2 are equal to -1 and -2 then number of dimensions should be greater than or equal to 1, also if any of them are other values then ndim should be 1 (Rule 28)
+# When dim1 and dim2 are close to exceeding dimension range, check they are not the same (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg2_value"] == -2, v["arg3_value"] == -1), v["arg1_ndim"] >= 1, If(Or((And(v["arg2_value"] != -2, v["arg2_value"] != -1)), (And(v["arg3_value"] != -1, v["arg3_value"] != -2))), v["arg1_ndim"] == 1, False))) if n else
-          If(And(v["arg2_value"] == -2, v["arg3_value"] == -1), v["arg1_ndim"] >= 1, If(Or((And(v["arg2_value"] != -2, v["arg2_value"] != -1)), (And(v["arg3_value"] != -1, v["arg3_value"] != -2))), v["arg1_ndim"] == 1, False)))
+    s.add(Not(If(v["arg1_ndim"] < 3, v["arg2_value"] != v["arg3_value"], True)) if n else
+          If(v["arg1_ndim"] < 3, v["arg2_value"] != v["arg3_value"], True))
 )
 
 def rule_28_func(arg1, arg2, arg3, solver=None, neg=False):

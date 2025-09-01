@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the input tensor's dtype is a floating point type, the output tensor's dtype should be a compatible floating point type (Rule 26)
+# If an output tensor `v_2` is provided and is a floating-point type, then the input tensor `v_1` should have elements greater than or equal to 1.0 (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, (Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8)), If(v["arg1_dtype"] == 7, (Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8)), If(v["arg1_dtype"] == 8, (v["arg2_dtype"] == 8), False)))) if n else
-          If(v["arg1_dtype"] == 6, (Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8)), If(v["arg1_dtype"] == 7, (Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8)), If(v["arg1_dtype"] == 8, (v["arg2_dtype"] == 8), False))))
+    s.add(Not(If(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), Select(v["arg1_range"], 0) >= 1, True)) if n else
+          If(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), Select(v["arg1_range"], 0) >= 1, True))
 )
 
 def rule_26_func(arg1, arg2, solver=None, neg=False):
@@ -25,17 +25,18 @@ def rule_26_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
         arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 26
-        rule_26(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_26(solver, {'arg1_range': arg1_range, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_26(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_26(solver, {'arg1_range': arg1['range'], 'arg2_dtype': arg2['dtype']}, neg)

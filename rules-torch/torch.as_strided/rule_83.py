@@ -5,42 +5,35 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Shape and Strides must have at least the same dimensions as the tensor. (Rule 83)
+# If size is a single element and is less than 0, it is problematic (Rule 83)
 
 rule_83 = lambda s, v, n=False: (
-    s.add(Not(And((v["arg1_ndim"] == v["arg2_length"]), (v["arg1_ndim"] == v["arg3_length"]))) if n else
-          And((v["arg1_ndim"] == v["arg2_length"]), (v["arg1_ndim"] == v["arg3_length"])))
+    s.add(Not(If(v["arg1_length"] == 1, Select(v["arg1_values"], 0) > 0, True)) if n else
+          If(v["arg1_length"] == 1, Select(v["arg1_values"], 0) > 0, True))
 )
 
-def rule_83_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_83_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
-            return False
-        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
-            return False
-        if not (isinstance(arg3, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg3)):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_length = Int('arg2_length')
-        arg3_length = Int('arg3_length')
+        arg1_length = Int('arg1_length')
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_length == len(arg2))
-        solver.add(arg3_length == len(arg3))
+        solver.add(arg1_length == len(arg1))
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 83
-        rule_83(solver, {'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length, 'arg3_length': arg3_length})
+        rule_83(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_83(solver, {'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length'], 'arg3_length': arg3['length']}, neg)
+        rule_83(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values']}, neg)

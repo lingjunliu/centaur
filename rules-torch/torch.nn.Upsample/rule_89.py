@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if align_corners is True, tensor must have a float datatype (Rule 89)
+# if mode is area, align corners should be false (Rule 89)
 
 rule_89 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, (Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8)), False)) if n else
-          If(v["arg1_value"] == True, (Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8)), False))
+    s.add(Not(If(v["arg1_value"] == 29, v["arg2_value"] == False, True)) if n else
+          If(v["arg1_value"] == 29, v["arg2_value"] == False, True))
 )
 
 def rule_89_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,24 @@ def rule_89_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not isinstance(arg1, str):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_dtype = Int('arg2_dtype')
+        arg1_value = String('arg1_value')
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 89
-        rule_89(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype})
+        rule_89(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_89(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_89(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

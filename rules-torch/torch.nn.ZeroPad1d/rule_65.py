@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Padding is not too big for int - avoid Alloc CPU error (Rule 65)
+# Padding length must be divisible by 2, checking that pad is a tuple (Rule 65)
 
 rule_65 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 10000000) if n else
-          v["arg1_value"] < 10000000)
+    s.add(Not(If(v["arg1_length"] % 2 == 0, True, False)) if n else
+          If(v["arg1_length"] % 2 == 0, True, False))
 )
 
 def rule_65_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_65_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_length = Int('arg1_length')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
+        solver.add(arg1_length == len(arg1))
 
         # Constraints for rule 65
-        rule_65(solver, {'arg1_value': arg1_value})
+        rule_65(solver, {'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_65(solver, {'arg1_value': arg1['value']}, neg)
+        rule_65(solver, {'arg1_length': arg1['length']}, neg)

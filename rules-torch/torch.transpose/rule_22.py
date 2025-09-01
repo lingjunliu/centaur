@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the tensor has one dimension, dim0 + dim1 must be -1 (Rule 22)
+# input tensor should have at least two dimensions if dim0 and dim1 are greater or equal than 0 (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 1, v["arg2_value"] + v["arg3_value"] == -1, False)) if n else
-          If(v["arg1_ndim"] == 1, v["arg2_value"] + v["arg3_value"] == -1, False))
+    s.add(Not(If(And(v["arg2_value"] >= 0, v["arg3_value"] >= 0), v["arg1_ndim"] >= 2, True)) if n else
+          If(And(v["arg2_value"] >= 0, v["arg3_value"] >= 0), v["arg1_ndim"] >= 2, True))
 )
 
 def rule_22_func(arg1, arg2, arg3, solver=None, neg=False):

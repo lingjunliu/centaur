@@ -1,144 +1,138 @@
 >>
-Rule 1 (input_size and hidden_size should be positive integers to avoid negative dimension errors)
-{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+Rule 1 (input_size and hidden_size should be positive integers)
+{input_size : int, hidden_size : int} |= input_size > 0 ∧ hidden_size > 0
 >>
 Rule 2 (nonlinearity should be either 'tanh' or 'relu')
-{v_1 : str} |= v_1 = "tanh" ∨ v_1 = "relu"
+{nonlinearity : str} |= nonlinearity = "tanh" ∨ nonlinearity = "relu"
 >>
-Rule 3 (input and hidden tensors should have the same number of dimensions)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Rule 3 (input tensor must have input_size as its last dimension if ndim is greater than 0)
+{input : tensor, input_size : int} |= if ndim(input) > 0 then shape(input, ndim(input) - 1) = input_size
 >>
-Rule 4 (bias must be a boolean value)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 4 (hidden tensor must have hidden_size as its last dimension if ndim is greater than 0)
+{hidden : tensor, hidden_size : int} |= if ndim(hidden) > 0 then shape(hidden, ndim(hidden) - 1) = hidden_size
 >>
-Rule 5 (Prevent storage size calculation overflow by ensuring hidden_size is not excessively large.)
-{v_1 : int} |= v_1 < 100000
+Rule 5 (bias must be a boolean)
+{bias : bool} |= bias = true ∨ bias = false
 >>
-Rule 6 (The input tensor should be float to require gradients)
-{v_1 : tensor} |= 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8
+Rule 6 (hidden and input must have the same dtype)
+{input : tensor, hidden : tensor} |= dtype_(input) = dtype_(hidden)
 >>
-Rule 7 (Ensure input_size and hidden_size are not excessively large to prevent memory allocation errors.)
-{v_1 : int, v_2 : int} |= v_1 < 5000 ∧ v_2 < 5000
+Rule 7 (Check for negative dimensions in input tensor)
+{input : tensor} |= ∀i ∈ [0, ndim(input) - 1] : shape(input, i) > 0
 >>
-Rule 8 (hidden_size should not be zero)
-{v_1 : int} |= v_1 ≠ 0
+Rule 8 (Check for negative dimensions in hidden tensor)
+{hidden : tensor} |= ∀i ∈ [0, ndim(hidden) - 1] : shape(hidden, i) > 0
 >>
-Rule 11 (hidden tensor and hidden sizes should be consistent)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then shape(v_1, 1) = v_2 else if ndim(v_1) = 1 then true else false
+Rule 9 (If input is a vector, input size must be greater than 0)
+{input : tensor, input_size : int} |= if ndim(input) = 1 then input_size > 0
 >>
-Rule 12 (Prevent storage calculation overflow by checking input and hidden size)
-{v_1 : int, v_2 : int} |= v_1 * v_2 < 100000000
+Rule 10 (input and hidden should be floating point or complex tensors)
+{input : tensor, hidden : tensor} |= (dtype_(input) = "float16" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float64" ∨ dtype_(input) = "complex64" ∨ dtype_(input) = "complex128") ∧ (dtype_(hidden) = "float16" ∨ dtype_(hidden) = "float32" ∨ dtype_(hidden) = "float64" ∨ dtype_(hidden) = "complex64" ∨ dtype_(hidden) = "complex128")
 >>
-Rule 15 (Check if input_size and hidden_size are small enough to avoid storage overflow, considering 32-bit integer limits)
-{v_1 : int, v_2 : int} |= v_1 * v_2 < 2147483647
+Rule 11 (Shape of input and hidden tensors when ndim > 1)
+{input : tensor, hidden : tensor, input_size : int, hidden_size : int} |= if ndim(input) > 1 ∧ ndim(hidden) > 1 then shape(input, ndim(input) - 1) = input_size ∧ shape(hidden, ndim(hidden) - 1) = hidden_size
 >>
-Rule 16 (If bias is True, input_size and hidden_size must be positive)
-{v_1 : bool, v_2 : int, v_3 : int} |= if v_1 = true then v_2 > 0 ∧ v_3 > 0
+Rule 12 (preventing storage calculation overflow by limiting large dimension sizes)
+{input : tensor} |= ∀i ∈ [0, ndim(input) - 1] : shape(input, i) < 2147483647
 >>
-Rule 17 (Shape of input tensor must be consistent with input_size.)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then shape(v_1, 0) = v_2 else if ndim(v_1) = 2 then shape(v_1, 1) = v_2
+Rule 13 (preventing storage calculation overflow by limiting large dimension sizes)
+{hidden : tensor} |= ∀i ∈ [0, ndim(hidden) - 1] : shape(hidden, i) < 2147483647
 >>
-Rule 19 (Prevent integer overflow when calculating weight and bias shapes: hidden_size * input_size < max_int)
-{v_1: int, v_2: int} |= v_1 * v_2 < 2147483647
+Rule 14 (SymIntArrayRef expected to contain only concrete integers, input_size must be a concrete integer)
+{input_size : int} |= input_size > -1000000 ∧ input_size < 1000000
 >>
-Rule 20 (Prevent storage size calculation overflow, ensure that input_size * hidden_size is within reasonable bounds, e.g., less than 10^7)
-{v_1: int, v_2: int} |= v_1 * v_2 < 10000000
+Rule 15 (SymIntArrayRef expected to contain only concrete integers, hidden_size must be a concrete integer)
+{hidden_size : int} |= hidden_size > -1000000 ∧ hidden_size < 1000000
 >>
-Rule 21 (Input and Hidden tensors should have floating point dtype to enable gradient computation)
-{v_1: tensor, v_2: tensor} |= (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∧ (6 <= dtype_(v_2) ∧ dtype_(v_2) <= 8)
+Rule 16 (preventing large allocation by limiting the product of dimensions)
+{input : tensor} |= ∀i ∈ [0, ndim(input) - 1] : shape(input, i) < 10000 ∧ ∃j ∈ [0, ndim(input) - 1] : shape(input, j) > 0
 >>
-Rule 22 (hidden_size should not be excessively large)
-{v_1: int} |= v_1 < 10000
+Rule 17 (Dimensions of input/hidden must be small to prevent allocation error)
+{input : tensor, hidden : tensor} |= (ndim(input) < 5 ∧ ∀i ∈ [0, if ndim(input) - 1 < 0 then 0 else ndim(input) - 1] : shape(input, i) < 5000) ∧ (ndim(hidden) < 5 ∧ ∀i ∈ [0, if ndim(hidden) - 1 < 0 then 0 else ndim(hidden) - 1] : shape(hidden, i) < 5000)
 >>
-Rule 24 (Check for potential dimension overflow during weight initialization. k = 1/hidden_size, hidden_size should be small enough that sqrt(k) is representable.)
-{v_1: int} |= v_1 > 0 ∧ v_1 < 1000000000
+Rule 18 (Prevent large tensor allocation that causes memory error)
+{input_size : int, hidden_size : int} |= input_size * hidden_size < 1000000000
 >>
-Rule 25 (Prevent storage size overflow by ensuring the tensor size does not exceed a reasonable limit)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 100000000
+Rule 19 (hidden size must be less than a maximum value to avoid integer overflow)
+{hidden_size : int} |= hidden_size < 10000000
 >>
-Rule 29 (Hidden size should not cause overflow when squaring in k calculation (k=1/hidden_size))
-{v_1: int} |= v_1 < 46340
+Rule 22 (Input and hidden tensors should have appropriate number of dimensions, either 1 or 2)
+{input : tensor, hidden : tensor} |= (ndim(input) = 1 ∨ ndim(input) = 2) ∧ (ndim(hidden) = 1 ∨ ndim(hidden) = 2)
 >>
-Rule 31 (To prevent symInt error, ensure input_size and hidden_size are less than max int)
-{v_1: int, v_2: int} |= v_1 < 2147483647 ∧ v_2 < 2147483647
+Rule 23 (Hidden and input sizes must be small to prevent memory issues)
+{hidden_size : int, input_size : int} |= hidden_size < 2048 ∧ input_size < 2048
 >>
-Rule 32 (hidden_size should not be a large number to prevent storage overflow in weight_hh, bias_hh)
-{v_1: int} |= v_1 < 1000000
+Rule 24 (If input is 1D, it must have the input_size)
+{input: tensor, input_size: int} |= if ndim(input) = 1 then shape(input, 0) = input_size
 >>
-Rule 34 (To prevent alloc_cpu error, ensure that input_size and hidden_size are not too large)
-{v_1: int, v_2: int} |= v_1 < 10000 ∧ v_2 < 10000
+Rule 25 (If hidden is 1D, it must have the hidden_size)
+{hidden: tensor, hidden_size: int} |= if ndim(hidden) = 1 then shape(hidden, 0) = hidden_size
 >>
-Rule 35 (To prevent storage size error, ensure that dimensions are not too large)
-{v_1: int, v_2: int} |= v_1 < 50000 ∧ v_2 < 50000
+Rule 26 (If input and hidden are 2D, their first dimension must be the same)
+{input: tensor, hidden: tensor} |= if ndim(input) = 2 ∧ ndim(hidden) = 2 then shape(input, 0) = shape(hidden, 0)
 >>
-Rule 36 (To avoid 'Trying to create tensor with negative dimension' error, ensure that input and hidden size are positive and less than some max value)
-{v_1: int, v_2: int} |= v_1 > 0 ∧ v_2 > 0 ∧ v_1 < 100000 ∧ v_2 < 100000
+Rule 27 (Shape of hidden should match the specified hidden_size)
+{hidden: tensor, hidden_size: int} |= (ndim(hidden) = 1 ∧ shape(hidden, 0) = hidden_size) ∨ (ndim(hidden) = 2 ∧ shape(hidden, 1) = hidden_size)
 >>
-Rule 38 (Prevent creation of weights with excessively large dimensions leading to storage errors.)
-{v_1 : int, v_2 : int} |= (v_1 * v_2) < 100000000
+Rule 28 (Shape of input should match the specified input_size)
+{input: tensor, input_size: int} |= (ndim(input) = 1 ∧ shape(input, 0) = input_size) ∨ (ndim(input) = 2 ∧ shape(input, 1) = input_size)
 >>
-Rule 39 (input and hidden tensors must be of floating-point or complex type to allow for gradients)
-{v_1 : tensor, v_2 : tensor} |= (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 11) ∧ (6 <= dtype_(v_2) ∧ dtype_(v_2) <= 11)
+Rule 29 (Ensure input_size and hidden_size are small enough to prevent overflow during weight initialization)
+{input_size: int, hidden_size: int} |= hidden_size < 10000 ∧ input_size < 10000
 >>
-Rule 40 (Ensure that if bias is used, input_size and hidden_size are within a valid range to prevent extremely large bias tensors)
-{v_1: bool, v_2: int, v_3: int} |= if v_1 = true then v_2 < 10000 ∧ v_3 < 10000
+Rule 30 (Nonlinearity must be a valid string)
+{nonlinearity: str} |= nonlinearity = "tanh" ∨ nonlinearity = "relu"
 >>
-Rule 41 (To prevent negative dimension error, input_size and hidden_size must not be excessively large such that integer subtraction wraps around)
-{v_1 : int, v_2: int} |= v_1 < 2147483547 ∧ v_2 < 2147483547
+Rule 31 (input_size and hidden_size are non negative)
+{input_size : int, hidden_size : int} |= input_size >=0 ∧ hidden_size >= 0
 >>
-Rule 42 (To prevent storage overflow, if bias is true, ensure that (input_size + hidden_size) * hidden_size < MAX_INT )
-{v_1: bool, v_2: int, v_3: int} |= if v_1 = true then (v_2 + v_3) * v_3 < 2147483647
+Rule 32 (If input is provided, input_size has to be the correct size)
+{input : tensor, input_size : int} |= (ndim(input) = 1 ∧ shape(input, 0) = input_size) ∨ (ndim(input) = 2 ∧ shape(input, 1) = input_size) ∨ (ndim(input) = 0)
 >>
-Rule 44 (To avoid negative dimension, if input_size and hidden_size are greater than 2^31, it causes wrap-around and results in a very small negative number)
-{v_1: int, v_2: int} |= v_1 < 2147483648 ∧ v_2 < 2147483648
+Rule 33 (If hidden is provided, hidden_size must be the correct size)
+{hidden : tensor, hidden_size : int} |= (ndim(hidden) = 1 ∧ shape(hidden, 0) = hidden_size) ∨ (ndim(hidden) = 2 ∧ shape(hidden, 1) = hidden_size) ∨ (ndim(hidden) = 0)
 >>
-Rule 45 (input_size and hidden_size need to have small absolute value so that sqrt(1/hidden_size) can be represented, and matrix dimensions computed don't overflow.)
-{v_1: int, v_2: int} |= v_1 > -100000 ∧ v_1 < 100000 ∧ v_2 > -100000 ∧ v_2 < 100000
+Rule 34 (If hidden tensor is specified, then the hidden_size must match the tensor dimension)
+{hidden: tensor, hidden_size: int} |= if ndim(hidden) = 1 then shape(hidden,0) = hidden_size else if ndim(hidden) = 2 then shape(hidden, 1) = hidden_size
 >>
-Rule 47 (To prevent extremely large allocation, require hidden_size * (input_size + hidden_size) to be less than a reasonable limit)
-{v_1: int, v_2: int} |= v_2 * (v_1 + v_2) < 10000000
+Rule 35 (If bias is false then bias shouldn't be a tensor.)
+{bias: bool} |= bias = true ∨ bias = false
 >>
-Rule 48 (input and hidden sizes should be non-negative integers to ensure weight and bias dimensions are valid)
-{v_1 : int, v_2 : int} |= v_1 ≥ 0 ∧ v_2 ≥ 0
+Rule 36 (If bias is true, the input and hidden dtypes must be floating or complex.)
+{bias: bool, input: tensor, hidden: tensor} |= if bias = true then (dtype_(input) = "float16" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float64" ∨ dtype_(input) = "complex64" ∨ dtype_(input) = "complex128") ∧ (dtype_(hidden) = "float16" ∨ dtype_(hidden) = "float32" ∨ dtype_(hidden) = "float64" ∨ dtype_(hidden) = "complex64" ∨ dtype_(hidden) = "complex128")
 >>
-Rule 49 (To prevent "Trying to create tensor with negative dimension", ensure parameters are not so large that adding or multiplying them results in negative values due to integer overflow.)
-{v_1: int, v_2: int} |= v_1 < 1073741823 ∧ v_2 < 1073741823
+Rule 38 (If input and hidden are defined, their type should be float or complex if require gradients is True)
+{input: tensor, hidden: tensor} |= (dtype_(input) = "float16" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float64" ∨ dtype_(input) = "complex64" ∨ dtype_(input) = "complex128") ∧ (dtype_(hidden) = "float16" ∨ dtype_(hidden) = "float32" ∨ dtype_(hidden) = "float64" ∨ dtype_(hidden) = "complex64" ∨ dtype_(hidden) = "complex128")
 >>
-Rule 50 (To avoid memory allocation error, ensure (input_size + hidden_size)*hidden_size does not overflow 32 bits)
-{v_1: int, v_2: int} |= (v_1 < 65535) ∧ (v_2 < 65535) ∧ ((v_1 + v_2) < 65535)
+Rule 39 (if bias is true, the input and hidden dimensions cannot be negative.)
+{bias: bool, input: tensor, hidden: tensor} |= if bias = true then (∀i ∈ [0, if ndim(input) - 1 < 0 then 0 else ndim(input) - 1] : shape(input, i) > 0) ∧ (∀i ∈ [0, if ndim(hidden) - 1 < 0 then 0 else ndim(hidden) - 1] : shape(hidden, i) > 0)
 >>
-Rule 51 (Ensure that (input_size + hidden_size) is within sym_int range to avoid SymIntArrayRef issue)
-{v_1: int, v_2: int} |= (v_1 + v_2) < 2147483647
+Rule 40 (If hidden size is zero, then input cannot be specified)
+{hidden_size: int, input: tensor} |= if hidden_size = 0 then ndim(input) = 0
 >>
-Rule 52 (To prevent extremely large memory allocation, ensure that input_size and hidden_size are smaller than a maximum value and their sum is less than the maximum value)
-{v_1 : int, v_2 : int} |= v_1 < 10000 ∧ v_2 < 10000 ∧ (v_1 + v_2) < 20000
+Rule 41 (preventing large allocation by limiting the product of dimensions when both input and hidden tensors are provided)
+{input : tensor, hidden : tensor} |= if ndim(input) > 0 ∧ ndim(hidden) > 0 then (∀i ∈ [0, ndim(input) - 1] : shape(input, i) < 1000) ∧ (∀i ∈ [0, ndim(hidden) - 1] : shape(hidden, i) < 1000)
 >>
-Rule 53 (To prevent very large weight dimensions resulting in memory allocation failure, ensure that the sum of hidden_size and input_size is less than the square root of the maximum allowed tensor size.)
-{v_1: int, v_2: int} |= (v_1 + v_2) < 32768
+Rule 44 ( If bias is specified, then input_size and hidden_size must be greater than 0. If not the bias cant be initialized)
+{bias: bool, input_size: int, hidden_size: int} |= if bias = true then input_size > 0 ∧ hidden_size > 0
 >>
-Rule 54 (To prevent storage overflow, require hidden_size squared not to overflow.)
-{v_1 : int} |= v_1 < 46340
+Rule 45 (If bias is false, dtype of input and hidden must be float or complex or allocation error occurs)
+{bias : bool, input : tensor, hidden : tensor} |= if bias = false then (dtype_(input) = "float16" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float64" ∨ dtype_(input) = "complex64" ∨ dtype_(input) = "complex128") ∧ (dtype_(hidden) = "float16" ∨ dtype_(hidden) = "float32" ∨ dtype_(hidden) = "float64" ∨ dtype_(hidden) = "complex64" ∨ dtype_(hidden) = "complex128")
 >>
-Rule 55 (To avoid memory allocation failure for large models, enforce a limit on the combined number of input and hidden units:  (input_size + hidden_size) < 10000. )
-{v_1 : int, v_2 : int} |= (v_1 + v_2) < 10000
+Rule 46 (Storage size calculation overflow : Limit the size of dimensions for safety.)
+{input : tensor} |= ∀i ∈ [0, if ndim(input) - 1 < 0 then 0 else ndim(input) - 1] : shape(input, i) < 100000
 >>
-Rule 56 (Preventing Storage overflow - ensure dimensions are less than the square root of the max)
-{v_1 : int, v_2 : int} |= v_1 < 32767 ∧ v_2 < 32767
+Rule 47 (If input_size is zero, then input must be none.)
+{input_size: int, input:tensor} |= if input_size = 0 then ndim(input) = 0
 >>
-Rule 57 (To avoid storage overflow during weight initialization, ensure the product of input_size and hidden_size is within safe bounds)
-{v_1: int, v_2: int} |= (v_1 * v_2) < 100000000
+Rule 48 (if hidden_size is zero, then hidden must be none.)
+{hidden_size: int, hidden:tensor} |= if hidden_size = 0 then ndim(hidden) = 0
 >>
-Rule 58 (To prevent integer overflow which leads to out of memory error, require input_size * hidden_size * 4 (bytes per float32) to be smaller than the max int)
-{v_1 : int, v_2 : int} |= (v_1 * v_2 * 4) < 2147483647
+Rule 49 (Input and hidden tensors, if provided, must have consistent dtype with dtype argument.)
+{input: tensor, hidden: tensor, dtype: dtype} |= (if ndim(input) > 0 then dtype_(input) = dtype) ∧ (if ndim(hidden) > 0 then dtype_(hidden) = dtype)
 >>
-Rule 59 (To prevent symInt error, ensure hidden_size and input_size are not negative, also, not so large to wrap around)
-{v_1 : int, v_2 : int} |= v_1 > -2147483648 ∧ v_1 < 2147483647 ∧ v_2 > -2147483648 ∧ v_2 < 2147483647
+Rule 50 (If hidden_size is zero, then hidden must be none)
+{hidden_size: int, hidden: tensor} |= if hidden_size = 0 then ndim(hidden) = 0
 >>
-Rule 60 (Ensure multiplication of input_size and hidden_size and another number is smaller than max_int for no overflow)
-{v_1 : int, v_2 : int} |= (v_1 * v_2) < 536870911
->>
-Rule 61 (To prevent memory error, require total memory be less than maximum 32 bit value)
-{v_1 : int, v_2 : int} |= v_1 * v_2 * v_1 * v_2 < 2147483647
->>
-Rule 62 (Ensure dimension value cannot lead to an overflow with float16 dtype)
-{v_1 : int} |= v_1 < 65504
+Rule 51 (Shape of input tensor must match expected shape based on input_size if bias is set to True to avoid allocation errors)
+{input: tensor, input_size: int, bias:bool} |= if bias = true then (ndim(input) = 0) ∨ (ndim(input) = 1 ∧ shape(input, 0) = input_size) ∨ (ndim(input) = 2 ∧ shape(input, 1) = input_size)

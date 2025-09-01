@@ -5,40 +5,35 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If output tensor exists, it must have same dtype (Rule 39)
+# If the data type is float, check for overflow and underflow (Rule 39)
 
 rule_39 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg2_shape"], 0) > 0, v["arg1_dtype"] == v["arg2_dtype"], False)) if n else
-          If(Select(v["arg2_shape"], 0) > 0, v["arg1_dtype"] == v["arg2_dtype"], False))
+    s.add(Not(And(And((Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 6)), Select(v["arg1_range"], 0) > -3.4028235e38), Select(v["arg1_range"], 1) < 3.4028235e38)) if n else
+          And(And((Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 6)), Select(v["arg1_range"], 0) > -3.4028235e38), Select(v["arg1_range"], 1) < 3.4028235e38))
 )
 
-def rule_39_func(arg1, arg2, solver=None, neg=False):
+def rule_39_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
-            return False
 
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
-        arg2_dtype = Int('arg2_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 39
-        rule_39(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg2_shape': arg2_shape})
+        rule_39(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_39(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg2_shape': arg2['shape']}, neg)
+        rule_39(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)

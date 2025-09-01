@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# scale should not be extremely large in order to prevent overflow issues (Rule 69)
+# The scale must be less or equal than the maximum float value (Rule 69)
 
 rule_69 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 1000) if n else
-          v["arg1_value"] < 1000)
+    s.add(Not(v["arg1_value"] <= 3.402823e+38) if n else
+          v["arg1_value"] <= 3.402823e+38)
 )
 
 def rule_69_func(arg1, solver=None, neg=False):

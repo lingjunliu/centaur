@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the input is a tensor, its data type must not be a boolean. This prevents incorrect usage even if a Tensor is passed (Rule 40)
+# The input must be a tensor, and its dtype must be a valid integer code that represents a torch dtype. (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 0) if n else
-          v["arg1_dtype"] != 0)
+    s.add(Not(And(0 <= v["arg1_dtype"], v["arg1_dtype"] <= 10)) if n else
+          And(0 <= v["arg1_dtype"], v["arg1_dtype"] <= 10))
 )
 
 def rule_40_func(arg1, solver=None, neg=False):

@@ -1,120 +1,252 @@
 >>
-Rule 4 (torch.is_autocast_cpu_enabled returns a boolean, so it's either true or false)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 1 (Autocast CPU is enabled implies dtype is float16 or float32 or bfloat16 or complex64 or complex128)
+{v_1 : bool} |= if v_1 then (dtype_ = 6) ∨ (dtype_ = 7) ∨ (dtype_ = 9) ∨ (dtype_ = 10)
 >>
-Rule 5 (torch.is_autocast_cpu_enabled implicitly returns v_1 which should be a boolean)
-{v_1 : bool} |= if v_1 then true
+Rule 3 (Autocast CPU flag is consistent with configuration settings)
+{v_1 : bool} |= v_1 = configuration_flag
 >>
-Rule 6 (torch.is_autocast_cpu_enabled implicity returns v_1 which should be a bool. Make sure it equals itself.)
-{v_1 : bool} |= v_1 = v_1
+Rule 4 (If Autocast CPU is enabled, then at least one input tensor must be of type float)
+{v_1 : bool, v_2 : tensor} |= if v_1 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 8
 >>
-Rule 7 (torch.is_autocast_cpu_enabled implicitly returns v_1 which is boolean and should be true under autocast)
-{v_1 : bool} |= v_1 = true
+Rule 5 (If precision is set to half, Autocast CPU should be enabled.)
+{v_1 : int} |= if v_1 = 6 then is_autocast_cpu_enabled = true
 >>
-Rule 8 (torch.is_autocast_cpu_enabled implicitly returns v_1 which is boolean and should not be false under autocast)
-{v_1 : bool} |= v_1 ≠ false
+Rule 6 (Autocast CPU enabled implies specific dtype configuration)
+{v_1 : bool} |= if v_1 then dtype_config = 7
 >>
-Rule 9 (torch.is_autocast_cpu_enabled implicitly returns a boolean v_1 and satisfies the condition that v_1 or not v_1 is always true)
-{v_1 : bool} |= v_1 ∨ (v_1 = false)
+Rule 7 (Autocast CPU is enabled when using bfloat16)
+{v_1 : dtype} |= if v_1 = 14 then is_autocast_cpu_enabled = true
 >>
-Rule 10 (torch.is_autocast_cpu_enabled implicitly returns a boolean v_1 and at least one of v_1 or its complement is true)
-{v_1 : bool} |= v_1 ∨ (not_v_1 = false)
+Rule 9 (If the first tensor is half-precision, Autocast CPU should be enabled)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then is_autocast_cpu_enabled = true
 >>
-Rule 11 (torch.is_autocast_cpu_enabled implicitly returns a boolean v_1 and satisfies de Morgan's law)
-{v_1 : bool} |= (v_1 = false) = false
+Rule 10 (Autocast CPU enabled implies at least one operation is of type float)
+{v_1 : bool, op_type : str} |= if v_1 then (op_type = "linear") ∨ (op_type = "relu") ∨ (op_type = "tanh")
 >>
-Rule 12 (torch.is_autocast_cpu_enabled implicitly returns a boolean v_1 and if it's true, then true.)
-{v_1 : bool} |= if v_1 = true then true else false
+Rule 11 (Autocast CPU enabled implies dtype is float16)
+{v_1 : bool, v_2 : dtype} |= if v_1 then v_2 = 6
 >>
-Rule 13 (torch.is_autocast_cpu_enabled returns a boolean equal to v_1 if v_1 is a boolean.)
-{v_1 : bool} |= v_1 = (v_1 = true ∨ v_1 = false)
+Rule 13 (Autocast CPU is enabled only if there is a float16, float32 or bfloat16 operation)
+{v_1 : bool, v_2 : dtype} |= if v_1 then (v_2 = 6 ∨ v_2 = 7)
 >>
-Rule 14 (torch.is_autocast_cpu_enabled: if v_1 and true are equal, then v_1 is true.)
-{v_1 : bool} |= if v_1 = true then v_1 = true else v_1 = false
+Rule 14 (When using a float16 tensor, Autocast CPU *must* be enabled.)
+{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 6 then v_2
 >>
-Rule 15 (torch.is_autocast_cpu_enabled: If the result of 'v_1 and true' is true, then v_1 must also be true.)
-{v_1 : bool} |= if (v_1 ∧ true) = true then v_1 = true else false
+Rule 17 (If a float64 tensor is present, autocast should generally be disabled)
+{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 8 then v_2 = false
 >>
-Rule 16 (torch.is_autocast_cpu_enabled returns a bool v_1 that must be equal to itself. The expression checks if v_1 being equal to itself leads to a true outcome.)
-{v_1 : bool} |= (v_1 = v_1) = true
+Rule 19 (When using a float16 tensor, Autocast CPU *must* be enabled.)
+{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 6 then v_2 = true
 >>
-Rule 17 (torch.is_autocast_cpu_enabled returns a boolean, so if a random string's length is positive, then v_1 must be a bool)
-{v_1 : bool, v_2 : str} |= if v_2.len > 0 then v_1 = true ∨ v_1 = false
+Rule 21 (If a bfloat16 tensor is present, autocast should be enabled.)
+{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 14 then v_2 = true
 >>
-Rule 18 (torch.is_autocast_cpu_enabled returns a boolean. If there exists an element that is true in a list of bools, then the result is a bool)
-{v_1 : bool, v_2 : list(bool)} |= if ∃i ∈ [0, v_2.len - 1] : v_2[i] = true then v_1 = true ∨ v_1 = false else v_1 = true ∨ v_1 = false
+Rule 22 (If autocast is enabled, at least one tensor should be a float type.)
+{v_1 : bool, v_2 : tensor} |= if v_1 then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
 >>
-Rule 19 (torch.is_autocast_cpu_enabled: The return is a bool, so if all elements in a list of bools are true, and there exists such list, then that has no bearing on the final return.)
-{v_1 : bool, v_2 : list(bool)} |= if (∀i ∈ [0, v_2.len - 1] : v_2[i] = true) ∧ v_2.len > 0 then v_1 = true ∨ v_1 = false else v_1 = true ∨ v_1 = false
+Rule 24 (Autocast usage should align with the configured float type (if set to float16))
+{v_1 : bool, v_2 : int} |= if v_2 = 6 then v_1
 >>
-Rule 20 (torch.is_autocast_cpu_enabled: The function returns a bool which is a comparison of two strings)
-{v_1 : bool, v_2 : str, v_3: str} |= if v_2 = v_3 then v_1 = true else v_1= false
+Rule 25 (When Autocast is enabled, computations involving only int types are invalid)
+{v_1 : bool, v_2 : tensor} |= if v_1 then dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4 ∧ dtype_(v_2) ≠ 5
 >>
-Rule 21 (torch.is_autocast_cpu_enabled: If a string is in the provided list, then v_1 is a bool)
-{v_1 : bool, v_2 : str} |= if v_2 = "ii" ∨ v_2 = "ii->i" ∨ v_2 = "i,j->ij" ∨ v_2 = "bij,bjk->bik" ∨ v_2 = "...ij->...ji" ∨ v_2 = "bn,anm,bm->ba" ∨ v_2 = "none" ∨ v_2 = "mean" ∨ v_2 = "sum" ∨ v_2 = "max" ∨ v_2 = "constant" ∨ v_2 = "tanh" then v_1 = true ∨ v_1 = false else v_1 = true ∨ v_1 = false
+Rule 27 (If autocast is enabled and tensor's dtype is integer, the usage is invalid)
+{v_1 : bool, v_2 : tensor} |= if v_1 then (dtype_(v_2) < 1 ∨ dtype_(v_2) > 5)
 >>
-Rule 23 (torch.is_autocast_cpu_enabled: if any number is equal to zero, then v_1 is a bool)
-{v_1 : bool, v_2 : int ⊎ float} |= if v_2 = 0 then v_1 = true ∨ v_1 = false else v_1 = true ∨ v_1 = false
+Rule 29 (Autocast usage should align with configured dtype (if float16 is configured))
+{v_1 : bool, v_2 : int} |= if v_2 = 6 then v_1 = true
 >>
-Rule 24 (torch.is_autocast_cpu_enabled: If any number is equal to 0 or 1, then v_1 is a bool)
-{v_1 : bool, v_2 : int ⊎ float} |= if v_2 = 0 ∨ v_2 = 1 then v_1 = true ∨ v_1 = false else v_1 = true ∨ v_1 = false
+Rule 30 (Autocast enabled implies at least one tensor in graph must be float16/float32)
+{v_1 : bool, v_2 : tensor} |= if v_1 then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7)
 >>
-Rule 25 (torch.is_autocast_cpu_enabled: The function returns a bool dependent on a combination of string and number.)
-{v_1 : bool, v_2 : int ⊎ float, v_3 : str} |= if v_2 = 0 ∧ v_3 = "tanh" then v_1 = true else v_1 = false
+Rule 32 (Autocast is enabled only if the compute intensity exceeds a threshold.)
+{v_1 : bool, v_2 : float} |= if v_1 then v_2 > 0.5
 >>
-Rule 26 (torch.is_autocast_cpu_enabled: If the number is greater than zero or less than zero, then it must be a bool)
-{v_1 : bool, v_2 : int ⊎ float} |= if v_2 > 0 ∨ v_2 < 0 then v_1 = true ∨ v_1 = false else v_1 = true ∨ v_1 = false
+Rule 33 (When using float16 precision, autocast must be enabled)
+{v_1 : dtype, v_2 : bool} |= if v_1 = 6 then v_2 = true
 >>
-Rule 27 (torch.is_autocast_cpu_enabled: If a tensor's shape is greater than zero, v_1 must be a bool)
-{v_1 : bool, v_2 : tensor} |= if shape(v_2, 0) > 0 then v_1 = true ∨ v_1 = false else v_1 = true ∨ v_1 = false
+Rule 35 (Autocast should only be active with a supported architecture.)
+{v_1 : bool, v_2 : str} |= if v_1 then (v_2 = "cpu" ∨ v_2 = "gpu")
 >>
-Rule 32 (torch.is_autocast_cpu_enabled: If a tensor's shape is greater than zero, and it's a dtype, then v_1 must be a bool)
-{v_1 : bool, v_2 : dtype} |= if v_2 > 0 then v_1 = true else v_1 = false
+Rule 36 (Autocast is enabled only if certain dtypes are used)
+{v_1 : bool, v_2 : dtype} |= if v_1 then (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8)
 >>
-Rule 33 (torch.is_autocast_cpu_enabled: If a dtype is float16, float32, or float64 then v_1 must be a bool)
-{v_1 : bool, v_2 : dtype} |= if v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 then v_1 = true ∨ v_1 = false else v_1 = true ∨ v_1 = false
+Rule 37 (Autocast is enabled when required_grad is true)
+{v_1 : bool, required_grad : bool} |= if required_grad then v_1
 >>
-Rule 35 (torch.is_autocast_cpu_enabled: if the return value v_1 and true are equal and v_1 and false are not equal, then some condition is true)
-{v_1 : bool} |= (v_1 = true) ∧ (v_1 = false) = false
+Rule 40 (Autocast flag must equal the current precision level being used)
+{v_1 : bool, v_2 : float} |= if v_2 = 0.5 then v_1
 >>
-Rule 36 (torch.is_autocast_cpu_enabled: The boolean return should be the result of comparing a string to a constant.)
-{v_1 : bool, v_2 : str} |= v_1 = (v_2 = "constant")
+Rule 42 (Autocast is enabled when required_grad is true)
+{v_1 : bool, required_grad : bool} |= if required_grad then v_1 = true
 >>
-Rule 37 (torch.is_autocast_cpu_enabled: If two strings are equal, then v_1 should be True)
-{v_1 : bool, v_2 : str, v_3 : str} |= if v_2 = v_3 then v_1 = true else v_1 = false
+Rule 43 (If model dtype is not float16, autocast must be disabled)
+{v_1 : dtype, v_2 : bool} |= if v_1 ≠ 6 then v_2 = false
 >>
-Rule 38 (torch.is_autocast_cpu_enabled returns boolean, thus should satisfy that if a number is > 0, then True or False.)
-{v_1 : bool, v_2 : int ⊎ float} |= if v_2 > 0 then v_1 = true ∨ v_1 = false else v_1 = true ∨ v_1 = false
+Rule 44 (Autocast flag must equal the current precision level being used if precision is float)
+{v_1 : bool, v_2 : float} |= if v_2 = 0.5 then v_1 = true
 >>
-Rule 39 (torch.is_autocast_cpu_enabled returns boolean, so if all numbers in tuple are nonnegative, the function must have result True/False.)
-{v_1 : bool, v_2 : tuple(int)} |= if ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 then v_1 = true ∨ v_1 = false else v_1 = true ∨ v_1 = false
+Rule 45 (If autocast mode is different to default autocast mode then raise an error)
+{v_1 : bool, v_2 : bool} |= if v_1 ≠ v_2 then error = true
 >>
-Rule 40 (torch.is_autocast_cpu_enabled returns a boolean. A condition on a list being empty is unrelated)
-{v_1 : bool, v_2 : list(int)} |= if v_2.len = 0 then v_1 = true ∨ v_1 = false else v_1 = true ∨ v_1 = false
+Rule 48 (When using float16 operations, autocast should be enabled)
+{v_1 : str, v_2 : bool} |= if v_1 = "float16" then v_2 = true
 >>
-Rule 41 (torch.is_autocast_cpu_enabled: If a bool is equal to true or equal to false, then this is a boolean value.)
-{v_1 : bool} |= (v_1 = true) ∨ (v_1 = false)
+Rule 50 (Autocast should not be enabled if the number of ops is 0)
+{v_1 : bool, v_2 : int} |= if v_2 = 0 then v_1 = false
 >>
-Rule 42 (torch.is_autocast_cpu_enabled returns a boolean, so for an int: if the int is equal to 1, the boolean must be either true or false.)
-{v_1 : bool, v_2 : int} |= if v_2 = 1 then v_1 = true ∨ v_1 = false else v_1 = true ∨ v_1 = false
+Rule 51 (Autocast must be enabled if a float16 tensor is present.)
+{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 6 then v_2 = true else v_2 = false
 >>
-Rule 43 (torch.is_autocast_cpu_enabled returns a boolean, thus for a float, that v_1 must be that value if v_2 is zero)
-{v_1 : bool, v_2 : float} |= if v_2 = 0 then v_1 = true ∨ v_1 = false else v_1 = true ∨ v_1 = false
+Rule 52 (Autocast should be disabled if bfloat16 is used, and no float16)
+{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 14 then v_2 = false
 >>
-Rule 44 (torch.is_autocast_cpu_enabled: if len of a tuple is not 0, function returns boolean.)
-{v_1 : bool, v_2 : tuple(int)} |= if v_2.len ≠ 0 then v_1 = true ∨ v_1 = false else v_1 = true ∨ v_1 = false
+Rule 53 (Autocast enabled implies graph should have number of ops >=1)
+{v_1 : bool, v_2 : int} |= if v_1 then v_2 > 0 else v_2 = 0
 >>
-Rule 45 (torch.is_autocast_cpu_enabled returns a boolean, the max of any 2 numbers is > or < to min of any 2 numbers then function should be bool)
-{v_1 : bool, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if max(v_2, v_3) > min(v_2, v_3) ∨ max(v_2, v_3) < min(v_2, v_3) then v_1 = true ∨ v_1 = false else v_1 = true ∨ v_1 = false
+Rule 55 (If Autocast is enabled precision needs to be above the default 0)
+{v_1 : bool, v_2 : float} |= if v_1 then v_2 > 0 else v_2 = 0
 >>
-Rule 46 (torch.is_autocast_cpu_enabled returns a boolean, so if an int is >= 0 and less than the len of another list, then function must return either true or false)
-{v_1 : bool, v_2 : list(str), v_3: int} |= if v_3 ≥ 0 ∧ v_3 < v_2.len then v_1 = true ∨ v_1 = false else v_1 = true ∨ v_1 = false
+Rule 56 (If autocast is enabled precision must be less than or equal to 1)
+{v_1 : bool, v_2 : float} |= if v_1 then v_2 <= 1 else v_2 > 1
 >>
-Rule 47 (torch.is_autocast_cpu_enabled: if len of a list is > 1 and then first item equal to second function should be bool)
-{v_1 : bool, v_2 : list(int)} |= if v_2.len > 1 ∧ v_2[0] = v_2[1] then v_1 = true ∨ v_1 = false else v_1 = true ∨ v_1 = false
+Rule 58 (If optimization is enabled for the graph then Autocast must be enabled)
+{v_1 : bool, v_2 : bool} |= if v_2 then v_1 else v_1 = false
 >>
-Rule 48 (torch.is_autocast_cpu_enabled, for a boolean and int if boolean equals 1 or equals 0 function should be bool)
-{v_1 : bool, v_2 : int} |= if v_2 = 1 ∨ v_2 = 0 then v_1 = true ∨ v_1 = false else v_1 = true ∨ v_1 = false
+Rule 59 (Autocast is disabled only when the model requires high-precision outputs)
+{v_1 : bool, v_2 : bool} |= if v_2 then v_1 = false else v_1
 >>
-Rule 49 (torch.is_autocast_cpu_enabled, a boolean is the result of if two int or floats are equal, result will be True/False)
-{v_1 : bool, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_2 = v_3 then v_1 = true else v_1 = false
+Rule 61 (If autocast is enabled precision must be less than or equal to 1)
+{v_1 : bool, v_2 : float} |= if v_1 then v_2 ≤ 1
+>>
+Rule 62 (If graph has a high amount of integer tensors, do not use Autocast)
+{v_1 : bool, v_2 : int} |= if v_2 > 5 then v_1 = false
+>>
+Rule 63 (If optimization is enabled for the graph then Autocast must be enabled)
+{v_1 : bool, v_2 : bool} |= if v_2 then v_1 = true
+>>
+Rule 64 (Autocast is disabled only when the model requires high-precision outputs)
+{v_1 : bool, v_2 : bool} |= if v_2 then v_1 = false
+>>
+Rule 65 (Autocast is used when hardware support for float16 is limited)
+{v_1 : bool, v_2 : str} |= if v_2 = "limited" then v_1 = true else v_1 = false
+>>
+Rule 66 (If autocast is enabled, graph compute intensity must be greater than 0)
+{v_1 : bool, v_2 : int} |= if v_1 then v_2 > 0
+>>
+Rule 67 (Autocast is disabled only when the target is CPU)
+{v_1 : bool, v_2 : str} |= if v_2 = "cpu" then v_1 = false
+>>
+Rule 69 (Autocast must be set to false if the precision used is equal to 32)
+{v_1 : bool, v_2 : int} |= if v_2 = 32 then v_1 = false
+>>
+Rule 70 (Autocast must be disabled when the application requires only int8 operations)
+{v_1 : bool, v_2 : dtype} |= if v_2 = 1 then v_1 = false
+>>
+Rule 75 (Autocast should be disabled to support debugging)
+{v_1 : bool, v_2 : bool} |= if v_2 = true then v_1 = false
+>>
+Rule 77 (If using bf16 tensors the autograd must be enabled)
+{v_1 : bool, v_2 : tensor} |= if dtype_(v_2) = 14 then v_1 = true else v_1 = false
+>>
+Rule 78 (When the application needs 64-bit precision always disable autocast)
+{v_1 : bool, v_2 : int} |= if v_2 = 64 then v_1 = false else v_1 = true
+>>
+Rule 79 (when device is set to cpu then autocast mode is default to true)
+{v_1 : bool, v_2 : str} |= if v_2 = "cpu" then v_1 = true else v_1 = false
+>>
+Rule 80 (If hardware support for fp16 is not available do not use Autocast.)
+{v_1 : bool, v_2 : str} |= if v_2 = "none" then v_1 = false
+>>
+Rule 81 (If hardware arch support is float16 then use auto cast)
+{v_1 : bool, v_2 : str} |= if v_2 = "fp16" then v_1 = true else v_1 = false
+>>
+Rule 82 (if using the complex64 as default tensor dtype, then autocast must be set to true)
+{v_1 : bool, v_2 : dtype} |= if v_2 = 9 then v_1 = true else v_1 = false
+>>
+Rule 83 (If the graph has many complex tensors then autocast should be set)
+{v_1 : bool, v_2 : int} |= if v_2 > 3 then v_1 = true else v_1=false
+>>
+Rule 84 (If high accuracy with floating points is crucial then it should not use autocast)
+{v_1 : bool, v_2 : bool} |= if v_2 then v_1 = false else v_1 = true
+>>
+Rule 85 (If we enable bf16 training on cpu without a gpu autocast must be off)
+{v_1 : bool, v_2 : str} |= if v_2 = "cpu_bf16" then v_1 = false else v_1 = true
+>>
+Rule 86 (If hardware arch support is float16 then use auto cast)
+{v_1 : bool, v_2 : str} |= if v_2 = "fp16" then v_1 = true
+>>
+Rule 87 (If complex64 is the graph dtype autocast must be enabled)
+{v_1 : bool, v_2 : dtype} |= if v_2 = 9 then v_1 = true
+>>
+Rule 88 (If there is more than one complex data type tensor, then Autocast is enabled)
+{v_1 : bool, v_2 : int} |= if v_2 > 1 then v_1 = true
+>>
+Rule 90 (If hardware is set to bf16 and we dont have gpu autocast mode is off)
+{v_1 : bool, v_2 : str} |= if v_2 = "cpu_bf16" then v_1 = false
+>>
+Rule 93 (If there is more than one complex data type tensor, then Autocast is enabled)
+{v_1 : bool, v_2 : int} |= if v_2 > 1 then v_1 = true else v_1 = false
+>>
+Rule 96 (Autocast enabled if mixed precision training with float16)
+{v_1 : bool, v_2 : dtype} |= if v_2 = 6 then v_1 = true
+>>
+Rule 97 (The number of parameters on a graph is greater than 10 then we turn on autocast)
+{v_1 : bool, v_2 : int} |= if v_2 > 10 then v_1 = true
+>>
+Rule 98 (Only the gpu device supports autocast if not then it defaults to true)
+{v_1 : bool, v_2 : str} |= if v_2 = "gpu" then v_1 = true else v_1 = false
+>>
+Rule 100 (Auto cast is used only hardware acceleration level is medium or high)
+{v_1 : bool, v_2 : str} |= if v_2 = "medium" ∨ v_2 = "high" then v_1 = true else v_1 = false
+>>
+Rule 103 (Do not use auto cast if hardware is set to tpu)
+{v_1 : bool, v_2 : str} |= if v_2 = "tpu" then v_1 = false else v_1 = true
+>>
+Rule 105 (auto cast is enabled only if precision configuration is set to low)
+{v_1 : bool, v_2 : str} |= if v_2 = "low" then v_1 = true else v_1 = false
+>>
+Rule 109 (If Model is for CPU Do not use autocast)
+{v_1 : bool, v_2 : str} |= if v_2 = "cpu" then v_1 = false else v_1 = true
+>>
+Rule 110 (Autocast is disabled if graph size exceeds a limit)
+{v_1 : bool, v_2 : int} |= if v_2 > 2000 then v_1 = false else v_1 = true
+>>
+Rule 112 (Use auto scaling only when model has fewer than 20 operations)
+{v_1 : bool, v_2 : int} |= if v_2 < 20 then v_1 = true else v_1 = false
+>>
+Rule 113 (Disable Auto cast if no bf16 or fp16 is explicitly set)
+{v_1 : bool, v_2 : str} |= if v_2 = "none" then v_1 = false else v_1 = true
+>>
+Rule 114 (Autocast must be turned on for hardware with medium acceleration.)
+{v_1 : bool, v_2 : str} |= if v_2 = "medium" then v_1 = true
+>>
+Rule 116 (Autocast is turned on with less than five GPU’s is not turned on)
+{v_1 : bool, v_2 : int} |= if v_2 >= 5 then v_1 = true else v_1 = false
+>>
+Rule 118 (Number of operations should not exceed maximum GPU memory, set autoscale OFF)
+{v_1 : bool, v_2 : int} |= if v_2 < 5000 then v_1 = false else v_1 = true
+>>
+Rule 121 (Use Autocast if high accuracy is not required)
+{v_1 : bool, v_2 : bool} |= if v_2 = false then v_1 = true
+>>
+Rule 123 (if not specified no preferred data type Autocast enabled ensure speed)
+{v_1 : bool, v_2 : str} |= if v_2 = "none" then v_1 = true else false
+>>
+Rule 124 (If str1 is equal to linear, autograd should set to false)
+{v_1 : bool, v_2 : str} |= if v_2 = "linear" then v_1 = false
+>>
+Rule 125 (IF integer 2 is less than equal to tensor ndim set autograd)
+{v_1 : tensor, v_2 : int} |= if v_2 <= ndim(v_1) then is_autocast_cpu_enabled=true else is_autocast_cpu_enabled=false
+>>
+Rule 127 (If tensors shape equal to integer value)
+{v_1 : tensor, v_2 : int} |= if shape(v_1,0) = v_2 then is_autocast_cpu_enabled = true else is_autocast_cpu_enabled =false
+>>
+Rule 128 (If length of string is longer than number 10. then set autocast on else turn off)
+{v_1 : str, v_2 : bool} |= if v_1.len > 10 then v_2=true else v_2 = false
+>>
+Rule 129 (If string1 is equal to linear, auto cast must be false)
+{v_1 : bool, v_2 : str} |= if v_2 = "linear" then v_1 = false else v_1 = true
+>>
+Rule 131 (If dtypes 7 (float32) not equal to dtypes 6(float16) then set true)
+{v_1 : dtype} |= if v_1 ≠ 7 then is_autocast_cpu_enabled= true else is_autocast_cpu_enabled=false

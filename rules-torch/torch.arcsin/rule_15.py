@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the input tensor's dtype is int64, the output dtype must be at least float32 (Rule 15)
+# If the output tensor has type Short and the input has a complex dtype, this will result in type casting errors as complex values cannot be represented as short. (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 4, v["arg2_dtype"] >= 7, False)) if n else
-          If(v["arg1_dtype"] == 4, v["arg2_dtype"] >= 7, False))
+    s.add(Not(If(v["arg2_dtype"] == 2, And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10), True)) if n else
+          If(v["arg2_dtype"] == 2, And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10), True))
 )
 
 def rule_15_func(arg1, arg2, solver=None, neg=False):

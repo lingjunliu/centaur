@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# check if the number is a valid float (Rule 9)
+# running_mean should be float dtype (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] >= -3.4028235e38, v["arg1_value"] <= 3.4028235e38)) if n else
-          And(v["arg1_value"] >= -3.4028235e38, v["arg1_value"] <= 3.4028235e38))
+    s.add(Not(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)) if n else
+          Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8))
 )
 
 def rule_9_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_9_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 9
-        rule_9(solver, {'arg1_value': arg1_value})
+        rule_9(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_9(solver, {'arg1_value': arg1['value']}, neg)
+        rule_9(solver, {'arg1_dtype': arg1['dtype']}, neg)

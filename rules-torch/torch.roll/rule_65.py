@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the length of shifts tuple is greater than the input dimension then return false (Rule 65)
+# When shifts and dims are tuples, their len should not be zero. (Rule 65)
 
 rule_65 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_length"] > v["arg1_ndim"], False, False)) if n else
-          If(v["arg2_length"] > v["arg1_ndim"], False, False))
+    s.add(Not(And(v["arg1_length"] > 0, v["arg2_length"] > 0)) if n else
+          And(v["arg1_length"] > 0, v["arg2_length"] > 0))
 )
 
 def rule_65_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,24 @@ def rule_65_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
         if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_length = Int('arg1_length')
         arg2_length = Int('arg2_length')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_length == len(arg1))
         solver.add(arg2_length == len(arg2))
 
         # Constraints for rule 65
-        rule_65(solver, {'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length})
+        rule_65(solver, {'arg1_length': arg1_length, 'arg2_length': arg2_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_65(solver, {'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length']}, neg)
+        rule_65(solver, {'arg1_length': arg1['length'], 'arg2_length': arg2['length']}, neg)

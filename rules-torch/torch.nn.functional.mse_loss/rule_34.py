@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# non-complex input tensor implies non-complex target tensor (Rule 34)
+# If reduce is not none, size_average must be none (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(If((And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10)), (And(v["arg2_dtype"] != 9, v["arg2_dtype"] != 10)), False)) if n else
-          If((And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10)), (And(v["arg2_dtype"] != 9, v["arg2_dtype"] != 10)), False))
+    s.add(Not(If(v["arg2_value"] != none, v["arg1_value"] == none, True)) if n else
+          If(v["arg2_value"] != none, v["arg1_value"] == none, True))
 )
 
 def rule_34_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,20 @@ def rule_34_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, bool) or isinstance(arg1, str)):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg2, bool) or isinstance(arg2, str)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 34
-        rule_34(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_34(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_34(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_34(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If out is specified, its dtype should be compatible with the i0 operation (Rule 6)
+# If input is complex, output must also be complex, otherwise output must not be complex (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11, If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, False))) if n else
-          If(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11, If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, False)))
+    s.add(Not(If((Or(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg1_dtype"] == 11)), (Or(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), v["arg2_dtype"] == 11)), (And(And(v["arg2_dtype"] != 9, v["arg2_dtype"] != 10), v["arg2_dtype"] != 11)))) if n else
+          If((Or(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), v["arg1_dtype"] == 11)), (Or(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), v["arg2_dtype"] == 11)), (And(And(v["arg2_dtype"] != 9, v["arg2_dtype"] != 10), v["arg2_dtype"] != 11))))
 )
 
 def rule_6_func(arg1, arg2, solver=None, neg=False):

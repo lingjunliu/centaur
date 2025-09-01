@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Either the input tensor has at least 3 dimensions, or the height and width are 1 (Rule 26)
+# input tensor should have at least 3 dimensions or height and width are 1 if less than 3 dimensions (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_ndim"] >= 3, (And(Select(v["arg1_shape"], v["arg1_ndim"] - 2) == 1, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 1)))) if n else
-          Or(v["arg1_ndim"] >= 3, (And(Select(v["arg1_shape"], v["arg1_ndim"] - 2) == 1, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 1))))
+    s.add(Not(If(v["arg1_ndim"] < 3, (If(v["arg1_ndim"] >= 2, And(Select(v["arg1_shape"], v["arg1_ndim"] - 2) == 1, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 1), True)), v["arg1_ndim"] >= 3)) if n else
+          If(v["arg1_ndim"] < 3, (If(v["arg1_ndim"] >= 2, And(Select(v["arg1_shape"], v["arg1_ndim"] - 2) == 1, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 1), True)), v["arg1_ndim"] >= 3))
 )
 
 def rule_26_func(arg1, solver=None, neg=False):

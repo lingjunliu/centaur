@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the set default dtype is float64, get_default_dtype will return a value greater or equal than float16 (Rule 23)
+# The default dtype cannot be bool, string or np.dtype (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 8, v["arg1_value"] >= 6, False)) if n else
-          If(v["arg1_value"] == 8, v["arg1_value"] >= 6, False))
+    s.add(Not(And(And(v["arg1_value"] != 0, v["arg1_value"] != 11), v["arg1_value"] != 12)) if n else
+          And(And(v["arg1_value"] != 0, v["arg1_value"] != 11), v["arg1_value"] != 12))
 )
 
 def rule_23_func(arg1, solver=None, neg=False):

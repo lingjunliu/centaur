@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the input tensor has more than 2 dimensions, the last dimension size should be greater than 1 (Rule 17)
+# if input tensor is empty, then output tensor is also empty (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 2, Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 1, False)) if n else
-          If(v["arg1_ndim"] > 2, Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 1, False))
+    s.add(Not(If(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 0) for i in range(6)]), True, True)) if n else
+          If(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 0) for i in range(6)]), True, True))
 )
 
 def rule_17_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_17_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 17
-        rule_17(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_17(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_17(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_17(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If dim is None, default dim = -1, and the shape along dim=0 should be transformed_dim_size = (2^n + 1 (Rule 64)
+# Dimension should be valid given input ndim (Rule 64)
 
 rule_64 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == -1, True, And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"]))) if n else
-          If(v["arg2_value"] == -1, True, And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"])))
+    s.add(Not(And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"])) if n else
+          And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"]))
 )
 
 def rule_64_func(arg1, arg2, solver=None, neg=False):

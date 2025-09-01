@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input should not be ComplexDouble, or if it is, output should be specified as Complex128. Also, prevent Complex inputs if the output is Bool (Rule 39)
+# If the input is complex, the output must be complex or have the same dtype as the input (Rule 39)
 
 rule_39 = lambda s, v, n=False: (
-    s.add(Not(And((v["arg1_dtype"] != 10), Or((Or(Or((v["arg1_dtype"] < 9), (v["arg1_dtype"] > 10)), (v["arg2_dtype"] != 0))), (And(v["arg1_dtype"] == 10, v["arg2_dtype"] == 11))))) if n else
-          And((v["arg1_dtype"] != 10), Or((Or(Or((v["arg1_dtype"] < 9), (v["arg1_dtype"] > 10)), (v["arg2_dtype"] != 0))), (And(v["arg1_dtype"] == 10, v["arg2_dtype"] == 11)))))
+    s.add(Not(If((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or((Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), (v["arg2_dtype"] == v["arg1_dtype"]))), True)) if n else
+          If((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or((Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), (v["arg2_dtype"] == v["arg1_dtype"]))), True))
 )
 
 def rule_39_func(arg1, arg2, solver=None, neg=False):

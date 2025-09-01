@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the 'dim' argument is specified, then dimension at 'dim' in input tensors should be of size 3 (Rule 69)
+# If the dimension is specified, the shape of input and other must be the same in that dimension (Rule 69)
 
 rule_69 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_shape"], v["arg3_value"]) == 3, Select(v["arg2_shape"], v["arg3_value"]) == 3)) if n else
-          And(Select(v["arg1_shape"], v["arg3_value"]) == 3, Select(v["arg2_shape"], v["arg3_value"]) == 3))
+    s.add(Not(Select(v["arg1_shape"], v["arg3_value"]) == Select(v["arg2_shape"], v["arg3_value"])) if n else
+          Select(v["arg1_shape"], v["arg3_value"]) == Select(v["arg2_shape"], v["arg3_value"]))
 )
 
 def rule_69_func(arg1, arg2, arg3, solver=None, neg=False):

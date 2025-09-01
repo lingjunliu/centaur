@@ -1,96 +1,84 @@
 >>
-Rule 3 (norm parameter must be one of the allowed values)
+Rule 1 (Signal size should be positive)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 2 (dim and s must have the same length)
+{v_1 : tuple(int), v_2 : tuple(int)} |= v_1.len = v_2.len
+>>
+Rule 3 (norm must be a valid string)
 {v_1 : str} |= v_1 = "forward" ∨ v_1 = "backward" ∨ v_1 = "ortho"
 >>
-Rule 4 (If s is given, its length should be less than or equal to the number of dimensions of input tensor)
-{v_1 : tensor, v_2 : tuple(int)} |= if v_2 ≠ None then v_2.len ≤ ndim(v_1)
+Rule 5 (s[-1] must be equal to 2*(input.size(dim[-1]) - 1))
+{v_1 : tensor, v_2 : tuple(int), v_3 : tuple(int)} |= v_2.len > 0 ∧ v_3.len > 0 ∧ v_2[v_2.len - 1] = 2 * (shape(v_1, v_3[v_3.len - 1]) - 1)
 >>
-Rule 6 (The last dimension in dim must be the half-Hermitian compressed dimension)
-{v_1 : tensor, v_2 : tuple(int)} |= if v_2 ≠ None then v_2[v_2.len - 1] < ndim(v_1)
+Rule 6 (input tensor must have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 7 (Dimension should be in valid range: addressing IndexError. Ensure positive indexing)
-{v_1 : tensor, v_2 : int} |= 0 ≤ v_2 ∧ v_2 < ndim(v_1)
+Rule 7 (dim should be within valid range)
+{v_1 : tuple(int), v_2 : tensor} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ (0 - ndim(v_2)) ∧ v_1[i] < ndim(v_2)
 >>
-Rule 9 (s and dim must have same length when both are specified)
-{v_2 : tuple(int), v_3 : tuple(int)} |= if v_2 ≠ None ∧ v_3 ≠ None then v_2.len = v_3.len
+Rule 9 (If s is given, dim should be given.)
+{v_1 : tuple(int), v_2 : tuple(int)} |= if v_1.len > 0 then v_2.len > 0
 >>
-Rule 12 (Elements of dim tuple should be within the valid range of dimensions for the input tensor. Positive indexing)
-{v_1 : tensor, v_2 : tuple(int)} |= if v_2 ≠ None then ∀ i ∈ [0, v_2.len - 1] : (0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1))
+Rule 10 (If dim is given, input tensor should have enough dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : ndim(v_1) > v_2[i]
 >>
-Rule 15 (Dimension should be in valid range: addressing IndexError using min/max)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ (-1 * ndim(v_1)) ∧ v_2 < ndim(v_1)
+Rule 11 (If s is given, its length should not exceed the number of dimensions in input)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≤ ndim(v_1)
 >>
-Rule 19 (Elements of dim tuple should be within the valid range of dimensions for the input tensor)
-{v_1 : tensor, v_2 : tuple(int)} |= if v_2 ≠ None then ∀ i ∈ [0, v_2.len - 1] : (v_2[i] ≥ (-1 * ndim(v_1)) ∧ v_2[i] < ndim(v_1))
+Rule 12 (If s and dim are given, they must have the same length.)
+{v_1 : tuple(int), v_2 : tuple(int)} |= if v_1.len > 0 ∧ v_2.len > 0 then v_1.len = v_2.len
 >>
-Rule 21 (Dimension should be in valid range: addressing IndexError using combined condition)
-{v_1 : tensor, v_2 : int} |= (v_2 ≥ 0 ∧ v_2 < ndim(v_1)) ∨ (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < 0)
+Rule 13 (Elements in dim tuple must be unique.)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i + 1, v_1.len - 1] : v_1[i] ≠ v_1[j]
 >>
-Rule 22 (s and dim must have different lengths when only one of them is specified)
-{v_2 : tuple(int), v_3 : tuple(int)} |= if (v_2 ≠ None ∧ v_3 = None) ∨ (v_2 = None ∧ v_3 ≠ None) then v_2.len ≠ v_3.len
+Rule 24 (If s is -1, no padding is done in that dimension.)
+{v_1: tuple(int), v_2: int} |= if v_2 = -1 then v_1.len > 0
 >>
-Rule 23 (When dim is specified, its elements must be unique)
-{v_1 : tuple(int)} |= ∀ i ∈ [0, v_1.len - 1] : ∀ j ∈ [i+1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+Rule 25 (If s is given, s[-1] must be >= 1)
+{v_1: tuple(int)} |= if v_1.len > 0 then v_1[v_1.len - 1] >= 1
 >>
-Rule 24 (If s is not None, s[-1] = 2*(input.size(dim[-1]) - 1))
-{v_1 : tensor, v_2 : tuple(int), v_3 : tuple(int)} |= if v_2 ≠ None ∧ v_3 ≠ None then v_2[v_2.len -1] = 2 * (shape(v_1, v_3[v_3.len -1]) -1 )
+Rule 26 (If s is -1 for a dimension, then the input dimension should not be zero)
+{v_1 : tensor, v_2 : tuple(int), v_3 : tuple(int)} |= if v_2.len > 0 ∧ v_3.len > 0 then  ∀i ∈ [0, v_2.len - 1] : (v_2[i] = -1 ∧ shape(v_1, v_3[i]) = 0) = false
 >>
-Rule 25 (Dimension should be in valid range: addressing IndexError)
-{v_1 : tensor, v_2 : int} |= ((-1 * ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1))
+Rule 27 (output tensor should be of same dtype as input tensor)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 26 (s and dim must have the same length if provided, otherwise dim defaults to the length of s)
-{v_1 : tensor, v_2 : tuple(int), v_3 : tuple(int)} |= if v_2 ≠ None ∧ v_3 ≠ None then v_2.len = v_3.len else if v_2 ≠ None ∧ v_3 = None then ndim(v_1) ≥ v_2.len
+Rule 28 (If s is -1 for a dimension, then the input dimension should not be zero)
+{v_1 : tensor, v_2 : tuple(int), v_3 : tuple(int)} |= if v_2.len > 0 ∧ v_3.len > 0 then  ∀i ∈ [0, v_2.len - 1] : if v_2[i] = -1 then shape(v_1, v_3[i]) ≠ 0
 >>
-Rule 27 (If s is provided, its values should be non-negative, or -1)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ 0) ∨ (v_1[i] = -1)
+Rule 31 (s[-1] must be equal to 2*(input.size(dim[-1]) - 1) if default is used)
+{v_1 : tensor, v_2 : tuple(int), v_3 : tuple(int)} |= if v_2.len = 0 ∧ v_3.len > 0 then 2 * (shape(v_1, v_3[v_3.len - 1]) - 1) > 0
 >>
-Rule 29 (s and dim should have the same length if both are provided)
-{v_1 : tuple(int), v_2 : tuple(int)} |= if v_1 ≠ None ∧ v_2 ≠ None then v_1.len = v_2.len
+Rule 32 (If s is given then norm must be one of forward, backward, or ortho)
+{v_1 : tuple(int), v_2 : str} |= if v_1.len > 0 then (v_2 = "forward" ∨ v_2 = "backward" ∨ v_2 = "ortho")
 >>
-Rule 31 (Dimension should be in valid range: addressing IndexError.  Using function to calculate negative ndim)
-{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
+Rule 33 (dim elements cannot be equal to or greater than the number of dimensions of input if s is not given)
+{v_1 : tensor, v_2 : tuple(int), v_3 : tuple(int)} |= if v_2.len = 0 ∧ v_3.len > 0 then ∀i ∈ [0, v_3.len - 1] : v_3[i] < ndim(v_1)
 >>
-Rule 33 (If s and dim are provided and have the same length, and dim has non-None value, then the transformed dimensions should not be repeated)
-{v_2 : tuple(int), v_3 : tuple(int)} |= if v_2 ≠ None ∧ v_3 ≠ None ∧ v_2.len = v_3.len then ∀ i ∈ [0, v_3.len - 1] : ∀ j ∈ [i+1, v_3.len - 1] : v_3[i] ≠ v_3[j]
+Rule 34 (If s is not given and dim is given, then the last element of dim must be the half-Hermitian compressed dimension.)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then shape(v_1, v_2[v_2.len -1]) > 0
 >>
-Rule 38 (If s and dim are provided and have the same length, then the transformed dimensions should not be repeated. Use only v_3 as it will be used for dimension access)
-{v_3 : tuple(int)} |= if v_3 ≠ None then ∀ i ∈ [0, v_3.len - 1] : ∀ j ∈ [i+1, v_3.len - 1] : v_3[i] ≠ v_3[j]
+Rule 36 (If dim is given then its elements must be within the valid range)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)
 >>
-Rule 39 (If s is not None, then the last dimension value should be valid (2^n + 1), powers of 2 is not checked to simplify the rule)
-{v_1: tuple(int)} |= if v_1 ≠ None then v_1[v_1.len - 1] > 0
+Rule 37 (if out is given, it should be a tensor with compatible shape)
+{v_1 : tensor, v_2 : tensor, v_3 : tuple(int)} |= if v_3.len > 0 then ndim(v_1) = ndim(v_2) ∧  ∀i ∈ [0, v_3.len - 1] : shape(v_1,i) = v_3[i]
 >>
-Rule 40 (Addressing IndexError with combined checks for positive and negative indexing)
-{v_1 : tensor, v_2 : int} |= (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1))
+Rule 38 (if s is given then input tensor's last dim should be greater or equal to (s[-1]/2)+1)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then shape(v_1, ndim(v_1)-1) >= (v_2[v_2.len-1]/2) + 1
 >>
-Rule 42 (If the last dimension of s is provided, check if s[-1] = 2*(input.size(dim[-1]) - 1), if dim is also provided)
-{v_1 : tensor, v_2 : tuple(int), v_3 : tuple(int)} |= if v_2 ≠ None ∧ v_3 ≠ None then v_2[v_2.len - 1] = 2 * (shape(v_1, v_3[v_3.len - 1]) - 1)
+Rule 39 (if s is given then input tensor's last dim should be greater or equal to (s[-1]/2)+1)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then shape(v_1, ndim(v_1)-1) ≥ (v_2[v_2.len-1] / 2) + 1
 >>
-Rule 50 (If the last dimension of s is provided, and s and dim have the same length, check if s[-1] = 2*(input.size(dim[-1]) - 1))
-{v_1 : tensor, v_2 : tuple(int), v_3 : tuple(int)} |= if v_2 ≠ None ∧ v_3 ≠ None ∧ v_2.len = v_3.len then v_2[v_2.len - 1] = 2 * (shape(v_1, v_3[v_3.len - 1]) - 1)
+Rule 40 (if s is given then input tensor's last dim should be greater or equal to (s[-1]/2)+1, consider s[-1] is even)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then shape(v_1, ndim(v_1)-1) ≥ (v_2[v_2.len-1] / 2) + 1 ∨ (v_2[v_2.len-1] % 2) ≠ 0
 >>
-Rule 54 (If dim is specified, its values should be within the valid range of dimensions for the input tensor)
-{v_1 : tensor, v_2 : tuple(int)} |= if v_2 ≠ None then ∀ i ∈ [0, v_2.len - 1] : (0 - ndim(v_1) ≤ v_2[i] ∧ v_2[i] < ndim(v_1))
+Rule 41 (if s is given then input tensor's last dim should be greater or equal to (s[-1]/2)+1, consider s[-1] is even)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then shape(v_1, ndim(v_1)-1) ≥ ((v_2[v_2.len-1] / 2) + 1) ∨ ((v_2[v_2.len-1] % 2) ≠ 0)
 >>
-Rule 59 (If the last dimension of s is provided, and s and dim have the same length, check if s[-1] = 2*(input.size(dim[-1]) - 1), accounting for negative dimension indices in dim)
-{v_1 : tensor, v_2 : tuple(int), v_3 : tuple(int)} |= if v_2 ≠ None ∧ v_3 ≠ None ∧ v_2.len = v_3.len then v_2[v_2.len - 1] = 2 * (shape(v_1, if v_3[v_3.len - 1] < 0 then ndim(v_1) + v_3[v_3.len - 1] else v_3[v_3.len - 1]) - 1)
+Rule 43 (if s is given then input tensor's last dim must be greater or equal to (s[-1]/2)+1, consider s[-1] is even)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then shape(v_1, ndim(v_1)-1) ≥ ((v_2[v_2.len-1] / 2) + 1) ∨ (v_2[v_2.len-1] % 2) ≠ 0
 >>
-Rule 68 (Check if s[-1] = 2*(input.size(dim[-1]) - 1) when s and dim are passed, handling negative dim indices and that dim is a valid index)
-{v_1 : tensor, v_2 : tuple(int), v_3 : tuple(int)} |= if v_2 ≠ None ∧ v_3 ≠ None ∧ v_2.len = v_3.len then v_2[v_2.len - 1] = 2 * (shape(v_1, if v_3[v_3.len - 1] < 0 then ndim(v_1) + v_3[v_3.len - 1] else v_3[v_3.len - 1]) - 1) ∧ (0 - ndim(v_1) ≤ v_3[v_3.len - 1] ∧ v_3[v_3.len - 1] < ndim(v_1))
->>
-Rule 71 (If the last dimension of s is provided, and s and dim have the same length, check if s[-1] = 2*(input.size(dim[-1]) - 1), and that dimension index is within the range)
-{v_1 : tensor, v_2 : tuple(int), v_3 : tuple(int)} |= if v_2 ≠ None ∧ v_3 ≠ None ∧ v_2.len = v_3.len then v_2[v_2.len - 1] = 2 * (shape(v_1, v_3[v_3.len - 1]) - 1) ∧ (v_3[v_3.len - 1] ≥ (0 - ndim(v_1)) ∧ v_3[v_3.len - 1] < ndim(v_1))
->>
-Rule 74 (Check if s[-1] = 2*(input.size(dim[-1]) - 1) when s and dim are passed, handling negative dim indices, ensuring index is in range)
-{v_1 : tensor, v_2 : tuple(int), v_3 : tuple(int)} |= if v_2 ≠ None ∧ v_3 ≠ None ∧ v_2.len = v_3.len then v_2[v_2.len - 1] = 2 * (shape(v_1, v_3[v_3.len - 1]) - 1) ∧ ((0 - ndim(v_1)) ≤ v_3[v_3.len-1] ∧ v_3[v_3.len-1] < ndim(v_1))
->>
-Rule 75 (Enforce that input tensor has correct shape if s is not None. For now just checking the length of s, with a separate rule focusing on exact shape correspondence)
-{v_1 : tensor, v_2 : tuple(int)} |= if v_2 ≠ None then ndim(v_1) = v_2.len
->>
-Rule 83 (Final check: If s and dim are passed, and the condition to use input.size(dim[-1]) holds, ensure correct relation. Account for dimension indexes which may be negative using if-else. Incorporate range and equation, handling negative indexes.)
-{v_1 : tensor, v_2 : tuple(int), v_3 : tuple(int)} |= if v_2 ≠ None ∧ v_3 ≠ None ∧ v_2.len = v_3.len then v_2[v_2.len - 1] = 2 * (shape(v_1, if v_3[v_3.len - 1] < 0 then ndim(v_1) + v_3[v_3.len - 1] else v_3[v_3.len - 1]) - 1) ∧ (0 - ndim(v_1) ≤ v_3[v_3.len-1] ∧ v_3[v_3.len-1] < ndim(v_1))
->>
-Rule 89 (Check both conditions last s index and last dim valid + equation correct)
-{v_1 : tensor, v_2 : tuple(int), v_3 : tuple(int)} |= if v_2 ≠ None ∧ v_3 ≠ None ∧ v_2.len = v_3.len then v_2[v_2.len - 1] = 2 * (shape(v_1, v_3[v_3.len - 1]) - 1) ∧ (0 - ndim(v_1) ≤ v_3[v_3.len-1] ∧ v_3[v_3.len-1] < ndim(v_1))
->>
-Rule 90 (If dim is specified, ensure its components are unique to avoid potential conflicts in the transformed space, but only if `dim` has elements at all.)
-{v_1 : tuple(int)} |= if v_1 ≠ None then ∀ i ∈ [0, v_1.len - 1] : ∀ j ∈ [i+1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+Rule 45 (if out is given, s should not have conflict with out's shape)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then v_2.len = ndim(v_1) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] = shape(v_1, i))

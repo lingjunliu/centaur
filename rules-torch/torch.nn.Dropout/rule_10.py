@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# dropout probability is within the valid range (Rule 10)
+# Probability p is within the valid range (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(And(0.0 <= v["arg1_value"], v["arg1_value"] <= 1.0)) if n else
-          And(0.0 <= v["arg1_value"], v["arg1_value"] <= 1.0))
+    s.add(Not(If(v["arg1_value"] < 0, False, If(v["arg1_value"] > 1, False, True))) if n else
+          If(v["arg1_value"] < 0, False, If(v["arg1_value"] > 1, False, True)))
 )
 
 def rule_10_func(arg1, solver=None, neg=False):

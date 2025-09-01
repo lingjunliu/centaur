@@ -1,153 +1,129 @@
 >>
-Rule 1 (memory_format must be "torch.preserve_format", suppress TypeError: randn_like(): argument 'memory_format' must be torch.memory_format, not str, assuming there is a way to represent memory_format)
-{v_1 : str} |= v_1 = "none"
+Rule 1 (Dtype of input tensor and specified dtype should be compatible, or specified dtype should be valid.)
+{input : tensor, dtype : dtype} |= (dtype_(input) = dtype) ∨ (1 ≤ dtype ∧ dtype ≤ 13)
 >>
-Rule 3 (input tensor cannot be an empty tensor)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 2 (requires_grad should be a boolean value.)
+{requires_grad : bool} |= requires_grad = true ∨ requires_grad = false
 >>
-Rule 4 (dtype cannot be an empty string)
-{v_1 : str} |= v_1 ≠ ""
+Rule 5 (Input tensor must be a tensor.)
+{input : tensor} |= ndim(input) ≥ 0
 >>
-Rule 5 (layout variable should be a string equal to "strided")
-{v_1 : str} |= v_1 = "strided"
+Rule 6 (dtype should be valid)
+{dtype : dtype} |= 1 <= dtype ∧ dtype <= 13
 >>
-Rule 6 (If dtype is provided, it must be a valid dtype)
-{v_1 : dtype} |= 0 ≤ v_1 ∧ v_1 ≤ 12
+Rule 8 (If dtype is specified, it should be a valid dtype index.)
+{dtype : dtype} |= 0 < dtype ∧ dtype < 13
 >>
-Rule 8 (if device is "cpu", dtype must be in a certain range)
-{v_1 : str, v_2 : dtype} |= if v_1 = "cpu" then 0 ≤ v_2 ∧ v_2 ≤ 8
+Rule 10 (If dtype is none, output dtype is the same as input)
+{input: tensor, dtype: dtype} |= if dtype = 0 then dtype_(input) > 0
 >>
-Rule 9 (if requires_grad is true, dtype cannot be an integer type)
-{v_1 : bool, v_2 : dtype} |= if v_1 = true then v_2 > 5
+Rule 11 (If dtype is specified, input and output tensor must be compatible)
+{input: tensor, dtype: dtype} |= if dtype != 0 then (dtype_(input) = dtype) ∨ (1 <= dtype ∧ dtype <= 13)
 >>
-Rule 10 (The dimension of tensor should be less than or equal to 5)
-{v_1 : tensor} |= ndim(v_1) ≤ 5
+Rule 12 (If dtype is specified, it should be a valid dtype index.)
+{dtype : dtype} |= dtype = 0 ∨ (0 < dtype ∧ dtype < 13)
 >>
-Rule 12 (requires_grad must be a boolean. Using a constant boolean value is not enough)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 14 (if dtype is specified, it must be compatible with input)
+{input : tensor, dtype : dtype} |= if dtype ≠ 0 then (dtype_(input) = dtype) ∨ (1 ≤ dtype ∧ dtype ≤ 11)
 >>
-Rule 21 (memory_format must be a specific string value when not "preserve_format")
-{v_1 : str} |= v_1 = "none" ∨ v_1 = "contiguous_format"
+Rule 15 (dtype must be a valid dtype index, or 0 for None)
+{dtype : dtype} |= dtype = 0 ∨ (1 ≤ dtype ∧ dtype ≤ 11)
 >>
-Rule 22 (requires_grad is false when dtype is integer)
-{v_1 : bool, v_2 : dtype} |= if v_2 < 6 then v_1 = false
+Rule 17 (if dtype is specified, it must be compatible with input, considering complex types)
+{input : tensor, dtype : dtype} |= if dtype ≠ 0 then (dtype_(input) = dtype) ∨ ((1 <= dtype ∧ dtype <= 8) ∧ (1 <= dtype_(input) ∧ dtype_(input) <= 8)) ∨ ((9 <= dtype ∧ dtype <= 11) ∧ (9 <= dtype_(input) ∧ dtype_(input) <= 11))
 >>
-Rule 23 (layout must be a valid string)
-{v_1 : str} |= v_1 = "strided" ∨ v_1 = "sparse_coo"
+Rule 20 (if dtype is specified, it must be compatible with input, considering complex types, avoiding bool for input)
+{input : tensor, dtype : dtype} |= if dtype ≠ 0 then (dtype_(input) = dtype) ∨ ((1 <= dtype ∧ dtype <= 8) ∧ (2 <= dtype_(input) ∧ dtype_(input) <= 8)) ∨ ((9 <= dtype ∧ dtype <= 11) ∧ (9 <= dtype_(input) ∧ dtype_(input) <= 11))
 >>
-Rule 24 (device must be either cpu or cuda)
-{v_1 : str} |= v_1 = "cpu" ∨ v_1 = "cuda"
+Rule 21 (input tensor should have valid data type.)
+{input : tensor} |= 1 <= dtype_(input) ∧ dtype_(input) <= 11
 >>
-Rule 25 (If dtype is complex, requires_grad must be false)
-{v_1 : bool, v_2 : dtype} |= if v_2 > 9 ∧ v_2 < 12 then v_1 = false
+Rule 24 (input tensor should have valid data type and not be bool.)
+{input : tensor} |= 2 <= dtype_(input) ∧ dtype_(input) <= 11
 >>
-Rule 26 (If input is empty, the dtype must be specified.)
-{v_1: tensor, v_2: dtype} |= if ndim(v_1) = 0 then v_2 > -1
+Rule 26 (if dtype is specified, it must be compatible to avoid underflow/overflow, only consider valid types.)
+{input : tensor, dtype : dtype} |= if dtype ≠ 0 then (dtype_(input) = dtype) ∨ ((2 <= dtype ∧ dtype <= 8) ∧ (2 <= dtype_(input) ∧ dtype_(input) <= 8)) ∨ ((9 <= dtype ∧ dtype <= 11) ∧ (9 <= dtype_(input) ∧ dtype_(input) <= 11))
 >>
-Rule 27 (If layout is given, device must also be given.)
-{v_1: str, v_2: str} |= if v_1 != "none" then v_2 != "none"
+Rule 33 (If dtype is explicitly given, then the output tensor will have that dtype.)
+{input : tensor, dtype : dtype} |= if dtype ≠ 0 then dtype = dtype_(input)
 >>
-Rule 28 (memory_format must be a valid string from a predefined set, addressing the TypeError)
-{v_1 : str} |= v_1 = "none" ∨ v_1 = "preserve_format" ∨ v_1 = "contiguous_format"
+Rule 37 (If dtype is specified, it must be a valid dtype index between 1 and 11 inclusive or be equal to zero.)
+{dtype : dtype} |= 0 <= dtype ∧ dtype <= 11
 >>
-Rule 29 (requires_grad interacts with the dtype: complex types require requires_grad=False)
-{v_1 : bool, v_2 : dtype} |= if v_2 ≥ 10 ∧ v_2 ≤ 11 then v_1 = false
+Rule 40 (requires_grad must be a boolean, explicitly checking for false)
+{requires_grad : bool} |= requires_grad = false ∨ requires_grad = true
 >>
-Rule 30 (layout must be a valid string)
-{v_1 : str} |= v_1 = "strided" ∨ v_1 = "sparse_coo" ∨ v_1 = "none"
+Rule 46 (If dtype is specified and valid, then the output dtype will be that, otherwise input's dtype must be in valid set)
+{input : tensor, dtype : dtype} |= if dtype = 0 then 2 <= dtype_(input) ∧ dtype_(input) <= 11
 >>
-Rule 31 (device must be either cpu or cuda or meta, adding meta)
-{v_1 : str} |= v_1 = "cpu" ∨ v_1 = "cuda" ∨ v_1 = "meta"
+Rule 48 (If dtype is specified, the output dtype will match and it is not the bool type, or dtype defaults to input and input's type is valid.)
+{input : tensor, dtype : dtype} |= if dtype ≠ 0 then dtype = dtype_(input) ∧ dtype ≠ 1 else 2 <= dtype_(input) ∧ dtype_(input) <= 11
 >>
-Rule 32 (If the input tensor's dtype is integer, then the output dtype can only be integer)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) < 6 then v_2 < 6
+Rule 50 (If dtype is specified and valid, then the output dtype will match, otherwise input's dtype must be in valid set.)
+{input : tensor, dtype : dtype} |= if dtype ≠ 0 then (1 <= dtype ∧ dtype <= 11) ∧ dtype = dtype_(input) else 2 <= dtype_(input) ∧ dtype_(input) <= 11
 >>
-Rule 33 (If the input tensor's dtype is float, then the output dtype can only be float)
-{v_1 : tensor, v_2 : dtype} |= if 6 <= dtype_(v_1) ∧ dtype_(v_1) < 9 then 6 <= v_2 ∧ v_2 < 9
+Rule 51 (If dtype is specified, the output dtype will match and it is not the bool type. If dtype is not specified input must be a valid tensor.)
+{input : tensor, dtype : dtype} |= if dtype ≠ 0 then (1 <= dtype ∧ dtype <= 11) ∧ dtype = dtype_(input)
 >>
-Rule 34 (If dtype is specified, it must be a valid dtype within range)
-{v_1 : dtype} |= v_1 ≥ 0 ∧ v_1 ≤ 12
+Rule 54 (Validates that if dtype=0, input has a valid dtype and that if dtype!=0, then dtype matches input.)
+{input : tensor, dtype : dtype} |= if dtype = 0 then (2 <= dtype_(input) ∧ dtype_(input) <= 11) else (1 <= dtype ∧ dtype <=11) ∧ (dtype = dtype_(input))
 >>
-Rule 37 (requires_grad interacts with the dtype: complex types require requires_grad=False, and for integers, it also should be false)
-{v_1 : bool, v_2 : dtype} |= if v_2 ≥ 10 ∧ v_2 ≤ 11 then v_1 = false else if v_2 < 6 then v_1 = false
+Rule 56 (Validates that either dtype is 0 (None) or if specified, it must be a valid dtype value between 1 and 11 inclusive.)
+{dtype : dtype} |= dtype = 0 ∨ (1 <= dtype ∧ dtype <= 11)
 >>
-Rule 43 (If memory format is given it should be a valid value)
-{v_1 : str} |= v_1 = "contiguous_format" ∨ v_1 = "channels_last" ∨ v_1 = "preserve_format" ∨ v_1 = "none"
+Rule 57 (Validates requires_grad input can be true or false, using only one explicit value.)
+{requires_grad : bool} |= requires_grad = true
 >>
-Rule 44 (If memory format is specified, it should be one of the acceptable strings)
-{v_1 : str} |= v_1 = "preserve_format" ∨ v_1 = "contiguous_format" ∨ v_1 = "channels_last" ∨ v_1 = "none"
+Rule 58 (Validates that if dtype=0, input has a valid dtype and that if dtype!=0, then dtype must be a valid dtype.)
+{input : tensor, dtype : dtype} |= if dtype = 0 then (2 <= dtype_(input) ∧ dtype_(input) <= 11) else (1 <= dtype ∧ dtype <= 11)
 >>
-Rule 46 (dtype should not be string or list or tuple)
-{v_1 : dtype} |= v_1 < 12
+Rule 60 (Validates that if dtype == 0(None) input has a valid dtype. Otherwise, the given dtype is within the appropriate range and matches input.)
+{input : tensor, dtype : dtype} |= if dtype = 0 then (2 <= dtype_(input) ∧ dtype_(input) <= 11) else (1 <= dtype ∧ dtype <= 11) ∧ (dtype = dtype_(input))
 >>
-Rule 47 (If layout is given then dtype must be given)
-{v_1 : str, v_2 : dtype} |= if v_1 != "none" then v_2 > -1
+Rule 61 (Requires_grad can only be true or false using one explicit option for conciseness.)
+{requires_grad : bool} |= requires_grad = false
 >>
-Rule 49 (If the input tensor is boolean then output tensor should be boolean)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 0 then v_2 = 0
+Rule 62 (If dtype is explicitly given and valid output dtype matches and avoids boolean. if dtype is 0, input tensor is of valid type.)
+{input : tensor, dtype : dtype} |= if dtype ≠ 0 then (1 < dtype ∧ dtype < 12) ∧ (dtype = dtype_(input)) else (2 <= dtype_(input) ∧ dtype_(input) <= 11)
 >>
-Rule 51 (If layout is sparse_coo, then input must be sparse_coo tensor)
-{v_1 : tensor, v_2 : str} |= if v_2 = "sparse_coo" then ndim(v_1) > 0
+Rule 64 (If specified, given dtype is valid and defaults to input.)
+{input : tensor, dtype : dtype} |= if dtype ≠ 0 then (1 < dtype ∧ dtype < 12) ∧ (dtype = dtype_(input))
 >>
-Rule 59 (If layout is given then dtype must be given, prevent unspecified behaviour)
-{v_1 : str, v_2 : dtype} |= if v_1 ≠ "none" then v_2 ≥ 0
+Rule 65 (requires_grad: bool)
+{requires_grad : bool} |= true ∨ requires_grad = false
 >>
-Rule 60 (Check size of each dimension of input tensor is more than zero, use correct syntax)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 72 (Requires_grad can only be True or False, so check this. Explicitly include both)
+{requires_grad: bool} |= requires_grad = true ∨ requires_grad = false
 >>
-Rule 62 (If the device is meta, then requires_grad is false)
-{v_1 : str, v_2 : bool} |= if v_1 = "meta" then v_2 = false
+Rule 76 (if dtype = 0, then dtype from the input needs to be in the appropriate range)
+{input : tensor, dtype : dtype} |= if dtype = 0 then (2 <= dtype_(input) ∧ dtype_(input) <= 11) else (dtype > 0 ∧ dtype < 12)
 >>
-Rule 64 (If layout is sparse_coo, ensure the input tensor is valid)
-{v_1 : tensor, v_2 : str} |= if v_2 = "sparse_coo" then ndim(v_1) > 1
+Rule 78 (Validate dtype range + requires same, or if none, requires a valid input type)
+{input : tensor, dtype : dtype} |= if dtype = 0 then (2 <= dtype_(input) ∧ dtype_(input) <= 11) else ((1 <= dtype ∧ dtype <= 11) ∧ (dtype = dtype_(input)))
 >>
-Rule 65 (Restricting dtype to a specific range, excluding string/list/tuple)
-{v_1 : dtype} |= v_1 ≥ 0 ∧ v_1 ≤ 11
+Rule 79 (if dtype=0, then the type is correct, else dtype has valid type.)
+{input: tensor, dtype: dtype} |= if dtype = 0 then 2 <= dtype_(input) ∧ dtype_(input) <= 11 else 1 <= dtype ∧ dtype <= 11
 >>
-Rule 75 (requires_grad is false means dtype can not be complex, data restriction.)
-{v_1 : bool, v_2 : dtype} |= if v_1 = false then v_2 < 10 ∨ v_2 > 11
+Rule 81 (If specified and valid range, should preserve this. If none, a valid range from input is followed.)
+{input: tensor, dtype: dtype} |= if dtype = 0 then 2 <= dtype_(input) ∧ dtype_(input) <= 11 else 1 <= dtype ∧ dtype <= 11 ∧ dtype = dtype_(input)
 >>
-Rule 77 (Layout can not be sparse if input is not sparse tensor)
-{v_1 : tensor, v_2 : str} |= if ndim(v_1) > 0 then v_2 = "strided"
+Rule 86 (If dtype is explict, verify range and check output will be consistent; otherwise, require valid range from input.)
+{input: tensor, dtype: dtype} |= if dtype = 0 then 2 <= dtype_(input) ∧ dtype_(input) <= 11 else (1 <= dtype ∧ dtype <= 11) ∧ dtype = dtype_(input)
 >>
-Rule 84 (requires_grad interacts with dtype and device, related to memory allocation)
-{v_1 : bool, v_2 : dtype, v_3:str} |= if v_1 = false then v_2 < 10 ∨ v_2 > 11 ∧ v_3 != "cuda"
+Rule 87 (requires_grad is boolean)
+{requires_grad: bool} |= true ∨ requires_grad = false
 >>
-Rule 93 (if device is cuda then dtype has to be on cuda)
-{v_1 : str, v_2 : dtype} |= if v_1 = "cuda" then v_2 > 5 ∧ v_2 < 9
+Rule 90 (If specified type, check within valid range & ensure assignment is honored. O/W check type.)
+{input: tensor, dtype: dtype} |= if dtype ≠ 0 then (1 <= dtype ∧ dtype <= 11) ∧ dtype = dtype_(input) else 2 <= dtype_(input) ∧ dtype_(input) <= 11
 >>
-Rule 95 (Device should be CUDA for specific dtypes with requires_grad as true)
-{v_1 : str, v_2 : dtype, v_3 : bool} |= if v_3 = true then if v_2 >= 6 ∧ v_2 <=8 then v_1 = "cuda"
+Rule 91 (If dtype specified, needs to be a valid dtype.)
+{dtype : dtype} |= if dtype = 0 then true else (1 <= dtype ∧ dtype <= 11)
 >>
-Rule 99 (If the dtype is complex, requires_grad has to be false)
-{v_1 : bool, v_2 : dtype} |= if v_2 >= 10 ∧ v_2 <= 11 then v_1 = false
+Rule 93 (validate dtype parameter with input)
+{input: tensor, dtype: dtype} |= if dtype = 0 then true else (1 <= dtype ∧ dtype <= 11) ∧ dtype = dtype_(input)
 >>
-Rule 102 (if dtype is complex requires_grad has to be false for device)
-{v_1 : dtype, v_2: bool} |= if v_1 >= 10 ∧ v_1 <= 11 then v_2 = false
+Rule 100 (Ensure that the dtype parameter is valid based on input, and that if none input is.)
+{input: tensor, dtype: dtype} |= if dtype = 0 then 2 <= dtype_(input) ∧ dtype_(input) <= 11 else (1 <= dtype ∧ dtype <= 11)
 >>
-Rule 105 (If dtype is given device is given, preventing allocation errors)
-{v_1 : dtype, v_2 : str} |= if v_1 > -1 then v_2 != "none"
->>
-Rule 111 (if layout is sparse_coo, then dtype should not be boolean)
-{v_1 : str, v_2 : dtype} |= if v_1 = "sparse_coo" then v_2 != 0
->>
-Rule 113 (Device type must be set when requires_grad is set to true)
-{v_1: bool, v_2: str} |= if v_1 = true then v_2 != "none"
->>
-Rule 123 (if input is sparse_coo then output layout has to be the same, avoid implicit conversion.)
-{v_1 : str} |= if v_1 = "sparse_coo" then v_1 = "sparse_coo"
->>
-Rule 129 (The Dtype should be in specific range)
-{v_1 : dtype} |= v_1 >=0 ∧ v_1 <= 12
->>
-Rule 135 (Device to has be the same as dtype, if the GPU is used, otherwise results are unknown.)
-{v_1 : dtype, v_2 : str} |= if v_1 >=6 ∧ v_1 <= 8 then v_2 = "cuda"
->>
-Rule 141 (Dtype should match with the default dtype for current device.)
-{v_1 : dtype, v_2 : str} |= if v_2 = "cuda" then 6 <= v_1 ∧ v_1 <= 8
->>
-Rule 147 (requires_grad must be false for integral dtypes.)
-{v_1 : dtype, v_2 : bool} |= if v_1 >= 1 ∧ v_1 <= 5 then v_2 = false
->>
-Rule 153 (if the device is cuda, dtype has to be float)
-{v_1: str, v_2 : dtype} |= if v_1 = "cuda" then 6 <= v_2 ∧ v_2 <= 8
+Rule 102 (Given there's a * operator, check for floating tensors for input and given dtype)
+{input: tensor, dtype: dtype} |= (if dtype = 0 then (6 <= dtype_(input) ∧ dtype_(input) <= 8) else (6 <= dtype ∧ dtype <= 8))

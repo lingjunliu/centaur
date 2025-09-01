@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if bias_ih or bias_hh provided, then hidden_size must have a valid non-zero value for the attribute shapes (Rule 70)
+# Check if product of input_size and hidden_size can cause integer overflow in weight initialization logic. (Rule 70)
 
 rule_70 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 1, v["arg2_value"] > 0, False)) if n else
-          If(v["arg1_ndim"] == 1, v["arg2_value"] > 0, False))
+    s.add(Not(v["arg1_value"] * 4 < 2147483647 / v["arg2_value"]) if n else
+          v["arg1_value"] * 4 < 2147483647 / v["arg2_value"])
 )
 
 def rule_70_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,24 @@ def rule_70_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
         if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_value = Int('arg1_value')
         arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_value == int(arg1))
         solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 70
-        rule_70(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_70(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_70(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)
+        rule_70(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

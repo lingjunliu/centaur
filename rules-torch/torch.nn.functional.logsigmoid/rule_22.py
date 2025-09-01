@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The input must have a valid dtype and must be a tensor (Rule 22)
+# Check if the input tensor has a numerical dtype to prevent runtime errors (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_dtype"] != 13, v["arg1_dtype"] != 0), v["arg1_dtype"] != 11)) if n else
-          And(And(v["arg1_dtype"] != 13, v["arg1_dtype"] != 0), v["arg1_dtype"] != 11))
+    s.add(Not(And((v["arg1_dtype"] > 0), (v["arg1_dtype"] < 11))) if n else
+          And((v["arg1_dtype"] > 0), (v["arg1_dtype"] < 11)))
 )
 
 def rule_22_func(arg1, solver=None, neg=False):

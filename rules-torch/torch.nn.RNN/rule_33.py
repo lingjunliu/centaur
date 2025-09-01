@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# nonlinearity can only be tanh or relu (Rule 33)
+# hidden_size should be greater than 0 and not exceed a certain limit (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_value"] == 13, v["arg1_value"] == 12)) if n else
-          Or(v["arg1_value"] == 13, v["arg1_value"] == 12))
+    s.add(Not(And(v["arg1_value"] > 0, v["arg1_value"] < 10000)) if n else
+          And(v["arg1_value"] > 0, v["arg1_value"] < 10000))
 )
 
 def rule_33_func(arg1, solver=None, neg=False):
@@ -17,15 +17,15 @@ def rule_33_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, str):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 33
         rule_33(solver, {'arg1_value': arg1_value})

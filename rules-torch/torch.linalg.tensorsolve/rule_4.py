@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# dims must be a tuple of integers if specified. (Rule 4)
+# B's number of dimensions should be valid for A (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg2_length"] - 1 + 1), And(Select(v["arg2_values"], i) >= 0, Select(v["arg2_values"], i) < v["arg1_ndim"])) for i in range(6)])) if n else
-          And([Implies(i < (v["arg2_length"] - 1 + 1), And(Select(v["arg2_values"], i) >= 0, Select(v["arg2_values"], i) < v["arg1_ndim"])) for i in range(6)]))
+    s.add(Not(v["arg2_ndim"] <= v["arg1_ndim"]) if n else
+          v["arg2_ndim"] <= v["arg1_ndim"])
 )
 
 def rule_4_func(arg1, arg2, solver=None, neg=False):
@@ -20,25 +20,22 @@ def rule_4_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg2_length = Int('arg2_length')
-        arg2_values = Array('arg2_values', IntSort(), IntSort())
+        arg2_ndim = Int('arg2_ndim')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_length == len(arg2))
-        for i in range(len(arg2)):
-            arg2_values = Store(arg2_values, i, arg2[i])
+        solver.add(arg2_ndim == arg2.ndim)
 
         # Constraints for rule 4
-        rule_4(solver, {'arg1_ndim': arg1_ndim, 'arg2_values': arg2_values, 'arg2_length': arg2_length})
+        rule_4(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_4(solver, {'arg1_ndim': arg1['ndim'], 'arg2_values': arg2['values'], 'arg2_length': arg2['length']}, neg)
+        rule_4(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)

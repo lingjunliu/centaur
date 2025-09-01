@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# power n must be greater than -10000 and less than 10000 (Rule 20)
+# n must be an integer within a reasonable range (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] > -10000, v["arg1_value"] < 10000)) if n else
-          And(v["arg1_value"] > -10000, v["arg1_value"] < 10000))
+    s.add(Not(And(v["arg1_value"] > -1000, v["arg1_value"] < 1000)) if n else
+          And(v["arg1_value"] > -1000, v["arg1_value"] < 1000))
 )
 
 def rule_20_func(arg1, solver=None, neg=False):

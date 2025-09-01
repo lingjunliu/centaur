@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# torch.get_num_threads accepts no parameters; it is invalid to specify a shape since no argument is allowed, thus this is always false (Rule 27)
+# Number of threads should not be 7. (Rule 27)
 
 rule_27 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) == 1) if n else
-          Select(v["arg1_shape"], 0) == 1)
+    s.add(Not(v["arg1_value"] != 7) if n else
+          v["arg1_value"] != 7)
 )
 
 def rule_27_func(arg1, solver=None, neg=False):
@@ -17,21 +17,20 @@ def rule_27_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 27
-        rule_27(solver, {'arg1_shape': arg1_shape})
+        rule_27(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_27(solver, {'arg1_shape': arg1['shape']}, neg)
+        rule_27(solver, {'arg1_value': arg1['value']}, neg)

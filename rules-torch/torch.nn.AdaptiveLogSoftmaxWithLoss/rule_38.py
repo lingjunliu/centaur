@@ -5,38 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check the range of values inside the target tensor (Rule 38)
+# div_value should be greater than 1.0 (Rule 38)
 
 rule_38 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) < v["arg2_value"])) if n else
-          And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) < v["arg2_value"]))
+    s.add(Not(v["arg1_value"] > 1.0) if n else
+          v["arg1_value"] > 1.0)
 )
 
-def rule_38_func(arg1, arg2, solver=None, neg=False):
+def rule_38_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
-            return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg1, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_value = Int('arg2_value')
+        arg1_value = Real('arg1_value')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 38
-        rule_38(solver, {'arg1_range': arg1_range, 'arg2_value': arg2_value})
+        rule_38(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_38(solver, {'arg1_range': arg1['range'], 'arg2_value': arg2['value']}, neg)
+        rule_38(solver, {'arg1_value': arg1['value']}, neg)

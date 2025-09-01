@@ -1,60 +1,156 @@
 >>
-Rule 1 (size and stride tuples should have the same length)
+Rule 3 (Size and stride tuples should have the same length)
 {v_1 : tuple(int), v_2 : tuple(int)} |= v_1.len = v_2.len
 >>
-Rule 2 (size elements should be non-negative integers)
+Rule 7 (All elements in size must be positive)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 8 (All elements in stride must be non-negative)
 {v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 3 (stride elements should be integers)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ -2147483648 ∧ v_1[i] ≤ 2147483647
+Rule 9 (Size tuple cannot be empty)
+{v_1 : tuple(int)} |= v_1.len > 0
 >>
-Rule 4 (dtype must be a valid dtype code - integer from 0 to 12)
-{v_1 : int} |= v_1 ≥ 0 ∧ v_1 ≤ 12
+Rule 10 (If pin_memory is true, requires_grad cannot be true)
+{v_1 : bool, v_2 : bool} |= if v_1 then v_2 = false
 >>
-Rule 5 (requires_grad must be a boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 11 (Size and stride must have same length if requires_grad is true)
+{v_1 : tuple(int), v_2 : tuple(int), v_3 : bool} |= if v_3 then v_1.len = v_2.len
 >>
-Rule 11 (The length of size should be less than or equal to 3)
-{v_1 : tuple(int)} |= v_1.len ≤ 3
+Rule 12 (If size is non-empty, stride should also be non-empty)
+{v_1 : tuple(int), v_2 : tuple(int)} |= if v_1.len > 0 then v_2.len > 0
 >>
-Rule 12 (The length of size and stride should be the same if size.len > 0 and stride.len > 0)
-{v_1 : tuple(int), v_2 : tuple(int)} |= if v_1.len > 0 ∧ v_2.len > 0 then v_1.len = v_2.len
+Rule 13 (Elements of size and stride should not be zero simultaneously for same index)
+{v_1 : tuple(int), v_2 : tuple(int)} |= (v_1.len = v_2.len) ∧ (∀i ∈ [0, v_1.len - 1] : (v_1[i] = 0) ∨ (v_2[i] ≠ 0)) ∧ (∀i ∈ [0, v_1.len - 1] : (v_2[i] = 0) ∨ (v_1[i] ≠ 0))
 >>
-Rule 13 (If size is empty, stride should be empty too)
-{v_1 : tuple(int), v_2 : tuple(int)} |= if v_1.len = 0 then v_2.len = 0
+Rule 14 (If dtype is float64, then requires_grad must be false)
+{v_1 : dtype, v_2 : bool} |= if v_1 = 8 then v_2 = false
 >>
-Rule 14 (If stride is not empty, its elements cannot be zero)
-{v_1 : tuple(int)} |= if v_1.len > 0 then ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ 0 ∨ v_1.len = 0
+Rule 15 (If pin_memory is true, the dtype should not be complex)
+{v_1 : bool, v_2 : dtype} |= if v_1 then v_2 ≠ 9 ∧ v_2 ≠ 10
 >>
-Rule 15 (If the size tuple's length is greater than 0, the product of its elements must be less than the maximum allowed tensor size.)
-{v_1 : tuple(int)} |= if v_1.len > 0 then (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0)
+Rule 16 (If requires_grad is true, the dtype should be float or complex)
+{v_1 : bool, v_2 : dtype} |= if v_1 then v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10
 >>
-Rule 19 (If pin_memory is true, device should be CPU)
-{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 = "cpu"
->>
-Rule 20 (The product of elements in size should not exceed the maximum value)
-{v_1: tuple(int)} |= if v_1.len > 0 then (∃i ∈ [0, v_1.len - 1]: v_1[i] > 0)
->>
-Rule 21 (layout must be "strided")
-{v_1: str} |= v_1 = "strided"
->>
-Rule 22 (dtype must be a valid dtype index)
-{v_1: int} |= v_1 ≥ 0 ∧ v_1 ≤ 12
->>
-Rule 23 (device can be only "cpu" or "cuda")
-{v_1: str} |= v_1 = "cpu" ∨ v_1 = "cuda"
->>
-Rule 24 (The number of elements in size must match the number of elements in stride)
+Rule 17 (Size and Stride should have same number of elements if layout is strided)
 {v_1: tuple(int), v_2: tuple(int)} |= v_1.len = v_2.len
 >>
-Rule 38 (Enforce exactly two arguments to prevent the TypeError)
-{num_args : int} |= num_args = 2
+Rule 18 (If dtype is boolean, then values should be either zero or one)
+{v_1 : dtype} |= if v_1 = 0 then true
 >>
-Rule 40 (To prevent the TypeError, limit the number of positional parameters to 2)
-{arg_count : int} |= arg_count <= 2
+Rule 19 (Size and Stride cannot both be zero for the same dimension, if requires_grad is true)
+{v_1 : tuple(int), v_2 : tuple(int), v_3 : bool} |= if v_3 then (v_1.len = v_2.len) ∧ (∀i ∈ [0, v_1.len - 1] : (v_1[i] ≠ 0) ∨ (v_2[i] ≠ 0))
 >>
-Rule 42 (Prevent TypeError by requiring two arguments or more.)
-{n_args : int } |= n_args = 2
+Rule 20 (If size contains zero, requires_grad should be false)
+{v_1 : tuple(int), v_2 : bool} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = 0 then v_2 = false
 >>
-Rule 45 (The function arguments must be valid.)
-{v_1 : tuple(int), v_2 : tuple(int)} |= v_1.len ≥ 0 ∧ v_2.len ≥ 0
+Rule 21 (If size contains zero, all strides should be zero)
+{v_1 : tuple(int), v_2 : tuple(int)} |= if ∃i ∈ [0, v_1.len - 1] : v_1[i] = 0 then ∀j ∈ [0, v_2.len - 1] : v_2[j] = 0
+>>
+Rule 23 (If the size is a zero dimension tensor, then the stride must have a length of 0)
+{v_1 : tuple(int), v_2 : tuple(int)} |= if v_1.len = 0 then v_2.len = 0
+>>
+Rule 24 (If pin memory is set, the dtype cannot be a CUDA type)
+{v_1: bool, v_2: dtype} |= if v_1 then v_2 ≠ 6 ∧ v_2 ≠ 7 ∧ v_2 ≠ 8
+>>
+Rule 25 (If requires_grad is false, dtype cannot be complex)
+{v_1 : bool, v_2 : dtype} |= if v_1 = false then v_2 ≠ 9 ∧ v_2 ≠ 10
+>>
+Rule 27 (If pin memory is true, then the dtype must be an integer, float or boolean)
+{v_1 : bool, v_2 : dtype} |= if v_1 then v_2 = 0 ∨ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5 ∨ v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8
+>>
+Rule 28 (If the size tuple is not empty, then the stride tuple must have only positive values)
+{v_1 : tuple(int), v_2 : tuple(int)} |= if v_1.len > 0 then ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+>>
+Rule 29 (If size and stride are both non-empty, then their lengths should be less than or equal to 3)
+{v_1 : tuple(int), v_2 : tuple(int)} |= if v_1.len > 0 ∧ v_2.len > 0 then v_1.len ≤ 3 ∧ v_2.len ≤ 3
+>>
+Rule 30 (If stride has zero values and requires_grad is true, then size must be zero)
+{v_1 : tuple(int), v_2 : tuple(int), v_3 : bool} |= if v_3 ∧ (∃i ∈ [0, v_2.len - 1] : v_2[i] = 0) then (∀j ∈ [0, v_1.len - 1] : v_1[j] = 0)
+>>
+Rule 31 (If size and stride have the same length and requires_grad is true, then their product must be less than 2^31 - 1)
+{v_1 : tuple(int), v_2 : tuple(int), v_3 : bool} |= if v_1.len = v_2.len ∧ v_3 then ∀i ∈ [0, v_1.len - 1] : v_1[i] * v_2[i] < 2147483647
+>>
+Rule 32 (If dtype is int8, int16, int32, int64, uint8 and requires_grad is true then requires_grad should be false)
+{v_1 : dtype, v_2 : bool} |= if (v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5) ∧ v_2 then v_2 = false
+>>
+Rule 33 (If pin_memory is true and requires_grad is true, then both should be false)
+{v_1 : bool, v_2 : bool} |= if v_1 ∧ v_2 then v_1 = false ∧ v_2 = false
+>>
+Rule 34 (If size and stride tuples have different lengths, then require_grad and pin_memory must be false)
+{v_1 : tuple(int), v_2 : tuple(int), v_3 : bool, v_4 : bool} |= if v_1.len ≠ v_2.len then v_3 = false ∧ v_4 = false
+>>
+Rule 35 (if the first element of the size tuple is zero, the first element of the stride tuple must also be zero)
+{v_1 : tuple(int), v_2 : tuple(int)} |= if v_1.len > 0 ∧ v_2.len > 0 ∧ v_1[0] = 0 then v_2[0] = 0
+>>
+Rule 36 (If size has more than one element, then stride must have at least two elements)
+{v_1 : tuple(int), v_2 : tuple(int)} |= if v_1.len > 1 then v_2.len ≥ 2
+>>
+Rule 37 (If stride has negative values, then requires_grad and pin_memory must be false)
+{v_1 : tuple(int), v_2 : bool, v_3 : bool} |= if (∃i ∈ [0, v_1.len - 1] : v_1[i] < 0) then v_2 = false ∧ v_3 = false
+>>
+Rule 38 (if size and stride tuples have the same length, and the size contains a zero, then the corresponding stride must be zero)
+{v_1 : tuple(int), v_2 : tuple(int)} |= if (v_1.len = v_2.len) ∧ (∃i ∈ [0, v_1.len - 1] : v_1[i] = 0) then (∀j ∈ [0, v_1.len - 1] : if v_1[j] = 0 then v_2[j] = 0)
+>>
+Rule 39 (If the product of size and stride for any dimension is larger than max int, then requires_grad is false)
+{v_1 : tuple(int), v_2 : tuple(int), v_3 : bool} |= if (v_1.len = v_2.len) ∧ v_3 then (∀i ∈ [0, v_1.len - 1] : v_1[i] * v_2[i] ≤ 2147483647)
+>>
+Rule 40 (If dtype is bool, then requires_grad and pin_memory should be false)
+{v_1 : dtype, v_2 : bool, v_3 : bool} |= if v_1 = 0 then v_2 = false ∧ v_3 = false
+>>
+Rule 43 (If size and stride are the same, all the elements in size must be less than 2^31)
+{v_1 : tuple(int), v_2 : tuple(int)} |= if v_1.len = v_2.len then ∀i ∈ [0, v_1.len - 1] : v_1[i] < 2147483647
+>>
+Rule 44 (If size is non-empty and stride is empty, requires_grad is false)
+{v_1 : tuple(int), v_2 : tuple(int), v_3 : bool} |= if v_1.len > 0 ∧ v_2.len = 0 then v_3 = false
+>>
+Rule 45 (If size contains one element and stride contains more than one element, requires_grad must be false)
+{v_1 : tuple(int), v_2 : tuple(int), v_3 : bool} |= if v_1.len = 1 ∧ v_2.len > 1 then v_3 = false
+>>
+Rule 46 (If the size and stride are both non-empty and not equal in length then requires_grad and pin_memory must be false)
+{v_1 : tuple(int), v_2 : tuple(int), v_3 : bool, v_4 : bool} |= if v_1.len > 0 ∧ v_2.len > 0 ∧ v_1.len ≠ v_2.len then v_3 = false ∧ v_4 = false
+>>
+Rule 47 (If the size tuple is not empty, then at least one of the elements must be greater than zero)
+{v_1 : tuple(int)} |= if v_1.len > 0 then (∃i ∈ [0, v_1.len - 1] : v_1[i] > 0)
+>>
+Rule 48 (If the stride tuple is not empty, then at least one element must be non-zero)
+{v_1 : tuple(int)} |= if v_1.len > 0 then ∃i ∈ [0, v_1.len - 1] : v_1[i] ≠ 0
+>>
+Rule 49 (If stride tuple has length greater than zero, then requires_grad should be false)
+{v_1 : tuple(int), v_2 : bool} |= if v_1.len > 0 then v_2 = false
+>>
+Rule 50 (If dtype is complex, pin_memory should be false)
+{v_1 : dtype, v_2 : bool} |= if v_1 = 9 ∨ v_1 = 10 then v_2 = false
+>>
+Rule 51 (If size has more than 3 dimensions, then requires grad is false)
+{v_1 : tuple(int), v_2 : bool} |= if v_1.len > 3 then v_2 = false
+>>
+Rule 54 (If pin_memory is true, dtype should be in [0,1,2,3,4,5,6,7,8])
+{v_1:bool, v_2:dtype} |= if v_1 then v_2 = 0 ∨ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5 ∨ v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8
+>>
+Rule 55 (If the size and stride have lengths, and their elements product is not too large, setting pin_memory = True might lead to overlap)
+{v_1 : tuple(int), v_2 : tuple(int), v_3: bool} |= if (v_1.len = v_2.len) ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] * v_2[i] < 1000) then v_3 = false
+>>
+Rule 56 (If the dtype is str, requires_grad and pin_memory should be False)
+{v_1:dtype, v_2:bool, v_3:bool} |= if v_1 = 11 then v_2 = false ∧ v_3 = false
+>>
+Rule 57 (If dtype is np.dtype, requires_grad and pin_memory should be False)
+{v_1:dtype, v_2:bool, v_3:bool} |= if v_1 = 12 then v_2 = false ∧ v_3 = false
+>>
+Rule 58 (if size.len is equal to 1 and size[0] is equal to 1, then stride.len must be equal to 1 and stride[0] must be one)
+{v_1:tuple(int), v_2:tuple(int)} |= if v_1.len = 1 ∧ v_1[0] = 1 then v_2.len = 1 ∧ v_2[0] = 1
+>>
+Rule 59 (If stride.len > 0 and there is a zero, requires_grad is false)
+{v_1 : tuple(int), v_2 : bool} |= if v_1.len > 0 ∧ (∃i ∈ [0, v_1.len - 1] : v_1[i] = 0) then v_2 = false
+>>
+Rule 61 (If stride tuple is empty, requires_grad must be false)
+{v_1: tuple(int), v_2: bool} |= if v_1.len = 0 then v_2 = false
+>>
+Rule 62 (If size tuple has more than one element and any of size elements are zero, then requires_grad must be false)
+{v_1 : tuple(int), v_2 : bool} |= if v_1.len > 1 ∧ ∃i ∈ [0, v_1.len - 1] : v_1[i] = 0 then v_2 = false
+>>
+Rule 63 (if size.len is equal to 1 and the first element of stride is not equal to 1, then requires_grad must be false)
+{v_1: tuple(int), v_2: tuple(int), v_3: bool} |= if v_1.len = 1 ∧ v_2.len > 0 ∧ v_2[0] ≠ 1 then v_3 = false
+>>
+Rule 64 (If the dtype is uint8, then requires_grad must be false)
+{v_1 : dtype, v_2 : bool} |= if v_1 = 5 then v_2 = false

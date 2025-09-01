@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# ComplexDouble input cannot be cast to Bool output (Rule 2)
+# result type ComplexDouble can't be cast to the desired output type Bool, input should not be bool if out is bool (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(And((v["arg1_dtype"] == 10), Or((v["arg2_dtype"] == 0), (v["arg1_dtype"] != 10)))) if n else
-          And((v["arg1_dtype"] == 10), Or((v["arg2_dtype"] == 0), (v["arg1_dtype"] != 10))))
+    s.add(Not(If(v["arg1_dtype"] == 0, v["arg2_dtype"] != 0, True)) if n else
+          If(v["arg1_dtype"] == 0, v["arg2_dtype"] != 0, True))
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):

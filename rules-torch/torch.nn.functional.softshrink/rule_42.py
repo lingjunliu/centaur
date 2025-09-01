@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# lambda must be non-negative if and only if the input tensor is not Char type (Rule 42)
+# Lambda must not be greater than half of the difference between max and min of the tensor to have effective softshrink. (Rule 42)
 
 rule_42 = lambda s, v, n=False: (
-    s.add(Not(Or((And(v["arg1_dtype"] == 1, True)), (And(v["arg1_dtype"] != 1, v["arg2_value"] >= 0)))) if n else
-          Or((And(v["arg1_dtype"] == 1, True)), (And(v["arg1_dtype"] != 1, v["arg2_value"] >= 0))))
+    s.add(Not(v["arg2_value"] <= (Select(v["arg1_range"], 1) - Select(v["arg1_range"], 0)) / 2) if n else
+          v["arg2_value"] <= (Select(v["arg1_range"], 1) - Select(v["arg1_range"], 0)) / 2)
 )
 
 def rule_42_func(arg1, arg2, solver=None, neg=False):
@@ -20,20 +20,23 @@ def rule_42_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, (float, np.floating)) or (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool))):
+        if not isinstance(arg2, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg2_value = Real('arg2_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 42
-        rule_42(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
+        rule_42(solver, {'arg1_range': arg1_range, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_42(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)
+        rule_42(solver, {'arg1_range': arg1['range'], 'arg2_value': arg2['value']}, neg)

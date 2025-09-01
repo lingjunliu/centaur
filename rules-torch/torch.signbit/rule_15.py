@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor should be a float or int type (Rule 15)
+# The input tensor 'input' must not have a complex dtype to avoid RuntimeError: signbit is not implemented for complex tensors, also the dtype must be a real number (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(And(And((v["arg1_dtype"] != 1), (v["arg1_dtype"] != 12)), (v["arg1_dtype"] != 13))) if n else
-          And(And((v["arg1_dtype"] != 1), (v["arg1_dtype"] != 12)), (v["arg1_dtype"] != 13)))
+    s.add(Not(v["arg1_dtype"] < 9) if n else
+          v["arg1_dtype"] < 9)
 )
 
 def rule_15_func(arg1, solver=None, neg=False):

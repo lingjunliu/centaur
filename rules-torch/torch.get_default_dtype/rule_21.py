@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Either default dtype is float16 or it is either float32 or float64 (Rule 21)
+# The default dtype should be a valid floating point dtype (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_value"] == 6, (Or(v["arg1_value"] == 7, v["arg1_value"] == 8)))) if n else
-          Or(v["arg1_value"] == 6, (Or(v["arg1_value"] == 7, v["arg1_value"] == 8))))
+    s.add(Not(Or(Or(v["arg1_value"] == 6, v["arg1_value"] == 7), v["arg1_value"] == 8)) if n else
+          Or(Or(v["arg1_value"] == 6, v["arg1_value"] == 7), v["arg1_value"] == 8))
 )
 
 def rule_21_func(arg1, solver=None, neg=False):

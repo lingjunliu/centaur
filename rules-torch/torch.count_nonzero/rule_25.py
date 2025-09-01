@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Dimension should be within the range of the number of dimensions, but not a very large number (Rule 25)
+# dim, if an integer, must not be less than negative ndim of input (Rule 25)
 
 rule_25 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"]), v["arg2_value"] < 2147483647)) if n else
-          And(And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"]), v["arg2_value"] < 2147483647))
+    s.add(Not((0 - v["arg1_ndim"]) <= v["arg2_value"]) if n else
+          (0 - v["arg1_ndim"]) <= v["arg2_value"])
 )
 
 def rule_25_func(arg1, arg2, solver=None, neg=False):

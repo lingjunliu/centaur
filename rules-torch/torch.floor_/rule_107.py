@@ -5,37 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If a second, string, argument is given, and is not "none", it needs at least two dimensions, no more than 8 (Rule 107)
+# Check dimensions for tensors having existing or valid shapes with num. (Rule 107)
 
 rule_107 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] != 6, And(v["arg1_ndim"] > 1, v["arg1_ndim"] < 9), False)) if n else
-          If(v["arg2_value"] != 6, And(v["arg1_ndim"] > 1, v["arg1_ndim"] < 9), False))
+    s.add(Not(If(And((v["arg1_dtype"] > 0), (v["arg1_dtype"] < 9)), (And([Implies(j < (If(v["arg1_ndim"] - 1 < 0, 0, v["arg1_ndim"] - 1) + 1), Select(v["arg1_shape"], j) > 0) for j in range(6)])), True)) if n else
+          If(And((v["arg1_dtype"] > 0), (v["arg1_dtype"] < 9)), (And([Implies(j < (If(v["arg1_ndim"] - 1 < 0, 0, v["arg1_ndim"] - 1) + 1), Select(v["arg1_shape"], j) > 0) for j in range(6)])), True))
 )
 
-def rule_107_func(arg1, arg2, solver=None, neg=False):
+def rule_107_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, str):
-            return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg2_value = String('arg2_value')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_value == list_of_string_values_torch.index(arg2))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 107
-        rule_107(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_107(solver, {'arg1_dtype': arg1_dtype, 'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_107(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)
+        rule_107(solver, {'arg1_dtype': arg1['dtype'], 'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

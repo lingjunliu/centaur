@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If type1 is int16, type2 must be int16, int32, int64, float32, float64, complex64, or complex128 (Rule 40)
+# If type2 is uint8 and type1 is negative integer, then promote at least to int16 (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 2, Or(Or(Or(Or(Or(Or(v["arg2_value"] == 2, v["arg2_value"] == 3), v["arg2_value"] == 4), v["arg2_value"] == 7), v["arg2_value"] == 8), v["arg2_value"] == 9), v["arg2_value"] == 10), False)) if n else
-          If(v["arg1_value"] == 2, Or(Or(Or(Or(Or(Or(v["arg2_value"] == 2, v["arg2_value"] == 3), v["arg2_value"] == 4), v["arg2_value"] == 7), v["arg2_value"] == 8), v["arg2_value"] == 9), v["arg2_value"] == 10), False))
+    s.add(Not(If(And(v["arg2_value"] == 5, (Or(Or(Or(v["arg1_value"] == 1, v["arg1_value"] == 2), v["arg1_value"] == 3), v["arg1_value"] == 4))), True, True)) if n else
+          If(And(v["arg2_value"] == 5, (Or(Or(Or(v["arg1_value"] == 1, v["arg1_value"] == 2), v["arg1_value"] == 3), v["arg1_value"] == 4))), True, True))
 )
 
 def rule_40_func(arg1, arg2, solver=None, neg=False):

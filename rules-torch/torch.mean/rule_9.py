@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# out tensor's dtype must match the expected dtype (Rule 9)
+# The 'out' tensor should have the correct dtype. Suppresses RuntimeError: Expected out tensor to have dtype float, but got double instead (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
     s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else

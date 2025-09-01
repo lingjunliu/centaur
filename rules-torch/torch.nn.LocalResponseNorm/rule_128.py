@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The input should be finite (Rule 128)
+# alpha value is valid (Rule 128)
 
 rule_128 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_range"], 0) > -1.0 / 0.0, Select(v["arg1_range"], 1) < 1.0 / 0.0)) if n else
-          And(Select(v["arg1_range"], 0) > -1.0 / 0.0, Select(v["arg1_range"], 1) < 1.0 / 0.0))
+    s.add(Not(v["arg1_value"] > 0) if n else
+          v["arg1_value"] > 0)
 )
 
 def rule_128_func(arg1, solver=None, neg=False):
@@ -17,21 +17,20 @@ def rule_128_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_value = Real('arg1_value')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 128
-        rule_128(solver, {'arg1_range': arg1_range})
+        rule_128(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_128(solver, {'arg1_range': arg1['range']}, neg)
+        rule_128(solver, {'arg1_value': arg1['value']}, neg)

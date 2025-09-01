@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If out tensor is specified, and input is a short number, the out tensor dtype cannot be bool (Rule 32)
+# if the output tensor is specified as Short, the input tensor's dtype must allow for a safe casting to Float without loss of precision (Rule 32)
 
 rule_32 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 2, v["arg2_dtype"] != 0, False)) if n else
-          If(v["arg1_dtype"] == 2, v["arg2_dtype"] != 0, False))
+    s.add(Not(If(v["arg2_dtype"] == 2, (Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)), True)) if n else
+          If(v["arg2_dtype"] == 2, (Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)), True))
 )
 
 def rule_32_func(arg1, arg2, solver=None, neg=False):

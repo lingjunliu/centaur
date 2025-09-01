@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If lengths are provided, input needs two or more dimensions for packing to work (Rule 99)
+# Ensuring String is either linear or constant, if not boolean (Rule 99)
 
 rule_99 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] >= 2, v["arg2_ndim"] > 0)) if n else
-          And(v["arg1_ndim"] >= 2, v["arg2_ndim"] > 0))
+    s.add(Not(If(v["arg1_value"], v["arg2_value"] == 20, v["arg2_value"] == 21)) if n else
+          If(v["arg1_value"], v["arg2_value"] == 20, v["arg2_value"] == 21))
 )
 
 def rule_99_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,24 @@ def rule_99_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, bool):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not isinstance(arg2, str):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_ndim = Int('arg2_ndim')
+        arg1_value = Bool('arg1_value')
+        arg2_value = String('arg2_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_value == list_of_string_values_torch.index(arg2))
 
         # Constraints for rule 99
-        rule_99(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
+        rule_99(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_99(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_99(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

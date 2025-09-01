@@ -5,40 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If bool is true, then first two element of tuple of int must be different (Rule 122)
+# If ndim size is 0 then for bool type tensor max value must be true or 1 and min value must be false or 0 (Rule 122)
 
 rule_122 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_value"] == True, v["arg2_length"] > 1), Select(v["arg2_values"], 0) != Select(v["arg2_values"], 1), False)) if n else
-          If(And(v["arg1_value"] == True, v["arg2_length"] > 1), Select(v["arg2_values"], 0) != Select(v["arg2_values"], 1), False))
+    s.add(Not(If(And((v["arg1_ndim"] == 0), (v["arg1_dtype"] == 0)), (And(Select(v["arg1_range"], 1) == True, Select(v["arg1_range"], 0) == False)), True)) if n else
+          If(And((v["arg1_ndim"] == 0), (v["arg1_dtype"] == 0)), (And(Select(v["arg1_range"], 1) == True, Select(v["arg1_range"], 0) == False)), True))
 )
 
-def rule_122_func(arg1, arg2, solver=None, neg=False):
+def rule_122_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
-            return False
-        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_length = Int('arg2_length')
-        arg2_values = Array('arg2_values', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_length == len(arg2))
-        for i in range(len(arg2)):
-            arg2_values = Store(arg2_values, i, arg2[i])
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 122
-        rule_122(solver, {'arg1_value': arg1_value, 'arg2_length': arg2_length, 'arg2_values': arg2_values})
+        rule_122(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_122(solver, {'arg1_value': arg1['value'], 'arg2_length': arg2['length'], 'arg2_values': arg2['values']}, neg)
+        rule_122(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']}, neg)

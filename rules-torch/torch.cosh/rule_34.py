@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the input tensor is of integer type, then the output tensor cannot be of type bool or string (Rule 34)
+# If input is a floating point tensor, then the output tensor's dtype should be at least float, preventing potential casting to short (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] < 6, And(v["arg2_dtype"] != 0, v["arg2_dtype"] != 11), False)) if n else
-          If(v["arg1_dtype"] < 6, And(v["arg2_dtype"] != 0, v["arg2_dtype"] != 11), False))
+    s.add(Not(If(And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 8), v["arg2_dtype"] >= 6, True)) if n else
+          If(And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 8), v["arg2_dtype"] >= 6, True))
 )
 
 def rule_34_func(arg1, arg2, solver=None, neg=False):

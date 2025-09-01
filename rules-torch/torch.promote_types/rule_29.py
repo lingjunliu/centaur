@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If type2 is complex64, type1 must be complex64 or complex128 (Rule 29)
+# If type2 is bool, and type1 is int8, the result is int8 (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == 9, Or(v["arg1_value"] == 9, v["arg1_value"] == 10), False)) if n else
-          If(v["arg2_value"] == 9, Or(v["arg1_value"] == 9, v["arg1_value"] == 10), False))
+    s.add(Not(If(And(v["arg2_value"] == 0, v["arg1_value"] == 1), True, True)) if n else
+          If(And(v["arg2_value"] == 0, v["arg1_value"] == 1), True, True))
 )
 
 def rule_29_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check for TypeError: bitwise_right_shift( (Rule 45)
+# If input is a Number, other has to be a Tensor (Rule 45)
 
 rule_45 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 0, And(And(v["arg1_dtype"] != 7, v["arg1_dtype"] != 8), v["arg1_dtype"] != 9), False)) if n else
-          If(v["arg1_ndim"] > 0, And(And(v["arg1_dtype"] != 7, v["arg1_dtype"] != 8), v["arg1_dtype"] != 9), False))
+    s.add(Not(v["arg1_ndim"] > 0) if n else
+          v["arg1_ndim"] > 0)
 )
 
 def rule_45_func(arg1, solver=None, neg=False):
@@ -23,16 +23,14 @@ def rule_45_func(arg1, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 45
-        rule_45(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype})
+        rule_45(solver, {'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_45(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype']}, neg)
+        rule_45(solver, {'arg1_ndim': arg1['ndim']}, neg)

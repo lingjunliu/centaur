@@ -5,32 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check if get_default_dtype is equal to float16 (Rule 26)
+# If v1 dtype is floating and v2 tensor has default dtype then v2 will also become float (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] == 6) if n else
-          v["arg1_value"] == 6)
+    s.add(Not(If(And(And(6 <= v["arg1_value"], v["arg1_value"] <= 8), v["arg2_dtype"] == 12), True, True)) if n else
+          If(And(And(6 <= v["arg1_value"], v["arg1_value"] <= 8), v["arg2_dtype"] == 12), True, True))
 )
 
-def rule_26_func(arg1, solver=None, neg=False):
+def rule_26_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
             return False
+        if not isinstance(arg2, np.ndarray):
+            return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = Int('arg1_value')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
         solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 26
-        rule_26(solver, {'arg1_value': arg1_value})
+        rule_26(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_26(solver, {'arg1_value': arg1['value']}, neg)
+        rule_26(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype']}, neg)

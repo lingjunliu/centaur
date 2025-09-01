@@ -5,37 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check the data type of the tensor and if it's smaller than a certain number (Rule 50)
+# Enable/Disable must be a certain boolean and it has certain effect. (Rule 50)
 
 rule_50 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] < v["arg2_value"]) if n else
-          v["arg1_dtype"] < v["arg2_value"])
+    s.add(Not(Or((v["arg1_value"] == True), (v["arg1_value"] == False))) if n else
+          Or((v["arg1_value"] == True), (v["arg1_value"] == False)))
 )
 
-def rule_50_func(arg1, arg2, solver=None, neg=False):
+def rule_50_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
-            return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg1, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_value = Int('arg2_value')
+        arg1_value = Bool('arg1_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 50
-        rule_50(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
+        rule_50(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_50(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)
+        rule_50(solver, {'arg1_value': arg1['value']}, neg)

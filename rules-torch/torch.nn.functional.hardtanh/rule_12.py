@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor should not have unsigned integer dtype when min_val is negative. (Rule 12)
+# input tensor should not be unsigned integer with negative min_val (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] < 0, v["arg1_dtype"] != 5, False)) if n else
-          If(v["arg2_value"] < 0, v["arg1_dtype"] != 5, False))
+    s.add(Not(If(And((5 < v["arg1_dtype"]), (v["arg1_dtype"] < 9)), True, If(And((v["arg1_dtype"] < 6), (v["arg1_dtype"] > 0)), v["arg2_value"] >= 0, True))) if n else
+          If(And((5 < v["arg1_dtype"]), (v["arg1_dtype"] < 9)), True, If(And((v["arg1_dtype"] < 6), (v["arg1_dtype"] > 0)), v["arg2_value"] >= 0, True)))
 )
 
 def rule_12_func(arg1, arg2, solver=None, neg=False):

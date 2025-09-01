@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the input tensor is a complex number, out must also be a complex number (Rule 15)
+# If out is provided and the input is float16, float32, float64, the out tensor must be at least as precise (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_ndim"] > 0, If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), False), False)) if n else
-          If(v["arg2_ndim"] > 0, If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), False), False))
+    s.add(Not(If(v["arg2_ndim"] > 0, If(v["arg1_dtype"] == 7, Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), If(v["arg1_dtype"] == 8, Or(v["arg2_dtype"] == 8, v["arg2_dtype"] == 9), If(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9, True))), True)) if n else
+          If(v["arg2_ndim"] > 0, If(v["arg1_dtype"] == 7, Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), If(v["arg1_dtype"] == 8, Or(v["arg2_dtype"] == 8, v["arg2_dtype"] == 9), If(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9, True))), True))
 )
 
 def rule_15_func(arg1, arg2, solver=None, neg=False):
@@ -35,9 +35,9 @@ def rule_15_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 15
-        rule_15(solver, {'arg1_dtype': arg1_dtype, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype})
+        rule_15(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_15(solver, {'arg1_dtype': arg1['dtype'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_15(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg2_ndim': arg2['ndim']}, neg)

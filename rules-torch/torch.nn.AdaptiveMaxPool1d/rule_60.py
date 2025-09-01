@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the dtype is float16, it must have a minimal shape to prevent storage overflow problems (Rule 60)
+# The last non-batch dimension must not be zero, since this triggers another error in the code. (Rule 60)
 
 rule_60 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, Select(v["arg1_shape"], 0) < 1000, False)) if n else
-          If(v["arg1_dtype"] == 6, Select(v["arg1_shape"], 0) < 1000, False))
+    s.add(Not(Or((And(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 1) != 0)), (And(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 2) != 0)))) if n else
+          Or((And(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 1) != 0)), (And(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 2) != 0))))
 )
 
 def rule_60_func(arg1, solver=None, neg=False):
@@ -22,18 +22,18 @@ def rule_60_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
+        arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
+        solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 60
-        rule_60(solver, {'arg1_dtype': arg1_dtype, 'arg1_shape': arg1_shape})
+        rule_60(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_60(solver, {'arg1_dtype': arg1['dtype'], 'arg1_shape': arg1['shape']}, neg)
+        rule_60(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

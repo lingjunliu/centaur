@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Prevent output tensor from having a smaller integer dtype than the input tensor (Rule 7)
+# If input is half/float/double, then out should be half/float/double (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 3, And(v["arg2_dtype"] != 1, v["arg2_dtype"] != 2), If(v["arg1_dtype"] == 4, And(And(v["arg2_dtype"] != 1, v["arg2_dtype"] != 2), v["arg2_dtype"] != 3), False))) if n else
-          If(v["arg1_dtype"] == 3, And(v["arg2_dtype"] != 1, v["arg2_dtype"] != 2), If(v["arg1_dtype"] == 4, And(And(v["arg2_dtype"] != 1, v["arg2_dtype"] != 2), v["arg2_dtype"] != 3), False)))
+    s.add(Not(If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), True)) if n else
+          If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), True))
 )
 
 def rule_7_func(arg1, arg2, solver=None, neg=False):

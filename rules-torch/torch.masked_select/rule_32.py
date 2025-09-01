@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Mask must be boolean and Input tensor must have at least one dimension (Rule 32)
+# The mask tensor, only when not broadcastable, need same number of elements as the input tensor. (Rule 32)
 
 rule_32 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg2_dtype"] == 0, v["arg1_ndim"] >= 1)) if n else
-          And(v["arg2_dtype"] == 0, v["arg1_ndim"] >= 1))
+    s.add(Not(If((And(v["arg1_ndim"] > 0, Select(v["arg1_range"], 0) * Select(v["arg1_range"], 1) != Select(v["arg2_range"], 0) * Select(v["arg2_range"], 1))), v["arg2_dtype"] == 0, True)) if n else
+          If((And(v["arg1_ndim"] > 0, Select(v["arg1_range"], 0) * Select(v["arg1_range"], 1) != Select(v["arg2_range"], 0) * Select(v["arg2_range"], 1))), v["arg2_dtype"] == 0, True))
 )
 
 def rule_32_func(arg1, arg2, solver=None, neg=False):
@@ -26,16 +26,22 @@ def rule_32_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
         arg2_dtype = Int('arg2_dtype')
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 32
-        rule_32(solver, {'arg1_ndim': arg1_ndim, 'arg2_dtype': arg2_dtype})
+        rule_32(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim, 'arg2_dtype': arg2_dtype, 'arg2_range': arg2_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_32(solver, {'arg1_ndim': arg1['ndim'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_32(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim'], 'arg2_dtype': arg2['dtype'], 'arg2_range': arg2['range']}, neg)

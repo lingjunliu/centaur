@@ -1,240 +1,156 @@
 >>
-Rule 1 (downscale_factor should be positive)
-{v_1 : int} |= v_1 > 0
->>
 Rule 2 (input tensor should have at least 3 dimensions)
-{v_1 : tensor} |= ndim(v_1) ≥ 3
+{input : tensor} |= ndim(input) ≥ 3
 >>
-Rule 3 (height of input tensor should be divisible by downscale_factor)
-{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 2) % v_2 = 0
+Rule 3 (height should be divisible by downscale_factor)
+{input : tensor, downscale_factor : int} |= shape(input, -2) % downscale_factor = 0
 >>
-Rule 4 (downscale_factor is positive and height and width are divisible by it, and input has at least 3 dimensions)
-{v_1 : tensor, v_2 : int} |= v_2 > 0 ∧ ndim(v_1) ≥ 3 ∧ shape(v_1, ndim(v_1) - 2) % v_2 = 0 ∧ shape(v_1, ndim(v_1) - 1) % v_2 = 0
+Rule 4 (width should be divisible by downscale_factor)
+{input : tensor, downscale_factor : int} |= shape(input, -1) % downscale_factor = 0
 >>
-Rule 5 (downscale_factor is greater than 1)
-{v_1 : int} |= v_1 > 1
+Rule 8 (downscale_factor should be positive)
+{downscale_factor : int} |= downscale_factor > 0
 >>
-Rule 6 (The last two dimensions must be greater than the downscale factor)
-{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 2) > v_2 ∧ shape(v_1, ndim(v_1) - 1) > v_2
+Rule 12 (downscale_factor should be in a reasonable range)
+{downscale_factor : int} |= downscale_factor < 1000
 >>
-Rule 7 (downscale_factor should be representable as an integer)
-{v_1 : float} |= v_1 = (v_1 * 1.0)
+Rule 16 (height should be divisible by downscale_factor)
+{input : tensor, downscale_factor : int} |= shape(input, ndim(input) - 2) % downscale_factor = 0
 >>
-Rule 8 (If input is a 3D tensor, the first dimension must be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) > 0
+Rule 17 (Downscale factor cannot be zero)
+{downscale_factor : int} |= downscale_factor ≠ 0
 >>
-Rule 9 (If the downscale factor is one, the height and width should remain unchanged)
-{v_1 : tensor, v_2 : int} |= if v_2 = 1 then shape(v_1, ndim(v_1) - 2) = shape(v_1, ndim(v_1) - 2)
+Rule 18 (Ensure height and width are not zero)
+{input: tensor} |= shape(input, ndim(input) - 2) > 0 ∧ shape(input, ndim(input) - 1) > 0
 >>
-Rule 11 (downscale_factor must be a small integer)
-{v_1 : int} |= v_1 < 1000
+Rule 19 (height should be divisible by downscale_factor)
+{input : tensor, downscale_factor : int} |= if ndim(input) >= 2 then shape(input, ndim(input) - 2) % downscale_factor = 0
 >>
-Rule 12 (input tensor's channel dimension must be positive)
-{v_1 : tensor} |= if ndim(v_1) >= 3 then shape(v_1, ndim(v_1) - 3) > 0
+Rule 20 (downscale_factor should not be too large compared to the input height/width)
+{input : tensor, downscale_factor : int} |= if ndim(input) >=2 then downscale_factor ≤ shape(input, ndim(input) - 2) ∧ downscale_factor ≤ shape(input, ndim(input) - 1)
 >>
-Rule 16 (input tensor's height is divisible by downscale_factor and downscale_factor is positive)
-{v_1 : tensor, v_2 : int} |= v_2 > 0 ∧ shape(v_1, ndim(v_1) - 2) % v_2 = 0
+Rule 23 (downscale_factor should not be too large compared to the input height/width and is positive)
+{input : tensor, downscale_factor : int} |= if ndim(input) >=2 then 0 < downscale_factor ∧ downscale_factor ≤ shape(input, ndim(input) - 2) ∧ downscale_factor ≤ shape(input, ndim(input) - 1) else downscale_factor > 0
 >>
-Rule 17 (input tensor has at least 3 dimensions or downscale factor is 1)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) ≥ 3 ∨ v_2 = 1
+Rule 25 (height should be divisible by downscale_factor and downscale_factor is positive)
+{input : tensor, downscale_factor : int} |= if ndim(input) >= 2 then downscale_factor > 0 ∧ shape(input, ndim(input) - 2) % downscale_factor = 0 else downscale_factor > 0
 >>
-Rule 18 (downscale factor is less than or equal to the height and width)
-{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, ndim(v_1) - 2) ∧ v_2 ≤ shape(v_1, ndim(v_1) - 1)
+Rule 26 (input tensor should have at least 3 dimensions or height and width are 1 if less than 3 dimensions)
+{input : tensor} |= if ndim(input) < 3 then (if ndim(input) >= 2 then shape(input, ndim(input)-2) = 1 ∧ shape(input, ndim(input)-1) = 1) else ndim(input) >= 3
 >>
-Rule 19 (If the input tensor has fewer than 3 dimensions, the downscale factor should be 1)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) < 3 then v_2 = 1
+Rule 28 (input tensor should have at least 3 dimensions or it is not applicable)
+{input : tensor} |= if ndim(input) < 3 then false else ndim(input) >= 3
 >>
-Rule 20 (The height and width of the input tensor must be multiples of the downscale factor)
-{v_1 : tensor, v_2 : int} |= (shape(v_1, ndim(v_1) - 2) % v_2 = 0) ∧ (shape(v_1, ndim(v_1) - 1) % v_2 = 0)
+Rule 31 (input tensor should have at least 3 dimensions)
+{input : tensor} |= ndim(input) >= 3
 >>
-Rule 22 (downscale_factor should be a positive integer less than or equal to height and width)
-{v_1 : tensor, v_2 : int} |= v_2 > 0 ∧ v_2 ≤ shape(v_1, ndim(v_1) - 2) ∧ v_2 ≤ shape(v_1, ndim(v_1) - 1)
+Rule 32 (Combined check for positive downscale_factor and height divisibility)
+{input : tensor, downscale_factor : int} |= downscale_factor > 0 ∧ (if ndim(input) >= 2 then shape(input, ndim(input) - 2) % downscale_factor = 0)
 >>
-Rule 23 (If the input is 3 dimensional, the height must be divisible by the downscale factor)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 then shape(v_1, 1) % v_2 = 0
+Rule 35 (input has sufficient dimensions based on other criteria)
+{input : tensor} |= if shape(input, 0) > 0 then ndim(input) >= 1
 >>
-Rule 24 (If the input is 3 dimensional, the width must be divisible by the downscale factor)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 then shape(v_1, 2) % v_2 = 0
+Rule 36 (Downscale factor must be positive, and height divisible by it only when ndim >= 2; ndim must be at least 1)
+{input : tensor, downscale_factor : int} |= ndim(input) >= 1 ∧ downscale_factor > 0 ∧ (if ndim(input) >= 2 then shape(input, ndim(input) - 2) % downscale_factor = 0)
 >>
-Rule 25 (The input tensor must have at least 3 dimensions and the downscale factor must be a positive integer)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) ≥ 3 ∧ v_2 > 0
+Rule 37 (If ndim < 3, require all shapes to be greater than 0, else ndim >= 3)
+{input : tensor} |= if ndim(input) < 3 then (∀i ∈ [0, ndim(input)-1] : shape(input, i) > 0) else ndim(input) >= 3
 >>
-Rule 26 (Either the input tensor has at least 3 dimensions, or the height and width are 1)
-{v_1 : tensor} |= ndim(v_1) ≥ 3 ∨ (shape(v_1, ndim(v_1) - 2) = 1 ∧ shape(v_1, ndim(v_1) - 1) = 1)
+Rule 39 (Number of dimensions depends on height and width shape )
+{input : tensor} |= if shape(input, -1) > 0 ∧ shape(input, -2) > 0 then ndim(input) >= 3
 >>
-Rule 27 (The product of downscale factor squared and the number of channels must be less than a certain threshold)
-{v_1 : tensor, v_2 : int} |= v_2 * v_2 * shape(v_1, ndim(v_1) - 3) < 10000
+Rule 40 (Downscale factor must be positive, height divisible by it if ndim >= 2, ndim >= 1)
+{input : tensor, downscale_factor : int} |= downscale_factor > 0 ∧ (if ndim(input) >= 2 then shape(input, ndim(input) - 2) % downscale_factor = 0) ∧ ndim(input) >= 1
 >>
-Rule 29 (The downscale_factor must be positive and both the height and the width of the input tensor must be divisible by the downscale_factor.)
-{v_1 : tensor, v_2 : int} |= v_2 > 0 ∧ shape(v_1, ndim(v_1) - 2) % v_2 = 0 ∧ shape(v_1, ndim(v_1) - 1) % v_2 = 0
+Rule 42 (Downscale factor positive, height divisible if applicable, and min ndim for unshuffle)
+{input : tensor, downscale_factor : int} |= downscale_factor > 0 ∧ (if ndim(input) >= 2 then shape(input, ndim(input) - 2) % downscale_factor = 0) ∧ (ndim(input) >= 3)
 >>
-Rule 30 (if the input tensor is a vector, then the downscale factor must be 1)
-{v_1: tensor, v_2: int} |= if ndim(v_1) = 1 then v_2 = 1
+Rule 43 (General input validation combining all constraints)
+{input : tensor, downscale_factor : int} |= downscale_factor > 0 ∧ (if ndim(input) >= 2 then shape(input, ndim(input) - 2) % downscale_factor = 0) ∧ (ndim(input) >= 3 ∨ shape(input,-1) = 0 ∨ shape(input,-2) = 0)
 >>
-Rule 31 (If downscale factor is not 1, then input tensor must have at least 3 dimensions)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ 1 then ndim(v_1) ≥ 3
+Rule 44 (Complete validation for pixel_unshuffle parameters)
+{input : tensor, downscale_factor : int} |= downscale_factor > 0 ∧ ndim(input) >= 1 ∧ (if ndim(input) >= 2 then shape(input, ndim(input) - 2) % downscale_factor = 0) ∧ (ndim(input) >= 3)
 >>
-Rule 34 (If the input has less than three dimensions, height and width can be at most 1)
-{v_1: tensor} |= if ndim(v_1) < 3 then shape(v_1, ndim(v_1)-1) ≤ 1 ∧ shape(v_1, ndim(v_1)-2) ≤ 1
+Rule 45 (pixel_unshuffle parameters validation)
+{input : tensor, downscale_factor : int} |= downscale_factor > 0 ∧ (ndim(input) >= 3 ∨ (ndim(input) >= 2 ∧ shape(input, -2) = 0))  ∧ (if ndim(input) >= 2 then shape(input, ndim(input) - 2) % downscale_factor = 0)
 >>
-Rule 35 (downscale_factor must not be greater than height and width of input tensor)
-{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, ndim(v_1)-2) ∧ v_2 ≤ shape(v_1, ndim(v_1)-1)
+Rule 46 (Comprehensive validation for pixel_unshuffle)
+{input : tensor, downscale_factor : int} |= downscale_factor > 0 ∧ (ndim(input) >= 3 ∨ (ndim(input) >= 2 ∧ shape(input, ndim(input) - 2) > 0 ∧ shape(input, ndim(input) - 1) > 0)) ∧ (if ndim(input) >= 2 then shape(input, ndim(input) - 2) % downscale_factor = 0)
 >>
-Rule 36 (The number of dimensions of the input must be at least 1)
-{v_1 : tensor} |= ndim(v_1) >= 1
+Rule 47 (Final comprehensive pixel_unshuffle validation)
+{input : tensor, downscale_factor : int} |= downscale_factor > 0 ∧ (if ndim(input) >= 2 then shape(input, ndim(input) - 2) % downscale_factor = 0) ∧ (ndim(input) >= 3 ∨ (ndim(input) >= 0 ∧ shape(input, -1) > 0 ∧ shape(input, -2) > 0))
 >>
-Rule 37 (downscale factor is valid only if the tensor has at least 1 dimension)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) < 1 then v_2 = 1 else v_2 > 0
+Rule 48 (comprehensive validation for pixel_unshuffle)
+{input : tensor, downscale_factor : int} |= downscale_factor > 0 ∧ (if ndim(input) >= 2 then shape(input, ndim(input) - 2) % downscale_factor = 0) ∧ (ndim(input) >= 3 ∨ (ndim(input) >= 2 ∧ shape(input, ndim(input) - 2) > 0 ∧ shape(input, ndim(input) - 1) > 0))
 >>
-Rule 38 (If the input tensor has at least 3 dimensions, then the last two dimensions must be divisible by downscale factor and downscale factor must be positive)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 3 then (shape(v_1, ndim(v_1) - 2) % v_2 = 0) ∧ (shape(v_1, ndim(v_1) - 1) % v_2 = 0) ∧ v_2 > 0
+Rule 49 (Final pixel_unshuffle validation)
+{input : tensor, downscale_factor : int} |= downscale_factor > 0 ∧ (if ndim(input) >= 2 then shape(input, ndim(input) - 2) % downscale_factor = 0) ∧ (ndim(input) >= 3 ∨ (ndim(input) >= 0 ∧ shape(input, -1) > 0 ∧ shape(input, -2) > 0) ∨ ndim(input) < 2)
 >>
-Rule 40 (If the number of dimensions is less than 3, then the downscale factor must be equal to 1)
-{v_1: tensor, v_2: int} |= if ndim(v_1) < 3 then v_2 = 1
+Rule 50 (Comprehensive validation for pixel_unshuffle parameters)
+{input : tensor, downscale_factor : int} |= downscale_factor > 0 ∧ (ndim(input) >= 3 ∨ (ndim(input) >= 0 ∧ shape(input, -1) > 0 ∧ shape(input, -2) > 0)) ∧ (if ndim(input) >= 2 then shape(input, ndim(input) - 2) % downscale_factor = 0)
 >>
-Rule 41 (The height and width of a 3D tensor should be divisible by the downscale factor.)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 then (shape(v_1, 1) % v_2 = 0 ∧ shape(v_1, 2) % v_2 = 0)
+Rule 51 (Final pixel_unshuffle validation - incorporates all known constraints)
+{input : tensor, downscale_factor : int} |= downscale_factor > 0 ∧ (ndim(input) >= 3 ∨ (ndim(input) >= 0 ∧ shape(input, ndim(input)-2) > 0 ∧ shape(input, ndim(input)-1) > 0)) ∧ (if ndim(input) >= 2 then shape(input, ndim(input) - 2) % downscale_factor = 0)
 >>
-Rule 42 (If the tensor only has one dimension, its size must be greater or equal to 1)
-{v_1:tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) >= 1
+Rule 52 (The Ultimate Pixel Unshuffle Rule)
+{input : tensor, downscale_factor : int} |= downscale_factor > 0 ∧ (ndim(input) >= 3 ∨ (ndim(input) >= 0 ∧ shape(input, ndim(input) - 2) > 0 ∧ shape(input, ndim(input) - 1) > 0)) ∧ (if ndim(input) >= 2 then shape(input, ndim(input) - 2) % downscale_factor = 0)
 >>
-Rule 43 (Either the tensor has at least three dimensions, or the downscale factor is one.)
-{v_1: tensor, v_2: int} |= ndim(v_1) >= 3 ∨ v_2 = 1
+Rule 53 (The Most Comprehensive Pixel Unshuffle Rule)
+{input : tensor, downscale_factor : int} |= downscale_factor > 0 ∧ (if ndim(input) >= 2 then shape(input, ndim(input) - 2) % downscale_factor = 0) ∧ (ndim(input) >= 3 ∨ (ndim(input) >= 0 ∧ shape(input, ndim(input) - 2) > 0 ∧ shape(input, ndim(input) - 1) > 0) ∨ (ndim(input) > 0 ∧ (∃i ∈ [0, ndim(input)-1] : shape(input, i) = 0)))
 >>
-Rule 44 (If the downscale factor is positive, height must be divisible by it)
-{v_1 : tensor, v_2 : int} |= if v_2 > 0 then shape(v_1, ndim(v_1)-2) % v_2 = 0
+Rule 54 (Pixel Unshuffle Validation Rule (the last one, I promise!))
+{input : tensor, downscale_factor : int} |= downscale_factor > 0 ∧ (if ndim(input) >= 2 then shape(input, ndim(input) - 2) % downscale_factor = 0) ∧ (ndim(input) >= 3 ∨ (ndim(input) >= 0 ∧ shape(input, -2) > 0 ∧ shape(input, -1) > 0))
 >>
-Rule 45 (If the downscale factor is positive, width must be divisible by it)
-{v_1 : tensor, v_2 : int} |= if v_2 > 0 then shape(v_1, ndim(v_1)-1) % v_2 = 0
+Rule 56 (The Omega Pixel Unshuffle Validation)
+{input : tensor, downscale_factor : int} |= (downscale_factor > 0) ∧ (if ndim(input) >= 2 then (shape(input, ndim(input) - 2) % downscale_factor = 0) else (true)) ∧ ((ndim(input) >= 3) ∨ (ndim(input) >= 0 ∧ (shape(input, ndim(input) - 2) > 0) ∧ (shape(input, ndim(input) - 1) > 0)) ∨ ((ndim(input) > 0) ∧ (∃i ∈ [0, ndim(input) - 1] : (shape(input, i) = 0))))
 >>
-Rule 46 (The downscale factor is a positive integer, and the last two dimensions of the input are greater or equal to the downscale factor)
-{v_1 : tensor, v_2 : int} |= v_2 > 0 ∧ shape(v_1, ndim(v_1) - 2) ≥ v_2 ∧ shape(v_1, ndim(v_1) - 1) ≥ v_2
+Rule 59 (Height of the input tensor should be divisible by the downscale factor)
+{input : tensor, downscale_factor : int} |= if ndim(input) >=2 then shape(input, ndim(input) - 2) % downscale_factor = 0
 >>
-Rule 47 (If the input tensor is at least 3D, then the downscale factor should be less than or equal to height and width)
-{v_1: tensor, v_2: int} |= if ndim(v_1) >= 3 then (v_2 <= shape(v_1, ndim(v_1)-2)) ∧ (v_2 <= shape(v_1, ndim(v_1)-1))
+Rule 61 (If the input has 2 dimensions, both dimensions must be positive)
+{input : tensor} |= if ndim(input) = 2 then shape(input, 0) > 0 ∧ shape(input, 1) > 0
 >>
-Rule 48 (Input tensor should have more elements than downscale factor squared)
-{v_1 : tensor, v_2 : int} |= (v_2 * v_2) ≤ (shape(v_1, ndim(v_1) - 2) * shape(v_1, ndim(v_1) - 1))
+Rule 62 (If the input tensor is 1D, it's not valid)
+{input : tensor} |= if ndim(input) = 1 then false
 >>
-Rule 49 (The downscale factor must be positive, and if the number of dimensions is greater than or equal to 3, both the height and width of the input must be divisible by the downscale factor.)
-{v_1: tensor, v_2: int} |= v_2 > 0 ∧ if ndim(v_1) >= 3 then (shape(v_1, ndim(v_1)-2) % v_2 = 0 ∧ shape(v_1, ndim(v_1)-1) % v_2 = 0)
+Rule 64 (If the input has less than 3 dimensions, then height and width should not be greater than 0)
+{input : tensor} |= if ndim(input) < 3 then (if ndim(input) >= 2 then shape(input, ndim(input)-2) > 0 ∧ shape(input, ndim(input)-1) > 0)
 >>
-Rule 51 (If the input tensor has at least 3 dimensions, then the product of downscale factor squared must be less than or equal to the number of elements.)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 3 then (v_2 * v_2) <= (shape(v_1, ndim(v_1)-2) * shape(v_1, ndim(v_1)-1))
+Rule 67 (If the input has fewer than 3 dimensions, require positivity of all dimensions that exist, but still be false for fewer than 2)
+{input : tensor} |= if ndim(input) < 3 then (if ndim(input) >= 2 then shape(input, ndim(input)-2) > 0 ∧ shape(input, ndim(input)-1) > 0 else if ndim(input) >= 1 then shape(input, ndim(input) -1) > 0 else false)
 >>
-Rule 52 (if ndim(input) < 3 then downscale_factor must be 1, else downscale factor must be positive and both the height and width of input tensor must be divisible by the downscale factor.)
-{v_1: tensor, v_2: int} |= if ndim(v_1) < 3 then v_2 = 1 else v_2 > 0 ∧ (shape(v_1, ndim(v_1)-2) % v_2 = 0) ∧ (shape(v_1, ndim(v_1)-1) % v_2 = 0)
+Rule 68 (Downscale Factor must be less than a reasonable amount)
+{downscale_factor: int} |= downscale_factor < 1000
 >>
-Rule 54 (downscale factor should not be too large, so that output size is not too small)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 3 then (shape(v_1, ndim(v_1)-2) / v_2) > 1 ∧ (shape(v_1, ndim(v_1)-1) / v_2) > 1
+Rule 71 (Downscale Factor must be less than a reasonable amount compared to height and width or it is not applied)
+{input : tensor, downscale_factor: int} |= if ndim(input) >=2 then downscale_factor < shape(input, ndim(input)-2) ∧ downscale_factor < shape(input, ndim(input)-1)
 >>
-Rule 55 (The minimum dimension of the input tensor must be greater or equal to 1)
-{v_1: tensor} |= if ndim(v_1) >= 1 then shape(v_1, 0) >= 1
+Rule 73 (If the input has less than 3 dimensions, require positivity of all dimensions and at least 2 dimensions exist)
+{input : tensor} |= if ndim(input) < 3 then (ndim(input) = 2 ∧ shape(input, 0) > 0 ∧ shape(input, 1) > 0)
 >>
-Rule 56 (downscale factor should not be too large, so that output size is not too small)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 3 then (shape(v_1, ndim(v_1)-2) / v_2) > 0 ∧ (shape(v_1, ndim(v_1)-1) / v_2) > 0
+Rule 77 (Downscale Factor must be less than a reasonable amount and Positive)
+{downscale_factor: int} |= downscale_factor < 1000 ∧ downscale_factor > 0
 >>
-Rule 57 (If the input tensor is 1-dimensional, then the downscale factor must be 1)
-{v_1 : tensor, v_2: int} |= if ndim(v_1) = 1 then v_2 = 1
+Rule 79 (If the input has less than 3 dimensions, require 2 existing dimensions with positive values, otherwise the input must have 3 dimensions.)
+{input : tensor} |= (ndim(input) < 3 ∧ ndim(input) = 2 ∧ shape(input, 0) > 0 ∧ shape(input, 1) > 0) ∨ ndim(input) >= 3
 >>
-Rule 58 (The height of the input tensor must be positive if the downscale factor is also positive)
-{v_1 : tensor, v_2 : int} |= if v_2 > 0 then shape(v_1, ndim(v_1)-2) > 0
+Rule 80 (Downscale Factor cannot be excessively large)
+{input : tensor, downscale_factor: int} |= if ndim(input) >=2 then downscale_factor < 1000
 >>
-Rule 59 (The width of the input tensor must be positive if the downscale factor is also positive)
-{v_1 : tensor, v_2 : int} |= if v_2 > 0 then shape(v_1, ndim(v_1)-1) > 0
+Rule 82 (Input tensor must have the required dimensions or cannot be processed.)
+{input : tensor} |= (ndim(input) >= 3) ∨ (ndim(input) = 2 ∧ shape(input, 0) > 0 ∧ shape(input, 1) > 0)
 >>
-Rule 60 ( If number of dimension is equal or greater than 3 then number of channel must be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) >= 3 then shape(v_1, ndim(v_1)-3) > 0
+Rule 83 (Downscale Factor must be a valid value.)
+{input : tensor, downscale_factor: int} |= if ndim(input) >= 2 then (downscale_factor < 1000 ∧ downscale_factor > 0 ∧ shape(input, ndim(input)-2) % downscale_factor = 0) else (downscale_factor < 1000 ∧ downscale_factor > 0)
 >>
-Rule 61 (If number of dimension is less than 3, then height and width must be equal to 1)
-{v_1: tensor} |= if ndim(v_1) < 3 then shape(v_1, ndim(v_1)-2) = 1 ∧ shape(v_1, ndim(v_1)-1) = 1
+Rule 86 (Requires valid downscale factor)
+{input : tensor, downscale_factor: int} |= (downscale_factor < 1000 ∧ downscale_factor > 0) ∧ (if ndim(input) >= 2 then shape(input, ndim(input)-2) % downscale_factor = 0)
 >>
-Rule 62 (If height or width is 0, then downscale factor must be 1)
-{v_1: tensor, v_2: int} |= if shape(v_1, ndim(v_1)-2) = 0 ∨ shape(v_1, ndim(v_1)-1) = 0 then v_2 = 1
+Rule 91 (Input tensor has at least required dimensions based on other properties)
+{input : tensor} |= if shape(input, -1) > 0 ∧ shape(input, -2) > 0 then ndim(input) >= 3 else (ndim(input) = 0 ∨ ndim(input) = 1 ∨ ndim(input) = 2)
 >>
-Rule 63 (channel dimension is a small positive number to prevent OOM)
-{v_1 : tensor} |= if ndim(v_1) >= 3 then shape(v_1, ndim(v_1)-3) < 2048 ∧ shape(v_1, ndim(v_1)-3) > 0
+Rule 94 (Dimensions are appropriate and consistent with operation requirements)
+{input : tensor} |= (ndim(input) >= 3) ∨ (ndim(input) = 2 ∧ shape(input, 0) > 0 ∧ shape(input, 1) > 0) ∨ (ndim(input) = 1 ∧ shape(input,0) = 0) ∨ (ndim(input) = 0)
 >>
-Rule 64 (If the input has fewer than three dimensions, then both the height and width should be 1 and the downscale factor should be 1)
-{v_1: tensor, v_2: int} |= if ndim(v_1) < 3 then shape(v_1, ndim(v_1)-2) = 1 ∧ shape(v_1, ndim(v_1)-1) = 1 ∧ v_2 = 1
->>
-Rule 65 (The downscale factor should be a positive number, and the height and width of the input tensor should be non-zero)
-{v_1: tensor, v_2: int} |= v_2 > 0 ∧ shape(v_1, ndim(v_1)-2) > 0 ∧ shape(v_1, ndim(v_1)-1) > 0
->>
-Rule 66 (If the input tensor is at least 3D and has a channel dimension then ensure the resulting channel dimension after unshuffle is representable.)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 3 then shape(v_1, ndim(v_1)-3) * v_2 * v_2 < 2048
->>
-Rule 68 (downscale factor should be positive and height and width should not be zero)
-{v_1 : tensor, v_2 : int} |= v_2 > 0 ∧ shape(v_1, ndim(v_1)-2) > 0 ∧ shape(v_1, ndim(v_1)-1) > 0
->>
-Rule 69 (if input tensor has ndim >=3 and channel dimension exists, then resulting unshuffle dimension should be <= 2048)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 3 then shape(v_1, ndim(v_1) - 3) * v_2 * v_2 <= 2048
->>
-Rule 70 (If the number of dimensions of the input tensor is less than 3, downscale_factor is 1. Other wise downscale_factor > 0, width and height are divisible by the downscale_factor)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) < 3 then v_2 = 1 else v_2 > 0 ∧ (shape(v_1, ndim(v_1)-2) % v_2 = 0) ∧ (shape(v_1, ndim(v_1)-1) % v_2 = 0)
->>
-Rule 72 ( downscale factor should be such that the height and width of the output tensor are at least 1 )
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) >=3 then (shape(v_1, ndim(v_1)-2) / v_2) >= 1 ∧ (shape(v_1, ndim(v_1)-1) / v_2) >= 1
->>
-Rule 73 (If the number of dimensions of the input tensor is at least 3, then channel number must be greater than 0 and unshuffle channel number must be less than max channel size)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 3 then shape(v_1, ndim(v_1) - 3) > 0 ∧ (shape(v_1, ndim(v_1) - 3) * v_2 * v_2) < 2048
->>
-Rule 74 (If the downscale factor is greater than 1, then the input tensor must have at least 3 dimensions)
-{v_1: tensor, v_2: int} |= if v_2 > 1 then ndim(v_1) >= 3
->>
-Rule 75 (if shape of H and W are less than downscale factor, then throw exception)
-{v_1: tensor, v_2 : int} |= if ndim(v_1) >= 3 then (shape(v_1, ndim(v_1) - 2) >= v_2) ∧ (shape(v_1, ndim(v_1)-1) >= v_2)
->>
-Rule 76 ( downscale_factor must be positive integer and if input has ndim >=3, then H and W must be divisible by it )
-{v_1: tensor, v_2: int} |= v_2 > 0 ∧ if ndim(v_1) >= 3 then shape(v_1, ndim(v_1) - 2) % v_2 = 0 ∧ shape(v_1, ndim(v_1) - 1) % v_2 = 0
->>
-Rule 77 (if input dimension > = 3 and channel is zero, then report)
-{v_1: tensor} |= if ndim(v_1) >=3 then shape(v_1, ndim(v_1) -3) > 0
->>
-Rule 78 ( downscale factor cannot be 0 )
-{v_1: int} |= v_1 != 0
->>
-Rule 79 (downscale factor should be a positive integer)
-{v_1: int} |= v_1 > 0
->>
-Rule 80 (if tensor is less than 3D, then downscale factor is one, or downscale factor is positive and height and width are divisible by it)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) < 3 then v_2 = 1 else v_2 > 0 ∧ shape(v_1, ndim(v_1)-2) % v_2 = 0 ∧ shape(v_1, ndim(v_1)-1) % v_2 = 0
->>
-Rule 81 (The height and width must be positive and if the tensor is 3D, the channel must be too)
-{v_1 : tensor} |= shape(v_1, ndim(v_1)-2) > 0 ∧ shape(v_1, ndim(v_1)-1) > 0 ∧ if ndim(v_1) >= 3 then shape(v_1, ndim(v_1)-3) > 0
->>
-Rule 82 (Downscale factor has to be positive. If input tensor has at least 3 dimensions, then height, width must be divisible by downscale factor and greater than 0)
-{v_1: tensor, v_2: int} |= v_2 > 0 ∧ if ndim(v_1) >= 3 then (shape(v_1, ndim(v_1) - 2) % v_2 = 0) ∧ (shape(v_1, ndim(v_1) - 1) % v_2 = 0) ∧ (shape(v_1, ndim(v_1)-2) > 0) ∧ (shape(v_1, ndim(v_1)-1) > 0)
->>
-Rule 83 (If input is a vector, downscale factor must be one, other wise downscale factor must be > 0)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then v_2 = 1 else v_2 > 0
->>
-Rule 84 (Height or Width must be positive)
-{v_1: tensor} |= shape(v_1, ndim(v_1)-2) > 0 ∨ shape(v_1, ndim(v_1)-1) > 0
->>
-Rule 85 (Downscale factor is an integer and input has dimension more or equal to 3, then height % downscale factor = 0 and width % downscale factor = 0 and downscale factor > 0 and channel > 0.)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 3 then v_2 > 0 ∧ (shape(v_1, ndim(v_1)-2) % v_2 = 0) ∧ (shape(v_1, ndim(v_1)-1) % v_2 = 0) ∧ shape(v_1, ndim(v_1) - 3) > 0
->>
-Rule 86 (If number of dimension is 1, then downscale factor should be 1. Otherwise, downscale factor should be >0 and shape of the last two dimension should be greater than 0)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then v_2 = 1 else v_2 > 0 ∧ shape(v_1, ndim(v_1)-2) > 0 ∧ shape(v_1, ndim(v_1)-1) > 0
->>
-Rule 87 (If the number of dimensions is greater than or equal to 3, we require width > 0 and height > 0.)
-{v_1: tensor} |= if ndim(v_1) >= 3 then shape(v_1, ndim(v_1)-2) > 0 ∧ shape(v_1, ndim(v_1)-1) > 0
->>
-Rule 88 (If the downscale factor is positive, then the height and width of the input tensor must be positive.)
-{v_1: tensor, v_2: int} |= if v_2 > 0 then shape(v_1, ndim(v_1)-2) > 0 ∧ shape(v_1, ndim(v_1)-1) > 0
->>
-Rule 89 (Downscale factor is positive and if number of dimension is greater than 3, then channel * downscale factor * downscale factor < some max value.)
-{v_1: tensor, v_2: int} |= v_2 > 0 ∧ if ndim(v_1) >= 3 then shape(v_1, ndim(v_1) - 3) * v_2 * v_2 < 4096
->>
-Rule 90 (The height and width of a tensor with ndim >= 3 must be at least 1.)
-{v_1 : tensor} |= if ndim(v_1) >= 3 then shape(v_1, ndim(v_1)-2) >= 1 ∧ shape(v_1, ndim(v_1)-1) >= 1
->>
-Rule 91 (Downscale factor is positive and the last two shapes of the input tensor are both at least as big as it)
-{v_1 : tensor, v_2 : int} |= v_2 > 0 ∧ shape(v_1, ndim(v_1)-2) >= v_2 ∧ shape(v_1, ndim(v_1)-1) >= v_2
->>
-Rule 92 (If downscale factor divides height, then number of elements must be large enough to accomodate the unshuffle operation.)
-{v_1 : tensor, v_2 : int} |= if shape(v_1, ndim(v_1)-2) % v_2 = 0 then (shape(v_1, ndim(v_1)-2) / v_2) * (shape(v_1, ndim(v_1)-1) / v_2) * (v_2 * v_2) <= 1000000
->>
-Rule 93 (The dimensions of the input tensor must not be all equal to 1 if it is 3D)
-{v_1: tensor} |= if ndim(v_1) = 3 then (shape(v_1, 0) ≠ 1) ∨ (shape(v_1, 1) ≠ 1) ∨ (shape(v_1, 2) ≠ 1)
+Rule 101 (Downscale Factor related constraints)
+{input : tensor, downscale_factor: int} |= (downscale_factor < 1000) ∧ (if ndim(input) >= 2 then shape(input, ndim(input)-2) % downscale_factor = 0)

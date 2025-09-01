@@ -1,105 +1,75 @@
 >>
-Rule 2 (value should not be too large for float16)
-{v_1 : float} |= v_1 < 65500 ∧ v_1 > -65500
->>
-Rule 5 (input tensor should not be boolean type represented by 0)
+Rule 1 (Input tensor should not be boolean to avoid 'threshold_cpu' error)
 {v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 6 (value should not be too large or small for float16)
-{v_1 : float, v_2 : dtype} |= if v_2 = 6 then v_1 < 65500 ∧ v_1 > -65500
+Rule 2 (Value should be a valid float to avoid overflow error when converting to half type)
+{v_2 : float} |= v_2 ≥ -65504.0 ∧ v_2 ≤ 65504.0
 >>
-Rule 8 (value should not be too large or small for float16 if dtype_ of input is float16 (represented by 6))
-{v_1 : float, v_2 : tensor} |= if dtype_(v_2) = 6 then v_1 < 65500 ∧ v_1 > -65500
+Rule 4 (Value should be a valid float to avoid overflow error when converting to half type)
+{v_3 : float} |= v_3 > -65504.0 ∧ v_3 < 65504.0
 >>
-Rule 10 (if threshold is large, value should be also large for float16)
-{v_1 : float, v_2 : float} |= if v_1 > 1000 then v_2 < 65500 ∧ v_2 > -65500
+Rule 5 (Value should be a valid float to avoid overflow error when converting to half type, considering threshold)
+{v_2 : float, v_1 : float} |= v_2 > -65504.0 ∧ v_2 < 65504.0 ∧ v_1 > -65504.0 ∧ v_1 < 65504.0
 >>
-Rule 13 (check if value can be converted to float16 based on the threshold if the input tensor is of type float32 (represented by 7))
-{v_1 : float, v_2 : float, v_3 : tensor} |= if dtype_(v_3) = 7 then if (v_1 * v_1) < 1000 then (v_2 * v_2) < 4294967296
+Rule 6 (Input tensor's dtype should be float to avoid threshold_cpu error with boolean)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6
 >>
-Rule 14 (threshold is not too big if tensor is float16)
-{v_1 : float, v_2 : tensor} |= if dtype_(v_2) = 6 then (v_1 * v_1) < 4294967296
+Rule 7 (Value should be representable as float16 if input is float16 to avoid overflow/underflow)
+{v_1 : tensor, v_3 : float} |= if dtype_(v_1) = 6 then (v_3 ≥ -65504.0 ∧ v_3 ≤ 65504.0)
 >>
-Rule 15 (check if value can be converted to float16 if the input tensor is of type float32 (represented by 7))
-{v_1 : float, v_2 : tensor} |= if dtype_(v_2) = 7 then v_1 < 1e8 ∧ v_1 > -1e8
+Rule 8 (If input is float16, value should also be within the range representable by float16)
+{v_1 : tensor, v_3 : float} |= if dtype_(v_1) = 6 then v_3 ≥ -65504.0 ∧ v_3 ≤ 65504.0
 >>
-Rule 16 (threshold is not too big if tensor is float16)
-{v_1 : float, v_2 : tensor} |= if dtype_(v_2) = 6 then v_1 < 1e4 ∧ v_1 > -1e4
+Rule 9 (If threshold is float16 representable, value also has to be inside float16 representable range)
+{v_2 : float, v_3 : float} |= if v_2 ≥ -65504.0 ∧ v_2 ≤ 65504.0 then v_3 ≥ -65504.0 ∧ v_3 ≤ 65504.0
 >>
-Rule 17 (if input tensor is boolean, threshold should be false.)
-{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 0 then v_2 = false
+Rule 11 (Input must be a tensor of float or integer type)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
 >>
-Rule 18 (value is not too large when input tensor is float16.)
-{v_1 : float, v_2 : tensor} |= if dtype_(v_2) = 6 then v_1 < 6e4 ∧ v_1 > -6e4
+Rule 12 (If threshold is not float16 representable, input tensor shouldn't be float16)
+{v_1 : tensor, v_2 : float} |= if v_2 < -65504.0 ∨ v_2 > 65504.0 then dtype_(v_1) ≠ 6
 >>
-Rule 20 (value is not too large when input tensor is float16)
-{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 then v_2 < 6e4 ∧ v_2 > -6e4
+Rule 14 (If the value overflows when casting to half-precision float, it is invalid)
+{v_3 : float} |= v_3 ≥ -65504.0 ∧ v_3 ≤ 65504.0
 >>
-Rule 21 (if input tensor is boolean, threshold should be false.)
+Rule 15 (If input tensor is boolean, operation not defined on CPU)
 {v_1 : tensor} |= if dtype_(v_1) = 0 then false
 >>
-Rule 23 (if input tensor is boolean, threshold should be 0)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 0 then v_2 = 0
+Rule 19 (The 'value' must be representable as a float16 if the 'threshold' is representable as float16 and the input tensor's dtype is float16)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 6 ∧ v_2 >= -65504.0 ∧ v_2 <= 65504.0 then v_3 >= -65504.0 ∧ v_3 <= 65504.0
 >>
-Rule 24 (if input tensor is float16, value should be representable in float16)
-{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 then v_2 < 6.5e4 ∧ v_2 > -6.5e4
+Rule 24 (if the value cannot be represented as float16 then the input tensor cannot be of type float16.)
+{v_1 : tensor, v_3 : float} |= if v_3 < -65504.0 ∨ v_3 > 65504.0 then dtype_(v_1) ≠ 6
 >>
-Rule 27 (if input tensor is boolean, value must be representable as boolean)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 0 then v_2 = 0 ∨ v_2 = 1
+Rule 25 (If threshold cannot be represented as a float16 and input is float16, an error occurs.)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 then v_2 ≥ -65504.0 ∧ v_2 ≤ 65504.0
 >>
-Rule 30 (if value is too big, then dtype should not be float16)
-{v_1 : float, v_2 : dtype} |= if v_1 > 6.5e4 ∨ v_1 < -6.5e4 then v_2 ≠ 6
+Rule 28 (The value parameter should be representable as the input's dtype.)
+{v_1 : tensor, v_3 : float} |= if dtype_(v_1) = 6 then v_3 ≥ -65504.0 ∧ v_3 ≤ 65504.0 else if dtype_(v_1) = 7 then true else if dtype_(v_1) = 8 then true else false
 >>
-Rule 31 (if input tensor is boolean, value must be representable as boolean)
-{v_1 : tensor, v_2 : int ⊎ bool} |= if dtype_(v_1) = 0 then v_2 = 0 ∨ v_2 = 1 ∨ v_2 = false ∨ v_2 = true
+Rule 65 (If input is boolean or value out of range for float16, error occurs)
+{v_1 : tensor, v_3 : float} |= dtype_(v_1) ≠ 0 ∨ (v_3 < -65504.0 ∨ v_3 > 65504.0)
 >>
-Rule 32 (if value is too big, then dtype should not be float16)
-{v_1 : float, v_2 : tensor} |= if v_1 > 6.5e4 ∨ v_1 < -6.5e4 then dtype_(v_2) ≠ 6
+Rule 66 (Input must be a non-boolean tensor, and the value must also be within the valid range for float16)
+{v_1 : tensor, v_3 : float} |= dtype_(v_1) ≠ 0 ∧ v_3 ≥ -65504.0 ∧ v_3 ≤ 65504.0
 >>
-Rule 33 (if input tensor is boolean, value must be representable as boolean, and threshold should also be a boolean)
-{v_1 : tensor, v_2 : int ⊎ bool, v_3 : int ⊎ bool} |= if dtype_(v_1) = 0 then v_2 = 0 ∨ v_2 = 1 ∨ v_2 = false ∨ v_2 = true ∧ v_3 = 0 ∨ v_3 = 1 ∨ v_3 = false ∨ v_3 = true
+Rule 67 (If value is outside of float16's range or the input tensor is a bool, then operation isn't valid)
+{v_1 : tensor, v_3 : float} |= (v_3 < -65504.0 ∨ v_3 > 65504.0) ∨ dtype_(v_1) = 0
 >>
-Rule 36 (if the tensor is float16, the value has to be also representable as float16)
-{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 then v_2 > -65500 ∧ v_2 < 65500
+Rule 68 (An error occurs if the value is not in float16 and input is float16 and threshold is in float16)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if (dtype_(v_1) = 6 ∧ v_2 ≥ -65504.0 ∧ v_2 ≤ 65504.0) then v_3 ≥ -65504.0 ∧ v_3 ≤ 65504.0
 >>
-Rule 39 (if the input tensor is boolean, the value and the threshold has to be boolean)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then true
+Rule 69 (threshold_cpu doesn't support boolean inputs or if value is out of half-precision float range)
+{v_1 : tensor, v_3 : float} |= (dtype_(v_1) = 0) ∨ (v_3 < -65504.0 ∨ v_3 > 65504.0)
 >>
-Rule 42 (value needs to be converted to float16 without overflow)
-{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 then v_2 > -65000 ∧ v_2 < 65000
+Rule 70 (The function will cause an error if the value exceeds float16 range, unless the input is not a half tensor)
+{v_1 : tensor, v_3 : float} |= if dtype_(v_1) ≠ 6 then true else v_3 ≥ -65504.0 ∧ v_3 ≤ 65504.0
 >>
-Rule 46 (if the input tensor is float16, the value and the threshold have to be also representable as float16)
-{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 6 then v_2 > -65000 ∧ v_2 < 65000 ∧ v_3 > -65000 ∧ v_3 < 65000
+Rule 71 (The implementation does not allow bool inputs and the value must be in range to prevent half overflow)
+{v_1 : tensor, v_3 : float} |= (dtype_(v_1) ≠ 0) ∧ (v_3 ≥ -65504.0 ∧ v_3 ≤ 65504.0)
 >>
-Rule 50 (if the tensor is float16, the value and the threshold have to be also representable as float16 (and value should greater than the threshold))
-{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 6 then v_2 > -65000 ∧ v_2 < 65000 ∧ v_3 > -65000 ∧ v_3 < 65000 ∧ v_2 > v_3
+Rule 72 (Do not allow boolean input tensors. The 'value' parameter must also be in the float16 range.)
+{v_1 : tensor, v_3 : float} |= dtype_(v_1) ≠ 0 ∧ (v_3 ≥ -65504.0 ∧ v_3 ≤ 65504.0)
 >>
-Rule 54 (if the input tensor is float16, the value and the threshold have to be also representable as float16)
-{v_1 : float, v_2 : float} |= v_1 > -65000 ∧ v_1 < 65000 ∧ v_2 > -65000 ∧ v_2 < 65000
->>
-Rule 56 (if the input tensor is float16, the value (threshold) and the other value have to be also representable as float16)
-{v_1 : float} |= v_1 > -65000 ∧ v_1 < 65000
->>
-Rule 65 (if the input tensor is boolean, the threshold value type is bool, value type should be bool)
-{v_1 : tensor} |= dtype_(v_1) = 0
->>
-Rule 67 (if the input tensor is boolean, value and threshold should have boolean representation)
-{v_1 : tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) ≠ 0
->>
-Rule 68 (the value (threshold) has to be also representable as float16 if the tensor is float16, or float32 and smaller than 100)
-{v_1 : float, v_2 : tensor} |= if dtype_(v_2) = 6 then v_1 > -65000 ∧ v_1 < 65000 else if dtype_(v_2) = 7 then v_1 > -100 ∧ v_1 < 100
->>
-Rule 73 (if the input tensor is boolean, setting both threshold and value to `true` is valid)
-{v_1 : tensor, v_2 : bool, v_3 : bool} |= if dtype_(v_1) = 0 then v_2 = true ∧ v_3 = true
->>
-Rule 78 (if the input tensor is float16, the value must be representable as float16 - this can be verified by casting)
-{v_1 : float} |= ∃x ∈ [-65000, 65000] : v_1 = x
->>
-Rule 80 (value needs to be able to convert to float16 when dtype of the input is float16)
-{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 then ∃x ∈ [-6.5e4, 6.5e4] : v_2 = x
->>
-Rule 82 (value needs to be able to convert to float16 when dtype of the input is float16)
-{v_1 : float} |= ∃x ∈ [-6.5e4, 6.5e4] : v_1 = x
->>
-Rule 86 (value needs to be able to convert to float16 when dtype of the input is float16)
-{v_1 : float, v_2: dtype} |= if v_2 = 6 then ∃x ∈ [-6.5e4, 6.5e4] : v_1 = x
+Rule 75 (Either the input tensor is NOT a boolean, OR the value IS within the float16 range. Violating this leads to an error.)
+{v_1 : tensor, v_3 : float} |= (dtype_(v_1) ≠ 0) ∨ (v_3 ≥ -65504.0 ∧ v_3 ≤ 65504.0)

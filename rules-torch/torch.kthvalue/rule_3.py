@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor should have non-zero size along the specified dimension (Rule 3)
+# input tensor dimension size should be non-zero to prevent IndexError (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
     s.add(Not(Select(v["arg1_shape"], v["arg2_value"]) > 0) if n else

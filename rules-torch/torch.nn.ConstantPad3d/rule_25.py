@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If padding is tuple, input tensor must have shape[0] + padding[0] + padding[1] < max int for 3D (Rule 25)
+# Each element in padding tuple is smaller than corresponding dimension size to avoid extreme padding (Rule 25)
 
 rule_25 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) + Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1) < 2147483647, False)) if n else
-          If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) + Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1) < 2147483647, False))
+    s.add(Not(And([Implies(i < (2 + 1), And(Select(v["arg2_values"], 2 * i) < Select(v["arg1_shape"], i + v["arg1_ndim"] - 3), Select(v["arg2_values"], 2 * i + 1) < Select(v["arg1_shape"], i + v["arg1_ndim"] - 3))) for i in range(6)])) if n else
+          And([Implies(i < (2 + 1), And(Select(v["arg2_values"], 2 * i) < Select(v["arg1_shape"], i + v["arg1_ndim"] - 3), Select(v["arg2_values"], 2 * i + 1) < Select(v["arg1_shape"], i + v["arg1_ndim"] - 3))) for i in range(6)]))
 )
 
 def rule_25_func(arg1, arg2, solver=None, neg=False):

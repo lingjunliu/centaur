@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If padding is int, input tensor must have shape[2] + 2*padding < max int (Rule 6)
+# Input tensor cannot be empty along padded dimensions after padding - int case (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 5, Select(v["arg1_shape"], 2) + 2 * v["arg2_value"] < 2147483647, If(v["arg1_ndim"] == 4, Select(v["arg1_shape"], 1) + 2 * v["arg2_value"] < 2147483647, Select(v["arg1_shape"], 0) + 2 * v["arg2_value"] < 2147483647))) if n else
-          If(v["arg1_ndim"] == 5, Select(v["arg1_shape"], 2) + 2 * v["arg2_value"] < 2147483647, If(v["arg1_ndim"] == 4, Select(v["arg1_shape"], 1) + 2 * v["arg2_value"] < 2147483647, Select(v["arg1_shape"], 0) + 2 * v["arg2_value"] < 2147483647)))
+    s.add(Not(And([Implies(i < (2 + 1), Select(v["arg1_shape"], i + v["arg1_ndim"] - 3) + 2 * v["arg2_value"] > 0) for i in range(6)])) if n else
+          And([Implies(i < (2 + 1), Select(v["arg1_shape"], i + v["arg1_ndim"] - 3) + 2 * v["arg2_value"] > 0) for i in range(6)]))
 )
 
 def rule_6_func(arg1, arg2, solver=None, neg=False):

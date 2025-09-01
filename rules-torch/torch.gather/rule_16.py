@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# index values must be non-negative (Rule 16)
+# Check if the output tensor has the correct data type (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) >= 0) if n else
-          Select(v["arg1_range"], 0) >= 0)
+    s.add(Not(v["arg1_dtype"] == v["arg1_dtype"]) if n else
+          v["arg1_dtype"] == v["arg1_dtype"])
 )
 
 def rule_16_func(arg1, solver=None, neg=False):
@@ -22,16 +22,15 @@ def rule_16_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 16
-        rule_16(solver, {'arg1_range': arg1_range})
+        rule_16(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_16(solver, {'arg1_range': arg1['range']}, neg)
+        rule_16(solver, {'arg1_dtype': arg1['dtype']}, neg)

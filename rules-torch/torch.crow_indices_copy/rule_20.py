@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If an argument is given, its shape must be greater than (10,10 (Rule 20)
+# Indices length should be reasonable (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_shape"], 0) > 10, Select(v["arg1_shape"], 1) > 10)) if n else
-          And(Select(v["arg1_shape"], 0) > 10, Select(v["arg1_shape"], 1) > 10))
+    s.add(Not(Select(v["arg1_shape"], 0) < 10000000) if n else
+          Select(v["arg1_shape"], 0) < 10000000)
 )
 
 def rule_20_func(arg1, solver=None, neg=False):

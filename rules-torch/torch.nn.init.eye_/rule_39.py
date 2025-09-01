@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if ndim(v_1 (Rule 39)
+# The tensor cannot be a scalar (again (Rule 39)
 
 rule_39 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 2, False, If(v["arg1_ndim"] < 2, False, False))) if n else
-          If(v["arg1_ndim"] > 2, False, If(v["arg1_ndim"] < 2, False, False)))
+    s.add(Not(v["arg1_ndim"] > 0) if n else
+          v["arg1_ndim"] > 0)
 )
 
 def rule_39_func(arg1, solver=None, neg=False):

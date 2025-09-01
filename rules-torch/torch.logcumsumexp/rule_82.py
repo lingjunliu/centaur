@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input is complex double and out is given and its dtype is specified, output must be complex double and if the out tensor is specified, its dimension must be equal to the input tensor (Rule 82)
+# Dimension lies in valid range using or (Rule 82)
 
 rule_82 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_dtype"] == 11, v["arg2_ndim"] > 0), And(v["arg2_dtype"] == 11, v["arg1_ndim"] == v["arg2_ndim"]), False)) if n else
-          If(And(v["arg1_dtype"] == 11, v["arg2_ndim"] > 0), And(v["arg2_dtype"] == 11, v["arg1_ndim"] == v["arg2_ndim"]), False))
+    s.add(Not(Or(v["arg2_value"] < v["arg1_ndim"], v["arg2_value"] >= (0 - v["arg1_ndim"]))) if n else
+          Or(v["arg2_value"] < v["arg1_ndim"], v["arg2_value"] >= (0 - v["arg1_ndim"])))
 )
 
 def rule_82_func(arg1, arg2, solver=None, neg=False):
@@ -20,26 +20,22 @@ def rule_82_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg1_dtype = Int('arg1_dtype')
-        arg2_ndim = Int('arg2_ndim')
-        arg2_dtype = Int('arg2_dtype')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_ndim == arg2.ndim)
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 82
-        rule_82(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype})
+        rule_82(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_82(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_82(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

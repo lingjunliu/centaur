@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Alpha should be finite and not too large to avoid overflow (Rule 131)
+# Beta is non negative (Rule 131)
 
 rule_131 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] == v["arg1_value"], v["arg1_value"] < 10000000)) if n else
-          And(v["arg1_value"] == v["arg1_value"], v["arg1_value"] < 10000000))
+    s.add(Not(v["arg1_value"] >= 0) if n else
+          v["arg1_value"] >= 0)
 )
 
 def rule_131_func(arg1, solver=None, neg=False):

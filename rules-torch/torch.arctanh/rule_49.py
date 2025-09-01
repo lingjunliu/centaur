@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If providing 'out', make sure it's at least Float32 if the input is a float or complex type, or a cast exception will be raised (Rule 49)
+# If an out tensor is provided, the dtype must be large enough to accommodate the result. Specifically, out.dtype >= input.dtype. (Rule 49)
 
 rule_49 = lambda s, v, n=False: (
-    s.add(Not(If(6 <= v["arg1_dtype"], v["arg2_dtype"] > 6, False)) if n else
-          If(6 <= v["arg1_dtype"], v["arg2_dtype"] > 6, False))
+    s.add(Not(If(v["arg1_dtype"] == 6, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 7, Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8, If(v["arg1_dtype"] == 9, Or(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), v["arg2_dtype"] == 11), If(v["arg1_dtype"] == 10, Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 11), If(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11, True))))))) if n else
+          If(v["arg1_dtype"] == 6, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 7, Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8, If(v["arg1_dtype"] == 9, Or(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), v["arg2_dtype"] == 11), If(v["arg1_dtype"] == 10, Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 11), If(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11, True)))))))
 )
 
 def rule_49_func(arg1, arg2, solver=None, neg=False):

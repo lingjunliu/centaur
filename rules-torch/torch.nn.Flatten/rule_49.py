@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If start_dim or end_dim are out of range, set them to a valid default (Rule 49)
+# if end_dim < 0 and start_dim > 0 then v_2 < shape(v_1, ndim(v_1 (Rule 49)
 
 rule_49 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] < (0 - v["arg1_ndim"]), v["arg2_value"] == (0 - v["arg1_ndim"]), If(v["arg2_value"] > (v["arg1_ndim"] - 1), And(v["arg2_value"] == (v["arg1_ndim"] - 1), If(v["arg3_value"] < (0 - v["arg1_ndim"]), v["arg3_value"] == (0 - v["arg1_ndim"]), If(v["arg3_value"] > (v["arg1_ndim"] - 1), v["arg3_value"] == (v["arg1_ndim"] - 1), False))), False))) if n else
-          If(v["arg2_value"] < (0 - v["arg1_ndim"]), v["arg2_value"] == (0 - v["arg1_ndim"]), If(v["arg2_value"] > (v["arg1_ndim"] - 1), And(v["arg2_value"] == (v["arg1_ndim"] - 1), If(v["arg3_value"] < (0 - v["arg1_ndim"]), v["arg3_value"] == (0 - v["arg1_ndim"]), If(v["arg3_value"] > (v["arg1_ndim"] - 1), v["arg3_value"] == (v["arg1_ndim"] - 1), False))), False)))
+    s.add(Not(If(And(v["arg2_value"] > 0, v["arg3_value"] < 0), v["arg2_value"] < v["arg1_ndim"] + v["arg3_value"], True)) if n else
+          If(And(v["arg2_value"] > 0, v["arg3_value"] < 0), v["arg2_value"] < v["arg1_ndim"] + v["arg3_value"], True))
 )
 
 def rule_49_func(arg1, arg2, arg3, solver=None, neg=False):

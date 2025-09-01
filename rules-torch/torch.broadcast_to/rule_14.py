@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Shape elements are non-negative integers and their product must not overflow (Rule 14)
+# the number of dimensions in shape must be less than or equal to a reasonable upper bound (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(And((And([Implies(i < (v["arg1_length"] - 1 + 1), And(And(Select(v["arg1_values"], i) >= 0, Select(v["arg1_values"], i) < 2147483647), Select(v["arg1_values"], i) > -2147483648)) for i in range(6)])), (If(v["arg1_length"] == 0, True, If(v["arg1_length"] == 1, True, And([Implies(i < (v["arg1_length"] - 1 + 1), And((Select(v["arg1_values"], 0) * Select(v["arg1_values"], i)) < 9223372036854775807, (Select(v["arg1_values"], 0) * Select(v["arg1_values"], i)) > -9223372036854775808)) for i in range(6)])))))) if n else
-          And((And([Implies(i < (v["arg1_length"] - 1 + 1), And(And(Select(v["arg1_values"], i) >= 0, Select(v["arg1_values"], i) < 2147483647), Select(v["arg1_values"], i) > -2147483648)) for i in range(6)])), (If(v["arg1_length"] == 0, True, If(v["arg1_length"] == 1, True, And([Implies(i < (v["arg1_length"] - 1 + 1), And((Select(v["arg1_values"], 0) * Select(v["arg1_values"], i)) < 9223372036854775807, (Select(v["arg1_values"], 0) * Select(v["arg1_values"], i)) > -9223372036854775808)) for i in range(6)]))))))
+    s.add(Not(v["arg1_length"] <= 10) if n else
+          v["arg1_length"] <= 10)
 )
 
 def rule_14_func(arg1, solver=None, neg=False):
@@ -23,17 +23,14 @@ def rule_14_func(arg1, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_length = Int('arg1_length')
-        arg1_values = Array('arg1_values', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_length == len(arg1))
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 14
-        rule_14(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values})
+        rule_14(solver, {'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_14(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values']}, neg)
+        rule_14(solver, {'arg1_length': arg1['length']}, neg)

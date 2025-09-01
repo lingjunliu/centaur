@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input and other tensors must have compatible floating point or complex dtypes to prevent casting issues (Rule 21)
+# If one input is bool, the other one cannot be complex. (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] >= 9, v["arg2_dtype"] >= 9, (And(v["arg1_dtype"] >= 6, v["arg2_dtype"] >= 6)))) if n else
-          If(v["arg1_dtype"] >= 9, v["arg2_dtype"] >= 9, (And(v["arg1_dtype"] >= 6, v["arg2_dtype"] >= 6))))
+    s.add(Not(If(v["arg1_dtype"] == 0, And(And(v["arg2_dtype"] != 9, v["arg2_dtype"] != 10), v["arg2_dtype"] != 11), True)) if n else
+          If(v["arg1_dtype"] == 0, And(And(v["arg2_dtype"] != 9, v["arg2_dtype"] != 10), v["arg2_dtype"] != 11), True))
 )
 
 def rule_21_func(arg1, arg2, solver=None, neg=False):

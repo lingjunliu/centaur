@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if a float v_1 is greater than 0 and less than 1 and a boolean v_2 is true then all numbers are either zero or one (Rule 50)
+# Compilation context affects a constraint to only accept a specific shape (Rule 50)
 
 rule_50 = lambda s, v, n=False: (
-    s.add(Not(If(And(And(v["arg1_value"] > 0, v["arg1_value"] < 1), v["arg2_value"] == True), And([Implies(x < (1 + 1), Or(x == 0, x == 1)) for x in range(6)]), False)) if n else
-          If(And(And(v["arg1_value"] > 0, v["arg1_value"] < 1), v["arg2_value"] == True), And([Implies(x < (1 + 1), Or(x == 0, x == 1)) for x in range(6)]), False))
+    s.add(Not(If(v["arg1_value"] == True, And(Select(v["arg2_shape"], 0) == 4, Select(v["arg2_shape"], 1) == 5), True)) if n else
+          If(v["arg1_value"] == True, And(Select(v["arg2_shape"], 0) == 4, Select(v["arg2_shape"], 1) == 5), True))
 )
 
 def rule_50_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,25 @@ def rule_50_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
+        if not isinstance(arg1, bool):
             return False
-        if not isinstance(arg2, bool):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
-        arg2_value = Bool('arg2_value')
+        arg1_value = Bool('arg1_value')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_value == arg1)
-        solver.add(arg2_value == arg2)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 50
-        rule_50(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_50(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_50(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_50(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape']}, neg)

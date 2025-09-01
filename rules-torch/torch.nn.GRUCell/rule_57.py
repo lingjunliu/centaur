@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input and Hidden states must have compatible shapes. (Rule 57)
+# If sizes are specified, prevent usage of complex128 due to memory issues (Rule 57)
 
 rule_57 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 1, (If(v["arg3_ndim"] == 1, True, (If(v["arg3_ndim"] == 2, Select(v["arg3_shape"], 1) == v["arg2_value"], False)))), (If(v["arg1_ndim"] == 2, (If(v["arg3_ndim"] == 1, False, (If(v["arg3_ndim"] == 2, Select(v["arg3_shape"], 1) == v["arg2_value"], False)))), False)))) if n else
-          If(v["arg1_ndim"] == 1, (If(v["arg3_ndim"] == 1, True, (If(v["arg3_ndim"] == 2, Select(v["arg3_shape"], 1) == v["arg2_value"], False)))), (If(v["arg1_ndim"] == 2, (If(v["arg3_ndim"] == 1, False, (If(v["arg3_ndim"] == 2, Select(v["arg3_shape"], 1) == v["arg2_value"], False)))), False))))
+    s.add(Not(If(And(v["arg1_value"] > 1000, v["arg2_value"] > 1000), v["arg3_value"] != 10, True)) if n else
+          If(And(v["arg1_value"] > 1000, v["arg2_value"] > 1000), v["arg3_value"] != 10, True))
 )
 
 def rule_57_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -19,31 +19,28 @@ def rule_57_func(arg1, arg2, arg3, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
         if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
-        if not isinstance(arg3, np.ndarray):
+        if not (isinstance(arg3, torch.dtype) or isinstance(arg3, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_value = Int('arg1_value')
         arg2_value = Int('arg2_value')
-        arg3_ndim = Int('arg3_ndim')
-        arg3_shape = Array('arg3_shape', IntSort(), IntSort())
+        arg3_value = Int('arg3_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_value == int(arg1))
         solver.add(arg2_value == int(arg2))
-        solver.add(arg3_ndim == arg3.ndim)
-        for i in range(arg3.ndim):
-            arg3_shape = Store(arg3_shape, i, arg3.shape[i])
+        solver.add(arg3_value == list_of_available_dtypes.index(np_dtype(arg3)))
 
         # Constraints for rule 57
-        rule_57(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value, 'arg3_ndim': arg3_ndim, 'arg3_shape': arg3_shape})
+        rule_57(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_57(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value'], 'arg3_ndim': arg3['ndim'], 'arg3_shape': arg3['shape']}, neg)
+        rule_57(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)

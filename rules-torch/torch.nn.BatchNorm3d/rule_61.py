@@ -5,32 +5,42 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# eps should prevent division by zero even with small variances (Rule 61)
+# If the track_running_stats flag is on then the running mean and running var are required (Rule 61)
 
 rule_61 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] > 1e-9) if n else
-          v["arg1_value"] > 1e-9)
+    s.add(Not(If(v["arg1_value"] == True, And(v["arg2_ndim"] > 0, v["arg3_ndim"] > 0), True)) if n else
+          If(v["arg1_value"] == True, And(v["arg2_ndim"] > 0, v["arg3_ndim"] > 0), True))
 )
 
-def rule_61_func(arg1, solver=None, neg=False):
+def rule_61_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
+        if not isinstance(arg1, bool):
+            return False
+        if not isinstance(arg2, np.ndarray):
+            return False
+        if not isinstance(arg3, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
+        arg1_value = Bool('arg1_value')
+        arg2_ndim = Int('arg2_ndim')
+        arg3_ndim = Int('arg3_ndim')
 
         # Value assignments
         solver.add(arg1_value == arg1)
+        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg3_ndim == arg3.ndim)
 
         # Constraints for rule 61
-        rule_61(solver, {'arg1_value': arg1_value})
+        rule_61(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim, 'arg3_ndim': arg3_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_61(solver, {'arg1_value': arg1['value']}, neg)
+        rule_61(solver, {'arg1_value': arg1['value'], 'arg2_ndim': arg2['ndim'], 'arg3_ndim': arg3['ndim']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Maximum value for individual dimension size (Rule 51)
+# Another memory safeguard on x size and N, used in addition to the dtype check for even more aggressive safety (Rule 51)
 
 rule_51 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_shape"], 0) < 500000, v["arg2_value"] < 100000)) if n else
-          And(Select(v["arg1_shape"], 0) < 500000, v["arg2_value"] < 100000))
+    s.add(Not(If(v["arg2_value"] == none, Select(v["arg1_shape"], 0) < 20000, v["arg2_value"] * Select(v["arg1_shape"], 0) < 25000000)) if n else
+          If(v["arg2_value"] == none, Select(v["arg1_shape"], 0) < 20000, v["arg2_value"] * Select(v["arg1_shape"], 0) < 25000000))
 )
 
 def rule_51_func(arg1, arg2, solver=None, neg=False):

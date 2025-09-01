@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Avoid complex float error, dtype should be float (Rule 86)
+# the norm_type cannot be extremely large to avoid overflow during calculations (Rule 86)
 
 rule_86 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == 7) if n else
-          v["arg1_dtype"] == 7)
+    s.add(Not(v["arg1_value"] < 10000) if n else
+          v["arg1_value"] < 10000)
 )
 
 def rule_86_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_86_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_value = Real('arg1_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 86
-        rule_86(solver, {'arg1_dtype': arg1_dtype})
+        rule_86(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_86(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_86(solver, {'arg1_value': arg1['value']}, neg)

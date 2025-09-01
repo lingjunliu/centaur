@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The input tensor's dtype shouldn't be bool to avoid unexpected behavior (Rule 2)
+# input tensor should not have Double dtype when complex float is expected (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 0) if n else
-          v["arg1_dtype"] != 0)
+    s.add(Not(v["arg1_dtype"] != 8) if n else
+          v["arg1_dtype"] != 8)
 )
 
 def rule_2_func(arg1, solver=None, neg=False):

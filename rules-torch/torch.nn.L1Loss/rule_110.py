@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If one dimension of input is zero, the corresponding dimension of target must be zero and the same shape for broadcasting (Rule 110)
+# if reduction is none, then input and target shapes must match unless they are scalars (Rule 110)
 
 rule_110 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg3_value"] == 6, (And([Implies(i < (If(v["arg1_ndim"] >= v["arg2_ndim"], v["arg1_ndim"] - 1, v["arg2_ndim"] - 1) + 1), If(Or((v["arg1_ndim"] - i - 1 < 0), (And((v["arg1_ndim"] - i - 1 >= 0), (Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == 0)))), Or((v["arg2_ndim"] - i - 1 < 0), (And((v["arg2_ndim"] - i - 1 >= 0), (Select(v["arg2_shape"], v["arg2_ndim"] - i - 1) == 0)))), (Or(Or(Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - i - 1), Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == 1), Select(v["arg2_shape"], v["arg2_ndim"] - i - 1) == 1)))) for i in range(6)])), False)) if n else
-          If(v["arg3_value"] == 6, (And([Implies(i < (If(v["arg1_ndim"] >= v["arg2_ndim"], v["arg1_ndim"] - 1, v["arg2_ndim"] - 1) + 1), If(Or((v["arg1_ndim"] - i - 1 < 0), (And((v["arg1_ndim"] - i - 1 >= 0), (Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == 0)))), Or((v["arg2_ndim"] - i - 1 < 0), (And((v["arg2_ndim"] - i - 1 >= 0), (Select(v["arg2_shape"], v["arg2_ndim"] - i - 1) == 0)))), (Or(Or(Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - i - 1), Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == 1), Select(v["arg2_shape"], v["arg2_ndim"] - i - 1) == 1)))) for i in range(6)])), False))
+    s.add(Not(If(v["arg3_value"] == 6, Or((And(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0)), (And(v["arg1_ndim"] == v["arg2_ndim"], (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]))))), True)) if n else
+          If(v["arg3_value"] == 6, Or((And(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0)), (And(v["arg1_ndim"] == v["arg2_ndim"], (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]))))), True))
 )
 
 def rule_110_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -44,9 +44,9 @@ def rule_110_func(arg1, arg2, arg3, solver=None, neg=False):
         solver.add(arg3_value == list_of_string_values_torch.index(arg3))
 
         # Constraints for rule 110
-        rule_110(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape, 'arg3_value': arg3_value})
+        rule_110(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_110(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape'], 'arg3_value': arg3['value']}, neg)
+        rule_110(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_value': arg3['value']}, neg)

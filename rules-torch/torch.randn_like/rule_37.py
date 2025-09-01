@@ -5,37 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# requires_grad interacts with the dtype: complex types require requires_grad=False, and for integers, it also should be false (Rule 37)
+# If dtype is specified, it must be a valid dtype index between 1 and 11 inclusive or be equal to zero. (Rule 37)
 
 rule_37 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg2_value"] >= 10, v["arg2_value"] <= 11), v["arg1_value"] == False, If(v["arg2_value"] < 6, v["arg1_value"] == False, False))) if n else
-          If(And(v["arg2_value"] >= 10, v["arg2_value"] <= 11), v["arg1_value"] == False, If(v["arg2_value"] < 6, v["arg1_value"] == False, False)))
+    s.add(Not(And(0 <= v["arg1_value"], v["arg1_value"] <= 11)) if n else
+          And(0 <= v["arg1_value"], v["arg1_value"] <= 11))
 )
 
-def rule_37_func(arg1, arg2, solver=None, neg=False):
+def rule_37_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
-            return False
-        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
+        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_value = Int('arg2_value')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
+        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
 
         # Constraints for rule 37
-        rule_37(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_37(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_37(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_37(solver, {'arg1_value': arg1['value']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If we see an integer, and it's in signed 64-bit, check that after adding 2^64, we are still within valid range to prevent potential overflow (Rule 50)
+# The seed value has to be less than or equal to the upper bound (Rule 50)
 
 rule_50 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] < 0, (v["arg1_value"] + 18446744073709551616) <= 18446744073709551615, False)) if n else
-          If(v["arg1_value"] < 0, (v["arg1_value"] + 18446744073709551616) <= 18446744073709551615, False))
+    s.add(Not(v["arg1_value"] <= 18446744073709551615) if n else
+          v["arg1_value"] <= 18446744073709551615)
 )
 
 def rule_50_func(arg1, solver=None, neg=False):

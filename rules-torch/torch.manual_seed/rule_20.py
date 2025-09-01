@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# seed is int and can't be less than min 64 bit integer (Rule 20)
+# negative seed values are remapped (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] >= -9223372036854775808) if n else
-          v["arg1_value"] >= -9223372036854775808)
+    s.add(Not(If(v["arg1_value"] < 0, v["arg1_value"] + 18446744073709551616 >= 0, True)) if n else
+          If(v["arg1_value"] < 0, v["arg1_value"] + 18446744073709551616 >= 0, True))
 )
 
 def rule_20_func(arg1, solver=None, neg=False):

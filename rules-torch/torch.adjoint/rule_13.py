@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# adjoint is valid for tensors that are not 1-dimensional (Rule 13)
+# check tensor has dimension greater or equal to 2 (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] != 1) if n else
-          v["arg1_ndim"] != 1)
+    s.add(Not((v["arg1_ndim"] > 1)) if n else
+          (v["arg1_ndim"] > 1))
 )
 
 def rule_13_func(arg1, solver=None, neg=False):

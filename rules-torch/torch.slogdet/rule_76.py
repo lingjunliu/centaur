@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the input has incorrect type (not floating point or complex (Rule 76)
+# The input tensor must have a floating point or complex dtype, but can't be Half. (Rule 76)
 
 rule_76 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)) if n else
-          Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10))
+    s.add(Not(And((v["arg1_dtype"] >= 8), (v["arg1_dtype"] != 7))) if n else
+          And((v["arg1_dtype"] >= 8), (v["arg1_dtype"] != 7)))
 )
 
 def rule_76_func(arg1, solver=None, neg=False):

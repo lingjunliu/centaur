@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If num_classes is defined, ensure max(v_1 (Rule 56)
+# The value of num_classes must not be too large, compare the number of classes with the shape. (Rule 56)
 
 rule_56 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] != -1, Select(v["arg1_range"], 1) < v["arg2_value"], Select(v["arg1_range"], 0) >= 0)) if n else
-          If(v["arg2_value"] != -1, Select(v["arg1_range"], 1) < v["arg2_value"], Select(v["arg1_range"], 0) >= 0))
+    s.add(Not(If(Select(v["arg1_shape"], 0) < 1000, v["arg2_value"] < 5000, True)) if n else
+          If(Select(v["arg1_shape"], 0) < 1000, v["arg2_value"] < 5000, True))
 )
 
 def rule_56_func(arg1, arg2, solver=None, neg=False):
@@ -25,18 +25,18 @@ def rule_56_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg2_value = Int('arg2_value')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 56
-        rule_56(solver, {'arg1_range': arg1_range, 'arg2_value': arg2_value})
+        rule_56(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_56(solver, {'arg1_range': arg1['range'], 'arg2_value': arg2['value']}, neg)
+        rule_56(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)

@@ -1,120 +1,192 @@
 >>
-Rule 1 (crow_indices should have dimension B+1, where B >= 0)
-{crow_indices : tensor} |= ndim(crow_indices) > 0
+Rule 1 (crow_indices should be at least 1-dimensional tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 2 (col_indices and values should have the same length.)
-{col_indices : tensor, values : tensor} |= shape(col_indices, 0) = shape(values, 0)
+Rule 4 (crow_indices should have int dtype)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
 >>
-Rule 4 (dtype should be consistent between values and the output tensor)
-{values : tensor, dtype : dtype} |= if dtype_(values) = 0 then true else dtype_(values) = dtype
+Rule 6 (size should have at least 2 dimensions if provided)
+{v_1 : tuple(int)} |= v_1.len ≥ 2
 >>
-Rule 5 (blocksize should be positive)
-{values : tensor} |= shape(values, 1) > 0 ∧ shape(values, 2) > 0
+Rule 7 (crow_indices.shape[0] must be greater than 0)
+{v_1 : tensor} |= shape(v_1, 0) > 0
 >>
-Rule 6 (size should be a valid tuple/list of integers)
-{size : tuple(int)} |= size.len > 0 ∧ ∀i ∈ [0, size.len - 1] : size[i] > 0
+Rule 8 (col_indices.shape[0] must be equal to values.shape[0])
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 7 (pin_memory is a boolean value)
-{pin_memory : bool} |= pin_memory = true ∨ pin_memory = false
+Rule 9 (crow_indices.ndim must be col_indices.ndim)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 8 (requires_grad is a boolean value)
-{requires_grad : bool} |= requires_grad = true ∨ requires_grad = false
+Rule 10 (crow_indices.ndim must be values.ndim - 2 if size is not provided)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) - 2
 >>
-Rule 9 (check_invariants is a boolean value)
-{check_invariants : bool} |= check_invariants = true ∨ check_invariants = false
+Rule 11 (size must have same length as values.ndim)
+{v_1 : tuple(int), v_2 : tensor} |= v_1.len = ndim(v_2)
 >>
-Rule 10 (crow_indices last element of each batch should be the number of non-zeros.)
-{crow_indices : tensor} |= shape(crow_indices, ndim(crow_indices) - 1) > 0
+Rule 12 (size[0] must be greater than 0)
+{v_1 : tuple(int)} |= v_1[0] > 0
 >>
-Rule 11 (col_indices should have dimension B+1, where B >= 0)
-{col_indices : tensor} |= ndim(col_indices) > 0
+Rule 13 (size[1] must be greater than 0)
+{v_1 : tuple(int)} |= v_1[1] > 0
 >>
-Rule 12 (values should have dimension 1 + 2 + K where K >=0)
-{values : tensor} |= ndim(values) >= 3
+Rule 14 (pin_memory must be a boolean value)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 14 (device must be a string)
-{device : str} |= device = "cpu" ∨ device = "cuda"
+Rule 17 (dtype_ must be a valid data type index)
+{v_1 : dtype} |= 0 ≤ v_1 ∧ v_1 ≤ 12
 >>
-Rule 15 (The lengths of crow_indices and the number of row blocks in values should be consistent)
-{crow_indices : tensor, values : tensor} |= shape(crow_indices, ndim(crow_indices) - 1) = shape(values, 0)
+Rule 18 (last element of crow_indices must be equal to the number of blocks in values)
+{v_1 : tensor, v_2 : tensor} |= v_1[shape(v_1, 0) - 1] = shape(v_2, 0)
 >>
-Rule 16 (crow_indices and col_indices should have the same dtype.)
-{crow_indices : tensor, col_indices : tensor} |= dtype_(crow_indices) = dtype_(col_indices)
+Rule 19 (crow_indices is monotonically increasing)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 2] : v_1[i] ≤ v_1[i + 1]
 >>
-Rule 18 (dtype must be a valid dtype value.)
-{dtype : dtype} |= 0 ≤ dtype ∧ dtype ≤ 12
+Rule 20 (The inferred size from values and crow_indices/col_indices must be compatible with provided size)
+{v_1 : tensor, v_2 : tensor, v_3 : tuple(int)} |= if v_3.len > 0 then shape(v_1, 0) * shape(v_2, 1) = v_3[0] ∧ shape(v_1, 0) * shape(v_2, 2) = v_3[1]
 >>
-Rule 19 (values and dtype must align if dtype is not None.)
-{values : tensor, dtype : dtype} |= if dtype ≠ 13 then dtype_(values) = dtype
+Rule 30 (values.shape[1] must be greater than 0)
+{v_1 : tensor} |= shape(v_1, 1) > 0
 >>
-Rule 22 (If device is not None, values, crow_indices and col_indices must be on the same device)
-{values : tensor, crow_indices : tensor, col_indices : tensor, device : str} |= if device ≠ "none" then (device = "cpu" ∧ dtype_(values) = 8 ∧ dtype_(crow_indices) = 8 ∧ dtype_(col_indices) = 8) ∨ (device = "cuda" ∧ dtype_(values) = 8 ∧ dtype_(crow_indices) = 8 ∧ dtype_(col_indices) = 8)
+Rule 31 (values.shape[2] must be greater than 0)
+{v_1 : tensor} |= shape(v_1, 2) > 0
 >>
-Rule 23 (If device is not None, values, crow_indices and col_indices must be on the same device)
-{values : tensor, crow_indices : tensor, col_indices : tensor, device : str} |= if device ≠ "none" then (device = "cpu" ∧ shape(values, 0) = shape(crow_indices, 0) ∧ shape(values, 0) = shape(col_indices, 0)) ∨ (device = "cuda" ∧ shape(values, 0) = shape(crow_indices, 0) ∧ shape(values, 0) = shape(col_indices, 0))
+Rule 32 (crow_indices.dtype must be int64 or int32)
+{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
 >>
-Rule 24 (If device is not None, values, crow_indices and col_indices must be on the same device type (cpu or cuda))
-{values : tensor, crow_indices : tensor, col_indices : tensor, device : str} |= if device ≠ "none" then (device = "cpu" ∧ (dtype_(values) = 8) ∧ (dtype_(crow_indices) = 4) ∧ (dtype_(col_indices) = 4)) ∨ (device = "cuda" ∧ (dtype_(values) = 8) ∧ (dtype_(crow_indices) = 4) ∧ (dtype_(col_indices) = 4))
+Rule 34 (values.ndim >= 3)
+{v_1 : tensor} |= ndim(v_1) ≥ 3
 >>
-Rule 30 (If device is not None, all input tensors should have same device, simplified)
-{device : str} |= device = "none" ∨ device = "cpu" ∨ device = "cuda"
+Rule 36 (If size is provided, values.ndim must be equal to size.len)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then ndim(v_1) = v_2.len
 >>
-Rule 34 (crow_indices must have integer dtype)
-{crow_indices : tensor} |= dtype_(crow_indices) = 1 ∨ dtype_(crow_indices) = 2 ∨ dtype_(crow_indices) = 3 ∨ dtype_(crow_indices) = 4 ∨ dtype_(crow_indices) = 5
+Rule 37 (crow_indices.shape[0] - 1 must be less than or equal to the product of size's first and second element)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then shape(v_1, 0) - 1 ≤ v_2[0] * v_2[1]
 >>
-Rule 35 (col_indices must have integer dtype)
-{col_indices : tensor} |= dtype_(col_indices) = 1 ∨ dtype_(col_indices) = 2 ∨ dtype_(col_indices) = 3 ∨ dtype_(col_indices) = 4 ∨ dtype_(col_indices) = 5
+Rule 38 (crow_indices and col_indices should have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 37 (shape of size should be correct with values)
-{size : tuple(int), values : tensor} |= size.len = ndim(values)
+Rule 40 (size must be a tuple of at least two integers, and all elements must be positive)
+{v_1 : tuple(int)} |= v_1.len ≥ 2 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 38 (shape of size should be correct with values)
-{size : tuple(int), values : tensor} |= size.len = ndim(values) ∧ size[0] > 0 ∧ size[1] > 0 ∧ size[2] > 0
+Rule 43 (values' second and third dimensions should both be positive)
+{v_1 : tensor} |= shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
 >>
-Rule 39 (shape of size should be correct with values)
-{size : tuple(int), values : tensor} |= if ndim(values) > 3 then size.len = ndim(values) else size.len = 3
+Rule 44 (crow_indices.ndim == col_indices.ndim and crow_indices.ndim equals values.ndim - 2 if size is not provided)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) - 2
 >>
-Rule 40 (If values is a scalar, size should be provided)
-{values : tensor, size : tuple(int) ⊎ list(int)} |= if ndim(values) = 0 then size.len > 0
+Rule 45 (if size is provided, then size.len equals values.ndim)
+{v_1: tuple(int), v_2: tensor} |= if v_1.len > 0 then v_1.len = ndim(v_2)
 >>
-Rule 41 (If values is a scalar, size should be provided, alternative wording)
-{values : tensor, size : tuple(int) ⊎ list(int)} |= if ndim(values) = 0 then ∃i ∈ [0, size.len - 1]: size[i] > 0
+Rule 46 (if size is provided, size[0] * size[1] >= last element of crow_indices)
+{v_1: tuple(int), v_2: tensor} |= if v_1.len > 0 then v_1[0] * v_1[1] ≥ v_2[shape(v_2, 0) - 1]
 >>
-Rule 43 (values and col_indices should have same dtype)
-{values : tensor, col_indices : tensor} |= dtype_(values) = dtype_(col_indices)
+Rule 49 (crow_indices' last value should equal to values' first dimension)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, shape(v_1, 0) - 1) = shape(v_2, 0)
 >>
-Rule 44 (values and col_indices should have same dtype, but col_indices must be long)
-{values : tensor, col_indices : tensor} |= dtype_(values) = dtype_(col_indices) ∧ dtype_(col_indices) = 4
+Rule 53 (if size is provided, size[0] * size[1] >= last element of crow_indices)
+{v_1: tuple(int), v_2: tensor} |= if v_1.len > 0 then v_1[0] * v_1[1] ≥ shape(v_2, shape(v_2, 0) -1)
 >>
-Rule 45 (values and crow_indices should have compatible dtypes if device is not none)
-{values : tensor, crow_indices : tensor, device : str} |= if device ≠ "none" then (dtype_(values) = 6 ∧ dtype_(crow_indices) = 1) ∨ (dtype_(values) = 7 ∧ dtype_(crow_indices) = 2) ∨ (dtype_(values) = 8 ∧ dtype_(crow_indices) = 3) ∨ (dtype_(values) = 9 ∧ dtype_(crow_indices) = 4) ∨ (dtype_(values) = 10 ∧ dtype_(crow_indices) = 5)
+Rule 54 (The length of crow_indices should be greater than 1)
+{v_1: tensor} |= shape(v_1, 0) > 1
 >>
-Rule 46 (values and crow_indices should have compatible dtypes if device is not none but support more dtypes)
-{values : tensor, crow_indices : tensor, device : str} |= if device ≠ "none" then (dtype_(values) = 6 ∧ dtype_(crow_indices) = 1) ∨ (dtype_(values) = 7 ∧ dtype_(crow_indices) = 2) ∨ (dtype_(values) = 8 ∧ dtype_(crow_indices) = 3) ∨ (dtype_(values) = 9 ∧ dtype_(crow_indices) = 4) ∨ (dtype_(values) = 10 ∧ dtype_(crow_indices) = 5) ∨ (dtype_(values) = 7 ∧ dtype_(crow_indices) = 1) ∨ (dtype_(values) = 8 ∧ dtype_(crow_indices) = 2)
+Rule 56 (crow_indices' last value should be less or equal to the number of elements representable by size)
+{v_1: tuple(int), v_2: tensor} |= if v_1.len > 0 then shape(v_2, shape(v_2, 0) -1) ≤ v_1[0] * v_1[1]
 >>
-Rule 47 (values and crow_indices should have compatible dtypes if device is not none and check dtypes)
-{values : tensor, crow_indices : tensor, device : str} |= if device ≠ "none" then (dtype_(values) = 7 ∧ dtype_(crow_indices) = 3) ∨ (dtype_(values) = 8 ∧ dtype_(crow_indices) = 4) ∨ (dtype_(values) = 9 ∧ dtype_(crow_indices) = 5)
+Rule 58 (If dtype is provided, values should have the same dtype)
+{v_1: dtype, v_2: tensor} |= if v_1 ≠ 12 then dtype_(v_2) = v_1
 >>
-Rule 48 (values and crow_indices should have compatible dtypes, more complete check)
-{values : tensor, crow_indices : tensor} |= (dtype_(values) = 0 ∧ dtype_(crow_indices) = 0) ∨ (dtype_(values) = 7 ∧ dtype_(crow_indices) = 3) ∨ (dtype_(values) = 8 ∧ dtype_(crow_indices) = 4) ∨ (dtype_(values) = 9 ∧ dtype_(crow_indices) = 5)
+Rule 59 (crow_indices and col_indices must have same dimensions.)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 49 (values and col_indices should have compatible dtypes, values float, col_indices long)
-{values : tensor, col_indices : tensor} |= (dtype_(values) = 7 ∧ dtype_(col_indices) = 4) ∨ (dtype_(values) = 8 ∧ dtype_(col_indices) = 4) ∨ (dtype_(values) = 9 ∧ dtype_(col_indices) = 4)
+Rule 60 (values must have dimension of crow_indices' + 2)
+{v_1: tensor, v_2: tensor} |= ndim(v_2) = ndim(v_1) + 2
 >>
-Rule 50 (crow_indices and col_indices must be long)
-{crow_indices : tensor, col_indices : tensor} |= dtype_(crow_indices) = 4 ∧ dtype_(col_indices) = 4
+Rule 61 (crow_indices must be a 1D tensor)
+{v_1: tensor} |= ndim(v_1) = 1
 >>
-Rule 51 (crow_indices and col_indices must be long or int32)
-{crow_indices : tensor, col_indices : tensor} |= (dtype_(crow_indices) = 4 ∧ dtype_(col_indices) = 4) ∨ (dtype_(crow_indices) = 3 ∧ dtype_(col_indices) = 3)
+Rule 67 (size should have more than 2 dimensions)
+{v_1: tuple(int)} |= v_1.len > 2
 >>
-Rule 52 (If dtype is provided then it should be a valid dtype)
-{dtype : dtype} |= dtype = 0 ∨ dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4 ∨ dtype = 5 ∨ dtype = 6 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10 ∨ dtype = 11 ∨ dtype = 12
+Rule 68 (If size is provided then each dimension should be larger than 0)
+{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 53 (crow_indices and col_indices should have compatible dtypes and should be non-negative)
-{crow_indices : tensor, col_indices : tensor} |= (dtype_(crow_indices) = 4 ∧ dtype_(col_indices) = 4 ∧ min(crow_indices) ≥ 0 ∧ min(col_indices) ≥ 0) ∨ (dtype_(crow_indices) = 3 ∧ dtype_(col_indices) = 3 ∧ min(crow_indices) ≥ 0 ∧ min(col_indices) ≥ 0)
+Rule 73 (last element of crow_indices must be non-negative)
+{v_1: tensor} |= v_1[shape(v_1, 0) - 1] ≥ 0
 >>
-Rule 54 (crow_indices and col_indices should have compatible dtypes and must be non-negative and integer.)
-{crow_indices : tensor, col_indices : tensor} |= ((dtype_(crow_indices) = 1 ∨ dtype_(crow_indices) = 2 ∨ dtype_(crow_indices) = 3 ∨ dtype_(crow_indices) = 4 ∨ dtype_(crow_indices) = 5) ∧ (dtype_(col_indices) = 1 ∨ dtype_(col_indices) = 2 ∨ dtype_(col_indices) = 3 ∨ dtype_(col_indices) = 4 ∨ dtype_(col_indices) = 5) ∧ min(crow_indices) ≥ 0 ∧ min(col_indices) ≥ 0)
+Rule 74 (crow_indices elements should be less than number of blocks in values)
+{v_1: tensor, v_2: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≤ shape(v_2, 0)
 >>
-Rule 55 (The last element of each batch in crow_indices must be less than or equal to the number of blocks in values)
-{crow_indices : tensor, values : tensor} |= shape(crow_indices, ndim(crow_indices) - 1) ≤ shape(values, 0)
+Rule 75 (Block size dimensions should be positive)
+{v_1: tensor} |= shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+>>
+Rule 76 (Size's first and second element should be multiplication of values's 1st/2nd dimensions and crow/col indices length)
+{v_1: tensor, v_2: tensor, v_3: tuple(int)} |= if v_3.len > 0 then shape(v_1, 1) * shape(v_2, 0) = v_3[0] ∧ shape(v_1, 2) * shape(v_2, 0) = v_3[1]
+>>
+Rule 77 (crow_indices' last value must be less or equal than num blocks specified by size)
+{v_1: tuple(int), v_2: tensor} |= if v_1.len > 0 then shape(v_2, shape(v_2, 0) - 1) ≤ v_1[0] * v_1[1]
+>>
+Rule 78 (Values' first dimension should match col_indices length)
+{v_1: tensor, v_2: tensor} |= shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 80 (dtype provided is valid.)
+{v_1: dtype} |= 0 ≤ v_1 ∧ v_1 ≤ 12
+>>
+Rule 81 (Block size cannot be zero)
+{v_1: tensor} |= shape(v_1, 1) ≠ 0 ∧ shape(v_1, 2) ≠ 0
+>>
+Rule 82 (If size is passed, its components must be > 0)
+{v_1: tuple(int)} |= if v_1.len > 0 then ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 87 (Values ndim must be at least 3)
+{v_1: tensor} |= ndim(v_1) ≥ 3
+>>
+Rule 88 (col_indices and crow_indices are one dimensional tensors)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1
+>>
+Rule 89 (crow_indices' last value must be less or equal than num blocks specified by size if size is given)
+{v_1: tuple(int), v_2: tensor} |= if v_1.len > 0 then shape(v_2, 0) ≤ v_1[0] * v_1[1]
+>>
+Rule 90 (If size is passed and dim is 3 then multiplication of nrows * blocksize[0] equals to first size, and multiplication of ncols * blocksize[1] equals to second size)
+{v_1: tensor, v_2: tensor, v_3: tuple(int)} |= if v_3.len > 0 ∧ ndim(v_2) = 3 then shape(v_1, 0) * shape(v_2, 1) = v_3[0] ∧ shape(v_1, 0) * shape(v_2, 2) = v_3[1]
+>>
+Rule 93 (Shape of values at 0 must be greater or equal to 1 )
+{v_1: tensor} |= shape(v_1, 0) ≥ 1
+>>
+Rule 100 (If requires_grad then value dtype should be float.)
+{v_1: bool, v_2: tensor} |= if v_1 = true then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 104 (crow_indices must be int32 or int64)
+{v_1: tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+>>
+Rule 109 (If requires_grad is true then dtype of values should be float16, float32, float64, complex64 or complex128)
+{v_1: bool, v_2: tensor} |= if v_1 = true then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+>>
+Rule 110 (crow_indices values must be monotonically increasing)
+{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 2] : v_1[i] ≤ v_1[i + 1]
+>>
+Rule 114 (col_indices values must be within range of valid column indices)
+{v_1: tensor, v_2: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] < shape(v_2, 1)
+>>
+Rule 115 (Values shape cannot contain 0)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+>>
+Rule 117 (crow_indices' last value must be less or equal than num blocks specified by size if size is given and size should have the expected shape. It also checks if size matches crow and col indices if specified)
+{v_1: tuple(int), v_2: tensor, v_3: tensor} |= if v_1.len > 0 then shape(v_2, 0) ≤ v_1[0] * v_1[1] ∧ shape(v_3, 0) ≤ v_1[0] * v_1[1]
+>>
+Rule 135 (check invariants should be a boolean)
+{v_1: bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 139 (The first dimension of values should be equal to the last element of crow_indices)
+{v_1: tensor, v_2: tensor} |= shape(v_1, 0) = v_2[shape(v_2, 0) - 1]
+>>
+Rule 141 (crow_indices' last value must be less or equal than num blocks specified by size if size is given and is less than max int size)
+{v_1: tuple(int), v_2: tensor} |= if v_1.len > 0 then shape(v_2, 0) ≤ v_1[0] * v_1[1] ∧ v_1[0] * v_1[1] < 2147483647
+>>
+Rule 145 (Values and indices's dimensions after 0 should match size, if size is given )
+{v_1: tensor, v_2: tuple(int)} |= if v_2.len > 0 then shape(v_1,1) = shape(v_2, 1) ∧ shape(v_1, 2) = shape(v_2, 2)
+>>
+Rule 150 (dtype, if provided, must match dtypes allowed for sparse tensors)
+{v_1: dtype} |= v_1 = 0 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10
+>>
+Rule 154 (The shape of values's 1st and 2nd dimensions must be the same)
+{v_1: tensor} |= shape(v_1, 1) = shape(v_1, 2)

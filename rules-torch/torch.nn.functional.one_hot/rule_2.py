@@ -8,8 +8,8 @@ from z3 import *
 # class values must be smaller than num_classes (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] != -1, Select(v["arg1_range"], 1) < v["arg2_value"], False)) if n else
-          If(v["arg2_value"] != -1, Select(v["arg1_range"], 1) < v["arg2_value"], False))
+    s.add(Not(Select(v["arg1_range"], 1) < v["arg2_value"]) if n else
+          Select(v["arg1_range"], 1) < v["arg2_value"])
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):

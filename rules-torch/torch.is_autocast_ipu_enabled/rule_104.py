@@ -5,32 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check if string equals constant or none. (Rule 104)
+# If the string is not area, dimension needs to be lower than 5 (Rule 104)
 
 rule_104 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_value"] == 10, v["arg1_value"] == 6)) if n else
-          Or(v["arg1_value"] == 10, v["arg1_value"] == 6))
+    s.add(Not(If(v["arg1_value"] != 29, v["arg2_ndim"] < 5, True)) if n else
+          If(v["arg1_value"] != 29, v["arg2_ndim"] < 5, True))
 )
 
-def rule_104_func(arg1, solver=None, neg=False):
+def rule_104_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, str):
             return False
+        if not isinstance(arg2, np.ndarray):
+            return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = String('arg1_value')
+        arg2_ndim = Int('arg2_ndim')
 
         # Value assignments
         solver.add(arg1_value == list_of_string_values_torch.index(arg1))
+        solver.add(arg2_ndim == arg2.ndim)
 
         # Constraints for rule 104
-        rule_104(solver, {'arg1_value': arg1_value})
+        rule_104(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_104(solver, {'arg1_value': arg1['value']}, neg)
+        rule_104(solver, {'arg1_value': arg1['value'], 'arg2_ndim': arg2['ndim']}, neg)

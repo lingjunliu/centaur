@@ -1,66 +1,45 @@
 >>
-Rule 1 (Tensors requiring gradients must be of floating point or complex dtype to prevent RuntimeError)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10
+Rule 1 (Tensors of integer or boolean dtype cannot require gradients)
+{obj : tensor, requires_grad : bool} |= if requires_grad then dtype_(obj) = 7 ∨ dtype_(obj) = 8 ∨ dtype_(obj) = 9 ∨ dtype_(obj) = 10
 >>
-Rule 3 (dtype must be of valid type)
-{v_1 : dtype} |= 0 ≤ v_1 ∧ v_1 ≤ 12
+Rule 3 (Cannot alias arbitrary sequence into a tensor)
+{copy : bool} |= copy = true
 >>
-Rule 4 (If copy is False, then obj must not be sequence)
-{v_1 : bool} |= if v_1 = false then false
+Rule 5 (Cannot alias arbitrary sequence into a tensor if copy is false)
+{obj : list(int) ⊎ list(float) ⊎ list(bool), copy : bool} |= if copy = false then ∀i ∈ [0, obj.len - 1]: true
 >>
-Rule 5 (Tensors requiring gradients must be of floating point or complex dtype to prevent RuntimeError)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then 7 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11
+Rule 9 (If copy is False, object cannot be arbitrary list.)
+{copy : bool} |= if copy = false then false
 >>
-Rule 7 (Tensors requiring gradients must be of floating point or complex dtype to prevent RuntimeError)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) > 6 ∧ dtype_(v_1) < 12
+Rule 12 (If copy is not specified and object is a list, it defaults to copy=True, thus object cannot be arbitrary.)
+{obj : list(int) ⊎ list(float) ⊎ list(bool)} |= ∀i ∈ [0, obj.len - 1]: true
 >>
-Rule 8 (Object must not be sequence if copy is false)
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then ndim(v_1) > 0
+Rule 14 (If copy is False, object cannot be arbitrary list (finalized))
+{copy: bool} |= if copy = false then false
 >>
-Rule 10 (If copy is False, then obj must not be a sequence with a non-matching dtype.)
-{v_1 : dtype, v_2 : bool} |= if v_2 = false then v_1 ≠ 0 ∧ v_1 ≠ 1 ∧ v_1 ≠ 2 ∧ v_1 ≠ 3 ∧ v_1 ≠ 4 ∧ v_1 ≠ 5
+Rule 16 (If requires_grad is true then the dtype must be floating point or complex)
+{requires_grad : bool, dtype : dtype} |= if requires_grad then dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10
 >>
-Rule 11 (Tensors requiring gradients must be of floating point or complex dtype to prevent RuntimeError, considering also dtype argument)
-{v_1 : dtype, v_2 : bool} |= if v_2 = true then v_1 > 6 ∧ v_1 < 12
+Rule 18 (Object has to be a float/complex tensor if requires_grad is True)
+{obj: tensor, requires_grad: bool} |= if requires_grad then dtype_(obj) = 7 ∨ dtype_(obj) = 8 ∨ dtype_(obj) = 9 ∨ dtype_(obj) = 10
 >>
-Rule 12 (If copy is False, then obj must not be a sequence to prevent ValueError, considering dtype of obj)
-{v_1 : dtype, v_2 : bool} |= if v_2 = false then v_1 > 0
+Rule 31 (Requires_grad must be false and copy must be true if obj is int or a list of ints)
+{requires_grad: bool, copy: bool} |= if requires_grad then false else if copy then true
 >>
-Rule 17 (If requires_grad is true, the dtype of obj must be float or complex to prevent RuntimeError)
-{v_1 : dtype, v_2 : bool} |= if v_2 = true then (v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 11)
+Rule 32 (If requires_grad is true, then object cannot be int or list(int))
+{requires_grad: bool} |= if requires_grad then false
 >>
-Rule 22 (If copy is False and the object dtype doesn't match the requested dtype, then it causes an error)
-{v_1 : dtype, v_2 : dtype, v_3 : bool} |= if v_3 = false then v_1 = v_2
+Rule 33 (Requires_grad cannot be true if dtype is an integer type)
+{dtype: dtype, requires_grad: bool} |= if requires_grad then dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10 ∨ dtype = 6
 >>
-Rule 28 (If copy is False, then obj can't be a non-tensor and have a dtype different than the default.)
-{v_1 : dtype, v_2 : bool} |= if v_2 = false then v_1 = 8
+Rule 34 (If requires_grad is true, dtype must be float or complex)
+{dtype: dtype, requires_grad: bool} |= if requires_grad then dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10
 >>
-Rule 31 (If requires_grad is True, dtype of the object should be float or complex.)
-{v_1 : dtype, v_2 : bool} |= if v_2 = true then 7 ≤ v_1 ∧ v_1 ≤ 11
+Rule 36 (If dtype is an integer type, then requires_grad is false.)
+{dtype: dtype, requires_grad: bool} |= if requires_grad then (dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10 ∨ dtype = 6)
 >>
-Rule 33 (If requires_grad is True and the object is not a Tensor, the object's data type must be float or complex)
-{v_1 : bool} |= if v_1 = true then false
+Rule 40 (if copy=False object cannot be an arbitrary sequence)
+{obj: tensor ⊎ list(int) ⊎ list(float) ⊎ int ⊎ float, copy: bool} |= if copy = false then obj = tensor
 >>
-Rule 34 (If copy is False and the object is a sequence and the requested dtype is different from the object's dtype, it will fail)
-{v_1 : dtype, v_2 : bool} |= if v_2 = false then v_1 = 0
->>
-Rule 45 (If requires_grad = True, and a tensor is not passed, it will throw a RuntimeError)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then dtype_(v_2) > 6 ∧ dtype_(v_2) < 12
->>
-Rule 49 (If requires_grad is True and obj is not a tensor, then dtype must be float or complex )
-{v_1 : dtype, v_2 : bool} |= if v_2 = true then v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 11
->>
-Rule 60 (If copy is False, and the obj is a sequence, can't alias sequence if dtype is specified)
-{v_1 : bool, v_2 : dtype} |= if v_1 = false then v_2 = 0
->>
-Rule 61 (If requires_grad is True, then the dtype has to be a complex or floating type)
-{v_1 : bool} |= if v_1 = true then true
->>
-Rule 63 (if requires_grad = True, then dtype must be of floating type)
-{v_1 : dtype, v_2 : bool} |= if v_2 = true then 7 ≤ v_1 ∧ v_1 ≤ 8
->>
-Rule 65 (If requires_grad = True, and the input data is not a Tensor, the data type must be float or complex)
-{v_1 : bool, v_2 : dtype} |= if v_1 = true then 7 ≤ v_2 ∧ v_2 ≤ 11
->>
-Rule 69 (If requires_grad = True, dtype has to be float or complex.)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then 7 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 11
+Rule 43 (Copy must be true when the object is a list)
+{copy: bool} |= copy = true

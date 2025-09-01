@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input is float32, the output type cannot be int8, int16, int32, int64, uint8, float16 (Rule 35)
+# If an out tensor is provided, check its type to avoid type casting issues. If input tensor v_1 is float, the output v_2 should not be bool (Rule 35)
 
 rule_35 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_dtype"] == 7), And(And(And(And(And((v["arg2_dtype"] != 1), (v["arg2_dtype"] != 2)), (v["arg2_dtype"] != 3)), (v["arg2_dtype"] != 4)), (v["arg2_dtype"] != 5)), (v["arg2_dtype"] != 6)), False)) if n else
-          If((v["arg1_dtype"] == 7), And(And(And(And(And((v["arg2_dtype"] != 1), (v["arg2_dtype"] != 2)), (v["arg2_dtype"] != 3)), (v["arg2_dtype"] != 4)), (v["arg2_dtype"] != 5)), (v["arg2_dtype"] != 6)), False))
+    s.add(Not(If(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg2_dtype"] != 0, True)) if n else
+          If(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg2_dtype"] != 0, True))
 )
 
 def rule_35_func(arg1, arg2, solver=None, neg=False):

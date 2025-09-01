@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If output tensor is provided, and input is complex64, output should be at least complex64. (Rule 6)
+# If the input tensor is of floating point type, the output tensor must be of floating point type with precision greater than or equal to that of input. (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 9, Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), False)) if n else
-          If(v["arg1_dtype"] == 9, Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), False))
+    s.add(Not(If(v["arg1_dtype"] == 7, Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), If(v["arg1_dtype"] == 8, Or(v["arg2_dtype"] == 8, v["arg2_dtype"] == 9), If(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9, True)))) if n else
+          If(v["arg1_dtype"] == 7, Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), If(v["arg1_dtype"] == 8, Or(v["arg2_dtype"] == 8, v["arg2_dtype"] == 9), If(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9, True))))
 )
 
 def rule_6_func(arg1, arg2, solver=None, neg=False):

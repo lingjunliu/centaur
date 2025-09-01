@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# threshold also must have maximum values (Rule 102)
+# Threshold should have a reasonable value (Rule 102)
 
 rule_102 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 1.0e+38) if n else
-          v["arg1_value"] < 1.0e+38)
+    s.add(Not(v["arg1_value"] < 10000) if n else
+          v["arg1_value"] < 10000)
 )
 
 def rule_102_func(arg1, solver=None, neg=False):

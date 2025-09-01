@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# value should be within the valid range for the tensor's half-precision dtype (Rule 3)
+# Value should be representable by the tensor's dtype (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, And(-65504 <= v["arg2_value"], v["arg2_value"] <= 65504), False)) if n else
-          If(v["arg1_dtype"] == 6, And(-65504 <= v["arg2_value"], v["arg2_value"] <= 65504), False))
+    s.add(Not(If(v["arg1_dtype"] == 7, (And(v["arg2_value"] >= -65504, v["arg2_value"] <= 65504)), True)) if n else
+          If(v["arg1_dtype"] == 7, (And(v["arg2_value"] >= -65504, v["arg2_value"] <= 65504)), True))
 )
 
 def rule_3_func(arg1, arg2, solver=None, neg=False):

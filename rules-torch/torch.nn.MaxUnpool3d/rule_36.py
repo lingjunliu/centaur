@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# padding must be between 0 and kernel size if they are not equal (Rule 36)
+# Indices tensor elements must be less than input size. (Rule 36)
 
 rule_36 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == v["arg2_value"], True, And(v["arg1_value"] >= 0, v["arg1_value"] <= v["arg2_value"]))) if n else
-          If(v["arg1_value"] == v["arg2_value"], True, And(v["arg1_value"] >= 0, v["arg1_value"] <= v["arg2_value"])))
+    s.add(Not(And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg1_range"], 1) < Select(v["arg2_shape"], i)) for i in range(6)])) if n else
+          And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg1_range"], 1) < Select(v["arg2_shape"], i)) for i in range(6)]))
 )
 
 def rule_36_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,28 @@ def rule_36_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_value = Int('arg2_value')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg2_ndim = Int('arg2_ndim')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        solver.add(arg2_value == int(arg2))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg2_ndim == arg2.ndim)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 36
-        rule_36(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_36(solver, {'arg1_range': arg1_range, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_36(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_36(solver, {'arg1_range': arg1['range'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim']}, neg)

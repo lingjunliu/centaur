@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If v_1 is complex and v_2 is not complex then v_3 (out (Rule 55)
+# if the input and other have different types, then the output dtype should be the higher type (Rule 55)
 
 rule_55 = lambda s, v, n=False: (
-    s.add(Not(If(And((Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11)), (And((v["arg2_dtype"] != 10), (v["arg2_dtype"] != 11)))), (Or(Or(Or(Or(Or(Or((Or(v["arg3_dtype"] == 10, v["arg3_dtype"] == 11)), (And(And(v["arg1_dtype"] == 10, v["arg2_dtype"] == 7), v["arg3_dtype"] == 7))), (And(And(v["arg1_dtype"] == 10, v["arg2_dtype"] == 8), v["arg3_dtype"] == 8))), (And(And(And(And(v["arg1_dtype"] == 10, 1 <= v["arg2_dtype"]), v["arg2_dtype"] <= 5), 1 <= v["arg3_dtype"]), v["arg3_dtype"] <= 5))), (And(And(v["arg1_dtype"] == 11, v["arg2_dtype"] == 7), v["arg3_dtype"] == 7))), (And(And(v["arg1_dtype"] == 11, v["arg2_dtype"] == 8), v["arg3_dtype"] == 8))), (And(And(And(And(v["arg1_dtype"] == 11, 1 <= v["arg2_dtype"]), v["arg2_dtype"] <= 5), 1 <= v["arg3_dtype"]), v["arg3_dtype"] <= 5)))), False)) if n else
-          If(And((Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11)), (And((v["arg2_dtype"] != 10), (v["arg2_dtype"] != 11)))), (Or(Or(Or(Or(Or(Or((Or(v["arg3_dtype"] == 10, v["arg3_dtype"] == 11)), (And(And(v["arg1_dtype"] == 10, v["arg2_dtype"] == 7), v["arg3_dtype"] == 7))), (And(And(v["arg1_dtype"] == 10, v["arg2_dtype"] == 8), v["arg3_dtype"] == 8))), (And(And(And(And(v["arg1_dtype"] == 10, 1 <= v["arg2_dtype"]), v["arg2_dtype"] <= 5), 1 <= v["arg3_dtype"]), v["arg3_dtype"] <= 5))), (And(And(v["arg1_dtype"] == 11, v["arg2_dtype"] == 7), v["arg3_dtype"] == 7))), (And(And(v["arg1_dtype"] == 11, v["arg2_dtype"] == 8), v["arg3_dtype"] == 8))), (And(And(And(And(v["arg1_dtype"] == 11, 1 <= v["arg2_dtype"]), v["arg2_dtype"] <= 5), 1 <= v["arg3_dtype"]), v["arg3_dtype"] <= 5)))), False))
+    s.add(Not(If(v["arg1_dtype"] < v["arg2_dtype"], v["arg3_dtype"] == v["arg2_dtype"], v["arg3_dtype"] == v["arg1_dtype"])) if n else
+          If(v["arg1_dtype"] < v["arg2_dtype"], v["arg3_dtype"] == v["arg2_dtype"], v["arg3_dtype"] == v["arg1_dtype"]))
 )
 
 def rule_55_func(arg1, arg2, arg3, solver=None, neg=False):

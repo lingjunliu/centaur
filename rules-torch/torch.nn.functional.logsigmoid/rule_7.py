@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor should not have dtype "dtype" (Rule 7)
+# input tensor must have a dtype other than Char (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 13) if n else
-          v["arg1_dtype"] != 13)
+    s.add(Not(v["arg1_dtype"] != 1) if n else
+          v["arg1_dtype"] != 1)
 )
 
 def rule_7_func(arg1, solver=None, neg=False):

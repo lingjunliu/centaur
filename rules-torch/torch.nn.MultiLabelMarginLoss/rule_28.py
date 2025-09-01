@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# At least one dimension of the input tensor should be positive and input and target tensors must have the same number of elements (Rule 28)
+# If the first dimension of input is C, the first dimension of target must also be C. (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(And((Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])), (And(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]))))) if n else
-          And((Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])), (And(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])))))
+    s.add(Not(If(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0), True)) if n else
+          If(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0), True))
 )
 
 def rule_28_func(arg1, arg2, solver=None, neg=False):

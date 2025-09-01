@@ -1,75 +1,171 @@
 >>
-Rule 1 (device_ids must be a list of integers)
-{v_1 : list(int)} |= v_1.len > 0
->>
-Rule 2 (output_device must be an integer)
+Rule 2 (output_device should be non-negative integer)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 5 (Check device_ids list elements are non-negative)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+Rule 7 (output_device should be less than the length of device_ids)
+{v_1 : list(int), v_2 : int} |= v_2 < v_1.len
 >>
-Rule 6 (output_device must be in device_ids if device_ids is a list)
-{v_1 : int, v_2 : list(int)} |= ∃i ∈ [0, v_2.len - 1] : v_1 = v_2[i]
+Rule 9 (device_ids list should not be empty)
+{v_1 : list(int)} |= v_1.len > 0
 >>
-Rule 7 (batch size should be larger than the number of GPUs)
-{v_1 : tensor, v_2 : list(int)} |= shape(v_1, 0) > v_2.len
+Rule 10 (dim should be less than the number of dimensions of the input tensor)
+{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
 >>
-Rule 12 (The batch size should be positive)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 11 (all device ids are distinct)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i+1, v_1.len - 1] : v_1[i] ≠ v_1[j]
 >>
-Rule 13 (If device_ids and output_device are specified, they must be consistent)
-{v_1 : list(int), v_2 : int} |= ∃i ∈ [0, v_1.len - 1] : v_2 = v_1[i]
+Rule 12 (output_device should be less than the length of device_ids and non-negative)
+{v_1 : list(int), v_2 : int} |= v_2 < v_1.len ∧ v_2 ≥ 0
 >>
-Rule 14 (The module must be provided)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
+Rule 13 (dim should be a non-negative integer and less than 3, as tensors will be scattered)
+{v_1 : int} |= v_1 ≥ 0 ∧ v_1 < 3
 >>
-Rule 15 (If device_ids is a single integer, output_device should be the same)
-{v_1 : int, v_2 : int} |= v_1 = v_2
+Rule 15 (dim should be less than the number of dimensions of the input tensor, if tensor is the input)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then v_2 < ndim(v_1)
 >>
-Rule 16 (the batch size should be an integer)
-{v_1 : tensor} |= shape(v_1, 0) ≥ 0
+Rule 16 (all device ids are integers)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : true
 >>
-Rule 17 (If batch size is not specified, it should be greater than zero)
-{v_1: tensor} |= shape(v_1,0) > 0
+Rule 17 (output_device should be a valid index in device_ids, if device_ids is not empty)
+{v_1 : list(int), v_2 : int} |= if v_1.len > 0 then v_2 < v_1.len ∧ v_2 ≥ 0
 >>
-Rule 18 (Module must be a Module type - represented as tensor for our purposes)
-{v_1: tensor} |= ndim(v_1) >= 0
+Rule 18 (dim should be a non-negative integer and less than 3, as tensors will be scattered, only when scattering occurs)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then v_2 ≥ 0 ∧ v_2 < 3
 >>
-Rule 19 (the module must be a valid neural network Module, which we approximate as having at least one parameter)
-{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 19 (the elements in device_ids should be unique)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i + 1, v_1.len - 1] : v_1[i] ≠ v_1[j]
 >>
-Rule 21 (module must have parameters and buffers on device_ids[0])
-{v_1 : tensor, v_2 : list(int)} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ ∃j ∈ [0, v_2.len - 1] : v_2[j] ≥ 0
->>
-Rule 22 (The device IDs must be valid)
-{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
->>
-Rule 26 (If device_ids is an int, output_device must be the same int)
-{v_1: int, v_2: int} |= v_1 = v_2
->>
-Rule 27 (If device_ids is a list, then all elements must be ints)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] = v_1[i]
->>
-Rule 32 (If device_ids is specified as a list, output_device must be present in the list)
+Rule 20 (if output_device is specified, it must be present in device_ids)
 {v_1 : list(int), v_2 : int} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] = v_2
 >>
-Rule 41 (Module has to be a valid neural network with at least 1 layer)
+Rule 21 (the batch size should be larger than the number of GPUs used, implying there is a batch dimension)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) > 0 then shape(v_1, 0) > v_2.len
+>>
+Rule 22 (If device_ids is empty, output_device should be 0)
+{v_1 : list(int), v_2 : int} |= if v_1.len = 0 then v_2 = 0
+>>
+Rule 23 (dim must be a non-negative integer, or the tensor should be empty)
+{v_1 : tensor, v_2 : int} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then true else v_2 ≥ 0
+>>
+Rule 25 (output_device must be a valid device id, or device_ids is empty)
+{v_1 : list(int), v_2 : int} |= if v_1.len > 0 then ∃i ∈ [0, v_1.len - 1] : v_1[i] = v_2
+>>
+Rule 26 (if a tensor input, the batch size (dim 0) should be larger than number of devices if dim = 0)
+{v_1 : tensor, v_2 : list(int), v_3 : int} |= if (ndim(v_1) > 0 ∧ v_3 = 0) then shape(v_1, 0) > v_2.len
+>>
+Rule 28 (dim should be less than the number of dimensions, and non-negative, if the tensor is non-empty)
+{v_1 : tensor, v_2 : int} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then v_2 ≥ 0 ∧ v_2 < ndim(v_1)
+>>
+Rule 29 (If device_ids is not an empty list, then all ids should be non negative)
+{v_1 : list(int)} |= if v_1.len > 0 then ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+>>
+Rule 30 (if tensor is scattered on dim 0, shape 0 should be larger then the number of devices)
+{v_1 : tensor, v_2 : list(int), v_3 : int} |= if ndim(v_1) > 0 ∧ v_3 = 0 then shape(v_1, 0) > v_2.len
+>>
+Rule 32 (if device_ids is empty, the output_device is irrelevant)
+{v_1 : list(int), v_2 : int} |= if v_1.len = 0 then true else ∃i ∈ [0, v_1.len - 1] : v_1[i] = v_2
+>>
+Rule 33 (dim should be a valid dimension to scatter across)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then v_2 ≥ 0 ∧ v_2 < ndim(v_1)
+>>
+Rule 34 (device ids should be less than the total available devices)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 8
+>>
+Rule 39 (device ids should be less than the total available devices when list is populated)
+{v_1 : list(int)} |= if v_1.len > 0 then ∀i ∈ [0, v_1.len - 1] : v_1[i] < 8
+>>
+Rule 40 (if using dim = 0, batch size greater than num of devices)
+{v_1 : tensor, v_2 : list(int), v_3 : int} |= if ndim(v_1) > 0 ∧ v_3 = 0 ∧ v_2.len > 0 then shape(v_1, 0) > v_2.len
+>>
+Rule 42 (output_device should be one of the device_ids available, or device_ids is empty and output_device is 0)
+{v_1 : list(int), v_2 : int} |= if v_1.len > 0 then ∃i ∈ [0, v_1.len - 1] : v_1[i] = v_2 else v_2 = 0
+>>
+Rule 43 (dim should be a valid non-negative dimension to scatter across for non empty tensors and less than 3, the default behaviour)
+{v_1 : tensor, v_2 : int} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then v_2 ≥ 0 ∧ v_2 < ndim(v_1) ∧ v_2 < 3
+>>
+Rule 46 (The tensor dimensions must match the expected behaviour of the model)
 {v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 42 (If the module returns a scalar in forward, this wrapper will return a vector of length equal to number of devices used.)
-{v_1: tensor, v_2: list(int)} |= if ndim(v_1) = 0 then shape(v_1, 0) = v_2.len
+Rule 47 (The output device id should be within the range of the valid device ids or the list should be empty)
+{v_1 : list(int), v_2 : int} |= if v_1.len > 0 then (∃i ∈ [0, v_1.len - 1] : v_1[i] = v_2)
 >>
-Rule 44 (if device_ids is an integer then the integer must be nonnegative)
-{v_1: int} |= v_1 >= 0
+Rule 48 (if a tensor with > 0 dimensions and if scatter is performed (not empty device ids list), the dimension should be a valid non-negative dimension to scatter across and less then 3)
+{v_1 : tensor, v_2 : int, v_3 : list(int)} |= if ndim(v_1) > 0 ∧ v_3.len > 0 then v_2 ≥ 0 ∧ v_2 < ndim(v_1) ∧ v_2 < 3
 >>
-Rule 45 (If module returns a scalar, the output is a vector with length matching device_ids)
-{v_1: tensor, v_2: list(int)} |= if ndim(v_1) = 0 then shape(v_1,0) = v_2.len
+Rule 50 (the module's parameters and buffers must be on device_ids[0] before running DataParallel)
+{v_1 : list(int)} |= if v_1.len > 0 then v_1[0] ≥ 0
 >>
-Rule 49 (if the module returns a scalar, the output will be a 1-D tensor with length same as device_ids)
-{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 0 then (ndim(v_1) = 1 ∧ shape(v_1, 0) = v_2.len)
+Rule 56 (if DataParallel is used batch size should be larger than the amount of GPU's, with a minimum batch size greater than the amount of device ID's)
+{v_1: tensor, v_2: list(int)} |= if v_2.len > 0 then if ndim(v_1) > 0 then shape(v_1, 0) > v_2.len
 >>
-Rule 50 (If scalar is returned by module, it returns a tensor with device_ids length.)
-{v_1: tensor, v_2 : list(int)} |= if ndim(v_1) = 0 then ndim(v_1) = 1 ∧ shape(v_1, 0) = v_2.len
+Rule 58 (if a tensor is present and scatter is performed (not empty device ids list), the dimension should be a valid non-negative dimension to scatter across and less then 3)
+{v_1 : tensor, v_2 : int, v_3 : list(int)} |= if ndim(v_1) > 0 ∧ v_3.len > 0 then v_2 ≥ 0 ∧ v_2 < 3
 >>
-Rule 53 (Output_device has to be a valid device number, if it is specified as integer)
-{v_1 : int} |= v_1 >= 0
+Rule 60 (if scattering on dimension 0, the batch size must be larger than number of devices, only applicable when there are device ids)
+{v_1 : tensor, v_2 : list(int), v_3 : int} |= if ndim(v_1) > 0 ∧ v_3 = 0  then shape(v_1, 0) > v_2.len
+>>
+Rule 61 (The module's parameters and buffers must be on a CUDA device if device_ids are CUDA devices, device_ids needs to have some positive integer value when cuda device is used.)
+{v_1 : list(int)} |= if v_1.len > 0 then true
+>>
+Rule 65 (batch size scatter requires more data than device_ids)
+{v_1 : tensor, v_2 : list(int), v_3 : int} |= if shape(v_1, 0) > 0 ∧ v_3 = 0 then shape(v_1, 0) > v_2.len
+>>
+Rule 66 (If using more then one GPU the tensor sizes in each GPU must be large enough to prevent errors)
+{v_1 : tensor, v_2 : list(int), v_3 : int} |= if v_2.len > 1 then if ndim(v_1) > 0 ∧ v_3 = 0 then shape(v_1, 0) / v_2.len > 0
+>>
+Rule 70 (For batch size scattering, the shape of dimension 0 has to be greater then the number of GPU's for proper load balancing, and only apply this if we are actually scattering)
+{v_1 : tensor, v_2 : list(int), v_3 : int} |= if v_3 = 0 ∧ v_2.len > 0 then shape(v_1, 0) > v_2.len
+>>
+Rule 71 (The output size can be computed when dividing the input to the GPUs, check that GPU distribution makes sense given the input)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 1 then shape(v_1, 0) % v_2.len = 0
+>>
+Rule 73 (scattering dimension, if scatter occurs, needs to be between 0 and 2)
+{v_2 : int, v_3 : list(int)} |= if v_3.len > 0 then v_2 ≥ 0 ∧ v_2 < 3
+>>
+Rule 75 (batch size scatter, if occurring, needs shape[0] greater then amount of device_ids specified )
+{v_1 : tensor, v_2 : list(int), v_3 : int} |= if v_3 = 0 then shape(v_1, 0) > v_2.len
+>>
+Rule 76 (The output size can be computed when dividing the input to the GPUs, check that GPU distribution makes sense given the input for multiple GPUs, and shape[0] is valid)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 1 ∧ shape(v_1, 0) > 0 then shape(v_1, 0) % v_2.len = 0
+>>
+Rule 81 (Tensor Data must be divisible in to parts that are the same sizes, and these sizes have to be at least greater then 0)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 1 then if shape(v_1,0) > 0 then shape(v_1, 0) % v_2.len = 0
+>>
+Rule 85 (batch size must be larger or equal to the number of devices if scattering along the 0th dimension)
+{v_1 : tensor, v_2 : list(int), v_3 : int} |= if v_3 = 0 then shape(v_1, 0) ≥ v_2.len
+>>
+Rule 90 (Make sure enough data exists to do batch scattering)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then shape(v_1, 0) ≥ v_2.len
+>>
+Rule 93 (dimension to scatter along, if specified, needs to be between 0 and 2 inclusive)
+{v_2 : int} |= v_2 ≥ 0 ∧ v_2 < 3
+>>
+Rule 98 (The scattering dimension should be between 0 and 2 for CUDA and should be applied if a list is used)
+{v_1: int, v_2: list(int)} |= if v_2.len > 0 then v_1 ≥ 0 ∧ v_1 < 3
+>>
+Rule 101 (Divisibility of the batch dimension by the amount of GPU's for multi gpu systems)
+{v_1 : tensor} |= shape(v_1, 0) % 2 = 0 ∨ shape(v_1, 0) % 4 = 0 ∨ shape(v_1, 0) % 8 = 0
+>>
+Rule 103 (dimension should be a positive number and limited to between 0 and 2)
+{v_1 : int, v_2 : list(int)} |= if v_2.len > 0 then v_1 ≥ 0 ∧ v_1 < 3
+>>
+Rule 105 (batch dim (0) must have length greater or equal to the amount of devices, which makes it easy to split into similar sections)
+{v_1 : tensor, v_2 : int, v_3 : list(int)} |= if v_2 = 0 then shape(v_1, 0) ≥ v_3.len
+>>
+Rule 118 (scattering dimension, if present, should be within sane limits for CUDA and multi gpu setup, i.e. between 0 and 2 inclusive for default behaviour)
+{v_1: int} |= v_1 ≥ 0 ∧ v_1 < 3
+>>
+Rule 125 (For batch scattering the initial dimension needs to have enough data)
+{v_1 : tensor, v_2 : list(int)} |= shape(v_1, 0) ≥ v_2.len
+>>
+Rule 126 (if using multiple gpus to process data, then all batches will need to have roughly the same sample counts for load balancing)
+{v_1 : list(int)} |= if v_1.len > 1 then true
+>>
+Rule 140 (Batch size must have enough entries to distribute along each dimension if splitting along first dimension )
+{v_1 : tensor} |= shape(v_1, 0) > 0
+>>
+Rule 146 (if inputs are of different sizes , their first dimension should align in magnitude with each other)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 151 (model needs to process data that will be properly handled (type related))
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then 0 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 12

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If dim1 and dim2 are equal, then ndim(v1 (Rule 46)
+# if dim1 and dim2 are the same, then the input must be 0 dimensional (Rule 46)
 
 rule_46 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == v["arg3_value"], v["arg1_ndim"] <= 1, False)) if n else
-          If(v["arg2_value"] == v["arg3_value"], v["arg1_ndim"] <= 1, False))
+    s.add(Not(If(v["arg2_value"] == v["arg3_value"], v["arg1_ndim"] == 0, True)) if n else
+          If(v["arg2_value"] == v["arg3_value"], v["arg1_ndim"] == 0, True))
 )
 
 def rule_46_func(arg1, arg2, arg3, solver=None, neg=False):

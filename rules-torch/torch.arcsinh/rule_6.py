@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Prevent casting error: result type Float can't be cast to the desired output type Short - ensure output dtype is compatible (Rule 6)
+# If out is provided, its dtype must not be a low-precision integer type like Short if the input is Float, to avoid overflow/underflow (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_dtype"] == 2, And(v["arg1_dtype"] != 0, v["arg1_dtype"] != 1), False)) if n else
-          If(v["arg2_dtype"] == 2, And(v["arg1_dtype"] != 0, v["arg1_dtype"] != 1), False))
+    s.add(Not(If(v["arg1_dtype"] == 7, v["arg2_dtype"] != 2, True)) if n else
+          If(v["arg1_dtype"] == 7, v["arg2_dtype"] != 2, True))
 )
 
 def rule_6_func(arg1, arg2, solver=None, neg=False):

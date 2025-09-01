@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# torch.get_num_threads accepts no parameters, therefore, v_1 cannot satisfy any condition, therefore the condition always holds. (Rule 16)
+# get_num_threads( (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] == v["arg1_value"]) if n else
-          v["arg1_value"] == v["arg1_value"])
+    s.add(Not(And(1 <= v["arg1_value"], v["arg1_value"] <= 256)) if n else
+          And(1 <= v["arg1_value"], v["arg1_value"] <= 256))
 )
 
 def rule_16_func(arg1, solver=None, neg=False):

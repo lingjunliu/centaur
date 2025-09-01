@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input tensor's dtype is not float, cast it to float (Rule 28)
+# if input tensor is boolean, the '-' operator will cause an error and is suppressed by ensuring input is not bool (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] < 6, False, False)) if n else
-          If(v["arg1_dtype"] < 6, False, False))
+    s.add(Not(v["arg1_dtype"] != 0) if n else
+          v["arg1_dtype"] != 0)
 )
 
 def rule_28_func(arg1, solver=None, neg=False):

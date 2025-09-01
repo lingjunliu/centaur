@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# dim should be within the valid range using arithmetics (Rule 76)
+# A dimension must be specified for tensors with more than zero dimensions (Rule 76)
 
 rule_76 = lambda s, v, n=False: (
-    s.add(Not(And((v["arg2_value"] + v["arg1_ndim"]) >= 0, (v["arg2_value"] - (v["arg1_ndim"] - 1)) <= 0)) if n else
-          And((v["arg2_value"] + v["arg1_ndim"]) >= 0, (v["arg2_value"] - (v["arg1_ndim"] - 1)) <= 0))
+    s.add(Not(If(v["arg1_ndim"] > 0, True, v["arg2_value"] == 0)) if n else
+          If(v["arg1_ndim"] > 0, True, v["arg2_value"] == 0))
 )
 
 def rule_76_func(arg1, arg2, solver=None, neg=False):

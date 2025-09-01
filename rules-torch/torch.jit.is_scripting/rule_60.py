@@ -5,42 +5,40 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if a float v_1 is greater than 0 and less than 1 and a boolean v_2 is true, then int v_3 will be 1 (Rule 60)
+# Compilation context enforce all strings of list contains the string when in scripting mode (Rule 60)
 
 rule_60 = lambda s, v, n=False: (
-    s.add(Not(If(And(And(v["arg1_value"] > 0, v["arg1_value"] < 1), v["arg2_value"] == True), v["arg3_value"] == 1, False)) if n else
-          If(And(And(v["arg1_value"] > 0, v["arg1_value"] < 1), v["arg2_value"] == True), v["arg3_value"] == 1, False))
+    s.add(Not(If(v["arg1_value"] == True, And([Implies(i < (v["arg2_length"] - 1 + 1), Or(Or(Select(v["arg2_values"], i) == 11, Select(v["arg2_values"], i) == 12), Select(v["arg2_values"], i) == 20)) for i in range(6)]), True)) if n else
+          If(v["arg1_value"] == True, And([Implies(i < (v["arg2_length"] - 1 + 1), Or(Or(Select(v["arg2_values"], i) == 11, Select(v["arg2_values"], i) == 12), Select(v["arg2_values"], i) == 20)) for i in range(6)]), True))
 )
 
-def rule_60_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_60_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
+        if not isinstance(arg1, bool):
             return False
-        if not isinstance(arg2, bool):
-            return False
-        if not (isinstance(arg3, (int, np.integer)) and not isinstance(arg3, bool)):
+        if not (isinstance(arg2, list) and all(isinstance(e, str) for e in arg2)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
-        arg2_value = Bool('arg2_value')
-        arg3_value = Int('arg3_value')
+        arg1_value = Bool('arg1_value')
+        arg2_length = Int('arg2_length')
+        arg2_values = Array('arg2_values', IntSort(), StringSort())
 
         # Value assignments
         solver.add(arg1_value == arg1)
-        solver.add(arg2_value == arg2)
-        solver.add(arg3_value == int(arg3))
+        solver.add(arg2_length == len(arg2))
+        for i in range(len(arg2)):
+            arg2_values = Store(arg2_values, i, arg2[i])
 
         # Constraints for rule 60
-        rule_60(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
+        rule_60(solver, {'arg1_value': arg1_value, 'arg2_length': arg2_length, 'arg2_values': arg2_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_60(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)
+        rule_60(solver, {'arg1_value': arg1['value'], 'arg2_length': arg2['length'], 'arg2_values': arg2['values']}, neg)

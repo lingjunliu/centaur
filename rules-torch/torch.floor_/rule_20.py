@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor's dtype cannot be boolean or complex (Rule 20)
+# input tensor must have a numerical dtype, using dtype value (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_dtype"] != 0, v["arg1_dtype"] < 10), v["arg1_dtype"] != 9)) if n else
-          And(And(v["arg1_dtype"] != 0, v["arg1_dtype"] < 10), v["arg1_dtype"] != 9))
+    s.add(Not(And(v["arg1_dtype"] > 0, v["arg1_dtype"] < 9)) if n else
+          And(v["arg1_dtype"] > 0, v["arg1_dtype"] < 9))
 )
 
 def rule_20_func(arg1, solver=None, neg=False):

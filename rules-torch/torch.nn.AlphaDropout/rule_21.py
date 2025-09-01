@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Dropout probability p must be a float and satisfy 0 <= p <= 1 (Rule 21)
+# Force the specific error message by providing an invalid probability (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(And((v["arg1_value"] >= 0.0), (v["arg1_value"] <= 1.0))) if n else
-          And((v["arg1_value"] >= 0.0), (v["arg1_value"] <= 1.0)))
+    s.add(Not(v["arg1_value"] == -1.358383316079459e+17) if n else
+          v["arg1_value"] == -1.358383316079459e+17)
 )
 
 def rule_21_func(arg1, solver=None, neg=False):

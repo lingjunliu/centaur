@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The tensor must have at least two dimensions, groups have to be a positive number smaller or equal than the number of channels, and also should divide the channel size evenly (Rule 45)
+# All constraints in one rule to ensure no out of bounds (Rule 45)
 
 rule_45 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(v["arg1_ndim"] >= 2, v["arg2_value"] > 0), v["arg2_value"] <= Select(v["arg1_shape"], 1)), (Select(v["arg1_shape"], 1) / v["arg2_value"]) * v["arg2_value"] == Select(v["arg1_shape"], 1))) if n else
-          And(And(And(v["arg1_ndim"] >= 2, v["arg2_value"] > 0), v["arg2_value"] <= Select(v["arg1_shape"], 1)), (Select(v["arg1_shape"], 1) / v["arg2_value"]) * v["arg2_value"] == Select(v["arg1_shape"], 1)))
+    s.add(Not(And(And(And(And(And((v["arg1_ndim"] > 1), (v["arg2_value"] > 0)), (Select(v["arg1_shape"], 1) % v["arg2_value"] == 0)), (Select(v["arg1_shape"], 1) > 0)), ((-1 * v["arg1_ndim"]) <= 1)), (1 < v["arg1_ndim"]))) if n else
+          And(And(And(And(And((v["arg1_ndim"] > 1), (v["arg2_value"] > 0)), (Select(v["arg1_shape"], 1) % v["arg2_value"] == 0)), (Select(v["arg1_shape"], 1) > 0)), ((-1 * v["arg1_ndim"]) <= 1)), (1 < v["arg1_ndim"])))
 )
 
 def rule_45_func(arg1, arg2, solver=None, neg=False):
@@ -36,9 +36,9 @@ def rule_45_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 45
-        rule_45(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_45(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_45(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_45(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

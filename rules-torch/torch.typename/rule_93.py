@@ -5,43 +5,33 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If two list v1 and v2 have same length, then first elements must be the same (Rule 93)
+# for input tensor the minimum values have to be smaller than the maximum values (Rule 93)
 
 rule_93 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_length"] == v["arg2_length"], v["arg1_length"] > 0), Select(v["arg1_values"], 0) == Select(v["arg2_values"], 0), False)) if n else
-          If(And(v["arg1_length"] == v["arg2_length"], v["arg1_length"] > 0), Select(v["arg1_values"], 0) == Select(v["arg2_values"], 0), False))
+    s.add(Not(Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1)) if n else
+          Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1))
 )
 
-def rule_93_func(arg1, arg2, solver=None, neg=False):
+def rule_93_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
-            return False
-        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
-        arg1_values = Array('arg1_values', IntSort(), IntSort())
-        arg2_length = Int('arg2_length')
-        arg2_values = Array('arg2_values', IntSort(), IntSort())
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
-        solver.add(arg2_length == len(arg2))
-        for i in range(len(arg2)):
-            arg2_values = Store(arg2_values, i, arg2[i])
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 93
-        rule_93(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values, 'arg2_length': arg2_length, 'arg2_values': arg2_values})
+        rule_93(solver, {'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_93(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values'], 'arg2_length': arg2['length'], 'arg2_values': arg2['values']}, neg)
+        rule_93(solver, {'arg1_range': arg1['range']}, neg)

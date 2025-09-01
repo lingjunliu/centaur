@@ -1,24 +1,75 @@
 >>
-Rule 2 (dtype should be specified to prevent RuntimeError when input is Long)
-{v_1 : tensor, v_3 : dtype} |= dtype_(v_1) ≠ 4 ∨ v_3 ≠ none
+Rule 1 (v_2 should be a valid dimension of input tensor to avoid IndexError)
+{v_1 : tensor, v_2 : int} |= -1 * ndim(v_1) ≤ v_2 ∧ v_2 < ndim(v_1)
 >>
-Rule 3 (Dimension should be in the valid range to prevent IndexError)
+Rule 2 (input tensor v_1 should not have Long dtype to avoid RuntimeError)
+{v_1 : tensor} |= dtype_(v_1) ≠ 4
+>>
+Rule 5 (Dimension v_2 should be within the allowed range based on the input tensor v_1's dimensions to avoid IndexError)
 {v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
 >>
-Rule 6 (dtype should be specified to prevent RuntimeError when input is Long)
-{v_1 : tensor, v_3 : dtype} |= (dtype_(v_1) ≠ 4) ∨ v_3 ≠ "none"
+Rule 20 (If dtype (v_3) is specified, it must be a floating point type (6, 7, or 8) or None (12))
+{v_3 : dtype} |= v_3 = 6 ∨ v_3 = 7 ∨ v_3 = 8 ∨ v_3 = 12
 >>
-Rule 8 (dtype should be specified to prevent RuntimeError when input is Long)
-{v_1 : tensor, v_3 : dtype} |= if dtype_(v_1) = 4 then v_3 ≠ "none"
+Rule 27 (The dtype of input tensor v_1 cannot be boolean)
+{v_1: tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 9 (Dimension should be valid and non-negative to prevent IndexError)
-{v_1 : tensor, v_2 : int} |= 0 ≤ v_2 ∧ v_2 < ndim(v_1)
+Rule 31 (If input tensor v_1 has integer type, dtype v_3 cannot be float)
+{v_1 : tensor, v_3 : dtype} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then v_3 = 12
 >>
-Rule 11 (Dimension should be valid and non-negative to prevent IndexError)
-{v_1 : tensor, v_2 : int} |= 0 - ndim(v_1) ≤ v_2 ∧ v_2 < ndim(v_1)
+Rule 35 (Input tensor v_1 cannot have complex dtype.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
 >>
-Rule 16 (dtype argument is required when input dtype is int64, to avoid RuntimeError)
-{v_1 : tensor, v_3 : dtype} |= if (dtype_(v_1) = 4) then (v_3 ≠ "none")
+Rule 39 (The shape of input tensor v_1 must be greater than zero to prevent errors in the calculation.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 42 (Prevent RuntimeError, specify dtype when input is Long.)
-{v_1 : tensor, v_3 : dtype} |= if (dtype_(v_1) = 4) then v_3 ≠ "none"
+Rule 43 (If input v_1 has a quantized dtype, dtype v_3 cannot be specified)
+{v_1 : tensor, v_3 : dtype} |= if dtype_(v_1) = 11 then v_3 = 12
+>>
+Rule 51 (If input tensor v_1 is an integer type, then dtype v_3 should not be a float. Prevents precision loss.)
+{v_1 : tensor, v_3 : dtype} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 then v_3 ≠ 6 ∧ v_3 ≠ 7 ∧ v_3 ≠ 8
+>>
+Rule 55 (If the input tensor v_1 is of integer type, it is advisable to not cast to lower precision by dtype v_3)
+{v_1 : tensor, v_3 : dtype} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 then v_3 ≠ 6
+>>
+Rule 60 (The input tensor v_1 must be a floating point type if dtype is not specified, otherwise overflow could occur )
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 64 (If the input is of type int32 or int64, the dtype must not be float 16)
+{v_1 : tensor, v_3 : dtype} |= if dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then v_3 ≠ 6
+>>
+Rule 68 (It is often better to upcast rather than downcast: If tensor v_1 is of type int16, int32 or int64, do not use float16 unless explicitly handled)
+{v_1 : tensor, v_3 : dtype} |= if dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then v_3 ≠ 6
+>>
+Rule 72 (If tensor v_1 is of type int8 or int16 or int32 or int64 , casting to float16 might lead to precision issues and should be avoided in dtype v_3)
+{v_1 : tensor, v_3 : dtype} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then v_3 ≠ 6
+>>
+Rule 80 (Avoid potential precision issues: If input tensor v_1 is of integer type and v_3 is float16, it's likely unintended.)
+{v_1 : tensor, v_3 : dtype} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3  then v_3 ≠ 6
+>>
+Rule 84 (To potentially avoid precision loss, tensor v_1 that has integer type should not be cast to float16 via v_3)
+{v_1 : tensor, v_3 : dtype} |= if dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then v_3 ≠ 6
+>>
+Rule 89 (Input tensor must be a single-precision or double-precision floating-point type to prevent numerical instability)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 94 (Input tensor must be of a floating point family, otherwise it will raise an error)
+{v_1: tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 98 (Casting an integer tensor to float16 can reduce the precision, avoid if the input tensor is of type int8, int16, int32 or int64)
+{v_1 : tensor, v_3 : dtype} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then v_3 ≠ 6
+>>
+Rule 108 (The input has to be float, due to the nature of exp and log calculations)
+{v_1: tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 113 (If input is float16 and dtype is None, the result may not be as expected.)
+{v_1: tensor, v_3 : dtype} |= if dtype_(v_1) = 6 then v_3 ≠ 12
+>>
+Rule 118 (To maintain numerical stability, avoid using BFloat16 tensors.)
+{v_1: tensor} |= dtype_(v_1) ≠ 14
+>>
+Rule 123 (For type stability, avoid using Double datatype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 8
+>>
+Rule 128 (When using Float16 precision, it is important to maintain numerical stability of the calculations)
+{v_1: tensor} |= dtype_(v_1) ≠ 11

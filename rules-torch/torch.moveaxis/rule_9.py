@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# source and destination dimensions should have the same length if they are tuples (Rule 9)
+# source and destination tuples must have the same length (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
     s.add(Not(v["arg1_length"] == v["arg2_length"]) if n else

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# dtype should be a valid tensor dtype (Rule 35)
+# Ensure input tensor v_1 has dtype other than 'str' (12 (Rule 35)
 
 rule_35 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 12, False, False)) if n else
-          If(v["arg1_dtype"] == 12, False, False))
+    s.add(Not((v["arg1_dtype"] != 12)) if n else
+          (v["arg1_dtype"] != 12))
 )
 
 def rule_35_func(arg1, solver=None, neg=False):

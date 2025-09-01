@@ -1,75 +1,120 @@
 >>
-Rule 1 (Input and target tensors should have the same shape to avoid broadcasting errors)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 1 (Input and target tensors should have the same shape to avoid dimension mismatch error)
+{v_7 : tensor, v_8 : tensor} |= ndim(v_7) = ndim(v_8) ∧ ∀i ∈ [0, ndim(v_7) - 1] : shape(v_7, i) = shape(v_8, i)
 >>
-Rule 2 (eps should be non-negative to avoid undefined log)
-{v_1 : float} |= v_1 ≥ 0
+Rule 2 (Epsilon should be a positive value to avoid log(0) calculation when log_input is false)
+{v_4 : float, v_1 : bool} |= if v_1 = false then v_4 > 0
 >>
-Rule 3 (reduction must be a valid string.)
-{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
+Rule 3 (Reduction should be one of the allowed strings)
+{v_6 : str} |= v_6 = "none" ∨ v_6 = "mean" ∨ v_6 = "sum"
 >>
-Rule 4 (log_input must be a boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 4 (Target tensor elements should be non-negative to follow poisson distribution)
+{v_8 : tensor} |= ∀i ∈ [0, shape(v_8, 0) - 1] : v_8[i] ≥ 0
 >>
-Rule 8 (shape must match, example)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 5 (Eps should not be too large to avoid overflow)
+{v_4 : float} |= v_4 < 100
 >>
-Rule 9 (Target should be non-negative.)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
+Rule 13 (If size_average is set then reduce should not be false)
+{v_3 : bool, v_5 : bool} |= if v_3 = true then v_5 = true
 >>
-Rule 10 (Input can accept float or int but target must be of the same datatype if input is int.)
-{v_1 : tensor, v_2 : tensor} |= if 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5 then 1 <= dtype_(v_2) ∧ dtype_(v_2) <= 5
+Rule 15 (The number of dimensions of input and target must be within a reasonable range.)
+{v_7 : tensor, v_8 : tensor} |= ndim(v_7) ≤ 5 ∧ ndim(v_8) ≤ 5
 >>
-Rule 11 (target should be of float type for float input)
-{v_1 : tensor, v_2 : tensor} |= if 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 9 then 6 <= dtype_(v_2) ∧ dtype_(v_2) <= 9
+Rule 16 (If log_input is false then eps must be greater than 0.)
+{v_1 : bool, v_4 : float} |= if v_1 = false then v_4 > 0
 >>
-Rule 12 (Input and target tensors should have compatible shapes, handling singleton dimensions)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1
+Rule 17 (The target tensor must have non-negative values)
+{v_8 : tensor} |= min(v_8) ≥ 0
 >>
-Rule 13 (eps should be a small positive float)
-{v_1 : float} |= v_1 > 0 ∧ v_1 < 1
+Rule 19 (If reduce is false, reduction must be none.)
+{v_5 : bool, v_6 : str} |= if v_5 = false then v_6 = "none"
 >>
-Rule 15 (Input and target dtype should be the same)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 20 (The shapes of input and target must be compatible.)
+{v_7 : tensor, v_8 : tensor} |= ∃i ∈ [0, ndim(v_7) - 1] : shape(v_7, i) = shape(v_8, i)
 >>
-Rule 17 (Target should not be NaN.)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = v_1[i]
+Rule 21 (The input and target tensors should have at least one dimension)
+{v_7 : tensor, v_8 : tensor} |= ndim(v_7) > 0 ∧ ndim(v_8) > 0
 >>
-Rule 19 (Input and target tensors must have the same size at non-singleton dimensions.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i)) ∨ (shape(v_1, i) = 1) ∨ (shape(v_2, i) = 1)
+Rule 23 (If the input tensor is empty, the target tensor must also be empty.  Check if any dimension is 0, and if so, set a flag.)
+{v_7 : tensor, v_8 : tensor} |= if ∃i ∈ [0, ndim(v_7) - 1] : shape(v_7, i) = 0 then ∃j ∈ [0, ndim(v_8) - 1] : shape(v_8, j) = 0
 >>
-Rule 20 (Input and target tensors should have broadcast-compatible shapes, and same size except singleton.)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
+Rule 24 (The input and target tensors must have the same number of elements if reduction is none)
+{v_7 : tensor, v_8 : tensor, v_6 : str} |= if v_6 = "none" then (ndim(v_7) = ndim(v_8) ∧ ∀i ∈ [0, ndim(v_7) - 1] : shape(v_7, i) = shape(v_8, i))
 >>
-Rule 21 (If reduction is none, then the output has the same shape as input.)
-{v_1 : str, v_2 : tensor, v_3: tensor} |= if v_1 = "none" then ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)
+Rule 25 (The input and target tensors should have compatible shapes for broadcasting)
+{v_7 : tensor, v_8 : tensor} |= (ndim(v_7) ≥ ndim(v_8) ∧ ∀i ∈ [0, ndim(v_8) - 1] : shape(v_7, ndim(v_7) - ndim(v_8) + i) = shape(v_8, i)) ∨ (ndim(v_8) ≥ ndim(v_7) ∧ ∀i ∈ [0, ndim(v_7) - 1] : shape(v_8, ndim(v_8) - ndim(v_7) + i) = shape(v_7, i))
 >>
-Rule 22 (If full is true, target has to be integer.)
-{v_1: bool, v_2: tensor} |= if v_1 = true then 1 <= dtype_(v_2) ∧ dtype_(v_2) <= 5
+Rule 26 (When reduction is none, input and target must have same number of dimensions)
+{v_6 : str, v_7 : tensor, v_8 : tensor} |= if v_6 = "none" then ndim(v_7) = ndim(v_8)
 >>
-Rule 23 (If reduction is 'mean' or 'sum', the output should be a scalar.)
-{v_1 : str, v_2 : tensor} |= if v_1 = "mean" ∨ v_1 = "sum" then ndim(v_2) = 0
+Rule 27 (When reduction is none, the shape of input and target must be exactly the same)
+{v_6 : str, v_7 : tensor, v_8 : tensor} |= if v_6 = "none" then (ndim(v_7) = ndim(v_8) ∧ ∀i ∈ [0, ndim(v_7) - 1] : shape(v_7, i) = shape(v_8, i))
 >>
-Rule 24 (eps must be a float value if log_input is false.)
-{v_1 : bool, v_2: float} |= if v_1 = false then v_2 = v_2
+Rule 28 (When reduction is none, the shape of input and target must be exactly the same; if not, they must be broadcastable.)
+{v_6 : str, v_7 : tensor, v_8 : tensor} |= if v_6 = "none" then (ndim(v_7) = ndim(v_8) ∧ ∀i ∈ [0, ndim(v_7) - 1] : shape(v_7, i) = shape(v_8, i)) else ((ndim(v_7) ≥ ndim(v_8) ∧ ∀i ∈ [0, ndim(v_8) - 1] : (shape(v_7, ndim(v_7) - ndim(v_8) + i) = shape(v_8, i) ∨ shape(v_8, i) = 1 ∨ shape(v_7, ndim(v_7) - ndim(v_8) + i) = 1)) ∨ (ndim(v_8) ≥ ndim(v_7) ∧ ∀i ∈ [0, ndim(v_7) - 1] : (shape(v_8, ndim(v_8) - ndim(v_7) + i) = shape(v_7, i) ∨ shape(v_7, i) = 1 ∨ shape(v_8, ndim(v_8) - ndim(v_7) + i) = 1)))
 >>
-Rule 25 (If log_input is false, the input tensor should not contain -inf)
-{v_1: bool, v_2: tensor} |= if v_1 = false then ∀i ∈ [0, shape(v_2, 0)-1] : v_2[i] > -1000000
+Rule 30 (Input and Target Tensors must have compatible shapes)
+{v_7 : tensor, v_8 : tensor} |= ∀i ∈ [0, if ndim(v_7) < ndim(v_8) then ndim(v_7) -1 else ndim(v_8) -1] : (shape(v_7, ndim(v_7) - i - 1) = shape(v_8, ndim(v_8) - i - 1) ∨ shape(v_7, ndim(v_7) - i - 1) = 1 ∨ shape(v_8, ndim(v_8) - i - 1) = 1)
 >>
-Rule 26 (The target values cannot be negative since it represents poisson distribution.)
-{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
+Rule 31 (Input and Target Tensors must have the same number of elements, considering broadcasting, when reduction is none.)
+{v_6 : str, v_7 : tensor, v_8 : tensor} |= if v_6 = "none" then (∃i ∈ [0, if ndim(v_7) > ndim(v_8) then ndim(v_7) - 1 else ndim(v_8) - 1] : (shape(v_7, ndim(v_7) - i - 1) = shape(v_8, ndim(v_8) - i - 1)))
 >>
-Rule 28 (The input and target shapes must be compatible, prioritizing matching sizes at non-singleton dimensions.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ (shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))
+Rule 32 (When reduction is none, input and target must be broadcastable to the same shape.)
+{v_6 : str, v_7 : tensor, v_8 : tensor} |= if v_6 = "none" then (ndim(v_7) ≥ 0 ∧ ndim(v_8) ≥ 0 ∧ ∀i ∈ [0, if ndim(v_7) ≥ ndim(v_8) then ndim(v_7) else ndim(v_8)] : (if (ndim(v_7) - i -1) ≥ 0 ∧ (ndim(v_8) - i - 1) ≥ 0 then ((shape(v_7, ndim(v_7) - i - 1) = shape(v_8, ndim(v_8) - i - 1)) ∨ (shape(v_7, ndim(v_7) - i - 1) = 1) ∨ (shape(v_8, ndim(v_8) - i - 1) = 1))))
 >>
-Rule 29 (The shapes of input and target should be broadcastable, if not exactly same)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ (shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))
+Rule 33 (Input and target tensors must have compatible shapes, meaning they are either equal or broadcastable, unless reduction is none)
+{v_6 : str, v_7 : tensor, v_8 : tensor} |= if v_6 ≠ "none" then true else (ndim(v_7) = ndim(v_8) ∧ ∀i ∈ [0, ndim(v_7) - 1] : (shape(v_7, i) = shape(v_8, i) ∨ shape(v_7, i) = 1 ∨ shape(v_8, i) = 1))
 >>
-Rule 31 (When input and target have different shapes, they must be broadcastable to each other)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then false else ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
+Rule 34 (The input and target tensor's dimensions must be compatible for element-wise operations. This means that either the shapes are the same, or one dimension is 1.)
+{v_7 : tensor, v_8 : tensor} |= ∀i ∈ [0, if ndim(v_7) < ndim(v_8) then ndim(v_7) - 1 else ndim(v_8) - 1] : (shape(v_7, ndim(v_7) - 1 - i) = shape(v_8, ndim(v_8) - 1 - i) ∨ shape(v_7, ndim(v_7) - 1 - i) = 1 ∨ shape(v_8, ndim(v_8) - 1 - i) = 1)
 >>
-Rule 32 (If shapes do not match, and reduction is not none, shapes must be broadcastable.)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if shape(v_1, 0) ≠ shape(v_2, 0) ∧ v_3 ≠ "none" then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))
+Rule 36 (If reduction is none, then input and target must have the same number of elements, accounting for broadcastability - rewrite to avoid let)
+{v_6 : str, v_7 : tensor, v_8 : tensor} |= if v_6 = "none" then ((ndim(v_7) = ndim(v_8) ∧ ∀i ∈ [0, ndim(v_7) - 1] : shape(v_7, i) = shape(v_8, i)) ∨ (∀i ∈ [0, if ndim(v_7) < ndim(v_8) then ndim(v_7) else ndim(v_8)] : (shape(v_7, ndim(v_7) - 1 - i) = shape(v_8, ndim(v_8) - 1 - i) ∨ shape(v_7, ndim(v_7) - 1 - i) = 1 ∨ shape(v_8, ndim(v_8) - 1 - i) = 1)))
 >>
-Rule 34 (If the shapes of input and target differ, at least one of the sizes at the corresponding indices is 1.)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (if shape(v_1, i) ≠ shape(v_2, i) then (shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))
+Rule 38 (If reduction is none, then the number of elements of input and target tensors, accounting for broadcasting, must be equal - with simplified expression)
+{v_6 : str, v_7 : tensor, v_8 : tensor} |= if v_6 = "none" then (if ndim(v_7) = 0 ∨ ndim(v_8) = 0 then ndim(v_7) = ndim(v_8) else (shape(v_7, 0) * (if ndim(v_7) > 1 then shape(v_7, 1) else 1)) = (shape(v_8, 0) * (if ndim(v_8) > 1 then shape(v_8, 1) else 1)))
+>>
+Rule 39 (When reduction is none, input and target must have compatible shapes; implement broadcast check with simple expression.)
+{v_6 : str, v_7 : tensor, v_8 : tensor} |= if v_6 = "none" then (∀i ∈ [0, if ndim(v_7) < ndim(v_8) then ndim(v_7) else ndim(v_8)] : (shape(v_7, ndim(v_7) - 1 - i) = shape(v_8, ndim(v_8) - 1 - i) ∨ shape(v_7, ndim(v_7) - 1 - i) = 1 ∨ shape(v_8, ndim(v_8) - 1 - i) = 1))
+>>
+Rule 40 (If reduction is none, then either input and target have the same shape, or they are broadcastable. Focus on broadcasting.)
+{v_6 : str, v_7 : tensor, v_8 : tensor} |= if v_6 = "none" then (ndim(v_7) ≥ 0 ∧ ndim(v_8) ≥ 0 ∧ (∀i ∈ [0, if ndim(v_7) < ndim(v_8) then ndim(v_7) else ndim(v_8)] : ((shape(v_7, ndim(v_7) - 1 - i) = shape(v_8, ndim(v_8) - 1 - i)) ∨ (shape(v_7, ndim(v_7) - 1 - i) = 1) ∨ (shape(v_8, ndim(v_8) - 1 - i) = 1))))
+>>
+Rule 42 (If reduction is none, input and target must be broadcastable. Rewrite w/o let, using only allowed constructs.)
+{v_6 : str, v_7 : tensor, v_8 : tensor} |= if v_6 = "none" then (ndim(v_7) ≥ 0 ∧ ndim(v_8) ≥ 0 ∧ ∀i ∈ [0, if ndim(v_7) < ndim(v_8) then ndim(v_7) - 1 else ndim(v_8) - 1] : ((shape(v_7, ndim(v_7) - 1 - i) = shape(v_8, ndim(v_8) - 1 - i)) ∨ (shape(v_7, ndim(v_7) - 1 - i) = 1) ∨ (shape(v_8, ndim(v_8) - 1 - i) = 1)))
+>>
+Rule 43 (If reduction is none, input and target must be broadcastable. Implemented it without let.)
+{v_6 : str, v_7 : tensor, v_8 : tensor} |= if v_6 = "none" then (ndim(v_7) ≥ 0 ∧ ndim(v_8) ≥ 0 ∧ ∀i ∈ [0, (if ndim(v_7) < ndim(v_8) then ndim(v_7) else ndim(v_8)) - 1] : ((shape(v_7, ndim(v_7) - 1 - i) = shape(v_8, ndim(v_8) - 1 - i)) ∨ (shape(v_7, ndim(v_7) - 1 - i) = 1) ∨ (shape(v_8, ndim(v_8) - 1 - i) = 1)))
+>>
+Rule 44 (Handle the size matching or broadcastability of input and target when reduction is none. Removed redundant parenthesis)
+{v_6 : str, v_7 : tensor, v_8 : tensor} |= if v_6 = "none" then ndim(v_7) ≥ 0 ∧ ndim(v_8) ≥ 0 ∧ ∀i ∈ [0, (if ndim(v_7) < ndim(v_8) then ndim(v_7) else ndim(v_8)) - 1] : shape(v_7, ndim(v_7) - 1 - i) = shape(v_8, ndim(v_8) - 1 - i) ∨ shape(v_7, ndim(v_7) - 1 - i) = 1 ∨ shape(v_8, ndim(v_8) - 1 - i) = 1
+>>
+Rule 45 (If reduction is none, either the tensors must have the same size or they must be broadcastable)
+{v_6 : str, v_7 : tensor, v_8 : tensor} |= if v_6 = "none" then (ndim(v_7) = ndim(v_8) ∧ ∀i ∈ [0, ndim(v_7) - 1] : shape(v_7, i) = shape(v_8, i)) ∨ (ndim(v_7) ≥ 0 ∧ ndim(v_8) ≥ 0 ∧ ∀i ∈ [0, (if ndim(v_7) < ndim(v_8) then ndim(v_7) else ndim(v_8)) - 1] : (shape(v_7, ndim(v_7) - 1 - i) = shape(v_8, ndim(v_8) - 1 - i) ∨ shape(v_7, ndim(v_7) - 1 - i) = 1 ∨ shape(v_8, ndim(v_8) - 1 - i) = 1))
+>>
+Rule 46 (Input and target tensors must have compatible shapes. If reduction is none, shapes must be exactly same after broadcasting; otherwise, broadcasting is allowed.)
+{v_6 : str, v_7 : tensor, v_8 : tensor} |= if v_6 = "none" then (if ndim(v_7) = ndim(v_8) then (∀i ∈ [0, (if ndim(v_7) < ndim(v_8) then ndim(v_7) else ndim(v_8)) - 1] : shape(v_7, ndim(v_7) - 1 - i) = shape(v_8, ndim(v_8) - 1 - i)) else false)
+>>
+Rule 48 (Either reduction is not none or the tensors shapes are same, accounting for broadcastability)
+{v_6 : str, v_7 : tensor, v_8 : tensor} |= v_6 ≠ "none" ∨ (ndim(v_7) ≥ 0 ∧ ndim(v_8) ≥ 0 ∧ ∀i ∈ [0, (if ndim(v_7) < ndim(v_8) then ndim(v_7) else ndim(v_8)) - 1] : ((shape(v_7, ndim(v_7) - 1 - i) = shape(v_8, ndim(v_8) - 1 - i)) ∨ (shape(v_7, ndim(v_7) - 1 - i) = 1) ∨ (shape(v_8, ndim(v_8) - 1 - i) = 1)))
+>>
+Rule 49 (Shape check of Input and Target tensors based on reduction type and shapes of tensor)
+{v_6 : str, v_7 : tensor, v_8 : tensor} |= (v_6 ≠ "none") ∨ (ndim(v_7) = ndim(v_8) ∧ ∀i ∈ [0, (if ndim(v_7) < ndim(v_8) then ndim(v_7) else ndim(v_8)) - 1] : (shape(v_7, ndim(v_7) - 1 - i) = shape(v_8, ndim(v_8) - 1 - i) ∨ shape(v_7, ndim(v_7) - 1 - i) = 1 ∨ shape(v_8, ndim(v_8) - 1 - i) = 1))
+>>
+Rule 50 (If reduction is none, input and target tensors need to have same shape OR must be broadcastable)
+{v_6 : str, v_7 : tensor, v_8 : tensor} |= if v_6 ≠ "none" then true else (ndim(v_7) = ndim(v_8) ∧ ∀i ∈ [0, (if ndim(v_7) < ndim(v_8) then ndim(v_7) else ndim(v_8)) - 1] : (shape(v_7, ndim(v_7) - 1 - i) = shape(v_8, ndim(v_8) - 1 - i) ∨ shape(v_7, ndim(v_7) - 1 - i) = 1 ∨ shape(v_8, ndim(v_8) - 1 - i) = 1))
+>>
+Rule 51 (If reduction is none, input and target tensors need to have same shape or broadcastable shapes)
+{v_6 : str, v_7 : tensor, v_8 : tensor} |= (v_6 ≠ "none") ∨ (ndim(v_7) ≥ 0 ∧ ndim(v_8) ≥ 0 ∧ (∀i ∈ [0, (if ndim(v_7) < ndim(v_8) then ndim(v_7) else ndim(v_8)) - 1] : ((shape(v_7, ndim(v_7) - 1 - i) = shape(v_8, ndim(v_8) - 1 - i)) ∨ (shape(v_7, ndim(v_7) - 1 - i) = 1) ∨ (shape(v_8, ndim(v_8) - 1 - i) = 1))))
+>>
+Rule 52 (The tensors' shapes should be the same, unless broadcasting is enabled or reduction is active (not 'none').)
+{v_6 : str, v_7 : tensor, v_8 : tensor} |= (v_6 ≠ "none") ∨ (∃i ∈ [0, if ndim(v_7) < ndim(v_8) then ndim(v_7) else ndim(v_8)] : (shape(v_7, ndim(v_7) - 1 - i) = shape(v_8, ndim(v_8) - 1 - i) ∨ shape(v_7, ndim(v_7) - 1 - i) = 1 ∨ shape(v_8, ndim(v_8) - 1 - i) = 1)) ∨ (ndim(v_7) = ndim(v_8) ∧ ∀i ∈ [0, ndim(v_7) - 1] : shape(v_7, i) = shape(v_8, i))
+>>
+Rule 53 (Shape must be same or broadcastable if reduction is other than none.)
+{v_6 : str, v_7 : tensor, v_8 : tensor} |= (v_6 = "none") ∨ ((ndim(v_7) ≥ 0 ∧ ndim(v_8) ≥ 0 ∧ ∀i ∈ [0, if ndim(v_7) < ndim(v_8) then ndim(v_7) else ndim(v_8)] : ((shape(v_7, ndim(v_7) - 1 - i) = shape(v_8, ndim(v_8) - 1 - i)) ∨ (shape(v_7, ndim(v_7) - 1 - i) = 1) ∨ (shape(v_8, ndim(v_8) - 1 - i) = 1))))
+>>
+Rule 54 (The Input and Target Tensors must have the same shape if reduction is none, or must be broadcastable in all other cases)
+{v_6 : str, v_7 : tensor, v_8 : tensor} |= if v_6 = "none" then (ndim(v_7) = ndim(v_8) ∧ ∀i ∈ [0, (if ndim(v_7) < ndim(v_8) then ndim(v_7) else ndim(v_8)) - 1] : shape(v_7, ndim(v_7) - 1 - i) = shape(v_8, ndim(v_8) - 1 - i)) else (ndim(v_7) ≥ 0 ∧ ndim(v_8) ≥ 0 ∧ ∀i ∈ [0, (if ndim(v_7) < ndim(v_8) then ndim(v_7) else ndim(v_8)) - 1] : ((shape(v_7, ndim(v_7) - 1 - i) = shape(v_8, ndim(v_8) - 1 - i)) ∨ (shape(v_7, ndim(v_7) - 1 - i) = 1) ∨ (shape(v_8, ndim(v_8) - 1 - i) = 1)))
+>>
+Rule 55 (Input and Target must have the same size except for dimensions of size 1, and at least one dimension if reduction is none)
+{v_6 : str, v_7 : tensor, v_8 : tensor} |= if v_6 = "none" then (ndim(v_7) > 0 ∧ ndim(v_8) > 0 ∧ (ndim(v_7) = ndim(v_8) ∧ ∀i ∈ [0, if ndim(v_7) < ndim(v_8) then ndim(v_7) else ndim(v_8)] : (shape(v_7, ndim(v_7) - 1 - i) = shape(v_8, ndim(v_8) - 1 - i) ∨ shape(v_7, ndim(v_7) - 1 - i) = 1 ∨ shape(v_8, ndim(v_8) - 1 - i) = 1)))

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the input tensor's dtype is float32, the output dtype cannot be bool, int8, int16, int32, int64, uint8, float16 (Rule 18)
+# If output tensor is Short and input tensor is floating point, ensure input is float16 to allow conversion to Short. (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 7, And(And(And(And(And(And(v["arg2_dtype"] != 0, v["arg2_dtype"] != 1), v["arg2_dtype"] != 2), v["arg2_dtype"] != 3), v["arg2_dtype"] != 4), v["arg2_dtype"] != 5), v["arg2_dtype"] != 6), False)) if n else
-          If(v["arg1_dtype"] == 7, And(And(And(And(And(And(v["arg2_dtype"] != 0, v["arg2_dtype"] != 1), v["arg2_dtype"] != 2), v["arg2_dtype"] != 3), v["arg2_dtype"] != 4), v["arg2_dtype"] != 5), v["arg2_dtype"] != 6), False))
+    s.add(Not(If(v["arg2_dtype"] == 2, v["arg1_dtype"] == 6, True)) if n else
+          If(v["arg2_dtype"] == 2, v["arg1_dtype"] == 6, True))
 )
 
 def rule_18_func(arg1, arg2, solver=None, neg=False):

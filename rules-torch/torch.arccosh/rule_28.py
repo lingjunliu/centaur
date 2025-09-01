@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Output tensor must have sufficient precision for the input tensor (Rule 28)
+# If the input tensor has a complex dtype, the output tensor, if specified, should have a compatible complex dtype. (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_dtype"] == 0), v["arg2_dtype"] > 5, If((v["arg1_dtype"] == 1), v["arg2_dtype"] > 5, If((v["arg1_dtype"] == 2), v["arg2_dtype"] > 5, If((v["arg1_dtype"] == 3), v["arg2_dtype"] > 5, If((v["arg1_dtype"] == 4), v["arg2_dtype"] > 5, If((v["arg1_dtype"] == 5), v["arg2_dtype"] > 5, False))))))) if n else
-          If((v["arg1_dtype"] == 0), v["arg2_dtype"] > 5, If((v["arg1_dtype"] == 1), v["arg2_dtype"] > 5, If((v["arg1_dtype"] == 2), v["arg2_dtype"] > 5, If((v["arg1_dtype"] == 3), v["arg2_dtype"] > 5, If((v["arg1_dtype"] == 4), v["arg2_dtype"] > 5, If((v["arg1_dtype"] == 5), v["arg2_dtype"] > 5, False)))))))
+    s.add(Not(If(v["arg1_dtype"] == 10, Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 11), If(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11, True))) if n else
+          If(v["arg1_dtype"] == 10, Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 11), If(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11, True)))
 )
 
 def rule_28_func(arg1, arg2, solver=None, neg=False):

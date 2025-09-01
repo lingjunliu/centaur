@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# groups is valid (Rule 30)
+# If number of groups is specified, it must be greater than zero, and if the number of dimensions of the tensor is 3, 4, or 5, then the first dimension must be divisible by the number of groups (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(Or(Or((v["arg1_ndim"] < 1), (v["arg2_value"] == 1)), (Select(v["arg1_shape"], 0) % v["arg2_value"] == 0))) if n else
-          Or(Or((v["arg1_ndim"] < 1), (v["arg2_value"] == 1)), (Select(v["arg1_shape"], 0) % v["arg2_value"] == 0)))
+    s.add(Not(If(v["arg2_value"] > 0, If((Or(Or(v["arg1_ndim"] == 3, v["arg1_ndim"] == 4), v["arg1_ndim"] == 5)), ((Select(v["arg1_shape"], 0) % v["arg2_value"]) == 0), True), True)) if n else
+          If(v["arg2_value"] > 0, If((Or(Or(v["arg1_ndim"] == 3, v["arg1_ndim"] == 4), v["arg1_ndim"] == 5)), ((Select(v["arg1_shape"], 0) % v["arg2_value"]) == 0), True), True))
 )
 
 def rule_30_func(arg1, arg2, solver=None, neg=False):

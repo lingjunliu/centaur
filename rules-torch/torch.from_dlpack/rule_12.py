@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# ext_tensor's shape is a square matrix  (Rule 12)
+# if the tensor is 1 dimensional, then the number of elements should be between 1 and 2147483647 (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) == Select(v["arg1_shape"], 1))) if n else
-          And(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) == Select(v["arg1_shape"], 1)))
+    s.add(Not(If(v["arg1_ndim"] == 1, And(Select(v["arg1_shape"], 0) >= 1, Select(v["arg1_shape"], 0) <= 2147483647), True)) if n else
+          If(v["arg1_ndim"] == 1, And(Select(v["arg1_shape"], 0) >= 1, Select(v["arg1_shape"], 0) <= 2147483647), True))
 )
 
 def rule_12_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_12_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 12
-        rule_12(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_12(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_12(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_12(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

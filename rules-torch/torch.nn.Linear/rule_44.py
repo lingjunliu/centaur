@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# in_features must not be so small that it leads to numerical instability when computing the weight initialization bound k = 1/sqrt(in_features (Rule 44)
+# Prevent negative dimension size in weight matrix more strictly, this prevents -20 error and alloc_cpu error (Rule 44)
 
 rule_44 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] > 0) if n else
-          v["arg1_value"] > 0)
+    s.add(Not(v["arg1_value"] > -1) if n else
+          v["arg1_value"] > -1)
 )
 
 def rule_44_func(arg1, solver=None, neg=False):

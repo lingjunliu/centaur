@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the input is float16, float32, float64, complex64, or complex128 then out cannot be Short (Rule 33)
+# If input is integer, then output cannot be bool or string. (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(If((And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 11)), v["arg2_dtype"] != 2, False)) if n else
-          If((And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 11)), v["arg2_dtype"] != 2, False))
+    s.add(Not(If(v["arg1_dtype"] < 6, And(v["arg2_dtype"] != 0, v["arg2_dtype"] != 11), True)) if n else
+          If(v["arg1_dtype"] < 6, And(v["arg2_dtype"] != 0, v["arg2_dtype"] != 11), True))
 )
 
 def rule_33_func(arg1, arg2, solver=None, neg=False):

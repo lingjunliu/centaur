@@ -2,41 +2,89 @@
 Rule 1 (Input tensor A must have at least 2 dimensions)
 {v_1 : tensor} |= ndim(v_1) ≥ 2
 >>
-Rule 4 (Input tensor A must be a square matrix)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 2) = shape(v_1, ndim(v_1) - 1)
+Rule 2 (Input tensor A must be a square matrix)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
 >>
-Rule 5 (check_errors is a boolean)
+Rule 3 (Check_errors must be a boolean value.)
 {v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 7 (Input tensor A's dtype must be float, double, cfloat, or cdouble to prevent error "cholesky_cpu" not implemented for 'Half')
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+Rule 5 (The input tensor A must have a floating point or complex dtype.)
+{v_1 : tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∨ (9 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10)
 >>
-Rule 11 (A must be batches of square matrices)
-{v_1 : tensor} |= ndim(v_1) > 2 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) = shape(v_1, ndim(v_1) - 1)
+Rule 9 (If check_errors is true, info tensor cannot have positive elements)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] = 0
 >>
-Rule 12 (A must be positive-definite if check_errors is true)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then min(v_1) > 0
+Rule 12 (Enforce square matrix shape for A, regardless of batch dimensions)
+{v_1: tensor} |= shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
 >>
-Rule 15 (Input tensor A must have compatible shape when out is specified)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_2 ≠ none ∧ v_3 ≠ none then ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 2) ∧ shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 1) ∧ shape(v_1, ndim(v_1) - 2) = shape(v_3, ndim(v_3) - 2) ∧ shape(v_1, ndim(v_1) - 1) = shape(v_3, ndim(v_3) - 1)
+Rule 13 (Input tensor A's dimensions must be equal)
+{v_1 : tensor} |= ∀i ∈ [ndim(v_1) - 2, ndim(v_1) -2] : shape(v_1, i) = shape(v_1, i + 1)
 >>
-Rule 18 (The output tuple should have tensors of correct type)
-{v_1 : tuple(tensor)} |= v_1.len = 2
+Rule 14 (Input tensor A must be a matrix (2D) or a batch of matrices (>=3D) that are square)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
 >>
-Rule 19 (If out is specified, the dtypes of out tensors should match that of A)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_2 ≠ none ∧ v_3 ≠ none then dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3)
+Rule 15 (If check_errors is true, all info tensor elements must be zero.)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] = 0)
 >>
-Rule 20 (If out is specified, the shape of out tensors should match that of A's L and info, L: A without the last dimension, info: int tensor with empty shape)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_2 ≠ none ∧ v_3 ≠ none then shape(v_2, ndim(v_2) - 2) = shape(v_1, ndim(v_1) - 2) ∧ shape(v_2, ndim(v_2) - 1) = shape(v_1, ndim(v_1) - 1) ∧ ndim(v_3) = 0 ∧ dtype_(v_3) = 4
->>
-Rule 21 (If A is a batch of matrices, the batch dimensions should be compatible)
-{v_1 : tensor} |= if ndim(v_1) > 2 then ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) > 0
->>
-Rule 24 (A must not have shape dimension equal to zero)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
->>
-Rule 25 (A must have compatible dtype to prevent half type error)
+Rule 18 (if input is half type, it is not implemented)
 {v_1 : tensor} |= dtype_(v_1) ≠ 6
 >>
-Rule 27 (A must have compatible dtype to prevent char type error)
+Rule 19 (A must have at least two dimensions when check_errors is true)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then ndim(v_1) ≥ 2
+>>
+Rule 20 (Input tensor A is not of char dtype)
 {v_1 : tensor} |= dtype_(v_1) ≠ 12
+>>
+Rule 25 (A must be a matrix of at least dimension 2)
+{v_1 : tensor} |= ndim(v_1) >= 2
+>>
+Rule 26 (The dimensions of A must be valid)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) -1) > 0 ∧ shape(v_1, ndim(v_1) -2) > 0
+>>
+Rule 33 (Input tensor A cannot be half dtype)
+{v_1: tensor} |= dtype_(v_1) ≠ 6
+>>
+Rule 38 (A must be a matrix of at least dimension 2 and have positive dimensions)
+{v_1 : tensor} |= ndim(v_1) >= 2 ∧ shape(v_1, ndim(v_1) -1) > 0 ∧ shape(v_1, ndim(v_1) -2) > 0
+>>
+Rule 40 (A must have at least two dimensions when check_errors is true and have positive dimension sizes)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) -1) > 0 ∧ shape(v_1, ndim(v_1) -2) > 0
+>>
+Rule 45 (A must be of floating point or complex dtype)
+{v_1: tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 56 (Input 'A' must be a floating point or complex tensor.)
+{v_1 : tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10)
+>>
+Rule 62 (Input tensor A must be a floating point or complex tensor (dtype check))
+{v_1 : tensor} |= (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)
+>>
+Rule 69 (If check_errors is True, all elements of info must be 0.)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0
+>>
+Rule 70 (A must have dimensions greater than zero.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 86 (A must be a floating point or complex tensor)
+{v_1 : tensor} |= (dtype_(v_1) > 6 ∧ dtype_(v_1) < 11)
+>>
+Rule 88 (The shape of A must be valid, if it has 2 or more dimension)
+{v_1 : tensor} |= if ndim(v_1) >= 2 then shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0
+>>
+Rule 96 (A needs at least two dimensions with matching last two)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1)-1) = shape(v_1, ndim(v_1)-2)
+>>
+Rule 99 (A's dtype must be float or complex)
+{v_1 : tensor} |= (dtype_(v_1) > 6) ∧ (dtype_(v_1) < 11)
+>>
+Rule 102 (Dimensions of A should be positive to avoid 0x86 matrices)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0
+>>
+Rule 113 (If check_errors is true, shape of A must be greater than 0 in last two dimensions)
+{v_1: tensor, v_2: bool} |= if v_2 = true then shape(v_1, ndim(v_1) -1) > 0 ∧ shape(v_1, ndim(v_1) -2) > 0
+>>
+Rule 123 (If factorization fails (info != 0) and check_errors is true, RuntimeError is thrown. The info tensor is the first argument in the out tuple)
+{v_1: tensor, v_2: bool} |= if v_2 = true then ∀i ∈ [0, shape(v_1, 0)-1]: v_1[i] = 0
+>>
+Rule 128 (Shape of A must be greater than 0, avoid 0x86 matrix)
+{v_1: tensor} |= shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0

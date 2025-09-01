@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Prevent N from getting too huge to cause index calculation issues (Rule 48)
+# Reject function when N would be too large to prevent out of memory (Rule 48)
 
 rule_48 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 100000) if n else
-          v["arg1_value"] < 100000)
+    s.add(Not(If(v["arg1_value"] > 46340, False, True)) if n else
+          If(v["arg1_value"] > 46340, False, True))
 )
 
 def rule_48_func(arg1, solver=None, neg=False):

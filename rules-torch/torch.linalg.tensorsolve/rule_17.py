@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check that the dtypes of A and B are supported: float, double, cfloat, or cdouble (Rule 17)
+# Check that A's shape is valid given B's shape, to avoid RuntimeError, using explicit multiplication instead of forall. (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(And((Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 10), v["arg1_dtype"] == 11)), (Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 10), v["arg2_dtype"] == 11)))) if n else
-          And((Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 10), v["arg1_dtype"] == 11)), (Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 10), v["arg2_dtype"] == 11))))
+    s.add(Not(If(v["arg1_ndim"] >= v["arg2_ndim"], (Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) * Select(v["arg1_shape"], 3)) == (Select(v["arg1_shape"], 4) * Select(v["arg1_shape"], 5) * Select(v["arg1_shape"], 6) * Select(v["arg1_shape"], 7)), True)) if n else
+          If(v["arg1_ndim"] >= v["arg2_ndim"], (Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) * Select(v["arg1_shape"], 3)) == (Select(v["arg1_shape"], 4) * Select(v["arg1_shape"], 5) * Select(v["arg1_shape"], 6) * Select(v["arg1_shape"], 7)), True))
 )
 
 def rule_17_func(arg1, arg2, solver=None, neg=False):
@@ -25,17 +25,20 @@ def rule_17_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_ndim = Int('arg2_ndim')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg2_ndim == arg2.ndim)
 
         # Constraints for rule 17
-        rule_17(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_17(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_17(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_17(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)

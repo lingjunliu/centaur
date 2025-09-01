@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check dimension can not be too small. (Rule 56)
+# The product of all dimensions needs to be checked to be under a certain limit to avoid memory allocation error. Check the non-batch dimensions, and enforce them to be under certain limit (Rule 56)
 
 rule_56 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 1) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 1) for i in range(6)]))
+    s.add(Not(If(v["arg1_ndim"] == 2, (Select(v["arg1_shape"], 1) < 50000000), If(v["arg1_ndim"] == 3, (Select(v["arg1_shape"], 2) < 50000000), True))) if n else
+          If(v["arg1_ndim"] == 2, (Select(v["arg1_shape"], 1) < 50000000), If(v["arg1_ndim"] == 3, (Select(v["arg1_shape"], 2) < 50000000), True)))
 )
 
 def rule_56_func(arg1, solver=None, neg=False):

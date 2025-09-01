@@ -5,16 +5,17 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Combine Dtype of the two input tensors and compare (Rule 55)
+# If input and mat2 have integer dtypes, out tensor should not have a float dtype if out is specified. (Rule 55)
 
 rule_55 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] + v["arg2_dtype"] == 14) if n else
-          v["arg1_dtype"] + v["arg2_dtype"] == 14)
+    s.add(Not(If(And((And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 5)), (And(v["arg2_dtype"] >= 1, v["arg2_dtype"] <= 5))), If(v["arg3_ndim"] > 0, (Or(v["arg3_dtype"] < 6, v["arg3_dtype"] > 8)), True), True)) if n else
+          If(And((And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 5)), (And(v["arg2_dtype"] >= 1, v["arg2_dtype"] <= 5))), If(v["arg3_ndim"] > 0, (Or(v["arg3_dtype"] < 6, v["arg3_dtype"] > 8)), True), True))
 )
 
-def rule_55_func(arg1, arg2, solver=None, neg=False):
+def rule_55_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
@@ -22,20 +23,26 @@ def rule_55_func(arg1, arg2, solver=None, neg=False):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
+        if not isinstance(arg3, np.ndarray):
+            return False
 
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
         arg2_dtype = Int('arg2_dtype')
+        arg3_ndim = Int('arg3_ndim')
+        arg3_dtype = Int('arg3_dtype')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg3_ndim == arg3.ndim)
+        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
 
         # Constraints for rule 55
-        rule_55(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_55(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype, 'arg3_ndim': arg3_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_55(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_55(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype'], 'arg3_ndim': arg3['ndim']}, neg)

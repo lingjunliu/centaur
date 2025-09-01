@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Float must be normal number to be safe for calculation (Rule 59)
+# The length of the source list, multiplied by the size of a double, should be within reasonable memory constraints (Rule 59)
 
 rule_59 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] != 0.0) if n else
-          v["arg1_value"] != 0.0)
+    s.add(Not(v["arg1_length"] < 134217728) if n else
+          v["arg1_length"] < 134217728)
 )
 
 def rule_59_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_59_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
+        if not (isinstance(arg1, list) and all(isinstance(e, (float, np.floating)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
+        arg1_length = Int('arg1_length')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
+        solver.add(arg1_length == len(arg1))
 
         # Constraints for rule 59
-        rule_59(solver, {'arg1_value': arg1_value})
+        rule_59(solver, {'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_59(solver, {'arg1_value': arg1['value']}, neg)
+        rule_59(solver, {'arg1_length': arg1['length']}, neg)

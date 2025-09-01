@@ -8,8 +8,8 @@ from z3 import *
 # dtype must be one of the quantized dtypes (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(v["arg1_value"] == 0, v["arg1_value"] == 1), v["arg1_value"] == 2)) if n else
-          Or(Or(v["arg1_value"] == 0, v["arg1_value"] == 1), v["arg1_value"] == 2))
+    s.add(Not(Or(Or(v["arg1_value"] == 5, v["arg1_value"] == 2), v["arg1_value"] == 3)) if n else
+          Or(Or(v["arg1_value"] == 5, v["arg1_value"] == 2), v["arg1_value"] == 3))
 )
 
 def rule_2_func(arg1, solver=None, neg=False):

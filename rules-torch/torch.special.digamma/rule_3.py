@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor should not have complex data type (Rule 3)
+# input tensor should have numerical dtype (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10)) if n else
-          And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10))
+    s.add(Not(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)) if n else
+          And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 8))
 )
 
 def rule_3_func(arg1, solver=None, neg=False):

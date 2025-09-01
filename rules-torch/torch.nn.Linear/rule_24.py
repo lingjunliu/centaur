@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Prevent in_features or out_features from being too large to cause OOM errors during weight initialization (Rule 24)
+# The output features cannot exceed the maximum integer. (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 16384) if n else
-          v["arg1_value"] < 16384)
+    s.add(Not(v["arg1_value"] < 2147483647) if n else
+          v["arg1_value"] < 2147483647)
 )
 
 def rule_24_func(arg1, solver=None, neg=False):

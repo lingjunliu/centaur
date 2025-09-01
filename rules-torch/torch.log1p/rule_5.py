@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor cannot be int8 type if out is float16 (Rule 5)
+# if input is integer type, output should not be bool (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_dtype"] == 6, v["arg1_dtype"] != 1, False)) if n else
-          If(v["arg2_dtype"] == 6, v["arg1_dtype"] != 1, False))
+    s.add(Not(If(And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 5), v["arg2_dtype"] != 0, True)) if n else
+          If(And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 5), v["arg2_dtype"] != 0, True))
 )
 
 def rule_5_func(arg1, arg2, solver=None, neg=False):

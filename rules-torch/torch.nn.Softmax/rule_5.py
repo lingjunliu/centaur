@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Dimension must be within the valid range (Rule 5)
+# Dimension should be within the valid range of the input tensor dimensions (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
     s.add(Not(And((0 - v["arg1_ndim"]) <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"])) if n else

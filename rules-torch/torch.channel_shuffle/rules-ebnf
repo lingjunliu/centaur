@@ -1,87 +1,243 @@
 >>
-Rule 1 (input tensor should have more than 2 dimensions)
+Rule 1 (input tensor must have more than 2 dimensions)
 {v_1 : tensor} |= ndim(v_1) > 2
 >>
 Rule 2 (number of groups must be positive)
 {v_2 : int} |= v_2 > 0
 >>
-Rule 6 (number of channels must be divisible by groups)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 1) = shape(v_1, 1) / v_2 * v_2
+Rule 3 (number of channels must be divisible by the number of groups)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 1) % v_2 = 0
 >>
-Rule 8 (groups cannot exceed the number of channels)
-{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, 1)
+Rule 4 (input tensor must have at least 2 dimensions and groups be a positive integer)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) > 1 ∧ v_2 > 0
 >>
-Rule 9 (number of channels is divisible by groups)
-{v_1 : tensor, v_2 : int} |= ∃i ∈ [0, shape(v_1, 1)] : shape(v_1, 1) = v_2 * i
+Rule 5 (groups must be less than or equal to the number of channels)
+{v_1 : tensor, v_2 : int} |= v_2 <= shape(v_1, 1)
 >>
-Rule 10 (number of channels divisible by groups expressed as integer division resulting in an integer)
-{v_1 : tensor, v_2 : int} |= (shape(v_1, 1) / v_2) = ((shape(v_1, 1) / v_2) + 0.0)
+Rule 6 (the input tensor must have more than 2 dims and all dimensions must be positive)
+{v_1 : tensor} |= ndim(v_1) > 2 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 11 (Check if the number of channels is a multiple of the number of groups)
-{v_1 : tensor, v_2 : int} |= ∃k ∈ [0, shape(v_1, 1)] : v_2 * k = shape(v_1, 1)
+Rule 7 (input tensor must be of floating-point type and groups must be positive)
+{v_1 : tensor, v_2 : int} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ v_2 > 0
 >>
-Rule 12 (Combined rule for input dimensions and groups)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) > 2 ∧ v_2 > 0 ∧ ∃k ∈ [0, shape(v_1, 1)] : v_2 * k = shape(v_1, 1)
+Rule 11 (combined rule for valid channel shuffle)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) > 2 ∧ v_2 > 0 ∧ shape(v_1, 1) % v_2 = 0
 >>
-Rule 14 (input tensor's shape is valid for group size)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 2 then (v_2 > 0 ∧ ∃k ∈ [0, shape(v_1, 1)] : shape(v_1, 1) = v_2 * k)
+Rule 12 (number of groups must be less than the number of channels)
+{v_1 : tensor, v_2 : int} |= v_2 < shape(v_1, 1)
 >>
-Rule 16 (Valid input tensor and groups relation using multiplication instead of division)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) > 2 ∧ v_2 > 0 ∧ ∃k ∈ [0, shape(v_1, 1)] : shape(v_1, 1) = v_2 * k
+Rule 13 (number of groups cannot be zero)
+{v_2 : int} |= v_2 ≠ 0
 >>
-Rule 18 (Shape along axis 1 must be evenly divisible by groups, and groups must be positive)
-{v_1 : tensor, v_2 : int} |= v_2 > 0 ∧ ∃k ∈ [0, shape(v_1, 1)] : shape(v_1, 1) = v_2 * k
+Rule 14 (The channel dimension of input cannot be zero)
+{v_1 : tensor} |= shape(v_1, 1) > 0
 >>
-Rule 21 (Check that groups is a valid factor of the number of channels)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 2 then ∃k ∈ [1, shape(v_1, 1)] : (v_2 = 1 ∨ v_2 = shape(v_1, 1) ∨ (v_2 > 1 ∧ v_2 < shape(v_1, 1) ∧ shape(v_1, 1) = v_2 * k))
+Rule 15 (Groups must be less than or equal to the square root of the number of channels)
+{v_1 : tensor, v_2 : int} |= v_2 ≤ (shape(v_1, 1) * shape(v_1, 1))
 >>
-Rule 22 (Groups is a factor of channels or groups is one when input has enough dimensions)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 2 then ∃k ∈ [0, shape(v_1, 1)] : shape(v_1, 1) = v_2 * k
+Rule 17 (If groups is one, the input must have more than two dimensions)
+{v_1 : tensor, v_2 : int} |= if v_2 = 1 then ndim(v_1) > 2
 >>
-Rule 24 (Check for valid dimensions and divisibility of groups - no division used)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) ≤ 2 then true else v_2 > 0 ∧ ∃k ∈ [0, shape(v_1, 1)] : shape(v_1, 1) = v_2 * k
+Rule 18 (Check dtype of input tensor is float or complex if the number of groups is greater than 1)
+{v_1 : tensor, v_2 : int} |= if v_2 > 1 then (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11)
 >>
-Rule 25 (All conditions combined - input dimensions, groups positive and divides channels)
-{v_1 : tensor, v_2 : int} |= (ndim(v_1) > 2) ∧ (v_2 > 0) ∧ (∃k ∈ [0, shape(v_1, 1)] : shape(v_1, 1) = v_2 * k)
+Rule 19 (When number of groups is equal to number of channels, number of channels cannot be zero.)
+{v_1: tensor, v_2: int} |= if v_2 = shape(v_1, 1) then shape(v_1, 1) > 0
 >>
-Rule 28 (Sufficient dimensions implies groups properties )
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 2 then (v_2 > 0 ∧ (∃k ∈ [0, shape(v_1, 1)] : shape(v_1, 1) = v_2 * k))
+Rule 20 (The number of channels should not be negative)
+{v_1 : tensor} |= shape(v_1, 1) ≥ 0
 >>
-Rule 29 (Groups is either 1, or positive factor of channels if dimensions are sufficient)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) <= 2 then true else (v_2 = 1) ∨ (v_2 > 1 ∧ ∃k ∈ [1, shape(v_1, 1)] : shape(v_1, 1) = v_2 * k)
+Rule 21 (Groups cannot be a very large number, e.g., greater than 1000)
+{v_2 : int} |= v_2 < 1000
 >>
-Rule 30 (Enforce conditions: sufficient dimensions OR (positive groups AND channel divisibility) OR groups is 1)
-{v_1 : tensor, v_2 : int} |= (ndim(v_1) > 2) ∨ ((v_2 > 0) ∧ (∃k ∈ [0, shape(v_1, 1)] : shape(v_1, 1) = v_2 * k)) ∨ (v_2 = 1)
+Rule 22 (Number of groups must be less than or equal to half of channels)
+{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, 1) / 2
 >>
-Rule 32 (Either sufficient dimensions, or correct group values.)
-{v_1 : tensor, v_2 : int} |= (ndim(v_1) > 2) ∨ (v_2 = 1 ∨ (v_2 > 0 ∧ ∃k ∈ [0, shape(v_1, 1)] : shape(v_1, 1) = v_2 * k))
+Rule 23 (If the number of groups is equal to the number of channels, the tensor's dimensions must be greater than 2.)
+{v_1 : tensor, v_2 : int} |= if v_2 = shape(v_1, 1) then ndim(v_1) > 2
 >>
-Rule 35 (Combined Rule : Correct dimensions OR trivial groups OR (valid groups AND divisibility))
-{v_1 : tensor, v_2 : int} |= (ndim(v_1) <= 2) ∨ (v_2 = 1) ∨ ((v_2 > 0) ∧ (∃k ∈ [0, shape(v_1, 1)] : shape(v_1, 1) = v_2 * k))
+Rule 24 (Either groups is 1, or the number of channels is divisible by groups)
+{v_1 : tensor, v_2 : int} |= v_2 = 1 ∨ shape(v_1, 1) % v_2 = 0
 >>
-Rule 37 (If input dimensions are not sufficient, allow any groups value. Otherwise require valid group and channel sizes, using quantifier.)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) <= 2 then true else (v_2 > 0) ∧ (∃k ∈ [0, shape(v_1, 1)] : shape(v_1, 1) = v_2 * k)
+Rule 25 (If the number of channels is 0, then the number of groups must be 1)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, 1) = 0 then v_2 = 1
 >>
-Rule 38 (Check if valid or default groups.)
-{v_1 : tensor, v_2 : int} |= (ndim(v_1) <= 2) ∨ (v_2 = 1) ∨ ((ndim(v_1) > 2) ∧ (v_2 > 0) ∧ (∃k ∈ [0, shape(v_1, 1)] : shape(v_1, 1) = v_2 * k))
+Rule 26 (If groups is greater than the number of channels, it is an error.)
+{v_1: tensor, v_2: int} |= if v_2 > shape(v_1, 1) then false
 >>
-Rule 39 (If dimensions are sufficient, groups should be valid, otherwise dimension check should pass)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 2 then (v_2 > 0 ∧ ∃k ∈ [0, shape(v_1, 1)] : shape(v_1, 1) = v_2 * k) else ndim(v_1) > 2
+Rule 27 (The product of all the dimensions of the input should not be zero if the group is greater than 1)
+{v_1: tensor, v_2: int} |= if v_2 > 1 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
 >>
-Rule 40 (Correct group value, or sufficient number of dimensions.)
-{v_1 : tensor, v_2 : int} |= (v_2 = 1) ∨ (ndim(v_1) <= 2) ∨ ((ndim(v_1) > 2) ∧ (v_2 > 0) ∧ (∃k ∈ [0, shape(v_1, 1)] : shape(v_1, 1) = v_2 * k))
+Rule 28 (The number of groups should not be negative, and if it's not, it should divide the number of channels)
+{v_1 : tensor, v_2 : int} |= (v_2 ≥ 0) ∧ if v_2 > 0 then (shape(v_1, 1) % v_2 = 0)
 >>
-Rule 41 (Valid groups requires sufficient dimensions and correct factor, OR group equals 1)
-{v_1 : tensor, v_2 : int} |= (v_2 = 1) ∨ ((ndim(v_1) > 2) ∧ (v_2 > 0) ∧ (∃k ∈ [0, shape(v_1, 1)] : shape(v_1, 1) = v_2 * k))
+Rule 29 (For a 3D tensor, group cannot exceed number of channels)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 then v_2 ≤ shape(v_1, 1)
 >>
-Rule 42 (Sufficient dimensions OR (groups is the default value 1) OR (Groups valid and is a factor of channels))
-{v_1 : tensor, v_2 : int} |= (ndim(v_1) > 2) ∨ (v_2 = 1) ∨ ((v_2 > 0) ∧ (∃k ∈ [0, shape(v_1, 1)] : shape(v_1, 1) = v_2 * k))
+Rule 30 (Groups must divide the total number of elements in the channel dimension)
+{v_1 : tensor, v_2 : int} |= (shape(v_1, 1) > 0) ∧ (v_2 > 0) ∧ (shape(v_1, 1) % v_2 = 0)
 >>
-Rule 44 (Sufficient dimensions OR (Groups is a divisor of channels or 1), using quantifier)
-{v_1 : tensor, v_2 : int} |= (ndim(v_1) > 2) ∨ (v_2 = 1) ∨ (∃k ∈ [0, shape(v_1, 1)] : shape(v_1, 1) = v_2 * k)
+Rule 31 (If groups equals the channel dimension, then the other dimensions must be positive)
+{v_1 : tensor, v_2 : int} |= if v_2 = shape(v_1, 1) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 47 (If not enough dimensions, okay. Otherwise, groups is positive and factor of channel size)
-{v_1 : tensor, v_2 : int} |= (ndim(v_1) <= 2) ∨ ((v_2 > 0) ∧ (∃k ∈ [0, shape(v_1, 1)] : shape(v_1, 1) = v_2 * k))
+Rule 32 (Number of Groups must be less than or equal to product of channel dimension and some constant number)
+{v_1 : tensor, v_2: int} |= v_2 <= shape(v_1, 1) * 100
 >>
-Rule 49 (A sufficient condition for correct use of channel_shuffle OR using it on trivial tensor)
-{v_1 : tensor, v_2 : int} |= (ndim(v_1) <= 2) ∨ ((ndim(v_1) > 2) ∧ (v_2 > 0) ∧ (∃k ∈ [0, shape(v_1, 1)] : shape(v_1, 1) = v_2 * k))
+Rule 33 (If input tensor is 4D, groups must be less than or equal to channel dimension)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 4 then v_2 <= shape(v_1, 1)
+>>
+Rule 34 (if channel dimension is 1, groups must also be 1)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, 1) = 1 then v_2 = 1
+>>
+Rule 35 (The number of groups should not exceed the maximum allowed integer value)
+{v_2 : int} |= v_2 < 2147483647
+>>
+Rule 36 (The channel dimension must be less than the max integer value)
+{v_1 : tensor} |= shape(v_1, 1) < 2147483647
+>>
+Rule 37 (If group is greater than 1, channel size must be greater than 1)
+{v_1 : tensor, v_2 : int} |= if v_2 > 1 then shape(v_1, 1) > 1
+>>
+Rule 38 (Groups and the channels must have the same sign)
+{v_1 : tensor, v_2 : int} |= (shape(v_1, 1) > 0 ∧ v_2 > 0) ∨ (shape(v_1, 1) < 0 ∧ v_2 < 0) ∨ (shape(v_1, 1) = 0 ∧ v_2 = 0)
+>>
+Rule 39 (Groups can only be 1 if the tensor is empty)
+{v_1 : tensor, v_2 : int} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then v_2 = 1
+>>
+Rule 40 (Channels dimension cannot be negative or very large)
+{v_1 : tensor} |=  0 <= shape(v_1, 1) ∧ shape(v_1, 1) < 10000
+>>
+Rule 41 (groups and channels must either be both positive or one of them is zero and tensor's dim > 2)
+{v_1 : tensor, v_2 : int} |= (v_2 > 0 ∧ shape(v_1, 1) > 0) ∨ ( (v_2 = 0 ∨ shape(v_1, 1) = 0) ∧ ndim(v_1) > 2)
+>>
+Rule 43 (Groups must be a divisor of channel size)
+{v_1: tensor, v_2: int} |= ∃k ∈ [0, shape(v_1, 1)]: v_2 * k = shape(v_1, 1)
+>>
+Rule 44 (The tensor must be at least of dimension 1 and if it's exactly of dimension 1, group has to be one.)
+{v_1 : tensor, v_2 : int} |= (ndim(v_1) > 0) ∧ if (ndim(v_1) = 1) then (v_2 = 1)
+>>
+Rule 45 (If groups divides the number of channels, both must be non-zero or zero at the same time.)
+{v_1: tensor, v_2: int} |= if (shape(v_1, 1) % v_2 = 0) then ( (v_2 = 0 ∧ shape(v_1, 1) = 0) ∨ (v_2 ≠ 0 ∧ shape(v_1, 1) ≠ 0))
+>>
+Rule 46 ( If channel dimension is even, groups cannot be odd)
+{v_1: tensor, v_2: int} |= if shape(v_1, 1) % 2 = 0 then v_2 % 2 = 0 ∨ v_2 = 1
+>>
+Rule 47 (If a 5D tensor then groups must be less than or equal to the channel dimension)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 5 then v_2 <= shape(v_1, 1)
+>>
+Rule 48 (If the input tensor is 0-dimensional then groups has to be 1.)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 0 then v_2 = 1
+>>
+Rule 49 (Number of channels should be greater than or equal to number of groups minus 1)
+{v_1: tensor, v_2: int} |= shape(v_1, 1) >= v_2 - 1
+>>
+Rule 50 (If channels is 2, groups must be 1 or 2)
+{v_1: tensor, v_2: int} |= if shape(v_1, 1) = 2 then (v_2 = 1 ∨ v_2 = 2)
+>>
+Rule 51 (if channel dimension is odd then group cannot be even)
+{v_1: tensor, v_2: int} |= if shape(v_1, 1) % 2 ≠ 0 then v_2 % 2 ≠ 0
+>>
+Rule 52 (If input is 3D then group cannot be more than 2 times channel size)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 3 then v_2 <= 2 * shape(v_1, 1)
+>>
+Rule 53 (if number of elements in the channel dimension is larger than a specific amount, groups must divide a smaller portion of it)
+{v_1: tensor, v_2: int} |= if shape(v_1, 1) > 1000 then (shape(v_1, 1) / 10) % v_2 = 0 else shape(v_1, 1) % v_2 = 0
+>>
+Rule 54 (Groups must have a reasonable upper bound based on the number of channels using log scale)
+{v_1: tensor, v_2: int} |= v_2 <= shape(v_1, 1) / ( shape(v_1, 1) / 10)
+>>
+Rule 55 (If number of dimensions is greater than 2, the groups value must be greater than 0)
+{v_1: tensor, v_2: int} |= if ndim(v_1) > 2 then v_2 > 0
+>>
+Rule 57 (The number of channels can't be 1 and groups cannot be equal to a very large prime number)
+{v_1: tensor, v_2: int} |= shape(v_1, 1) ≠ 1 ∧ v_2 ≠ 2147483647
+>>
+Rule 59 (Groups must be greater than or equal to negative one times channels)
+{v_1: tensor, v_2: int} |= v_2 >= (0 - shape(v_1, 1))
+>>
+Rule 60 (If the input tensor has more than 2 dimensions, then the number of groups must be greater than 0 and not be equal to the number of channel minus 1)
+{v_1: tensor, v_2: int} |= if ndim(v_1) > 2 then v_2 > 0 ∧ v_2 ≠ (shape(v_1, 1) - 1)
+>>
+Rule 61 (If the groups is greater than 1, then number of channels should not be 0)
+{v_1: tensor, v_2: int} |= if v_2 > 1 then shape(v_1, 1) ≠ 0
+>>
+Rule 62 (If tensor has a shape with element 0, group size is 1.)
+{v_1: tensor, v_2: int} |= if ∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = 0 then v_2 = 1
+>>
+Rule 64 ( If number of groups is greater than 1, product of channel_dim and group_dim cannot be more than max integer)
+{v_1: tensor, v_2: int} |= if v_2 > 1 then shape(v_1, 1) * v_2 < 2147483647
+>>
+Rule 65 (Groups must be positive, and less than the maximum allowed integer value; channel number should be such that groups divides its value)
+{v_1: tensor, v_2: int} |= (v_2 > 0) ∧ (v_2 < 2147483647) ∧ (shape(v_1, 1) % v_2 = 0)
+>>
+Rule 66 (If groups is 1, then number of channels must be greater than or equal to 1)
+{v_1: tensor, v_2: int} |= if v_2 = 1 then shape(v_1, 1) >= 1
+>>
+Rule 67 ( If channels are not divisible by groups then input tensor dimensions are not equal to 3 )
+{v_1: tensor, v_2: int} |= if (shape(v_1, 1) % v_2) ≠ 0 then ndim(v_1) ≠ 3
+>>
+Rule 68 (Number of groups to divide channels in must be positive and less than or equal to max integer/2 )
+{v_2 : int} |= (v_2 > 0) ∧ (v_2 <= 1073741823)
+>>
+Rule 69 (If groups equals the number of channels, then all dimensions must be less than 1000)
+{v_1: tensor, v_2: int} |= if v_2 = shape(v_1, 1) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000
+>>
+Rule 70 (If channel dimension is one then group has to be one or channel number is more than two dimensions.)
+{v_1: tensor, v_2: int} |= if shape(v_1, 1) = 1 then (v_2 = 1 ∨ ndim(v_1) > 2 )
+>>
+Rule 71 (If the tensor is not 0 dimensional then group has to be a positive value.)
+{v_1: tensor, v_2: int} |= if ndim(v_1) ≠ 0 then v_2 > 0
+>>
+Rule 72 (The group value should be less than or equal to the maximum value of an int32)
+{v_2: int} |= v_2 <= 2147483647
+>>
+Rule 73 (If the number of groups is negative, it should throw an error)
+{v_2: int} |= if v_2 < 0 then false
+>>
+Rule 75 (If the group is not one, the channel dimension should be larger than one)
+{v_1:tensor, v_2:int} |= if v_2 ≠ 1 then shape(v_1, 1) > 1
+>>
+Rule 76 (If the number of channels is less than the number of groups, and the channel dimension has a positive value, that should throw an error)
+{v_1: tensor, v_2: int} |= if shape(v_1, 1) < v_2 ∧ shape(v_1, 1) > 0 then false
+>>
+Rule 77 (If the group is greater than the channel dimension and tensor dimensions are greather than 2, then there is something wrong.)
+{v_1: tensor, v_2: int} |= if v_2 > shape(v_1, 1) ∧ ndim(v_1) > 2 then false
+>>
+Rule 78 (If the channel number is divisible by the number of groups, the resulting number cannot be zero)
+{v_1: tensor, v_2: int} |= if shape(v_1, 1) % v_2 = 0 then shape(v_1, 1) / v_2 ≠ 0
+>>
+Rule 79 (If the channel size is negative and groups is more than zero, that should raise an error)
+{v_1: tensor, v_2: int} |= if shape(v_1, 1) < 0 ∧ v_2 > 0 then false
+>>
+Rule 80 (The channel dimension must have a valid integer representation.)
+{v_1: tensor} |= ∃i ∈ [1,5] : dtype_(v_1) = i
+>>
+Rule 81 (If number of channels is 0, group must also be zero )
+{v_1: tensor, v_2: int} |= if shape(v_1, 1) = 0 then v_2 = 0
+>>
+Rule 82 (If groups is not 1, then channel dimensions has to be a valid number)
+{v_1:tensor, v_2:int} |= if v_2 ≠ 1 then ∃i ∈ [1,5] : dtype_(v_1) = i
+>>
+Rule 83 (Number of dimensions of the input tensor must be greater than 2 or equal to 1.)
+{v_1: tensor} |= ndim(v_1) > 2 ∨ ndim(v_1) = 1
+>>
+Rule 84 ( if group is bigger than 1 then there needs to be at least one channel)
+{v_1 : tensor, v_2 : int} |= if v_2 > 1 then shape(v_1, 1) >=1
+>>
+Rule 85 (If number of dimensions is 1 then group must be 1 else number of dimension has to be more than 2)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 1 then v_2 = 1 else ndim(v_1) > 2
+>>
+Rule 86 (If the number of groups does not divide the channel, then throw an error if dimension > 2)
+{v_1: tensor, v_2: int} |= if shape(v_1, 1) % v_2 ≠ 0 ∧ ndim(v_1) > 2 then false
+>>
+Rule 87 (If the number of groups is greater than 1 then dimensions of the tensor has to be equal or greater than 1)
+{v_1: tensor, v_2: int} |= if v_2 > 1 then ndim(v_1) ≥ 1
+>>
+Rule 88 ( if group equals zero, make sure number of dimension is not just one )
+{v_1 : tensor, v_2 : int} |= if v_2 = 0 then ndim(v_1) ≠ 1
+>>
+Rule 89 (If channel is divisible by group then the result can not be 0 and it should be between 1 to 10)
+{v_1:tensor, v_2:int} |= if shape(v_1, 1) % v_2 = 0 then (shape(v_1, 1) / v_2 ≠ 0 ∧ 1 <= (shape(v_1, 1) / v_2) ∧ (shape(v_1, 1) / v_2) <= 10)
+>>
+Rule 90 (Groups cannot be equal to number of channel if number of dimensions equals 0 )
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 0 then v_2 ≠ shape(v_1, 1)

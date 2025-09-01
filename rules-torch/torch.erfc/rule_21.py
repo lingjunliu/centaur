@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor must be a real number type (Rule 21)
+# Input tensor's dtype should be either float16, float32, or float64 to support the erfc operation (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] < 9) if n else
-          v["arg1_dtype"] < 9)
+    s.add(Not(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)) if n else
+          Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8))
 )
 
 def rule_21_func(arg1, solver=None, neg=False):

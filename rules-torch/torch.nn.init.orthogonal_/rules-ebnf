@@ -1,114 +1,72 @@
 >>
-Rule 1 (Input tensor must have at least 2 dimensions)
+Rule 1 (tensor must have at least 2 dimensions)
 {v_1 : tensor} |= ndim(v_1) ≥ 2
 >>
-Rule 2 (Input tensor should not be Half type to avoid "geqrf_cpu" error)
+Rule 2 (tensor should not have Half dtype to avoid "geqrf_cpu" error)
 {v_1 : tensor} |= dtype_(v_1) ≠ 6
 >>
-Rule 3 (Input tensor should not be Short type to avoid "normal_kernel_cpu" error)
+Rule 3 (tensor should not have Short dtype to avoid "normal_kernel_cpu" error)
 {v_1 : tensor} |= dtype_(v_1) ≠ 2
 >>
-Rule 4 (Input tensor should not be complex to avoid torch.sign error)
+Rule 4 (tensor should not have Complex dtype to avoid torch.sign error)
 {v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
 >>
-Rule 11 (Input tensor must have at least 2 dimensions and not have Half, Short, or complex dtype)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+Rule 5 (gain should be a float and greater than 0)
+{v_2 : float} |= v_2 > 0
 >>
-Rule 12 (If generator is specified, it should be non-null)
-{v_3 : int} |= v_3 ≥ 0
+Rule 10 (gain must be a non-negative float)
+{v_2 : float} |= v_2 ≥ 0
 >>
-Rule 17 (Shape of the input tensor should be valid.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 11 (if tensor has more than 2 dimensions, ensure flattened trailing dimensions have a valid size)
+{v_1 : tensor} |= if ndim(v_1) > 2 then shape(v_1, 0) * shape(v_1, 1) > 0
 >>
-Rule 18 (Input tensor must be of float type to allow orthogonal initialization)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 23 (tensor dtype should be one of valid dtypes)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 0
 >>
-Rule 19 (The last two dimensions of the tensor must be less than or equal to 2048 to avoid memory issues.)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) <= 2048 ∧ shape(v_1, ndim(v_1) - 2) <= 2048
+Rule 30 (If the tensor has Half dtype, it should not be initialized)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then false
 >>
-Rule 20 (Input tensor 's size in dimension -1 can not be zero)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) ≠ 0
+Rule 31 (If the tensor has Short dtype, it should not be initialized)
+{v_1 : tensor} |= if dtype_(v_1) = 2 then false
 >>
-Rule 21 (If the tensor has more than 2 dimensions, then the product of the trailing dimensions must be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) > 2 then ∀i ∈ [2, ndim(v_1) -1] : shape(v_1, i) > 0
+Rule 32 (If the tensor has Complex dtype, it should not be initialized)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then false
 >>
-Rule 22 (Input tensor must not have zero size in any dimension)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+Rule 63 (If the tensor is initialized successfully then it should not be a Half or Short or Complex tensor and also the number of dimensions must be at least 2, and also if ndim > 2, then first two dims product > 0.)
+{v_1 : tensor} |= (dtype_(v_1) ≠ 6) ∧ (dtype_(v_1) ≠ 2) ∧ (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10) ∧ (ndim(v_1) ≥ 2) ∧ (if ndim(v_1) > 2 then shape(v_1, 0) * shape(v_1, 1) > 0)
 >>
-Rule 23 (If gain is not none, it should be a scalar.)
-{v_2 : int ⊎ float} |= ndim(v_2) = 0
+Rule 68 (Ensure tensor is not Half, Short, or Complex)
+{v_1 : tensor} |= (dtype_(v_1) ≠ 6) ∧ (dtype_(v_1) ≠ 2) ∧ (dtype_(v_1) ≠ 9) ∧ (dtype_(v_1) ≠ 10)
 >>
-Rule 24 (The product of last two dimensions of input tensor can not be zero.)
-{v_1: tensor} |= shape(v_1, ndim(v_1) - 1) * shape(v_1, ndim(v_1) - 2) ≠ 0
+Rule 77 (Tensor should not be of type Half, Short or Complex)
+{v_1 : tensor} |= (dtype_(v_1) ≠ 6) ∧ (dtype_(v_1) ≠ 2) ∧ ((dtype_(v_1) ≠ 9) ∧ (dtype_(v_1) ≠ 10))
 >>
-Rule 26 (Input tensor must have at least 2 dimensions and be a floating point type.)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+Rule 83 (Valid initialization conditions)
+{v_1 : tensor} |= (ndim(v_1) ≥ 2) ∧ ((dtype_(v_1) ≠ 6) ∧ (dtype_(v_1) ≠ 2) ∧ (dtype_(v_1) ≠ 9) ∧ (dtype_(v_1) ≠ 10))
 >>
-Rule 27 (Input tensor must have at least two dimensions, and if it has more than two dimensions, the flattened trailing dimensions must have a size greater than 0.)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (if ndim(v_1) > 2 then (∃i ∈ [2, ndim(v_1) - 1] : shape(v_1, i) > 0))
+Rule 85 (Tensor cannot be of type Half, Short, or Complex and it must have at least 2 dimensions)
+{v_1 : tensor} |= (dtype_(v_1) ≠ 6) ∧ (dtype_(v_1) ≠ 2) ∧ (dtype_(v_1) ≠ 9) ∧ (dtype_(v_1) ≠ 10) ∧ (ndim(v_1) ≥ 2)
 >>
-Rule 32 (The size of input tensor's last dimension must not be zero)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0
+Rule 87 (Tensors must have at least 2 dimensions and must be of valid dtype)
+{v_1 : tensor} |= (ndim(v_1) ≥ 2) ∧ ((dtype_(v_1) ≠ 6) ∧ (dtype_(v_1) ≠ 2) ∧ ((dtype_(v_1) ≠ 9) ∧ (dtype_(v_1) ≠ 10)))
 >>
-Rule 34 (If the input tensor has more than two dimensions, then the product of its trailing dimensions cannot be zero.)
-{v_1 : tensor} |= if ndim(v_1) > 2 then (∃i ∈ [2, ndim(v_1) -1] : shape(v_1, i) ≠ 0)
+Rule 88 (If the dtype is invalid, then the tensor shouldn't be initialized.)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then false
 >>
-Rule 38 (If the input tensor has more than two dimensions, then all trailing dimensions must be greater than zero.)
-{v_1 : tensor} |= if ndim(v_1) > 2 then (∀i ∈ [2, ndim(v_1) - 1] : shape(v_1, i) > 0)
+Rule 90 (Tensors for orthogonal initialization need to have more than one dimension and a supported dtype)
+{v_1 : tensor} |= (ndim(v_1) ≥ 2) ∧ (dtype_(v_1) ≠ 6) ∧ (dtype_(v_1) ≠ 2) ∧ (dtype_(v_1) ≠ 9) ∧ (dtype_(v_1) ≠ 10)
 >>
-Rule 40 (If the input tensor has more than two dimensions, the product of trailing dimensions must be non-zero)
-{v_1 : tensor} |= if ndim(v_1) > 2 then ∃i ∈ [2, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+Rule 92 (Tensors for orthogonal initialization need a valid dtype and dimension)
+{v_1 : tensor} |= (ndim(v_1) ≥ 2) ∧ (dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10)
 >>
-Rule 42 (The number of elements in the input tensor must be greater than 1)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1)
+Rule 93 (Valid orthogonal initialization should have a supported data type and more than 1 dimension)
+{v_1 : tensor} |= (dtype_(v_1) ≠ 6) ∧ (dtype_(v_1) ≠ 2) ∧ (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10) ∧ (ndim(v_1) ≥ 2)
 >>
-Rule 43 (Input tensor must have at least two dimensions, must be float or double, and not have Half or Short or complex type.)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+Rule 94 (The tensor requires at least 2 dimensions, a non-complex type, and either float or int dtype)
+{v_1 : tensor} |= (ndim(v_1) ≥ 2) ∧ (dtype_(v_1) ≠ 9) ∧ (dtype_(v_1) ≠ 10) ∧ (dtype_(v_1) ≠ 6) ∧ (dtype_(v_1) ≠ 2)
 >>
-Rule 44 (The input tensor must have at least 2 dimensions and a floating-point or complex dtype.)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+Rule 104 (Orthogonal initialization requires a valid tensor. Must have dtype other than half, short or complex and at least 2 dimensions and positive product of first two dimension if ndim > 2.)
+{v_1 : tensor} |= (dtype_(v_1) ≠ 6) ∧ (dtype_(v_1) ≠ 2) ∧ (dtype_(v_1) ≠ 9) ∧ (dtype_(v_1) ≠ 10) ∧ (ndim(v_1) ≥ 2) ∧ (if ndim(v_1) > 2 then shape(v_1, 0) * shape(v_1, 1) > 0)
 >>
-Rule 47 (If the input tensor has more than two dimensions, the trailing dimensions must be positive and their product must be greater than zero.)
-{v_1 : tensor} |= if ndim(v_1) > 2 then ∀i ∈ [2, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 50 (Input tensor must not be of Half, Short, or Complex dtype.)
-{v_1 : tensor} |= dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
->>
-Rule 51 (Input tensor must have at least 2 dimensions and be of float32 or float64 dtype, and trailing dimensions product must be positive if ndim > 2)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (if ndim(v_1) > 2 then (∀i ∈ [2, ndim(v_1) - 1] : shape(v_1, i) > 0))
->>
-Rule 52 (Input tensor must be suitable for orthogonal initialization)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (if ndim(v_1) > 2 then (∀i ∈ [2, ndim(v_1) - 1] : shape(v_1, i) > 0)) ∧ (shape(v_1, ndim(v_1) - 1) > 0) ∧ dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
->>
-Rule 54 (Input tensor is suitable for orthogonal initialization. It must have at least 2 dimensions, must be float or double, not Half, Short, or Complex, and the size of the last dimension must not be zero.)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 ∧ shape(v_1, ndim(v_1) - 1) > 0
->>
-Rule 55 (Input tensor must have a supported dtype, must have at least 2 dimensions and must not be complex.)
-{v_1 : tensor} |= dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 ∧ ndim(v_1) ≥ 2
->>
-Rule 57 (The product of the last two dimensions must not be zero.)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) * shape(v_1, ndim(v_1) - 2) ≠ 0
->>
-Rule 58 (Input tensor must have at least 2 dimensions, be of float32 or float64 dtype, and also must satisfy the size of last two dimensions should be larger than 0.)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0
->>
-Rule 59 (Input tensor must be suitable for orthogonal initialization. At least 2 dimensions, float32 or float64, last dimension > 0, second to last dimension > 0, and not Half, Short or Complex)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 2 ∧ (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10)
->>
-Rule 60 (The input tensor must be a suitable type and shape for orthogonal initialization. It must: 1) Have at least 2 dimensions. 2) Be of dtype float32 or float64. 3) Not be Half, Short or Complex dtype. 4) Have sizes for the last two dimensions that are greater than zero.)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 2 ∧ (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10)) ∧ (shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0)
->>
-Rule 61 (The input tensor must be suitable for orthogonal initialization)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0) ∧ (dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 2 ∧ (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10)) ∧ (if ndim(v_1) > 2 then ∃i ∈ [2, ndim(v_1) - 1] : shape(v_1, i) > 0)
->>
-Rule 62 (Input tensor has valid orthogonal initialization conditions)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0) ∧ (dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 2 ∧ (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10))
->>
-Rule 64 (The input tensor must have properties suitable for orthogonal initialization)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0) ∧ (dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10) ∧ (if ndim(v_1) > 2 then (∀i ∈ [2, ndim(v_1) - 1] : shape(v_1, i) > 0))
->>
-Rule 65 (The input tensor must be a suitable type and shape for orthogonal initialization and its trailing dimensions must be flattened.)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10)
->>
-Rule 66 (Input tensor type and shape for orthogonal initialization)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0) ∧ (dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10)
+Rule 109 (If dimension > 2, shape(0) * shape(1) > 0)
+{v_1 : tensor} |= if ndim(v_1) > 2 then (shape(v_1, 0) * shape(v_1, 1)) > 0

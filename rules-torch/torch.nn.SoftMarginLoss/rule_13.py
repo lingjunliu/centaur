@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input and target tensor must have the same dtype (Rule 13)
+# if input tensor is boolean, target tensor cannot be boolean (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else
-          v["arg1_dtype"] == v["arg2_dtype"])
+    s.add(Not(If(v["arg1_dtype"] == 0, v["arg2_dtype"] != 0, True)) if n else
+          If(v["arg1_dtype"] == 0, v["arg2_dtype"] != 0, True))
 )
 
 def rule_13_func(arg1, arg2, solver=None, neg=False):

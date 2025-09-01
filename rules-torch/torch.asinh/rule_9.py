@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# output tensor's dtype must be able to represent the result of asinh operation on input tensor, preventing possible overflow/underflow (Rule 9)
+# The output tensor's dtype should be able to represent the asinh of the input tensor's values without overflow. (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] <= 4, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 5, v["arg2_dtype"] >= 7, False))) if n else
-          If(v["arg1_dtype"] <= 4, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 5, v["arg2_dtype"] >= 7, False)))
+    s.add(Not(If(v["arg2_dtype"] == 1, And(Select(v["arg1_range"], 0) > -0.79, Select(v["arg1_range"], 1) < 0.79), If(v["arg2_dtype"] == 2, And(Select(v["arg1_range"], 0) > -7.62E4, Select(v["arg1_range"], 1) < 7.62E4), If(v["arg2_dtype"] == 3, And(Select(v["arg1_range"], 0) > -5.24E8, Select(v["arg1_range"], 1) < 5.24E8), If(v["arg2_dtype"] == 4, And(Select(v["arg1_range"], 0) > -2.14E9, Select(v["arg1_range"], 1) < 2.14E9), If(v["arg2_dtype"] == 5, And(Select(v["arg1_range"], 0) > -9.22E18, Select(v["arg1_range"], 1) < 9.22E18), True)))))) if n else
+          If(v["arg2_dtype"] == 1, And(Select(v["arg1_range"], 0) > -0.79, Select(v["arg1_range"], 1) < 0.79), If(v["arg2_dtype"] == 2, And(Select(v["arg1_range"], 0) > -7.62E4, Select(v["arg1_range"], 1) < 7.62E4), If(v["arg2_dtype"] == 3, And(Select(v["arg1_range"], 0) > -5.24E8, Select(v["arg1_range"], 1) < 5.24E8), If(v["arg2_dtype"] == 4, And(Select(v["arg1_range"], 0) > -2.14E9, Select(v["arg1_range"], 1) < 2.14E9), If(v["arg2_dtype"] == 5, And(Select(v["arg1_range"], 0) > -9.22E18, Select(v["arg1_range"], 1) < 9.22E18), True))))))
 )
 
 def rule_9_func(arg1, arg2, solver=None, neg=False):
@@ -25,17 +25,18 @@ def rule_9_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
         arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 9
-        rule_9(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_9(solver, {'arg1_range': arg1_range, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_9(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_9(solver, {'arg1_range': arg1['range'], 'arg2_dtype': arg2['dtype']}, neg)

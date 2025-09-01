@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If v_1 is complex and v_2 is not complex then v_3 (out (Rule 64)
+# If other is complex and input is not, then out must be complex, else out is not complex (Rule 64)
 
 rule_64 = lambda s, v, n=False: (
-    s.add(Not(If(And((Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11)), (And((v["arg2_dtype"] != 10), (v["arg2_dtype"] != 11)))), (Or((Or(v["arg3_dtype"] == 10, v["arg3_dtype"] == 11)), (v["arg3_dtype"] == v["arg2_dtype"]))), False)) if n else
-          If(And((Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11)), (And((v["arg2_dtype"] != 10), (v["arg2_dtype"] != 11)))), (Or((Or(v["arg3_dtype"] == 10, v["arg3_dtype"] == 11)), (v["arg3_dtype"] == v["arg2_dtype"]))), False))
+    s.add(Not(If(And((Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), (Or(v["arg1_dtype"] < 9, v["arg1_dtype"] > 10))), (Or(v["arg3_dtype"] == 9, v["arg3_dtype"] == 10)), Or(v["arg3_dtype"] < 9, v["arg3_dtype"] > 10))) if n else
+          If(And((Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), (Or(v["arg1_dtype"] < 9, v["arg1_dtype"] > 10))), (Or(v["arg3_dtype"] == 9, v["arg3_dtype"] == 10)), Or(v["arg3_dtype"] < 9, v["arg3_dtype"] > 10)))
 )
 
 def rule_64_func(arg1, arg2, arg3, solver=None, neg=False):

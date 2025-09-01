@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Shape should not cause storage overflow during calculation (Rule 60)
+# Rejection of single dimension tensors as input. (Rule 60)
 
 rule_60 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_shape"], 0) < 2147483647, Select(v["arg1_shape"], 1) < 2147483647)) if n else
-          And(Select(v["arg1_shape"], 0) < 2147483647, Select(v["arg1_shape"], 1) < 2147483647))
+    s.add(Not(v["arg1_ndim"] > 1) if n else
+          v["arg1_ndim"] > 1)
 )
 
 def rule_60_func(arg1, solver=None, neg=False):
@@ -22,16 +22,15 @@ def rule_60_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_ndim == arg1.ndim)
 
         # Constraints for rule 60
-        rule_60(solver, {'arg1_shape': arg1_shape})
+        rule_60(solver, {'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_60(solver, {'arg1_shape': arg1['shape']}, neg)
+        rule_60(solver, {'arg1_ndim': arg1['ndim']}, neg)

@@ -5,38 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the first element of tuple v_1 is greater than 0, then tensor v_2 should have dimension 1. (Rule 39)
+# If the tensor's elements are real values, the function has no effect and original tensor will be returned. (Rule 39)
 
 rule_39 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_values"], 0) > 0, v["arg2_ndim"] == 1, False)) if n else
-          If(Select(v["arg1_values"], 0) > 0, v["arg2_ndim"] == 1, False))
+    s.add(Not(Or([And(i < (8 + 1), v["arg1_dtype"] == i) for i in range(6)])) if n else
+          Or([And(i < (8 + 1), v["arg1_dtype"] == i) for i in range(6)]))
 )
 
-def rule_39_func(arg1, arg2, solver=None, neg=False):
+def rule_39_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
-            return False
-        if not isinstance(arg2, np.ndarray):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_values = Array('arg1_values', IntSort(), IntSort())
-        arg2_ndim = Int('arg2_ndim')
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
-        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 39
-        rule_39(solver, {'arg1_values': arg1_values, 'arg2_ndim': arg2_ndim})
+        rule_39(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_39(solver, {'arg1_values': arg1['values'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_39(solver, {'arg1_dtype': arg1['dtype']}, neg)

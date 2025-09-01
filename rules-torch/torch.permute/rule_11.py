@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If dims is empty, then input must be 0-dimensional (Rule 11)
+# The input tensor should have at least one dimension if dims is not empty (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_length"] == 0, v["arg1_ndim"] == 0, False)) if n else
-          If(v["arg2_length"] == 0, v["arg1_ndim"] == 0, False))
+    s.add(Not(If(v["arg2_length"] > 0, v["arg1_ndim"] > 0, True)) if n else
+          If(v["arg2_length"] > 0, v["arg1_ndim"] > 0, True))
 )
 
 def rule_11_func(arg1, arg2, solver=None, neg=False):

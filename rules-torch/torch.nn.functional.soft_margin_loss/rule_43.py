@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the input and target tensors dimensions do not match, at least the target tensor should be scalar (Rule 43)
+# if input is not a vector, target should not be a scalar (Rule 43)
 
 rule_43 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] != v["arg2_ndim"], v["arg2_ndim"] == 0, False)) if n else
-          If(v["arg1_ndim"] != v["arg2_ndim"], v["arg2_ndim"] == 0, False))
+    s.add(Not(If(v["arg1_ndim"] > 1, v["arg2_ndim"] > 0, True)) if n else
+          If(v["arg1_ndim"] > 1, v["arg2_ndim"] > 0, True))
 )
 
 def rule_43_func(arg1, arg2, solver=None, neg=False):

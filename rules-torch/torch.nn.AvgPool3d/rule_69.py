@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If kernel size is an int, stride must be smaller or equal to shape to avoid zero dimension. and padding must be smaller or equal to shape to avoid zero dimension. (Rule 69)
+# when kernel size is tuple, stride is tuple (Rule 69)
 
 rule_69 = lambda s, v, n=False: (
-    s.add(Not(And(And(Select(v["arg1_shape"], 2) >= v["arg2_value"], Select(v["arg1_shape"], 3) >= v["arg2_value"]), Select(v["arg1_shape"], 4) >= v["arg2_value"])) if n else
-          And(And(Select(v["arg1_shape"], 2) >= v["arg2_value"], Select(v["arg1_shape"], 3) >= v["arg2_value"]), Select(v["arg1_shape"], 4) >= v["arg2_value"]))
+    s.add(Not(And(v["arg1_length"] == 3, v["arg2_length"] == 3)) if n else
+          And(v["arg1_length"] == 3, v["arg2_length"] == 3))
 )
 
 def rule_69_func(arg1, arg2, solver=None, neg=False):
@@ -18,25 +18,24 @@ def rule_69_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_value = Int('arg2_value')
+        arg1_length = Int('arg1_length')
+        arg2_length = Int('arg2_length')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg1_length == len(arg1))
+        solver.add(arg2_length == len(arg2))
 
         # Constraints for rule 69
-        rule_69(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_69(solver, {'arg1_length': arg1_length, 'arg2_length': arg2_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_69(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_69(solver, {'arg1_length': arg1['length'], 'arg2_length': arg2['length']}, neg)

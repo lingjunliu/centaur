@@ -1,201 +1,120 @@
 >>
-Rule 2 (Input tensor must have at least one dimension)
+Rule 2 (Input tensor dimension must be at least 1)
 {v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 4 (Input tensor's dimension along dim must be even)
-{v_1 : tensor, v_2 : int} |= shape(v_1, v_2) % 2 = 0
+Rule 3 (Dimension must be an integer)
+{v_1 : int ⊎ float} |= v_1 = v_1
 >>
-Rule 5 (Shape dimension along dim cannot be zero)
-{v_1 : tensor, v_2 : int} |= shape(v_1, v_2) > 0
+Rule 4 (Input tensor's shape at dim must be even)
+{v_1 : tensor, v_2 : int} |= shape(v_1, (if v_2 < 0 then ndim(v_1) + v_2 else v_2)) % 2 = 0
 >>
-Rule 6 (Dimension should be in a valid range)
+Rule 5 (Dimension should be within the valid range based on the input tensor's rank)
 {v_1 : int, v_2 : tensor} |= v_1 ≥ (0 - ndim(v_2)) ∧ v_1 < ndim(v_2)
 >>
-Rule 12 (Input tensor dimension along dim must be a positive even number)
-{v_1 : tensor, v_2 : int} |= shape(v_1, v_2) > 0 ∧ shape(v_1, v_2) % 2 = 0
+Rule 9 (Dimension should be non-negative if specified as positive)
+{v_1 : int, v_2 : tensor} |= if v_1 ≥ 0 then v_1 < ndim(v_2)
 >>
-Rule 13 (Check if dimension is non-negative)
-{v_1 : int} |= v_1 >= 0
+Rule 10 (Dimension should be negative if specified as negative)
+{v_1 : int, v_2 : tensor} |= if v_1 < 0 then v_1 ≥ (0 - ndim(v_2))
 >>
-Rule 14 (Input tensor's size must be greater than 1 in specified dimension)
-{v_1 : tensor, v_2 : int} |= shape(v_1, v_2) > 1
+Rule 11 (Shape along dimension must be greater than 1)
+{v_1 : tensor, v_2 : int} |= shape(v_1, (if v_2 < 0 then ndim(v_1) + v_2 else v_2)) > 1
 >>
-Rule 15 (Dimension should be in a valid range)
+Rule 12 (Input tensor must have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+>>
+Rule 14 (The dimension on which to split should be less than rank -1)
+{v_1 : int, v_2 : tensor} |= v_1 < ndim(v_2) - 1 ∨ v_1 ≥ (0-ndim(v_2))
+>>
+Rule 15 (Shape at split dimension should be divisible by 2)
+{v_1 : int, v_2 : tensor} |= shape(v_2, (if v_1 < 0 then ndim(v_2) + v_1 else v_1)) % 2 = 0
+>>
+Rule 16 (The dimension on which to split should be valid, considering potential negative indexing)
 {v_1 : int, v_2 : tensor} |= (0 - ndim(v_2)) ≤ v_1 ∧ v_1 < ndim(v_2)
 >>
-Rule 16 (The dimension dim must be less than the number of dimensions of the tensor)
-{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
+Rule 19 (The dimension on which to split should be valid, considering potential negative indexing and prevent index error)
+{v_1 : int, v_2 : tensor} |= if v_1 ≥ 0 then v_1 < ndim(v_2) else v_1 ≥ (0 - ndim(v_2))
 >>
-Rule 17 (The absolute value of dimension dim must be less than the number of dimensions of the tensor)
-{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2
+Rule 23 (Shape at split dimension must be positive)
+{v_1 : int, v_2 : tensor} |= shape(v_2, (if v_1 < 0 then ndim(v_2) + v_1 else v_1)) > 0
 >>
-Rule 21 (If dimension is -1, it means the last dimension)
-{v_1 : int, v_2 : tensor} |= if v_1 = -1 then true else (0 - ndim(v_2)) < v_1 ∧ v_1 < ndim(v_2)
->>
-Rule 22 (Number of dimensions of tensor should be positive)
+Rule 24 (Rank of the tensor should be greater than 0)
 {v_1: tensor} |= ndim(v_1) > 0
 >>
-Rule 23 (Dimension should be in a valid range)
-{v_1 : int, v_2 : tensor} |= if v_1 < 0 then v_1 ≥ (0 - ndim(v_2)) else v_1 < ndim(v_2)
+Rule 25 (Shape at split dimension must be divisible by 2 to allow equal splits. Additionally, the split dimension has to be within valid range)
+{v_1 : int, v_2 : tensor} |= (0 - ndim(v_2)) ≤ v_1 ∧ v_1 < ndim(v_2) ∧ shape(v_2, (if v_1 < 0 then ndim(v_2) + v_1 else v_1)) % 2 = 0
 >>
-Rule 24 (The dimension dim must be less than the number of dimensions of the tensor)
-{v_1 : tensor, v_2 : int} |= if v_2 >= 0 then v_2 < ndim(v_1)
+Rule 27 (Ensure tensor is not of boolean type)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 28 (The dimension dim must be valid based on tensor rank.)
-{v_1 : tensor, v_2 : int} |= if v_2 < 0 then (0 - ndim(v_1)) <= v_2 else v_2 < ndim(v_1)
+Rule 30 (Ensure the dimension is indeed an integer.)
+{v_1: int ⊎ float} |= v_1 = v_1
 >>
-Rule 30 (Shape of tensor is valid. Non-negative values.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 31 (The shape at the split dim must be at least 2, so it can be split)
+{v_1 : int, v_2 : tensor} |= shape(v_2, (if v_1 < 0 then ndim(v_2) + v_1 else v_1)) ≥ 2
 >>
-Rule 34 (The number of dimensions must be within the range)
-{v_1 : int, v_2: tensor} |= if v_1 < 0 then v_1 >= (0-ndim(v_2)) else v_1 < ndim(v_2)
+Rule 33 (Shape at split dimension must be divisible by 2. Dimension has to be valid. Input dimension should be at least one.)
+{v_1 : int, v_2 : tensor} |= (0 - ndim(v_2)) ≤ v_1 ∧ v_1 < ndim(v_2) ∧ shape(v_2, (if v_1 < 0 then ndim(v_2) + v_1 else v_1)) % 2 = 0 ∧ ndim(v_2) > 0
 >>
-Rule 36 (If dim is -1, tensor must have at least 1 dimension)
-{v_1: int, v_2: tensor} |= if v_1 = -1 then ndim(v_2) >=1
+Rule 35 (The tensor should have float or integer dtype)
+{v_1: tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 37 (Dimension value should be less than the maximum allowed dimension value)
-{v_1: int, v_2: tensor} |= v_1 < ndim(v_2)
+Rule 39 (The input tensor should be of appropriate dtype for mathematical operations.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 11
 >>
-Rule 38 (Dimension value should be greater than the minimum allowed dimension value)
-{v_1: int, v_2: tensor} |= v_1 >= (0 - ndim(v_2))
+Rule 40 (Combined: Shape at split dimension must be divisible by 2. Dimension has to be valid. Split dimension should be provided as an Integer. Dimension > 0)
+{v_1 : int, v_2 : tensor} |= (0 - ndim(v_2)) ≤ v_1 ∧ v_1 < ndim(v_2) ∧ shape(v_2, (if v_1 < 0 then ndim(v_2) + v_1 else v_1)) % 2 = 0 ∧ ndim(v_2) > 0 ∧ shape(v_2, (if v_1 < 0 then ndim(v_2) + v_1 else v_1)) ≥ 2
 >>
-Rule 39 (Dimension must be within the valid range)
-{v_1 : int, v_2 : tensor} |= if v_1 < 0 then (v_1 >= (0 - ndim(v_2))) else (v_1 < ndim(v_2))
+Rule 41 (The tensor should be of appropriate dtype for mathematical operations: integer, float or complex)
+{v_1: tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 40 (If dim is valid, shape in the dimension specified must be even.)
-{v_1 : tensor, v_2 : int} |= if (v_2 >= (0 - ndim(v_1))) ∧ (v_2 < ndim(v_1)) then shape(v_1, v_2) % 2 = 0
+Rule 43 (Combined: Shape at split dimension must be divisible by 2. Dimension has to be valid. Split dimension should be provided as an Integer. Dimension > 0. No boolean or string dtype)
+{v_1 : int, v_2 : tensor} |= (0 - ndim(v_2)) ≤ v_1 ∧ v_1 < ndim(v_2) ∧ shape(v_2, (if v_1 < 0 then ndim(v_2) + v_1 else v_1)) % 2 = 0 ∧ ndim(v_2) > 0 ∧ shape(v_2, (if v_1 < 0 then ndim(v_2) + v_1 else v_1)) ≥ 2  ∧ dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 11
 >>
-Rule 41 (If tensor has at least one dimension)
-{v_1 : tensor} |= ndim(v_1) >= 1
+Rule 49 (Combined: Shape at split dimension must be divisible by 2. Dimension has to be valid. Split dimension should be provided as an Integer. Dimension > 0. Tensor has appropriate dtype)
+{v_1 : int, v_2 : tensor} |= (0 - ndim(v_2)) ≤ v_1 ∧ v_1 < ndim(v_2) ∧ shape(v_2, (if v_1 < 0 then ndim(v_2) + v_1 else v_1)) % 2 = 0 ∧ ndim(v_2) > 0 ∧ shape(v_2, (if v_1 < 0 then ndim(v_2) + v_1 else v_1)) ≥ 2  ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
 >>
-Rule 43 (If dimension is not out of range and greater than 0, then shape must be even.)
-{v_1: tensor, v_2: int} |= if (v_2 < ndim(v_1) ∧ v_2 >= 0) then shape(v_1, v_2) % 2 = 0
+Rule 53 (String dtype is not supported)
+{v_1: tensor} |= dtype_(v_1) ≠ 11
 >>
-Rule 44 (If tensor has at least one dimension, the shape must be positive)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 54 (Combined: Dimension and Tensor properties for GLU: valid dimension, split dimension must be even, input tensor must be at least 1D, splitting can occur. Tensor must be integer, float or complex, and not string or boolean)
+{v_1 : int, v_2 : tensor} |= (0 - ndim(v_2)) ≤ v_1 ∧ v_1 < ndim(v_2) ∧ shape(v_2, (if v_1 < 0 then ndim(v_2) + v_1 else v_1)) % 2 = 0 ∧ ndim(v_2) > 0 ∧ shape(v_2, (if v_1 < 0 then ndim(v_2) + v_1 else v_1)) ≥ 2  ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) ∧ dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 11
 >>
-Rule 46 (If the dimension is valid, its shape must be a positive even number)
-{v_1 : tensor, v_2 : int} |= if ((0 - ndim(v_1)) ≤ v_2) ∧ (v_2 < ndim(v_1)) then (shape(v_1, v_2) > 0 ∧ shape(v_1, v_2) % 2 = 0)
+Rule 56 (Shape at split dimension is non zero)
+{v_1: int, v_2 : tensor} |= shape(v_2, (if v_1 < 0 then ndim(v_2) + v_1 else v_1)) > 0
 >>
-Rule 48 (Dimension must be within the range of negative ndim and positive ndim)
-{v_1 : int, v_2 : tensor} |= if v_1 < 0 then v_1 >= (0 - ndim(v_2)) else v_1 < ndim(v_2)
+Rule 57 (Combined: Dimension and Tensor properties for GLU: valid dimension, split dimension must be even, input tensor must be at least 1D, splitting can occur. Tensor must be integer, float or complex, and not string or boolean. Tensor has non zero shape.)
+{v_1 : int, v_2 : tensor} |= (0 - ndim(v_2)) ≤ v_1 ∧ v_1 < ndim(v_2) ∧ shape(v_2, (if v_1 < 0 then ndim(v_2) + v_1 else v_1)) % 2 = 0 ∧ ndim(v_2) > 0 ∧ shape(v_2, (if v_1 < 0 then ndim(v_2) + v_1 else v_1)) ≥ 2  ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) ∧ dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 11 ∧ shape(v_2, (if v_1 < 0 then ndim(v_2) + v_1 else v_1)) > 0
 >>
-Rule 49 (Given a valid dimension index, the shape along the dimension must be positive and divisible by 2)
-{v_1 : tensor, v_2 : int} |= if v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) then shape(v_1, v_2) > 0 ∧ shape(v_1, v_2) % 2 = 0
+Rule 58 (Tensor is not a boolean tensor. Added shape is valid)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 52 (If a valid dimension, shape must exist and be even)
-{v_1 : tensor, v_2 : int} |= if v_2 < ndim(v_1) ∧ v_2 >= (0 - ndim(v_1)) then shape(v_1, v_2) > 0 ∧ shape(v_1, v_2) % 2 = 0
+Rule 59 (The final combined rule: Dimension and Tensor properties for GLU)
+{v_1 : int, v_2 : tensor} |= (0 - ndim(v_2)) ≤ v_1 ∧ v_1 < ndim(v_2) ∧ shape(v_2, (if v_1 < 0 then ndim(v_2) + v_1 else v_1)) % 2 = 0 ∧ ndim(v_2) > 0 ∧ shape(v_2, (if v_1 < 0 then ndim(v_2) + v_1 else v_1)) ≥ 2  ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) ∧ dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 11 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
 >>
-Rule 53 (Tensor must have at least one dimension)
-{v_1: tensor} |= ∃i ∈ [0,0] : ndim(v_1) > 0
+Rule 62 (The final combined rule: Dimension and Tensor properties for GLU - Prevents all documented errors. Trying with Quantifier )
+{v_1 : int, v_2 : tensor} |= (0 - ndim(v_2)) ≤ v_1 ∧ v_1 < ndim(v_2) ∧ shape(v_2, (if v_1 < 0 then ndim(v_2) + v_1 else v_1)) % 2 = 0 ∧ ndim(v_2) > 0 ∧ shape(v_2, (if v_1 < 0 then ndim(v_2) + v_1 else v_1)) ≥ 2 ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) ∧ dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 11 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
 >>
-Rule 55 (For valid dimension, shape value in that dim must be even)
-{v_1 : tensor, v_2: int} |= if v_2 >= (0-ndim(v_1)) ∧ v_2 < ndim(v_1) then (shape(v_1, v_2) % 2 = 0)
+Rule 67 (The elements along the split dimension must be positive)
+{v_1: int, v_2: tensor} |= shape(v_2, (if v_1 < 0 then ndim(v_2) + v_1 else v_1)) > 0
 >>
-Rule 56 (Check the shape in given dimension)
-{v_1:tensor, v_2:int} |= if v_2 >= (0-ndim(v_1)) ∧ v_2 < ndim(v_1) then shape(v_1, v_2) >= 0
+Rule 68 (Requires appropriate dtype for computation to proceed)
+{v_1: tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
 >>
-Rule 57 (Dimension is valid within the range of -ndim and ndim)
-{v_1 : int, v_2 : tensor} |= (0 - ndim(v_2)) <= v_1 ∧ v_1 < ndim(v_2)
+Rule 70 (Negative dimension must be within the valid range.)
+{v_1: int, v_2: tensor} |= if v_1 < 0 then v_1 ≥ (0 - ndim(v_2))
 >>
-Rule 58 (If a valid dimension and the shape is positive, shape must be divisible by 2)
-{v_1: tensor, v_2: int} |= if v_2 >= (0-ndim(v_1)) ∧ v_2 < ndim(v_1) ∧ shape(v_1,v_2) > 0 then (shape(v_1, v_2) % 2 = 0)
+Rule 71 (Positive dimension must be within the valid range.)
+{v_1: int, v_2: tensor} |= if v_1 ≥ 0 then v_1 < ndim(v_2)
 >>
-Rule 59 (Dimension is within the valid range, ndim > 0 and dimension value)
-{v_1:tensor, v_2:int} |= (ndim(v_1) > 0) ∧ ((0 - ndim(v_1)) <= v_2) ∧ (v_2 < ndim(v_1))
+Rule 74 (The Kitchen Sink Rule - The ultimate combined rule to prevent all documented errors)
+{v_1 : int, v_2 : tensor} |= (0 - ndim(v_2)) ≤ v_1 ∧ v_1 < ndim(v_2) ∧ shape(v_2, (if v_1 < 0 then ndim(v_2) + v_1 else v_1)) % 2 = 0 ∧ ndim(v_2) > 0 ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
 >>
-Rule 61 (If dimension is in range, the tensor shape along that dimension must be positive and also even.)
-{v_1: tensor, v_2: int} |= if ((0 - ndim(v_1)) <= v_2) ∧ (v_2 < ndim(v_1)) then (shape(v_1, v_2) > 0 ∧ (shape(v_1, v_2) % 2) = 0)
+Rule 75 (There exists a PRIMVAR within the dimension range of tensor where the GLU constraints are met)
+{v_1 : int, v_2 : tensor} |= ∃i ∈ [0, ndim(v_2) - 1] : (0 - ndim(v_2)) ≤ v_1 ∧ v_1 < ndim(v_2) ∧ shape(v_2, i) % 2 = 0 ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
 >>
-Rule 62 (For a given valid shape index, the number of dimension should be greater than zero)
-{v_1 : tensor} |= ∃i ∈ [0, 0] : ndim(v_1) > 0
+Rule 76 (Final Attempt: Ensuring a valid tensor for GLU by checking conditions on *v_1*)
+{v_1 : int, v_2 : tensor} |= ∃i ∈ [0, ndim(v_2) - 1] : (0 - ndim(v_2)) ≤ v_1 ∧ v_1 < ndim(v_2) ∧ (if v_1 < 0 then ndim(v_2) + v_1 else v_1) = i ∧ shape(v_2, i) % 2 = 0 ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
 >>
-Rule 64 (If Dimension is within range then shape should be even)
-{v_1: tensor, v_2: int} |= if (v_2 < ndim(v_1)) ∧ (v_2 >= (0-ndim(v_1))) then shape(v_1, v_2) % 2 = 0
->>
-Rule 65 (Check dimension for negative values)
-{v_1: tensor, v_2: int} |= if (v_2 < ndim(v_1)) ∧ (v_2 >= (0-ndim(v_1))) then shape(v_1, v_2) > 0
->>
-Rule 67 (If the dimension index is valid, then validates that tensor dimension at that index is positive)
-{v_1 : tensor, v_2 : int} |= if ((0-ndim(v_1)) <= v_2) ∧ (v_2 < ndim(v_1)) then shape(v_1, v_2) > 0
->>
-Rule 70 (Given valid index, the dimension's shape at that index should be positive AND also an even number)
-{v_1 : tensor, v_2 : int} |= if (v_2 >= (0 - ndim(v_1))) ∧ (v_2 < ndim(v_1)) then shape(v_1, v_2) > 0 ∧ shape(v_1, v_2) % 2 = 0
->>
-Rule 71 (Given a tensor, the dimension cannot be less then zero)
-{v_1: tensor, v_2:int} |= if v_2 >= (0-ndim(v_1)) ∧ v_2 < ndim(v_1) then shape(v_1, v_2) >= 0
->>
-Rule 73 (The shape at the selected dim be divisible by 2 if dim is within range and dim exists)
-{v_1: tensor, v_2: int} |= if (v_2 < ndim(v_1) ∧ v_2 >= (0-ndim(v_1))) then (shape(v_1, v_2) > 0 ∧ (shape(v_1, v_2) % 2) = 0)
->>
-Rule 74 (The tensor needs to have dimension greater than 0)
-{v_1 : tensor} |= ∃i ∈ [0,0] : ndim(v_1) > 0
->>
-Rule 76 (Tensor's shape is defined when a dimension is provided)
-{v_1: tensor, v_2: int} |= if (v_2 > (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) then shape(v_1, v_2) > 0
->>
-Rule 77 (If dimension is valid the tensor can be split on that dim)
-{v_1:tensor, v_2:int} |= if (v_2 >= (0-ndim(v_1)) ∧ v_2 < ndim(v_1)) then shape(v_1, v_2) % 2 = 0
->>
-Rule 79 (Check the shape, avoid out-of-bounds indexing)
-{v_1: tensor, v_2: int} |= if (0 - ndim(v_1)) <= v_2 ∧ v_2 < ndim(v_1) then (shape(v_1, v_2) > 0)
->>
-Rule 80 (Check if the dimension is a valid split dimension using GLU function)
-{v_1: tensor, v_2: int} |= if (0 - ndim(v_1)) <= v_2 ∧ v_2 < ndim(v_1) then (shape(v_1, v_2) % 2 = 0)
->>
-Rule 82 (Shape is valid when a dimension is within range and its value must also positive)
-{v_1: tensor, v_2: int} |= if (0 - ndim(v_1)) <= v_2 ∧ v_2 < ndim(v_1) then shape(v_1, v_2) > 0
->>
-Rule 83 (Shape can be divided into half, given dimension is within the range and exists.)
-{v_1: tensor, v_2: int} |= if (0-ndim(v_1)) <= v_2 ∧ v_2 < ndim(v_1) then (shape(v_1, v_2) % 2) = 0
->>
-Rule 85 (If a valid dimension, Shape must be present)
-{v_1 : tensor, v_2: int} |= if (0-ndim(v_1) <= v_2) ∧ (v_2 < ndim(v_1)) then shape(v_1, v_2) > 0
->>
-Rule 86 (Divisible by 2.)
-{v_1: tensor, v_2: int} |= if (0-ndim(v_1) <= v_2) ∧ (v_2 < ndim(v_1)) then (shape(v_1, v_2) % 2) = 0
->>
-Rule 88 (Valid Shape given valid dimension)
-{v_1 : tensor, v_2 : int} |= if (0-ndim(v_1) <= v_2) ∧ (v_2 < ndim(v_1)) then (shape(v_1, v_2) > 0 )
->>
-Rule 89 (Divisible, given Shape and Valid dimension )
-{v_1 : tensor, v_2 : int} |= if (0-ndim(v_1) <= v_2) ∧ (v_2 < ndim(v_1)) then (shape(v_1, v_2) % 2) = 0
->>
-Rule 92 (Tensor shape in defined dimension should be greater than zero and a valid input to GLU -> even)
-{v_1 : tensor, v_2 : int} |= if (v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) then (shape(v_1, v_2) > 0 ∧ (shape(v_1, v_2) % 2) = 0)
->>
-Rule 93 (GLU operations should only take place in a tensor greater than dimension zero)
-{v_1: tensor} |= ndim(v_1) >= 1
->>
-Rule 95 (Shape needs to be there and be valid to be split)
-{v_1: tensor, v_2: int} |= if (0-ndim(v_1) <= v_2) ∧ (v_2 < ndim(v_1)) then (shape(v_1, v_2) > 0) ∧ ((shape(v_1, v_2) % 2) = 0)
->>
-Rule 96 (Shape of tensor should always be positive)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
->>
-Rule 98 (If dim is valid, check shape is valid and divisible by 2)
-{v_1 : tensor, v_2 : int} |= if ((0 - ndim(v_1)) <= v_2) ∧ (v_2 < ndim(v_1)) then (shape(v_1, v_2) > 0) ∧ (shape(v_1, v_2) % 2 = 0)
->>
-Rule 99 (Check dimension to be used exists and has proper shape)
-{v_1: tensor, v_2: int} |= if (v_2 >= (0-ndim(v_1)) ∧ v_2 < ndim(v_1)) then shape(v_1, v_2) >= 0
->>
-Rule 104 (Check valid shape index and confirm shape's existence)
-{v_1: tensor, v_2: int} |= if ((0-ndim(v_1) <= v_2) ∧ (v_2 < ndim(v_1))) then (shape(v_1, v_2) > 0 )
->>
-Rule 105 (Check shape, after index should allow the split op to happen)
-{v_1: tensor, v_2: int} |= if ((0-ndim(v_1) <= v_2) ∧ (v_2 < ndim(v_1))) then ((shape(v_1, v_2) % 2) = 0)
->>
-Rule 109 (The dimension can allow a GLU split or reduce operation)
-{v_1: tensor, v_2: int} |= if (0-ndim(v_1) <= v_2) ∧ (v_2 < ndim(v_1)) then (shape(v_1, v_2) % 2 = 0)
->>
-Rule 110 (Tensor not empty)
-{v_1: tensor} |= ∃i ∈ [0, 0] : (ndim(v_1) > 0)
->>
-Rule 112 (When index exists shape should be more than 0 and allow GLU splits)
-{v_1: tensor, v_2: int} |= if (v_2 >= (0-ndim(v_1))) ∧ (v_2 < ndim(v_1)) then (shape(v_1, v_2) > 0 ∧ (shape(v_1, v_2) % 2 = 0))
->>
-Rule 114 (Check for ability to process data after the dimension has been validated.)
-{v_1 : tensor, v_2 : int} |= if (v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) then shape(v_1, v_2) > 0 ∧ shape(v_1, v_2) % 2 = 0
->>
-Rule 117 (When shape index exists -> tensor dimension along this index must have shape > 0 and able to split )
-{v_1 : tensor, v_2: int} |= if (v_2 >= (0-ndim(v_1)) ∧ v_2 < ndim(v_1)) then (shape(v_1, v_2) > 0 ∧ (shape(v_1, v_2) % 2 = 0))
+Rule 78 (Check if dimension is within range)
+{v_1 : int, v_2 : tensor} |= (v_1 ≥ (0 - ndim(v_2))) ∧ (v_1 < ndim(v_2))

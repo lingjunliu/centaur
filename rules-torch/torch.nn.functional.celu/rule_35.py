@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# alpha must be finite and non-zero (Rule 35)
+# Alpha must be positive if input tensor's minimum is negative, simplified to always being positive. (Rule 35)
 
 rule_35 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_value"] != 0, v["arg1_value"] < 1e38), v["arg1_value"] > -1e38)) if n else
-          And(And(v["arg1_value"] != 0, v["arg1_value"] < 1e38), v["arg1_value"] > -1e38))
+    s.add(Not(v["arg1_value"] > 0) if n else
+          v["arg1_value"] > 0)
 )
 
 def rule_35_func(arg1, solver=None, neg=False):

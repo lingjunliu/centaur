@@ -5,32 +5,43 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor must be floating point or complex dtype to avoid 'Char' error, excluding complex type (Rule 57)
+# For stable computation, beta and threshold should be reasonably proportional to the typical input tensor range (Rule 57)
 
 rule_57 = lambda s, v, n=False: (
-    s.add(Not(Or(Or((v["arg1_dtype"] == 7), (v["arg1_dtype"] == 8)), (v["arg1_dtype"] == 9))) if n else
-          Or(Or((v["arg1_dtype"] == 7), (v["arg1_dtype"] == 8)), (v["arg1_dtype"] == 9)))
+    s.add(Not(If(Select(v["arg1_range"], 1) > 0, And(v["arg2_value"] / Select(v["arg1_range"], 1) < 100, v["arg3_value"] / Select(v["arg1_range"], 1) < 100), True)) if n else
+          If(Select(v["arg1_range"], 1) > 0, And(v["arg2_value"] / Select(v["arg1_range"], 1) < 100, v["arg3_value"] / Select(v["arg1_range"], 1) < 100), True))
 )
 
-def rule_57_func(arg1, solver=None, neg=False):
+def rule_57_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
+        if not isinstance(arg2, (float, np.floating)):
+            return False
+        if not isinstance(arg3, (float, np.floating)):
+            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg2_value = Real('arg2_value')
+        arg3_value = Real('arg3_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg2_value == arg2)
+        solver.add(arg3_value == arg3)
 
         # Constraints for rule 57
-        rule_57(solver, {'arg1_dtype': arg1_dtype})
+        rule_57(solver, {'arg1_range': arg1_range, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_57(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_57(solver, {'arg1_range': arg1['range'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)

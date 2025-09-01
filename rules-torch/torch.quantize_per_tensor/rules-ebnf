@@ -1,84 +1,57 @@
 >>
-Rule 1 (Input tensor must be a float tensor)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then false else if dtype_(v_1) = 1 then false else if dtype_(v_1) = 2 then false else if dtype_(v_1) = 3 then false else if dtype_(v_1) = 4 then false else if dtype_(v_1) = 5 then false
+Rule 1 (Input tensor must be of float type)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 8
 >>
 Rule 2 (dtype must be one of the quantized dtypes)
-{v_4 : dtype} |= v_4 = 0 ∨ v_4 = 1 ∨ v_4 = 2
+{v_4 : dtype} |= v_4 = 5 ∨ v_4 = 2 ∨ v_4 = 3
 >>
-Rule 3 (Input tensor dtype must be float16, float32, or float64)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 3 (Scale must be greater than zero)
+{v_2 : float} |= v_2 > 0.0
 >>
-Rule 4 (dtype must not be Long)
-{v_4 : dtype} |= v_4 ≠ 4
+Rule 4 (Zero point should be within valid range for quint8)
+{v_3 : int, v_4 : dtype} |= if v_4 = 5 then v_3 ≥ 0 ∧ v_3 ≤ 255
 >>
-Rule 5 (Input tensor must not be a boolean tensor)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 5 (Zero point should be within valid range for qint8)
+{v_3 : int, v_4 : dtype} |= if v_4 = 2 then v_3 ≥ -128 ∧ v_3 ≤ 127
 >>
-Rule 6 (The dtype must be either torch.quint8, torch.qint8, or torch.qint32)
-{v_4 : dtype} |= v_4 = 5 ∨ v_4 = 1 ∨ v_4 = 3
+Rule 6 (Zero point should be within valid range for qint32)
+{v_3 : int, v_4 : dtype} |= if v_4 = 3 then v_3 ≥ -2147483648 ∧ v_3 ≤ 2147483647
 >>
-Rule 9 (If scale is a tensor, it must have one element)
+Rule 7 (Scale should be a scalar value)
 {v_2 : tensor} |= ndim(v_2) = 0
 >>
-Rule 10 (If zero_point is a tensor, it must have one element)
+Rule 8 (Zero point should be a scalar value)
 {v_3 : tensor} |= ndim(v_3) = 0
 >>
-Rule 11 (Input and scale must be same dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 9 (Scale must be a float)
+{v_2 : tensor} |= dtype_(v_2) = 7 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 8
 >>
-Rule 12 (Input and zero_point must be same dtype)
-{v_1 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_3)
->>
-Rule 17 (If the scale is a tensor, its dtype must be float)
-{v_2 : tensor} |= dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
->>
-Rule 18 (If the zero_point is a tensor, its dtype must be int)
+Rule 10 (Zero point must be an int)
 {v_3 : tensor} |= dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5
 >>
-Rule 21 (If scale is a float, it must be non-negative)
-{v_2 : float} |= v_2 ≥ 0
+Rule 11 (Input tensor must be of float16, float32 or float64 type)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 22 (If zero_point is an int, it must be within the allowed range for the dtype)
-{v_3 : int, v_4 : dtype} |= if v_4 = 5 then v_3 ≥ 0 ∧ v_3 ≤ 255 else if v_4 = 1 then v_3 ≥ -128 ∧ v_3 ≤ 127 else if v_4 = 3 then v_3 ≥ -2147483648 ∧ v_3 ≤ 2147483647
+Rule 12 (dtype should not be int64)
+{v_4 : dtype} |= v_4 ≠ 4
 >>
-Rule 23 (Scale must be greater than 0)
-{v_2 : float ⊎ tensor} |= if v_2 > 0 then true else false
+Rule 13 (Scale must be non-negative)
+{v_2 : float} |= v_2 ≥ 0.0
 >>
-Rule 24 (If scale is a tensor, its values must be non-negative)
-{v_2 : tensor} |= min(v_2) ≥ 0
+Rule 14 (Zero point must be representable by dtype)
+{v_3 : int, v_4 : dtype} |= if v_4 = 5 then v_3 ≥ 0 ∧ v_3 ≤ 255 else if v_4 = 2 then v_3 ≥ -128 ∧ v_3 ≤ 127 else if v_4 = 3 then v_3 ≥ -2147483648 ∧ v_3 ≤ 2147483647
 >>
-Rule 25 (If the scale is a tensor, its values must be finite)
-{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0)-1] : min(v_2) ≠ "inf" ∧ max(v_2) ≠ "inf"
+Rule 15 (Input tensor cannot be boolean)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 26 (If the zero_point is a tensor, its values must be finite)
-{v_3 : tensor} |= ∀i ∈ [0, shape(v_3, 0)-1] : min(v_3) ≠ "inf" ∧ max(v_3) ≠ "inf"
+Rule 22 (Input tensor dtype cannot be bool and output dtype cannot be Long)
+{v_1 : tensor, v_4 : dtype} |= dtype_(v_1) ≠ 0 ∧ v_4 ≠ 4
 >>
-Rule 27 (If the scale is a tensor, its values must not be NaN)
-{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0)-1] : min(v_2) ≠ "nan" ∧ max(v_2) ≠ "nan"
+Rule 28 (If the input is a bool, the rule is false, If dtype is long then the rule is false, otherwise true)
+{v_1: tensor, v_4:dtype} |= if dtype_(v_1) = 0 then false else if v_4 = 4 then false
 >>
-Rule 28 (If the zero_point is a tensor, its values must not be NaN)
-{v_3 : tensor} |= ∀i ∈ [0, shape(v_3, 0)-1] : min(v_3) ≠ "nan" ∧ max(v_3) ≠ "nan"
+Rule 29 (Input tensor should be float type and dtype should be a quantized type.)
+{v_1 : tensor, v_4 : dtype} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (v_4 = 5 ∨ v_4 = 2 ∨ v_4 = 3)
 >>
-Rule 29 (If zero_point is an int, it must be representable as int32)
-{v_3 : int} |= v_3 ≥ -2147483648 ∧ v_3 ≤ 2147483647
->>
-Rule 30 (If the zero_point is a tensor, its values must be representable as int32)
-{v_3 : tensor} |= ∀i ∈ [0, shape(v_3, 0)-1] : v_3[i] ≥ -2147483648 ∧ v_3[i] ≤ 2147483647
->>
-Rule 31 (Scale can not be a bool type.)
-{v_2 : float ⊎ tensor} |= if v_2 = "true" then false else if v_2 = "false" then false
->>
-Rule 32 (Zero point can not be a bool type.)
-{v_3 : int ⊎ tensor} |= if v_3 = "true" then false else if v_3 = "false" then false
->>
-Rule 33 (scale can not be equal to zero)
-{v_2 : float ⊎ tensor} |= v_2 ≠ 0
->>
-Rule 34 (If scale is a tensor, its values can not be equal to zero)
-{v_2 : tensor} |= min(v_2) ≠ 0
->>
-Rule 35 (If the zero_point is a tensor, its values can not be outside the range of the quantized dtype)
-{v_3 : tensor, v_4 : dtype} |= if v_4 = 5 then ∀i ∈ [0, shape(v_3, 0)-1] : v_3[i] ≥ 0 ∧ v_3[i] ≤ 255 else if v_4 = 1 then ∀i ∈ [0, shape(v_3, 0)-1] : v_3[i] ≥ -128 ∧ v_3[i] ≤ 127 else if v_4 = 3 then ∀i ∈ [0, shape(v_3, 0)-1] : v_3[i] ≥ -2147483648 ∧ v_3[i] ≤ 2147483647
->>
-Rule 36 (If input is a list, the scale and zero point must be tensors and the same length as input list)
-{v_1 : list(tensor), v_2 : tensor, v_3 : tensor} |= v_1.len = shape(v_2, 0) ∧ v_1.len = shape(v_3, 0)
+Rule 32 (If the input dtype is bool, return false)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then false

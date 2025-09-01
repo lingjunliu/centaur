@@ -1,120 +1,165 @@
 >>
-Rule 1 (input tensor must have 2 or 3 dimensions)
+Rule 1 (Input tensor should have 2 or 3 dimensions)
 {v_1 : tensor} |= ndim(v_1) = 2 ∨ ndim(v_1) = 3
 >>
-Rule 2 (input tensor's dtype must be float or complex)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+Rule 2 (Input tensor dtype should be float or complex to avoid inferring output dtype error)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 9
 >>
-Rule 3 (output_size must be non-negative)
-{v_1 : int} |= v_1 ≥ 0
+Rule 3 (Output size must be non-negative when output size is a tuple)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
 >>
-Rule 4 (output_size should be one integer)
-{v_1 : tuple(int)} |= v_1.len = 1
+Rule 4 (Output size must be non-negative when output size is an int)
+{v_2 : int} |= v_2 ≥ 0
 >>
-Rule 5 (prevent integer multiplication overflow in numel calculation)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) < 2147483647 / v_2
+Rule 5 (Output size should contain only one int if output size is a tuple)
+{v_2 : tuple(int)} |= v_2.len = 1
 >>
-Rule 8 (input tensor's dtype must be a floating point or complex type to allow mean calculation)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+Rule 6 (Avoid integer multiplication overflow by constraining the output size)
+{v_2 : int} |= v_2 < 2147483647
 >>
-Rule 9 (output_size should contain only one integer)
-{v_1 : int} |= v_1 > 0
+Rule 9 (Input tensor dtype should be float or complex to avoid inferring output dtype error)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 10 (prevent potential memory allocation errors by limiting the input size * output size)
-{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1)-1) * v_2 < 2147483647
->>
-Rule 11 (input tensor must have 2 or 3 dimensions, not 1)
-{v_1 : tensor} |= ndim(v_1) ≠ 1
->>
-Rule 13 (input tensor's dtype must be a floating point or complex type to allow mean calculation, excluding char)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11
->>
-Rule 14 (prevent potential memory allocation errors by checking if the product of input size and output size exceeds a limit)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then shape(v_1, 1) * v_2 < 2147483647 else if ndim(v_1) = 3 then shape(v_1, 2) * v_2 < 2147483647
->>
-Rule 15 (elements of output_size must be greater than or equal to 0)
+Rule 10 (Output size must be non-negative when output size is a tuple)
 {v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 21 (input tensor must have 2 or 3 dimensions, not 1)
-{v_1 : tensor} |= ndim(v_1) > 1 ∧ ndim(v_1) < 4
+Rule 11 (Output size must be non-negative when output size is an int)
+{v_1 : int} |= v_1 ≥ 0
 >>
-Rule 23 (input tensor's dtype must be a floating point or complex type to allow mean calculation, excluding char)
-{v_1 : tensor} |= dtype_(v_1) ≠ 1
+Rule 12 (Output size should contain only one int if output size is a tuple)
+{v_1 : tuple(int)} |= v_1.len = 1
 >>
-Rule 28 (output_size must not lead to integer overflow when calculating the output size)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then shape(v_1, 1) * v_2 < 2147483647 else shape(v_1, 2) * v_2 < 2147483647
+Rule 13 (Avoid integer multiplication overflow by constraining the output size)
+{v_1 : int} |= v_1 < 2147483647
 >>
-Rule 30 (Check for potential memory allocation error, based on input size)
-{v_1 : tensor} |= shape(v_1, 0) < 100000000
+Rule 14 (Input tensor should NOT have 1 dimension)
+{v_1 : tensor} |= ndim(v_1) ≠ 1
 >>
-Rule 33 (output_size must not lead to integer overflow when calculating the output size)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then (shape(v_1, 1) < 2147483647 / v_2) else (shape(v_1, 2) < 2147483647 / v_2)
+Rule 21 (Check that input tensor does not have Char dtype to avoid dtype error)
+{v_1 : tensor} |= dtype_(v_1) ≠ 12
 >>
-Rule 40 (check that outputsize is non-negative)
-{v_1: int} |= v_1 >= 0
+Rule 23 (Output size should be a tuple of length 1, or an int)
+{v_1 : tuple(int), v_2 : int} |= (v_1.len = 1) ∨ (v_2 ≥ 0)
 >>
-Rule 45 (Ensure that the input tensor isn't too large)
-{v_1: tensor} |= shape(v_1, 0) < 500000000
+Rule 24 (Output size should be small enough to avoid integer overflow)
+{v_1 : int} |= v_1 < 1000000
 >>
-Rule 48 (output_size must not lead to integer overflow when calculating the output size)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then shape(v_1, 1) < 2147483647 / v_2 else if ndim(v_1) = 3 then shape(v_1, 2) < 2147483647 / v_2
+Rule 35 (Output size should be small enough to avoid integer overflow)
+{v_2 : int} |= v_2 < 1000000
 >>
-Rule 49 (Check for integer overflow during numel calculation within adaptive_avg_pool1d)
-{v_1 : tensor, v_2 : int} |= shape(v_1,0) < 2147483647 / v_2
+Rule 38 (If output size is passed as a tuple, its elements must be non-negative and the tuple's length must be 1 to avoid related errors.)
+{v_2 : tuple(int)} |= (v_2.len = 1) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0)
 >>
-Rule 63 (output_size must not lead to integer overflow when calculating the output size, consider minimum tensor size)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then shape(v_1, 1) < 2147483647 / v_2 else shape(v_1, 2) < 2147483647 / v_2
+Rule 39 (If output size is an integer, it should be non-negative to avoid negative output size error, and small enough to avoid overflow)
+{v_2 : int} |= (v_2 ≥ 0) ∧ (v_2 < 1000000)
 >>
-Rule 64 (ensure the first dimension of the tensor is within reasonable bounds to avoid allocation errors)
-{v_1 : tensor} |= shape(v_1,0) < 200000000
+Rule 40 (Input tensor must have dimension 2 or 3 to avoid dimension error)
+{v_1 : tensor} |= (ndim(v_1) = 2) ∨ (ndim(v_1) = 3)
 >>
-Rule 68 (Avoid potential memory allocation error due to excessive output size)
-{v_1 : tensor, v_2 : int} |= shape(v_1,0) * v_2 < 2000000000
+Rule 46 (Output size: if tuple, ensure correct length (1) and non-negativity)
+{v_2 : tuple(int)} |= (v_2.len = 1) ∧ (∀i ∈ [0, 0] : v_2[i] ≥ 0)
 >>
-Rule 69 (outputsize should be small enough to avoid integer overflow during internal calculation)
-{v_1 : int} |= v_1 < 20000
+Rule 57 (Rule to prevent memory allocation error)
+{v_1: tensor} |= shape(v_1, 0) * shape(v_1, if ndim(v_1) > 1 then 1 else 0) < 100000000
 >>
-Rule 75 (ensure a single integer is given for output_size)
-{v_1: tuple(int)} |= v_1.len = 1
+Rule 60 (Combined validation for output_size: Ensures non-negativity and within-bounds, length=1 for tuple)
+{v_2 : int ⊎ tuple(int)} |= if v_2.len = 1 then (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0) else (v_2 ≥ 0 ∧ v_2 < 1000000)
 >>
-Rule 83 (Output size should be within reasonable bounds to avoid large memory allocation)
-{v_1 : int} |= v_1 < 10000
+Rule 62 (Rule to prevent memory allocation error by putting a constraint on input shape)
+{v_1: tensor} |= shape(v_1, 0) < 10000
 >>
-Rule 84 (Check potential integer overflow during numel calculation)
-{v_1: tensor, v_2:int} |= shape(v_1, 0) < 100000000 / v_2
+Rule 65 (Validate the output_size parameter)
+{v_2 : int ⊎ tuple(int)} |= if (v_2.len = 1) then (∀i ∈ [0, 0] : v_2[i] ≥ 0) else (v_2 ≥ 0 ∧ v_2 < 1000000)
 >>
-Rule 88 (Avoid potential memory allocation error due to product of output size and tensor size)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1,1) < 5000 else shape(v_1,2) < 5000
+Rule 67 (Check that input tensor elements are not Nan to prevent runtime error)
+{v_1 : tensor} |= min(v_1) ≠ "nan" ∧ max(v_1) ≠ "nan"
 >>
-Rule 94 (Prevent potential memory allocation error due to large tensor size)
-{v_1 : tensor} |= shape(v_1, 1) < 5000 ∨ shape(v_1,2) < 5000
+Rule 72 (Ensure that the input tensor has a floating-point or complex dtype to avoid mean dtype error)
+{v_1 : tensor} |= (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)
 >>
-Rule 99 (Ensure that the calculation for the number of elements doesn't result in an overflow)
-{v_1: tensor, v_2: int} |= shape(v_1, 0) * v_2 < 2147483647
+Rule 75 (Combined validation for output_size (tuple or int))
+{v_2 : int ⊎ tuple(int)} |= if (v_2.len = 1 ∨ ndim(v_2) = 0) then (∀i ∈ [0, 0] : v_2[i] ≥ 0) ∧ (v_2 < 1000000 ∨ v_2.len = 1) else false
 >>
-Rule 104 (Check for excessive tensor shape to help avoid allocation error)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 1) < 5000 else shape(v_1, 2) < 5000
+Rule 80 (Output size validation, handling both int and tuple cases)
+{v_2 : int ⊎ tuple(int)} |= if ndim(v_2) = 0 then (v_2 ≥ 0 ∧ v_2 < 1000000) else (v_2.len = 1 ∧ (∀i ∈ [0, 0] : v_2[i] ≥ 0))
 >>
-Rule 108 (Check to prevent large memory allocation from large tensor)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 1) < 5000 else if ndim(v_1) = 3 then shape(v_1, 2) < 5000
+Rule 82 (Check that outputsize is an integer if a single value is expected)
+{v_2 : int ⊎ tuple(int)} |= if ndim(v_2) = 0 then true else v_2.len = 1
 >>
-Rule 118 (Ensure that the total number of elements isn't too large, avoiding allocation errors)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) * v_2 < 200000000
+Rule 85 (Validate output_size; it must be non-negative and within reasonable bounds)
+{v_2 : int ⊎ tuple(int)} |= if ndim(v_2) = 0 then (v_2 ≥ 0) ∧ (v_2 < 1000000) else (v_2.len = 1 ∧ (∀i ∈ [0, 0] : v_2[i] ≥ 0))
 >>
-Rule 119 (Check if the output_size is negative)
-{v_1 : int} |= v_1 >= 0
+Rule 86 (Constraint to limit tensor size to prevent OOM errors)
+{v_1 : tensor} |= shape(v_1,0) < 5000
 >>
-Rule 123 (To avoid large memory allocation check that multiplication result is reasonable)
-{v_1: tensor, v_2:int} |= shape(v_1, 0) * v_2 < 200000000
+Rule 87 (To prevent type inference error, require float or complex input)
+{v_1: tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 128 (Avoid potential memory allocation error by checking shape)
-{v_1: tensor} |= shape(v_1, 0) < 5000000
+Rule 91 (Tensor size constraint - Preventing Memory Errors)
+{v_1: tensor} |= shape(v_1, 0) < 5000
 >>
-Rule 130 (Check against integer multiplication overflow)
-{v_1: tensor, v_2: int} |= shape(v_1, 0) < 2147483647 / v_2
+Rule 95 (output size is valid)
+{v_2 : int ⊎ tuple(int)} |= if (ndim(v_2) = 0) then (v_2 ≥ 0) ∧ (v_2 < 1000000) else (v_2.len = 1) ∧ (min(v_2) ≥ 0)
 >>
-Rule 138 (The size of the tensor's first dimension should not exceed limits)
-{v_1 : tensor} |= shape(v_1, 0) < 10000000
+Rule 100 (Output Size; needs to be within bounds & properly formatted)
+{v_2 : int ⊎ tuple(int)} |= if ndim(v_2) = 0 then (v_2 ≥ 0 ∧ v_2 < 1000000) else (v_2.len = 1 ∧ min(v_2) ≥ 0)
 >>
-Rule 140 (Output size needs to be a positive integer)
-{v_1: int} |= v_1 > 0
+Rule 101 (Limit on tensor size; avoid OOM)
+{v_1 : tensor} |= shape(v_1, 0) < 5000
+>>
+Rule 107 (The number of dimensions of the input tensor must be positive, or the output size cannot be correctly infered.)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 110 (Output size validation: Non-negative)
+{v_2 : int ⊎ tuple(int)} |= if ndim(v_2) = 0 then v_2 ≥ 0 else (v_2.len = 1 ∧ (∀i ∈ [0, 0] : v_2[i] ≥ 0))
+>>
+Rule 112 (Prevent integer multiplication overflow by bounding the output_size)
+{v_2 : int ⊎ tuple(int)} |= if ndim(v_2) = 0 then v_2 < 2147483647
+>>
+Rule 115 (Preventing "adaptive_avg_pool2d" elements of output_size must be greater than or equal to 0 error and integer overflow error.)
+{v_2 : int ⊎ tuple(int)} |= if ndim(v_2) = 0 then (v_2 ≥ 0) ∧ (v_2 < 2000000) else (v_2.len = 1 ∧ (∀i ∈ [0, 0] : v_2[i] ≥ 0))
+>>
+Rule 116 (Avoid memory allocation errors (OOM) by ensuring reasonable input tensor size, and shape(v_1,0) * shape(v_1,1) is not too large.)
+{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, if ndim(v_1) > 1 then 1 else 0) < 500000
+>>
+Rule 120 (output size requirements.)
+{v_2 : int ⊎ tuple(int)} |= if (ndim(v_2) = 0) then ((v_2 ≥ 0) ∧ (v_2 < 2000000)) else ((v_2.len = 1) ∧ (min(v_2) ≥ 0))
+>>
+Rule 122 (outputsize.len is not equal to 2, when output_size is a tuple)
+{v_2 : int ⊎ tuple(int)} |= if (ndim(v_2) = 0) then true else v_2.len ≠ 2
+>>
+Rule 123 (Restricting input tensor dimensions. Prevents 1D input errors.)
+{v_1 : tensor} |= (ndim(v_1) > 1) ∧ (ndim(v_1) < 4)
+>>
+Rule 127 (If output size is a tuple, then its size is greater than 0)
+{v_2 : int ⊎ tuple(int)} |= if (ndim(v_2) = 0) then true else v_2.len > 0
+>>
+Rule 130 (Handle output size requirements to avoid "out of bound" or size related error)
+{v_2 : int ⊎ tuple(int)} |= if (ndim(v_2) = 0) then ((v_2 ≥ 0) ∧ (v_2 < 2000000)) else (v_2.len = 1 ∧ (∀i ∈ [0, 0] : v_2[i] ≥ 0))
+>>
+Rule 132 (The output size if defined as an integer shouldn't be 2)
+{v_2 : int ⊎ tuple(int)} |= if (ndim(v_2) = 0) then v_2 ≠ 2
+>>
+Rule 137 (Restricting the shape dimensions.)
+{v_1 : tensor} |= shape(v_1,0) < 10000
+>>
+Rule 140 (Output size must be a valid size number, it should be 1)
+{v_2 : int ⊎ tuple(int)} |= if ndim(v_2) = 0 then ((v_2 ≥ 0) ∧ (v_2 < 2000000)) else v_2.len = 1
+>>
+Rule 142 (Output size, greater than the sizes in input)
+{v_1 : tensor, v_2: int ⊎ tuple(int)} |= if ndim(v_2) = 0 then shape(v_1, ndim(v_1) -1) > v_2 else shape(v_1, ndim(v_1) -1) > v_2[0]
+>>
+Rule 145 (output size validation to prevent potential errors. Handles integer and tuple (int) input.)
+{v_2 : int ⊎ tuple(int)} |= if (ndim(v_2) = 0) then ((v_2 ≥ 0) ∧ (v_2 < 2000000)) else ((v_2.len = 1) ∧ (v_2[0] ≥ 0) ∧ (v_2[0] < 2000000))
+>>
+Rule 147 (Last dimension of input must be greater than output)
+{v_1 : tensor, v_2 : int ⊎ tuple(int)} |= if ndim(v_2) = 0 then shape(v_1, ndim(v_1) - 1) > v_2 else shape(v_1, ndim(v_1) - 1) > v_2[0]
+>>
+Rule 150 (Valid output size, Non-negative with correct tuple structure or as int)
+{v_2 : int ⊎ tuple(int)} |= if (ndim(v_2) = 0) then ((v_2 ≥ 0) ∧ (v_2 < 2000000)) else (v_2.len = 1 ∧ v_2[0] ≥ 0 ∧ v_2[0] < 2000000)
+>>
+Rule 152 (If outputsize is an integer, ensures its a single number, if a tuple, ensures len = 1 prevents multiple int error and AdaptiveAvgPool1dBackward doesn't support multiple output sizes)
+{v_2 : int ⊎ tuple(int)} |= if (ndim(v_2) = 0) then true else v_2.len = 1
+>>
+Rule 155 (Requirements for output_size (int or tuple), related to its value being a non negative integer)
+{v_2 : int ⊎ tuple(int)} |= if (ndim(v_2) = 0) then ((v_2 ≥ 0) ∧ (v_2 < 2000000)) else (v_2.len = 1 ∧ (v_2[0] ≥ 0) ∧ (v_2[0] < 2000000))

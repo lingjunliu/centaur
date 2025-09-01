@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if dtype is complex64, output dtype is float32 (Rule 12)
+# Input tensor cannot be dtype (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 10, True, False)) if n else
-          If(v["arg1_dtype"] == 10, True, False))
+    s.add(Not(v["arg1_dtype"] != 13) if n else
+          v["arg1_dtype"] != 13)
 )
 
 def rule_12_func(arg1, solver=None, neg=False):

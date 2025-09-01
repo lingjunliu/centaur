@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check the hidden_size dimension is within storable limit for calculation (Rule 79)
+# To prevent storage overflows, the product of hidden_size with 4 must be within a safe limit (Rule 79)
 
 rule_79 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 100000000) if n else
-          v["arg1_value"] < 100000000)
+    s.add(Not(4 * v["arg1_value"] < 2147483647) if n else
+          4 * v["arg1_value"] < 2147483647)
 )
 
 def rule_79_func(arg1, solver=None, neg=False):

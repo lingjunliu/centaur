@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Avoid implicit conversion from float16 numpy array to integer tensor (Rule 23)
+# If dtype is float16, the dtype of tensor data cannot be an integer type (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, If(v["arg2_value"] == 12, False, False), False)) if n else
-          If(v["arg1_dtype"] == 6, If(v["arg2_value"] == 12, False, False), False))
+    s.add(Not(If(v["arg2_value"] == 6, And(And(And(And(v["arg1_dtype"] != 1, v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5), True)) if n else
+          If(v["arg2_value"] == 6, And(And(And(And(v["arg1_dtype"] != 1, v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5), True))
 )
 
 def rule_23_func(arg1, arg2, solver=None, neg=False):

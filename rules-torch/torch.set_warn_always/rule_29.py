@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check if the value falls in between the range, 0 and 1 (Rule 29)
+# Input must be boolean (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, And(1 >= 0, 1 <= 1), And(0 >= 0, 0 <= 1))) if n else
-          If(v["arg1_value"] == True, And(1 >= 0, 1 <= 1), And(0 >= 0, 0 <= 1)))
+    s.add(Not(v["arg1_value"] == v["arg1_value"]) if n else
+          v["arg1_value"] == v["arg1_value"])
 )
 
 def rule_29_func(arg1, solver=None, neg=False):

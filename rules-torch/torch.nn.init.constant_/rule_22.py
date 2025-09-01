@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Value is a representable half-precision float if dtype is float16 and its value is between -65504 and 65504 (Rule 22)
+# Value should not underflow the minimum value for float16 representation (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, And((And(-65504 <= v["arg2_value"], v["arg2_value"] <= 65504)), (v["arg2_value"] * 1024) % 1 == 0), False)) if n else
-          If(v["arg1_dtype"] == 6, And((And(-65504 <= v["arg2_value"], v["arg2_value"] <= 65504)), (v["arg2_value"] * 1024) % 1 == 0), False))
+    s.add(Not(If(v["arg1_dtype"] == 7, (v["arg2_value"] >= -65535), True)) if n else
+          If(v["arg1_dtype"] == 7, (v["arg2_value"] >= -65535), True))
 )
 
 def rule_22_func(arg1, arg2, solver=None, neg=False):

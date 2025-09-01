@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if the start value is close to the size of the tensor and is negative, the length should not be too large. (Rule 67)
+# Start plus length must be less than the shape of the tensor for the specific dimension if dimension is within range and length is greater than zero (Rule 67)
 
 rule_67 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] < 0, v["arg3_value"] + Select(v["arg1_shape"], v["arg2_value"] + v["arg1_ndim"]) >= -1 * v["arg4_value"], False)) if n else
-          If(v["arg2_value"] < 0, v["arg3_value"] + Select(v["arg1_shape"], v["arg2_value"] + v["arg1_ndim"]) >= -1 * v["arg4_value"], False))
+    s.add(Not(If(And(And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"]), v["arg4_value"] > 0), (v["arg3_value"] + v["arg4_value"]) <= Select(v["arg1_shape"], v["arg2_value"]), True)) if n else
+          If(And(And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"]), v["arg4_value"] > 0), (v["arg3_value"] + v["arg4_value"]) <= Select(v["arg1_shape"], v["arg2_value"]), True))
 )
 
 def rule_67_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
@@ -46,9 +46,9 @@ def rule_67_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         solver.add(arg4_value == int(arg4))
 
         # Constraints for rule 67
-        rule_67(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value, 'arg3_value': arg3_value, 'arg4_value': arg4_value})
+        rule_67(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value, 'arg3_value': arg3_value, 'arg4_value': arg4_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_67(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value'], 'arg4_value': arg4['value']}, neg)
+        rule_67(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value'], 'arg4_value': arg4['value']}, neg)

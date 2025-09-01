@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# seed is valid if it's within 64 bit integer range or its remapped version is (Rule 21)
+# seed is a valid 64-bit integer (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(Or(Or((And(v["arg1_value"] >= -9223372036854775808, v["arg1_value"] <= 9223372036854775807)), (And(And(v["arg1_value"] < 0, (v["arg1_value"] + 18446744073709551616) >= -9223372036854775808), (v["arg1_value"] + 18446744073709551616) <= 9223372036854775807))), (And(And(v["arg1_value"] >= 0, (v["arg1_value"]) >= -9223372036854775808), (v["arg1_value"]) <= 9223372036854775807)))) if n else
-          Or(Or((And(v["arg1_value"] >= -9223372036854775808, v["arg1_value"] <= 9223372036854775807)), (And(And(v["arg1_value"] < 0, (v["arg1_value"] + 18446744073709551616) >= -9223372036854775808), (v["arg1_value"] + 18446744073709551616) <= 9223372036854775807))), (And(And(v["arg1_value"] >= 0, (v["arg1_value"]) >= -9223372036854775808), (v["arg1_value"]) <= 9223372036854775807))))
+    s.add(Not(Or([And(x < (18446744073709551615 + 1), v["arg1_value"] == x) for x in range(6)])) if n else
+          Or([And(x < (18446744073709551615 + 1), v["arg1_value"] == x) for x in range(6)]))
 )
 
 def rule_21_func(arg1, solver=None, neg=False):

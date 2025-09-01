@@ -5,86 +5,182 @@ Rule 1 (groups must be a positive integer)
 Rule 2 (in_channels must be divisible by groups)
 {v_1 : int, v_2 : int} |= v_1 % v_2 = 0
 >>
-Rule 7 (padding_mode must be a valid string)
+Rule 6 (padding_mode must be a valid string)
 {v_1 : str} |= v_1 = "zeros" ∨ v_1 = "reflect" ∨ v_1 = "replicate" ∨ v_1 = "circular"
 >>
-Rule 8 (padding must be non-negative)
+Rule 7 (padding must be non-negative integer)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 9 (padding string must be valid when stride is 1)
-{v_1 : str, v_2 : int} |= if v_1 = "same" then v_2 = 1
+Rule 8 (input tensor must have at least two dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
 >>
-Rule 12 (kernel_size tuple must have length 1)
-{v_1 : tuple(int)} |= shape(v_1,0) = 1
+Rule 10 (out_channels must be a positive integer)
+{v_1:int} |= v_1 > 0
 >>
-Rule 16 (check if kernel size is less than or equal to the input length after padding)
-{v_1 : int, v_2 : int, v_3 : int, v_4 : int} |= v_1 + 2 * v_2 ≥ v_3 * v_4
+Rule 12 (input channels and out channels must be integers)
+{v_1:int, v_2: int} |= v_1 > 0 ∧ v_2 > 0
 >>
-Rule 17 (check if dilation is non-negative)
-{v_1 : int} |= v_1 >= 0
+Rule 13 (If padding is same, stride must be 1)
+{v_1:str, v_2:int} |= if v_1 = "same" then v_2 = 1
 >>
-Rule 18 (check if bias is a boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 14 (If bias is true, bias tensor exists)
+{v_1:bool, v_2:tensor} |= if v_1 = true then ndim(v_2) = 1
 >>
-Rule 19 (Check the output length is positive)
-{v_1 : int, v_2 : int, v_3 : int, v_4 : int, v_5 : int} |= (v_1 + 2 * v_2 - v_4 * (v_3 - 1) - 1) / v_5 + 1 > 0
+Rule 15 (groups must be less than or equal to in_channels)
+{v_1:int, v_2:int} |= v_2 ≤ v_1
 >>
-Rule 20 (in_channels and out_channels must be integers)
-{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
->>
-Rule 21 (groups must be a positive integer, and less than or equal to in_channels)
+Rule 17 (groups must be a positive integer and less than or equal to in_channels)
 {v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_1 ≤ v_2
 >>
-Rule 22 (padding string must be valid)
-{v_1 : str} |= v_1 = "valid" ∨ v_1 = "same"
+Rule 26 (dtype must be one of the complex types if input is complex)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then v_2 = 10 ∨ v_2 = 11
 >>
-Rule 26 (If padding is a tuple, its elements must be non-negative integers)
-{v_1 : tuple(int)} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
+Rule 27 (Relationship between in_channels, out_channels and groups)
+{v_1 : int, v_2 : int, v_3 : int} |= (v_2 / v_3) * v_3 = v_2 ∧ (v_1 / v_3) * v_3 = v_1
 >>
-Rule 27 (groups, in_channels and out_channels relation check)
-{v_1 : int, v_2 : int, v_3 : int} |= (v_2 % v_1 = 0) ∧ (v_3 % v_1 = 0) ∧ (v_1 > 0)
+Rule 28 (String type is valid string.)
+{v_1:str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "softplus" ∨ v_1 = "linear" ∨ v_1 = "constant" ∨ v_1 = "reflect" ∨ v_1 = "replicate" ∨ v_1 = "circular" ∨ v_1 = "nearest" ∨ v_1 = "bilinear" ∨ v_1 = "bicubic" ∨ v_1 = "trilinear" ∨ v_1 = "area" ∨ v_1 = "linear"
 >>
-Rule 29 (check if groups is 1 if in_channels equals out_channels)
-{v_1 : int, v_2 : int, v_3 : int} |= if v_1 = v_2 then v_3 ≥ 1
+Rule 29 (groups must be a positive integer and less than or equal to in_channels and in_channels divisible by groups)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_1 ≤ v_2 ∧ v_2 % v_1 = 0
 >>
-Rule 32 (kernel_size must be an integer or a tuple of integers with length 1 where all elements are positive)
-{v_1 : int ⊎ tuple(int)} |= if ndim(v_1) = 0 then v_1 > 0 else (shape(v_1, 0) = 1 ∧ v_1[0] > 0)
+Rule 31 (If padding is 'same', stride must be 1)
+{v_1 : str, v_2 : int} |= if v_1 = "same" then v_2 = 1
 >>
-Rule 40 (groups must be a positive integer, and less than or equal to in_channels, and also less than or equal to out_channels)
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 > 0 ∧ v_1 ≤ v_2 ∧ v_1 <= v_3
+Rule 32 (If bias is true, requires bias tensor with correct out_channels shape)
+{v_1 : bool, v_2 : tensor, v_3 : int} |= if v_1 = true then ndim(v_2) = 1 ∧ shape(v_2, 0) = v_3
 >>
-Rule 41 (padding string must be valid and if 'same', stride must be 1)
-{v_1 : str, v_2 : int} |= (v_1 = "valid" ∨ v_1 = "same") ∧ if v_1 = "same" then v_2 = 1
+Rule 35 (kernel_size must be less than or equal to input length)
+{v_1 : int, v_2 : tensor} |= v_1 ≤ shape(v_2, ndim(v_2) - 1)
 >>
-Rule 43 (If padding is a tuple, its elements must be non-negative integers and length 1)
-{v_1 : tuple(int)} |= (shape(v_1, 0) = 1) ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
+Rule 36 (Dilation must be less than input length)
+{v_1 : int, v_2 : tensor} |= v_1 < shape(v_2, ndim(v_2)-1)
 >>
-Rule 53 (in_channels must be divisible by groups, in_channels > 0 and groups > 0)
-{v_1 : int, v_2 : int} |= (v_1 % v_2 = 0) ∧ v_1 > 0 ∧ v_2 > 0
+Rule 37 (in_channels and out_channels are positive)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
 >>
-Rule 59 (groups must be a positive integer, and less than or equal to in_channels and out_channels. Also, in_channels and out_channels must be positive)
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 > 0 ∧ v_1 ≤ v_2 ∧ v_1 <= v_3 ∧ v_2 > 0 ∧ v_3 > 0
+Rule 40 (padding must be non-negative when it is an integer, and valid when string)
+{v_1 : int ⊎ str} |= if v_1 = "valid" ∨ v_1 = "same" then true else v_1 ≥ 0
 >>
-Rule 63 (in_channels must be divisible by groups, groups must be positive)
-{v_1 : int, v_2 : int} |= (v_1 % v_2 = 0) ∧ v_2 > 0
+Rule 48 (bias is boolean.)
+{v_1:bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 67 (If bias is True, then output channels should not be zero)
-{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 > 0
+Rule 49 (groups, in_channels, out_channels constraints)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 > 0 ∧ v_1 ≤ v_2 ∧ v_2 % v_1 = 0 ∧ v_3 % v_1 = 0
 >>
-Rule 72 (in_channels must be divisible by groups)
-{v_1 : int, v_2 : int} |= (v_1 % v_2 = 0)
+Rule 53 (dtype consistency for complex tensors and specified dtype)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then v_2 = dtype_(v_1)
 >>
-Rule 85 (Depthwise condition check. When groups == in_channels and out_channels == K * in_channels, K is positive integer)
-{v_1 : int, v_2 : int, v_3 : int} |= if v_1 = v_2 then (v_3 % v_1 = 0)
+Rule 54 (kernel and dilation sizes must be positive and smaller than the input size)
+{v_1 : int, v_2 : int, v_3 : tensor} |= v_1 > 0 ∧ v_2 > 0 ∧ v_1 < shape(v_3, ndim(v_3) - 1) ∧ v_2 < shape(v_3, ndim(v_3) - 1)
 >>
-Rule 89 (If padding is a tuple, its elements must be non-negative integers and length 1. Also, padding should be positive)
-{v_1 : tuple(int)} |= (shape(v_1, 0) = 1) ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[0] >= 0
+Rule 56 (Kernel size, dilation, padding must be non-negative)
+{v_1 : int, v_2 :int, v_3: int} |= v_1 ≥ 0 ∧ v_2 ≥ 0 ∧ v_3 ≥ 0
 >>
-Rule 102 (when groups == in_channels, out_channels must be a multiple of in_channels)
-{v_1 : int, v_2 : int, v_3 : int} |= if v_1 = v_2 then (∃K ∈ [0, v_3] : v_3 = K * v_1)
+Rule 58 (Padding constraints: integer or string with 'same' check)
+{v_1 : int ⊎ str, v_2 : int} |= if v_1 = "same" then v_2 = 1 else if v_1 = "valid" then true else v_1 ≥ 0
 >>
-Rule 120 (check the groups, in_channels, out_channels relation)
-{v_1 : int, v_2 : int, v_3 : int} |= v_2 % v_1 = 0 ∧ v_3 % v_1 = 0 ∧ v_1 ≤ v_2 ∧ v_1 <= v_3
+Rule 61 (Consistent dtype for complex input tensors)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_1) = v_2
 >>
-Rule 130 (Depthwise convolution condition check: groups = in_channels implies out_channels must be a multiple of in_channels)
-{v_1 : int, v_2 : int, v_3 : int} |= if v_1 = v_2 then (∃K ∈ [1, v_3] : v_3 = K * v_1)
+Rule 62 (Bound kernel and dilation sizes)
+{v_1 : int, v_2 : int, v_3 : tensor} |= v_1 > 0 ∧ v_2 > 0 ∧ v_1 ≤ shape(v_3, ndim(v_3) - 1) ∧ v_2 ≤ shape(v_3, ndim(v_3) - 1)
+>>
+Rule 65 (in_channels, out_channels, groups relationship)
+{v_1: int, v_2: int, v_3: int} |= (v_2 / v_3) * v_3 = v_2 ∧ (v_2 / v_3) > 0 ∧ (v_1 / v_3) * v_3 = v_1 ∧ (v_1/v_3) > 0
+>>
+Rule 66 (stride positive)
+{v_1: int} |= v_1 > 0
+>>
+Rule 67 (Combined groups, in_channels, out_channels divisibility and positivity)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 > 0 ∧ v_2 % v_1 = 0 ∧ v_3 % v_1 = 0 ∧ v_1 <= v_2
+>>
+Rule 68 (Conditional padding and stride relationship)
+{v_1 : str ⊎ int, v_2 : int} |= if v_1 = "same" then v_2 = 1 else if v_1 = "valid" then true else v_1 ≥ 0
+>>
+Rule 72 (Kernel and dilation size bounds)
+{v_1 : int, v_2 : tensor} |= v_1 > 0 ∧ v_1 ≤ shape(v_2, ndim(v_2) - 1)
+>>
+Rule 74 (Dtype must be one of the supported values)
+{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 11 ∨ v_1 = 12
+>>
+Rule 75 (all sizes must be non-negative)
+{v_1: int, v_2: int, v_3: int, v_4:int} |= v_1 ≥ 0 ∧ v_2 ≥ 0 ∧ v_3 ≥ 0 ∧ v_4 ≥ 0
+>>
+Rule 81 (Bound on kernel size based on input shape)
+{v_1 : int, v_2 : tensor} |= v_1 > 0 ∧ v_1 <= shape(v_2, ndim(v_2) - 1)
+>>
+Rule 84 (groups must be less or equal than in_channels)
+{v_1:int, v_2:int} |= v_1 <= v_2
+>>
+Rule 85 (Input tensor must have supported dtype)
+{v_1:tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 ∨ dtype_(v_1) = 12
+>>
+Rule 86 (Groups, in_channels, out_channels all related)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 > 0 ∧ v_2 % v_1 = 0 ∧ v_3 % v_1 = 0  ∧ v_1 <= v_2
+>>
+Rule 89 (Input must be a tensor with at least two dimensions, input channels must be positive)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) ≥ 2 ∧ v_2 > 0
+>>
+Rule 95 (check the input tensor data type is floating point if doing half precision training)
+{v_1: tensor, v_2:dtype} |= if v_2 = 6 then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 105 (If padding is same then stride is 1)
+{v_1: str, v_2: int} |= if v_1 = "same" then v_2 = 1
+>>
+Rule 115 (Check if the tensor data type is floating point.)
+{v_1:tensor, v_2:dtype} |= if v_2 = 6 then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 134 (kernel size must not exceed dilation)
+{v_1: int, v_2: int} |= v_1 <= v_2
+>>
+Rule 136 (in_channels, out_channels and groups must be positive)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 > 0 ∧ v_2 > 0 ∧ v_3 > 0
+>>
+Rule 138 (bias is boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 139 (Tensor at least 2D and last dim > 0)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) > 0
+>>
+Rule 140 (Dtype for float16)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9
+>>
+Rule 141 (padding must be positive)
+{v_1:int} |= v_1 >=0
+>>
+Rule 142 (Valid string values)
+{v_1:str} |= v_1 = "zeros" ∨ v_1 = "reflect" ∨ v_1 = "replicate" ∨ v_1 = "circular"
+>>
+Rule 144 (Kernel must have some value and not be negative)
+{v_1:int} |= v_1 >= 1
+>>
+Rule 146 (All channel related variables should be greater than zero)
+{v_1 : int, v_2 : int, v_3: int} |= v_1 > 0 ∧ v_2 > 0 ∧ v_3 > 0
+>>
+Rule 147 (groups has to be a factor of in_channels and out_channels.)
+{v_1: int, v_2: int} |= v_1 % v_2 = 0
+>>
+Rule 149 (at least 2D tensor and a positive last dim size)
+{v_1: tensor} |= ndim(v_1) >=2 ∧ shape(v_1, ndim(v_1)-1) > 0
+>>
+Rule 150 (Correcting Dtype in the context of complex types)
+{v_1: tensor, v_2: dtype} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_1) = v_2
+>>
+Rule 151 (Padding should have positive values.)
+{v_1: int} |= v_1 >= 0
+>>
+Rule 152 (valid for the string to hold one of the values)
+{v_1: str} |= v_1 = "zeros" ∨ v_1 = "reflect" ∨ v_1 = "replicate" ∨ v_1 = "circular"
+>>
+Rule 154 (Dilation not negative)
+{v_1: int} |= v_1 >= 1
+>>
+Rule 156 (in_channels, out_channels and groups must be positive and respect divisibility)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 > 0 ∧ v_2 > 0 ∧ v_3 > 0 ∧ v_1 % v_3 = 0 ∧ v_2 % v_3 = 0
+>>
+Rule 158 (at least 2D tensor)
+{v_1: tensor} |= ndim(v_1) >=2
+>>
+Rule 164 (tensor has the floating point)
+{v_1: dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9

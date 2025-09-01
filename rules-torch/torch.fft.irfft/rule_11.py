@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor should have a floating point dtype to avoid RuntimeError: irfft expects a floating point output tensor, but got Bool (Rule 11)
+# Output tensor dtype should be floating point, addressing RuntimeError: irfft expects a floating point output tensor, but got Bool (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9)) if n else
-          Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9))
+    s.add(Not(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)) if n else
+          Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8))
 )
 
 def rule_11_func(arg1, solver=None, neg=False):

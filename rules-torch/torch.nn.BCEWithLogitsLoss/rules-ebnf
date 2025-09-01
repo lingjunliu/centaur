@@ -1,132 +1,138 @@
 >>
-Rule 1 (Input and target tensors must have the same size to avoid ValueError)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 1 (Target and Input tensors must have the same shape)
+{v_6 : tensor, v_7 : tensor} |= ndim(v_6) = ndim(v_7) ∧ ∀ i ∈ [0, ndim(v_6) - 1] : shape(v_6, i) = shape(v_7, i)
 >>
-Rule 2 (Weight tensor must be a float tensor, to prevent the RuntimeError related to 'Char')
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6
+Rule 2 (Reduction must be one of the allowed strings)
+{v_4 : str} |= v_4 = "none" ∨ v_4 = "mean" ∨ v_4 = "sum"
 >>
-Rule 5 (reduction must be a string with allowed values)
-{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
+Rule 3 (Weight tensor must have the correct size if provided)
+{v_1 : tensor, v_6 : tensor} |= if v_1 = null then true else shape(v_1, 0) = shape(v_6, 0)
 >>
-Rule 6 (Shape of weight tensor must match the batch size of input tensor when given)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 4 (pos_weight tensor must have the correct size along the class dimension)
+{v_5 : tensor, v_7 : tensor} |= if v_5 = null then true else shape(v_5, 0) = shape(v_7, 1)
 >>
-Rule 7 (Target tensor's elements should be between 0 and 1)
-{v_1 : tensor} |= min(v_1) ≥ 0 ∧ max(v_1) ≤ 1
+Rule 5 (Weight tensor must contain float or int type)
+{v_1 : tensor} |= if v_1 = null then true else 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8 ∨ 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5
 >>
-Rule 8 (pos_weight tensor must have positive elements.)
-{v_1 : tensor} |= min(v_1) > 0
+Rule 7 (If weight is not None, then it should be a tensor)
+{v_1 : tensor} |= if v_1 = null then true else ndim(v_1) ≥ 1
 >>
-Rule 9 (If weight tensor is provided, it should be 1D)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 8 (Target tensor values should be between 0 and 1)
+{v_7 : tensor} |= ∀ i ∈ [0, shape(v_7,0) - 1] : ∀ j ∈ [0, shape(v_7,1) - 1] : v_7[i] ≥ 0 ∧ v_7[i] ≤ 1
 >>
-Rule 10 (Ensure input tensor is not empty to prevent errors related to shape)
-{v_1: tensor} |= shape(v_1, 0) > 0
+Rule 9 (If size_average and reduce are specified, reduction is ignored)
+{v_2 : bool, v_3 : bool, v_4 : str} |= if v_2 ∧ v_3 then true else v_4 = "none" ∨ v_4 = "mean" ∨ v_4 = "sum"
 >>
-Rule 12 (If reduction is not none, input and target dimensions should match)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 ≠ "none" then ndim(v_1) = ndim(v_2)
+Rule 10 (If weight is specified, it must be a 1D tensor)
+{v_1 : tensor} |= if v_1 = null then true else ndim(v_1) = 1
 >>
-Rule 13 (pos_weight must be the same size along the class dimension as the number of classes in the target)
-{v_1: tensor, v_2: tensor} |= shape(v_1, 0) = shape(v_2, 1)
+Rule 11 (If pos_weight is specified, it must be a 1D tensor)
+{v_5 : tensor} |= if v_5 = null then true else ndim(v_5) = 1
 >>
-Rule 15 (The dtype of input and target should be float)
-{v_1: tensor, v_2: tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 6)
+Rule 12 (Target tensor values should be between 0 and 1 if target is floating point tensor)
+{v_7 : tensor} |= if 6 ≤ dtype_(v_7) ∧ dtype_(v_7) ≤ 8 then ∀ i ∈ [0, shape(v_7,0) - 1] : v_7[i] ≥ 0 ∧ v_7[i] ≤ 1
 >>
-Rule 17 (If pos_weight is provided, it should have the same dtype as input)
-{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 13 (Input and target tensors must have floating point dtype)
+{v_6 : tensor, v_7 : tensor} |= 6 ≤ dtype_(v_6) ∧ dtype_(v_6) ≤ 8 ∧ 6 ≤ dtype_(v_7) ∧ dtype_(v_7) ≤ 8
 >>
-Rule 18 (If reduction is not none, input and target should have the same shape or be broadcastable)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 ≠ "none" then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))
+Rule 14 (Weight must be a tensor or None)
+{v_1 : tensor} |= v_1 = null ∨ ndim(v_1) ≥ 0
 >>
-Rule 20 (Target tensor's elements should be probabilities between 0 and 1)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1,0)-1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ 1
+Rule 15 (Weight can be None or a floating point tensor)
+{v_1 : tensor} |= v_1 = null ∨ (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8)
 >>
-Rule 21 (Weight argument must be a tensor or None represented by a string)
-{v_1: str} |= v_1 = "None"
+Rule 16 (Pos_weight can be None or a floating point tensor)
+{v_5 : tensor} |= v_5 = null ∨ (6 ≤ dtype_(v_5) ∧ dtype_(v_5) ≤ 8)
 >>
-Rule 25 (If pos_weight is provided, it should be 1D tensor)
-{v_1: tensor} |= ndim(v_1) = 1
+Rule 17 (Target must have values between 0 and 1 if it's a floating point tensor)
+{v_7 : tensor} |= if 6 <= dtype_(v_7) ∧ dtype_(v_7) <= 8 then ∀ i ∈ [0, shape(v_7, 0) - 1] : ∀ j ∈ [0, shape(v_7, 1) - 1] : (v_7[i] >= 0 ∧ v_7[i] <= 1)
 >>
-Rule 28 (The size of pos_weight must match the number of classes C when target's shape is [B, C])
-{v_1 : tensor, v_2: tensor} |= if ndim(v_2) = 2 then shape(v_1, 0) = shape(v_2, 1)
+Rule 19 (If target is Char tensor, it's not supported)
+{v_7: tensor} |= dtype_(v_7) ≠ 0
 >>
-Rule 29 (Input and target tensors must have the same dimensions to avoid ValueError)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Rule 20 (Target values must be 0 or 1 if it's int type)
+{v_7 : tensor} |= if 1 <= dtype_(v_7) ∧ dtype_(v_7) <= 5 then ∀ i ∈ [0, shape(v_7,0) - 1] : ∀ j ∈ [0, shape(v_7,1) - 1] : (v_7[i] = 0 ∨ v_7[i] = 1)
 >>
-Rule 34 (Weight argument must be a tensor or None represented by a string, applied by checking if it's a tensor)
-{v_1: str ⊎ tensor} |= if ndim(v_1) > 0 then true else v_1 = "None"
+Rule 22 (Weight must be None or a tensor)
+{v_1 : tensor} |= v_1 = null ∨ ndim(v_1) >= 1
 >>
-Rule 38 (Weight argument must be a tensor or None represented by a string)
-{v_1: str ⊎ tensor} |= if v_1 = "None" then true else ndim(v_1) > 0
+Rule 23 (If weight is a tensor, it must have floating point type)
+{v_1 : tensor} |= if v_1 = null then true else 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8
 >>
-Rule 43 (If reduction is not none, and input/target are not broadcastable, then the dimensions should match - replaced negated exists with forall)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 ≠ "none" then (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1)) ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 24 (If target is [B, C, H, W], pos_weight can be [C, H, W] or [C, 1, 1])
+{v_5 : tensor, v_7 : tensor} |= if v_5 = null then true else (ndim(v_5) = 3 ∧ shape(v_5, 0) = shape(v_7, 1) ∧ shape(v_5, 1) = shape(v_7, 2) ∧ shape(v_5, 2) = shape(v_7, 3)) ∨ (ndim(v_5) = 3 ∧ shape(v_5, 0) = shape(v_7, 1) ∧ shape(v_5, 1) = 1 ∧ shape(v_5, 2) = 1)
 >>
-Rule 49 (Input and target tensors must have the same number of elements to avoid ValueError)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1,0) = shape(v_2,0)
+Rule 25 (Pos_weight must be None or a tensor)
+{v_5 : tensor} |= v_5 = null ∨ ndim(v_5) >= 1
 >>
-Rule 52 (If target and pos_weight are both provided, and target is 2D, then pos_weight has C elements, where target's shape is [B, C])
-{v_1: tensor, v_2: tensor} |= if ndim(v_2) = 2 then shape(v_1, 0) = shape(v_2, 1)
+Rule 26 (If pos_weight is a tensor, it must have floating point type)
+{v_5 : tensor} |= if v_5 = null then true else 6 <= dtype_(v_5) ∧ dtype_(v_5) <= 8
 >>
-Rule 53 (Input and target tensors must have the same number of elements or be broadcastable to avoid ValueError)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1)
+Rule 27 (If the input size is [0], then target size should also be [0])
+{v_6 : tensor, v_7 : tensor} |= if shape(v_6, 0) = 0 then shape(v_7, 0) = 0
 >>
-Rule 55 (If reduction is not none, input and target shapes should either be equal or broadcastable.)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 ≠ "none" then (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ (ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0))) ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 28 (Target and input should not have char dtype)
+{v_6: tensor, v_7: tensor} |= dtype_(v_6) ≠ 0 ∧ dtype_(v_7) ≠ 0
 >>
-Rule 57 (If the target is a single-element tensor, the input should also be a single element tensor.)
-{v_1: tensor, v_2: tensor} |= if shape(v_2, 0) = 1 ∧ ndim(v_2) = 1 then shape(v_1, 0) = 1 ∧ ndim(v_1) = 1
+Rule 29 (If reduction is none, output shape should be same as input)
+{v_4: str, v_6: tensor, v_7: tensor} |= if v_4 = "none" then ndim(v_6) = ndim(v_7) ∧ ∀ i ∈ [0, ndim(v_6) - 1] : shape(v_6, i) = shape(v_7, i)
 >>
-Rule 60 (The input should have the same number of dimensions as target )
-{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2)
+Rule 33 (Weight must be a tensor or None)
+{v_1: tensor} |= v_1 = null ∨ ndim(v_1) >= 0
 >>
-Rule 61 (The "weight" tensor should have the same shape as the input tensor to prevent mismatch during element-wise operations)
-{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 36 (Weight must be a tensor or None, specifically NOT a float, to avoid TypeError)
+{v_1: tensor} |= if v_1 = null then true else (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8)
 >>
-Rule 62 (If reduction is not none, the number of elements of input and target tensors must be same or input/target shapes are broadcastable.)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 ≠ "none" then (∃i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1)) ∨ (shape(v_1, 0) = shape(v_2, 0))
+Rule 37 (Weight to avoid `TypeError: cannot assign 'float' object to buffer 'weight'` must be None or tensor with float type)
+{v_1: tensor} |= v_1 = null ∨ (ndim(v_1) >= 0 ∧ 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8)
 >>
-Rule 64 (If the weight is provided then the weight and the input tensor should be of same data type.)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 39 (Ensure weight is a valid tensor and not something else like a float)
+{v_1: tensor} |= v_1 = null ∨ (ndim(v_1) >= 0)
 >>
-Rule 65 (If reduction is not none, the number of elements of input and target tensors must be same or input/target shapes are broadcastable. Changed or to and.)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 ≠ "none" then (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - i - 1) = 1 ∧ shape(v_2, ndim(v_2) - i - 1) = 1)) ∨ (shape(v_1, 0) = shape(v_2, 0))
+Rule 40 (Weight to avoid `TypeError: cannot assign 'float' object to buffer 'weight'` must be None or a tensor)
+{v_1: tensor} |= v_1 = null ∨ ndim(v_1) >= 1
 >>
-Rule 67 ( If the target and the input have different sizes (different number of elements) and reduction is None, then the weight should have same size as input. )
-{v_1 : tensor, v_2: tensor, v_3:tensor, v_4: str } |= if (shape(v_1, 0) ≠ shape(v_2, 0)) ∧ v_4 = "none" then (shape(v_1,0) = shape(v_3, 0))
+Rule 41 (Ensure weight, when not None, is a tensor and of a floating point dtype to avoid runtime errors relating to data type)
+{v_1: tensor} |= v_1 = null ∨ (ndim(v_1) >= 1 ∧ 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8)
 >>
-Rule 68 (Pos weight cannot be empty.)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 42 (To prevent TypeError on 'weight', it should be a tensor with floating point type, or None)
+{v_1 : tensor} |= v_1 = null ∨ (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8)
 >>
-Rule 70 (If the "weight" is tensor and reduction is none then its dimensions needs to be correct.)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∧ v_3="none" then true else false
+Rule 43 (Ensure that `weight` is a tensor of floating-point type OR is None to prevent `RuntimeError: result type Float can't be cast to the desired output type Short` *and* `TypeError: cannot assign 'float' object to buffer 'weight'` )
+{v_1: tensor} |= v_1 = null ∨ (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8)
 >>
-Rule 71 (If pos_weight provided, target has two dimensions, then number of pos_weight classes should be >0 and same as target's classes)
-{v_1: tensor, v_2: tensor} |= if ndim(v_2) = 2 then shape(v_1, 0) > 0 ∧ shape(v_1, 0) = shape(v_2, 1)
+Rule 44 (Weight, when provided as a Tensor, must have a floating point dtype to prevent type errors)
+{v_1 : tensor} |= if v_1 = null then true else (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8)
 >>
-Rule 72 (If reduction is not none, then input and target sizes must be same if shapes are not broadcastable elementwise. Reformulated this for code parser.)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 ≠ "none" then (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - i - 1) = 1 ∧ shape(v_2, ndim(v_2) - i - 1) = 1)) ∨ (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ((ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0)∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))))
+Rule 45 (If weight is present, it must be a tensor, and the target tensor must be compatible for multiplication.)
+{v_1 : tensor, v_7 : tensor} |= if v_1 = null then true else ndim(v_1) > 0 ∧ (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∧ shape(v_1, 0) = shape(v_7, 0)
 >>
-Rule 73 (If the "weight" is tensor and reduction is none then it dimensions need to be correct.)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∧ v_3="none" then true
+Rule 46 (Enforce correct shape for `weight` to prevent size mismatch errors)
+{v_1: tensor, v_6: tensor} |= if v_1 = null then true else shape(v_1, 0) = shape(v_6, 0)
 >>
-Rule 78 (If weight tensor is provided, elements should be larger than 0.)
-{v_1: tensor} |= min(v_1) ≥ 0
+Rule 48 (`RuntimeError: result type Float can't be cast to the desired output type Short` can be triggered if pos_weight contains values that are too large/small for the target's data type (if target isn't float).)
+{v_5 : tensor, v_7 : tensor} |= if v_5 = null then true else if 1 <= dtype_(v_7) ∧ dtype_(v_7) <= 5 then min(v_5) >= 0 ∧ max(v_5) <= 10
 >>
-Rule 81 (For 2D tensor target and weights specified, it is okay for num of weights to exceed target classes, but not to under exceed it.)
-{v_1: tensor, v_2: tensor} |= if ndim(v_2) = 2 then shape(v_1, 0) ≥ shape(v_2, 1)
+Rule 49 (To avoid "RuntimeError: result type Float can't be cast to the desired output type Short", either have a floating-point target or a floating-point pos_weight)
+{v_5: tensor, v_7: tensor} |= if v_5 = null then 6 <= dtype_(v_7) ∧ dtype_(v_7) <= 8 else (6 <= dtype_(v_5) ∧ dtype_(v_5) <= 8) ∨ (6 <= dtype_(v_7) ∧ dtype_(v_7) <= 8)
 >>
-Rule 82 (If reduction is not none, then shapes of input/target tensors must be equal for same num of elements, unless it is broadcastable.)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 ≠ "none" then (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - i - 1) = 1 ∧ shape(v_2, ndim(v_2) - i - 1) = 1)) ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 50 (Pos weight has to be none, or of floating type. Additionally to prevent `RuntimeError: result type Float can't be cast to the desired output type Short` Pos weight has to be floating point *OR* target has to be floating point.)
+{v_5 : tensor, v_7 : tensor} |= v_5 = null ∨ ((6 <= dtype_(v_5) ∧ dtype_(v_5) <= 8) ∧ ((6 <= dtype_(v_7) ∧ dtype_(v_7) <= 8) ∨ (6 <= dtype_(v_5) ∧ dtype_(v_5) <= 8)))
 >>
-Rule 83 (If "weight" is a tensor and its shape is incompatible with target, but reduction == none, then they must be equal)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if (ndim(v_1) ≠ ndim(v_2) ∨ ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ shape(v_2, i)) ∧ v_3="none" then false
+Rule 51 (To prevent a data type issue, if a weight is given, ensure both the weight *and* the target are of a float dtype. If weight is None, there is no constraint.)
+{v_1: tensor, v_7: tensor} |= v_1 = null ∨ (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8 ∧ 6 <= dtype_(v_7) ∧ dtype_(v_7) <= 8)
 >>
-Rule 86 (If the "weight" is tensor and its shape is not compatible with target, but reduction == none, then both should not have different shape)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if (ndim(v_1) ≠ ndim(v_2))  ∧ v_3="none" then false
+Rule 52 (Combined check: Enforce `weight` as None or a float tensor of the same size as `target`, and pos_weight as None or a float tensor.)
+{v_1: tensor, v_5: tensor, v_6: tensor, v_7: tensor} |= (v_1 = null ∨ (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8 ∧ shape(v_1, 0) = shape(v_6, 0))) ∧ (v_5 = null ∨ (6 <= dtype_(v_5) ∧ dtype_(v_5) <= 8)) ∧ 6 <= dtype_(v_7) ∧ dtype_(v_7) <= 8
 >>
-Rule 88 (Check if reduction is not none. In that case, check input target shapes. If same shape, pass. Otherwise confirm the possibility of broadcasting.)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 ≠ "none" then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ))
+Rule 53 (To avoid the Char tensor issue, the Input and Target must not be char tensors)
+{v_6 : tensor, v_7 : tensor} |= dtype_(v_6) ≠ 0 ∧ dtype_(v_7) ≠ 0
 >>
-Rule 89 (If the weight is provided check its compatibility when reduction is equal to none, ensuring dimensions are okay for computations)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∧ v_3="none" then true else if v_3 = "none" then false
+Rule 54 (For float targets, pos_weight has to be None or has to be floating type.)
+{v_5 : tensor, v_7 : tensor} |= if (6 <= dtype_(v_7) ∧ dtype_(v_7) <= 8) then (v_5 = null ∨ (6 <= dtype_(v_5) ∧ dtype_(v_5) <= 8))
+>>
+Rule 55 (Combined check for correct Weight to suppress potential runtime errors, covering data type and dimensions.)
+{v_1: tensor, v_6: tensor, v_7: tensor} |= v_1 = null ∨ (ndim(v_1) = 1 ∧ (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∧ shape(v_1, 0) = shape(v_6, 0) ∧ 6 <= dtype_(v_7) ∧ dtype_(v_7) <= 8)
+>>
+Rule 56 (Complete type and shape constraints. If pos_weight is present, it is float, if weight is present, it is float and has correct shape. Furthermore, the input and target dtypes should not be Char tensors.)
+{v_1: tensor, v_5: tensor, v_6: tensor, v_7: tensor} |= (v_5 = null ∨ (6 <= dtype_(v_5) ∧ dtype_(v_5) <= 8)) ∧ (v_1 = null ∨ (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8 ∧ ndim(v_1) = 1 ∧ shape(v_1, 0) = shape(v_6, 0))) ∧ dtype_(v_6) ≠ 0 ∧ dtype_(v_7) ≠ 0

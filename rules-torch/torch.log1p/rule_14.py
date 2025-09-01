@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if the input is float32 and out is given, out cannot be int8, int16 or bool. (Rule 14)
+# If the input is float, the output can't be short. (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 7, And(And((v["arg2_dtype"] != 0), (v["arg2_dtype"] != 1)), (v["arg2_dtype"] != 2)), False)) if n else
-          If(v["arg1_dtype"] == 7, And(And((v["arg2_dtype"] != 0), (v["arg2_dtype"] != 1)), (v["arg2_dtype"] != 2)), False))
+    s.add(Not(If(v["arg1_dtype"] == 7, v["arg2_dtype"] != 2, True)) if n else
+          If(v["arg1_dtype"] == 7, v["arg2_dtype"] != 2, True))
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# crow_indices and col_indices should have compatible dtypes and should be non-negative (Rule 53)
+# if size is provided, size[0] * size[1] >= last element of crow_indices (Rule 53)
 
 rule_53 = lambda s, v, n=False: (
-    s.add(Not(Or((And(And(And(v["arg1_dtype"] == 4, v["arg2_dtype"] == 4), Select(v["arg1_range"], 0) >= 0), Select(v["arg2_range"], 0) >= 0)), (And(And(And(v["arg1_dtype"] == 3, v["arg2_dtype"] == 3), Select(v["arg1_range"], 0) >= 0), Select(v["arg2_range"], 0) >= 0)))) if n else
-          Or((And(And(And(v["arg1_dtype"] == 4, v["arg2_dtype"] == 4), Select(v["arg1_range"], 0) >= 0), Select(v["arg2_range"], 0) >= 0)), (And(And(And(v["arg1_dtype"] == 3, v["arg2_dtype"] == 3), Select(v["arg1_range"], 0) >= 0), Select(v["arg2_range"], 0) >= 0))))
+    s.add(Not(If(v["arg1_length"] > 0, Select(v["arg1_values"], 0) * Select(v["arg1_values"], 1) >= Select(v["arg2_shape"], Select(v["arg2_shape"], 0) - 1), True)) if n else
+          If(v["arg1_length"] > 0, Select(v["arg1_values"], 0) * Select(v["arg1_values"], 1) >= Select(v["arg2_shape"], Select(v["arg2_shape"], 0) - 1), True))
 )
 
 def rule_53_func(arg1, arg2, solver=None, neg=False):
@@ -18,30 +18,28 @@ def rule_53_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_dtype = Int('arg2_dtype')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg1_length = Int('arg1_length')
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg1_length == len(arg1))
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 53
-        rule_53(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range, 'arg2_dtype': arg2_dtype, 'arg2_range': arg2_range})
+        rule_53(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values, 'arg2_shape': arg2_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_53(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range'], 'arg2_dtype': arg2['dtype'], 'arg2_range': arg2['range']}, neg)
+        rule_53(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values'], 'arg2_shape': arg2['shape']}, neg)

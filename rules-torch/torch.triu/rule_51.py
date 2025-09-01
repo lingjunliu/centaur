@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If out is a tensor and is provided, its dtype must match the input tensor's dtype. This is for the RuntimeError related to dtype (Rule 51)
+# If out is specified, input must be same dtype. Addresses RuntimeError: Expected out tensor to have dtype (Rule 51)
 
 rule_51 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg2_ndim"] > 0), v["arg1_dtype"] == v["arg2_dtype"], False)) if n else
-          If((v["arg2_ndim"] > 0), v["arg1_dtype"] == v["arg2_dtype"], False))
+    s.add(Not(If(v["arg2_ndim"] > 0, v["arg1_dtype"] == v["arg2_dtype"], True)) if n else
+          If(v["arg2_ndim"] > 0, v["arg1_dtype"] == v["arg2_dtype"], True))
 )
 
 def rule_51_func(arg1, arg2, solver=None, neg=False):
@@ -35,9 +35,9 @@ def rule_51_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 51
-        rule_51(solver, {'arg1_dtype': arg1_dtype, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype})
+        rule_51(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_51(solver, {'arg1_dtype': arg1['dtype'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_51(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg2_ndim': arg2['ndim']}, neg)

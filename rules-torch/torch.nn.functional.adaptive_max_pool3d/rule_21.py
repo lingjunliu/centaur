@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor should have non-zero size for non-batch dimensions (Rule 21)
+# input tensor should have non-zero size for non-batch dimensions, combined into single rule (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 4, And(And(Select(v["arg1_shape"], 1) > 0, Select(v["arg1_shape"], 2) > 0), Select(v["arg1_shape"], 3) > 0), And(And(And(Select(v["arg1_shape"], 1) > 0, Select(v["arg1_shape"], 2) > 0), Select(v["arg1_shape"], 3) > 0), Select(v["arg1_shape"], 4) > 0))) if n else
-          If(v["arg1_ndim"] == 4, And(And(Select(v["arg1_shape"], 1) > 0, Select(v["arg1_shape"], 2) > 0), Select(v["arg1_shape"], 3) > 0), And(And(And(Select(v["arg1_shape"], 1) > 0, Select(v["arg1_shape"], 2) > 0), Select(v["arg1_shape"], 3) > 0), Select(v["arg1_shape"], 4) > 0)))
+    s.add(Not(If(v["arg1_ndim"] == 4, And(And(Select(v["arg1_shape"], 1) > 0, Select(v["arg1_shape"], 2) > 0), Select(v["arg1_shape"], 3) > 0), If(v["arg1_ndim"] == 5, And(And(And(Select(v["arg1_shape"], 1) > 0, Select(v["arg1_shape"], 2) > 0), Select(v["arg1_shape"], 3) > 0), Select(v["arg1_shape"], 4) > 0), False))) if n else
+          If(v["arg1_ndim"] == 4, And(And(Select(v["arg1_shape"], 1) > 0, Select(v["arg1_shape"], 2) > 0), Select(v["arg1_shape"], 3) > 0), If(v["arg1_ndim"] == 5, And(And(And(Select(v["arg1_shape"], 1) > 0, Select(v["arg1_shape"], 2) > 0), Select(v["arg1_shape"], 3) > 0), Select(v["arg1_shape"], 4) > 0), False)))
 )
 
 def rule_21_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Prevent storage size calculation overflow by restricting the dtype (Rule 30)
+# If N is none and x is very large, then reject the function (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] < 10) if n else
-          v["arg1_dtype"] < 10)
+    s.add(Not(If(Select(v["arg1_shape"], 0) > 1000000, False, True)) if n else
+          If(Select(v["arg1_shape"], 0) > 1000000, False, True))
 )
 
 def rule_30_func(arg1, solver=None, neg=False):
@@ -22,15 +22,16 @@ def rule_30_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 30
-        rule_30(solver, {'arg1_dtype': arg1_dtype})
+        rule_30(solver, {'arg1_shape': arg1_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_30(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_30(solver, {'arg1_shape': arg1['shape']}, neg)

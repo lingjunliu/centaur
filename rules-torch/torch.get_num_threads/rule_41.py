@@ -5,32 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# torch.get_num_threads accepts no parameters; any int argument is non-negative (Rule 41)
+# Number of threads v_1 and number of cores v_2 should not be equal to 3 (Rule 41)
 
 rule_41 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] >= 0) if n else
-          v["arg1_value"] >= 0)
+    s.add(Not(And(v["arg1_value"] != 3, v["arg2_value"] != 3)) if n else
+          And(v["arg1_value"] != 3, v["arg2_value"] != 3))
 )
 
-def rule_41_func(arg1, solver=None, neg=False):
+def rule_41_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+            return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = Int('arg1_value')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
         solver.add(arg1_value == int(arg1))
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 41
-        rule_41(solver, {'arg1_value': arg1_value})
+        rule_41(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_41(solver, {'arg1_value': arg1['value']}, neg)
+        rule_41(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

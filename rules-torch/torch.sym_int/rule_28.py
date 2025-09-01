@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Ensure at least one dimension has size greater than 1 (Rule 28)
+# If the input is a tensor, and has only one element, then its absolute value should be representable by int32 to prevent ValueError. (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(Or([And(i < (If(v["arg1_ndim"] > 0, v["arg1_ndim"] - 1, 0) + 1), Select(v["arg1_shape"], i) > 1) for i in range(6)])) if n else
-          Or([And(i < (If(v["arg1_ndim"] > 0, v["arg1_ndim"] - 1, 0) + 1), Select(v["arg1_shape"], i) > 1) for i in range(6)]))
+    s.add(Not(If(Or((v["arg1_ndim"] == 0), (And(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) == 1))), And(Select(v["arg1_range"], 0) >= -2147483648, Select(v["arg1_range"], 1) <= 2147483647), True)) if n else
+          If(Or((v["arg1_ndim"] == 0), (And(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) == 1))), And(Select(v["arg1_range"], 0) >= -2147483648, Select(v["arg1_range"], 1) <= 2147483647), True))
 )
 
 def rule_28_func(arg1, solver=None, neg=False):
@@ -24,16 +24,19 @@ def rule_28_func(arg1, solver=None, neg=False):
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 28
-        rule_28(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_28(solver, {'arg1_shape': arg1_shape, 'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_28(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_28(solver, {'arg1_shape': arg1['shape'], 'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']}, neg)

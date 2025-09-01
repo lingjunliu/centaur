@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the output tensor's dtype is complex128, the input tensor's dtype should also be complex128 or any integer/float/complex64 dtype (Rule 26)
+# When providing an output tensor, ensure that its dtype is high enough to prevent underflow after computing the arctan result, based on the input tensor's dtype. (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_dtype"] == 10, v["arg1_dtype"] < 10, False)) if n else
-          If(v["arg2_dtype"] == 10, v["arg1_dtype"] < 10, False))
+    s.add(Not(If(v["arg1_dtype"] == 6, v["arg2_dtype"] > 5, If(v["arg1_dtype"] == 7, v["arg2_dtype"] > 6, If(v["arg1_dtype"] == 8, v["arg2_dtype"] > 7, If(v["arg1_dtype"] == 9, v["arg2_dtype"] > 8, v["arg2_dtype"] > 9))))) if n else
+          If(v["arg1_dtype"] == 6, v["arg2_dtype"] > 5, If(v["arg1_dtype"] == 7, v["arg2_dtype"] > 6, If(v["arg1_dtype"] == 8, v["arg2_dtype"] > 7, If(v["arg1_dtype"] == 9, v["arg2_dtype"] > 8, v["arg2_dtype"] > 9)))))
 )
 
 def rule_26_func(arg1, arg2, solver=None, neg=False):

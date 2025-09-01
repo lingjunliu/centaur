@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If dim is specified, it must be a valid dimension for both tensors (Rule 40)
+# Shapes of x1 and x2 are broadcastable along the dimension dim (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(And((And(v["arg3_value"] >= 0 - v["arg1_ndim"], v["arg3_value"] < v["arg1_ndim"])), (And(v["arg3_value"] >= 0 - v["arg2_ndim"], v["arg3_value"] < v["arg2_ndim"])))) if n else
-          And((And(v["arg3_value"] >= 0 - v["arg1_ndim"], v["arg3_value"] < v["arg1_ndim"])), (And(v["arg3_value"] >= 0 - v["arg2_ndim"], v["arg3_value"] < v["arg2_ndim"]))))
+    s.add(Not(If(And((v["arg1_ndim"] > v["arg3_value"]), (v["arg2_ndim"] > v["arg3_value"])), (Or(Or(Select(v["arg1_shape"], v["arg3_value"]) == Select(v["arg2_shape"], v["arg3_value"]), Select(v["arg1_shape"], v["arg3_value"]) == 1), Select(v["arg2_shape"], v["arg3_value"]) == 1)), True)) if n else
+          If(And((v["arg1_ndim"] > v["arg3_value"]), (v["arg2_ndim"] > v["arg3_value"])), (Or(Or(Select(v["arg1_shape"], v["arg3_value"]) == Select(v["arg2_shape"], v["arg3_value"]), Select(v["arg1_shape"], v["arg3_value"]) == 1), Select(v["arg2_shape"], v["arg3_value"]) == 1)), True))
 )
 
 def rule_40_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -29,18 +29,24 @@ def rule_40_func(arg1, arg2, arg3, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg2_ndim = Int('arg2_ndim')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
         arg3_value = Int('arg3_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg2_ndim == arg2.ndim)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
         solver.add(arg3_value == int(arg3))
 
         # Constraints for rule 40
-        rule_40(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim, 'arg3_value': arg3_value})
+        rule_40(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_40(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim'], 'arg3_value': arg3['value']}, neg)
+        rule_40(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_value': arg3['value']}, neg)

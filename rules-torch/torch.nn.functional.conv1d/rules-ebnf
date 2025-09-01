@@ -1,99 +1,156 @@
 >>
 Rule 1 (Input tensor must be 2D or 3D)
-{v_1 : tensor} |= ndim(v_1) = 2 ∨ ndim(v_1) = 3
+{input : tensor} |= ndim(input) = 2 ∨ ndim(input) = 3
 >>
-Rule 3 (Padding must be 'valid' or 'same' or a non-negative integer)
-{v_1 : str ⊎ int} |= v_1 = "valid" ∨ v_1 = "same" ∨ (v_1 ≥ 0 ∧ v_1 < 1000)
+Rule 2 (Input and weight tensors must have the same dtype)
+{input : tensor, weight : tensor} |= dtype_(input) = dtype_(weight)
 >>
-Rule 4 (groups must be a positive integer)
-{v_1 : int} |= v_1 > 0
+Rule 3 (Padding must be a valid string when specified as a string)
+{padding : str} |= padding = "valid" ∨ padding = "same"
 >>
-Rule 5 (in_channels should be divisible by groups)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 1) % v_2 = 0
+Rule 4 (Groups must be greater than 0)
+{groups : int} |= groups > 0
 >>
-Rule 8 (weight tensor's in_channels should be equal to input tensor's in_channels / groups)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_2, 1) = shape(v_1, 1) / v_3
+Rule 6 (Weight's in_channels must match input's in_channels divided by groups)
+{input : tensor, weight : tensor, groups : int} |= shape(weight, 1) = shape(input, 1) / groups
 >>
-Rule 9 (bias, if provided, should have the same length as out_channels)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) = shape(v_1, 0)
+Rule 7 (Bias shape must match the number of output channels in weight)
+{bias : tensor, weight : tensor} |= ndim(bias) = 1 ∧ shape(bias, 0) = shape(weight, 0)
 >>
-Rule 12 (Input and weight tensors must have the same dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 8 (Stride must be greater than 0)
+{stride : int} |= stride > 0
 >>
-Rule 33 (Padding must be 'valid' or 'same' or a non-negative integer)
-{v_1 : str ⊎ int} |= v_1 = "valid" ∨ v_1 = "same" ∨ ( (v_1 ≥ 0) ∧ (v_1 < 1000) )
+Rule 9 (Dilation must be greater than 0)
+{dilation : int} |= dilation > 0
 >>
-Rule 49 (Padding must be a valid string ("valid", "same") or a non-negative integer less than 1000)
-{v_1 : str ⊎ int} |= (v_1 = "valid") ∨ (v_1 = "same") ∨ ((v_1 ≥ 0) ∧ (v_1 < 1000))
+Rule 10 (If padding is "same", stride must be 1)
+{padding : str, stride : int} |= if padding = "same" then stride = 1
 >>
-Rule 50 (Input channels must be greater than 0)
-{v_1 : tensor} |= shape(v_1, 1) > 0
+Rule 15 (Input channels must be divisible by groups)
+{input : tensor, groups : int} |= shape(input, 1) % groups = 0
 >>
-Rule 60 (Weight must have three dimensions)
-{v_1: tensor} |= ndim(v_1) = 3
+Rule 17 (Bias shape must match the number of output channels in weight)
+{bias : tensor, weight : tensor} |= if bias = true then shape(bias, 0) = shape(weight, 0)
 >>
-Rule 71 (Input channels cannot be zero)
-{v_1: tensor} |= shape(v_1, 1) > 0
+Rule 21 (Input tensor must be 2D or 3D, combined with groups > 0)
+{input : tensor, groups : int} |= (ndim(input) = 2 ∨ ndim(input) = 3) ∧ (groups > 0)
 >>
-Rule 72 (Check if the number of input channels is non-negative)
-{v_1 : tensor} |= shape(v_1, 1) ≥ 0
+Rule 22 (Input and weight tensors must have the same dtype, and stride > 0)
+{input : tensor, weight : tensor, stride : int} |= (dtype_(input) = dtype_(weight)) ∧ (stride > 0)
 >>
-Rule 73 (Weight tensor's output channels should be positive)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 23 (Padding must be a valid string when specified as a string, and dilation > 0)
+{padding : str, dilation : int} |= (padding = "valid" ∨ padding = "same") ∧ (dilation > 0)
 >>
-Rule 74 (Kernel size (kW) of weight tensor should be greater than 0)
-{v_1 : tensor} |= shape(v_1, 2) > 0
+Rule 24 (Input channels must be divisible by groups and if padding is "same", stride must be 1)
+{input : tensor, groups : int, padding : str, stride : int} |= (shape(input, 1) % groups = 0) ∧ (if padding = "same" then stride = 1)
 >>
-Rule 75 (Groups should not be zero)
-{v_1 : int} |= v_1 ≠ 0
+Rule 25 (Bias shape matching the number of output channels in weight if bias is not None)
+{bias : tensor, weight : tensor} |= if ∃v_1 ∈ [0, ndim(bias) -1] : shape(bias, v_1) = 0 then true else shape(bias, 0) = shape(weight, 0)
 >>
-Rule 76 (Check that if bias is present, it has a 1D shape)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 26 (Weight's in_channels must match input's in_channels divided by groups and weight's first dimension > 0)
+{input : tensor, weight : tensor, groups : int} |= (shape(weight, 1) = shape(input, 1) / groups) ∧ (shape(weight, 0) > 0)
 >>
-Rule 77 (Dilation must be greater than or equal to 1)
-{v_1 : int} |= v_1 ≥ 1
+Rule 28 (Input/Weight dtype consistent and if padding same, stride 1)
+{input : tensor, weight : tensor, padding : str, stride : int} |= (dtype_(input) = dtype_(weight)) ∧ (if padding = "same" then stride = 1)
 >>
-Rule 78 (If padding is "same", stride must be 1)
-{v_1 : str, v_2 : int} |= if v_1 = "same" then v_2 = 1
+Rule 29 (Valid padding string and ensure input channels divisible by groups)
+{padding : str, input : tensor, groups : int} |= (padding = "valid" ∨ padding = "same") ∧ (shape(input, 1) % groups = 0)
 >>
-Rule 79 (Input and weight should have compatible dtypes among complex, float, or integer types)
-{v_1: tensor, v_2: tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11) ∧ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 11) ∨ (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5) ∧ (1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5) ∨ (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8)
+Rule 30 (Weight in_channels match input and dilation positive)
+{input : tensor, weight : tensor, groups : int, dilation : int} |= (shape(weight, 1) = shape(input, 1) / groups) ∧ (dilation > 0)
 >>
-Rule 80 (Check kW is not zero)
-{v_1 : tensor} |= shape(v_1, 2) ≠ 0
+Rule 31 (Bias correct shape, weight out channels positive)
+{bias : tensor, weight : tensor} |= if ∃i ∈ [0, ndim(bias) -1] : shape(bias, i) = 0 then true else shape(bias, 0) = shape(weight, 0)
 >>
-Rule 81 (Stride cannot be negative)
-{v_1 : int} |= v_1 ≥ 0
+Rule 32 (Check for non-empty tensor dimensions for input and weight)
+{input: tensor, weight: tensor} |= (∃i ∈ [0, ndim(input)-1] : shape(input, i) > 0) ∧ (∃i ∈ [0, ndim(weight)-1] : shape(weight, i) > 0)
 >>
-Rule 115 (Weight must have three dimensions, and first dimension must be greater than 0)
-{v_1 : tensor} |= ndim(v_1) = 3 ∧ shape(v_1, 0) > 0
+Rule 40 (Bias shape must match weight's out_channels if it is a tensor)
+{bias : tensor, weight : tensor} |=  ∃i ∈ [0, ndim(bias) - 1] : shape(bias, i) = shape(weight, 0)
 >>
-Rule 116 (Groups must be a positive integer and less than the number of input channels)
-{v_1 : int, v_2 : tensor} |= v_1 > 0 ∧ v_1 ≤ shape(v_2, 1)
+Rule 43 (Input dimension and groups constraints)
+{input : tensor, groups : int} |= (ndim(input) = 2 ∨ ndim(input) = 3) ∧ (groups > 0) ∧ (shape(input, 1) % groups = 0)
 >>
-Rule 117 (If padding is an integer, it should be less than the input width.)
-{v_1 : int, v_2 : tensor} |= v_1 ≥ 0 ∧ v_1 < shape(v_2, 2)
+Rule 47 (Stride and dilation should be positive)
+{stride : int, dilation : int} |= (stride > 0) ∧ (dilation > 0)
 >>
-Rule 118 (If dilation is greater than 1, the effective kernel size should be less than the input size)
-{v_1 : int, v_2 : tensor, v_3 : tensor} |= v_1 ≥ 1 ∧ shape(v_3, 2) + (shape(v_2, 2) - 1) * (v_1 - 1) ≤ shape(v_3, 2)
+Rule 48 (bias.shape[0] == weight.shape[0] and all tensor dims positive for input and weight tensors)
+{bias : tensor, weight : tensor, input: tensor} |=  (if ∃i ∈ [0, ndim(bias) - 1] : shape(bias, i) = shape(weight, 0) then true else shape(bias, 0) = shape(weight, 0)) ∧ (∃i ∈ [0, ndim(input)-1] : shape(input, i) > 0) ∧ (∃i ∈ [0, ndim(weight)-1] : shape(weight, i) > 0)
 >>
-Rule 120 (Weight and input tensor's batch size must match, if both have a batch size)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 3 ∧ ndim(v_2) = 3 then shape(v_1, 0) = shape(v_2, 0)
+Rule 49 (Combined dimension, groups, channels and padding constraints)
+{input : tensor, groups : int, padding : str, weight : tensor} |= (ndim(input) = 2 ∨ ndim(input) = 3) ∧ (groups > 0) ∧ (shape(input, 1) % groups = 0) ∧ (shape(weight, 1) = shape(input, 1) / groups) ∧ (padding = "valid" ∨ padding = "same")
 >>
-Rule 121 (Stride should be less than the input width)
-{v_1 : int, v_2 : tensor} |= v_1 > 0 ∧ v_1 < shape(v_2,2)
+Rule 50 (Input/Weight dtype and stride/dilation constraints)
+{input : tensor, weight : tensor, stride : int, dilation : int} |= (dtype_(input) = dtype_(weight)) ∧ (stride > 0) ∧ (dilation > 0)
 >>
-Rule 127 (Stride must be less than or equal to the input width)
-{v_1 : int, v_2 : tensor} |= v_1 > 0 ∧ v_1 ≤ shape(v_2, 2)
+Rule 52 (Check shape of bias)
+{bias: tensor, weight : tensor} |= if ∃i ∈ [0, ndim(bias) - 1] : shape(bias, i) = shape(weight, 0) then true else shape(bias, 0) = shape(weight, 0)
 >>
-Rule 128 (Kernel size must be less than or equal to the input width)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 2) ≤ shape(v_1, 2)
+Rule 53 (Ensure all tensor dimensions for input and weight are positive)
+{input: tensor, weight: tensor} |= (∀i ∈ [0, ndim(input)-1] : shape(input, i) > 0) ∧ (∀i ∈ [0, ndim(weight)-1] : shape(weight, i) > 0)
 >>
-Rule 129 (If groups is greater than 1, then input channels must be evenly divisible by groups)
-{v_1 : int, v_2 : tensor} |= if v_1 > 1 then shape(v_2, 1) % v_1 = 0
+Rule 54 (All constraints combined)
+{input : tensor, groups : int, padding : str, weight : tensor, stride : int, dilation : int} |= (ndim(input) = 2 ∨ ndim(input) = 3) ∧ (groups > 0) ∧ (shape(input, 1) % groups = 0) ∧ (shape(weight, 1) = shape(input, 1) / groups) ∧ (padding = "valid" ∨ padding = "same") ∧ (if padding = "same" then stride = 1) ∧ (stride > 0) ∧ (dilation > 0)
 >>
-Rule 130 (If bias is provided, the number of out_channels must be positive)
-{v_1: tensor} |= shape(v_1, 0) > 0
+Rule 58 (Combined constraints for input tensor dimensions and groups)
+{input : tensor, groups : int, weight : tensor, stride : int, dilation : int, padding : str} |= (ndim(input) = 2 ∨ ndim(input) = 3) ∧ (groups > 0) ∧ (shape(input, 1) % groups = 0) ∧ (shape(weight, 1) = shape(input, 1) / groups) ∧ (if padding = "same" then stride = 1) ∧ (stride > 0) ∧ (dilation > 0)
 >>
-Rule 131 (The product of the kernel size and dilation rate must be less than the input size)
-{v_1 : int, v_2 : tensor, v_3 : tensor} |= shape(v_2, 2) * v_1 <= shape(v_3,2)
+Rule 59 (Input and Weight must have the same dtype, all dimensions of tensor positive)
+{input: tensor, weight: tensor, bias: tensor} |= dtype_(input) = dtype_(weight) ∧ (if ∃i ∈ [0, ndim(bias) - 1] : shape(bias, i) = shape(weight, 0) then true else shape(bias, 0) = shape(weight, 0))
+>>
+Rule 60 (Overall constraint)
+{input : tensor, groups : int, padding : str, weight : tensor, stride : int, dilation : int, bias : tensor} |= (ndim(input) = 2 ∨ ndim(input) = 3) ∧ (groups > 0) ∧ (shape(input, 1) % groups = 0) ∧ (shape(weight, 1) = shape(input, 1) / groups) ∧ (padding = "valid" ∨ padding = "same") ∧ (if padding = "same" then stride = 1) ∧ (stride > 0) ∧ (dilation > 0) ∧ (dtype_(input) = dtype_(weight)) ∧ (if ∃i ∈ [0, ndim(bias) - 1] : shape(bias, i) = shape(weight, 0) then true else shape(bias, 0) = shape(weight, 0)) ∧ (∀i ∈ [0, ndim(input)-1] : shape(input, i) > 0) ∧ (∀i ∈ [0, ndim(weight)-1] : shape(weight, i) > 0)
+>>
+Rule 62 (Kernel size must be positive)
+{weight: tensor} |= shape(weight, 2) > 0
+>>
+Rule 63 (Kernel size must be positive and less than or equal to input size when padding is valid)
+{weight: tensor, input: tensor, padding: str} |= (shape(weight, 2) > 0) ∧ (if padding = "valid" then shape(weight, 2) ≤ shape(input, 2))
+>>
+Rule 64 (Kernel size, input size, padding, and dilation constraints)
+{weight: tensor, input: tensor, padding: str, dilation: int} |= (shape(weight, 2) > 0) ∧ (if padding = "valid" then shape(weight, 2) ≤ shape(input, 2) + (shape(input, 2)-1)*(dilation -1))
+>>
+Rule 65 (Combined Constraints including the kernel and dilation, and groups relation)
+{input : tensor, weight : tensor, padding : str, dilation : int, groups : int} |= (ndim(input) = 2 ∨ ndim(input) = 3) ∧ (shape(input, 1) % groups = 0) ∧ (shape(weight, 1) = shape(input, 1) / groups) ∧ (shape(weight, 2) > 0) ∧ (if padding = "valid" then shape(weight, 2) ≤ shape(input, 2) + (shape(input, 2)-1)*(dilation -1))
+>>
+Rule 66 (Complete constraint for valid conv1d operation)
+{input : tensor, groups : int, padding : str, weight : tensor, stride : int, dilation : int, bias : tensor} |= (ndim(input) = 2 ∨ ndim(input) = 3) ∧ (groups > 0) ∧ (shape(input, 1) % groups = 0) ∧ (shape(weight, 1) = shape(input, 1) / groups) ∧ (padding = "valid" ∨ padding = "same") ∧ (if padding = "same" then stride = 1) ∧ (stride > 0) ∧ (dilation > 0) ∧ (dtype_(input) = dtype_(weight)) ∧ (if ∃i ∈ [0, ndim(bias) - 1] : shape(bias, i) = shape(weight, 0) then true else shape(bias, 0) = shape(weight, 0)) ∧ (∀i ∈ [0, ndim(input)-1] : shape(input, i) > 0) ∧ (∀i ∈ [0, ndim(weight)-1] : shape(weight, i) > 0) ∧ (shape(weight, 2) > 0) ∧ (if padding = "valid" then shape(weight, 2) ≤ shape(input, 2) + (shape(input, 2)-1)*(dilation -1))
+>>
+Rule 67 (Edge case: dilation > 1, padding = 'valid', and kernel_size exceeds effective input size leads to error)
+{input : tensor, weight : tensor, padding : str, dilation : int} |= if padding = "valid" ∧ dilation > 1 then shape(weight, 2) ≤ shape(input, 2) + (shape(input, 2)-1)*(dilation -1)
+>>
+Rule 68 (Combined constraints to prevent size errors.)
+{input : tensor, weight : tensor, padding : str, dilation : int, groups : int, stride: int} |= (ndim(input) = 2 ∨ ndim(input) = 3) ∧ (groups > 0) ∧ (shape(input, 1) % groups = 0) ∧ (shape(weight, 1) = shape(input, 1) / groups) ∧ (shape(weight, 2) > 0) ∧ (if padding = "valid" ∧ dilation > 1 then shape(weight, 2) ≤ shape(input, 2) + (shape(input, 2)-1)*(dilation -1))  ∧ (dtype_(input) = dtype_(weight)) ∧ (stride > 0)
+>>
+Rule 69 (All parameters must be valid.)
+{input : tensor, groups : int, padding : str, weight : tensor, stride : int, dilation : int, bias : tensor} |= (ndim(input) = 2 ∨ ndim(input) = 3) ∧ (groups > 0) ∧ (shape(input, 1) % groups = 0) ∧ (shape(weight, 1) = shape(input, 1) / groups) ∧ (shape(weight, 2) > 0) ∧ (if padding = "valid" ∧ dilation > 1 then shape(weight, 2) ≤ shape(input, 2) + (shape(input, 2)-1)*(dilation -1))  ∧ (dtype_(input) = dtype_(weight)) ∧ (stride > 0) ∧ (padding = "valid" ∨ padding = "same") ∧ (if ∃i ∈ [0, ndim(bias) - 1] : shape(bias, i) = shape(weight, 0) then true else shape(bias, 0) = shape(weight, 0))
+>>
+Rule 70 (Combined parameters constraints)
+{input : tensor, groups : int, padding : str, weight : tensor, stride : int, dilation : int, bias : tensor} |= (ndim(input) = 2 ∨ ndim(input) = 3) ∧ (groups > 0) ∧ (shape(input, 1) % groups = 0) ∧ (shape(weight, 1) = shape(input, 1) / groups) ∧ (shape(weight, 2) > 0) ∧ (if padding = "valid" ∧ dilation > 1 then shape(weight, 2) ≤ shape(input, 2) + (shape(input, 2)-1)*(dilation -1))  ∧ (dtype_(input) = dtype_(weight)) ∧ (stride > 0) ∧ (padding = "valid" ∨ padding = "same") ∧ (if ∃i ∈ [0, ndim(bias) - 1] : shape(bias, i) = shape(weight, 0) then true else shape(bias, 0) = shape(weight, 0)) ∧ (if padding = "same" then stride = 1)
+>>
+Rule 71 (All parameters must be valid and weight output channel shape must be positive.)
+{input : tensor, groups : int, padding : str, weight : tensor, stride : int, dilation : int, bias : tensor} |= (ndim(input) = 2 ∨ ndim(input) = 3) ∧ (groups > 0) ∧ (shape(input, 1) % groups = 0) ∧ (shape(weight, 1) = shape(input, 1) / groups) ∧ (shape(weight, 2) > 0) ∧ (shape(weight, 0) > 0) ∧ (if padding = "valid" ∧ dilation > 1 then shape(weight, 2) ≤ shape(input, 2) + (shape(input, 2)-1)*(dilation -1))  ∧ (dtype_(input) = dtype_(weight)) ∧ (stride > 0) ∧ (padding = "valid" ∨ padding = "same") ∧ (if ∃i ∈ [0, ndim(bias) - 1] : shape(bias, i) = shape(weight, 0) then true else shape(bias, 0) = shape(weight, 0)) ∧ (if padding = "same" then stride = 1)
+>>
+Rule 72 (Check that weight's in_channels and out_channels are greater than zero.)
+{weight: tensor} |= (shape(weight, 0) > 0) ∧ (shape(weight, 1) > 0)
+>>
+Rule 73 (All combined and in_channels of weight, divisible by groups.)
+{input : tensor, groups : int, padding : str, weight : tensor, stride : int, dilation : int, bias : tensor} |= (ndim(input) = 2 ∨ ndim(input) = 3) ∧ (groups > 0) ∧ (shape(input, 1) % groups = 0) ∧ (shape(weight, 1) = shape(input, 1) / groups) ∧ (shape(weight, 2) > 0) ∧ (shape(weight, 0) > 0) ∧ (shape(weight,1) > 0) ∧ (if padding = "valid" ∧ dilation > 1 then shape(weight, 2) ≤ shape(input, 2) + (shape(input, 2)-1)*(dilation -1))  ∧ (dtype_(input) = dtype_(weight)) ∧ (stride > 0) ∧ (padding = "valid" ∨ padding = "same") ∧ (if ∃i ∈ [0, ndim(bias) - 1] : shape(bias, i) = shape(weight, 0) then true else shape(bias, 0) = shape(weight, 0)) ∧ (if padding = "same" then stride = 1)
+>>
+Rule 74 (Overall constraint including weight's channel dimensions and padding)
+{input : tensor, groups : int, padding : str, weight : tensor, stride : int, dilation : int, bias : tensor} |= (ndim(input) = 2 ∨ ndim(input) = 3) ∧ (groups > 0) ∧ (shape(input, 1) % groups = 0) ∧ (shape(weight, 1) = shape(input, 1) / groups) ∧ (shape(weight, 2) > 0) ∧ (shape(weight, 0) > 0) ∧ (shape(weight,1) > 0) ∧ (if padding = "valid" ∧ dilation > 1 then shape(weight, 2) ≤ shape(input, 2) + (shape(input, 2)-1)*(dilation -1))  ∧ (dtype_(input) = dtype_(weight)) ∧ (stride > 0) ∧ (padding = "valid" ∨ padding = "same") ∧ (if ∃i ∈ [0, ndim(bias) - 1] : shape(bias, i) = shape(weight, 0) then true else shape(bias, 0) = shape(weight, 0)) ∧ (if padding = "same" then stride = 1) ∧ (padding="valid" ∨ padding="same")
+>>
+Rule 75 (All constraints for a valid Conv1d operation.)
+{input : tensor, groups : int, padding : str, weight : tensor, stride : int, dilation : int, bias : tensor} |= (ndim(input) = 2 ∨ ndim(input) = 3) ∧ (groups > 0) ∧ (shape(input, 1) % groups = 0) ∧ (shape(weight, 1) = shape(input, 1) / groups) ∧ (shape(weight, 2) > 0) ∧ (shape(weight, 0) > 0) ∧ (shape(weight,1) > 0) ∧ (if padding = "valid" ∧ dilation > 1 then shape(weight, 2) ≤ shape(input, 2) + (shape(input, 2)-1)*(dilation -1))  ∧ (dtype_(input) = dtype_(weight)) ∧ (stride > 0) ∧ (padding = "valid" ∨ padding = "same") ∧ (if ∃i ∈ [0, ndim(bias) - 1] : shape(bias, i) = shape(weight, 0) then true else shape(bias, 0) = shape(weight, 0)) ∧ (if padding = "same" then stride = 1) ∧ (padding = "valid" ∨ padding = "same") ∧ (shape(input, 1) > 0)
+>>
+Rule 76 (Complete Combined Constraints, including bias existence check)
+{input : tensor, groups : int, padding : str, weight : tensor, stride : int, dilation : int, bias : tensor} |= (ndim(input) = 2 ∨ ndim(input) = 3) ∧ (groups > 0) ∧ (shape(input, 1) % groups = 0) ∧ (shape(weight, 1) = shape(input, 1) / groups) ∧ (shape(weight, 2) > 0) ∧ (shape(weight, 0) > 0) ∧ (shape(weight,1) > 0) ∧ (if padding = "valid" ∧ dilation > 1 then shape(weight, 2) ≤ shape(input, 2) + (shape(input, 2)-1)*(dilation -1)) ∧ (dtype_(input) = dtype_(weight)) ∧ (stride > 0) ∧ (padding = "valid" ∨ padding = "same") ∧ (if ∃i ∈ [0, ndim(bias) - 1] : shape(bias, i) = shape(weight, 0) then true else shape(bias, 0) = shape(weight, 0) ∨ (∃i ∈ [0, ndim(bias) -1] : shape(bias, i) = 0)) ∧ (if padding = "same" then stride = 1) ∧ (padding="valid" ∨ padding="same") ∧ (shape(input, 1) > 0)
+>>
+Rule 77 (Complete Combined Constraints and groups must divide the number of input channels.)
+{input : tensor, groups : int, padding : str, weight : tensor, stride : int, dilation : int, bias : tensor} |= (ndim(input) = 2 ∨ ndim(input) = 3) ∧ (groups > 0) ∧ (shape(input, 1) % groups = 0) ∧ (shape(weight, 1) = shape(input, 1) / groups) ∧ (shape(weight, 2) > 0) ∧ (shape(weight, 0) > 0) ∧ (shape(weight,1) > 0) ∧ (if padding = "valid" ∧ dilation > 1 then shape(weight, 2) ≤ shape(input, 2) + (shape(input, 2)-1)*(dilation -1)) ∧ (dtype_(input) = dtype_(weight)) ∧ (stride > 0) ∧ (padding = "valid" ∨ padding = "same") ∧ (if ∃i ∈ [0, ndim(bias) - 1] : shape(bias, i) = shape(weight, 0) then true else shape(bias, 0) = shape(weight, 0) ∨ (∃i ∈ [0, ndim(bias) -1] : shape(bias, i) = 0)) ∧ (if padding = "same" then stride = 1) ∧ (padding="valid" ∨ padding="same") ∧ (shape(input, 1) > 0) ∧ (shape(input,1) / groups = shape(weight, 1))
+>>
+Rule 78 (The Ultimate Constraint! No more rules should be required.)
+{input : tensor, groups : int, padding : str, weight : tensor, stride : int, dilation : int, bias : tensor} |= (ndim(input) = 2 ∨ ndim(input) = 3) ∧ (groups > 0) ∧ (shape(input, 1) % groups = 0) ∧ (shape(weight, 1) = shape(input, 1) / groups) ∧ (shape(weight, 2) > 0) ∧ (shape(weight, 0) > 0) ∧ (shape(weight,1) > 0) ∧ (if padding = "valid" ∧ dilation > 1 then shape(weight, 2) ≤ shape(input, 2) + (shape(input, 2)-1)*(dilation -1)) ∧ (dtype_(input) = dtype_(weight)) ∧ (stride > 0) ∧ (padding = "valid" ∨ padding = "same") ∧ (if ∃i ∈ [0, ndim(bias) - 1] : shape(bias, i) = shape(weight, 0) then true else shape(bias, 0) = shape(weight, 0) ∨ (∃i ∈ [0, ndim(bias) -1] : shape(bias, i) = 0)) ∧ (if padding = "same" then stride = 1) ∧ (padding="valid" ∨ padding="same") ∧ (shape(input, 1) > 0) ∧ (shape(input,1) / groups = shape(weight, 1)) ∧ (shape(input, 2) >0)
+>>
+Rule 79 (The Ultimate Constraint - Final Attempt)
+{input : tensor, groups : int, padding : str, weight : tensor, stride : int, dilation : int, bias : tensor} |= (ndim(input) = 2 ∨ ndim(input) = 3) ∧ (groups > 0) ∧ (shape(input, 1) % groups = 0) ∧ (shape(weight, 1) = shape(input, 1) / groups) ∧ (shape(weight, 2) > 0) ∧ (shape(weight, 0) > 0) ∧ (shape(weight,1) > 0) ∧ (if padding = "valid" ∧ dilation > 1 then shape(weight, 2) ≤ shape(input, 2) + (shape(input, 2)-1)*(dilation -1)) ∧ (dtype_(input) = dtype_(weight)) ∧ (stride > 0) ∧ (padding = "valid" ∨ padding = "same") ∧ (if (∃ i ∈ [0, ndim(bias) - 1] : shape(bias, i) = shape(weight, 0)) ∨ (shape(bias,0) = shape(weight, 0)) then true else (∃i ∈ [0, ndim(bias) -1] : shape(bias, i) = 0)) ∧ (if padding = "same" then stride = 1) ∧ (padding="valid" ∨ padding="same") ∧ (shape(input, 1) > 0) ∧ (shape(input,1) / groups = shape(weight, 1)) ∧ (shape(input, 2) > 0) ∧ (groups ≤ shape(input,1))

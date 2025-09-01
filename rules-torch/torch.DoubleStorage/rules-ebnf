@@ -1,159 +1,270 @@
 >>
-Rule 1 (Number of bytes should be non-negative)
+Rule 1 (size should be non-negative)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 2 (Storage size should not be excessively large to prevent overflow)
+Rule 2 (size should be small enough to avoid overflow)
 {v_1 : int} |= v_1 < 2147483647
 >>
-Rule 3 (Number of elements must be a reasonable integer)
-{v_1 : int} |= v_1 < 1000000000 ∧ v_1 > -1000000000
+Rule 8 (Source list should not be empty)
+{v_1 : list(int)} |= v_1.len > 0
 >>
-Rule 5 (Size must be a non-negative small integer)
-{v_1 : int} |= 0 ≤ v_1 ∧ v_1 < 100000
+Rule 9 (Source tuple should not be empty)
+{v_1 : tuple(int)} |= v_1.len > 0
 >>
-Rule 6 (Number of bytes should be a multiple of 8 to avoid partial element storage)
-{v_1 : int} |= v_1 ≥ 0 ∧ v_1 / 8 * 8 = v_1
+Rule 10 (If size and source are given, size must match the length of the source list)
+{v_1 : int, v_2 : list(int)} |= v_1 = v_2.len
 >>
-Rule 7 (Size should be small enough to prevent overflow during allocation calculation)
-{v_1 : int} |= v_1 < 10000000
->>
-Rule 8 (Number of bytes must not be a very large positive number to avoid overflow when cast to signed ptrdiff_t)
-{v_1 : int} |= v_1 < 9223372036854775807
->>
-Rule 9 (Size should be a valid positive integer that can be represented as long)
-{v_1 : int} |= 0 < v_1 ∧ v_1 < 2000000000000000000
->>
-Rule 10 (Number of bytes should not cause integer overflow when multiplied by element size)
-{v_1 : int, v_2 : int} |= v_1 ≥ 0 ∧ v_2 > 0 ∧ v_1 < 9223372036854775807 / v_2
->>
-Rule 11 (Size must not be so large that multiplying by the size of double causes overflow)
-{v_1 : int} |= v_1 < 1152921504606846975
->>
-Rule 13 (Number of bytes should not be excessively large to avoid overflow when multiplying by 2 for double)
-{v_1 : int} |= v_1 < 4611686018427387903
->>
-Rule 14 (Size when converted to long should not cause an overflow)
-{v_1 : float} |= v_1 < 9223372036854775807 ∧ v_1 > -9223372036854775808
->>
-Rule 15 (The allocated size must be representable as a signed long)
-{v_1 : int} |= -9223372036854775808 ≤ v_1 ∧ v_1 ≤ 9223372036854775807
->>
-Rule 16 (The requested size in bytes must not be larger than the maximum allowed memory allocation)
-{v_1 : int} |= v_1 < 2147483648
->>
-Rule 17 (The product of size and element size must be a representable long)
-{v_1 : int, v_2 : int} |= v_1 * v_2 < 9223372036854775807 ∧ v_1 * v_2 > -9223372036854775808
->>
-Rule 19 (Number of bytes when creating storage from size should be small)
-{v_1 : int} |= v_1 < 268435456
->>
-Rule 20 (Requested size * element size must fit within a signed 32-bit integer without overflow.)
-{v_1 : int, v_2 : int} |= (v_1 * v_2) < 2147483647 ∧ (v_1 * v_2) > -2147483648
->>
-Rule 21 (The requested size should be less than the maximum value of long)
-{v_1 : float} |= v_1 ≤ 9223372036854775807
->>
-Rule 22 (The storage size should not exceed the addressable memory space.)
-{v_1 : int} |= v_1 < 4294967295
->>
-Rule 23 (Ensure size value after conversion is within the acceptable range)
-{v_1 : float} |= if v_1 > 0 then v_1 < 9223372036854775807 else v_1 > -9223372036854775808
->>
-Rule 24 (The size value should result in a representable number of bytes when multiplied by sizeof(double))
-{v_1 : float} |= v_1 * 8 < 9223372036854775807 ∧ v_1 * 8 > -9223372036854775808
->>
-Rule 25 (The number of elements must be within the valid range of indices for the underlying storage)
-{v_1 : int} |= v_1 < 1000000000000
->>
-Rule 26 (The number of elements should not be excessively large and positive, preventing potential resource exhaustion)
+Rule 11 (size should be a reasonable upper bound to prevent excessive memory allocation)
 {v_1 : int} |= v_1 < 1000000000
 >>
-Rule 27 (Number of elements must be a reasonably small integer to prevent out-of-memory errors)
-{v_1 : int} |= v_1 < 20000000
+Rule 12 (Source list elements should be non-negative to avoid memory access issues)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 29 (Number of elements must be a valid long integer)
-{v_1 : float} |= v_1 / 1 = v_1 ∧ v_1 < 9223372036854775807 ∧ v_1 > -9223372036854775808
+Rule 13 (Source tuple elements should be non-negative to avoid memory access issues)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 30 (Number of elements when creating from float must be a valid integer)
-{v_1 : float} |= v_1 = (v_1 / 1) * 1
+Rule 15 (If size and source are given, the size should not be too large compared to source)
+{v_1 : int, v_2 : list(int)} |= if v_2.len > 0 then v_1 ≤ v_2.len * 10 else v_1 >= 0
 >>
-Rule 31 (Requested size should be a valid number to create storage.)
-{v_1 : float} |= (v_1 - (v_1 - (v_1 / 1) * 1)) = 0
+Rule 21 (size should be non-negative and smaller than max int)
+{v_1 : int} |= 0 ≤ v_1 ∧ v_1 < 2147483647
 >>
-Rule 32 (The number of elements must be a non-negative value to avoid allocation issues.)
-{v_1 : float} |= v_1 ≥ 0
+Rule 22 (If source is a list, its length should be reasonable to avoid memory errors.)
+{v_1 : list(int)} |= v_1.len < 100000
 >>
-Rule 33 (Size should not be infinite.)
-{v_1 : float} |= v_1 < 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+Rule 23 (If source is a tuple, its length should be reasonable to avoid memory errors.)
+{v_1 : tuple(int)} |= v_1.len < 100000
 >>
-Rule 34 (Number of elements must be a finite value.)
-{v_1 : float} |= v_1 ≠ 1.0/0.0 ∧ v_1 ≠ -1.0/0.0
+Rule 29 (If the size is very large, the source list should not be too long to prevent allocating excessive memory.)
+{v_1 : int, v_2 : list(int)} |= if v_1 > 1000000 then v_2.len < 1000
 >>
-Rule 35 (Number of elements must be a representable number when converted to an integer)
-{v_1 : float} |= (v_1 < 2147483647) ∧ (v_1 > -2147483648)
+Rule 30 (If the size is very large, the source tuple should not be too long to prevent allocating excessive memory.)
+{v_1 : int, v_2 : tuple(int)} |= if v_1 > 1000000 then v_2.len < 1000
 >>
-Rule 36 (Requested size should be a reasonable floating point to convert to long.)
-{v_1 : float} |= v_1 < 2147483647.0
+Rule 32 (If the source is a list, the product of its length and element size should not overflow)
+{v_1 : list(int)} |= (v_1.len * 4) < 2147483647
 >>
-Rule 39 (Size should be a reasonable floating-point to avoid overflow)
-{v_1 : float} |= if v_1 < 0 then 0 - v_1 < 1000000000000 else v_1 < 1000000000000
+Rule 33 (If the source is a tuple, the product of its length and element size should not overflow)
+{v_1 : tuple(int)} |= (v_1.len * 4) < 2147483647
 >>
-Rule 40 (The maximum size for double storage cannot exceed the maximum size of an array)
-{v_1 : float} |= v_1 < 4294967291.0
+Rule 37 (If the source is a list, it should not be excessively large to prevent memory issues)
+{v_1 : list(int)} |= v_1.len < 1000000
 >>
-Rule 41 (The allocation size must not result in overflow when converted to size_t type)
-{v_1 : float} |= v_1 < 18446744073709551615.0
+Rule 38 (If the source is a tuple, it should not be excessively large to prevent memory issues)
+{v_1 : tuple(int)} |= v_1.len < 1000000
 >>
-Rule 42 (Size must be representable without loss of information to avoid implicit cast issues)
-{v_1 : float} |= v_1 = (v_1 + 0)
+Rule 39 (If source list is given, list elements should not cause memory overflow when indexing)
+{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < 65536
 >>
-Rule 45 (Number of elements should be convertible to long without loss of precision and range errors.)
-{v_1 : float} |= (v_1 > -9223372036854775808.0) ∧ (v_1 < 9223372036854775807.0)
+Rule 40 (If source tuple is given, tuple elements should not cause memory overflow when indexing)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < 65536
 >>
-Rule 46 (The size of storage cannot exceed the maximum allocatable size in bytes)
-{v_1 : float} |= v_1 < 4294967291
+Rule 41 (The requested size should be a positive integer to prevent allocation errors)
+{v_1 : int} |= v_1 > 0 ∧ v_1 < 2147483647
 >>
-Rule 48 (Number of elements should not be too huge in float format)
-{v_1 : float} |= v_1 < 2147483000
+Rule 42 (If the source is a list, ensure that multiplying its length with a typical element size does not overflow)
+{v_1 : list(int)} |= (v_1.len * 8) < 2147483647
 >>
-Rule 49 (Requested memory should be small enough for allocation)
-{v_1 : float} |= v_1 < 1000000000
+Rule 43 (If the source is a tuple, ensure that multiplying its length with a typical element size does not overflow)
+{v_1 : tuple(int)} |= (v_1.len * 8) < 2147483647
 >>
-Rule 50 (Prevent overflow by checking max value of number of elements.)
-{v_1: float} |= v_1 < 2147483647
+Rule 47 (If source is a list, ensure all elements are within reasonable bounds for indexing)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] >= -32768 ∧ v_1[i] <= 32767
 >>
-Rule 51 (The number of bytes, based on float, should be a positive number.)
-{v_1 : float} |= v_1 > 0
+Rule 48 (If source is a tuple, ensure all elements are within reasonable bounds for indexing)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] >= -32768 ∧ v_1[i] <= 32767
 >>
-Rule 52 (Float-based size must translate to a non-negative number of bytes.)
-{v_1 : float} |= v_1 * 8 ≥ 0
+Rule 51 (The size should be a valid, non-negative integer representable as a signed 64 bit integer)
+{v_1 : int} |= v_1 > 0 ∧ v_1 < 9223372036854775807
 >>
-Rule 53 (Float-based size should not result in overflow after casting into size_t)
-{v_1 : float} |= v_1 < 18446744073709551615
+Rule 52 (Elements in source list should represent valid signed 32-bit integer offsets)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -2147483648 ∧ v_1[i] < 2147483647
 >>
-Rule 54 (Float size should translate to valid ptrdiff_t, and to size_t)
-{v_1 : float} |= (v_1 < 2147483647) ∧ (v_1 > -1) ∧ (v_1 < 18446744073709551615)
+Rule 53 (Elements in source tuple should represent valid signed 32-bit integer offsets)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -2147483648 ∧ v_1[i] < 2147483647
 >>
-Rule 55 (Number of elements based on float should be smaller than largest possible value for signed long)
-{v_1 : float} |= v_1 < 9223372036854775000
+Rule 57 (If source is a list, its elements' data types must correspond to supported tensor types)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ -2147483648) ∧ (v_1[i] <= 2147483647)
 >>
-Rule 56 (Float size should correspond to valid memory.)
-{v_1: float} |= v_1 * 8 < 9223372036854775807
+Rule 58 (If source is a tuple, its elements' data types must correspond to supported tensor types)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ -2147483648) ∧ (v_1[i] <= 2147483647)
 >>
-Rule 57 (When float size is huge, multiplication by 8 also should stay with in long range.)
-{v_1: float} |= if v_1 > 0 then v_1 < 9223372036854775807/8 else v_1 > -9223372036854775808/8
+Rule 59 (The length of the source list, multiplied by the size of a double, should be within reasonable memory constraints)
+{v_1 : list(float)} |= v_1.len < 134217728
 >>
-Rule 58 (Float size, when translated to bytes, should be non-negative)
-{v_1 : float} |= if v_1 < 0 then 0 - v_1 * 8 ≤ 9223372036854775807 else v_1*8 ≤ 9223372036854775807
+Rule 60 (The length of the source tuple, multiplied by the size of a double, should be within reasonable memory constraints)
+{v_1 : tuple(float)} |= v_1.len < 134217728
 >>
-Rule 59 (Float must be normal number to be safe for calculation)
-{v_1 : float} |= v_1 ≠ 0.0
+Rule 62 (If the source is a list of floats, ensure that the product of its length and the size of a float doesn't exceed memory limits)
+{v_1 : list(float)} |= (v_1.len * 8) < 2147483647
 >>
-Rule 60 (Size must be finite to prevent Nan value)
-{v_1 : float} |= v_1 = v_1
+Rule 63 (If the source is a tuple of floats, ensure that the product of its length and the size of a float doesn't exceed memory limits)
+{v_1 : tuple(float)} |= (v_1.len * 8) < 2147483647
 >>
-Rule 61 (Number of elements should be within the range of long and more than zero, as well as it cannot be INF)
-{v_1 : float} |= v_1 > 0 ∧ v_1 < 9223372036854775807 ∧ v_1 ≠ 1.0/0.0
+Rule 66 (Allocation size requested (size) should be a valid positive number)
+{v_1 : int} |= 0 < v_1 ∧ v_1 < 2147483647
 >>
-Rule 62 (Size must not be a non representable value in float64.)
-{v_1 : float} |= v_1 ≠ 1.7976931348623157e+308
+Rule 67 (For list source, values must be within valid range for signed 64-bit integers, and finite.)
+{v_1 : list(float)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] >= -9223372036854775807 ∧ v_1[i] <= 9223372036854775807
+>>
+Rule 68 (For tuple source, values must be within valid range for signed 64 bit integers, and finite.)
+{v_1 : tuple(float)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] >= -9223372036854775807 ∧ v_1[i] <= 9223372036854775807
+>>
+Rule 69 (If size and source list are provided, make sure that the memory allocation will not lead to integer overflow)
+{v_1 : int, v_2 : list(float)} |= if v_2.len > 0 then v_1 < 268435456 else v_1 >= 0
+>>
+Rule 70 (If size and source tuple are provided, make sure that the memory allocation will not lead to integer overflow)
+{v_1 : int, v_2 : tuple(float)} |= if v_2.len > 0 then v_1 < 268435456 else v_1 >= 0
+>>
+Rule 72 (When source is a list, its elements must be representable within a long datatype)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] >= -9223372036854775808 ∧ v_1[i] <= 9223372036854775807
+>>
+Rule 73 (When source is a tuple, its elements must be representable within a long datatype)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] >= -9223372036854775808 ∧ v_1[i] <= 9223372036854775807
+>>
+Rule 77 (For list of integers, length of list * size of long data type must fit within representable memory limits to avoid overflow.)
+{v_1 : list(int)} |= (v_1.len < 268435456)
+>>
+Rule 78 (For tuple of integers, length of tuple * size of long data type must fit within representable memory limits to avoid overflow)
+{v_1 : tuple(int)} |= (v_1.len < 268435456)
+>>
+Rule 79 (If size and source list are given, prevent overflow by restricting values.)
+{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < 4294967295
+>>
+Rule 80 (If size and source tuple are given, prevent overflow by restricting values.)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < 4294967295
+>>
+Rule 81 (Requested size must be a valid positive integer within a manageable range to prevent allocation errors and overflow issues.)
+{v_1 : int} |= v_1 > 0 ∧ v_1 < 2000000000
+>>
+Rule 82 (Source List Length must be restricted within a manageable range to avoid potential out-of-memory or performance degradation issues)
+{v_1 : list(int)} |= v_1.len < 500000
+>>
+Rule 83 (Source Tuple Length must be restricted within a manageable range to avoid potential out-of-memory or performance degradation issues)
+{v_1 : tuple(int)} |= v_1.len < 500000
+>>
+Rule 84 (For Source list values, the multiplied size shouldn't lead to memory overflow)
+{v_1 : list(float)} |= (v_1.len < 268435456)
+>>
+Rule 85 (For Source tuple values, the multiplied size shouldn't lead to memory overflow)
+{v_1 : tuple(float)} |= (v_1.len < 268435456)
+>>
+Rule 89 (The source cannot have infinitely large numbers that lead to overflows later)
+{v_1 : list(float)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 10000000000000000000000000000000000000.0
+>>
+Rule 90 (The source cannot have infinitely large numbers that lead to overflows later)
+{v_1 : tuple(float)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 10000000000000000000000000000000000000.0
+>>
+Rule 91 (Requested size must be a reasonable positive value to prevent runtime errors.)
+{v_1 : int} |= 0 < v_1 ∧ v_1 < 2000000000
+>>
+Rule 92 (The length of the source list should be restricted, and individual list element values should be reasonable for the system's architecture.)
+{v_1 : list(int)} |= v_1.len < 500000 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] > -1000000 ∧ v_1[i] < 1000000
+>>
+Rule 93 (The length of the source tuple should be restricted, and individual tuple element values should be reasonable for the system's architecture.)
+{v_1 : tuple(int)} |= v_1.len < 500000 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] > -1000000 ∧ v_1[i] < 1000000
+>>
+Rule 94 (The values in float source lists shouldn't be excessively huge to prevent allocation failures.)
+{v_1 : list(float)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -100000000.0 ∧ v_1[i] < 100000000.0
+>>
+Rule 95 (The values in float source tuples shouldn't be excessively huge to prevent allocation failures.)
+{v_1 : tuple(float)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -100000000.0 ∧ v_1[i] < 100000000.0
+>>
+Rule 97 (For list input sources, guarantee a safe length value is employed)
+{v_1 : list(float) ⊎ list(int)} |= v_1.len < 200000
+>>
+Rule 98 (For tuple input sources, guarantee a safe length value is employed)
+{v_1 : tuple(float) ⊎ tuple(int)} |= v_1.len < 200000
+>>
+Rule 99 (The source numbers of the list are not incredibly huge)
+{v_1 : list(float)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 50000.0 ∧ v_1[i] > -50000.0
+>>
+Rule 100 (The source numbers of the tuple are not incredibly huge)
+{v_1 : tuple(float)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 50000.0 ∧ v_1[i] > -50000.0
+>>
+Rule 102 (When a list is used as a source for storage, its total size should be reasonable.)
+{v_1 : list(float) ⊎ list(int)} |= v_1.len < 100000
+>>
+Rule 103 (When a tuple is used as a source for storage, its total size should be reasonable.)
+{v_1 : tuple(float) ⊎ tuple(int)} |= v_1.len < 100000
+>>
+Rule 104 (The combined size of element within the tuple source shouldn't be extremely large)
+{v_1 : tuple(int)} |= v_1.len * 4 < 2147483647
+>>
+Rule 105 (The combined size of elements within the list source shouldn't be extremely large)
+{v_1 : list(int)} |= v_1.len * 4 < 2147483647
+>>
+Rule 107 (Source list element values must not lead to overflow when unpacked)
+{v_1 : list(float) ⊎ list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -10000000000.0 ∧ v_1[i] < 10000000000.0
+>>
+Rule 108 (Source tuple element values must not lead to overflow when unpacked)
+{v_1 : tuple(float) ⊎ tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -10000000000.0 ∧ v_1[i] < 10000000000.0
+>>
+Rule 112 (For the list as the source , the size of any element has to fit in the range to prevent possible memory overflows)
+{v_1 : list(float) ⊎ list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -1000000.0 ∧ v_1[i] < 1000000.0
+>>
+Rule 113 (For the tuple as the source , the size of any element has to fit in the range to prevent possible memory overflows)
+{v_1 : tuple(float) ⊎ tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -1000000.0 ∧ v_1[i] < 1000000.0
+>>
+Rule 114 (Total length of the source should fit to avoid other memory constraints from the framework)
+{v_1 : list(float)} |= v_1.len < 200000
+>>
+Rule 115 (Total length of the source should fit to avoid other memory constraints from the framework)
+{v_1 : tuple(float)} |= v_1.len < 200000
+>>
+Rule 117 (When source is a list of floats, restrict the magnitude of each element.)
+{v_1 : list(float)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 1000000.0 ∧ v_1[i] > -1000000.0
+>>
+Rule 118 (When source is a tuple of floats, restrict the magnitude of each element.)
+{v_1 : tuple(float)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 1000000.0 ∧ v_1[i] > -1000000.0
+>>
+Rule 122 (List contents of list should be in the reasonable range.)
+{v_1 : list(float) ⊎ list(int)} |= ∀i ∈ [0, v_1.len - 1] : -1000000.0 < v_1[i] ∧ v_1[i] < 1000000.0
+>>
+Rule 123 (Tuple contents of list should be in the reasonable range.)
+{v_1 : tuple(float) ⊎ tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : -1000000.0 < v_1[i] ∧ v_1[i] < 1000000.0
+>>
+Rule 124 (The total length of the list as a source is managed within reasonable system limits.)
+{v_1 : list(int) ⊎ list(float)} |= v_1.len < 100000
+>>
+Rule 125 (The total length of the tuple as a source is managed within reasonable system limits.)
+{v_1 : tuple(int) ⊎ tuple(float)} |= v_1.len < 100000
+>>
+Rule 132 (Source list elements are bounded to a range such that the memory unpacking does not overflow)
+{v_1 : list(float) ⊎ list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 1000000 ∧ v_1[i] > -1000000
+>>
+Rule 133 (Source tuple elements are bounded to a range such that the memory unpacking does not overflow)
+{v_1 : tuple(float) ⊎ tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 1000000 ∧ v_1[i] > -1000000
+>>
+Rule 134 (Ensure that with a size, you don't allocate unreasonable memory.)
+{v_1 : int} |= v_1 < 268435456
+>>
+Rule 135 (Make sure the length of a list is not too huge to cause a memory issue.)
+{v_1 : list(float)} |= v_1.len < 50000
+>>
+Rule 137 (List value from the source are representable without memory issues)
+{v_1 : list(float) ⊎ list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -1000000000.0 ∧ v_1[i] < 1000000000.0
+>>
+Rule 138 (Tuple value from the source are representable without memory issues)
+{v_1 : tuple(float) ⊎ tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -1000000000.0 ∧ v_1[i] < 1000000000.0
+>>
+Rule 139 (Source List length needs to be reasonable.)
+{v_1 : list(float) ⊎ list(int)} |= v_1.len < 500000
+>>
+Rule 140 (Source Tuple Length needs to be reasonable.)
+{v_1 : tuple(float) ⊎ tuple(int)} |= v_1.len < 500000
+>>
+Rule 142 (If source is provided as list of floats/ints, the values should not cause overflow)
+{v_1 : list(float) ⊎ list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -100000.0 ∧ v_1[i] < 100000.0
+>>
+Rule 143 (If source is provided as tuple of floats/ints, the values should not cause overflow)
+{v_1 : tuple(float) ⊎ tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -100000.0 ∧ v_1[i] < 100000.0
+>>
+Rule 147 (Source List numbers should be within a manageable range to prevent memory corruption on read.)
+{v_1 : list(int) ⊎ list(float)} |= ∀i ∈ [0, v_1.len - 1] : -1000000.0 < v_1[i] ∧ v_1[i] < 100000.0
+>>
+Rule 148 (Source Tuple numbers should be within a manageable range to prevent memory corruption on read.)
+{v_1 : tuple(int) ⊎ tuple(float)} |= ∀i ∈ [0, v_1.len - 1] : -1000000.0 < v_1[i] ∧ v_1[i] < 100000.0
+>>
+Rule 150 (Need an additional rule that protects from extremely negative sizes for source list )
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -2147483648

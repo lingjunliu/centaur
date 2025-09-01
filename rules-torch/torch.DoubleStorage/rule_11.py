@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Size must not be so large that multiplying by the size of double causes overflow (Rule 11)
+# size should be a reasonable upper bound to prevent excessive memory allocation (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 1152921504606846975) if n else
-          v["arg1_value"] < 1152921504606846975)
+    s.add(Not(v["arg1_value"] < 1000000000) if n else
+          v["arg1_value"] < 1000000000)
 )
 
 def rule_11_func(arg1, solver=None, neg=False):

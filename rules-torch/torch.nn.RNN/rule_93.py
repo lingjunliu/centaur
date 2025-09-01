@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If dropout is greater than 0, then the product of input_size and hidden_size must be positive (Rule 93)
+# Check that input and hidden state have compatible dtypes (Rule 93)
 
 rule_93 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] > 0, v["arg2_value"] * v["arg3_value"] > 0, False)) if n else
-          If(v["arg1_value"] > 0, v["arg2_value"] * v["arg3_value"] > 0, False))
+    s.add(Not(If(v["arg3_value"] != 0, And(v["arg1_dtype"] == v["arg3_value"], v["arg2_dtype"] == v["arg3_value"]), True)) if n else
+          If(v["arg3_value"] != 0, And(v["arg1_dtype"] == v["arg3_value"], v["arg2_dtype"] == v["arg3_value"]), True))
 )
 
 def rule_93_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -19,28 +19,28 @@ def rule_93_func(arg1, arg2, arg3, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
+        if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg2, np.ndarray):
             return False
-        if not (isinstance(arg3, (int, np.integer)) and not isinstance(arg3, bool)):
+        if not (isinstance(arg3, torch.dtype) or isinstance(arg3, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
-        arg2_value = Int('arg2_value')
+        arg1_dtype = Int('arg1_dtype')
+        arg2_dtype = Int('arg2_dtype')
         arg3_value = Int('arg3_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_value == int(arg2))
-        solver.add(arg3_value == int(arg3))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg3_value == list_of_available_dtypes.index(np_dtype(arg3)))
 
         # Constraints for rule 93
-        rule_93(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
+        rule_93(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_93(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)
+        rule_93(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_value': arg3['value']}, neg)

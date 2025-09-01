@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor should have dimension of at least 1, and if it is complex, output is float (Rule 37)
+# If the input dtype is floating point the API returns the same tensor without copying (Rule 37)
 
 rule_37 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] >= 1, (If(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11), Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), False)))) if n else
-          And(v["arg1_ndim"] >= 1, (If(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11), Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), False))))
+    s.add(Not(If(v["arg1_dtype"] == 7, True, If(v["arg1_dtype"] == 8, True, False))) if n else
+          If(v["arg1_dtype"] == 7, True, If(v["arg1_dtype"] == 8, True, False)))
 )
 
 def rule_37_func(arg1, solver=None, neg=False):
@@ -22,17 +22,15 @@ def rule_37_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
         arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 37
-        rule_37(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype})
+        rule_37(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_37(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype']}, neg)
+        rule_37(solver, {'arg1_dtype': arg1['dtype']}, neg)

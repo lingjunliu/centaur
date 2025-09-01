@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The autocast_cpu_dtype must be one of the allowed dtypes (Rule 31)
+# If autocast_cpu_dtype is None, operations run in float32. (Rule 31)
 
 rule_31 = lambda s, v, n=False: (
-    s.add(Not(Or(Or((v["arg1_value"] == 6), (v["arg1_value"] == 7)), (v["arg1_value"] == 8))) if n else
-          Or(Or((v["arg1_value"] == 6), (v["arg1_value"] == 7)), (v["arg1_value"] == 8)))
+    s.add(Not(If(v["arg1_value"] == 7, 8 == 8, True)) if n else
+          If(v["arg1_value"] == 7, 8 == 8, True))
 )
 
 def rule_31_func(arg1, solver=None, neg=False):

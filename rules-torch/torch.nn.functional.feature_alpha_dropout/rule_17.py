@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# dropout probability is valid based on training flag (Rule 17)
+# if training is enabled, dropout probability must be less than or equal to 1 (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"], (And(v["arg1_value"] >= 0, v["arg1_value"] <= 1)), v["arg1_value"] == 0.0)) if n else
-          If(v["arg2_value"], (And(v["arg1_value"] >= 0, v["arg1_value"] <= 1)), v["arg1_value"] == 0.0))
+    s.add(Not(If(v["arg2_value"] == True, v["arg1_value"] <= 1.0, True)) if n else
+          If(v["arg2_value"] == True, v["arg1_value"] <= 1.0, True))
 )
 
 def rule_17_func(arg1, arg2, solver=None, neg=False):

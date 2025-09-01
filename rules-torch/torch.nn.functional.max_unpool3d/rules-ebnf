@@ -1,93 +1,147 @@
 >>
-Rule 1 (indices tensor should have integer dtype)
-{v_1 : tensor} |= dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
->>
-Rule 2 (indices tensor should have valid values within the input tensor shape to prevent IndexError)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) + 1
->>
-Rule 3 (output size should contain concrete integers)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
->>
-Rule 4 (check if torch.use_deterministic_algorithms is set, deterministic algorithm cannot be guranteed)
-{v_1 : bool} |= v_1 = false
->>
-Rule 5 (output size tuple should have a length of 3 or higher to avoid index out of range)
+Rule 1 (output_size tuple length should be greater than or equal to 3)
 {v_1 : tuple(int)} |= v_1.len ≥ 3
 >>
-Rule 8 (indices should have one less dimension than the input tensor, and output size should be consistent.)
-{v_1 : tensor, v_2 : tensor, v_3 : tuple(int)} |= ndim(v_1) = ndim(v_2) + 1 ∧ v_3.len = ndim(v_1) -1
+Rule 2 (stride should be positive)
+{v_1 : int} |= v_1 > 0
 >>
-Rule 9 (If the output size is specified, its length must be consistent with the input tensor's dimensionality minus 1.)
-{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) - 2 = v_2.len
+Rule 3 (padding should be non-negative)
+{v_1 : int} |= v_1 ≥ 0
 >>
-Rule 10 (if deterministic is true, then an alternative implementation should be available.)
-{v_1 : bool} |= if v_1 = true then ∃i ∈ [0, 100] : i > 5
+Rule 4 (indices tensor dimensions must be equal to input tensor dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 12 (output size should be greater or equal to the input tensor size.)
-{v_1 : tensor, v_2 : tuple(int)} |= v_2[0] ≥ shape(v_1, 0) ∧ v_2[1] ≥ shape(v_1, 1) ∧ v_2[2] ≥ shape(v_1, 2)
+Rule 5 (output_size elements must be positive)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 13 (if deterministic algorithm is enabled, the input should have floating point type)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 6 (output_size tuple length cannot exceed input tensor dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≤ ndim(v_1)
 >>
-Rule 14 (output size should be explicitly given as a tuple with positive values)
-{v_1 : tuple(int)} |= v_1.len > 0 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 7 (indices tensor dtype should be int)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
 >>
-Rule 15 (If deterministic is enabled then the index tensor must be int32 or int64 to be supported)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 8 (input tensor dimensions must be greater than 0)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 16 (Output size cannot be empty)
-{v_1 : tuple(int)} |= v_1.len ≠ 0
+Rule 9 (input tensor and indices tensor shapes match except on the channel dimension - assuming dimension 1 is channel)
+{v_1 : tensor, v_2 : tensor} |= (shape(v_1, 0) = shape(v_2, 0)) ∧ (shape(v_1, 2) = shape(v_2, 2)) ∧ (shape(v_1, 3) = shape(v_2, 3)) ∧ (shape(v_1, 4) = shape(v_2, 4))
 >>
-Rule 17 (indices should be non-negative)
-{v_1 : tensor} |= min(v_1) ≥ 0
+Rule 10 (output size must be compatible with input size, stride and padding.)
+{v_1 : tensor, v_2 : tuple(int), v_3 : int, v_4 : int} |= shape(v_1, 2) * v_3 - 2 * v_4 ≤ v_2[0] ∧ shape(v_1, 3) * v_3 - 2 * v_4 ≤ v_2[1] ∧ shape(v_1, 4) * v_3 - 2 * v_4 ≤ v_2[2]
 >>
-Rule 20 (The length of output_size should match the expected number of spatial dimensions)
+Rule 11 (output_size tuple length should be equal to the spatial dimensions of the input tensor (ndim - 2))
 {v_1 : tensor, v_2 : tuple(int)} |= v_2.len = ndim(v_1) - 2
 >>
-Rule 22 (indices tensor elements must be valid indices within the input tensor to avoid out of bounds error)
-{v_1 : tensor, v_2 : tensor} |= max(v_2) < shape(v_1, 2) ∧ max(v_2) < shape(v_1, 3) ∧ max(v_2) < shape(v_1, 4)
+Rule 12 (Indices values must be within the valid range based on input shape)
+{v_1 : tensor, v_2 : tensor} |= max(v_2) < shape(v_1,2)*shape(v_1,3)*shape(v_1,4)
 >>
-Rule 24 (The values in the output size tuple should not be too large to cause memory allocation issues.)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 2048
+Rule 15 (The shape of the output tensor, computed from output_size, matches the expected output.)
+{v_1 : tensor, v_2 : tensor, v_3 : tuple(int)} |= shape(v_1,0) = shape(v_2,0) ∧ shape(v_1,1) = shape(v_2,1) ∧ shape(v_1,2) * shape(v_1,3) * shape(v_1,4) ≤ v_3[0] * v_3[1] * v_3[2]
 >>
-Rule 25 (If output_size is specified, the dimensions should be greater than 0)
-{v_1 : tuple(int)} |=  ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 16 (Indices values must be non-negative)
+{v_1 : tensor} |= min(v_1) ≥ 0
 >>
-Rule 27 (For output_size to be valid, it should be a tuple of the correct length with positive integer values.)
-{v_1 : tensor, v_2 : tuple(int)} |= v_2.len = ndim(v_1) - 2 ∧  ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
+Rule 18 (The spatial dimensions of the input tensor must be greater than zero)
+{v_1 : tensor} |= shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 ∧ shape(v_1, 4) > 0
 >>
-Rule 29 (If output size is provided, the number of dimensions in it must match that of the unpooled tensor)
-{v_1 : tensor, v_2 : tensor, v_3 : tuple(int)} |= ndim(v_1) = ndim(v_2) + 1 ∧ v_3.len = ndim(v_2)
+Rule 19 (Stride and padding have to be compatible with the input sizes and output size)
+{v_1 : tensor, v_2 : tuple(int), v_3 : int, v_4 : int} |= (shape(v_1, 2)-1)*v_3 - 2*v_4 < v_2[0] ∧ (shape(v_1, 3)-1)*v_3 - 2*v_4 < v_2[1] ∧ (shape(v_1, 4)-1)*v_3 - 2*v_4 < v_2[2]
 >>
-Rule 31 (The output_size should be a tuple of integers. If given, it has to have the right size and must contain positive values.)
-{v_1 : tensor, v_2 : tuple(int)} |= v_2.len = ndim(v_1) - 2 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
+Rule 22 (input tensor's shape must be compatible with indices shape, stride and padding)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= shape(v_1, 2) = (shape(v_2, 2) - 2 * v_4 + v_3 -1)/v_3 + 1 ∧ shape(v_1, 3) = (shape(v_2, 3) - 2 * v_4 + v_3 -1)/v_3 + 1 ∧ shape(v_1, 4) = (shape(v_2, 4) - 2 * v_4 + v_3 -1)/v_3 + 1
 >>
-Rule 40 (Indices should be in the correct format)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 23 (Indices tensor should contain valid indices that correspond to the original MaxPool3d operation)
+{v_1 : tensor, v_2 : tensor} |= max(v_2) < shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4)
 >>
-Rule 44 (If deterministic algorithm is set, warn_only needs to be true since the implementation might not be deterministic)
-{v_1 : bool, v_2 : bool} |= if v_1 = true then v_2 = true
+Rule 24 (The batch size of input and indices tensor should match)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 46 (Indices tensor's shape should not be larger than 3)
-{v_1 : tensor} |= ndim(v_1) ≤ 3
+Rule 26 (input tensor and indices tensor should have compatible shapes given stride and padding)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int, v_5 : tuple(int)} |= shape(v_2, 2) = (shape(v_1, 2) -1) * v_3 - 2 * v_4 + v_5[0] ∧ shape(v_2, 3) = (shape(v_1, 3) -1) * v_3 - 2 * v_4 + v_5[1] ∧ shape(v_2, 4) = (shape(v_1, 4) -1) * v_3 - 2 * v_4 + v_5[2]
 >>
-Rule 47 (When deterministic algorithms is enabled, the output size requires all to be non-symbolic)
-{v_1 : bool, v_2 : tuple(int)} |= if v_1 = true then ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
+Rule 27 (output_size volume should be greater than or equal to input volume)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2[0] * v_2[1] * v_2[2] ≥ shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4)
 >>
-Rule 50 (To prevent out of bounds access on output_size, check ndim first)
-{v_1 : tensor} |= ndim(v_1) >= 3
+Rule 31 (The batch size of input and indices tensor should match, as well as the channel size)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_2, 1)
 >>
-Rule 54 (If you set deterministic algorithms to true, ensure warn_only is also set as true)
-{v_1 : bool, v_2: bool} |= if v_1 = true then v_2=true
+Rule 32 (input tensor must be 5D)
+{v_1 : tensor} |= ndim(v_1) = 5
 >>
-Rule 56 (If indices are passed, the indices tensor and the input tensor must have compatible shapes.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = ndim(v_1) -1
+Rule 33 (compatibility between input shape, stride, padding and output_size's first element)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : tuple(int)} |= (shape(v_1, 2) - 1) * v_2 - 2 * v_3 < v_4[0]
 >>
-Rule 58 (Make sure the indices' values are within boundaries of the input tensor, considering only the H, W, D dimensions)
-{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ max(v_2) < shape(v_1, 2) ∧ max(v_2) < shape(v_1, 3) ∧ max(v_2) < shape(v_1, 4)
+Rule 34 (Check if indices are valid given the output_size)
+{v_1 : tensor, v_2 : tuple(int)} |= max(v_1) < v_2[0] * v_2[1] * v_2[2]
 >>
-Rule 59 (Ensure output_size is concretely specified to prevent shape tracing issues for deterministic algorithms)
-{v_1 : tuple(int), v_2: bool} |= if v_2 = true then v_1.len > 0
+Rule 35 (The channel dimension of input and indices should match)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) = shape(v_2, 1)
 >>
-Rule 63 (If the indices are given, ensure its values are within the correct range to avoid indexing errors. Also, the output size tuple must be positive)
-{v_1 : tensor, v_2 : tensor, v_3 : tuple(int)} |= (∀i ∈ [0, v_3.len - 1] : v_3[i] > 0) ∧ (min(v_2) ≥ 0 ∧ max(v_2) < shape(v_1, 2) ∧ max(v_2) < shape(v_1, 3) ∧ max(v_2) < shape(v_1, 4))
+Rule 36 (Ensure stride is compatible with output_size)
+{v_1 : int, v_2 : tuple(int)} |= v_1 > 0 ∧ v_2[0] % v_1 = 0 ∧ v_2[1] % v_1 = 0 ∧ v_2[2] % v_1 = 0
+>>
+Rule 37 (Ensure padding is not excessively large)
+{v_1 : int, v_2 : tensor} |= v_1 ≥ 0 ∧ v_1 < shape(v_2, 2) ∧ v_1 < shape(v_2, 3) ∧ v_1 < shape(v_2, 4)
+>>
+Rule 38 (Indices should be in the correct format, i.e., LongTensor)
+{v_1 : tensor} |= dtype_(v_1) = 4
+>>
+Rule 39 (output_size should correspond to valid tensor dimensions)
+{v_1 : tuple(int)} |= v_1.len = 3
+>>
+Rule 40 (The input and indices tensor should have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 41 (Stride, padding, and kernel_size (derived from output_size) have to satisfy unpooling equation)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : tuple(int)} |= shape(v_1, 2) = (v_4[0] + 2 * v_3 - (1 * (v_2 -1)) -1)/v_2 +1 ∧ shape(v_1, 3) = (v_4[1] + 2 * v_3 - (1 * (v_2 -1)) -1)/v_2 +1 ∧ shape(v_1, 4) = (v_4[2] + 2 * v_3 - (1 * (v_2 -1)) -1)/v_2 +1
+>>
+Rule 45 (Check if the input size * stride is smaller or equal than the output size after subtracting the padding)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : tuple(int)} |= shape(v_1, 2) * v_2 ≤ v_4[0] + 2 * v_3 ∧ shape(v_1, 3) * v_2 ≤ v_4[1] + 2 * v_3 ∧ shape(v_1, 4) * v_2 ≤ v_4[2] + 2 * v_3
+>>
+Rule 46 (output_size's elements should be compatible with the input and indices shape)
+{v_1 : tensor, v_2 : tensor, v_3 : tuple(int)} |= shape(v_1,0) = shape(v_2,0) ∧ shape(v_2,2)* shape(v_2,3)* shape(v_2,4) ≤ v_3[0]* v_3[1]* v_3[2]
+>>
+Rule 47 (Shape[2,3,4] of input tensor should satisfy output size using given stride and padding)
+{v_1 : tensor, v_2 : tuple(int), v_3 : int, v_4 : int} |= (shape(v_1, 2) - 1) * v_3 - 2*v_4 < v_2[0] ∧ (shape(v_1, 3) - 1) * v_3 - 2*v_4 < v_2[1] ∧ (shape(v_1, 4) - 1) * v_3 - 2*v_4 < v_2[2]
+>>
+Rule 48 (The indices tensor values should be less than the product of the original input size * stride)
+{v_1: tensor, v_2: tensor, v_3 : int} |= max(v_2) < shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) * v_3 * v_3 * v_3
+>>
+Rule 49 (If stride is greater than 1, padding must be smaller than stride)
+{v_1 : int, v_2 : int} |= if v_1 > 1 then v_2 < v_1
+>>
+Rule 50 (Padding should be smaller than output size)
+{v_1 : int, v_2 : tuple(int)} |= v_1 < v_2[0] ∧ v_1 < v_2[1] ∧ v_1 < v_2[2]
+>>
+Rule 52 (If input shape is zero, then all other parameters should be set to zero to avoid issues.)
+{v_1 : tensor, v_2 : tuple(int), v_3 : int, v_4 : int} |= if shape(v_1, 2) = 0 ∨ shape(v_1, 3) = 0 ∨ shape(v_1, 4) = 0 then v_2[0] = 0 ∧ v_2[1] = 0 ∧ v_2[2] = 0 ∧ v_3 = 0 ∧ v_4 = 0
+>>
+Rule 53 (If determinism is enabled, either disable it or set warn_only to true)
+{v_1 : bool} |= if v_1 = true then false
+>>
+Rule 54 (output_size tuple can not be empty to avoid index out of range)
+{v_1 : tuple(int)} |= v_1.len > 0
+>>
+Rule 56 (If deterministic is enabled then indices dtype must be int32 or int64)
+{v_1 : dtype} |= (v_1 = 3) ∨ (v_1 = 4)
+>>
+Rule 57 (If deterministic is enabled, the operation has to be run on CPU to suppress the error)
+{v_1 : bool} |= v_1 = false
+>>
+Rule 58 (Indices must have same shape as input, excluding dimension 1)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 2) = shape(v_2, 2) ∧ shape(v_1, 3) = shape(v_2, 3) ∧ shape(v_1, 4) = shape(v_2, 4)
+>>
+Rule 65 (the shape resulting from the given parameters is valid)
+{v_1 : tensor, v_2 : tuple(int), v_3 : int, v_4 : int} |= (shape(v_1, 2) - 1) * v_3 - 2 * v_4 + 1 > 0 ∧ (shape(v_1, 3) - 1) * v_3 - 2 * v_4 + 1 > 0 ∧ (shape(v_1, 4) - 1) * v_3 - 2 * v_4 + 1 > 0 ∧ v_2.len = 3
+>>
+Rule 67 (The value from indices has to map to a valid index location within the output_size dimensions)
+{v_1: tensor, v_2: tuple(int)} |= max(v_1) < v_2[0] * v_2[1] * v_2[2]
+>>
+Rule 71 (stride needs to be greater than 0)
+{v_1: int} |= v_1 > 0
+>>
+Rule 72 (If any dimension of output_size is set, indices should map to locations within the range of other output_size dimensions.)
+{v_1 : tensor, v_2 : tuple(int)} |= ∃i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ max(v_1) < v_2[0] * v_2[1] * v_2[2]
+>>
+Rule 74 (indices should be non-negative and within the original dimensions after maxpooling)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ max(v_2) < (shape(v_1,2) * shape(v_1,3) * shape(v_1,4))

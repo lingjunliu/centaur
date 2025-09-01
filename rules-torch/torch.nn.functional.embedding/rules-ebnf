@@ -1,72 +1,165 @@
 >>
-Rule 1 (input must be LongTensor or IntTensor)
-{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 1 (input tensor must have Long or Int dtype)
+{v_1 : tensor} |= dtype_(v_1) = 4 ∨ dtype_(v_1) = 3
 >>
-Rule 2 (weight must be 2-dimensional)
-{v_1 : tensor} |= ndim(v_1) = 2
+Rule 2 (weight tensor must be 2-dimensional)
+{v_2 : tensor} |= ndim(v_2) = 2
 >>
-Rule 3 (padding_idx must be within num_embeddings, where num_embeddings is shape(v_2, 0))
-{v_1 : int, v_2 : tensor} |= v_1 ≥ 0 ∧ v_1 < shape(v_2, 0)
+Rule 3 (padding_idx must be within the number of embeddings in weight)
+{v_2 : tensor, v_3 : int} |= v_3 ≥ 0 ∧ v_3 < shape(v_2, 0)
 >>
-Rule 5 (weight must be floating point or complex if max_norm is given)
-{v_1 : tensor, v_2 : float} |= if v_2 > 0 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+Rule 4 (norm_type must be non-negative)
+{v_5 : float} |= v_5 ≥ 0
 >>
-Rule 6 (norm_type must be greater than 0)
-{v_1 : float} |= v_1 > 0
+Rule 5 (max_norm must be positive if specified)
+{v_4 : float} |= v_4 > 0
 >>
-Rule 7 (scale_grad_by_freq must be boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 7 (weight must be floating point or complex)
+{v_2: tensor} |= dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
 >>
-Rule 9 (input indices should be within the bounds of weight shape)
-{v_1 : tensor, v_2 : tensor} |= max(v_1) < shape(v_2, 0)
+Rule 22 (input and weight tensors are not equal)
+{v_1 : tensor, v_2 : tensor} |= v_1 ≠ v_2
 >>
-Rule 10 (input indices should be non-negative)
+Rule 23 (norm_type defaults to 2 if max_norm is given)
+{v_4 : float, v_5 : float} |= if v_4 > 0 then v_5 = 2
+>>
+Rule 30 (scale_grad_by_freq is boolean)
+{v_6 : bool} |= v_6 = true ∨ v_6 = false
+>>
+Rule 31 (sparse is boolean)
+{v_7 : bool} |= v_7 = true ∨ v_7 = false
+>>
+Rule 38 (input tensor's values should be in the range of weight's first dimension)
+{v_1: tensor, v_2: tensor} |= max(v_1) < shape(v_2, 0)
+>>
+Rule 39 (if max_norm is specified, norm_type should be positive)
+{v_4: float, v_5: float} |= if v_4 > 0 then v_5 > 0
+>>
+Rule 46 (if scale_grad_by_freq is true, input must be integer type)
+{v_1: tensor, v_6: bool} |= if v_6 = true then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+>>
+Rule 47 (if sparse is true, weight must be floating point)
+{v_2: tensor, v_7: bool} |= if v_7 = true then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 54 (minimum value of input must be non-negative)
 {v_1 : tensor} |= min(v_1) ≥ 0
 >>
-Rule 11 (weight dtype should be float16, float32, float64, complex64 or complex128 when max_norm is present.)
-{v_1 : tensor, v_2 : float} |= if v_2 > 0 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+Rule 55 (norm_type is greater or equal to 0)
+{v_5 : float} |= v_5 >= 0
 >>
-Rule 13 (input and weight must be tensors)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0
+Rule 64 (If scale_grad_by_freq is set, the input should have integer type)
+{v_1 : tensor, v_6 : bool} |= if v_6 then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
 >>
-Rule 14 (if max_norm is not None, norm_type must be greater than 0)
-{v_1 : float, v_2 : float} |= if v_1 > 0 then v_2 > 0
+Rule 65 (if sparse is true, then weight should have floating point type)
+{v_2 : tensor, v_7 : bool} |= if v_7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
 >>
-Rule 15 (padding_idx must be an integer)
-{v_1 : int} |= v_1 ≥ -2147483648 ∧ v_1 ≤ 2147483647
+Rule 66 (If max_norm is specified, then norm_type should also be provided)
+{v_4 : float, v_5 : float} |= if v_4 > 0 then v_5 > 0
 >>
-Rule 16 (input tensor cannot be 1-dimensional when using embedding_renorm_)
-{v_1 : tensor} |= ndim(v_1) ≠ 1
+Rule 67 (If scale_grad_by_freq is set, the input should have integer type)
+{v_1 : tensor, v_6 : bool} |= if v_6 = true then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
 >>
-Rule 18 (weight must be of floating point or complex type when using embedding_renorm)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 68 (if sparse is true, then weight should have floating point type)
+{v_2 : tensor, v_7 : bool} |= if v_7 = true then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
 >>
-Rule 21 (embedding_renorm input has to be of floating or complex type)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 6
+Rule 70 (If input is empty, weight should also be empty)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 0) then (ndim(v_2) = 0)
 >>
-Rule 22 (weight size must be greater than zero)
-{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+Rule 73 (if padding_idx is equal to the number of embedding, return false)
+{v_2 : tensor, v_3 : int} |= if v_3 = shape(v_2, 0) then false
 >>
-Rule 24 (if scale_grad_by_freq, input tensor must have integer dtype)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)
+Rule 75 (if padding_idx is out of range, it should be an error)
+{v_2 : tensor, v_3 : int} |= if v_3 < 0 ∨ v_3 ≥ shape(v_2, 0) then false
 >>
-Rule 25 (input indices must be within range [0, num_embeddings) )
-{v_1 : tensor, v_2 : tensor} |= max(v_1) < shape(v_2, 0) ∧ min(v_1) >= 0
+Rule 76 (If max_norm is specified, then the elements in weight should be float or complex)
+{v_2 : tensor, v_4 : float} |= if v_4 > 0 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
 >>
-Rule 28 (input indices should be within the range [0, num_embeddings-1])
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: (min(v_1) >= 0) ∧ (max(v_1) < shape(v_2,0))
+Rule 77 (input tensor must have dimension 1 or 2)
+{v_1 : tensor} |= ndim(v_1) = 1 ∨ ndim(v_1) = 2
 >>
-Rule 32 (The input tensor's elements must be within the boundaries of the weight tensor's first dimension)
-{v_1: tensor, v_2: tensor} |= ∀i ∈ [0, ndim(v_1)-1] : min(v_1) >= 0 ∧ max(v_1) < shape(v_2,0)
+Rule 78 (if padding_idx is specified, it should be less than the number of rows in weight)
+{v_2 : tensor, v_3 : int} |= if v_3 > 0 then v_3 < shape(v_2, 0)
 >>
-Rule 36 (Dtype of input and weight tensors must be the same.)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 79 (weight tensor's shape[0] must be greater than 0)
+{v_2 : tensor} |= shape(v_2, 0) > 0
 >>
-Rule 39 (When using renorm, the input and weight tensors must have matching dtypes)
-{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 80 (norm_type should be greater than 0)
+{v_5 : float} |= v_5 > 0
 >>
-Rule 41 (when sparse is true, weight must be float or complex)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 6)
+Rule 82 (weight tensor's shape[1] must be greater than 0)
+{v_2 : tensor} |= shape(v_2, 1) > 0
 >>
-Rule 42 (weight must be float or complex if using max_norm)
-{v_1 : tensor, v_2 : float} |= if v_2 > 0 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 6)
+Rule 83 (If max_norm is specified, then the elements in weight should have the same sign)
+{v_2 : tensor, v_4 : float} |= if v_4 > 0 then (min(v_2) >= 0) ∨ (max(v_2) <= 0)
+>>
+Rule 84 (if padding_idx is specified, it should be non-negative)
+{v_3 : int} |= v_3 >= 0
+>>
+Rule 86 (If scale_grad_by_freq is True then sparse must be False)
+{v_6: bool, v_7: bool} |= if v_6 = true then v_7 = false
+>>
+Rule 88 (if sparse is true, then scale_grad_by_freq must be false)
+{v_6: bool, v_7: bool} |= if v_7 = true then v_6 = false
+>>
+Rule 89 (If weight has dtype float64, then norm_type must be float64, or an error)
+{v_2 : tensor, v_5 : float} |= if dtype_(v_2) = 8 then v_5 = 2
+>>
+Rule 91 (weight tensor must be 2-dimensional and non-empty)
+{v_2 : tensor} |= ndim(v_2) = 2 ∧ shape(v_2, 0) > 0 ∧ shape(v_2, 1) > 0
+>>
+Rule 97 (Weight's second dimension must be greater than 0)
+{v_2: tensor} |= shape(v_2, 1) > 0
+>>
+Rule 98 (Input's elements must be non-negative)
+{v_1: tensor} |= min(v_1) >= 0
+>>
+Rule 103 (If padding_idx is specified, it should be less than or equal to maximum index + 1)
+{v_2: tensor, v_3: int} |= v_3 <= shape(v_2, 0)
+>>
+Rule 104 (If the input is multi dimensional, the weight must have dimension equal to the last dimension of the input)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 1 then shape(v_1, ndim(v_1) - 1) = shape(v_2, 1)
+>>
+Rule 106 (If padding_idx is specified, it should be non-negative and less than num_embeddings)
+{v_2: tensor, v_3: int} |= if v_3 >= 0 then v_3 < shape(v_2, 0)
+>>
+Rule 107 (Weight tensor shape's must be positive)
+{v_2: tensor} |= shape(v_2,0) > 0 ∧ shape(v_2, 1) > 0
+>>
+Rule 108 (If the input is multi dimensional, then the weight shape[1] must be greater than 0)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 1 then shape(v_2, 1) > 0
+>>
+Rule 110 (If the input's dtype is Long then the max value must be less than size of embeddings)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 4 then max(v_1) < shape(v_2, 0)
+>>
+Rule 112 (If max_norm is specified, weight's dtype should be float or complex)
+{v_2: tensor, v_4: float} |= if v_4 > 0 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+>>
+Rule 115 (If padding_idx is within range then values in input must be less than shape of weight)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 >= 0 ∧ v_3 < shape(v_2, 0) then max(v_1) < shape(v_2, 0)
+>>
+Rule 116 (Weight has to be a float tensor if max_norm is specified)
+{v_2 : tensor, v_4 : float} |= if v_4 > 0 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 6
+>>
+Rule 118 (If max_norm is specified, then weight's dtype should be float or complex and norm_type must be positive)
+{v_2: tensor, v_4: float, v_5: float} |= if v_4 > 0 then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 6) ∧ v_5 > 0
+>>
+Rule 122 (If norm_type is specified, it should be positive)
+{v_5: float} |= v_5 > 0
+>>
+Rule 123 (Weight is a float tensor if max_norm is specified)
+{v_2: tensor, v_4: float} |= if v_4 > 0 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 6
+>>
+Rule 125 (If the input is LongTensor and sparse = True then throw error since not supported)
+{v_1: tensor, v_7: bool} |= if dtype_(v_1) = 4 then v_7 = false
+>>
+Rule 127 (Weight has to be a float tensor if max_norm is specified, AND input has to be Long or Int)
+{v_1:tensor, v_2 : tensor, v_4 : float} |= if v_4 > 0 then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 6) ∧ (dtype_(v_1) = 4 ∨ dtype_(v_1) = 3)
+>>
+Rule 128 (if sparse is true, weight must be a float tensor)
+{v_2:tensor, v_7: bool} |= if v_7 = true then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 6)
+>>
+Rule 133 (if sparse and padding_idx are specified, padding_idx must be negative since not supported in sparse mode)
+{v_3 : int, v_7 : bool} |= if v_7 then v_3 < 0
+>>
+Rule 134 (If max_norm is specified and it is a float, norm_type should also be a float)
+{v_4: float, v_5: float} |= if v_4 > 0 then dtype_(v_5) = 7 ∨ dtype_(v_5) = 8

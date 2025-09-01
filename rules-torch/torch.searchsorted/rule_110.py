@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# sorter, if provided, must have a dtype of int64 (Rule 110)
+# Values and sorted_sequence tensors must have compatible dtypes and not strings or bools (Rule 110)
 
 rule_110 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == 4) if n else
-          v["arg1_dtype"] == 4)
+    s.add(Not(If(Or(v["arg1_dtype"] == 11, v["arg1_dtype"] == 0), False, True)) if n else
+          If(Or(v["arg1_dtype"] == 11, v["arg1_dtype"] == 0), False, True))
 )
 
 def rule_110_func(arg1, solver=None, neg=False):

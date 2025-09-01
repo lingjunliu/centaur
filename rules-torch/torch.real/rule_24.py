@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If dtype of input tensor is complex64, the output must have float32 dtype. If the dtype of input tensor is complex128, the output must have float64 dtype. Otherwise, the output dtype equals to the input dtype (Rule 24)
+# If input is complex64, output tensor's dtype is float32 (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 10, v["arg1_dtype"] == 7, If(v["arg1_dtype"] == 11, v["arg1_dtype"] == 8, v["arg1_dtype"] == v["arg1_dtype"]))) if n else
-          If(v["arg1_dtype"] == 10, v["arg1_dtype"] == 7, If(v["arg1_dtype"] == 11, v["arg1_dtype"] == 8, v["arg1_dtype"] == v["arg1_dtype"])))
+    s.add(Not(If(v["arg1_dtype"] == 10, True, False)) if n else
+          If(v["arg1_dtype"] == 10, True, False))
 )
 
 def rule_24_func(arg1, solver=None, neg=False):

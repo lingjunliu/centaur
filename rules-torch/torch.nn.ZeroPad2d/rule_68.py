@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The product of shape is not too large, avoiding "Storage size calculation overflowed" (Rule 68)
+# ZeroPad can support only when the values for calculation doesn't overflow (Rule 68)
 
 rule_68 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) < 100000) if n else
-          Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) < 100000)
+    s.add(Not(And(Select(v["arg1_shape"], 0) < 10000, Select(v["arg1_shape"], 1) < 10000)) if n else
+          And(Select(v["arg1_shape"], 0) < 10000, Select(v["arg1_shape"], 1) < 10000))
 )
 
 def rule_68_func(arg1, solver=None, neg=False):

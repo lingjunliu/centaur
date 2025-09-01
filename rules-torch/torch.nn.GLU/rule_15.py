@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Dimension should be in a valid range (Rule 15)
+# Shape at split dimension should be divisible by 2 (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(And((0 - v["arg2_ndim"]) <= v["arg1_value"], v["arg1_value"] < v["arg2_ndim"])) if n else
-          And((0 - v["arg2_ndim"]) <= v["arg1_value"], v["arg1_value"] < v["arg2_ndim"]))
+    s.add(Not(Select(v["arg2_shape"], (If(v["arg1_value"] < 0, v["arg2_ndim"] + v["arg1_value"], v["arg1_value"]))) % 2 == 0) if n else
+          Select(v["arg2_shape"], (If(v["arg1_value"] < 0, v["arg2_ndim"] + v["arg1_value"], v["arg1_value"]))) % 2 == 0)
 )
 
 def rule_15_func(arg1, arg2, solver=None, neg=False):
@@ -27,15 +27,18 @@ def rule_15_func(arg1, arg2, solver=None, neg=False):
         solver = Solver()
         arg1_value = Int('arg1_value')
         arg2_ndim = Int('arg2_ndim')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_value == int(arg1))
         solver.add(arg2_ndim == arg2.ndim)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 15
-        rule_15(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim})
+        rule_15(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_15(solver, {'arg1_value': arg1['value'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_15(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim']}, neg)

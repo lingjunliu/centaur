@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The product of all shape dimensions is limited (Rule 81)
+# If ndim 1 then we check shape 0, otherwise make it true, to not get calculation overflow during storage calculation. Limited at the size (Rule 81)
 
 rule_81 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) < 1000000, If(v["arg1_ndim"] == 4, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) * Select(v["arg1_shape"], 3) < 1000000, False))) if n else
-          If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) < 1000000, If(v["arg1_ndim"] == 4, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) * Select(v["arg1_shape"], 3) < 1000000, False)))
+    s.add(Not(If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) < 500000, True)) if n else
+          If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) < 500000, True))
 )
 
 def rule_81_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_81_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 81
-        rule_81(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_81(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_81(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_81(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

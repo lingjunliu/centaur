@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# A tensor should have a number of dimensions between 1 and 5, inclusive. (Rule 6)
+# Tensor should have at least one dimension (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] >= 1, v["arg1_ndim"] <= 5)) if n else
-          And(v["arg1_ndim"] >= 1, v["arg1_ndim"] <= 5))
+    s.add(Not(v["arg1_ndim"] >= 0) if n else
+          v["arg1_ndim"] >= 0)
 )
 
 def rule_6_func(arg1, solver=None, neg=False):

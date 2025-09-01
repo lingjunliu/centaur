@@ -1,63 +1,105 @@
 >>
-Rule 1 (input tensor must have at least 2 dimensions)
+Rule 1 (Input tensor must have at least 2 dimensions)
 {v_1 : tensor} |= ndim(v_1) ≥ 2
 >>
-Rule 2 (out tensor should have the same dtype as input tensor)
+Rule 2 (Output tensor dtype must match input tensor dtype)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 5 (input tensor's dimensions should be positive.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 4 (Shape of out tensor should match input tensor.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 6 (output tensor's dimensions should be positive.)
-{v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+Rule 6 (If input is empty, the out must be empty too)
+{v_1 : tensor, v_2 : tensor} |= if (shape(v_1, 0) = 0) then (shape(v_2, 0) = 0)
 >>
-Rule 7 (if out is provided, the shapes must match)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) else false
+Rule 7 (Input tensor must have non-negative dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 10 (out tensor should have the same dtype as input tensor if provided)
+Rule 12 (Shape of out tensor should match input tensor when provided)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 14 (Relation between diagonal and input dimensions)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - shape(v_1,0)) ∧ v_2 ≤ shape(v_1,1)
+>>
+Rule 16 (Output tensor dtype must match input tensor dtype, if provided)
 {v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 12 (if out is provided, the shape of out and input must match)
+Rule 18 (Shape compatibility of input and output tensors when output tensor is specified)
 {v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 19 (If the out parameter has a type of tensor, out parameter ndim must be greater than 0.)
-{v_2 : tensor} |= ndim(v_2) > 0
+Rule 26 (If input is float16, the out tensor must also be float16 if it's provided)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 6 ∧ ndim(v_2) > 0) then dtype_(v_2) = 6
 >>
-Rule 43 (If out parameter is provided and its type is not tensor, then reject. This is the TypeError)
-{v_2 : tensor ⊎ int ⊎ float ⊎ bool ⊎ str ⊎ dtype} |= if dtype_(v_2) = 0 then true else false
+Rule 29 (If `out` is specified and input is complex, out must also be complex)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ ndim(v_2) > 0 then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
 >>
-Rule 51 (If out is a tensor and is provided, its dtype must match the input tensor's dtype. This is for the RuntimeError related to dtype)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_2) > 0) then dtype_(v_1) = dtype_(v_2)
+Rule 31 (Diagonal can be negative)
+{v_1 : int} |= v_1 < 0
 >>
-Rule 60 (If out is a tensor and is provided, its dtype must match the input tensor's dtype. This is for the RuntimeError related to dtype)
-{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_2)-1] : shape(v_2, i) > 0) then dtype_(v_1) = dtype_(v_2)
+Rule 34 (If out is provided, and input is a floating point type, then out must also be a floating point type)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_2) > 0 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)) then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
 >>
-Rule 82 (If out is a tensor and is provided, its shape must match the input tensor's shape)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_2) > 0) then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 36 (If out is provided, and input is a floating-point type, the out tensor should also be a floating-point type)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
 >>
-Rule 89 (If out is a tensor and is provided, its dtype must match the input tensor's dtype and the shape must match the input tensor's shape)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_2) > 0) then (dtype_(v_1) = dtype_(v_2) ∧ ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 38 (Input tensor must have at least 2 dimensions and non-zero shape)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0
 >>
-Rule 93 (If out is a tensor and is provided, its shape must match the input tensor's shape)
-{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_2)-1] : shape(v_2, i) > 0) then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 43 (If 'out' is specified, its dtype is float if input's dtype is float.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 ∧ (dtype_(v_1) = 7) then (dtype_(v_2) = 7) else if  ndim(v_2) > 0 ∧ (dtype_(v_1) = 8) then (dtype_(v_2) = 8)
 >>
-Rule 96 (If out is a tensor and is provided, its dtype and shape must match the input tensor's dtype and shape)
-{v_in : tensor, v_out : tensor} |= if (∃i ∈ [0, ndim(v_out)-1] : shape(v_out, i) > 0) then (dtype_(v_in) = dtype_(v_out) ∧ ndim(v_in) = ndim(v_out) ∧ ∀i ∈ [0, ndim(v_in) - 1] : shape(v_in, i) = shape(v_out, i))
+Rule 46 (If input dtype is float32, and out is given, out must be float32)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 7 ∧ ndim(v_2) > 0) then dtype_(v_2) = 7
 >>
-Rule 97 (input tensor must have at least 2 dimensions)
-{v_in : tensor} |= ndim(v_in) ≥ 2
+Rule 49 (If input and out are given, and input is float, then output must also be float)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 7 ∧ ndim(v_2) > 0) then dtype_(v_2) = 7 else if  (dtype_(v_1) = 8 ∧ ndim(v_2) > 0) then dtype_(v_2) = 8
 >>
-Rule 102 (If out is a tensor and is provided, its dtype and shape must match the input tensor's dtype and shape. Also out must be allocated)
-{v_in : tensor, v_out : tensor} |= if ndim(v_out) > 0 then (dtype_(v_in) = dtype_(v_out) ∧ ndim(v_in) = ndim(v_out) ∧ ∀i ∈ [0, ndim(v_in) - 1] : shape(v_in, i) = shape(v_out, i))
+Rule 51 (If out is specified, input must be same dtype. Addresses RuntimeError: Expected out tensor to have dtype)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) > 0 then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 105 (If out is a tensor and is provided, its dtype and shape must match the input tensor's dtype and shape)
-{v_in : tensor, v_out : tensor} |= if ndim(v_out) > 0 then (dtype_(v_in) = dtype_(v_out) ∧ ndim(v_in) = ndim(v_out) ∧ (∀i ∈ [0, ndim(v_in) - 1] : shape(v_in, i) = shape(v_out, i)))
+Rule 52 (If `out` is specified it has to be a tensor to prevent the TypeError. Uses the 'out' parameter v_2)
+{v_2 : tensor} |= ndim(v_2) ≥ 0
 >>
-Rule 107 (If out parameter is provided and its type is not tensor, then reject. This is the TypeError)
-{v_out : tensor ⊎ int ⊎ float ⊎ bool ⊎ str ⊎ dtype} |= dtype_(v_out) = 0
+Rule 55 (If input and out are both float type then they should have the same type )
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 114 (If out is a tensor and is provided, its dtype and shape must match the input tensor's dtype and shape)
-{v_in : tensor, v_out : tensor} |= if (∃i ∈ [0, ndim(v_out)-1] : shape(v_out, i) > 0) then (dtype_(v_in) = dtype_(v_out) ∧ ndim(v_in) = ndim(v_out) ∧ (∀i ∈ [0, ndim(v_in) - 1] : shape(v_in, i) = shape(v_out, i)))
+Rule 59 (Detect the error: input tensor must have at least 2 dimensions)
+{v_1 : tensor} |= ndim(v_1) < 2
 >>
-Rule 116 (If out parameter is provided and its type is not tensor, then reject. This is the TypeError)
-{v_out : int ⊎ float ⊎ bool ⊎ str ⊎ dtype} |= dtype_(v_out) = 0
+Rule 61 (Detect the error: Expected out tensor to have dtype float, but got double instead)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ dtype_(v_2) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 64 (If the input and output tensors have different dtypes and the input is float, then a RuntimeError will occur.)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ dtype_(v_2)) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (ndim(v_2) > 0)
+>>
+Rule 67 (If the input and output tensors have different dtypes when the input is a float (float32 or float64), then a RuntimeError about dtype mismatch will occur.)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ dtype_(v_2)) ∧ ((dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)) ∧ (ndim(v_2) > 0)
+>>
+Rule 69 (Detect the TypeError: argument 'out' must be Tensor, not float. This rule flags an issue with the *type* of v_2 and relies on no 'ndim' existing on non-tensor)
+{v_2 : tensor} |= ∃i ∈ [0, ndim(v_2) -1 ] : shape(v_2, i) = shape(v_2, i) ∨ true
+>>
+Rule 70 (Detect the RuntimeError: Expected out tensor to have dtype float, but got double instead - *different* dtypes between input and output where the input is a float)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ dtype_(v_2)) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ ndim(v_2) > 0
+>>
+Rule 72 (If the 'out' argument is something other than a tensor a TypeError will occur. This is checked if dtype_ is not defined on it.)
+{v_2 : tensor} |= (dtype_(v_2) = 0) ∧ true
+>>
+Rule 73 (If the input is a float type and different with output, RuntimeError will occur.)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_1) ≠ dtype_(v_2)) ∧ ndim(v_2) > 0
+>>
+Rule 76 (If the input and output tensors have different dtypes when the input is a floating point type, a RuntimeError will occur)
+{v_1 : tensor, v_2 : tensor} |= ((dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)) ∧ (ndim(v_2) > 0) ∧ (dtype_(v_1) ≠ dtype_(v_2))
+>>
+Rule 79 (If the input tensor and the output tensor are both present but they have different dtypes, and the input tensor's dtype is a float, then a RuntimeError will occur about dtype mismatch.)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_1) ≠ dtype_(v_2)) ∧ (ndim(v_2) > 0)
+>>
+Rule 82 (If the input tensor and the output tensor have different dtypes when the input is a floating point type, a RuntimeError will occur, where input tensor is of floating dtype and output is not defined to be of same floating dtype)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) ≠ 7 ∧ dtype_(v_2) ≠ 8) ∧ (ndim(v_2) > 0)
+>>
+Rule 89 (If the input and output tensors are both present, but they have different dtypes, and the input tensor's dtype is a float, a RuntimeError will occur.)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (ndim(v_2) > 0) ∧ (dtype_(v_1) ≠ dtype_(v_2))
+>>
+Rule 97 (If 'out' is specified as a tensor but it *does not* have the same shape as the input, then it is not a valid out parameter and thus an error can occur)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≠ ndim(v_2)) ∨ (∃i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : shape(v_1, i) ≠ shape(v_2, i))
+>>
+Rule 104 (If dtype of 'out' tensor is not the same of input, and both are floats, an error will occur. This only makes sense if out argument is tensor, so if the 2nd parameter is given then dtypes must be checked.)
+{v_1 : tensor, v_2 : tensor} |=  ((dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) ≠ dtype_(v_1)))

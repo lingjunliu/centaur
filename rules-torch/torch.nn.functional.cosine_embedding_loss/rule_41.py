@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input tensors are not 2D and the target is 1D, it is an error (Rule 41)
+# If target is 1D, the input tensors must have a floating-point dtype: 6–8 (Rule 41)
 
 rule_41 = lambda s, v, n=False: (
-    s.add(Not(If(And((Or(v["arg1_ndim"] != 2, v["arg2_ndim"] != 2)), v["arg3_ndim"] == 1), False, False)) if n else
-          If(And((Or(v["arg1_ndim"] != 2, v["arg2_ndim"] != 2)), v["arg3_ndim"] == 1), False, False))
+    s.add(Not(If(v["arg3_ndim"] == 1, And((And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8))), True)) if n else
+          If(v["arg3_ndim"] == 1, And((And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8))), True))
 )
 
 def rule_41_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -28,19 +28,19 @@ def rule_41_func(arg1, arg2, arg3, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_ndim = Int('arg2_ndim')
+        arg1_dtype = Int('arg1_dtype')
+        arg2_dtype = Int('arg2_dtype')
         arg3_ndim = Int('arg3_ndim')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
         solver.add(arg3_ndim == arg3.ndim)
 
         # Constraints for rule 41
-        rule_41(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim, 'arg3_ndim': arg3_ndim})
+        rule_41(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_ndim': arg3_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_41(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim'], 'arg3_ndim': arg3['ndim']}, neg)
+        rule_41(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_ndim': arg3['ndim']}, neg)

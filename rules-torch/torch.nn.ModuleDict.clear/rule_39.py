@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# ModuleDict clear takes no arguments, using a dummy variable to satisfy grammar requirements (Rule 39)
+# The ModuleDict is valid only if min is always less than max, and ndim is between 0 and 10 (Rule 39)
 
 rule_39 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_value"] != 0, v["arg1_value"] == 0)) if n else
-          Or(v["arg1_value"] != 0, v["arg1_value"] == 0))
+    s.add(Not(And(And(Select(v["arg1_range"], 0) < Select(v["arg1_range"], 1), 0 <= v["arg1_ndim"]), v["arg1_ndim"] <= 10)) if n else
+          And(And(Select(v["arg1_range"], 0) < Select(v["arg1_range"], 1), 0 <= v["arg1_ndim"]), v["arg1_ndim"] <= 10))
 )
 
 def rule_39_func(arg1, solver=None, neg=False):
@@ -17,20 +17,23 @@ def rule_39_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, str):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
+        arg1_ndim = Int('arg1_ndim')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
+        solver.add(arg1_ndim == arg1.ndim)
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 39
-        rule_39(solver, {'arg1_value': arg1_value})
+        rule_39(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_39(solver, {'arg1_value': arg1['value']}, neg)
+        rule_39(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']}, neg)

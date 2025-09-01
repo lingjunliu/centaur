@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor should not be a boolean tensor to avoid RuntimeError: ihfft expects a complex output tensor, but got Bool (Rule 2)
+# Input tensor cannot be boolean (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
     s.add(Not(v["arg1_dtype"] != 0) if n else

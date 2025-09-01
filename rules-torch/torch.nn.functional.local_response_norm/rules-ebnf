@@ -1,156 +1,261 @@
 >>
-Rule 1 (input tensor should have at least 3 dimensions to avoid ValueError)
+Rule 1 (Input tensor should have at least 3 dimensions to avoid ValueError)
 {v_1 : tensor} |= ndim(v_1) ≥ 3
 >>
-Rule 2 (input tensor's dtype should not be complex to avoid RuntimeError: "avg_pool2d" not implemented for 'ComplexDouble')
-{v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+Rule 2 (Size must be a positive integer to avoid RuntimeError: narrow(): length must be non-negative)
+{v_1 : int} |= v_1 > 0
 >>
-Rule 3 (input tensor's dtype should not be Byte to avoid RuntimeError: "avg_pool3d_out_frame" not implemented for 'Byte')
+Rule 3 (Alpha should be non-negative to prevent unexpected behavior in normalization)
+{v_1 : float} |= v_1 ≥ 0
+>>
+Rule 6 (Input tensor dtype should not be complex128 to avoid RuntimeError: "avg_pool2d" not implemented for 'ComplexDouble')
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 7 (Input tensor dtype should not be byte to avoid RuntimeError: "avg_pool3d_out_frame" not implemented for 'Byte')
 {v_1 : tensor} |= dtype_(v_1) ≠ 6
 >>
-Rule 4 (check if size calculation won't overflow with large dimension sizes)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 10000000
+Rule 8 (Input tensor should have at least 1 element to avoid memory allocation error)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 5 (narrow length should be non-negative)
-{v_1 : int} |= v_1 ≥ 0
+Rule 9 (Size must be smaller than the maximum allowed value to prevent Storage size calculation overflowed)
+{v_1 : int} |= v_1 < 1000000000
 >>
-Rule 6 (kernel size should not be too small to avoid negative kernel size)
-{v_1 : int, v_2 : int} |= v_1 > -10 ∧ v_2 > -10
+Rule 10 (Combination of size, alpha, beta and k to avoid large memory allocation)
+{v_1 : int, v_2 : float, v_3 : float, v_4 : float} |= v_1 * v_2 * v_3 * v_4 < 1000000000.0
 >>
-Rule 7 (input tensor's dtype should not be string)
-{v_1 : tensor} |= dtype_(v_1) ≠ 12
+Rule 11 (Size must be a non-negative integer)
+{v_1 : int} |= v_1 >= 0
 >>
-Rule 8 (input tensor dimension size should not be extremely large to prevent memory allocation issues)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2000000000
+Rule 12 (Input tensor should have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) >= 1
 >>
-Rule 9 (pad should be less than or equal to half the kernel size when dilation is 1)
-{v_1 : int, v_2 : int} |= v_1 ≤ v_2 / 2
+Rule 13 (Shape of the input tensor should be less than a certain limit to avoid memory allocation issues)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 5000
 >>
-Rule 10 (input tensor should have reasonable dimension sizes to prevent storage size overflow)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 100000000
+Rule 14 (Size must be less than or equal to the maximum integer to avoid overflow)
+{v_1 : int} |= v_1 <= 2147483647
 >>
-Rule 12 (effective kernel size should be positive)
-{v_1 : int, v_2 : int} |= v_1 * v_2 > 0
+Rule 15 (Combined check for size and input tensor dimensions)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) > 0 ∧ shape(v_1, 1) > v_2
 >>
-Rule 14 (pad value should not be greater than half the kernel size if kernel size is positive)
-{v_1 : int, v_2 : int} |= if v_2 > 0 then v_1 ≤ (v_2 / 2)
+Rule 16 (Size must be smaller than a dimension of the input tensor to avoid narrow out of bounds)
+{v_1 : tensor, v_2 : int} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > v_2
 >>
-Rule 15 (The sum of all shape dimensions should not exceed a limit to avoid memory issues.)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 50000000
+Rule 17 (Prevent large size values relative to the input tensor's data type)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 1 then v_2 < 2000000000 else if dtype_(v_1) = 2 then v_2 < 1000000000 else if dtype_(v_1) = 3 then v_2 < 500000000 else if dtype_(v_1) = 4 then v_2 < 200000000 else v_2 < 100000000
 >>
-Rule 16 (The product of all shape dimensions should not exceed a limit to prevent memory issues.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ (shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2)) < 1000000000
+Rule 18 (Check for non-extreme values of alpha and beta to avoid numerical instability)
+{v_1 : float, v_2 : float} |= v_1 < 1000000 ∧ v_2 < 1000000
 >>
-Rule 18 (effective kernel size should be positive)
-{v_1: int, v_2: int} |= v_1 - (1 * (v_2 -1)) > 0
+Rule 19 (The 'size' parameter should be less than or equal to the number of channels in the input tensor)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 1) ≥ v_2
 >>
-Rule 19 (effective kernel size should be positive and dilation should be positive)
-{v_1: int, v_2: int} |= v_1 - (1 * (v_2 -1)) > 0 ∧ v_2 > 0
+Rule 20 (Check alpha and beta ranges for numerical stability)
+{v_1 : float, v_2 : float} |= v_1 > -1000 ∧ v_1 < 1000 ∧ v_2 > -1000 ∧ v_2 < 1000
 >>
-Rule 20 (The input must have at least 3 dimensions)
-{v_1: tensor} |= ndim(v_1) >= 3
+Rule 21 (K should not be extremely large to avoid overflow errors during calculation)
+{v_1 : float} |= v_1 < 100000
 >>
-Rule 21 (input tensor should have channel dimension size greater than 0)
-{v_1 : tensor} |= ndim(v_1) >= 3 ∧ shape(v_1, 1) > 0
+Rule 22 (If the input tensor has a small number of channels, size should not be too large)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, 1) < 10 then v_2 ≤ shape(v_1, 1)
 >>
-Rule 22 (input tensor dimension size along channel dimension should be small enough)
+Rule 24 (Size should be odd number for consistent padding calculation)
+{v_1 : int} |= (v_1 % 2) ≠ 0 ∨ v_1 = 0
+>>
+Rule 30 (Size should be odd number for consistent padding calculation; avoid negative size as well)
+{v_1 : int} |= (v_1 % 2) ≠ 0 ∨ v_1 ≤ 0
+>>
+Rule 31 (The 'size' parameter should be less than or equal to the number of channels in the input tensor and be greater than 0)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 1) ≥ v_2 ∧ v_2 > 0
+>>
+Rule 35 (Prevent extreme alpha values combined with size causing overflows, avoiding func call requiring an additional parameter)
+{v_1 : float, v_2 : int} |= v_1 * v_2 < 10000000.0 ∧ v_1 * v_2 > -10000000.0
+>>
+Rule 37 (Size must be smaller than half the image size to allow meaningful local normalization)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 2) / 2 > v_2 ∧ shape(v_1, 3) / 2 > v_2
+>>
+Rule 38 (Prevent very small beta values causing numerical instability. Ensure beta != 0)
+{v_1 : float} |= v_1 > 0.000001
+>>
+Rule 40 (Size must be smaller than the number of channels to prevent index out of bounds in the channel dimension)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 1) > v_2
+>>
+Rule 42 (Check for reasonable values of k, alpha and beta to avoid numerical instability during normalization)
+{v_1 : float, v_2 : float, v_3 : float} |= v_1 < 1000 ∧ v_2 < 1000 ∧ v_3 < 1000
+>>
+Rule 44 (Prevent extreme alpha values causing overflows. alpha < max_float / (size * k))
+{v_1 : float, v_2 : int, v_3 : float} |= v_1 < 3.4e38 / (v_2 * v_3)
+>>
+Rule 45 (Input tensor must have at least 1 dimension greater than 0 to prevent division by zero)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+>>
+Rule 46 (Size must be a positive integer and smaller than a certain threshold to avoid narrow out of bounds and large memory allocation)
+{v_1 : int} |= v_1 > 0 ∧ v_1 < 1000
+>>
+Rule 47 (Prevent alpha from being too large compared to k)
+{v_1 : float, v_2 : float} |= v_1 / v_2 < 1000000
+>>
+Rule 48 (Input tensor must have more than 1 channel)
+{v_1 : tensor} |= shape(v_1, 1) > 1
+>>
+Rule 49 (Size must be a positive integer and smaller than the number of channels to avoid narrow out of bounds and large memory allocation)
+{v_1 : tensor, v_2 : int} |= v_2 > 0 ∧ v_2 < shape(v_1, 1)
+>>
+Rule 50 (alpha, beta and k must be positive to avoid undefined behavior)
+{v_1 : float, v_2 : float, v_3 : float} |= v_1 > 0 ∧ v_2 > 0 ∧ v_3 > 0
+>>
+Rule 51 (Input tensor should have a reasonable shape to prevent memory errors; avoid extreme sizes for any dimension)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) < 10000
+>>
+Rule 52 (To avoid errors when calculating the weighted sum, size must be small enough relative to the data type of the tensor)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 6 then v_2 < 100 else if dtype_(v_1) = 7 then v_2 < 1000 else v_2 < 10000
+>>
+Rule 54 (The size must be less than the channel size to avoid index errors; combine with previous rules)
+{v_1 : tensor, v_2 : int, v_3 : float, v_4 : float, v_5 : float} |= v_2 > 0 ∧ v_2 < shape(v_1, 1) ∧ (v_3 + v_4 / v_2) < 1000000 ∧ v_5 > 0
+>>
+Rule 56 (alpha should be small enough given size and k to avoid overflow when raising to the power of beta)
+{v_1 : float, v_2 : int, v_3 : float} |= (v_3 + v_1 / v_2) < 1000000
+>>
+Rule 57 (The size must be less than the channel size to avoid index errors; combine with other constraint parameters)
+{v_1 : tensor, v_2 : int, v_3 : float, v_4 : float} |= v_2 > 0 ∧ v_2 < shape(v_1, 1) ∧ (v_3 + v_4 / v_2) < 1000000
+>>
+Rule 58 (To avoid errors when calculating the weighted sum, size must be reasonably smaller than the channel size)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 1) > 5 * v_2
+>>
+Rule 59 (alpha should be small enough given size and k to avoid overflow)
+{v_1 : float, v_2 : int, v_3 : float} |= v_1 * v_3 / v_2 < 1e8
+>>
+Rule 60 (The input tensor should not have dimensions so large as to cause overflow during intermediate calculations. Specifically, product of shape values should fit in a long)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 100000
+>>
+Rule 62 (alpha and k must be positive to avoid mathematical errors)
+{v_1 : float, v_2 : float} |= v_1 > 0 ∧ v_2 > 0
+>>
+Rule 63 (Size should be less than or equal to the channel size and other dimensions)
+{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, 1) ∧ ∀i ∈ [2, ndim(v_1) - 1] : v_2 ≤ shape(v_1, i)
+>>
+Rule 64 (To prevent allocation errors, size should be reasonably small)
+{v_1 : int} |= v_1 * v_1 < 1000000000
+>>
+Rule 65 (alpha and k must be positive to avoid mathematical errors, also k must be large enough to prevent small division results)
+{v_1 : float, v_2 : float} |= v_1 > 0 ∧ v_2 > 0 ∧ v_2 > 0.0001
+>>
+Rule 67 (To prevent allocation errors, size should be reasonably small compared to tensor dimensions)
+{v_1 : tensor, v_2 : int} |= v_2 < shape(v_1, 2) ∧ v_2 < shape(v_1, 3)
+>>
+Rule 68 (alpha and k must be positive to avoid mathematical errors, and size must also be positive)
+{v_1 : float, v_2 : float, v_3 : int} |= v_1 > 0 ∧ v_2 > 0 ∧ v_3 > 0
+>>
+Rule 69 (The number of channels must not be so high as to cause overflows)
 {v_1 : tensor} |= shape(v_1, 1) < 10000
 >>
-Rule 23 (kernel size is less than the number of channels)
-{v_1 : tensor, v_2 : int} |= v_2 < shape(v_1, 1)
+Rule 70 (Combined check of tensor dimension, size, alpha, and k for memory safety.)
+{v_1 : tensor, v_2 : int, v_3 : float, v_4 : float} |= ndim(v_1) > 2 ∧ v_2 > 0 ∧ v_3 > 0 ∧ v_4 > 0 ∧ shape(v_1, 1) > v_2 ∧ v_3 / v_4 < 10000000.0 ∧ v_2 < 1000
 >>
-Rule 24 (memory allocation check, shape product is limited.)
-{v_1 : tensor} |= (shape(v_1,0) * shape(v_1,1) * shape(v_1,2)) < 1000000000
+Rule 71 (k must be large enough compared to alpha to avoid division by zero)
+{v_1 : float, v_2 : float} |= v_2 > 0 ∧ v_1 / v_2 < 100000
 >>
-Rule 25 (The number of channels must be positive)
+Rule 72 (Input tensor must be 3D or higher, and not of type Byte or ComplexDouble)
+{v_1 : tensor} |= ndim(v_1) ≥ 3 ∧ dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 73 (Combined check of tensor dimension, size, alpha, beta and k to minimize allocation errors)
+{v_1 : tensor, v_2 : int, v_3 : float, v_4 : float, v_5 : float} |= ndim(v_1) ≥ 3 ∧ v_2 > 0 ∧ v_3 > 0 ∧ v_4 > 0 ∧ v_5 > 0 ∧ v_2 < 1000 ∧ v_3 / v_5 < 10000000.0
+>>
+Rule 74 (Prevent k from being zero or negative)
+{v_1 : float} |= v_1 > 0
+>>
+Rule 78 (To prevent potential issues with very small or very large alpha values relative to the input range)
+{v_1 : tensor, v_2 : float} |= min(v_1) < v_2 ∧ max(v_1) > (0 - v_2)
+>>
+Rule 79 (Size must be positive, odd, and no larger than the channel dimension)
+{v_1 : tensor, v_2 : int} |= v_2 > 0 ∧ (v_2 % 2) ≠ 0 ∧ v_2 ≤ shape(v_1, 1)
+>>
+Rule 80 (Ensure that beta does not become excessively large, potentially resulting in overflows during calculations)
+{v_1 : float} |= v_1 < 1000
+>>
+Rule 81 (Combined rule for memory safety, to check dimensions, size, and the product of alpha and k are reasonable)
+{v_1 : tensor, v_2 : int, v_3 : float, v_4 : float} |= ndim(v_1) ≥ 3 ∧ v_2 > 0 ∧ v_3 > 0 ∧ v_4 > 0 ∧ v_3 * v_4 < 10000000.0
+>>
+Rule 82 (The 'size' parameter has to be significantly smaller than the channel dimension and must be a positive number)
+{v_1 : tensor, v_2 : int} |= v_2 < shape(v_1, 1) / 2 ∧ v_2 > 0
+>>
+Rule 83 (alpha and beta should not be excessively large to prevent overflows and numerical instability during calculations)
+{v_1 : float, v_2 : float} |= v_1 < 10000 ∧ v_2 < 10
+>>
+Rule 87 (k should be large enough in comparison to alpha and the input range to avoid extremely small values during normalization, preventing potential division by zero and also limit the value of max to be within reasonable range)
+{v_1 : tensor, v_2 : float, v_3 : float} |= max(v_1) < 1000 ∧ min(v_1) > (0 - 1000) ∧ v_3 > (max(v_1) + 1000) * v_2
+>>
+Rule 88 (Size must be positive, smaller than the channel dimension, and less than a fixed value for memory reasons)
+{v_1 : tensor, v_2 : int} |= v_2 > 0 ∧ v_2 < shape(v_1, 1) ∧ v_2 < 50
+>>
+Rule 89 (alpha, beta, and k should be bounded to prevent numerical overflow or underflow, while beta should also not be zero to prevent exceptions during power calculation)
+{v_1 : float, v_2 : float, v_3: float} |= v_1 < 1000 ∧ v_2 > 0.001 ∧ v_2 < 10 ∧ v_3 < 1000
+>>
+Rule 90 (If the tensor is 3D, the size parameter should be smaller compared to the height and width dimension to avoid going out of bounds)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 then v_2 < shape(v_1, 1) ∧ v_2 < shape(v_1, 2)
+>>
+Rule 91 (The size must be strictly less than one of the spatial dimensions (height or width) if the tensor has them.)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 2 then v_2 < shape(v_1, 2) ∨ v_2 < shape(v_1, 3)
+>>
+Rule 92 (Ensure that all parameters, alpha, beta and k are not zero to prevent RuntimeErrors)
+{v_1 : float, v_2 : float, v_3 : float} |= v_1 ≠ 0 ∧ v_2 ≠ 0 ∧ v_3 ≠ 0
+>>
+Rule 93 (The total number of elements in the input should be smaller than the limit to prevent memory allocation errors)
+{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, 1) < 2000000000
+>>
+Rule 94 (To prevent division by zero, k needs to be large enough, also add restrictions on other parameters)
+{v_1 : tensor, v_2 : int, v_3 : float, v_4 : float} |= ndim(v_1) ≥ 3 ∧ v_2 > 0 ∧ v_3 < 1000 ∧ v_4 > 0.001 ∧ v_3 < 10000000.0
+>>
+Rule 95 (Size must be reasonable for tensor dimensions, so not to cause index out of bounds on any tensor dimensions)
+{v_1 : tensor, v_2 : int} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > v_2
+>>
+Rule 97 (Combined check of tensor dimension, size, alpha, and k to limit chances of numerical errors and memory overflows)
+{v_1 : tensor, v_2 : int, v_3 : float, v_4 : float} |= ndim(v_1) ≥ 3 ∧ v_2 > 0 ∧ v_3 > 0 ∧ v_4 > 0.001 ∧ v_2 < 1000 ∧ v_3 / v_4 < 10000000.0
+>>
+Rule 98 (Size parameter has to be odd to calculate paddings)
+{v_1 : int} |= (v_1 % 2) ≠ 0
+>>
+Rule 99 (The product of first and second dimensions times the tensor depth should be smaller than a big number)
+{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 1000000000
+>>
+Rule 100 (Combined check of size, alpha, beta, and k for avoiding overflows and division by zero)
+{v_1 : int, v_2 : float, v_3 : float, v_4 : float} |= v_1 > 0 ∧ v_2 < 100 ∧ v_3 > 0 ∧ v_4 > 0 ∧ v_3 / (v_1*v_4) < 100000
+>>
+Rule 102 (The tensor size should be reasonable large to be applicable to the operation itself)
+{v_1 : tensor} |= shape(v_1, 1) > 5
+>>
+Rule 106 (Combined check of size, alpha, beta, and k for avoiding overflows and division by zero)
+{v_1 : int, v_2 : float, v_3 : float, v_4 : float} |= v_1 > 0 ∧ v_2 < 100 ∧ v_3 > 0 ∧ v_4 > 0 ∧ v_3 / (v_1 * v_4) < 100000
+>>
+Rule 107 (If tensor has dimension 3 or 4 then its dimensions should satisfy specific requirements to not cause index out of bound, the same parameter has to be small enough. check for different dimensions based on number of dimensions)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 then v_2 < shape(v_1, 2) / 2 else if ndim(v_1) = 4 then v_2 < shape(v_1, 3) / 2
+>>
+Rule 108 (The tensor dimensions are not so big as to cause storage overflow)
+{v_1 : tensor} |= shape(v_1, 0) < 10000 ∧ shape(v_1, 1) < 10000
+>>
+Rule 111 (The number of input channels *must* exist and if a depth dimension exists, the product must be in a valid range for a memory access)
+{v_1 : tensor} |= shape(v_1, 1) > 0 ∧ (if ndim(v_1) > 2 then shape(v_1, 1) * shape(v_1, 2) < 100000)
+>>
+Rule 112 (alpha and k shouldn't be very small so that it doesn't cause division by zero or close to zero results. Also beta should not be excessively large)
+{v_1 : float, v_2 : float, v_3 : float} |= v_1 > 0.001 ∧ v_2 > 0.001 ∧ v_3 < 10
+>>
+Rule 113 (To avoid potential Narrow errors, the size should be smaller than the minimum of the height and width)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) ≥ 4 then v_2 < shape(v_1, 2) ∧ v_2 < shape(v_1, 3)
+>>
+Rule 115 (alpha, beta, and k should not be extremely small to avoid division by zero)
+{v_1 : float, v_2 : float, v_3 : float} |= v_1 > 1e-5 ∧ v_2 < 10 ∧ v_3 > 1e-5
+>>
+Rule 116 (To avoid potential Narrow errors, the size should be smaller than the minimum of the height and width (but avoid the dimension if they dont exist))
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) ≥ 4 then v_2 < shape(v_1, 2) ∧ v_2 < shape(v_1, 3) else if ndim(v_1) = 3 then v_2 < shape(v_1, 2)
+>>
+Rule 119 (To avoid potential Narrow errors and pad size is not negative, the size should be smaller than each dimension)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 1 then ∀i ∈ [1, ndim(v_1) -1] : v_2 < shape(v_1, i)
+>>
+Rule 120 (The input tensor needs to have at least one feature map.)
 {v_1 : tensor} |= shape(v_1, 1) > 0
 >>
-Rule 26 (Sum of all dimensions should be in a reasonable range)
-{v_1 : tensor} |= (shape(v_1,0) + shape(v_1,1) + shape(v_1,2)) < 50000
+Rule 121 (The size should be an odd number and not be very large)
+{v_1 : int} |= v_1 % 2 ≠ 0 ∧ v_1 < 100
 >>
-Rule 27 (input tensor's dtype should not be bool to avoid calculation issues)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
->>
-Rule 28 (input tensor should not have any dimension with size 0)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
->>
-Rule 29 (effective kernel size calculation should not overflow)
-{v_1: int, v_2: int} |= (v_1 < 1000) ∧ (v_2 < 1000)
->>
-Rule 30 (product of kernel size and dilation should not be too large to prevent memory overflow)
-{v_1: int, v_2: int} |= (v_1 * v_2) < 10000
->>
-Rule 31 (kernel_size and dilation are positive, otherwise effective_kernel_size might be negative.)
-{v_1: int, v_2: int} |= (v_1 > 0) ∧ (v_2 > 0)
->>
-Rule 32 (pad value less than kernel_size to avoid error related to pad size exceeding kernel size)
-{v_1: int, v_2: int} |= v_1 < v_2
->>
-Rule 33 (Avoid overflow in size calculation, limit individual dimension sizes)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2000
->>
-Rule 34 (limit kernel size to avoid memory errors.)
-{v_1: int} |= v_1 < 200
->>
-Rule 35 (Effective kernel size is larger than zero.)
-{v_1: int, v_2: int} |= v_1 - (v_2 - 1) > 0
->>
-Rule 36 (Input tensor should have small enough number of dimensions)
-{v_1 : tensor} |= ndim(v_1) < 10
->>
-Rule 37 (Dilation should not be too large to avoid memory issues)
-{v_1: int} |= v_1 < 100
->>
-Rule 38 (kernel_size can not be too large to cause indexing error)
-{v_1 : tensor, v_2 : int} |= v_2 < shape(v_1, 1) + 10
->>
-Rule 39 (check for large tensor shapes to avoid memory alloc errors, product over all dimensions)
-{v_1: tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 2000000000 else if ndim(v_1) = 4 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) < 2000000000
->>
-Rule 40 (effective kernel size calculation with positive values)
-{v_1: int, v_2: int, v_3 : int} |= (v_1 > 0) ∧ (v_2 > 0) ∧ (v_1 - (v_3 - 1)) > 0
->>
-Rule 41 (Avoid very large channel sizes to avoid dimension overflow errors)
-{v_1 : tensor} |= shape(v_1, 1) < 500000
->>
-Rule 42 (The shape of the tensor cannot have very large numbers to avoid large memory allocation)
-{v_1:tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 536870912
->>
-Rule 43 (Prevent very large tensor to trigger the error of memory allocating)
-{v_1 : tensor} |= (shape(v_1, 0) * shape(v_1, 1)) < 100000000
->>
-Rule 44 (When the value of the dimension is too small, it may cause a calculation error.)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1
->>
-Rule 46 (kernel_size must not be too large to avoid out of bounds access.)
-{v_1: int} |= v_1 < 512
->>
-Rule 47 (Input tensor cannot have a dimension of size greater than max int to avoid overflow errors.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2147483647
->>
-Rule 48 (pad size must be less than shape along the relevant dimensions.)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) >= 3 ∧ shape(v_1, 2) > v_2 ∧ shape(v_1, 1) > v_2
->>
-Rule 49 (effective kernel size and shape should align with the number of channel.)
-{v_1 : tensor, v_2: int} |= ndim(v_1) >= 3 ∧ v_2 <= shape(v_1, 1)
->>
-Rule 50 (avoid overflow in narrow function by comparing length and original tensor dimension, also narrow's start must be inside the tensor dimensions)
-{v_1: tensor, v_2: int, v_3 : int} |= (ndim(v_1) = 1) ∧ (v_3 >= 0) ∧ (v_3 <= shape(v_1, 0)) ∧ (v_2 >= 0)
->>
-Rule 51 (The value of the sum of the dimensions is reasonably limited to prevent memory allocation problems)
-{v_1 : tensor} |= if ndim(v_1) = 3 then (shape(v_1, 0) + shape(v_1, 1) + shape(v_1, 2) < 10000) else if ndim(v_1) = 4 then (shape(v_1, 0) + shape(v_1, 1) + shape(v_1, 2) + shape(v_1, 3) < 10000)
->>
-Rule 52 (kernel_size cannot be greater than maximum allowed integer to avoid calculation errors.)
-{v_1 : int} |= v_1 < 2147483647
->>
-Rule 53 (Prevent integer overflow during index calculation by limiting dimension sizes based on kernel size)
-{v_1 : tensor, v_2 : int} |= (ndim(v_1) >= 3) ∧ (shape(v_1, 1) < 2147483647 / v_2)
->>
-Rule 54 (The input tensor should be a floating type or complex type)
-{v_1 : tensor} |= (dtype_(v_1) >= 6) ∧ (dtype_(v_1) <= 11)
->>
-Rule 55 (Enforce that the product of the dimension sizes is within a safe limit to prevent overflow errors in memory allocations.)
-{v_1: tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 4294967296 else if ndim(v_1) = 4 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) < 4294967296
->>
-Rule 56 (Ensure that kernel_size is positive and small enough, to prevent excessive memory usage during calculation.)
-{v_1 : int} |= (v_1 > 0) ∧ (v_1 < 100)
+Rule 122 (The beta value can't be huge. Ensure that all other floats are positive numbers.)
+{v_1 : float, v_2 : float, v_3 : float} |= v_1 < 10 ∧ v_2 > 0 ∧ v_3 > 0

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# For large values of Input and Hidden Size, it cannot proceed due to large values. (Rule 63)
+# The sizes should be small enough to prevent integer overflow (Rule 63)
 
 rule_63 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] < 20000, v["arg2_value"] < 20000)) if n else
-          And(v["arg1_value"] < 20000, v["arg2_value"] < 20000))
+    s.add(Not(v["arg1_value"] * v["arg2_value"] < 2147483647) if n else
+          v["arg1_value"] * v["arg2_value"] < 2147483647)
 )
 
 def rule_63_func(arg1, arg2, solver=None, neg=False):

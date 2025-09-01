@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If deterministic is true, warn_only should also be true. (Rule 26)
+# If deterministic is enabled, kernel_size must be 1 (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, v["arg2_value"] == True, False)) if n else
-          If(v["arg1_value"] == True, v["arg2_value"] == True, False))
+    s.add(Not(If(v["arg2_value"], And(Select(v["arg1_values"], 0) == 1, Select(v["arg1_values"], 1) == 1), True)) if n else
+          If(v["arg2_value"], And(Select(v["arg1_values"], 0) == 1, Select(v["arg1_values"], 1) == 1), True))
 )
 
 def rule_26_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,25 @@ def rule_26_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
         if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
         arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
         solver.add(arg2_value == arg2)
 
         # Constraints for rule 26
-        rule_26(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_26(solver, {'arg1_values': arg1_values, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_26(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_26(solver, {'arg1_values': arg1['values'], 'arg2_value': arg2['value']}, neg)

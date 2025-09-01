@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Value can be zero or not if it's close to the default values. (Rule 97)
+# If beta is very small, threshold cannot be zero (Rule 97)
 
 rule_97 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == 20, v["arg1_value"] > -100000, v["arg1_value"] != 0)) if n else
-          If(v["arg2_value"] == 20, v["arg1_value"] > -100000, v["arg1_value"] != 0))
+    s.add(Not(If(v["arg1_value"] < 0.00001, v["arg2_value"] != 0, True)) if n else
+          If(v["arg1_value"] < 0.00001, v["arg2_value"] != 0, True))
 )
 
 def rule_97_func(arg1, arg2, solver=None, neg=False):

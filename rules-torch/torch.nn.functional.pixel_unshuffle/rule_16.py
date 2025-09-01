@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor's height is divisible by downscale_factor and downscale_factor is positive (Rule 16)
+# height should be divisible by downscale_factor (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg2_value"] > 0, Select(v["arg1_shape"], v["arg1_ndim"] - 2) % v["arg2_value"] == 0)) if n else
-          And(v["arg2_value"] > 0, Select(v["arg1_shape"], v["arg1_ndim"] - 2) % v["arg2_value"] == 0))
+    s.add(Not(Select(v["arg1_shape"], v["arg1_ndim"] - 2) % v["arg2_value"] == 0) if n else
+          Select(v["arg1_shape"], v["arg1_ndim"] - 2) % v["arg2_value"] == 0)
 )
 
 def rule_16_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If ndim of input tensor is greater than 1, then shape(v_1, 0 (Rule 25)
+# The output tensor has a single dimension equal to the product of the input tensor's dimensions (Rule 25)
 
 rule_25 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 1, Select(v["arg1_shape"], 0) < 1000, False)) if n else
-          If(v["arg1_ndim"] > 1, Select(v["arg1_shape"], 0) < 1000, False))
+    s.add(Not(If(v["arg1_ndim"] == 0, Select(v["arg1_shape"], 0) == 1, If(v["arg1_ndim"] == 1, True, True))) if n else
+          If(v["arg1_ndim"] == 0, Select(v["arg1_shape"], 0) == 1, If(v["arg1_ndim"] == 1, True, True)))
 )
 
 def rule_25_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_25_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 25
-        rule_25(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_25(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_25(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_25(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

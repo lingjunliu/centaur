@@ -1,45 +1,87 @@
 >>
-Rule 4 (if dim is None, then the input tensor must have at least one dimension)
+Rule 3 (input must be a tensor)
 {v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 5 (input tensor must have a reasonable number of dimensions)
-{v_1 : tensor} |= ndim(v_1) < 10
+Rule 5 (dim should be within the range of input dimensions - IndexError)
+{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
 >>
-Rule 6 (input tensor's size should be reasonable to prevent memory errors)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 100000
+Rule 6 (dim should be within the range of input dimensions - IndexError when dim is a tuple)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, shape(v_2, 0) - 1] : (0 - ndim(v_1)) ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
 >>
-Rule 9 (if dim is a tuple, the length should be smaller than the tensor ndim)
-{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≤ ndim(v_1)
+Rule 8 (If dim is not None, and it's an integer, it should not be out of range)
+{v_1 : tensor, v_2 : int ⊎ tuple(int)} |= if v_2 ≠ 0 then (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
 >>
-Rule 10 (dim should be within the valid range of dimensions using multiplication instead of direct negation)
-{v_1 : tensor, v_2 : int} |= (-1) * ndim(v_1) ≤ v_2 ∧ v_2 < ndim(v_1)
+Rule 10 (dim should be within the range of input dimensions - IndexError when dim is a tuple)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_2) = 1 ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : (0 - ndim(v_1)) ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
 >>
-Rule 11 (dim can be a tuple of integers, each within the valid range of dimensions using multiplication)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : (-1) * ndim(v_1) ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+Rule 13 (dim should be within the range of input dimensions - IndexError)
+{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then v_2 < ndim(v_1) else (0 - ndim(v_1)) ≤ v_2
 >>
-Rule 13 (if dim is an integer, it should be a valid dimension, using multiplication)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then v_2 < ndim(v_1) else v_2 ≥ (-1) * ndim(v_1)
+Rule 14 (dim should be within the range of input dimensions - IndexError when dim is a tuple)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, shape(v_2, 0) - 1] : if v_2[i] ≥ 0 then v_2[i] < ndim(v_1) else (0 - ndim(v_1)) ≤ v_2[i]
 >>
-Rule 14 (input tensor must have a reasonable number of dimensions - combining with size)
-{v_1 : tensor} |= ndim(v_1) < 10 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 100000
+Rule 17 (dim should be within the range of input dimensions - IndexError when dim is a tuple)
+{v_1 : tensor, v_2 : tuple(int)} |=  ∀i ∈ [0, shape(v_2, 0) - 1] : if v_2[i] ≥ 0 then v_2[i] < ndim(v_1) else (0 - ndim(v_1)) ≤ v_2[i]
 >>
-Rule 15 (if dim is a tuple, ensure its elements are within the valid dimension range)
-{v_1 : tensor, v_2 : tuple(int)} |=  ∀i ∈ [0, v_2.len - 1] : if v_2[i] ≥ 0 then v_2[i] < ndim(v_1) else v_2[i] ≥ (-1) * ndim(v_1)
+Rule 21 (If tensor dimension is zero, any dim index should be allowed, preventing errors related to accessing shape)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true
 >>
-Rule 16 (The tensor should not be a scalar)
-{v_1 : tensor} |= ndim(v_1) ≠ 0
+Rule 23 (dim should be within the range of input dimensions - IndexError when dim is a tuple)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : if v_2[i] ≥ 0 then v_2[i] < ndim(v_1) else (0 - ndim(v_1)) ≤ v_2[i]
 >>
-Rule 22 (The tensor should not be a scalar, and have reasonable dimension sizes)
-{v_1 : tensor} |= ndim(v_1) ≠ 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 26 (dim should be within the range of input dimensions - IndexError when dim is a tuple)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) > 0 ∧ shape(v_2, 0) > 0 ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : if v_2[i] ≥ 0 then v_2[i] < ndim(v_1) else (0 - ndim(v_1)) ≤ v_2[i]
 >>
-Rule 28 (If dim is a tuple, all elements should be integers and unique, and the length should not exceed ndim(v_1))
-{v_1 : tensor, v_2 : tuple(int)} |= (v_2.len ≤ ndim(v_1)) ∧ (∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j]) ∧ (∀i ∈ [0, v_2.len - 1] : (-1) * ndim(v_1) ≤ v_2[i] ∧ v_2[i] < ndim(v_1))
+Rule 28 (dim should be within the range of input dimensions - IndexError for tuple)
+{v_1 : tensor, v_2 : tuple(int)} |=  shape(v_2, 0) > 0 ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : if v_2[i] ≥ 0 then v_2[i] < ndim(v_1) else (0 - ndim(v_1)) ≤ v_2[i]
 >>
-Rule 32 (The input tensor should not have any dimensions with size 0)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+Rule 31 (dim should be within the range of input dimensions - IndexError for tuple)
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_2, 0) > 0 ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : if v_2[i] ≥ 0 then v_2[i] < ndim(v_1) else (0 - ndim(v_1)) ≤ v_2[i]
 >>
-Rule 35 (If dim is a tuple, all elements should be integers and unique, and the length should not exceed ndim(v_1), handle optional str)
-{v_1 : tensor, v_2 : int ⊎ tuple(int) ⊎ str} |= if v_2 = "none" then true else if (∀i ∈ [0, v_2.len -1]: true) then (v_2.len ≤ ndim(v_1)) ∧ (∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j]) ∧ (∀i ∈ [0, v_2.len - 1] : (-1) * ndim(v_1) ≤ v_2[i] ∧ v_2[i] < ndim(v_1)) else ((-1) * ndim(v_1) ≤ v_2 ∧ v_2 < ndim(v_1))
+Rule 36 (dim should be within the range of input dimensions - IndexError for int)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) > 0 ∧ (if v_2 ≥ 0 then v_2 < ndim(v_1) else (0 - ndim(v_1)) ≤ v_2)
 >>
-Rule 39 (If dim is a tuple, the values should not be repeated and the length of dim should be no more than the ndim of tensor)
-{v_2 : tuple(int)} |= if v_2.len > 1 then (∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j])
+Rule 37 (dim should be within the range of input dimensions - IndexError for tuple)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) > 0 ∧ shape(v_2, 0) > 0 ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : (if v_2[i] ≥ 0 then v_2[i] < ndim(v_1) else (0 - ndim(v_1)) ≤ v_2[i])
+>>
+Rule 46 (Enforce maximum number of dimensions in the tensor to avoid shape lookup errors)
+{v_1: tensor} |= ndim(v_1) ≤ 32
+>>
+Rule 49 (If input tensor has zero dimensions, any dim value is okay)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true else ndim(v_1) > 0
+>>
+Rule 52 (Negative dimensions are not supported for empty tensors)
+{v_1 : tensor, v_2 : int ⊎ tuple(int)} |= if ndim(v_1) = 0 then v_2 ≥ 0
+>>
+Rule 53 (dim should be within the range of input dimensions - IndexError for int)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then (if v_2 ≥ 0 then v_2 < ndim(v_1) else (0 - ndim(v_1)) ≤ v_2)
+>>
+Rule 60 (dim should be within the range of input dimensions - IndexError for tuple)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) > 0 then (shape(v_2, 0) > 0 ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : (if v_2[i] ≥ 0 then v_2[i] < ndim(v_1) else (0 - ndim(v_1)) ≤ v_2[i]))
+>>
+Rule 61 (dim should be within the range of input dimensions - IndexError for int)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then ((v_2 ≥ 0 ∧ v_2 < ndim(v_1)) ∨ ((0 - ndim(v_1)) ≤ v_2 ∧ v_2 < 0))
+>>
+Rule 62 (dim should be within the range of input dimensions - IndexError for tuple)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) > 0 then (shape(v_2, 0) > 0 ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : ((v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1)) ∨ ((0 - ndim(v_1)) ≤ v_2[i] ∧ v_2[i] < 0)))
+>>
+Rule 63 (dim should be within the range of input dimensions - IndexError for int)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then ((v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)))
+>>
+Rule 64 (dim should be within the range of input dimensions - IndexError for tuple)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) > 0 then (shape(v_2, 0) > 0 ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : ((v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1))))
+>>
+Rule 70 (If tensor is empty, dimension doesn't matter)
+{v_1: tensor} |= if ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 0 then true else ndim(v_1) ≥ 0
+>>
+Rule 77 (dim should be within the range of input dimensions - IndexError for int)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1))
+>>
+Rule 78 (dim should be within the range of input dimensions - IndexError for tuple)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) > 0 then (shape(v_2, 0) > 0 ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)))
+>>
+Rule 79 (Input should be a tensor with dimension greater than 0 if dim is specified)
+{v_1 : tensor, v_2 : int ⊎ tuple(int)} |= if v_2 ≠ 0 then ndim(v_1) > 0
+>>
+Rule 94 (Check that the input is a tensor with at least one dimension)
+{v_1 : tensor} |= ndim(v_1) >= 0

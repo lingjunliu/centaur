@@ -1,156 +1,135 @@
 >>
-Rule 1 (Tensor must not be boolean type)
-{v_1 : tensor} |= dtype_(v_1) ≠ "bool"
+Rule 1 (tensor dtype should not be boolean)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 2 (Lower bound must be less than or equal to upper bound)
-{v_1 : float, v_2 : float} |= v_1 ≤ v_2
+Rule 2 (lower bound must be less than upper bound)
+{v_2 : float, v_3 : float} |= v_2 < v_3
 >>
-Rule 3 (Lower and upper bounds should not be infinite when using half-precision floats)
-{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = "float16" then (v_2 > -65500 ∧ v_3 < 65500)
+Rule 3 (lower bound must be a valid float16 value)
+{v_2 : float} |= v_2 > -65504.0 ∧ v_2 < 65504.0
 >>
-Rule 5 (The tensor dimension should be within a reasonable range)
-{v_1 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_1) < 10
+Rule 4 (upper bound must be a valid float16 value)
+{v_3 : float} |= v_3 > -65504.0 ∧ v_3 < 65504.0
 >>
-Rule 8 (Lower and upper bounds should not be infinite when using half-precision floats)
-{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = "float16" then (v_2 > -10000 ∧ v_3 < 10000)
+Rule 5 (tensor should be of floating point or complex type)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 9 (Check a and b are not NaN or Inf)
-{v_1 : float, v_2 : float} |= v_1 = v_1 ∧ v_2 = v_2
+Rule 7 (if a is very small and b is very large, prevent overflow)
+{v_2 : float, v_3 : float} |= v_2 > -1e10 ∨ v_3 < 1e10
 >>
-Rule 10 (If the tensor is of type float16, the bounds should be within the valid range for float16)
-{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = "float16" then (v_2 ≥ -65504.0 ∧ v_3 ≤ 65504.0)
+Rule 8 (a and b should not be extremely large or small to avoid overflow)
+{v_2 : float, v_3 : float} |= v_2 > -1e10 ∧ v_2 < 1e10 ∧ v_3 > -1e10 ∧ v_3 < 1e10
 >>
-Rule 11 (If tensor is float16, both bounds must be finite)
-{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = "float16" then (v_2 ≠ "inf" ∧ v_2 ≠ "-inf" ∧ v_3 ≠ "inf" ∧ v_3 ≠ "-inf")
+Rule 9 (lower bound must be less than upper bound to a reasonable degree)
+{v_2 : float, v_3 : float} |= v_3 - v_2 > 1e-10
 >>
-Rule 12 (If lower bound is infinite, tensor should not be float16)
-{v_1 : tensor, v_2 : float} |= if v_2 = "inf" ∨ v_2 = "-inf" then dtype_(v_1) ≠ "float16"
+Rule 10 (tensor should be of a supported floating-point type)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 13 (If upper bound is infinite, tensor should not be float16)
-{v_1 : tensor, v_3 : float} |= if v_3 = "inf" ∨ v_3 = "-inf" then dtype_(v_1) ≠ "float16"
+Rule 12 (if a is greater than b, the result should be zero)
+{v_2 : float, v_3 : float} |= if v_2 > v_3 then false
 >>
-Rule 15 (The number of dimensions must be less than 6)
-{v_1 : tensor} |= ndim(v_1) < 6
+Rule 13 (if the tensor is float16, the range between a and b should be in the valid float16 range)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 6 then v_2 > -65500 ∧ v_3 < 65500
 >>
-Rule 16 (If the bounds are close to infinity, then the tensor's dtype should be float64)
-{v_1 : tensor, v_2 : float, v_3 : float} |= if (v_2 < -1e10 ∨ v_3 > 1e10) then dtype_(v_1) = "float64"
+Rule 14 (if tensor is boolean, the rule must be false)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then false
 >>
-Rule 20 (Tensor should not have a complex dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128"
+Rule 15 (a and b should not be NaN)
+{v_2 : float, v_3 : float} |= v_2 ≠ v_2 ∨ v_3 ≠ v_3
 >>
-Rule 22 (Bounds must be finite when dtype is float16)
-{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = "float16" then (min(v_2) > -1e5 ∧ max(v_3) < 1e5)
+Rule 16 (If the difference between b and a is too small, then the range is invalid)
+{v_2 : float, v_3 : float} |= v_3 - v_2 > 1e-8
 >>
-Rule 25 (If a > b, then print error)
-{v_1: float, v_2: float} |= v_1 <= v_2
+Rule 17 (If tensor is float16, a and b should fall within the valid range of float16)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 6 then v_2 > -65504 ∧ v_2 < 65504 ∧ v_3 > -65504 ∧ v_3 < 65504
 >>
-Rule 26 (Check that a and b are not strings)
-{v_1 : str ⊎ int ⊎ float, v_2 : str ⊎ int ⊎ float} |= v_1 ≠ "none" ∧ v_2 ≠ "none"
+Rule 19 (The range between a and b should be large enough to prevent zero values)
+{v_2 : float, v_3 : float} |= (v_3 - v_2) > 1e-6
 >>
-Rule 27 (Bounds should be representable in the tensor's dtype to avoid overflow)
-{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = "int8" then (v_2 ≥ -128 ∧ v_3 ≤ 127) else if dtype_(v_1) = "uint8" then (v_2 ≥ 0 ∧ v_3 ≤ 255)
+Rule 20 (The range must be valid for float16 if dtype of tensor is float16)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 6 then v_2 < v_3
 >>
-Rule 28 (If a is infinity, b must be positive infinity too to avoid NaN)
-{v_1: float, v_2: float} |= if v_1 = "inf" then v_2 = "inf"
+Rule 22 (a and b should be finite and not extremely large numbers)
+{v_2 : float, v_3 : float} |= v_2 > -1e38 ∧ v_2 < 1e38 ∧ v_3 > -1e38 ∧ v_3 < 1e38
 >>
-Rule 29 (If b is negative infinity, a must be negative infinity to avoid NaN)
-{v_1: float, v_2: float} |= if v_2 = "-inf" then v_1 = "-inf"
+Rule 23 (If tensor dtype is float16, then a and b should also be float16)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 6 then (v_2 > -65504 ∧ v_2 < 65504) ∧ (v_3 > -65504 ∧ v_3 < 65504)
 >>
-Rule 30 (Tensor should be of floating type)
-{v_1: tensor} |= dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64"
+Rule 25 (If a tensor has a dimension of size 0, then it's safe to have a == b)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then v_2 = v_3
 >>
-Rule 32 (Tensor's data type must support uniform distribution)
-{v_1 : tensor} |= dtype_(v_1) ≠ "bool" ∧ dtype_(v_1) ≠ "int8" ∧ dtype_(v_1) ≠ "int16" ∧ dtype_(v_1) ≠ "int32" ∧ dtype_(v_1) ≠ "int64" ∧ dtype_(v_1) ≠ "uint8"
+Rule 26 (If a>b and dtype of tensor is complex then return true else false )
+{v_1 : tensor, v_2 : float, v_3 : float} |= if v_2 > v_3 ∧ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then true else if v_2 < v_3 then true else false
 >>
-Rule 33 (If the tensor is quantized, do not allow uniform initialization)
-{v_1 : tensor} |= dtype_(v_1) ≠ "dtype"
+Rule 27 (If a > b , raise an error if tensor's data type is not complex)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if v_2 > v_3 then (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
 >>
-Rule 35 (If tensor is of bfloat16, then a and b bounds must be in the range supported by bfloat16)
-{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = "float16" then (v_2 > -3.38953e+38 ∧ v_3 < 3.38953e+38)
+Rule 28 (It is invalid if a>b if the data type is boolean.)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if v_2 > v_3 then dtype_(v_1) ≠ 0
 >>
-Rule 43 (If a is infinite, then b must be positive infinite, if a is -infinite, then b must be infinite)
-{v_1: float, v_2: float} |= if v_1 = "inf" then v_2 = "inf" else if v_1 = "-inf" then v_2 = "-inf"
+Rule 29 (If a and b are equal, it is valid only if the shape contains zero dimension)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if v_2 = v_3 then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0)
 >>
-Rule 49 (Tensor cannot have bool dtype.)
-{v_1: tensor} |= dtype_(v_1) ≠ "bool"
+Rule 31 (Bounds are not checked for boolean tensors.)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 0 then true else v_2 < v_3
 >>
-Rule 50 (Tensor should be of proper size.)
-{v_1: tensor} |= shape(v_1, 0) > 0
+Rule 32 (For half-precision floats, check if bounds are valid or not)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 6 then v_2 > -65504 ∧ v_3 < 65504
 >>
-Rule 51 (a and b must be finite numbers)
-{v_1 : float, v_2 : float} |= v_1 ≠ "inf" ∧ v_1 ≠ "-inf" ∧ v_2 ≠ "inf" ∧ v_2 ≠ "-inf"
+Rule 33 (a and b must fall under the valid range of float16 (a<b))
+{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 6 then v_2 > -65504 ∧ v_2 < 65504 ∧ v_3 > -65504 ∧ v_3 < 65504 ∧ v_2 < v_3
 >>
-Rule 53 (Bounds should be compatible with float16 range if tensor is float16)
-{v_1: tensor, v_2: float, v_3: float} |= if dtype_(v_1) = "float16" then (v_2 > -65500 ∧ v_3 < 65500)
+Rule 37 (for the half type lower bound must be greater than min value)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 then v_2 > -65504
 >>
-Rule 55 (Tensor has to have at least one dimentsion)
-{v_1: tensor} |= ndim(v_1) > 0
+Rule 38 (For half-precision floats, check if bounds are valid or not for upper bound)
+{v_1 : tensor, v_3 : float} |= if dtype_(v_1) = 6 then  v_3 < 65504
 >>
-Rule 63 (bounds should be non-string)
-{v_1: str ⊎ float, v_2: str ⊎ float} |= v_1 ≠ "none" ∧ v_2 ≠ "none"
+Rule 40 (For Half-precision floats if a>b then return false else it depends on whether the bounds are within limits)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 6 then (if v_2 > v_3 then false else v_2 > -65504 ∧ v_3 < 65504)
 >>
-Rule 65 (Number of dimension has to be smaller than 7.)
-{v_1: tensor} |= ndim(v_1) < 7
+Rule 42 (For half-precision float, a and b both should be in the valid range, and a should be lesser than b )
+{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 6 then (v_2 > -65504 ∧ v_2 < 65504) ∧ (v_3 > -65504 ∧ v_3 < 65504) ∧ v_2 < v_3
 >>
-Rule 68 (bounds have to be finite)
-{v_1: float, v_2: float} |= v_1 ≠ "inf" ∧ v_1 ≠ "-inf" ∧ v_2 ≠ "inf" ∧ v_2 ≠ "-inf"
+Rule 43 (If the tensor is Half-Precision float then both the bounds should be in the specified range and also a should be lesser than b else it is True)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 6 then (v_2 > -61440 ∧ v_2 < 61440) ∧ (v_3 > -61440 ∧ v_3 < 61440) ∧ v_2 < v_3
 >>
-Rule 70 (The tensor shape cannot be larger than certain number)
-{v_1: tensor} |= shape(v_1, 0) < 10000000
+Rule 44 (For Half precision float check for both the bounds and check if a is less than b)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 6 then (v_2 > -5.96e-8 ∧ v_2 < 65504) ∧ (v_3 > -5.96e-8 ∧ v_3 < 65504) ∧ v_2 < v_3
 >>
-Rule 71 (If the tensor is of type float16, the bounds must be between the minimum and maximum representable values of float16 to avoid overflow)
-{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = "float16" then (v_2 ≥ -65504 ∧ v_3 ≤ 65504)
+Rule 45 (Check if lower bound is greater than upper bound for half precision and return an appropriate message)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 6 then if v_2 > v_3 then false
 >>
-Rule 74 (If at least one bound is an extremely large number, The type should be float64.)
-{v_1: tensor, v_2: float, v_3:float} |= if v_2 > 1e30 ∨ v_2 < -1e30 ∨ v_3 > 1e30 ∨ v_3 < -1e30 then dtype_(v_1) = "float64"
+Rule 46 (Check lower bound to be a valid half)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 then v_2 > -5.96e-8
 >>
-Rule 75 (The number of dimensions of tensor must be reasonable, not to large)
-{v_1: tensor} |= ndim(v_1) < 8
+Rule 48 (if tensor is half, then from must be valid and less than to)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 6 then (v_2 > -65504) ∧ (v_2 < v_3)
 >>
-Rule 80 (Make sure that if any element is large than max of float32 and tensor is float32 then error)
-{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = "float32" then (v_2 < 3.4028235e+38 ∧ v_3 < 3.4028235e+38)
+Rule 49 (if half-precision from should be a valid half and from<to)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 6 then v_2 > -5.96e-08 ∧ v_2 < v_3
 >>
-Rule 81 (Make sure that if any element is smaller than min of float32 and tensor is float32 then error)
-{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = "float32" then (v_2 > -3.4028235e+38 ∧ v_3 > -3.4028235e+38)
+Rule 50 (if tensor is half-precision, check for both bounds validity and from < to)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 6 then v_2 > -65504 ∧ v_3 < 65504 ∧ v_2 < v_3
 >>
-Rule 82 (Bounds should be such that they can be represented with the tensor's dtype)
-{v_1: tensor, v_2: float, v_3: float} |= if dtype_(v_1) = "float16" then (-65504 <= v_2 ∧ v_3 <= 65504) else if dtype_(v_1) = "float32" then (-3.4028235e+38 <= v_2 ∧ v_3 <= 3.4028235e+38)
+Rule 51 (Both 'from' and 'to' should be valid and a <b, all valid for half dtype tensor)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 6 then (v_2 > -5.96e-8 ∧ v_3 < 65504) ∧ v_2 < v_3
 >>
-Rule 83 (The second dimension should be positive.)
-{v_1: tensor} |= if ndim(v_1) > 1 then shape(v_1, 1) > 0
+Rule 52 (If tensor is half precision ensure the range from is greater than equal to zero)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 then v_2 > -5.96e-08
 >>
-Rule 84 (If there is only one dimension.)
-{v_1: tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) > 0
+Rule 55 (If the tensor is half-precision, 'from' must not be less than -65504)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 then v_2 ≥ -65504
 >>
-Rule 86 (Make sure that if any element is smaller than min of float32 and tensor is float32 then error)
-{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = "float32" then (v_2 > -3.4028235e+38 ∧ v_3 < 3.4028235e+38)
+Rule 57 (if tensor is half then To should be valid half)
+{v_1 : tensor, v_3 : float} |= if dtype_(v_1) = 6 then v_3 < 65504
 >>
-Rule 91 (Make sure that if any element is smaller than min of float32 and tensor is float32 then error)
-{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = "float32" then (v_2 ≥ -3.4028235e+38 ∧ v_3 ≤ 3.4028235e+38)
+Rule 58 (if tensor is half precision To should be less than equal to a max valid)
+{v_1 : tensor, v_3 : float} |= if dtype_(v_1) = 6 then v_3 ≤ 65504
 >>
-Rule 97 (Bounds should be such that they can be represented with the tensor's dtype)
-{v_1: tensor, v_2: float, v_3: float} |= if dtype_(v_1) = "float16" then (v_2 ≥ -65504 ∧ v_3 ≤ 65504) else if dtype_(v_1) = "float32" then (-3.4028235e+38 ≥ v_2 ∧ 3.4028235e+38 ≤ v_3)
+Rule 60 (Ensure valid half-precision upper bound for uniform init, and it has to be more than lower)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 6 then v_3 ≤ 65504 ∧ v_2 < v_3
 >>
-Rule 102 (Bounds should be such that they can be represented with the tensor's dtype)
-{v_1: tensor, v_2: float, v_3: float} |= if dtype_(v_1) = "float16" then (-65504 ≤ v_2 ∧ v_3 ≤ 65504) else if dtype_(v_1) = "float32" then (-3.4028235e+38 ≤ v_2 ∧ 3.4028235e+38 ≥ v_3)
->>
-Rule 103 (Tensor has to be 1-7 dimensions.)
-{v_1: tensor} |= ndim(v_1) > 0 ∧ ndim(v_1) < 8
->>
-Rule 107 (Bounds should be such that they can be represented with the tensor's dtype)
-{v_1: tensor, v_2: float, v_3: float} |= if dtype_(v_1) = "float16" then (-65504 ≤ v_2 ∧ v_3 ≤ 65504) else if dtype_(v_1) = "float32" then (-3.4028235e+38 ≥ v_2 ∧ 3.4028235e+38 ≥ v_3)
->>
-Rule 110 (The magnitude should be a reasonable value.)
-{v_1: float, v_2: float} |= v_1 < 1e40 ∧ v_2 < 1e40
->>
-Rule 117 (If the tensor's dtype is float16, a and b must fit within the float16 range)
-{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = "float16" then (-65504 ≤ v_2 ∧ v_3 ≤ 65504)
->>
-Rule 125 (The tensor's dimension shouldn't be too large.)
-{v_1: tensor} |= ndim(v_1) < 6
->>
-Rule 133 (If the tensor is a half-precision float, check that bounds are in range)
-{v_1: tensor, v_2: float, v_3: float} |= if dtype_(v_1) = "float16" then (v_2 ≥ -65504 ∧ v_3 ≤ 65504)
->>
-Rule 140 (The generator cannot be a string when initialize.)
-{v_1: str ⊎ tensor} |= if v_1 = "tensor" then true else false
+Rule 61 (if tensor is halfprecision ensure both from and to are valid halfs, otherwise set True)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 6 then (v_2 > -65504 ∧ v_3 < 65504)

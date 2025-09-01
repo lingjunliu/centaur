@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if dtype of input tensor is int, dropout probability must be an integer and it can only be 0 or 1 (Rule 51)
+# If training=True, then p must satisfy 0<=p<=1 (Rule 51)
 
 rule_51 = lambda s, v, n=False: (
-    s.add(Not(If((Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5)), (Or(v["arg2_value"] == 0, v["arg2_value"] == 1)), False)) if n else
-          If((Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5)), (Or(v["arg2_value"] == 0, v["arg2_value"] == 1)), False))
+    s.add(Not(If(v["arg2_value"], And((v["arg1_value"] >= 0), (v["arg1_value"] <= 1)), True)) if n else
+          If(v["arg2_value"], And((v["arg1_value"] >= 0), (v["arg1_value"] <= 1)), True))
 )
 
 def rule_51_func(arg1, arg2, solver=None, neg=False):
@@ -18,22 +18,24 @@ def rule_51_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, (float, np.floating)):
             return False
-        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)) or isinstance(arg2, (float, np.floating))):
+        if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_value = Real('arg1_value')
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 51
-        rule_51(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
+        rule_51(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_51(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)
+        rule_51(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

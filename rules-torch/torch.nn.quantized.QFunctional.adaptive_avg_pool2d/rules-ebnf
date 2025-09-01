@@ -1,183 +1,153 @@
 >>
-Rule 1 (Input tensor should have at least one dimension)
+Rule 1 (input tensor must have at least one dimension)
 {v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 2 (Input tensor should have valid dimensions for adaptive_avg_pool2d, at least 2)
-{v_1 : tensor} |= ndim(v_1) ≥ 2
->>
-Rule 4 (If output_size is a tuple, it should have at least one element)
+Rule 2 (output_size tuple must have at least one element)
 {v_1 : tuple(int)} |= v_1.len > 0
 >>
-Rule 5 (Elements of output_size tuple must be positive integers)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 3 (each element of output_size tuple must be a non-negative integer)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 6 (output_size cannot be a tuple with a length greater than the number of spatial dimensions)
-{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≤ ndim(v_1) - 2
+Rule 4 (input tensor should not be empty)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 7 (output_size as int cannot be zero)
+Rule 5 (The data type of input should be quantized)
+{v_1: tensor} |= dtype_(v_1) = 5
+>>
+Rule 6 (output_size tuple must not exceed input dimension)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len <= ndim(v_1)
+>>
+Rule 7 (Each element in output_size should be less than or equal to the corresponding dimension of input)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len = ndim(v_1) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≤ shape(v_1, i)
+>>
+Rule 9 (The number of dimensions of input must be either 3 or 4)
+{v_1 : tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4
+>>
+Rule 11 (If output_size is a tuple, all elements must be integers)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : true
+>>
+Rule 14 (If output_size is an int, it should be greater than 0)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 8 (Check if the input tensor has valid shape for adaptive_avg_pool2d)
-{v_1: tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+Rule 15 (If output_size is a tuple, then its length has to match input's dimension without channel)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) - 1 = v_2.len
 >>
-Rule 12 (output_size as tuple must have elements within reasonable bounds relative to input shape)
-{v_1 : tensor, v_2 : tuple(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] < shape(v_1, i + 2)
+Rule 16 (If input is 3D, the output size has length of 2)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 3 then v_2.len = 2
 >>
-Rule 13 (Check if the input tensor has a valid batch dimension size)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 17 (If input is 4D, the output size has length of 2)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 4 then v_2.len = 2
 >>
-Rule 14 (Input tensor must have non-zero spatial dimensions)
-{v_1 : tensor} |= shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+Rule 18 (Elements of output_size cannot be greater than the spatial dimensions of the input tensor)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≤ shape(v_1, i + (ndim(v_1) - v_2.len))
 >>
-Rule 15 (Data type of input tensor must be supported)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 19 (The input tensor must be quantized)
+{v_1 : tensor} |= dtype_(v_1) = 5
 >>
-Rule 16 (Input tensor must have a channel dimension greater than zero)
-{v_1 : tensor} |= shape(v_1, 1) > 0
+Rule 20 (if output_size is an int, it should be less than or equal to all the spatial dimensions of the input tensor)
+{v_1 : tensor, v_2 : int} |= ∀i ∈ [0, ndim(v_1)-1] : v_2 <= shape(v_1, i)
 >>
-Rule 17 (If output_size is a tuple, its length should be less than or equal to 2)
-{v_1 : tuple(int)} |= v_1.len ≤ 2
+Rule 21 (output_size cannot be a tuple of zero length)
+{v_1: tuple(int)} |= v_1.len ≠ 0
 >>
-Rule 18 (Input tensor should have valid dimensions (N, C, H, W) for adaptive_avg_pool2d, meaning ndim == 4)
-{v_1 : tensor} |= ndim(v_1) = 4
+Rule 22 (output_size should be a tuple of positive integers)
+{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 21 (When output_size has a length of 1, adaptive_avg_pool2d effectively behaves like adaptive_avg_pool1d on both spatial dimensions )
-{v_1 : tensor, v_2: tuple(int)} |= if v_2.len = 1 then shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+Rule 23 (If input is 3D, then output_size must have length of 1 or 2)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 3 then v_2.len = 1 ∨ v_2.len = 2
 >>
-Rule 22 (Input tensor must be 4D with positive dimensions)
-{v_1 : tensor} |= ndim(v_1) = 4 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+Rule 24 (If input is 4D, then output_size must have length of 1 or 2)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 4 then v_2.len = 1 ∨ v_2.len = 2
 >>
-Rule 23 (If output_size is a single integer, both spatial dimensions are set to that value)
-{v_1 : tensor, v_2 : int} |= v_2 > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+Rule 26 (When output_size is an int, it must be less than or equal to the height and width of the input tensor)
+{v_1 : tensor, v_2 : int} |= (ndim(v_1) = 3 ∧ v_2 ≤ shape(v_1, 1) ∧ v_2 ≤ shape(v_1, 2)) ∨ (ndim(v_1) = 4 ∧ v_2 ≤ shape(v_1, 2) ∧ v_2 ≤ shape(v_1, 3))
 >>
-Rule 26 (When output_size has a length of 1, adaptive_avg_pool2d effectively behaves like adaptive_avg_pool1d on both spatial dimensions AND output_size[0] > 0)
-{v_1 : tensor, v_2: tuple(int)} |= if v_2.len = 1 then shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 ∧ v_2[0] > 0
+Rule 27 (Output size should not be greater than input size)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : shape(v_1, i + 1) ≥ v_2[i]
 >>
-Rule 28 (output_size as a tuple with length of 2, both dimensions are explicitly set and greater than 0.)
-{v_1 : tuple(int)} |= v_1.len = 2 ∧ v_1[0] > 0 ∧ v_1[1] > 0
+Rule 28 (If output_size is a tuple of size one and input is a 3D tensor, height and width should be equal)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 3 ∧ v_2.len = 1 then shape(v_1, 1) = shape(v_1, 2)
 >>
-Rule 30 (If output_size is a single integer v_2, both spatial dimensions of input v_1 should be larger or equal to it.)
-{v_1 : tensor, v_2 : int} |= v_2 > 0 ∧ shape(v_1, 2) ≥ v_2 ∧ shape(v_1, 3) ≥ v_2
+Rule 29 (If output_size is a tuple of size one and input is a 4D tensor, height and width should be equal)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 4 ∧ v_2.len = 1 then shape(v_1, 2) = shape(v_1, 3)
 >>
-Rule 31 (The input tensor's channel dimension should be reasonably large for adaptive pooling to make sense.)
-{v_1 : tensor} |= shape(v_1, 1) > 4
+Rule 30 (If output_size is specified as a tuple, its elements must be positive)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 32 (If output_size is a tuple of length 2, dimensions should not exceed input)
-{v_1 : tensor, v_2 : tuple(int)} |= v_2.len = 2 ∧ v_2[0] ≤ shape(v_1, 2) ∧ v_2[1] ≤ shape(v_1, 3)
+Rule 31 (If the input tensor has only one dimension, the output_size must be a tuple with only one element)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 then v_2.len = 1
 >>
-Rule 34 (If output_size is a single integer v_2, spatial dimensions of input v_1 should be valid and v_2 should be smaller than or equal to the smaller spatial dimension)
-{v_1 : tensor, v_2 : int} |= v_2 > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 ∧ v_2 ≤ shape(v_1, 2) ∧ v_2 ≤ shape(v_1, 3)
+Rule 32 (If output_size is specified as an integer, its value must be greater than zero and must be less than or equal to the input tensor’s height and width if input tensor is 3 or 4 dimension)
+{v_1 : tensor, v_2 : int} |= (ndim(v_1) = 3 ∧ v_2 > 0 ∧ v_2 ≤ shape(v_1, 1) ∧ v_2 ≤ shape(v_1, 2)) ∨ (ndim(v_1) = 4 ∧ v_2 > 0 ∧ v_2 ≤ shape(v_1, 2) ∧ v_2 ≤ shape(v_1, 3))
 >>
-Rule 35 (Output size should not lead to zero-size output)
-{v_1 : tensor, v_2: tuple(int)} |= if v_2.len = 1 then shape(v_1,2) > 0 ∧ shape(v_1,3) > 0 ∧ v_2[0] > 0 else if v_2.len = 2 then v_2[0] > 0 ∧ v_2[1] > 0
+Rule 33 (If the output_size is a tuple, its length must be less than or equal to the input tensor’s number of dimensions minus 1)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≤ ndim(v_1) -1
 >>
-Rule 37 (Ensure that when output size is a tuple with length 1 and input tensor is valid)
-{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = 1 then shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 ∧ v_2[0] > 0 ∧ v_2[0] <= shape(v_1,2) ∧ v_2[0] <= shape(v_1,3)
+Rule 34 (If the input tensor is 3D or 4D, and the output_size is specified as a tuple, then the values inside the tuple must be greater than zero)
+{v_1 : tensor, v_2 : tuple(int)} |= (ndim(v_1) = 3 ∨ ndim(v_1) = 4) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
 >>
-Rule 39 (if a single int is used as the target size ensure is is not 0)
-{v_1: int} |= v_1 > 0
+Rule 35 (If the input tensor is 3D, the output_size must have at least one and at most two elements)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 3 then v_2.len ≥ 1 ∧ v_2.len ≤ 2
 >>
-Rule 40 (Check for dimension consistency - if shape of v1 at 2 is less than v2, and the same applies to 3)
-{v_1: tensor, v_2: int} |= if shape(v_1,2) < v_2 then false
+Rule 36 (If the input tensor is 4D, the output_size must have at least one and at most two elements)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 4 then v_2.len ≥ 1 ∧ v_2.len ≤ 2
 >>
-Rule 41 (input tensor must have a defined channel size)
-{v_1: tensor} |= shape(v_1, 1) > 0
+Rule 38 (if output_size is int, it must be non-negative and if output_size is a tuple, its length must be non-zero)
+{v_1 : int ⊎ tuple(int)} |= (v_1 ≥ 0) ∨ (v_1.len ≠ 0)
 >>
-Rule 42 (if a tuple output size has length two the H and W dims are non zero)
-{v_1: tuple(int)} |= if v_1.len = 2 then v_1[0] > 0 ∧ v_1[1] > 0
+Rule 40 (If input tensor's dimension is greater than 1, then output size must not be none)
+{v_1 : tensor} |= ndim(v_1) > 1
 >>
-Rule 43 (Input tensor should be a valid tensor with defined H and W sizes relative to tuple(int) output size)
-{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = 2 then shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 ∧ v_2[0] <= shape(v_1, 2) ∧ v_2[1] <= shape(v_1, 3)
+Rule 41 (If input tensor is 3D or 4D, all its dimensions should be greater than 0)
+{v_1 : tensor} |= (ndim(v_1) = 3 ∨ ndim(v_1) = 4) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 44 (If output_size has length one, ensure its value makes sense compared to the input tensor size)
-{v_1 : tensor, v_2: tuple(int)} |= if v_2.len = 1 then v_2[0] > 0 ∧ v_2[0] <= shape(v_1, 2) ∧ v_2[0] <= shape(v_1, 3)
+Rule 42 (If the output_size is specified as a tuple, its length must match the spatial dimensions (height and width) if input tensor is 3 or 4 dimension)
+{v_1 : tensor, v_2 : tuple(int)} |= (ndim(v_1) = 3 ∨ ndim(v_1) = 4) ∧ v_2.len = 2
 >>
-Rule 45 (If output_size is a single integer, both spatial dimensions of the input must be large enough for pooling to occur)
-{v_1: tensor, v_2: int} |= shape(v_1, 2) > v_2 ∧ shape(v_1, 3) > v_2
+Rule 44 (If the input tensor is 3D or 4D, and the output_size is specified as an integer, then that integer must be greater than 0)
+{v_1 : tensor, v_2 : int} |= (ndim(v_1) = 3 ∨ ndim(v_1) = 4) ∧ v_2 > 0
 >>
-Rule 46 (The input tensor needs to have the right number of dimensions for a 2D adaptive average pooling.)
-{v_1: tensor} |= ndim(v_1) = 4
+Rule 45 (The output size can not be empty)
+{v_1 : tensor, v_2 : tuple(int)} |=  v_2.len > 0 ∨ (ndim(v_1) = 3 ∧ v_2.len = 0) ∨ (ndim(v_1) = 4 ∧ v_2.len = 0)
 >>
-Rule 49 (Ensure output size, if single int, has size below original tensor size)
-{v_1: tensor, v_2: int} |= v_2 <= shape(v_1, 2) ∧ v_2 <= shape(v_1,3)
+Rule 46 (If the output_size is specified as tuple and the dimension is not correct, error will be thrown)
+{v_1 : tensor, v_2 : tuple(int)} |= (ndim(v_1) = 3 ∧ v_2.len = 2) ∨ (ndim(v_1) = 4 ∧ v_2.len = 2) ∨ (ndim(v_1) = 1 ∧ v_2.len = 1)
 >>
-Rule 50 (When output_size is a tuple, each dimension of input tensor should be greater than or equal to the respective dimension of output_size)
-{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = 2 then shape(v_1, 2) >= v_2[0] ∧ shape(v_1, 3) >= v_2[1]
+Rule 50 (if the input is 3D, the output tuple cannot exceed the spatial dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 3 then v_2.len <= 2
 >>
-Rule 52 (When output_size is a tuple, each dimension of input tensor should be greater than or equal to the respective dimension of output_size, and each dimension of output size should be greather than zero )
-{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = 2 then shape(v_1, 2) ≥ v_2[0] ∧ shape(v_1, 3) ≥ v_2[1] ∧ v_2[0] > 0 ∧ v_2[1] > 0
+Rule 51 (if the input is 4D, the output tuple cannot exceed the spatial dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 4 then v_2.len <= 2
 >>
-Rule 53 (Ensure output_size, if single int, has size below original tensor size and is greater than zero)
-{v_1: tensor, v_2: int} |= v_2 <= shape(v_1, 2) ∧ v_2 <= shape(v_1,3) ∧ v_2 > 0
+Rule 52 (If output_size is an int and input is a 3D tensor, output_size must be less than or equal to height and width)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 then v_2 <= shape(v_1, 1) ∧ v_2 <= shape(v_1, 2)
 >>
-Rule 55 (The underlying tensor needs to have floating point types, for adaptive pooling)
-{v_1: tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 53 (If output_size is an int and input is a 4D tensor, output_size must be less than or equal to height and width)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then v_2 <= shape(v_1, 2) ∧ v_2 <= shape(v_1, 3)
 >>
-Rule 56 (output size length has to be lower or equal to two)
-{v_1: tuple(int)} |= v_1.len <= 2
+Rule 54 (if the output_size is a tuple, its values cannot be greater than corresponding input dimension)
+{v_1 : tensor, v_2 : tuple(int)} |= (ndim(v_1) = 3 ∧ v_2[0] <= shape(v_1, 1) ∧ v_2[1] <= shape(v_1, 2)) ∨ (ndim(v_1) = 4 ∧ v_2[0] <= shape(v_1, 2) ∧ v_2[1] <= shape(v_1, 3))
 >>
-Rule 57 (If a tuple has a dimension larger than the input tensor, this should be rejected)
-{v_1 : tensor, v_2: tuple(int)} |= if v_2.len = 2 then v_2[0] <= shape(v_1, 2) ∧ v_2[1] <= shape(v_1, 3) else if v_2.len = 1 then v_2[0] <= shape(v_1, 2) ∧ v_2[0] <= shape(v_1, 3)
+Rule 55 (if the input is 3D, the elements in output tuple must not exceed their corresponding input shape values)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 3 then v_2[0] <= shape(v_1, 1) ∧ v_2[1] <= shape(v_1, 2)
 >>
-Rule 59 (Make sure that the length is 1 or 2 of output_size, and if it is one, then the sizes of the H and W dimensions of the tensor are at least greater than 0)
-{v_1: tuple(int), v_2: tensor} |= if v_1.len = 1 then shape(v_2, 2) > 0 ∧ shape(v_2, 3) > 0 else if v_1.len = 2 then true else v_1.len = 0
+Rule 56 (if the input is 4D, the elements in output tuple must not exceed their corresponding input shape values)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 4 then v_2[0] <= shape(v_1, 2) ∧ v_2[1] <= shape(v_1, 3)
 >>
-Rule 60 (Make sure the input tensor, v_1 has positive sizes in the H and W dimension)
-{v_1: tensor} |= shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+Rule 58 (If any dimension of input is zero, output size cannot be defined)
+{v_1 : tensor, v_2 : tuple(int)} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 ∨ v_2.len = 0
 >>
-Rule 63 (Ensure that valid tensor has two spatial dimensions and the channel size is also defined)
-{v_1: tensor} |= shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 ∧ shape(v_1, 1) > 0
+Rule 61 (If the output_size is a tuple and there exists zero dimension, tuple length should be zero or its length elements are invalid )
+{v_1 : tensor, v_2 : tuple(int)} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then v_2.len = 0
 >>
-Rule 64 (If a tuple is one dimension, ensure it is greater than zero and the appropriate dimensions of tensor are greater than 0)
-{v_1: tuple(int), v_2: tensor} |= if v_1.len = 1 then v_1[0] > 0 ∧ shape(v_2, 2) > 0 ∧ shape(v_2, 3) > 0
+Rule 62 (If the output_size is specified as a tuple and there exists zero dimension in input, it is valid or output dimensions are valid )
+{v_1 : tensor, v_2 : tuple(int)} |= (if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then true else (v_2[0] <= shape(v_1, 1) ∧ v_2[1] <= shape(v_1, 2)))
 >>
-Rule 68 (if tuple length is one then the element should be above 0 and its value should be reasonably less than the input dimension H and W)
-{v_1: tuple(int), v_2: tensor} |= if v_1.len = 1 then v_1[0] > 0 ∧ v_1[0] <= shape(v_2, 2) ∧ v_1[0] <= shape(v_2, 3)
+Rule 63 (If the output_size is a tuple and the tensor has a zero dimension, then the output size has zero length, meaning it's skipped)
+{v_1 : tensor, v_2 : tuple(int)} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then v_2.len = 0
 >>
-Rule 72 (The value in the tuple (if length is 2) are not greater than the height and width of the input)
-{v_1: tuple(int), v_2: tensor} |= if v_1.len = 2 then v_1[0] <= shape(v_2, 2) ∧ v_1[1] <= shape(v_2, 3)
+Rule 64 (If input is 3D/4D, elements of output tuple should not be greater than input's dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= (ndim(v_1) = 3 ∧ v_2.len = 2 ∧ v_2[0] <= shape(v_1, 1) ∧ v_2[1] <= shape(v_1, 2)) ∨ (ndim(v_1) = 4 ∧ v_2.len = 2 ∧ v_2[0] <= shape(v_1, 2) ∧ v_2[1] <= shape(v_1, 3))
 >>
-Rule 77 (Check that single dimensional tuples are not zero)
-{v_1: tuple(int)} |= if v_1.len = 1 then v_1[0] > 0
->>
-Rule 82 (If Tuple Size is not valid , make sure the length is between 0 and 2)
-{v_1: tuple(int)} |= v_1.len ≤ 2
->>
-Rule 83 (if it's a tuple of length two then make sure the h and w are > 0 and no more than the orig h and w)
-{v_1: tuple(int), v_2: tensor} |= if v_1.len = 2 then v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[0] <= shape(v_2,2) ∧ v_1[1] <= shape(v_2, 3)
->>
-Rule 87 (If it's a tuple of length two then make sure the h and w are > 0 and no more than the orig h and w, otherwise tuple has length less than two)
-{v_1: tuple(int), v_2: tensor} |= if v_1.len = 2 then v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[0] <= shape(v_2,2) ∧ v_1[1] <= shape(v_2, 3) else v_1.len < 2
->>
-Rule 88 (Check for consistent spatial dimensions between tensor and target size with an Integer as target)
-{v_1: tensor, v_2: int} |= v_2 > 0 ∧ v_2 <= shape(v_1, 2) ∧ v_2 <= shape(v_1, 3)
->>
-Rule 97 (In adaptive_avg_pool, the target H W has to be a reasonably sized output if using Adaptive Avg pool, meaning not too large)
-{v_1: tuple(int), v_2: tensor} |= if v_1.len = 2 then v_1[0] <= shape(v_2,2) ∧ v_1[1] <= shape(v_2, 3)
->>
-Rule 102 (If Tuple with length 2 that we are sending in, satisfy certain spatial requirements and it's H and W is less than the original size and positive)
-{v_1: tuple(int), v_2: tensor} |= if v_1.len = 2 then v_1[0] <= shape(v_2,2) ∧ v_1[1] <= shape(v_2, 3) ∧ v_1[0] > 0 ∧ v_1[1] > 0
->>
-Rule 107 (If it's a single integer, it needs to be reasonably smaller than the H and W dimensions, where H and W are >0 )
-{v_1: tensor, v_2: int} |= shape(v_1, 2) > v_2 ∧ shape(v_1, 3) > v_2 ∧ v_2 > 0
->>
-Rule 117 (the tensor needs to have a valid size for at least three dimensions, meaning a tensor with the first three dimensions being at least greater than 0)
-{v_1: tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
->>
-Rule 121 (tuple size with length 2 dimensions should not be too large as well, need valid 4d properties, channel size has to make sense)
-{v_1: tensor, v_2: tuple(int)} |= shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 ∧ if v_2.len = 2 then v_2[0] <= shape(v_1,2) ∧ v_2[1] <= shape(v_1, 3) ∧ v_2[0] > 0 ∧ v_2[1] > 0
->>
-Rule 122 (For tuple (2), make sure their dimensions are valid AND are positive, tuple dim requirements AND also has to be H and W has to be defined in the spatial dimension)
-{v_1: tuple(int), v_2: tensor} |= shape(v_2, 2) > 0 ∧ shape(v_2, 3) > 0 ∧ if v_1.len = 2 then v_1[0] <= shape(v_2,2) ∧ v_1[1] <= shape(v_2, 3) ∧ v_1[0] > 0 ∧ v_1[1] > 0
->>
-Rule 127 (if its an integer make sure is between the spatial tensor ranges)
-{v_1: tensor, v_2: int} |= if shape(v_1, 2) > v_2 ∧ shape(v_1, 3) > v_2 then true else false
->>
-Rule 137 (All shape sizes need to be greater than zero to work with adaptive pool)
-{v_1: tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
->>
-Rule 142 (Enforce the invariant that if you define a tuple, the H and W must make sense for both of those and also must be defined before adaptive avg pool)
-{v_1: tensor, v_2: tuple(int)} |= if v_2.len = 2 then shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 ∧ v_2[0] > 0 ∧ v_2[1] > 0
->>
-Rule 151 (Batch size must be greater than zero as its used in neural networks )
-{v_1: tensor} |= shape(v_1, 0) > 0
+Rule 65 (If the output_size is a tuple, and the input has spatial dimensions 0, elements of the tuple must be 0)
+{v_1 : tensor, v_2 : tuple(int)} |= if (ndim(v_1) = 3 ∧ (shape(v_1, 1) = 0 ∨ shape(v_1, 2) = 0)) then (v_2[0] = 0 ∧ v_2[1] = 0) else if (ndim(v_1) = 4 ∧ (shape(v_1, 2) = 0 ∨ shape(v_1, 3) = 0)) then (v_2[0] = 0 ∧ v_2[1] = 0)

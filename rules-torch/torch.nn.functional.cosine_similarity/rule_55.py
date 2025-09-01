@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the tensors have different dtype, at least one should be a float (Rule 55)
+# Ensure both inputs are floating point, or neither are (Rule 55)
 
 rule_55 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_dtype"] != v["arg2_dtype"]), Or((And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 8)), (And(v["arg2_dtype"] >= 6, v["arg2_dtype"] <= 8))), False)) if n else
-          If((v["arg1_dtype"] != v["arg2_dtype"]), Or((And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 8)), (And(v["arg2_dtype"] >= 6, v["arg2_dtype"] <= 8))), False))
+    s.add(Not(Or((And((And(v["arg1_dtype"] >= 7, v["arg1_dtype"] <= 9)), (And(v["arg2_dtype"] >= 7, v["arg2_dtype"] <= 9)))), (And((Or(v["arg1_dtype"] < 7, v["arg1_dtype"] > 9)), (Or(v["arg2_dtype"] < 7, v["arg2_dtype"] > 9)))))) if n else
+          Or((And((And(v["arg1_dtype"] >= 7, v["arg1_dtype"] <= 9)), (And(v["arg2_dtype"] >= 7, v["arg2_dtype"] <= 9)))), (And((Or(v["arg1_dtype"] < 7, v["arg1_dtype"] > 9)), (Or(v["arg2_dtype"] < 7, v["arg2_dtype"] > 9))))))
 )
 
 def rule_55_func(arg1, arg2, solver=None, neg=False):

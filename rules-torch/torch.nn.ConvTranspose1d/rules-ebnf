@@ -1,138 +1,306 @@
 >>
-Rule 1 (in_channels and out_channels must be divisible by groups)
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 % v_3 = 0 ∧ v_2 % v_3 = 0
+Rule 1 (padding_mode must be "zeros")
+{v_1 : str} |= v_1 = "zeros"
 >>
-Rule 7 (in_channels should be greater than zero)
+Rule 2 (in_channels must be greater than 0)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 10 (bias should be boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 5 (in_channels must be divisible by groups)
+{v_1 : int, v_2 : int} |= v_1 % v_2 = 0
 >>
-Rule 11 (kernel_size should be greater than zero - tuple case)
+Rule 8 (Elements of kernel_size must be greater than 0 if it is a tuple)
 {v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 15 (padding should be non-negative - tuple case)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
->>
-Rule 16 (padding should be non-negative - int case)
+Rule 11 (padding must be non-negative if it is an integer)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 37 (Check for valid combinations of dilation and kernel_size)
-{v_1 : int, v_2 : int} |= v_1 * (v_2 - 1) ≥ 0
+Rule 12 (Elements of padding must be non-negative if it is a tuple)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 38 (kernel_size should be greater than zero - int or tuple)
-{v_1 : int ⊎ tuple(int)} |= if v_1.len > 0 then ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0 else v_1 > 0
+Rule 17 (Dilation must be less than or equal to kernel size when kernel size is an int.)
+{v_1 : int, v_2 : int} |= v_1 ≤ v_2
 >>
-Rule 40 (padding should be non-negative - int or tuple)
-{v_1 : int ⊎ tuple(int)} |= if v_1.len > 0 then ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 else v_1 ≥ 0
+Rule 18 (Dilation must be less than or equal to kernel size when kernel size is a tuple.)
+{v_1 : tuple(int), v_2 : tuple(int)} |=  ∀i ∈ [0, v_1.len - 1] : v_1[i] ≤ v_2[i]
 >>
-Rule 48 (kernel_size and stride should have same length if tuples)
-{v_1 : tuple(int), v_2 : tuple(int)} |= v_1.len = v_2.len
+Rule 22 (in_channels and out_channels cannot both be 1 if groups equals in_channels)
+{v_1 : int, v_2 : int, v_3 : int} |= if v_3 = v_1 then (v_1 ≠ 1 ∨ v_2 ≠ 1)
 >>
-Rule 85 (out_channels should be greater than zero)
-{v_2 : int} |= v_2 > 0
+Rule 23 (kernel_size tuple must be a certain length)
+{v_1 : tuple(int)} |= v_1.len = 1
 >>
-Rule 86 (groups should be greater than zero)
-{v_3 : int} |= v_3 > 0
+Rule 28 (groups must be less than or equal to both in_channels and out_channels)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 ≤ v_2 ∧ v_1 ≤ v_3
 >>
-Rule 88 (bias should be boolean)
-{v_4 : bool} |= v_4 = true ∨ v_4 = false
+Rule 29 (If bias is True then out_channels must be positive.)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 > 0
 >>
-Rule 89 (If kernel_size is a tuple, all elements must be greater than zero)
-{v_5 : tuple(int)} |= ∀i ∈ [0, v_5.len - 1] : v_5[i] > 0
+Rule 30 (kernel_size and stride cannot both be 1)
+{v_1 : int, v_2 : int} |= v_1 ≠ 1 ∨ v_2 ≠ 1
 >>
-Rule 90 (If stride is a tuple, all elements must be greater than zero)
-{v_6 : tuple(int)} |= ∀i ∈ [0, v_6.len - 1] : v_6[i] > 0
+Rule 31 (kernel_size and stride cannot both be (1,))
+{v_1 : tuple(int), v_2 : tuple(int)} |= v_1[0] ≠ 1 ∨ v_2[0] ≠ 1
 >>
-Rule 91 (If padding is a tuple, all elements must be non-negative)
-{v_7 : tuple(int)} |= ∀i ∈ [0, v_7.len - 1] : v_7[i] ≥ 0
+Rule 33 (groups must be less than or equal to the minimum of in_channels and out_channels)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 ≤ min(v_2, v_3)
 >>
-Rule 92 (If output_padding is a tuple, all elements must be non-negative)
-{v_8 : tuple(int)} |= ∀i ∈ [0, v_8.len - 1] : v_8[i] ≥ 0
+Rule 34 (kernel_size can only be one value if a single integer is passed)
+{v_1 : int, v_2 : int} |= v_1 = v_2
 >>
-Rule 93 (If dilation is a tuple, all elements must be greater than zero)
-{v_9 : tuple(int)} |= ∀i ∈ [0, v_9.len - 1] : v_9[i] > 0
+Rule 35 (When groups == in_channels, then out_channels must be evenly divisible by groups)
+{v_1 : int, v_2 : int, v_3 : int} |= if v_1 = v_2 then v_3 % v_1 = 0
 >>
-Rule 94 (kernel_size and stride should have same length if both are tuples)
-{v_5 : tuple(int), v_6 : tuple(int)} |= v_5.len = v_6.len
+Rule 40 (in_channels and out_channels must be positive)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
 >>
-Rule 95 (kernel_size and padding should have same length if both are tuples)
-{v_5 : tuple(int), v_7 : tuple(int)} |= v_5.len = v_7.len
+Rule 48 (in_channels, out_channels, and groups must be positive)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 > 0 ∧ v_2 > 0 ∧ v_3 > 0
 >>
-Rule 96 (kernel_size and output_padding should have same length if both are tuples)
-{v_5 : tuple(int), v_8 : tuple(int)} |= v_5.len = v_8.len
+Rule 49 (If groups is greater than 1, then in_channels and out_channels must be divisible by groups)
+{v_1 : int, v_2 : int, v_3 : int} |= if v_1 > 1 then v_2 % v_1 = 0 ∧ v_3 % v_1 = 0
 >>
-Rule 97 (kernel_size and dilation should have same length if both are tuples)
-{v_5 : tuple(int), v_9 : tuple(int)} |= v_5.len = v_9.len
+Rule 51 (If kernel_size is a tuple, then the length of the tuple must be 1 and the element must be positive)
+{v_1 : tuple(int)} |= v_1.len = 1 ∧ v_1[0] > 0
 >>
-Rule 112 (If kernel_size is an int, it must be greater than zero)
-{v_5 : int} |= v_5 > 0
+Rule 53 (If padding is a tuple, then the length of the tuple must be 1 and the element must be non-negative)
+{v_1 : tuple(int)} |= v_1.len = 1 ∧ v_1[0] ≥ 0
 >>
-Rule 113 (If stride is an int, it must be greater than zero)
-{v_6 : int} |= v_6 > 0
+Rule 56 (The product of in_channels and the number of groups must be less or equal to the total number of parameters.)
+{v_1 : int, v_2 : int} |= v_1 * v_2 ≤ 1000000
 >>
-Rule 114 (If padding is an int, it must be non-negative)
-{v_7 : int} |= v_7 ≥ 0
+Rule 57 (When groups is equal to in_channels then the number of out_channels must be positive and less than 1000)
+{v_1 : int, v_2 : int, v_3 : int} |= if v_1 = v_2 then v_3 > 0 ∧ v_3 < 1000
 >>
-Rule 115 (If output_padding is an int, it must be non-negative)
-{v_8 : int} |= v_8 ≥ 0
+Rule 59 (If kernel_size is a tuple, then the length of the tuple must be 1 and the element must be positive and smaller than 100)
+{v_1 : tuple(int)} |= v_1.len = 1 ∧ v_1[0] > 0 ∧ v_1[0] < 100
 >>
-Rule 116 (If dilation is an int, it must be greater than zero)
-{v_9 : int} |= v_9 > 0
+Rule 61 (If padding is a tuple, then the length of the tuple must be 1 and the element must be non-negative and smaller than 100)
+{v_1 : tuple(int)} |= v_1.len = 1 ∧ v_1[0] ≥ 0 ∧ v_1[0] < 100
 >>
-Rule 117 (in_channels should be greater than zero)
-{in_channels : int} |= in_channels > 0
+Rule 64 (in_channels and out_channels cannot be equal if groups equals 1)
+{v_1 : int, v_2 : int, v_3 : int} |= if v_3 = 1 then v_1 ≠ v_2
 >>
-Rule 118 (out_channels should be greater than zero)
-{out_channels : int} |= out_channels > 0
+Rule 65 (The shape of input tensor must match a certain pattern)
+{v_1: tensor} |= ndim(v_1) = 3
 >>
-Rule 119 (groups should be greater than zero)
-{groups : int} |= groups > 0
+Rule 66 (If in_channels and out_channels are equal then bias is True)
+{v_1: int, v_2 : int, v_3: bool} |= if v_1 = v_2 then v_3 = true
 >>
-Rule 120 (in_channels and out_channels must be divisible by groups)
-{in_channels : int, out_channels : int, groups : int} |= in_channels % groups = 0 ∧ out_channels % groups = 0
+Rule 68 (kernel_size and stride should be within a certain range given dilation)
+{v_1: int, v_2: int, v_3: int} |= v_1 + v_2 < 5 * v_3
 >>
-Rule 121 (bias should be boolean)
-{bias : bool} |= bias = true ∨ bias = false
+Rule 70 (the shape of the weights tensor should have certain dimensions)
+{v_1: tensor, v_2: int, v_3: int, v_4: int} |= ndim(v_1) = 3 ∧ shape(v_1, 0) = v_2 ∧ shape(v_1, 1) = v_3 / v_4
 >>
-Rule 122 (If kernel_size is a tuple, all elements must be greater than zero)
-{kernel_size : tuple(int)} |= ∀i ∈ [0, kernel_size.len - 1] : kernel_size[i] > 0
+Rule 71 (If groups is greater than in_channels then it must be equal to in_channels)
+{v_1: int, v_2: int} |= if v_1 > v_2 then v_1 = v_2
 >>
-Rule 123 (If stride is a tuple, all elements must be greater than zero)
-{stride : tuple(int)} |= ∀i ∈ [0, stride.len - 1] : stride[i] > 0
+Rule 73 (Groups must be a power of 2)
+{v_1 : int} |= ∃i ∈ [0, 5] : v_1 = 2 * i
 >>
-Rule 124 (If padding is a tuple, all elements must be non-negative)
-{padding : tuple(int)} |= ∀i ∈ [0, padding.len - 1] : padding[i] ≥ 0
+Rule 75 (If dilation * (kernel_size -1) - padding is negative, a warning will be thrown)
+{v_1 : int, v_2 : int, v_3 : int} |= v_3 * (v_1 - 1) - v_2 ≥ 0
 >>
-Rule 125 (If output_padding is a tuple, all elements must be non-negative)
-{output_padding : tuple(int)} |= ∀i ∈ [0, output_padding.len - 1] : output_padding[i] ≥ 0
+Rule 76 (in_channels, out_channels and groups should be less than 2048)
+{v_1: int, v_2: int, v_3: int} |= v_1 < 2048 ∧ v_2 < 2048 ∧ v_3 < 2048
 >>
-Rule 126 (If dilation is a tuple, all elements must be greater than zero)
-{dilation : tuple(int)} |= ∀i ∈ [0, dilation.len - 1] : dilation[i] > 0
+Rule 77 (if in_channels, kernel_size and groups are 1 then stride and dilation should not be equal to 1)
+{v_1: int, v_2: int, v_3: int, v_4: int, v_5: int} |= if v_1 = 1 ∧ v_2 = 1 ∧ v_3 = 1 then v_4 ≠ 1 ∨ v_5 ≠ 1
 >>
-Rule 127 (kernel_size and stride should have same length if both are tuples)
-{kernel_size : tuple(int), stride : tuple(int)} |= kernel_size.len = stride.len
+Rule 78 (the number of input channels multiplied by kernel size must be less than 10000)
+{v_1: int, v_2: int} |= v_1 * v_2 < 10000
 >>
-Rule 128 (kernel_size and padding should have same length if both are tuples)
-{kernel_size : tuple(int), padding : tuple(int)} |= kernel_size.len = padding.len
+Rule 79 (if bias is False out_channels can be equal to 1)
+{v_1 : bool, v_2 : int} |= if v_1 = false then v_2 ≥ 1
 >>
-Rule 129 (kernel_size and output_padding should have same length if both are tuples)
-{kernel_size : tuple(int), output_padding : tuple(int)} |= kernel_size.len = output_padding.len
+Rule 80 (in_channels, out_channels, groups, kernel_size, stride, padding, output_padding and dilation cannot be zero)
+{v_1: int, v_2: int, v_3: int, v_4: int, v_5: int, v_6: int, v_7: int, v_8: int} |= v_1 ≠ 0 ∧ v_2 ≠ 0 ∧ v_3 ≠ 0 ∧ v_4 ≠ 0 ∧ v_5 ≠ 0 ∧ v_6 ≠ 0 ∧ v_7 ≠ 0 ∧ v_8 ≠ 0
 >>
-Rule 130 (kernel_size and dilation should have same length if both are tuples)
-{kernel_size : tuple(int), dilation : tuple(int)} |= kernel_size.len = dilation.len
+Rule 81 (if the input has only one channel, the out_channels has to be 1)
+{v_1: tensor, v_2: int} |= if shape(v_1, 1) = 1 then v_2 = 1
 >>
-Rule 131 (If kernel_size is an int, it must be greater than zero)
-{kernel_size : int} |= kernel_size > 0
+Rule 82 (the weight tensor should have the right number of dimensions)
+{v_1: tensor, v_2: int, v_3: int, v_4: int} |= ndim(v_1) = 3 ∧ shape(v_1, 0) = v_2 ∧ shape(v_1, 1) * v_4 = v_3
 >>
-Rule 132 (If stride is an int, it must be greater than zero)
-{stride : int} |= stride > 0
+Rule 83 (if bias is True, the number of bias elements should match out_channels)
+{v_1: bool, v_2: tensor, v_3: int} |= if v_1 = true then shape(v_2, 0) = v_3
 >>
-Rule 133 (If padding is an int, it must be non-negative)
-{padding : int} |= padding ≥ 0
+Rule 84 (if the input tensor has batch dimension, batchnorm1d should be applied after)
+{v_1: tensor} |= ndim(v_1) < 4
 >>
-Rule 134 (If output_padding is an int, it must be non-negative)
-{output_padding : int} |= output_padding ≥ 0
+Rule 85 (out_channels should be smaller or equal to in_channels)
+{v_1: int, v_2: int} |= v_2 ≤ v_1
 >>
-Rule 135 (If dilation is an int, it must be greater than zero)
-{dilation : int} |= dilation > 0
+Rule 86 (If groups > 1 then dilation must be 1)
+{v_1 : int, v_2 : int} |= if v_1 > 1 then v_2 = 1
+>>
+Rule 87 (If kernel_size > 1 then padding should be greater than 0)
+{v_1: int, v_2: int} |= if v_1 > 1 then v_2 ≥ 0
+>>
+Rule 88 (If the length of input is 0 then in_channels has to be 0 as well)
+{v_1: tensor, v_2: int} |= if shape(v_1, 2) = 0 then v_2 = 0
+>>
+Rule 90 (The number of groups multiplied by kernel_size should be less than the number of input channels)
+{v_1: int, v_2: int, v_3: int} |= v_1 * v_2 ≤ v_3
+>>
+Rule 91 (The kernel size must not exceed the input length)
+{v_1: int, v_2: tensor} |= v_1 < shape(v_2, 2)
+>>
+Rule 93 (If dilation > 1 then padding must be less than kernel_size)
+{v_1: int, v_2: int, v_3: int} |= if v_1 > 1 then v_2 < v_3
+>>
+Rule 94 (If the input tensor has a certain number of channels the output tensor must have the same)
+{v_1: tensor, v_2: tensor} |= shape(v_1, 1) = shape(v_2, 1)
+>>
+Rule 95 (The dtype cannot be string)
+{v_1: dtype} |= v_1 ≠ 11
+>>
+Rule 96 (The sum of padding and output_padding must be smaller than stride times kernel_size)
+{v_1: int, v_2: int, v_3: int, v_4: int} |= v_1 + v_2 < v_3 * v_4
+>>
+Rule 97 (If the data type is bool then bias has to be false)
+{v_1 : dtype, v_2 : bool} |= if v_1 = 0 then v_2 = false
+>>
+Rule 103 (in_channels and out_channels should not exceed the size of the input)
+{v_1: int, v_2: int, v_3: tensor} |= v_1 < shape(v_3, 1) ∧ v_2 < shape(v_3, 1)
+>>
+Rule 105 (If the input tensor has a certain number of channels the weight tensor must be appropriate)
+{v_1: tensor, v_2: tensor, v_3: int, v_4: int} |= shape(v_1, 1) = shape(v_2, 0) * v_4 / v_3
+>>
+Rule 106 (The data type cannot be string and bool)
+{v_1: dtype} |= v_1 ≠ 0 ∧ v_1 ≠ 11
+>>
+Rule 108 (When groups is greater than 1, dilation has to be 1)
+{v_1: int, v_2: int} |= if v_1 > 1 then v_2 = 1
+>>
+Rule 110 (If bias is False then out_channels can be 1)
+{v_1 : bool, v_2 : int} |= if v_1 = false then v_2 = 1
+>>
+Rule 112 (If in_channels != out_channels, groups has to be 1)
+{v_1: int, v_2: int, v_3: int} |= if v_1 ≠ v_2 then v_3 = 1
+>>
+Rule 114 (if the input is a tuple then it should respect a certain length)
+{v_1: tuple(int)} |= v_1.len = 3
+>>
+Rule 115 (If the in_channels is greater or equal than 3 then groups must be 1)
+{v_1: int, v_2: int} |= if v_1 ≥ 3 then v_2 = 1
+>>
+Rule 121 (The value of dilation must be greater or equal to 1)
+{v_1: int} |= v_1 ≥ 1
+>>
+Rule 122 (Groups must be a divisor of both in_channels and out_channels)
+{v_1: int, v_2: int, v_3: int} |= v_2 % v_1 = 0 ∧ v_3 % v_1 = 0
+>>
+Rule 123 (Kernel_size, stride, padding, output_padding and dilation must be positive)
+{v_1: int, v_2: int, v_3: int, v_4: int, v_5: int} |= v_1 > 0 ∧ v_2 > 0 ∧ v_3 ≥ 0 ∧ v_4 ≥ 0 ∧ v_5 > 0
+>>
+Rule 124 (if kernel size is greater than 1, padding should be less than dilation times kernel_size.)
+{v_1: int, v_2: int, v_3: int} |= if v_1 > 1 then v_2 < v_3 * v_1
+>>
+Rule 125 (if padding mode is not specified it defaults to zero)
+{v_1: str} |= v_1 = "zeros"
+>>
+Rule 126 (The input must have at least 3 dimensions if groups > 1)
+{v_1: tensor, v_2: int} |= if v_2 > 1 then ndim(v_1) ≥ 3
+>>
+Rule 132 (bias should be boolean)
+{v_1: bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 133 (bias should be boolean and groups should be a valid value)
+{v_1: bool, v_2: int} |= (v_1 = true ∨ v_1 = false) ∧ (v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 4 ∨ v_2 = 8)
+>>
+Rule 134 (kernel size must be smaller or equal to stride when groups equals 1)
+{v_1: int, v_2: int, v_3: int} |= if v_3 = 1 then v_1 ≤ v_2
+>>
+Rule 135 (When groups is different of one dilation must be different of 1)
+{v_1: int, v_2: int} |= if v_1 ≠ 1 then v_2 ≠ 1
+>>
+Rule 136 (Padding times 2 has to be smaller than input length)
+{v_1: int, v_2: tensor} |= 2 * v_1 < shape(v_2,2)
+>>
+Rule 137 (When the kernel_size is greater than 1 the padding must be different than zero)
+{v_1: int, v_2: int} |= if v_1 > 1 then v_2 > 0
+>>
+Rule 138 (The number of groups should be a factor of the product between in_channels and kernel_size)
+{v_1: int, v_2: int, v_3: int} |= (v_2*v_3) % v_1 = 0
+>>
+Rule 140 (The output size has to be greater than the kernel size)
+{v_1: tensor, v_2: int} |= shape(v_1,2) > v_2
+>>
+Rule 141 (Output_padding must be smaller than stride)
+{v_1: int, v_2: int} |= v_1 < v_2
+>>
+Rule 142 (The multiplication between the in_channels and out_channels must be smaller than 100000)
+{v_1: int, v_2: int} |= v_1 * v_2 < 100000
+>>
+Rule 143 (if bias is True then the input must be of type float)
+{v_1: bool, v_2: dtype} |= if v_1 = true then v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8
+>>
+Rule 144 (Groups must be a divisor of the product between in_channels and kernel_size, and has to be less than in_channels and out_channels)
+{v_1: int, v_2: int, v_3: int} |= (v_2*v_3) % v_1 = 0 ∧ v_1 ≤ v_2 ∧ v_1 ≤ v_3
+>>
+Rule 149 (kernel_size should not be greater than the input)
+{v_1: int, v_2: tensor} |= v_1 < shape(v_2,2)
+>>
+Rule 152 (Output_padding must be smaller than stride and smaller than 32)
+{v_1: int, v_2: int} |= v_1 < v_2 ∧ v_1 < 32
+>>
+Rule 153 (If bias is True, then dtype must be a float or complex type)
+{v_1: bool, v_2: dtype} |= if v_1 = true then (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10)
+>>
+Rule 155 (kernel size must not be zero)
+{v_1: int} |= v_1 ≠ 0
+>>
+Rule 156 (In channels must be smaller than the input’s second dimension)
+{v_1: tensor, v_2: int} |= shape(v_1, 1) > v_2
+>>
+Rule 158 (If the kernel size is 1 the dilation must be one)
+{v_1: int, v_2: int} |= if v_1 = 1 then v_2 = 1
+>>
+Rule 159 (If output_padding is given stride also has to be passed)
+{v_1: int, v_2: int} |= v_1 ≥ 0 ∧ v_2 > 0
+>>
+Rule 160 (output_padding needs to be non negative)
+{v_1: int} |= v_1 ≥ 0
+>>
+Rule 161 (kernel_size should not be greater than the input’s last dimension minus 1)
+{v_1: int, v_2: tensor} |= v_1 ≤ shape(v_2,2)
+>>
+Rule 165 (groups should be greater than zero and it cannot be a float)
+{v_1: int ⊎ float} |= v_1 > 0 ∧ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 11
+>>
+Rule 166 (In channels must be smaller than the input’s second dimension if in_channels > 0)
+{v_1: tensor, v_2: int} |= if v_2 > 0 then shape(v_1, 1) > v_2
+>>
+Rule 167 (If the kernel size is 1 the dilation must be one and padding should be less than 1)
+{v_1: int, v_2: int, v_3: int} |= if v_1 = 1 then v_2 = 1 ∧ v_3 < 1
+>>
+Rule 168 (If output_padding is given stride also has to be passed and needs to be different than 0)
+{v_1: int, v_2: int} |= if v_1 > 0 then v_2 > 0
+>>
+Rule 169 (padding cannot be a string)
+{v_1: str} |= v_1 ≠ "reflect" ∧ v_1 ≠ "replicate" ∧ v_1 ≠ "circular" ∧ v_1 ≠ "zeros"
+>>
+Rule 172 (kernel size must be greater than zero)
+{v_1: int} |= v_1 > 0
+>>
+Rule 173 (If output_padding is given stride also has to be passed and needs to be different than 0)
+{v_1: int, v_2: int} |= if v_1 ≥ 0 then v_2 > 0
+>>
+Rule 175 (If bias is False, the output channels can be anything)
+{v_1: bool, v_2: int} |= if v_1 = false then v_2 > 0
+>>
+Rule 176 (The stride must be smaller than the input lenght)
+{v_1: tensor, v_2: int} |= v_2 < shape(v_1, 2)
+>>
+Rule 177 (If the in_channels or out_channels are zero dilation must be 1)
+{v_1: int, v_2: int, v_3: int} |= if v_1 = 0 ∨ v_2 = 0 then v_3 = 1
+>>
+Rule 179 (If output_padding is given stride also has to be passed and needs to be greater or equal to 1)
+{v_1: int, v_2: int} |= if v_1 ≥ 0 then v_2 ≥ 1
+>>
+Rule 180 (When bias is false, the bias tensor is not required)
+{v_1: bool, v_2: tensor} |= if v_1 = true then ndim(v_2) > 0
+>>
+Rule 182 (When groups is different than 1, kernel_size has to be 1)
+{v_1: int, v_2: int} |= if v_1 ≠ 1 then v_2 = 1

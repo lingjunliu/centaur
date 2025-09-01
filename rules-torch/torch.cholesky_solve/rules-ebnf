@@ -5,173 +5,56 @@ Rule 1 (B should have at least 2 dimensions)
 Rule 2 (B and L should have the same dtype)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 3 (out must be a tensor)
-{v_1 : tensor ⊎ int ⊎ float ⊎ bool ⊎ dtype ⊎ str ⊎ list(tensor) ⊎ tuple(tensor)} |= if v_1 = none then true else (if dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 12 then true else false)
+Rule 3 (out must be a Tensor or None, checked in python, this one is more about if it is a Tensor)
+{v_4 : tensor} |= ndim(v_4) ≥ 0
 >>
-Rule 4 (L must be batches of square matrices, ensuring at least two dimensions and equal dimensions in the last two)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
+Rule 4 (L must be batches of square matrices)
+{v_2 : tensor} |= ndim(v_2) ≥ 2 ∧ shape(v_2, ndim(v_2) - 1) = shape(v_2, ndim(v_2) - 2)
 >>
-Rule 5 (Output tensor dtype should be compatible with B and L)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 = none then true else (dtype_(v_3) = dtype_(v_1) ∨ dtype_(v_3) = dtype_(v_2))
+Rule 5 (result should be safely castable to ComplexDouble dtype, ensuring no loss of precision)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = "float64") ∨ (dtype_(v_1) = "complex128") ∨ (dtype_(v_2) = "float64") ∨ (dtype_(v_2) = "complex128")
 >>
-Rule 6 (Shape compatibility between B and L)
+Rule 6 (Dimensions of B and L tensors should be compatible for matrix multiplication)
 {v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 1)
 >>
-Rule 10 (out must be a tensor)
-{v_1 : tensor ⊎ int ⊎ float ⊎ bool ⊎ dtype ⊎ str ⊎ list(tensor) ⊎ tuple(tensor)} |= if v_1 = "none" then true else (dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 12)
+Rule 8 (B and L should have the same dtype and the dtype must be float or complex)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128")
 >>
-Rule 12 (Output tensor dtype should be compatible with B and L)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 = "none" then true else (dtype_(v_3) = dtype_(v_1) ∨ dtype_(v_3) = dtype_(v_2))
+Rule 14 (If out is provided, its dtype must be safely castable from the input dtype)
+{v_1 : tensor, v_4 : tensor} |= if ndim(v_4) > 0 then (dtype_(v_1) = "float32" ∧ dtype_(v_4) = "float32") ∨ (dtype_(v_1) = "float64" ∧ dtype_(v_4) = "float64") ∨ (dtype_(v_1) = "complex64" ∧ dtype_(v_4) = "complex64") ∨ (dtype_(v_1) = "complex128" ∧ dtype_(v_4) = "complex128")
 >>
-Rule 19 (if out is specified, its dtype must match that of B)
-{v_1 : tensor, v_2 : tensor} |= if v_1 = "none" then true else dtype_(v_1) = dtype_(v_2)
+Rule 15 (L must be a batch of square matrices.)
+{v_2 : tensor} |= ndim(v_2) ≥ 2 ∧ shape(v_2, ndim(v_2) - 2) = shape(v_2, ndim(v_2) - 1)
 >>
-Rule 20 (Number of dimensions should agree if both are greater than 2)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 2 ∧ ndim(v_2) > 2 then ndim(v_1) = ndim(v_2)
+Rule 18 (If out is provided, its dtype must be safely castable from the input dtype and out's ndim should be same as B)
+{v_1 : tensor, v_4 : tensor} |= if ndim(v_4) > 0 then (dtype_(v_4) = dtype_(v_1)) ∧ ndim(v_4) = ndim(v_1)
 >>
-Rule 25 (If out is specified, it must be a tensor)
-{v_1 : tensor ⊎ str} |= if v_1 = "none" then true else (if dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 12 then true else false)
+Rule 20 (The last two dimensions of L must be the same size)
+{v_2 : tensor} |= shape(v_2, ndim(v_2) - 2) = shape(v_2, ndim(v_2) - 1)
 >>
-Rule 26 (L must be square in its last two dimensions)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
+Rule 23 (If out is provided, its dtype must be safely castable from the input dtype and out's ndim should be same as B, and B's shape should match out's shape)
+{v_1 : tensor, v_4 : tensor} |= if ndim(v_4) > 0 then (dtype_(v_4) = dtype_(v_1)) ∧ ndim(v_4) = ndim(v_1) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_4, i))
 >>
-Rule 34 (If out is specified, it must be a tensor or string "none")
-{v_1 : str ⊎ tensor} |= v_1 = "none" ∨ (dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 12)
+Rule 74 (L must be a batch of square matrices, the last two dimensions must be equal and greater than zero)
+{v_2 : tensor} |= ndim(v_2) ≥ 2 ∧ shape(v_2, ndim(v_2) - 2) = shape(v_2, ndim(v_2) - 1) ∧ shape(v_2, ndim(v_2) - 2) > 0 ∧ shape(v_2, ndim(v_2) - 1) > 0
 >>
-Rule 36 (If out is specified, its dtype must be the same as B)
-{v_1 : tensor, v_2 : str ⊎ tensor} |= if v_2 = "none" then true else dtype_(v_1) = dtype_(v_2)
+Rule 78 (If out is provided, its dtype must be safely castable from the input dtype and out's ndim should be same as B, and B's shape should match out's shape. Furthermore, if out is given, it should have at least 2 dimensions)
+{v_1 : tensor, v_4 : tensor} |= if ndim(v_4) > 0 then (dtype_(v_4) = dtype_(v_1)) ∧ ndim(v_4) = ndim(v_1) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_4, i)) ∧ ndim(v_4) >= 2
 >>
-Rule 38 (B must be of floating point or complex type)
-{v_1 : tensor} |= dtype_(v_1) > 6
+Rule 83 (If out is provided, its dtype must be safely castable from the input dtype and out's ndim should be same as B, and B's shape should match out's shape. Furthermore, if out is given, it should have at least 2 dimensions)
+{v_1 : tensor, v_4 : tensor} |= if ndim(v_4) > 0 then (dtype_(v_4) = dtype_(v_1)) ∧ ndim(v_4) = ndim(v_1) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_4, i)) ∧ ndim(v_4) ≥ 2
 >>
-Rule 40 (Upper must be a boolean value)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 84 (L must be a batch of square matrices, the last two dimensions must be equal and L cannot be empty)
+{v_2 : tensor} |= ndim(v_2) ≥ 2 ∧ shape(v_2, ndim(v_2) - 2) = shape(v_2, ndim(v_2) - 1) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
 >>
-Rule 41 (Both B and L must have at least two dimensions)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2
+Rule 85 (If B and L have more than 2 dimensions, the batch dimensions must match and the last dimension but one of B must match the last dimension of L)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 1 then shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 1)
 >>
-Rule 45 (B and L must be of floating point or complex type)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) > 6 ∧ dtype_(v_2) > 6
+Rule 98 (If out is provided, its dtype must be safely castable from the input dtype and out's ndim should be same as B, and B's shape should match out's shape and L's shape, it also should have at least 2 dimensions if it is provided)
+{v_1 : tensor, v_2 : tensor, v_4 : tensor} |= if ndim(v_4) > 0 then (dtype_(v_4) = dtype_(v_1)) ∧ ndim(v_4) = ndim(v_1) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_4, i)) ∧ ndim(v_4) >= 2 ∧ (∀i ∈ [0, ndim(v_2)-1] : shape(v_2,i) = shape(v_4,i))
 >>
-Rule 48 (If out is specified, its valid tensor)
-{v_1 : str ⊎ tensor} |= if v_1 = "none" then true else (dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 12)
+Rule 100 (The last two dimensions should have same shape and B's second to last dimension must equal L's last dimension)
+{v_1 : tensor, v_2 : tensor} |= shape(v_2, ndim(v_2) - 2) = shape(v_2, ndim(v_2) - 1) ∧ shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 1)
 >>
-Rule 56 (If L is not a square matrix, its rows must be larger than columns)
-{v_1 : tensor} |= if shape(v_1, ndim(v_1) - 1) ≠ shape(v_1, ndim(v_1) - 2) then shape(v_1, ndim(v_1) - 2) > shape(v_1, ndim(v_1) - 1)
->>
-Rule 57 (B must have at least 2 dimensions)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
->>
-Rule 59 (The column dimension of B must be greater than 0)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) -1 ) ≥ 0
->>
-Rule 60 (L must be of floating point or complex type)
-{v_1 : tensor} |= dtype_(v_1) ≥ 0
->>
-Rule 63 (if `out` is not none, it must be of type tensor)
-{v_1 : str ⊎ tensor} |= if v_1 = "none" then true
->>
-Rule 64 (The row dimension of L must be greater than 0)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 2) ≥ 0
->>
-Rule 73 (B must have at least 2 dimensions)
-{v_1 : tensor} |= ndim(v_1) > 1
->>
-Rule 74 (L must have at least 2 dimensions)
-{v_2 : tensor} |= ndim(v_2) > 1
->>
-Rule 75 (The column dimension of B must be greater than 0)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) -1 ) > 0
->>
-Rule 76 (L must be of floating point or complex type)
-{v_2 : tensor} |= dtype_(v_2) > 6
->>
-Rule 78 (Upper must be a boolean value, either True or False)
-{v_3 : bool} |= v_3 = true ∨ v_3 = false
->>
-Rule 79 (if `out` is not none, it must be of type tensor or string)
-{v_4 : str ⊎ tensor} |= v_4 = "none" ∨ dtype_(v_4) ≥ 0
->>
-Rule 80 (The row dimension of L must be greater than 0)
-{v_2 : tensor} |= shape(v_2, ndim(v_2) - 2) > 0
->>
-Rule 85 (B must be of floating point or complex type, and more than one dimension)
-{v_1 : tensor} |= dtype_(v_1) > 6 ∧ ndim(v_1) > 1
->>
-Rule 89 (B and L must have at least 2 dimensions)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 1 ∧ ndim(v_2) > 1
->>
-Rule 90 (L must be of floating point or complex type, and The column dimension of B must be greater than 0)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_2) > 6 ∧ shape(v_1, ndim(v_1) -1 ) > 0
->>
-Rule 91 (B must be of floating point or complex type, and the last dimension must be greater than 0)
-{v_1 : tensor} |= dtype_(v_1) > 6 ∧ shape(v_1, ndim(v_1) - 1) > 0
->>
-Rule 92 (Upper must be a boolean value, and the ndim must be at least 1)
-{v_1 : bool, v_2 : tensor} |= (v_1 = true ∨ v_1 = false) ∧ ndim(v_2) > 0
->>
-Rule 93 (if `out` is not none, it must be of type tensor or string and dtype must be above zero)
-{v_1 : str ⊎ tensor} |= v_1 = "none" ∨ dtype_(v_1) > 0
->>
-Rule 94 (The row dimension of L must be greater than the column dimension)
-{v_2 : tensor} |= shape(v_2, ndim(v_2) - 2) > shape(v_2, ndim(v_2) - 1)
->>
-Rule 95 (The type should be either a float or int)
-{v_1 : tensor} |= dtype_(v_1) < 9
->>
-Rule 96 (The number of dimensions of B and L are equal)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
->>
-Rule 97 (If L is a 3D tensor, its first dimension must be greater than 1)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) > 1
->>
-Rule 98 (If B is a 4D tensor, its second dimension must be less than 100)
-{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 1) < 100
->>
-Rule 99 (Dtype of B must be less than 11)
-{v_1 : tensor} |= dtype_(v_1) < 11
->>
-Rule 100 (If upper is true, then the number of dimensions of L is more than 1)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then ndim(v_2) > 1
->>
-Rule 101 (If out is specified, then ndim of B must be greater than 2)
-{v_1 : str ⊎ tensor, v_2 : tensor} |= if v_1 ≠ "none" then ndim(v_2) > 2
->>
-Rule 102 (The product of the last two dimensions of L must be positive)
-{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) * shape(v_1, ndim(v_1) - 2) > 0
->>
-Rule 104 (L must be a square matrix)
-{v_1 : tensor} |= shape(v_1, ndim(v_1)-1) = shape(v_1, ndim(v_1)-2)
->>
-Rule 105 (Both dtypes must be floating point)
-{v_1: tensor, v_2: tensor} |= dtype_(v_1) = 7 ∧ dtype_(v_2) = 7
->>
-Rule 106 (L must have at least 2 dimensions, and B must have matching column dimension)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) > 1 ∧ shape(v_1, ndim(v_1)-2) = shape(v_2, ndim(v_2)-1)
->>
-Rule 107 (Out must be either "none" string or a dtype equal to B)
-{v_1: str ⊎ tensor, v_2: tensor} |= v_1 = "none" ∨ dtype_(v_1) = dtype_(v_2)
->>
-Rule 108 (The dimension must not be greater than a value)
-{v_1 : tensor} |= ndim(v_1) < 5
->>
-Rule 109 (if L is a 3D tensor the first dimension must be greater than 0)
-{v_1: tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) > 0
->>
-Rule 111 (L must be a square matrix)
-{v_2 : tensor} |= shape(v_2, ndim(v_2)-1) = shape(v_2, ndim(v_2)-2)
->>
-Rule 114 (Out must be either "none" string or a dtype equal to B)
-{v_1: str ⊎ tensor, v_2: tensor} |= v_1 = "none" ∨ dtype_(v_2) = dtype_(v_1)
->>
-Rule 117 (B must have at least 2 dimensions, and max of B must be above 0)
-{v_1 : tensor} |= ndim(v_1) > 1 ∧ max(v_1) > 0
->>
-Rule 118 (L must be a square matrix and has more than 2 columns)
-{v_2 : tensor} |= shape(v_2, ndim(v_2)-1) = shape(v_2, ndim(v_2)-2) ∧ shape(v_2, ndim(v_2) - 1) > 2
->>
-Rule 119 (if out is not specified, the minimum value must be greater than 1)
-{v_1: str ⊎ tensor, v_2 : tensor} |= if v_1 = "none" then min(v_2) > 1
->>
-Rule 122 (if `out` is not none, it must be of type tensor or string and shape must have more than 0)
-{v_4 : str ⊎ tensor, v_2:tensor} |= if v_4 = "none" then true else shape(v_2, 0) > 0
+Rule 108 (If out is provided, its dtype must be safely castable from the input dtype and out's ndim should be same as B and it also should have at least 2 dimensions if it is provided and all dimensions should be positive)
+{v_1 : tensor, v_4 : tensor} |= if ndim(v_4) > 0 then (dtype_(v_4) = dtype_(v_1)) ∧ ndim(v_4) = ndim(v_1) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_4, i)) ∧ ndim(v_4) ≥ 2 ∧ (∀i ∈ [0, ndim(v_4) - 1]: shape(v_4,i) > 0)

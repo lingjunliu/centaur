@@ -1,102 +1,111 @@
 >>
-Rule 2 (input tensor dtype cannot be char to avoid RuntimeError)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11
->>
-Rule 3 (input tensor dtype cannot be bool to avoid RuntimeError)
+Rule 2 (Input tensor should not be of boolean type to avoid negation errors)
 {v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 5 (dim should be within the valid range of dimensions of the input tensor)
+Rule 3 (Input tensor should be of floating point or integer type to prevent errors with character tensors)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 4 (Dimension should be within the valid range of the input tensor's dimensions)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+>>
+Rule 9 (The dimension should not be equal to the number of dimensions of tensor, which will result in error.)
+{v_1 : tensor, v_2 : int} |= v_2 ≠ ndim(v_1)
+>>
+Rule 13 (Dimension must be less than the number of dimensions of tensor.)
+{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
+>>
+Rule 16 (Dimension must be within range of input tensor's dimensions)
 {v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
 >>
-Rule 9 (input tensor dtype must be a floating point or complex type)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 18 (Softmin dimension should not exceed the number of dimension.)
+{v_1 : tensor, v_2 : int} |= (v_2 < ndim(v_1)) ∨ (v_2 > (0 - ndim(v_1) -1))
 >>
-Rule 13 (input tensor should have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 22 (Restricting the dimension value to not be out of range.)
+{v_1 : tensor, v_2 : int} |= v_2 > (0 - ndim(v_1) - 1) ∧ (v_2 < ndim(v_1))
 >>
-Rule 14 (dim should be within the valid range of dimensions of the input tensor and input tensor has at least one dimension)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) > 0 ∧ (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
+Rule 24 (Enforce the input tensor to be float or integer)
+{v_1 : tensor} |= (dtype_(v_1) > 0 ∧ dtype_(v_1) < 9)
 >>
-Rule 20 (if input tensor is boolean, then apply logical_not or ~ instead of `-`)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then false
+Rule 28 (Softmin dimension must be valid)
+{v_1 : tensor, v_2 : int} |= (v_2 ≥ (0 - ndim(v_1))) ∧ (v_2 < ndim(v_1))
 >>
-Rule 26 (if input tensor is boolean, then perform only allowed operations)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then min(v_1) = 0 ∨ max(v_1) = 1
+Rule 30 (The dtype of input tensor should not be bool or string)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 11
 >>
-Rule 40 (Input tensor must have floating point type)
+Rule 34 (Dimension cannot be out of range. Specifically prevent the case equal to negative number of dimensions minus one)
+{v_1 : tensor, v_2 : int} |= v_2 > (0 - ndim(v_1) - 1)
+>>
+Rule 38 (Dimension must not be less than negative number of dimensions)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1))
+>>
+Rule 40 (Input tensor should have a floating-point dtype)
 {v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 43 (If the input tensor is boolean, then prevent negation by ensuring it's only used for comparisons)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = 0) ∨ (min(v_1) = 0 ∧ max(v_1) = 1)
+Rule 43 (Dimension must be a valid dimension of input tensor. Also, if tensor has no dimension then dimension must be zero.)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then v_2 = 0 else (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1))
 >>
-Rule 46 (If the input tensor is boolean, its elements can only be 0 or 1 and the tensor should be at least one-dimensional)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then (ndim(v_1) > 0 ∧ min(v_1) = 0 ∧ max(v_1) = 1)
+Rule 44 (The dimension value cannot exceed the range of valid tensor dimensions. This covers cases when ndim =0)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then v_2 < ndim(v_1) else v_2=0
 >>
-Rule 49 (If the input tensor is boolean, its elements can only be 0 or 1 and using subtraction will cause error)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then (min(v_1) = 0 ∧ max(v_1) = 1)
+Rule 45 (The tensor should be float or integer)
+{v_1: tensor} |= (dtype_(v_1) > 0 ∧ dtype_(v_1) < 9)
 >>
-Rule 52 (If the input tensor v_1 is of boolean type, ensure that it is only used for boolean operations and not negated directly with '-')
-{v_1 : tensor} |= if dtype_(v_1) = 0 then ∃i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = 0) ∨ (min(v_1) = 0 ∧ max(v_1) = 1)
+Rule 50 (Prevent dimension that out of range)
+{v_1 : tensor, v_2 : int} |= (v_2 > (0 - ndim(v_1) -1)) ∨ ndim(v_1) = 0
 >>
-Rule 55 (To prevent RuntimeError with boolean tensors and the negation operator, either the tensor is empty, or its min and max values must be 0 and 1)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then (∃i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = 0)) ∨ (min(v_1) = 0 ∧ max(v_1) = 1)
+Rule 59 (The dimension value must be between -ndim and ndim-1. Handle -ndim case.)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then v_2 ≥ (0 - ndim(v_1))
 >>
-Rule 58 (To prevent RuntimeError when negating boolean tensors, ensure the boolean tensor either represents an empty tensor or a mask)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then ∃i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = 0) ∨ (min(v_1) ≥ 0 ∧ max(v_1) ≤ 1)
+Rule 64 (Ensure correct dimensions. Not Boolean Dtype, nor string/char dtype.)
+{v_1 : tensor} |= dtype_(v_1) > 0 ∧ dtype_(v_1) < 11
 >>
-Rule 61 (If the input tensor is boolean, it must either be empty or represent a boolean mask to prevent errors from direct negation)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then (∃i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = 0)) ∨ (∀i ∈ [0, ndim(v_1) - 1] : (v_1[i] = true ∨ v_1[i] = false))
+Rule 65 (Softmin should not accept boolean tensors to avoid negation)
+{v_1: tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 66 (To avoid IndexError, the 'dim' must correspond to an existing dimension in a non-empty tensor)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) > 0 ∧ (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1))
+Rule 74 (The tensor should be of float or int type)
+{v_1: tensor} |= (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) ∨ (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)
 >>
-Rule 68 (Boolean tensors must either have a shape with at least one dimension of size zero, or be exclusively composed of valid boolean values to avoid RuntimeError with negation, and a different dtype.)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (min(v_1) ≥ 0 ∧ max(v_1) ≤ 1)
+Rule 79 (The tensor must have float or int type, checking for all specific dtypes with the dtype_ function.)
+{v_1: tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 69 (The input tensor must be of a numerical (integer, float, or complex) dtype to ensure compatibility.)
-{v_1 : tensor} |= 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 10
+Rule 83 (Prevent character tensor input)
+{v_1 : tensor} |= dtype_(v_1) < 11
 >>
-Rule 70 (To prevent an IndexError, the 'dim' parameter should be a valid index for the tensor and the tensor needs at least one dimension)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) > 0 ∧ (0 - ndim(v_1) <= v_2 ∧ v_2 < ndim(v_1))
+Rule 84 (Prevent boolean tensor and ensure int or float tensor type.)
+{v_1 : tensor} |= dtype_(v_1) > 0
 >>
-Rule 72 (For safety and to avoid issues related to bool tensor negations, boolean tensors should *only* represent either completely empty shapes or valid masks consisting of only True/False values, using floating types or complex numbers when actual negation is desired.)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (min(v_1) = 0 ∧ max(v_1) = 1)
+Rule 89 (Softmin should not accept boolean tensors (dtype 0) nor String tensors (dtype 11). To prevent different runtime errors)
+{v_1: tensor} |= dtype_(v_1) > 0 ∧ dtype_(v_1) < 11
 >>
-Rule 73 (The input tensor should be one of the supported datatypes to avoid errors during Softmin calculation. Supported datatypes are Integer, Float and Complex numbers.)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 93 (dimension should be valid to prevent out of bound error)
+{v_1: tensor, v_2:int} |= (v_2 ≥ (0 - ndim(v_1))) ∧ (v_2 < ndim(v_1))
 >>
-Rule 74 (For any tensor input, to prevent an "IndexError: Dimension out of range" when 'dim' is provided, ensure that it is both specified within the permissible range for *this specific tensor* *and* that the tensor possesses a positive number of dimensions.)
-{v_1 : tensor, v_2 : int} |= (ndim(v_1) > 0 ∧ (0 - ndim(v_1) <= v_2 ∧ v_2 < ndim(v_1)))
+Rule 94 (Tensor should have int or float, to avoid boolean negation errors, and char not implemented)
+{v_1 : tensor} |= (dtype_(v_1) > 0) ∧ (dtype_(v_1) < 11)
 >>
-Rule 78 (To prevent "IndexError: Dimension out of range," guarantee that the specified dimension v_2 has a valid value given the input tensor v_1, considering both positive and negative indexing conventions)
-{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1) ∧ ndim(v_1) > 0
+Rule 98 (Dtype validity check)
+{v_1: tensor} |= dtype_(v_1) > 0 ∧ dtype_(v_1) < 9
 >>
-Rule 80 (To allow bool tensors but to prevent runtime errors due to the negation operator, boolean-typed tensors must be used as valid boolean masks - either as an empty tensor or containing solely '0' and '1' - avoid mathematical ops.)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∀x ∈ [0, shape(v_1,0) -1] : v_1[x] = false ∨ v_1[x] = true)
+Rule 109 (Should only allow dtypes that are numbers)
+{v_1 : tensor} |= dtype_(v_1) > 0 ∧ dtype_(v_1) < 9
 >>
-Rule 83 (For safe tensor manipulation, dim (v_2) must indicate an axis present in v_1)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) > 0 ∧ (0 - ndim(v_1) ≤ v_2 ∧ v_2 < ndim(v_1))
+Rule 113 (Input type must not be bool or string, more consise rule to avoid error.)
+{v_1: tensor} |= if dtype_(v_1) = 0 then false else if dtype_(v_1) = 11 then false
 >>
-Rule 87 (To allow the operations to compute, tensors must be created not be empty.)
-{v_1 : tensor} |= ndim(v_1) > 0 ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+Rule 114 (Ensuring all positive numbers, not bool tensor)
+{v_1: tensor} |= min(v_1) > 0
 >>
-Rule 88 (Avoid IndexError by checking the dimension parameter 'dim' is in a valid scope)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) > 0 ∧ v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+Rule 118 (Check the type is in accepted form to avoid runtime error.)
+{v_1 : tensor} |= (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) ∨ (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)
 >>
-Rule 90 (Boolean Tensors have limited function but must have a 0 and 1 value, cannot be used for matrix algebra by ensuring to contain the right values or shapes.)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (min(v_1) = 0 ∧ max(v_1) = 1)
+Rule 124 (Prevent negative numbers and not bool tensor)
+{v_1: tensor} |= min(v_1) ≥ 0
 >>
-Rule 96 (The dimension parameter 'dim' must be within range. Not doing so will lead to an error during processing.)
-{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1) ≤ v_2) ∧ (v_2 < ndim(v_1)) ∧ (ndim(v_1) > 0)
+Rule 129 (A valid type is a numeric, preventing boolean or string tensors)
+{v_1: tensor} |= (dtype_(v_1) > 0) ∧ (dtype_(v_1) < 9)
 >>
-Rule 100 (Tensor is empty or zero prevent values of zero.)
-{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) > 0))
+Rule 133 (Tensor must be an int or float.)
+{v_1 : tensor} |= (dtype_(v_1) > 0) ∧ (dtype_(v_1) < 9)
 >>
-Rule 106 (Dimension must be a valid number to prevent an index out of bounds error)
-{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1) ∧ (ndim(v_1) > 0)
->>
-Rule 110 (To create calculations, zero is not permitted)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 114 (This checks if the value, is a dtype is not an int)
-{v_1 : dtype} |= v_1 ≠ 1 ∧ v_1 ≠ 2 ∧ v_1 ≠ 3 ∧ v_1 ≠ 4 ∧ v_1 ≠ 5
+Rule 134 (dimension has to make sense with dimensions (less than number of dimensions, more than negative number of dimension) to prevent runtime errors.)
+{v_1: tensor, v_2:int} |= (v_2 >= (0 - ndim(v_1))) ∧ (v_2 < ndim(v_1))

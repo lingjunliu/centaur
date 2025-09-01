@@ -1,96 +1,159 @@
 >>
-Rule 1 (Input and target batch size should match if target contains class indices)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then true else if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then shape(v_1, 0) = shape(v_2, 0)
+Rule 1 (Target should be non-empty tensor)
+{target : tensor} |= ∀i ∈ [0, ndim(target) - 1] : shape(target, i) > 0
 >>
-Rule 3 (Target tensor should be of Long (int64) type when containing class indices)
-{v_2 : tensor} |= if ndim(v_2) = 0 ∨ ndim(v_2) > 0 then dtype_(v_2) = 5
+Rule 3 (Weight tensor should match the number of classes if provided)
+{input : tensor, weight : tensor} |= shape(weight, 0) = shape(input, 1)
 >>
-Rule 4 (Reduction should be one of none, mean or sum)
-{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
+Rule 4 (Target tensor's dtype should be int64 when containing class indices)
+{target : tensor} |= dtype_(target) = 4
 >>
-Rule 5 (Label smoothing should be between 0 and 1)
-{v_1 : float} |= 0.0 ≤ v_1 ∧ v_1 ≤ 1.0
+Rule 5 (Reduction must be one of 'none', 'mean', or 'sum')
+{reduction : str} |= reduction = "none" ∨ reduction = "mean" ∨ reduction = "sum"
 >>
-Rule 6 (Target values must be within the range [0, C) when containing class indices)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 ∨ ndim(v_2) > 0 then max(v_2) < shape(v_1, 1) ∧ min(v_2) ≥ 0
+Rule 6 (label_smoothing should be between 0.0 and 1.0)
+{label_smoothing : float} |= 0.0 ≤ label_smoothing ∧ label_smoothing ≤ 1.0
 >>
-Rule 7 (Weight must be a Tensor)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 7 (If ignore_index is specified, target values should be within valid range relative to input's class dimension.)
+{input : tensor, target : tensor, ignore_index : int} |= min(target) ≥ ignore_index ∨ ignore_index < shape(input,1)
 >>
-Rule 9 (Input must be a tensor)
-{v_1: tensor} |= ndim(v_1) >= 1
+Rule 8 (Weight should be non-negative)
+{weight: tensor} |= min(weight) >= 0
 >>
-Rule 10 (Target must be a tensor)
-{v_1: tensor} |= ndim(v_1) >= 0
+Rule 12 (Input and target batch sizes must match if input has batch dimension and target is not a single index)
+{input : tensor, target : tensor} |= if (ndim(input) > 1) ∧ (ndim(target) > 0) ∧ (ndim(target) > 0) then shape(input, 0) = shape(target, 0)
 >>
-Rule 14 (Weight tensor shape must match the number of classes in input)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then shape(v_2,0) = shape(v_1, 1)
+Rule 17 (If ignore_index is specified, target values should be within valid range relative to input's class dimension.)
+{input : tensor, target : tensor, ignore_index : int} |= if ignore_index < 0 then true else ∀i ∈ [0, ndim(target) - 1] : (target[i] ≠ ignore_index) ∨ (target[i] ≥ 0 ∧ target[i] < shape(input, 1))
 >>
-Rule 15 (Target tensor should be of Long (int64) type when containing class indices)
-{v_1 : tensor} |= if ndim(v_1) = 0 ∨ ndim(v_1) > 0 then dtype_(v_1) = 5
+Rule 18 (Weight should be non-negative)
+{weight: tensor} |= min(weight) ≥ 0
 >>
-Rule 18 (Target values must be within the range [0, C) when containing class indices and target is a tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then min(v_2) ≥ 0 ∧ max(v_2) < shape(v_1, 1)
+Rule 19 (If target contains class probabilities, it has the same shape as the input)
+{input : tensor, target : tensor} |= if (min(target) ≥ 0) ∧ (max(target) ≤ 1) then ndim(input) = ndim(target) ∧ (∀i ∈ [0, ndim(input) - 1] : shape(input, i) = shape(target, i))
 >>
-Rule 20 (Ignore index should be an integer)
-{v_1 : int} |= v_1 < 100000000
+Rule 24 (Check if target values with indices are in correct bounds relative to the number of classes.)
+{input: tensor, target: tensor} |= ∀i ∈ [0, ndim(target) - 1] : min(target) >= 0 ∧ max(target) < shape(input, 1)
 >>
-Rule 22 (If target has more than 0 dimensions, the last dimension must be within range of input's number of classes when target contains class probabilities and same shape)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 ∧ ndim(v_1) > 0 ∧ (shape(v_1, 0) = shape(v_2, 0)) then true
+Rule 25 (Weight must have floating point type when provided)
+{weight: tensor} |= 6 <= dtype_(weight) ∧ dtype_(weight) <= 8
 >>
-Rule 23 (Input and target batch size should match if target contains class indices)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then shape(v_1,0) > 0 else if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then shape(v_1, 0) = shape(v_2, 0)
+Rule 26 (Input tensor is not empty)
+{input : tensor} |= ∀i ∈ [0, ndim(input) - 1] : shape(input, i) > 0
 >>
-Rule 29 (Weight must be a Tensor if provided)
-{v_1 : tensor} |= ndim(v_1) >=1
+Rule 28 (Input and target batch sizes must match if input has batch dimension and target has dimension and target is not a scalar)
+{input : tensor, target : tensor} |= if (ndim(input) > 1) ∧ (ndim(target) > 0) then (if ndim(target) > 0 then shape(input, 0) = shape(target, 0))
 >>
-Rule 38 (Target values must be within the range [0, C) when containing class indices and target is a tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ∀i ∈ [0, ndim(v_2) - 1] : min(v_2) ≥ 0 ∧ max(v_2) < shape(v_1, 1)
+Rule 29 (If ignore_index is specified, it must be in the allowed target values range)
+{input : tensor, target : tensor, ignore_index : int} |= if ignore_index < 0 then true else if ndim(target) > 0 then ∀i ∈ [0, ndim(target) - 1] : (target[i] ≠ ignore_index) ∨ (ignore_index >= 0 ∧ ignore_index < shape(input, 1))
 >>
-Rule 41 (input must be a float tensor for log_softmax)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 30 (If target contains class probabilities, it has the same shape as the input when input ndim > 0)
+{input : tensor, target : tensor} |= if (min(target) ≥ 0) ∧ (max(target) ≤ 1) ∧ (ndim(input)>0) then ndim(input) = ndim(target) ∧ (∀i ∈ [0, ndim(input) - 1] : shape(input, i) = shape(target, i))
 >>
-Rule 42 (Target must not contain values out of bounds)
-{v_1 : tensor} |= if min(v_1) < -100 then false
+Rule 31 (Check if target values with indices are in correct bounds relative to the number of classes, assuming target and input have dims)
+{input: tensor, target: tensor} |= if ndim(target) > 0 ∧ ndim(input) > 0 then (min(target) >= 0 ∧ max(target) < shape(input, 1))
 >>
-Rule 59 (If the target is a tensor, then values must be non-negative)
-{v_1 : tensor} |= if ndim(v_1) > 0 then min(v_1) >= 0
+Rule 33 (Reduction value should be valid)
+{reduction: str} |= reduction = "none" ∨ reduction = "mean" ∨ reduction = "sum"
 >>
-Rule 60 (The weight tensor should be 1D)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ndim(v_1) = 1
+Rule 34 (label smoothing should be between 0 and 1)
+{label_smoothing: float} |= 0.0 <= label_smoothing ∧ label_smoothing <= 1.0
 >>
-Rule 61 (Reduction should be different from zero)
-{v_1 : int} |= v_1 ≠ 0
+Rule 41 (Weight tensor's dimension must be 1)
+{weight: tensor} |= ndim(weight) = 1
 >>
-Rule 62 (If target contains class probabilities, it should have the same shape of the input)
-{v_1 : tensor, v_2 : tensor} |= if min(v_2) >= 0 ∧ max(v_2) <= 1 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 42 (Input and target batch sizes must match if input has batch dimension and target has dimension and target is not a scalar, check with ndim)
+{input : tensor, target : tensor} |= if (ndim(input) > 1) ∧ (ndim(target) > 0) then (if ndim(target) = 1 then shape(input, 0) = shape(target, 0))
 >>
-Rule 69 (Reduction should be different from zero)
-{v_1 : str} |= v_1 ≠ "0"
+Rule 43 (If ignore_index is specified, it must be in the allowed target values range, check max value of target)
+{input : tensor, target : tensor, ignore_index : int} |= if ignore_index < 0 then true else if ndim(target) > 0 then (max(target) < shape(input, 1))
 >>
-Rule 71 (If target is a tensor, values should be in correct range)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ∀i ∈ [0, ndim(v_2) - 1] : min(v_2) >= 0 ∧ max(v_2) <= (shape(v_1, 1) -1)
+Rule 44 (If target contains class probabilities, it has the same shape as the input when input ndim > 0 and check with min and max of the target)
+{input : tensor, target : tensor} |= if (ndim(input)>0) then (if (min(target) ≥ 0) ∧ (max(target) ≤ 1) then ndim(input) = ndim(target) ∧ (∀i ∈ [0, ndim(input) - 1] : shape(input, i) = shape(target, i)))
 >>
-Rule 92 (If ignore index is specified, then target must contain class indices)
-{v_1 : int, v_2 : tensor} |= if v_1 ≠ -100 then dtype_(v_2) = 5
+Rule 45 (Check if target values with indices are in correct bounds relative to the number of classes, assuming target and input have dims, and check min value of target)
+{input: tensor, target: tensor} |= if ndim(target) > 0 ∧ ndim(input) > 0 then (min(target) >= 0  ∧ max(target) < shape(input, 1))
 >>
-Rule 99 (If ignore index is specified, then target values must be within the range [0, C) or equal to ignore_index)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 != -100 then ∀i ∈ [0, ndim(v_2) - 1] : (min(v_2) ≥ 0 ∧ max(v_2) < shape(v_1, 1)) ∨ v_2[i] = v_3
+Rule 48 (input and target must have same dimensions in most cases)
+{input: tensor, target: tensor} |= ndim(input) = ndim(target) ∨ (ndim(target)=0)
 >>
-Rule 101 (The target should have integer type when containing class indices)
-{v_1 : tensor} |= if min(v_1) >= 0 then dtype_(v_1) = 5
+Rule 55 (input should have float-compatible dtype)
+{input: tensor} |= 6 <= dtype_(input) ∧ dtype_(input) <= 8
 >>
-Rule 109 (If ignore index is specified, then target values must be within the range [0, C) or equal to ignore_index)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 ≠ -100 then (min(v_2) ≥ 0 ∧ max(v_2) < shape(v_1, 1)) ∨ (∃i ∈ [0, ndim(v_2) - 1] : v_2[i] = v_3)
+Rule 56 (Input and target batch sizes must match if input has batch dimension and target has dimension and target is not a scalar, check with ndim and target is not a single value)
+{input : tensor, target : tensor} |= if (ndim(input) > 1) ∧ (ndim(target) = 1) then shape(input, 0) = shape(target, 0)
 >>
-Rule 118 (If ignore index is specified, then target values must be within the range [0, C) or equal to ignore_index)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 ≠ -100 then (∀i ∈ [0, ndim(v_2) - 1] : (v_2[i] >= 0 ∧ v_2[i] < shape(v_1, 1)) ∨ v_2[i] = v_3)
+Rule 57 (If ignore_index is specified, it must be in the allowed target values range, check max value of target given that target has dims)
+{input : tensor, target : tensor, ignore_index : int} |= if ndim(target) > 0 then (if ignore_index < 0 then true else (max(target) < shape(input, 1)))
 >>
-Rule 120 (input dtype must be float when target contains class probabilities)
-{v_1 : tensor, v_2 : tensor} |= if min(v_2) >= 0 ∧ max(v_2) <= 1 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 58 (If target contains class probabilities, it has the same shape as the input when input ndim > 0, using explicit condition)
+{input : tensor, target : tensor} |= if (ndim(input)>0) then (if (min(target) >= 0) ∧ (max(target) <= 1) then (ndim(input) = ndim(target) ∧ (∀i ∈ [0, ndim(input) - 1] : shape(input, i) = shape(target, i))))
 >>
-Rule 129 (If the reduction is constant, then it is not a valid value)
-{v_1 : str} |= v_1 ≠ "constant"
+Rule 61 (Target tensor should have integer type if not probabilities)
+{target: tensor} |= 1 <= dtype_(target) ∧ dtype_(target) <= 5
 >>
-Rule 136 (If ignore index is specified, then target values must be within the range [0, C) or equal to ignore_index)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 ≠ -100 then ∀i ∈ [0, ndim(v_2) - 1] : (v_2[i] >= 0 ∧ v_2[i] < shape(v_1, 1)) ∨ v_2[i] = v_3
+Rule 64 (If ignore_index is specified, it must be in the allowed target values range, check max value of target given that target has dims using min/max of target)
+{input : tensor, target : tensor, ignore_index : int} |= if ndim(target) > 0 then (if ignore_index < 0 then true else (max(target) < shape(input, 1) ∧ min(target) >= 0))
+>>
+Rule 66 (Check if target values with indices are in correct bounds relative to the number of classes, assuming target and input have dims, use dimension compare)
+{input: tensor, target: tensor} |= if ndim(target) > 0 ∧ ndim(input) > 0 then (∀i ∈ [0, ndim(target)-1] : min(target) >= 0  ∧ max(target) < shape(input, 1))
+>>
+Rule 67 (Weight tensor's shape should be same as number of classes)
+{input: tensor, weight: tensor} |= shape(weight, 0) = shape(input, 1)
+>>
+Rule 71 (If ignore_index is specified, it must be in the allowed target values range, check max value of target given that target has dims using explicit bound of the max target and dimension compare)
+{input : tensor, target : tensor, ignore_index : int} |= if ndim(target) > 0 then (if ignore_index < 0 then true else (∀i ∈ [0, ndim(target)-1] : target[i] < shape(input, 1)))
+>>
+Rule 73 (Check if target values with indices are in correct bounds relative to the number of classes, assuming target and input have dims, checking bounds.)
+{input: tensor, target: tensor} |= if ndim(target) > 0 ∧ ndim(input) > 0 then (∀i ∈ [0, ndim(target)-1] : (target[i] >= 0)  ∧ (target[i] < shape(input, 1)))
+>>
+Rule 76 (If the target is class indices, the target should have integer type)
+{target: tensor} |= if (min(target) >= 0) ∧ (max(target) < shape(input, 1)) then (1 <= dtype_(target) ∧ dtype_(target) <= 5)
+>>
+Rule 80 (Check if target values with indices are in correct bounds relative to the number of classes, assuming target and input have dims and target has same shape as input)
+{input: tensor, target: tensor} |= if (ndim(target) > 0 ∧ ndim(input) > 0) then (if ndim(input) = ndim(target) then (∀i ∈ [0, ndim(target)-1] : (target[i] >= 0)  ∧ (target[i] < shape(input, 1))))
+>>
+Rule 81 (The target should be integer type if it contains indices and valid dimensions exist.)
+{input: tensor, target: tensor} |= if (ndim(target)>0) ∧ (min(target) >= 0) ∧ (max(target) < shape(input, 1)) then (1 <= dtype_(target) ∧ dtype_(target) <= 5)
+>>
+Rule 88 (If the target is class indices, the target should have integer type, need to match type.)
+{target: tensor} |= if (ndim(target) > 0) ∧ (min(target) >= 0) ∧ (max(target) < shape(input, 1)) then (1 <= dtype_(target) ∧ dtype_(target) <= 5)
+>>
+Rule 95 (The target should be integer type if it contains indices and dimensions > 0 and target has dimension compare and input has dimensions.)
+{input: tensor, target: tensor} |= if (ndim(target) > 0) ∧ (ndim(input) > 0) ∧ (min(target) >= 0) ∧ (max(target) < shape(input, 1)) then (1 <= dtype_(target) ∧ dtype_(target) <= 5)
+>>
+Rule 102 (Weight dimensions are valid)
+{input : tensor, weight: tensor} |= shape(weight, 0) = shape(input, 1)
+>>
+Rule 104 (The target must contains values and can be 0 or larger)
+{target : tensor} |= min(target) >= 0
+>>
+Rule 108 (The target should be integer type if it contains indices , use a shape comparison)
+{input: tensor, target: tensor} |= if (ndim(target) > 0) ∧ (min(target) >= 0) ∧ (max(target) < shape(input, 1)) then (1 <= dtype_(target) ∧ dtype_(target) <= 5)
+>>
+Rule 109 (If there are any class values )
+{input: tensor} |= shape(input, 1) > 0
+>>
+Rule 116 (The weight tensor should contain values and should not be none. )
+{weight: tensor} |= ∀i ∈ [0, ndim(weight) - 1] : shape(weight, i) > 0
+>>
+Rule 122 (Check that target has valid integer values when dtype = 4)
+{target : tensor} |= if dtype_(target) = 4 then (min(target) >= 0)
+>>
+Rule 124 (The input should be float type compare with different values and target has int type .)
+{input: tensor, target : tensor} |= if (1 <= dtype_(target) ∧ dtype_(target) <= 5) then (6 <= dtype_(input) ∧ dtype_(input) <= 8)
+>>
+Rule 130 (If the target has int values - it has values not smaller than -100 and needs to be type match.)
+{target: tensor} |= if (1 <= dtype_(target) ∧ dtype_(target) <= 5) then (min(target) >= -100)
+>>
+Rule 131 (The weight tensor should have a valid shape and the valid dimension )
+{input: tensor, weight: tensor} |= shape(weight, 0) = shape(input, 1) ∧ ndim(weight) = 1
+>>
+Rule 133 (Input and target batch sizes must match if input has batch dimension and target is a vector, explicit batch comparison if we have 2 or more dimension)
+{input : tensor, target : tensor} |= if (ndim(input) >= 2) ∧ (ndim(target) = 1) then shape(input, 0) = shape(target, 0)
+>>
+Rule 136 (Check type is int for target if 1<= dtype <=5)
+{target: tensor} |= if (1 <= dtype_(target) ∧ dtype_(target) <= 5) then (true)
+>>
+Rule 144 ( If target has valid integer for specific )
+{target: tensor, ignore_index: int} |= if ignore_index > 0 then true else if (1 <= dtype_(target) ∧ dtype_(target) <= 5) then (min(target) >= -100)

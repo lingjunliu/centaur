@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the tensor is complex, the real and imaginary parts should have the same data type (Rule 23)
+# Input tensor's dtype cannot be bool, int8, int16, int32, int64, uint8, or str (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 9, v["arg1_dtype"] == 7, If(v["arg1_dtype"] == 10, v["arg1_dtype"] == 8, False))) if n else
-          If(v["arg1_dtype"] == 9, v["arg1_dtype"] == 7, If(v["arg1_dtype"] == 10, v["arg1_dtype"] == 8, False)))
+    s.add(Not(And(And(And(And(And(And(v["arg1_dtype"] != 0, v["arg1_dtype"] != 1), v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5), v["arg1_dtype"] != 12)) if n else
+          And(And(And(And(And(And(v["arg1_dtype"] != 0, v["arg1_dtype"] != 1), v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5), v["arg1_dtype"] != 12))
 )
 
 def rule_23_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The dtype of the input tensor should not be boolean. (Rule 12)
+# Input tensor's dtype should be a float or complex to avoid boolean error (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 0) if n else
-          v["arg1_dtype"] != 0)
+    s.add(Not(v["arg1_dtype"] > 6) if n else
+          v["arg1_dtype"] > 6)
 )
 
 def rule_12_func(arg1, solver=None, neg=False):

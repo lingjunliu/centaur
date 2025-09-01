@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Shape of bias_ih matches 3*hidden_size (Rule 60)
+# If the input tensor is one dimensional then the last dimension has to match input size (Rule 60)
 
 rule_60 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) == 3 * v["arg2_value"], False)) if n else
-          If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) == 3 * v["arg2_value"], False))
+    s.add(Not(If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) == v["arg2_value"], True)) if n else
+          If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) == v["arg2_value"], True))
 )
 
 def rule_60_func(arg1, arg2, solver=None, neg=False):
@@ -36,9 +36,9 @@ def rule_60_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 60
-        rule_60(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_60(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_60(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_60(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

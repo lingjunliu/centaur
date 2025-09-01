@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Probability p and training indicator (Rule 10)
+# If inplace is true, the input tensor must have floating point type (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == True, And(v["arg1_value"] >= 0, v["arg1_value"] <= 1), False)) if n else
-          If(v["arg2_value"] == True, And(v["arg1_value"] >= 0, v["arg1_value"] <= 1), False))
+    s.add(Not(If(v["arg2_value"] == True, (And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)), True)) if n else
+          If(v["arg2_value"] == True, (And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)), True))
 )
 
 def rule_10_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,24 @@ def rule_10_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
+        if not isinstance(arg1, np.ndarray):
             return False
         if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
+        arg1_dtype = Int('arg1_dtype')
         arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         solver.add(arg2_value == arg2)
 
         # Constraints for rule 10
-        rule_10(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_10(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_10(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_10(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

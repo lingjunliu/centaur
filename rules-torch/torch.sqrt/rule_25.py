@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the out tensor is provided and the input is of floating point type, then the output tensor must be of floating-point type with at least the precision as input. (Rule 25)
+# If out is float16, input must be at least float16 (Rule 25)
 
 rule_25 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_dtype"] == 7), Or(Or((v["arg2_dtype"] == 7), (v["arg2_dtype"] == 8)), (v["arg2_dtype"] == 9)), If((v["arg1_dtype"] == 8), Or((v["arg2_dtype"] == 8), (v["arg2_dtype"] == 9)), If((v["arg1_dtype"] == 9), (v["arg2_dtype"] == 9), False)))) if n else
-          If((v["arg1_dtype"] == 7), Or(Or((v["arg2_dtype"] == 7), (v["arg2_dtype"] == 8)), (v["arg2_dtype"] == 9)), If((v["arg1_dtype"] == 8), Or((v["arg2_dtype"] == 8), (v["arg2_dtype"] == 9)), If((v["arg1_dtype"] == 9), (v["arg2_dtype"] == 9), False))))
+    s.add(Not(If(v["arg2_dtype"] == 6, v["arg1_dtype"] >= 6, True)) if n else
+          If(v["arg2_dtype"] == 6, v["arg1_dtype"] >= 6, True))
 )
 
 def rule_25_func(arg1, arg2, solver=None, neg=False):

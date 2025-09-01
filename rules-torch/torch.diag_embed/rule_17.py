@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# dim2 should be within the valid range of dimensions of input tensor, considering the tensor can have zero dimensions (Rule 17)
+# If dim1 is negative, it should be greater than negative ndim(input (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 0, v["arg2_value"] == 0, And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"]))) if n else
-          If(v["arg1_ndim"] == 0, v["arg2_value"] == 0, And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"])))
+    s.add(Not(If(v["arg2_value"] < 0, v["arg2_value"] >= (0 - v["arg1_ndim"]), True)) if n else
+          If(v["arg2_value"] < 0, v["arg2_value"] >= (0 - v["arg1_ndim"]), True))
 )
 
 def rule_17_func(arg1, arg2, solver=None, neg=False):

@@ -5,107 +5,215 @@ Rule 1 (window_length must be a positive integer)
 Rule 2 (beta must be non-negative)
 {v_1 : float} |= v_1 ≥ 0
 >>
-Rule 6 (window_length and beta must be compatible, avoid inf/NaN for beta=0)
-{v_1 : int, v_2 : float} |= if v_2 = 0 then v_1 > 1
+Rule 3 (window_length equal to 1 returns a single element tensor containing one)
+{v_1 : int} |= v_1 ≠ 1
 >>
-Rule 7 (dtype must be compatible with float or complex)
-{v_1 : dtype} |= if v_1 = 10 then false
+Rule 4 (layout must be strided)
+{v_1 : str} |= v_1 = "strided"
 >>
-Rule 8 (requires_grad is only valid when dtype is a floating point or complex type)
-{v_1 : dtype, v_2 : bool} |= if v_2 = true then (v_1 = 6) ∨ (v_1 = 7) ∨ (v_1 = 8) ∨ (v_1 = 9) ∨ (v_1 = 10)
+Rule 8 (window_length should be less than or equal to a maximum value to avoid potential memory issues - Example Maximum value = 10000)
+{v_1 : int} |= v_1 ≤ 10000
 >>
-Rule 9 (window_length must be a small value when requires_grad is true, due to memory requirements)
-{v_1 : int, v_2 : bool} |= if v_2 = true then v_1 < 10000
+Rule 9 (If periodic is true, window length should be at least 2)
+{v_1 : int, v_2 : bool} |= if v_2 then v_1 ≥ 2
 >>
-Rule 11 (prevent window length overflow)
-{v_1 : int} |= v_1 < 2147483647
+Rule 10 (beta cannot be too large, avoids potential numerical instability - Example maximum beta = 50)
+{v_1 : float} |= v_1 ≤ 50
 >>
-Rule 15 (requires_grad is only valid when dtype is a floating point or complex type)
-{v_1 : dtype, v_2 : bool} |= if v_2 = true then (v_1 = 7) ∨ (v_1 = 8) ∨ (v_1 = 9) ∨ (v_1 = 10) ∨ (v_1 = 11)
+Rule 13 (window_length and beta interaction:  if window_length is small, beta should be smaller too)
+{v_1 : int, v_2 : float} |= if v_1 < 5 then v_2 < 5
 >>
-Rule 16 (beta can not be negative infinity)
-{v_1 : float} |= v_1 ≠ -1.0/0.0
+Rule 16 (Requires grad interacts with dtype)
+{v_1 : bool, v_2 : dtype} |= if v_1 then v_2 ≠ 12
 >>
-Rule 17 (If window_length is greater than 1, beta must be specified)
-{v_1 : int, v_2 : float} |= if v_1 > 1 then v_2 ≥ 0
+Rule 17 (beta should be a reasonable number given window length, example: not infinite)
+{v_1 : int, v_2 : float} |= v_2 < v_1 * 10
 >>
-Rule 18 (Prevent extremely large beta)
-{v_1 : float} |= v_1 < 1000000.0
+Rule 18 (window_length cannot be zero.)
+{v_1 : int} |= v_1 ≠ 0
 >>
-Rule 20 (Layout must be torch.strided which has no index)
-{v_1: str} |= v_1 = "torch.strided"
+Rule 19 (If beta is zero, the window is rectangular)
+{v_1 : float} |= if v_1 = 0 then true
 >>
-Rule 21 (device must be none, cpu or cuda)
-{v_1: str} |= v_1 = "None" ∨ v_1 = "cpu" ∨ v_1 = "cuda"
+Rule 20 (requires_grad is false if dtype is not floating point)
+{v_1 : bool, v_2 : dtype} |= if v_1 then v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10
 >>
-Rule 24 (beta must be a finite number.)
-{v_1 : float} |= v_1 ≠ 1.0/0.0 ∧ v_1 ≠ -1.0/0.0
+Rule 23 (device constraints - can't specify if using CPU tensors by default)
+{v_1 : str} |= v_1 = "cpu" ∨ v_1 = "cuda"
 >>
-Rule 26 (If window_length is greater than 1, check for non-default beta)
-{v_1 : int, v_2 : float} |= if v_1 > 1 then v_2 ≠ 12.0
+Rule 24 (window_length is not negative)
+{v_1 : int} |= v_1 >= 0
 >>
-Rule 27 (Check for window_length being small and beta being large, potential overflow)
-{v_1 : int, v_2 : float} |= if v_1 < 10 then v_2 < 1000000
+Rule 25 (If beta is zero, the window is rectangular; avoid requiring grad)
+{v_1 : float, v_2 : bool} |= if v_1 = 0 then v_2 = false
 >>
-Rule 28 (String device names can be passed, but are later converted to a device object)
-{v_1 : str} |= v_1 = "cpu" ∨ v_1 = "cuda" ∨ v_1 = "None"
+Rule 26 (requires_grad is false if dtype is not floating point or complex)
+{v_1 : bool, v_2 : dtype} |= if v_1 then (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10)
 >>
-Rule 29 (Check data type range is valid. Not str)
-{v_1 : dtype} |= v_1 ≠ 12
+Rule 30 (window_length is not negative)
+{v_1 : int} |= v_1 ≥ 0
 >>
-Rule 32 (window_length must be a positive integer and less than the max)
-{v_1 : int} |= v_1 > 0 ∧ v_1 < 2147483647
+Rule 32 (requires_grad is false if dtype is integer)
+{v_1 : bool, v_2 : dtype} |= if v_1 then (v_2 > 5)
 >>
-Rule 33 (beta must be a finite and non-negative number.)
-{v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≠ 1.0/0.0 ∧ v_1 ≠ -1.0/0.0
+Rule 37 (If beta is zero, then periodic is only applicable if length is greater than 1.)
+{v_1 : float, v_2 : bool, v_3: int} |= if v_1 = 0 then if v_3 > 1 then true else v_2 = false
 >>
-Rule 34 (String device names can be passed, but are later converted to a device object, allow empty string)
-{v_1 : str} |= v_1 = "cpu" ∨ v_1 = "cuda" ∨ v_1 = "None" ∨ v_1 = ""
+Rule 41 (beta must be non negative)
+{v_1 : float} |= v_1 >= 0
 >>
-Rule 37 (if periodic is true, window_length has to be greater than 1)
-{v_1: int, v_2: bool} |= if v_2 = true then v_1 > 1
+Rule 42 (If window_length is less than 2, periodic must be false)
+{v_1 : int, v_2 : bool} |= if v_1 < 2 then v_2 = false
 >>
-Rule 38 (If beta is zero, window_length has to be 1)
-{v_1: float, v_2: int} |= if v_1 = 0.0 then v_2 = 1
+Rule 45 (beta is not excessively large given the window length. Avoids overflow)
+{v_1 : float, v_2 : int} |= v_1 < v_2 * 100
 >>
-Rule 44 (Ensure the window length is at least one to avoid errors)
-{v_1 : int} |= v_1 ≥ 1
+Rule 46 (if window_length is 1, beta should not be NaN)
+{v_1 : int, v_2 : float} |= if v_1 = 1 then v_2 = v_2
 >>
-Rule 45 (Layout must always be strided)
-{v_1 : str} |= v_1 = "torch.strided"
+Rule 47 (If window_length is less than 2, beta must be greater or equal to zero)
+{v_1 : int, v_2 : float} |= if v_1 < 2 then v_2 ≥ 0
 >>
-Rule 47 (if beta is positive infinity, there will be an error. )
-{v_1 : float} |= v_1 ≠ 1.0/0.0
+Rule 48 (If beta is very large, window_length should also be large to avoid numerical issues)
+{v_1 : float, v_2 : int} |= if v_1 > 100 then v_2 > 10
 >>
-Rule 54 (If beta is NaN, there will be an error.)
-{v_1 : float} |= v_1 ≠ 0.0/0.0
+Rule 49 (dtype constraints depending on beta values. If beta is extremely large, use double precision.)
+{v_1 : float, v_2 : dtype} |= if v_1 > 500 then v_2 = 8 ∨ v_2 = 10
 >>
-Rule 58 (Check that beta is within reasonable numerical bounds for stability)
-{v_1 : float} |= v_1 < 10000000000.0 ∧ v_1 > -10000000000.0
+Rule 52 (If window_length is less than 2, beta must be greater or equal to zero and periodic must be false)
+{v_1 : int, v_2 : float, v_3: bool} |= if v_1 < 2 then v_2 ≥ 0 ∧ v_3 = false
 >>
-Rule 62 (Beta should not be too large to cause overflow during calculation)
-{v_1: float} |= v_1 < 10000000000.0 ∧ v_1 > -10000000000.0
+Rule 53 (dtype constraints depending on beta values, and requires_grad. Avoids complex for small beta and requires_grad true)
+{v_1 : float, v_2 : dtype, v_3: bool} |= if v_1 < 0.1 ∧ v_3 then v_2 ≠ 9 ∧ v_2 ≠ 10
 >>
-Rule 68 (The device parameter must be a string that represents the device)
-{v_1: str} |= v_1 = "cpu" ∨ v_1 = "cuda" ∨ v_1 = "None"
+Rule 54 (If requires_grad is enabled, dtype must be a floating-point type)
+{v_1 : bool, v_2 : dtype} |= if v_1 then (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8)
 >>
-Rule 72 (If the dtype is complex, requires_grad must be true)
-{v_1: dtype, v_2: bool} |= if v_1 = 9 ∨ v_1 = 10 then v_2 = true
+Rule 56 (Check relation between window_length and beta, to prevent excessive values)
+{v_1 : int, v_2 : float} |= if v_1 > 0 then v_2 < (v_1 * 50)
 >>
-Rule 76 (Beta should not be NaN)
-{v_1: float} |= v_1 ≠ 0.0/0.0
+Rule 57 (If window_length is less than 2 and periodic is true, then beta must be zero)
+{v_1 : int, v_2 : float, v_3: bool} |= if v_1 < 2 ∧ v_3 then v_2 = 0
 >>
-Rule 79 (Check requires_grad is compatible with dtype)
-{v_1: dtype, v_2: bool} |= if v_2 = true then (v_1 = 7) ∨ (v_1 = 8) ∨ (v_1 = 9) ∨ (v_1 = 10) ∨ (v_1 = 11)
+Rule 61 (If window_length is equal to zero, raise an error)
+{v_1: int} |= v_1 != 0
 >>
-Rule 80 (If the dtype is complex, requires_grad must be true or vice versa)
-{v_1: dtype, v_2: bool} |= if (v_1 = 10 ∨ v_1 = 11) then v_2 = true else if v_2 = true then (v_1 = 7) ∨ (v_1 = 8) ∨ (v_1 = 9) ∨ (v_1 = 10) ∨ (v_1 = 11)
+Rule 62 (If window_length is less than 2 and periodic is true, then beta must be zero, requires_grad must be false, and the layout must be strided)
+{v_1 : int, v_2 : float, v_3: bool, v_4: bool, v_5: str} |= if v_1 < 2 ∧ v_3 then v_2 = 0 ∧ v_4 = false ∧ v_5 = "strided"
 >>
-Rule 83 (If the dtype is complex (9 or 10), requires_grad must be true, or if requires_grad is true, then dtype must be a floating point or complex type)
-{v_1: dtype, v_2: bool} |= if (v_1 = 9 ∨ v_1 = 10) then v_2 = true else if v_2 = true then (v_1 = 7) ∨ (v_1 = 8) ∨ (v_1 = 9) ∨ (v_1 = 10) ∨ (v_1 = 11)
+Rule 65 (Check valid window length and beta values)
+{v_1 : int, v_2 : float} |= if v_1 < 0 then false else if v_2 < 0 then false
 >>
-Rule 89 (If the supplied dtype is complex (9 or 10), then requires_grad should be true)
-{v_1: dtype, v_2: bool} |= if (v_1 = 10 ∨ v_1 = 11) then v_2 = true
+Rule 68 (If requires_grad is enabled, dtype must be a floating-point or complex type. Also requires window_length must be positive.)
+{v_1 : bool, v_2 : dtype, v_3: int} |= if v_1 then (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10) ∧ v_3 > 0
 >>
-Rule 90 (If beta is set, ensure window_length is not zero)
-{v_1: float, v_2: int} |= if v_1 ≠ 12.0 then v_2 ≠ 0
+Rule 72 (If window_length is less than 2 and periodic is true, then beta must be zero, requires_grad must be false)
+{v_1 : int, v_2 : float, v_3: bool, v_4: bool} |= if v_1 < 2 ∧ v_3 then v_2 = 0 ∧ v_4 = false
+>>
+Rule 73 (If requires_grad is enabled, dtype must be a floating-point or complex type. Additionally, layout must be strided and device must be specified)
+{v_1 : bool, v_2 : dtype, v_3: str} |= if v_1 then (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10) ∧ v_3 = "strided"
+>>
+Rule 74 (If dtype is integer, then requires_grad must be False)
+{v_1: dtype, v_2: bool} |= if v_1 < 6 then v_2 = false
+>>
+Rule 75 (Values for beta and window_length. Window_length should not be non-positive)
+{v_1 : int, v_2 : float} |= v_1 > 0 ∧ v_2 >= 0
+>>
+Rule 76 (layout should be strided)
+{v_1: str} |= v_1 = "strided"
+>>
+Rule 79 (If dtype is integer, then requires_grad must be False and device must be None)
+{v_1: dtype, v_2: bool, v_3: str} |= if v_1 < 6 then v_2 = false ∧ v_3 = "none"
+>>
+Rule 86 (If beta is a NaN value, raises an error)
+{v_1 : float} |= v_1 = v_1
+>>
+Rule 90 (Window length should not be non-positive, and beta should be supported given data type if requires grad is set)
+{v_1 : int, v_2 : float, v_3: bool, v_4: dtype} |= v_1 > 0 ∧ v_2 >= 0 ∧ if v_3 then (v_4 = 6 ∨ v_4 = 7 ∨ v_4 = 8 ∨ v_4 = 9 ∨ v_4 = 10)
+>>
+Rule 91 (If beta is a NaN value, raise an error, also check that the string layout matches the expected value)
+{v_1 : float, v_2 : str} |= v_1 = v_1 ∧ v_2 = "strided"
+>>
+Rule 93 (If requires_grad is enabled, dtype must be a floating-point or complex type, and beta must be non-negative.)
+{v_1 : bool, v_2 : dtype, v_3: float} |= if v_1 then (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10) ∧ v_3 >= 0
+>>
+Rule 96 (Window length needs to be a positive integer)
+{v_1: int} |= v_1 > 0
+>>
+Rule 98 (If requires_grad is enabled, dtype must be a floating-point or complex type, and beta must be non-negative. Window Length also must be positive)
+{v_1 : bool, v_2 : dtype, v_3: float, v_4: int} |= if v_1 then (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10) ∧ v_3 >= 0 ∧ v_4 > 0
+>>
+Rule 99 (If dtype is integer, then requires_grad must be False, and the window length has to be greater or equal than 0)
+{v_1: dtype, v_2: bool, v_3:int} |= if v_1 < 6 then v_2 = false ∧ v_3 >= 0
+>>
+Rule 101 (if beta is a special number, then the dtype has to be float)
+{v_1:float, v_2: dtype} |= if v_1 = 12.0 then v_2 = 7 ∨ v_2 = 8
+>>
+Rule 105 (Window Length and Beta should be a correct number, beta should not be infinity)
+{v_1 : int, v_2 : float} |= v_1 > 0 ∧ v_2 >= 0 ∧ v_2 < 10000
+>>
+Rule 106 (If the Layout is specified, it must be "strided")
+{v_1:str} |= v_1 = "strided"
+>>
+Rule 107 (If window_length is less than 2 and periodic is true, then beta must be zero and requires_grad must be false and dtype must support this)
+{v_1 : int, v_2 : float, v_3: bool, v_4: bool, v_5: dtype} |= if v_1 < 2 ∧ v_3 then v_2 = 0 ∧ v_4 = false ∧ (v_5=6 ∨ v_5=7 ∨ v_5 = 8 ∨ v_5=9 ∨ v_5=10 ∨ v_5 < 6)
+>>
+Rule 116 (If beta is a NaN value, then error)
+{v_1:float} |= v_1 = v_1
+>>
+Rule 118 (If requires_grad is enabled, dtype must be a floating-point or complex type and the combination between beta and window_length needs to be correct)
+{v_1 : bool, v_2 : dtype, v_3: int, v_4: float} |= if v_1 then (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10) ∧ v_3 < 1000 ∧ v_4 < 1000
+>>
+Rule 119 (If dtype is integer, then requires_grad must be False, needs to be a valid window length and a valid string value needs to be chosen)
+{v_1: dtype, v_2: bool, v_3:int} |= if v_1 < 6 then v_2 = false ∧ v_3 > 0
+>>
+Rule 121 (The Layout should be specified as strided, and if device is not None it should be CUDA or CPU)
+{v_1 : str, v_2: str} |= v_1 = "strided" ∧ (v_2 = "cpu" ∨ v_2 = "cuda" ∨ v_2 = "none")
+>>
+Rule 125 (If beta is a NaN value, then error, also ensure device is correctly assigned)
+{v_1 : float, v_2: str} |= v_1 = v_1 ∧ (v_2="cpu" ∨ v_2="cuda" ∨ v_2="none")
+>>
+Rule 127 (If window_length is less than 2 and periodic is true, then beta must be zero and requires_grad must be false and if beta is 12.0 then the window length should not be zero)
+{v_1 : int, v_2 : float, v_3: bool, v_4: bool} |= if v_1 < 2 ∧ v_3 then v_2 = 0 ∧ v_4 = false else if v_2 = 12.0 then v_1 ≠ 0
+>>
+Rule 129 (If dtype is integer, then requires_grad must be False, and the beta should not be negative)
+{v_1: dtype, v_2: bool, v_3: float} |= if v_1 < 6 then v_2 = false ∧ v_3 >= 0
+>>
+Rule 130 (If beta is a NaN value, then error, and Layout should be set to strided)
+{v_1 : float, v_2:str} |= v_1 = v_1 ∧ v_2 = "strided"
+>>
+Rule 133 (If requires_grad is enabled, dtype must be a floating-point or complex type, AND beta has to be non-negative)
+{v_1 : bool, v_2 : dtype, v_3: float} |= if v_1 then (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10) ∧ v_3 >=0
+>>
+Rule 134 (If dtype is integer, then requires_grad must be False, Layout must be strided, the beta should be not negative)
+{v_1: dtype, v_2: bool, v_3: float, v_4:str} |= if v_1 < 6 then v_2 = false ∧ v_3 >= 0 ∧ v_4="strided"
+>>
+Rule 135 (If beta is a NaN value, then error, and the device has to be specified or equal to none)
+{v_1 : float, v_2:str} |= v_1 = v_1 ∧ (v_2="cpu" ∨ v_2="cuda" ∨ v_2="none")
+>>
+Rule 136 (If periodic is true, then window_length must be at least 1)
+{v_1: int, v_2: bool} |= if v_2 then v_1 >= 1
+>>
+Rule 141 (The window_length needs to be an Integer. and if the device is specified then should be cuda or cpu)
+{v_1: int, v_2: str} |= v_1 > 0 ∧ (v_2="cpu" ∨ v_2="cuda" ∨ v_2="none")
+>>
+Rule 142 (If window_length is less than 2 and periodic is true, then beta must be zero and requires_grad must be false and Layout must be strided and device must be cpu or cuda or none.)
+{v_1 : int, v_2 : float, v_3: bool, v_4: bool, v_5: str, v_6: str} |= if v_1 < 2 ∧ v_3 then v_2 = 0 ∧ v_4 = false ∧ v_5 = "strided" ∧ (v_6="cpu" ∨ v_6="cuda" ∨ v_6="none")
+>>
+Rule 146 (The window length needs to be an Integer and beta should be not inf)
+{v_1: int, v_2 : float} |= v_1 > 0 ∧ v_2 ≠ "inf"
+>>
+Rule 147 (If window_length is less than 2 and periodic is true, then beta must be zero and requires_grad must be false and Layout should be strided and beta should be positive)
+{v_1 : int, v_2 : float, v_3: bool, v_4: bool} |= if v_1 < 2 ∧ v_3 then v_2 = 0 ∧ v_4 = false else v_2 >= 0
+>>
+Rule 150 (If beta is a NaN value, then error, and the length of window should be less than max)
+{v_1 : float, v_2:int} |= v_1 = v_1 ∧ v_2 < 10000
+>>
+Rule 151 (The window_length needs to be an Integer and If layout is non strided error)
+{v_1: int, v_2 :str} |= v_1 > 0 ∧ v_2 = "strided"
+>>
+Rule 153 (If requires_grad is enabled, dtype must be a floating-point or complex type, and Layout must be Strided)
+{v_1 : bool, v_2 : dtype, v_3:str} |= if v_1 then (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10) ∧ v_3="strided"
+>>
+Rule 154 (If dtype is integer, then requires_grad must be False, and Beta should be non-negative)
+{v_1: dtype, v_2: bool, v_3:float} |= if v_1 < 6 then v_2 = false ∧ v_3 >= 0

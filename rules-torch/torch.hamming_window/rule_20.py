@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If alpha and beta are not specified use default values (Rule 20)
+# alpha must be greater than beta. (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_value"] == 0.54, v["arg2_value"] == 0.46), True, Or(v["arg1_value"] != 0.54, v["arg2_value"] != 0.46))) if n else
-          If(And(v["arg1_value"] == 0.54, v["arg2_value"] == 0.46), True, Or(v["arg1_value"] != 0.54, v["arg2_value"] != 0.46)))
+    s.add(Not(v["arg1_value"] >= v["arg2_value"]) if n else
+          v["arg1_value"] >= v["arg2_value"])
 )
 
 def rule_20_func(arg1, arg2, solver=None, neg=False):

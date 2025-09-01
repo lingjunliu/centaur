@@ -5,32 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor must be at least 2D or 3D to avoid ValueError: expected 2D or 3D input (got 1D input (Rule 5)
+# dtype should be valid and consistent (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_ndim"] == 2, v["arg1_ndim"] == 3)) if n else
-          Or(v["arg1_ndim"] == 2, v["arg1_ndim"] == 3))
+    s.add(Not(v["arg2_dtype"] == v["arg1_value"]) if n else
+          v["arg2_dtype"] == v["arg1_value"])
 )
 
-def rule_5_func(arg1, solver=None, neg=False):
+def rule_5_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
+            return False
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_value = Int('arg1_value')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 5
-        rule_5(solver, {'arg1_ndim': arg1_ndim})
+        rule_5(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_5(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_5(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype']}, neg)

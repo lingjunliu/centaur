@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# start_dim and end_dim must both be within the allowed range for the tensor's dimensions, and start_dim <= end_dim, and ndim must be positive, combining the checks. (Rule 28)
+# If end_dim is negative, start_dim must not exceed ndim + end_dim (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] > 0, (And(And(And(And(0 - v["arg1_ndim"] <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"]), 0 - v["arg1_ndim"] <= v["arg3_value"]), v["arg3_value"] < v["arg1_ndim"]), v["arg2_value"] <= v["arg3_value"])))) if n else
-          And(v["arg1_ndim"] > 0, (And(And(And(And(0 - v["arg1_ndim"] <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"]), 0 - v["arg1_ndim"] <= v["arg3_value"]), v["arg3_value"] < v["arg1_ndim"]), v["arg2_value"] <= v["arg3_value"]))))
+    s.add(Not(If(v["arg3_value"] < 0, v["arg2_value"] <= (v["arg1_ndim"] + v["arg3_value"]), True)) if n else
+          If(v["arg3_value"] < 0, v["arg2_value"] <= (v["arg1_ndim"] + v["arg3_value"]), True))
 )
 
 def rule_28_func(arg1, arg2, arg3, solver=None, neg=False):

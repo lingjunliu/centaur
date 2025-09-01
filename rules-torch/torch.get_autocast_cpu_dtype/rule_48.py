@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If provided, autocast_cpu_dtype must be a dtype other than BFloat16. (Rule 48)
+# A non valid type is used (Rule 48)
 
 rule_48 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] != 13, True, False)) if n else
-          If(v["arg1_value"] != 13, True, False))
+    s.add(Not(And(And(And(And(And(And((v["arg1_value"] != 0), (v["arg1_value"] != 1)), (v["arg1_value"] != 2)), (v["arg1_value"] != 3)), (v["arg1_value"] != 4)), (v["arg1_value"] != 5)), (v["arg1_value"] != 7))) if n else
+          And(And(And(And(And(And((v["arg1_value"] != 0), (v["arg1_value"] != 1)), (v["arg1_value"] != 2)), (v["arg1_value"] != 3)), (v["arg1_value"] != 4)), (v["arg1_value"] != 5)), (v["arg1_value"] != 7)))
 )
 
 def rule_48_func(arg1, solver=None, neg=False):

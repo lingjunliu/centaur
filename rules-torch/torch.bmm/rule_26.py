@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensors must be 3D (Rule 26)
+# If input's dtype is complex64, mat2's dtype should also be complex64 (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] == 3, v["arg2_ndim"] == 3)) if n else
-          And(v["arg1_ndim"] == 3, v["arg2_ndim"] == 3))
+    s.add(Not(If(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9, True)) if n else
+          If(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9, True))
 )
 
 def rule_26_func(arg1, arg2, solver=None, neg=False):
@@ -25,17 +25,17 @@ def rule_26_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_ndim = Int('arg2_ndim')
+        arg1_dtype = Int('arg1_dtype')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 26
-        rule_26(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
+        rule_26(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_26(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_26(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)

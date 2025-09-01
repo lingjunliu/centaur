@@ -1,123 +1,117 @@
 >>
 Rule 1 (Index tensor must have the same number of dimensions as input tensor)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+{v_1 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_3)
 >>
-Rule 2 (v_2 should be a valid dimension of input tensor. Handle IndexError)
-{v_1 : tensor, v_2 : int} |= -1 * ndim(v_1) ≤ v_2 ∧ v_2 < ndim(v_1)
+Rule 2 (dim must be within the valid range for input tensor dimensions)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 3 (index tensor must have int64 dtype)
-{v_1 : tensor} |= dtype_(v_1) = 5
+Rule 3 (Index values should be within the bounds of the input tensor along the specified dimension.)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∀i ∈ [0, shape(v_3, v_2) - 1] : min(v_3) ≥ (0 - shape(v_1, v_2)) ∧ max(v_3) < shape(v_1, v_2)
 >>
-Rule 4 (sparse_grad should be boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 4 (Index tensor must have dtype int64)
+{v_3 : tensor} |= dtype_(v_3) = 4
 >>
-Rule 5 (out tensor should have the same shape as index tensor)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1) = shape(v_2)
+Rule 5 (Output tensor, if provided, must have the same shape as the index tensor.)
+{v_3 : tensor, v_5 : tensor} |= shape(v_3, 0) = shape(v_5, 0) ∧ shape(v_3, 1) = shape(v_5, 1) ∧ shape(v_3, 2) = shape(v_5, 2) ∧ ndim(v_3) = ndim(v_5)
 >>
-Rule 7 (Input tensor and Index tensor should have same number of dimensions and dimension sizes should fulfill size constraints)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (i = v_3 ∨ shape(v_2, i) <= shape(v_1, i))
+Rule 6 (sparse_grad must be a boolean value.)
+{v_4 : bool} |= v_4 = true ∨ v_4 = false
 >>
-Rule 12 (out tensor should have the same shape as index tensor. This requires a separate rule for the 'out' parameter if used)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_2, 1) ∧ shape(v_1, 2) = shape(v_2, 2)
+Rule 7 (For all dimensions d != dim, index.size(d) <= input.size(d))
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_2 then shape(v_3, i) ≤ shape(v_1, i)
 >>
-Rule 14 (Input tensor and Index tensor should have same number of dimensions and dimension sizes should fulfill size constraints)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : if i = v_3 then true else shape(v_2, i) ≤ shape(v_1, i)
+Rule 8 (dim must be an integer)
+{v_2 : int} |= v_2 ≥ -2147483648 ∧ v_2 ≤ 2147483647
 >>
-Rule 16 (index values must be non-negative)
-{v_1 : tensor} |= min(v_1) ≥ 0
+Rule 9 (Output tensor should have the same dtype as input)
+{v_1 : tensor, v_5 : tensor} |= dtype_(v_5) = dtype_(v_1)
 >>
-Rule 22 (Handle type error and combination of arguments with interaction with other parameters)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0
+Rule 10 (Index values must be within the valid range for the selected dimension of the input tensor.)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∀i ∈ [0, shape(v_3, 0) - 1] : 0 ≤ v_3[i] ∧ v_3[i] < shape(v_1, v_2)
 >>
-Rule 23 (Handle type error and combination of arguments with interaction with other parameters)
-{v_1 : tensor, v_2 : int, v_3 : tensor} |= ndim(v_1) > 0 ∧ v_2 ≥ -1 ∧ ndim(v_3) > 0
+Rule 11 (Shape of output tensor must be equal to shape of index tensor)
+{v_3 : tensor, v_5 : tensor} |= ndim(v_3) = ndim(v_5) ∧ (∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) = shape(v_5, i))
 >>
-Rule 24 (Handle type error and combination of arguments with interaction with other parameters)
-{v_1 : tensor, v_2 : int, v_3 : tensor} |= if v_2 > 0 then shape(v_1,0) > 0 else shape(v_3, 0) > 0
+Rule 12 (Ensure out tensor is of long integer type)
+{v_5 : tensor} |= dtype_(v_5) = 4
 >>
-Rule 26 (Handle type error and combination of arguments. Enforce interaction between dimension and the index tensor)
-{v_1 : int, v_2 : tensor} |= v_1 ≥ -1 * ndim(v_2) ∧ v_1 < ndim(v_2)
+Rule 14 (Index tensor elements should not cause out of bound access)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∀i ∈ [0, shape(v_3,0)-1]: if ndim(v_1) = ndim(v_3) then (∃j ∈ [0, shape(v_1,v_2) -1] : v_3[i] < shape(v_1,v_2) ∧ v_3[i] >= 0 -shape(v_1, v_2))
 >>
-Rule 28 (Handle type error and combination of arguments. Checks if the dimension is valid for the input tensor)
-{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
+Rule 15 (For 1D tensor, index value must be in bound)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_1) = 1 then ∀i ∈ [0, shape(v_3, 0) - 1] : v_3[i] ≥ (0 - shape(v_1, 0)) ∧ v_3[i] < shape(v_1, 0)
 >>
-Rule 31 (Handle type error and combination of arguments. If dim is valid, check if index tensor is 64-bit integer)
-{v_1 : tensor, v_2 : int, v_3: tensor} |= if (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1) then dtype_(v_3) = 5
+Rule 16 (Check if the output tensor has the correct data type)
+{v_5 : tensor} |= dtype_(v_5) = dtype_(v_5)
 >>
-Rule 32 (Handle type error and combination of arguments. Link index type to dimension)
-{v_1 : int, v_2 : tensor} |= if dtype_(v_2) = 5 then v_1 ≥ (0 - ndim(v_2)) ∧ v_1 < ndim(v_2)
+Rule 17 (Check index dimension size vs input)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_3) > 0 then ∀i ∈ [0, ndim(v_1) - 1]: if i ≠ v_2 then shape(v_3,i) ≤ shape(v_1, i)
 >>
-Rule 33 (Handle type error and combination of arguments. Check input, dim and index together)
-{v_1 : tensor, v_2 : int, v_3: tensor} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1) ∧ dtype_(v_3) = 5
+Rule 18 (Index values must be within the valid range even when negative indexing is used.)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∀i ∈ [0, shape(v_3, 0) - 1] : (v_3[i] ≥ 0 - shape(v_1, v_2)) ∧ (v_3[i] < shape(v_1, v_2))
 >>
-Rule 35 (Handle type error and combination of arguments. Check index tensor is long, when other conditions satisfy)
-{v_1 : tensor, v_2 : int, v_3: tensor} |= if (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1) ∧  ndim(v_1) = ndim(v_3) then dtype_(v_3) = 5
+Rule 24 (When dim is negative, it should be within valid range based on tensor dimension)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then v_2 ≥ (0 - ndim(v_1))
 >>
-Rule 36 (Handle type error and combination of arguments. Link number of dimensions of input and index)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 5 then ndim(v_1) = ndim(v_2)
+Rule 30 (If index is out of bounds, then dim size should be checked)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |=  ∃i ∈ [0, shape(v_3, 0) - 1] : if v_3[i] < (0 - shape(v_1,v_2)) ∨ v_3[i] ≥ shape(v_1, v_2) then v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 37 (Handle type error and combination of arguments. Link number of dimensions of input and index with valid dimension)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if (0 - ndim(v_1)) ≤ v_3 ∧ v_3 < ndim(v_1) then  ndim(v_1) = ndim(v_2)
+Rule 31 (Index values should be valid w.r.t the input tensor's shape, and dimension must be in valid range)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= (∀i ∈ [0, shape(v_3,0)-1]: v_3[i] ≥ (0 - shape(v_1, v_2)) ∧ v_3[i] < shape(v_1, v_2)) ∧ v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 38 (Handle type error and combination of arguments by using all parameters together)
-{v_1 : tensor, v_2 : int, v_3: tensor, v_4: bool} |= if v_4 = true then (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1) ∧  ndim(v_1) = ndim(v_3)
+Rule 34 (Index values must be within the valid range)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∀i ∈ [0, shape(v_3, 0) - 1] : (v_3[i] ≥ (0 - shape(v_1, v_2)) ∧ v_3[i] < shape(v_1, v_2))
 >>
-Rule 39 (Handle type error and combination of arguments by interlinking input, dim, index and sparse_grad)
-{v_1 : tensor, v_2 : int, v_3: tensor, v_4: bool} |= if (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1) ∧ v_4 = false then  ndim(v_1) = ndim(v_3)
+Rule 35 (If dimension is valid, the index values must correspond to valid locations in input)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= if v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) then ∀i ∈ [0, shape(v_3, 0) - 1] : (v_3[i] ≥ (0 - shape(v_1, v_2)) ∧ v_3[i] < shape(v_1, v_2))
 >>
-Rule 40 (Handle type error and combination of arguments, focus on interaction between input and index parameters)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then min(v_2) >= 0
+Rule 36 (Combined rule for dimension and index validity)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∧ (∀i ∈ [0, shape(v_3, 0) - 1] : (v_3[i] ≥ (0 - shape(v_1, v_2)) ∧ v_3[i] < shape(v_1, v_2)))
 >>
-Rule 41 (Handle type error and combination of arguments, combine all four available parameters)
-{v_1 : tensor, v_2 : int, v_3 : tensor, v_4 : bool} |= if ndim(v_1) > 0 ∧ v_4 = false then min(v_3) ≥ 0 ∧ (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
+Rule 37 (Out tensor's dtype should match input tensor's dtype.)
+{v_1 : tensor, v_5 : tensor} |= dtype_(v_1) = dtype_(v_5)
 >>
-Rule 42 (Handle type error and combination of arguments, focus on interaction between sparse_grad and dtype of index)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) = 5
+Rule 41 (If dim is valid, then index values should also be within bounds of input)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= if (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) then (∀i ∈ [0, shape(v_3, 0) - 1] : (v_3[i] < shape(v_1, v_2) ∧ v_3[i] ≥ (0 - shape(v_1, v_2))))
 >>
-Rule 43 (Handle type error and combination of arguments, focus on interaction between index and dtype of input when sparse_grad is false)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then dtype_(v_1) = dtype_(v_2)
+Rule 42 (All rules combined for full parameter validity)
+{v_1 : tensor, v_2 : int, v_3 : tensor, v_4 : bool, v_5 : tensor} |= (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∧ (∀i ∈ [0, shape(v_3, 0) - 1] : (v_3[i] < shape(v_1, v_2) ∧ v_3[i] ≥ (0 - shape(v_1, v_2)))) ∧ dtype_(v_3) = 4 ∧ (v_4 = true ∨ v_4 = false) ∧ ((v_5 = none) ∨ (dtype_(v_1) = dtype_(v_5) ∧ ndim(v_3) = ndim(v_5) ∧ (∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) = shape(v_5, i))))
 >>
-Rule 44 (Handle type error and combination of arguments by linking sparse_grad with ndim of index and check whether it is a valid long tensor.)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then ndim(v_1) > 0 ∧ dtype_(v_1) = 5
+Rule 44 (Check if Index values are out of bound)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∃i ∈ [0, shape(v_3, 0) - 1] : (v_3[i] < (0 - shape(v_1, v_2)) ∨ v_3[i] ≥ shape(v_1, v_2))
 >>
-Rule 45 (Handle type error and combination of arguments, enforce ndim relationship based on dimension sign.)
-{v_1 : tensor, v_2 : int, v_3 : tensor} |= if v_2 ≥ 0 then ndim(v_1) = ndim(v_3) else ndim(v_1) = ndim(v_3)
+Rule 45 (If out tensor is specified, index tensor's values must not be out of bounds)
+{v_1 : tensor, v_2 : int, v_3 : tensor, v_5 : tensor} |= if v_5 ≠ none then ∀i ∈ [0, shape(v_3, 0) - 1] : v_3[i] ≥ (0 - shape(v_1, v_2)) ∧ v_3[i] < shape(v_1, v_2)
 >>
-Rule 46 (Handle type error and combination of arguments, enforce interaction between index and the dimension provided)
-{v_1 : tensor, v_2 : int, v_3 : tensor} |= if v_2 > (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) then min(v_3) >= 0
+Rule 46 (If sparse_grad is true, input must have floating point dtype)
+{v_1: tensor, v_4: bool} |= if v_4 = true then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 47 (Handle type error and combination of arguments, enforce type compatibility based on valid dimension and index properties)
-{v_1 : tensor, v_2 : int, v_3 : tensor} |= if (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1) ∧ min(v_3) >=0 then dtype_(v_3) = 5
+Rule 47 (if sparse grad is False, input must have Integer type)
+{v_1 : tensor, v_4 : bool} |= if v_4 = false then dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
 >>
-Rule 48 (Handle type error and combination of arguments, requiring all parameters to satisfy their basic properties)
-{v_1 : tensor, v_2 : int, v_3 : tensor, v_4 : bool} |= ndim(v_1) > 0 ∧ (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1) ∧ dtype_(v_3) = 5 ∧ (v_4 = true ∨ v_4 = false)
+Rule 49 (Combined check for parameter validity)
+{v_1 : tensor, v_2 : int, v_3 : tensor, v_4 : bool, v_5 : tensor} |= (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∧ (∀i ∈ [0, shape(v_3, 0) - 1] : (v_3[i] ≥ (0 - shape(v_1, v_2)) ∧ v_3[i] < shape(v_1, v_2))) ∧ (dtype_(v_3) = 4) ∧ (v_4 = true ∨ v_4 = false) ∧ (if v_5 ≠ none then (dtype_(v_1) = dtype_(v_5) ∧ ndim(v_3) = ndim(v_5) ∧ (∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) = shape(v_5, i))))
 >>
-Rule 49 (Handle type error and combination of arguments. Tie all params together)
-{v_1 : tensor, v_2 : int, v_3 : tensor, v_4 : bool} |= if ndim(v_1) > 0 ∧ (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1) ∧ (v_4 = true ∨ v_4 = false) then if v_4 = true then dtype_(v_3) = 5
+Rule 50 (Complete check of arguments)
+{v_1 : tensor, v_2 : int, v_3 : tensor, v_4 : bool, v_5 : tensor} |= (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∧ (∀i ∈ [0, shape(v_3, 0) - 1] : (v_3[i] ≥ (0 - shape(v_1, v_2)) ∧ v_3[i] < shape(v_1, v_2))) ∧ (dtype_(v_3) = 4) ∧ (v_4 = true ∨ v_4 = false) ∧ (if v_5 ≠ none then (dtype_(v_1) = dtype_(v_5) ∧ ndim(v_3) = ndim(v_5) ∧ (∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) = shape(v_5, i)))) ∧ (ndim(v_1) = ndim(v_3))
 >>
-Rule 51 (Handle type error and combination of arguments)
-{v_1 : tensor, v_2 : int, v_3 : tensor, v_4 : bool} |= if (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1) then if v_4 = true then dtype_(v_3) = 5 else ndim(v_1) = ndim(v_3)
+Rule 51 (Complete parameter validation including potential negative dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor, v_4 : bool, v_5 : tensor} |= (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∧ (∀i ∈ [0, shape(v_3, 0) - 1] : (v_3[i] ≥ (0 - shape(v_1, v_2)) ∧ v_3[i] < shape(v_1, v_2))) ∧ (dtype_(v_3) = 4) ∧ (v_4 = true ∨ v_4 = false) ∧ (if v_5 ≠ none then (dtype_(v_1) = dtype_(v_5) ∧ ndim(v_3) = ndim(v_5) ∧ (∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) = shape(v_5, i)))) ∧ (ndim(v_1) = ndim(v_3)) ∧ (if v_2 < 0 then v_2 ≥ (0 - ndim(v_1)))
 >>
-Rule 52 (Handle type error and combination of arguments, if all params are valid)
-{v_1 : tensor, v_2 : int, v_3 : tensor, v_4 : bool} |= if ndim(v_1) > 0 ∧ (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1) ∧ dtype_(v_3) = 5 ∧ (v_4 = true ∨ v_4 = false) then true
+Rule 52 (Constraint for index exceeding tensor's dimension range)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= if ∃i ∈ [0, shape(v_3, 0) - 1] : (v_3[i] < (0 - shape(v_1, v_2)) ∨ v_3[i] ≥ shape(v_1, v_2)) then v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 53 (Handle type error and combination of arguments.)
-{v_1 : tensor, v_2 : int, v_3 : tensor, v_4 : bool} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1) ∧ dtype_(v_3) = 5 ∧ (v_4 = true ∨ v_4 = false)
+Rule 53 (Combined check for parameter validity and proper tensor dimensions)
+{v_1 : tensor, v_2 : int, v_3 : tensor, v_4 : bool, v_5 : tensor} |= (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∧ (∀i ∈ [0, shape(v_3, 0) - 1] : (v_3[i] ≥ (0 - shape(v_1, v_2)) ∧ v_3[i] < shape(v_1, v_2))) ∧ (dtype_(v_3) = 4) ∧ (v_4 = true ∨ v_4 = false) ∧ (if v_5 ≠ none then (dtype_(v_1) = dtype_(v_5) ∧ ndim(v_3) = ndim(v_5) ∧ (∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) = shape(v_5, i)))) ∧ (ndim(v_1) = ndim(v_3)) ∧ (if v_2 < 0 then v_2 ≥ (0 - ndim(v_1))) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_3, i) ≤ shape(v_1, i))
 >>
-Rule 54 (Handle type error and combination of arguments, final rule)
-{v_1 : tensor, v_2 : int, v_3 : tensor, v_4 : bool} |= if (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1) then if v_4 = true then dtype_(v_3) = 5 ∧ ndim(v_1) = ndim(v_3) else ndim(v_1) = ndim(v_3)
+Rule 54 (The output tensor, if specified, must have correct dtype.)
+{v_1 : tensor, v_5 : tensor} |= if v_5 ≠ none then dtype_(v_1) = dtype_(v_5)
 >>
-Rule 55 (Handle type error and combination of arguments, complete check on all parameters)
-{v_1 : tensor, v_2 : int, v_3 : tensor, v_4 : bool} |= if (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1) then if v_4 = true then dtype_(v_3) = 5 ∧ ndim(v_1) = ndim(v_3) else ndim(v_1) = ndim(v_3) ∧ dtype_(v_3) = 5
+Rule 55 (Complete parameter validity and dimension check including out parameter and index range)
+{v_1 : tensor, v_2 : int, v_3 : tensor, v_4 : bool, v_5 : tensor} |= (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∧ (∀i ∈ [0, shape(v_3, 0) - 1] : (v_3[i] ≥ (0 - shape(v_1, v_2)) ∧ v_3[i] < shape(v_1, v_2))) ∧ (dtype_(v_3) = 4) ∧ (v_4 = true ∨ v_4 = false) ∧ (if v_5 ≠ none then (dtype_(v_1) = dtype_(v_5) ∧ ndim(v_3) = ndim(v_5) ∧ (∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) = shape(v_5, i)))) ∧ (ndim(v_1) = ndim(v_3)) ∧ (if v_2 < 0 then v_2 ≥ (0 - ndim(v_1))) ∧ (∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_2 then shape(v_3, i) ≤ shape(v_1, i))
 >>
-Rule 56 (Handle type error and combination of arguments. Attempt to express relationship between dimension ranges)
-{v_1 : tensor, v_2 : int, v_3 : tensor} |= if min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) - 1 then (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
+Rule 56 (Comprehensive rule for parameter validity.)
+{v_1 : tensor, v_2 : int, v_3 : tensor, v_4 : bool, v_5 : tensor} |= (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∧ (∀i ∈ [0, shape(v_3, 0) - 1] : (v_3[i] ≥ (0 - shape(v_1, v_2)) ∧ v_3[i] < shape(v_1, v_2))) ∧ (dtype_(v_3) = 4) ∧ (v_4 = true ∨ v_4 = false) ∧ (if v_5 ≠ none then (dtype_(v_1) = dtype_(v_5) ∧ ndim(v_3) = ndim(v_5) ∧ (∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) = shape(v_5, i)))) ∧ (ndim(v_1) = ndim(v_3)) ∧ (if v_2 < 0 then v_2 ≥ (0 - ndim(v_1))) ∧ (∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_2 then shape(v_3, i) ≤ shape(v_1, i)) ∧ (if v_4 = true then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
 >>
-Rule 57 (Handle type error and combination of arguments, final version, try to include as much constraints as possible using all four parameters)
-{v_1 : tensor, v_2 : int, v_3 : tensor, v_4 : bool} |= if (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1) then if v_4 = true then dtype_(v_3) = 5 ∧ ndim(v_1) = ndim(v_3) else ndim(v_1) = ndim(v_3) ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
->>
-Rule 58 (Handle type error and combination of arguments.)
-{v_1 : tensor, v_2 : int, v_3 : tensor, v_4 : bool} |= if (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1) then if v_4 = true then dtype_(v_3) = 5 ∧ ndim(v_1) = ndim(v_3) else ndim(v_1) = ndim(v_3) ∧ (∃i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) > 0)
->>
-Rule 59 (Handle type error and combination of arguments, including all checks known.)
-{v_1 : tensor, v_2 : int, v_3 : tensor, v_4 : bool} |= if (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1) then if v_4 = true then dtype_(v_3) = 5 ∧ ndim(v_1) = ndim(v_3) else ndim(v_1) = ndim(v_3) ∧ (∃i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) > 0)  ∧ dtype_(v_3) = 5
+Rule 57 (Fully Comprehensive Check)
+{v_1 : tensor, v_2 : int, v_3 : tensor, v_4 : bool, v_5 : tensor} |= (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∧ (∀i ∈ [0, shape(v_3, 0) - 1] : (v_3[i] ≥ (0 - shape(v_1, v_2)) ∧ v_3[i] < shape(v_1, v_2))) ∧ (dtype_(v_3) = 4) ∧ (v_4 = true ∨ v_4 = false) ∧ (if v_5 ≠ none then (dtype_(v_1) = dtype_(v_5) ∧ ndim(v_3) = ndim(v_5) ∧ (∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) = shape(v_5, i)))) ∧ (ndim(v_1) = ndim(v_3)) ∧ (if v_2 < 0 then v_2 ≥ (0 - ndim(v_1))) ∧ (∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_2 then shape(v_3, i) ≤ shape(v_1, i)) ∧ (if v_4 = true then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)) ∧ (if v_5 ≠ none then dtype_(v_5) = 4)

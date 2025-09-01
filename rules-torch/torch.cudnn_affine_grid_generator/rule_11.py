@@ -5,35 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Elements of grid_size should be int type (Rule 11)
+# H and W cannot be too large (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), If(Select(v["arg1_values"], i) < 0, False, False)) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_length"] - 1 + 1), If(Select(v["arg1_values"], i) < 0, False, False)) for i in range(6)]))
+    s.add(Not(And(v["arg1_value"] < 2048, v["arg2_value"] < 2048)) if n else
+          And(v["arg1_value"] < 2048, v["arg2_value"] < 2048))
 )
 
-def rule_11_func(arg1, solver=None, neg=False):
+def rule_11_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+            return False
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
-        arg1_values = Array('arg1_values', IntSort(), IntSort())
+        arg1_value = Int('arg1_value')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
+        solver.add(arg1_value == int(arg1))
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 11
-        rule_11(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values})
+        rule_11(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_11(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values']}, neg)
+        rule_11(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

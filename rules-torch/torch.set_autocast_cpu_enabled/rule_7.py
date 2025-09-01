@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Check if a tensor's minimum value is greater than a constant (Rule 7)
+# If enabled is true, then a hypothetical tensor should have more than one dimension (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) > v["arg2_value"]) if n else
-          Select(v["arg1_range"], 0) > v["arg2_value"])
+    s.add(Not(If(v["arg1_value"] == True, v["arg2_ndim"] > 1, v["arg2_ndim"] == v["arg2_ndim"])) if n else
+          If(v["arg1_value"] == True, v["arg2_ndim"] > 1, v["arg2_ndim"] == v["arg2_ndim"]))
 )
 
 def rule_7_func(arg1, arg2, solver=None, neg=False):
@@ -18,25 +18,24 @@ def rule_7_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, bool):
             return False
-        if not isinstance(arg2, (float, np.floating)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_value = Real('arg2_value')
+        arg1_value = Bool('arg1_value')
+        arg2_ndim = Int('arg2_ndim')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        solver.add(arg2_value == arg2)
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_ndim == arg2.ndim)
 
         # Constraints for rule 7
-        rule_7(solver, {'arg1_range': arg1_range, 'arg2_value': arg2_value})
+        rule_7(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_7(solver, {'arg1_range': arg1['range'], 'arg2_value': arg2['value']}, neg)
+        rule_7(solver, {'arg1_value': arg1['value'], 'arg2_ndim': arg2['ndim']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if input is int8, int16, int32, int64, uint8 then output should be float (Rule 16)
+# If input has an integer dtype that cannot be safely cast to the output dtype (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(If((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 6)), (And(7 <= v["arg2_dtype"], v["arg2_dtype"] <= 9)), False)) if n else
-          If((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 6)), (And(7 <= v["arg2_dtype"], v["arg2_dtype"] <= 9)), False))
+    s.add(Not(If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), If(Or(Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4), v["arg2_dtype"] == 5), False, True), True)) if n else
+          If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), If(Or(Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4), v["arg2_dtype"] == 5), False, True), True))
 )
 
 def rule_16_func(arg1, arg2, solver=None, neg=False):

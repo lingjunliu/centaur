@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the output size is a single int, it must be positive given a tensor that is not 4 or 5 dimensional *or* is Char, combined with type check int16 (Rule 132)
+# If at least one of the output sizes is specified as a valid dimension, the input tensor must have compatible dimension size (Rule 132)
 
 rule_132 = lambda s, v, n=False: (
-    s.add(Not(If(Or((And(v["arg2_ndim"] != 4, v["arg2_ndim"] != 5)), v["arg2_dtype"] == 12), And(v["arg1_value"] > 0, v["arg2_dtype"] != 2), False)) if n else
-          If(Or((And(v["arg2_ndim"] != 4, v["arg2_ndim"] != 5)), v["arg2_dtype"] == 12), And(v["arg1_value"] > 0, v["arg2_dtype"] != 2), False))
+    s.add(Not(If(v["arg1_ndim"] == 5, Or(Or((And(Select(v["arg2_values"], 0) > 0, Select(v["arg1_shape"], 2) > 0)), (And(Select(v["arg2_values"], 1) > 0, Select(v["arg1_shape"], 3) > 0))), (And(Select(v["arg2_values"], 2) > 0, Select(v["arg1_shape"], 4) > 0))), If(v["arg1_ndim"] == 4, Or(Or((And(Select(v["arg2_values"], 0) > 0, Select(v["arg1_shape"], 1) > 0)), (And(Select(v["arg2_values"], 1) > 0, Select(v["arg1_shape"], 2) > 0))), (And(Select(v["arg2_values"], 2) > 0, Select(v["arg1_shape"], 3) > 0))), True))) if n else
+          If(v["arg1_ndim"] == 5, Or(Or((And(Select(v["arg2_values"], 0) > 0, Select(v["arg1_shape"], 2) > 0)), (And(Select(v["arg2_values"], 1) > 0, Select(v["arg1_shape"], 3) > 0))), (And(Select(v["arg2_values"], 2) > 0, Select(v["arg1_shape"], 4) > 0))), If(v["arg1_ndim"] == 4, Or(Or((And(Select(v["arg2_values"], 0) > 0, Select(v["arg1_shape"], 1) > 0)), (And(Select(v["arg2_values"], 1) > 0, Select(v["arg1_shape"], 2) > 0))), (And(Select(v["arg2_values"], 2) > 0, Select(v["arg1_shape"], 3) > 0))), True)))
 )
 
 def rule_132_func(arg1, arg2, solver=None, neg=False):
@@ -18,26 +18,28 @@ def rule_132_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_ndim = Int('arg2_ndim')
-        arg2_dtype = Int('arg2_dtype')
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_values = Array('arg2_values', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        solver.add(arg2_ndim == arg2.ndim)
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        for i in range(len(arg2)):
+            arg2_values = Store(arg2_values, i, arg2[i])
 
         # Constraints for rule 132
-        rule_132(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype})
+        rule_132(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_values': arg2_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_132(solver, {'arg1_value': arg1['value'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_132(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_values': arg2['values']}, neg)

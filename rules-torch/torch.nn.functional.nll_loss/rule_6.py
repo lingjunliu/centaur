@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Target tensor dimension check (Rule 6)
+# Target tensor should be 0D or 1D, addressing "RuntimeError: 0D or 1D target tensor expected, multi-target not supported" (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(Or((v["arg1_ndim"] == 1), (v["arg1_ndim"] == 0))) if n else
-          Or((v["arg1_ndim"] == 1), (v["arg1_ndim"] == 0)))
+    s.add(Not(v["arg1_ndim"] <= 1) if n else
+          v["arg1_ndim"] <= 1)
 )
 
 def rule_6_func(arg1, solver=None, neg=False):

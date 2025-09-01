@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# ndim(v_1 (Rule 25)
+# require shape dimensions to be equal (Rule 25)
 
 rule_25 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] == 2, And([Implies(i < (1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]))) if n else
-          And(v["arg1_ndim"] == 2, And([Implies(i < (1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])))
+    s.add(Not(And(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) == Select(v["arg1_shape"], 1))) if n else
+          And(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) == Select(v["arg1_shape"], 1)))
 )
 
 def rule_25_func(arg1, solver=None, neg=False):

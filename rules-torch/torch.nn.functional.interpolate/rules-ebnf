@@ -1,132 +1,114 @@
 >>
-Rule 1 (Input tensor must be 3D, 4D, or 5D)
-{v_1 : tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4 ∨ ndim(v_1) = 5
->>
-Rule 3 (Input and output sizes should be greater than 0. This rule focuses on 'size' being greater than 0)
-{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
->>
-Rule 4 (When scale_factor is a tuple, its length must match the number of spatial dimensions)
+Rule 10 (When scale_factor is a tuple, its length has to match the number of spatial dimensions; input.dim() - 2.)
 {v_1 : tensor, v_3 : tuple(float)} |= v_3.len = ndim(v_1) - 2
 >>
-Rule 6 (Anti-alias option is restricted to bilinear and bicubic modes and requires a 4-D tensor as input)
-{v_1 : tensor, v_4 : str, v_7 : bool} |= (v_7 = false) ∨ (ndim(v_1) = 4 ∧ (v_4 = "bilinear" ∨ v_4 = "bicubic"))
+Rule 13 (Input tensor must be 3D, 4D, or 5D when mode is specified.)
+{v_1 : tensor, v_4 : str} |= if (v_4 = "nearest" ∨ v_4 = "linear" ∨ v_4 = "bilinear" ∨ v_4 = "bicubic" ∨ v_4 = "trilinear" ∨ v_4 = "area" ∨ v_4 = "nearest-exact") then (3 ≤ ndim(v_1) ∧ ndim(v_1) ≤ 5)
 >>
-Rule 7 (Align_corners option can only be set with the interpolating modes: linear, bilinear, bicubic, trilinear)
-{v_4 : str, v_5 : bool} |= (v_5 = false) ∨ (v_4 = "linear" ∨ v_4 = "bilinear" ∨ v_4 = "bicubic" ∨ v_4 = "trilinear")
->>
-Rule 8 (mode must be one of the allowed string values)
-{v_4 : str} |= v_4 = "nearest" ∨ v_4 = "linear" ∨ v_4 = "bilinear" ∨ v_4 = "bicubic" ∨ v_4 = "trilinear" ∨ v_4 = "area" ∨ v_4 = "nearest-exact"
->>
-Rule 10 (Only one of size or scale_factor should be defined. This rule checks that if size is not None then scale_factor must be None.)
-{v_2 : int ⊎ tuple(int), v_3 : float ⊎ tuple(float)} |= if v_2 = 0 then true else v_3 = 0
->>
-Rule 13 (Recompute_scale_factor is not meaningful with an explicit size)
-{v_2 : int ⊎ tuple(int), v_6 : bool} |= if v_2 = 0 then true else v_6 = false
->>
-Rule 17 (Input tensor must be 3D, 4D, or 5D, and mode is not none)
-{v_1 : tensor, v_4 : str} |= (ndim(v_1) = 3 ∨ ndim(v_1) = 4 ∨ ndim(v_1) = 5) ∧ (v_4 ≠ "none")
->>
-Rule 18 (Only one of size or scale_factor should be defined. If size is provided then scale_factor must be zero, and vice versa)
-{v_2 : int ⊎ tuple(int), v_3 : float ⊎ tuple(float)} |= if v_2 = 0 then v_3 ≠ 0 else v_3 = 0
->>
-Rule 21 (When align_corners is set to true, the mode should be linear, bilinear, bicubic, or trilinear)
+Rule 14 (align_corners is only valid for linear, bilinear, bicubic, or trilinear modes.)
 {v_4 : str, v_5 : bool} |= if v_5 = true then (v_4 = "linear" ∨ v_4 = "bilinear" ∨ v_4 = "bicubic" ∨ v_4 = "trilinear")
 >>
-Rule 22 (Input and output must have the same number of spatial dimensions when using explicit size)
-{v_1 : tensor, v_2 : tuple(int)} |= if v_2 ≠ 0 then ndim(v_1) - 2 = v_2.len
+Rule 15 (only one of size or scale_factor should be defined when size is an integer.)
+{v_2 : int, v_3 : float} |= if v_2 > 0 then v_3 = 0.0
 >>
-Rule 23 (Input tensor's dtype must not be 'Char' when using bilinear interpolation)
-{v_1 : tensor, v_4 : str} |= if v_4 = "bilinear" then dtype_(v_1) ≠ 1
+Rule 16 (only one of size or scale_factor should be defined when size is a tuple.)
+{v_2 : tuple(int), v_3 : float} |= if v_2.len > 0 then v_3 = 0.0
 >>
-Rule 24 (Recompute_scale_factor should not be true if size is specified.)
-{v_2 : int ⊎ tuple(int), v_6 : bool} |= if v_2 ≠ 0 then v_6 = false
+Rule 17 (only one of size or scale_factor should be defined when size is a tuple and scale_factor is a tuple.)
+{v_2 : tuple(int), v_3 : tuple(float)} |= if v_2.len > 0 then v_3.len = 0
 >>
-Rule 30 (Input and output must have the same number of spatial dimensions when using explicit size)
-{v_1 : tensor, v_2 : tuple(int)} |= if v_2 = 0 then true else ndim(v_1) - 2 = v_2.len
+Rule 18 (Input and output sizes should be greater than 0, ensuring no negative dimensions after scaling. Example uses shape for input and size for output.)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
 >>
-Rule 34 (Only one of size or scale_factor should be defined. size == 0 implies None)
-{v_2 : int ⊎ tuple(int), v_3 : float ⊎ tuple(float)} |= (v_2 = 0) = (v_3 ≠ 0)
+Rule 19 (Recompute_scale_factor is not meaningful with an explicit size when size is an integer.)
+{v_2 : int, v_6 : bool} |= if v_2 > 0 then v_6 = false
 >>
-Rule 35 (If size is provided, its elements must be positive integers)
-{v_2 : int ⊎ tuple(int)} |= if v_2 = 0 then true else ∀i ∈ [0, if v_2 > 0 then 0 else v_2.len - 1] : v_2[i] > 0
+Rule 20 (Recompute_scale_factor is not meaningful with an explicit size when size is a tuple.)
+{v_2 : tuple(int), v_6 : bool} |= if v_2.len > 0 then v_6 = false
 >>
-Rule 36 (When scale_factor is a float, it should be greater than zero)
-{v_3 : float ⊎ tuple(float)} |= if v_3 = 0 then true else ∀i ∈ [0, if v_3 > 0 then 0 else v_3.len - 1] : v_3[i] > 0
+Rule 21 (Anti-alias option is restricted to bilinear and bicubic modes and requires a 4-D tensor as input)
+{v_1 : tensor, v_4 : str, v_7 : bool} |= if v_7 = true then ((v_4 = "bilinear" ∨ v_4 = "bicubic") ∧ ndim(v_1) = 4)
 >>
-Rule 38 (Input and output must have the same number of spatial dimensions when using explicit size)
-{v_1 : tensor, v_2 : int ⊎ tuple(int)} |= if v_2 = 0 then true else ndim(v_1) - 2 = (if v_2 > 0 then 0 else v_2.len)
+Rule 24 (Input tensor must have float16, float32, float64, complex64, or complex128 when using modes linear, bilinear, bicubic, trilinear, or area.)
+{v_1 : tensor, v_4 : str} |= if (v_4 = "linear" ∨ v_4 = "bilinear" ∨ v_4 = "bicubic" ∨ v_4 = "trilinear" ∨ v_4 = "area") then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
 >>
-Rule 41 (Input tensor must be 3D, 4D, or 5D, depending on the mode.)
-{v_1 : tensor, v_4 : str} |= if v_4 = "linear" then ndim(v_1) = 3 else if v_4 = "bilinear" ∨ v_4 = "bicubic" ∨ v_4 = "nearest" ∨ v_4 = "nearest-exact" ∨ v_4 = "area" then ndim(v_1) = 4 else if v_4 = "trilinear" then ndim(v_1) = 5
+Rule 25 (Input tensor must be 3D, 4D, or 5D when mode is specified and input is 1D, suppress the error.)
+{v_1 : tensor, v_4 : str} |= if (v_4 = "nearest" ∨ v_4 = "linear" ∨ v_4 = "bilinear" ∨ v_4 = "bicubic" ∨ v_4 = "trilinear" ∨ v_4 = "area" ∨ v_4 = "nearest-exact") then (ndim(v_1) ≠ 1)
 >>
-Rule 42 (Only one of size or scale_factor should be defined. size == 0 implies None)
-{v_2 : int ⊎ tuple(int), v_3 : float ⊎ tuple(float)} |= (v_2 = 0) = (v_3 = 0)
+Rule 33 (If the number of spatial dimensions of input and the length of output size does not match, suppress the error.)
+{v_1 : tensor, v_2: tuple(int)} |= ndim(v_1) - 2 = v_2.len
 >>
-Rule 43 (If size is provided, its elements must be positive integers. Tuple Length consistent with ndim.)
-{v_1 : tensor, v_2 : int ⊎ tuple(int)} |= if v_2 = 0 then true else (∀i ∈ [0, if v_2 > 0 then 0 else v_2.len - 1] : v_2[i] > 0) ∧ (ndim(v_1) - 2 = (if v_2 > 0 then 0 else v_2.len))
+Rule 34 (The data type of input tensor cannot be Char)
+{v_1 : tensor} |= dtype_(v_1) ≠ 1
 >>
-Rule 51 (If size is provided, its elements must be positive integers and length is valid.)
-{v_1 : tensor, v_2 : int ⊎ tuple(int)} |= if v_2 = 0 then true else (∀i ∈ [0, if v_2 > 0 then 0 else v_2.len - 1] : v_2[i] > 0) ∧ (if v_2 > 0 then true else v_2.len = ndim(v_1) - 2)
+Rule 36 (Only one of size or scale_factor should be defined, size as integer.)
+{v_2 : int, v_3 : float} |= (v_2 > 0) ∧ (v_3 > 0) = false
 >>
-Rule 52 (When scale_factor is a float, it should be greater than zero and Length is valid)
-{v_1 : tensor, v_3 : float ⊎ tuple(float)} |= if v_3 = 0 then true else (∀i ∈ [0, if v_3 > 0 then 0 else v_3.len - 1] : v_3[i] > 0) ∧ (if v_3 > 0 then true else v_3.len = ndim(v_1) - 2)
+Rule 37 (Only one of size or scale_factor should be defined, size as tuple.)
+{v_2 : tuple(int), v_3 : float} |= (v_2.len > 0) ∧ (v_3 > 0) = false
 >>
-Rule 56 (Anti-alias option is restricted to bilinear and bicubic modes and requires a 4-D tensor as input)
-{v_1 : tensor, v_4 : str, v_7 : bool} |= if v_7 = true then (ndim(v_1) = 4 ∧ (v_4 = "bilinear" ∨ v_4 = "bicubic"))
+Rule 38 (Only one of size or scale_factor should be defined, scale_factor as tuple.)
+{v_2 : tuple(int), v_3 : tuple(float)} |= (v_2.len > 0) ∧ (v_3.len > 0) = false
 >>
-Rule 57 (Input tensor must be 3D, 4D, or 5D, and the first dimensions should not be negative)
-{v_1 : tensor} |= (ndim(v_1) = 3 ∨ ndim(v_1) = 4 ∨ ndim(v_1) = 5) ∧ (∀i ∈ [0, if ndim(v_1) > 0 then ndim(v_1) -1 else 0] : shape(v_1, i) ≥ 0)
+Rule 39 (Recompute_scale_factor is not meaningful with an explicit size, size as integer.)
+{v_2 : int, v_6 : bool} |= (v_2 > 0) ∧ (v_6 = true) = false
 >>
-Rule 59 (If size is provided, its elements must be positive integers and length is valid, size should be smaller than input size)
-{v_1 : tensor, v_2 : int ⊎ tuple(int)} |= if v_2 = 0 then true else (∀i ∈ [0, if v_2 > 0 then 0 else v_2.len - 1] : v_2[i] > 0 ∧ v_2[i] ≤ shape(v_1, i + 2)) ∧ (if v_2 > 0 then true else v_2.len = ndim(v_1) - 2)
+Rule 40 (Recompute_scale_factor is not meaningful with an explicit size, size as tuple.)
+{v_2 : tuple(int), v_6 : bool} |= (v_2.len > 0) ∧ (v_6 = true) = false
 >>
-Rule 65 (Input tensor must be 3D, 4D, or 5D, depending on the mode. AND first dimension can not be zero)
-{v_1 : tensor, v_4 : str} |= (if v_4 = "linear" then ndim(v_1) = 3 else if v_4 = "bilinear" ∨ v_4 = "bicubic" ∨ v_4 = "nearest" ∨ v_4 = "nearest-exact" ∨ v_4 = "area" then ndim(v_1) = 4 else if v_4 = "trilinear" then ndim(v_1) = 5) ∧ (shape(v_1, 0) > 0)
+Rule 41 (Anti-alias option is restricted to bilinear and bicubic modes and requires a 4-D tensor as input)
+{v_1 : tensor, v_4 : str, v_7 : bool} |= if (v_7 = true) then ((v_4 = "bilinear" ∨ v_4 = "bicubic") ∧ (ndim(v_1) = 4))
 >>
-Rule 68 (Scale factor elements must be positive.)
-{v_3 : float ⊎ tuple(float)} |= if v_3 = 0 then true else (∀i ∈ [0, if v_3 > 0 then 0 else v_3.len - 1] : v_3[i] > 0)
+Rule 42 (Input and output must have the same number of spatial dimensions, suppress the error)
+{v_1 : tensor, v_2: tuple(int)} |= (ndim(v_1) - 2) = v_2.len
 >>
-Rule 81 (Output size must be positive if size is specified and the mode is not nearest or nearest-exact or area. )
-{v_2 : int ⊎ tuple(int), v_4 : str} |= if v_2 = 0 then true else if v_4="nearest" ∨ v_4 = "nearest-exact" ∨ v_4 = "area" then true else ∀i ∈ [0, if v_2 > 0 then 0 else v_2.len - 1] : v_2[i] > 0
+Rule 44 (At least one of size or scale_factor should be defined.)
+{v_2 : int, v_3 : float, v_2_tuple: tuple(int), v_3_tuple: tuple(float)} |= (v_2 > 0) ∨ (v_3 > 0) ∨ (v_2_tuple.len > 0) ∨ (v_3_tuple.len > 0)
 >>
-Rule 82 (Input tensor's ndim must be appropriate for the mode and must have positive dimensions)
-{v_1 : tensor, v_4 : str} |= (if v_4 = "linear" then ndim(v_1) = 3 else if v_4 = "bilinear" ∨ v_4 = "bicubic" ∨ v_4 = "nearest" ∨ v_4 = "nearest-exact" ∨ v_4 = "area" then ndim(v_1) = 4 else if v_4 = "trilinear" then ndim(v_1) = 5) ∧ ∀i ∈ [0, if ndim(v_1) > 0 then ndim(v_1) -1 else 0] : shape(v_1, i) > 0
+Rule 60 (Validate input and output spatial dimension counts match.)
+{v_1 : tensor, v_2 : tuple(int)} |= (ndim(v_1) - 2) = v_2.len
 >>
-Rule 89 (If size is a tuple then size values must be positive)
-{v_2 : tuple(int)} |= if v_2 = 0 then true else ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
+Rule 63 (align_corners should be false when mode is nearest)
+{v_4 : str, v_5 : bool} |= if v_4 = "nearest" then v_5 = false
 >>
-Rule 90 (Input tensor's ndim must be appropriate for the mode and must have positive dimensions)
-{v_1 : tensor, v_4 : str} |= (if v_4 = "linear" then ndim(v_1) = 3 else if v_4 = "bilinear" ∨ v_4 = "bicubic" ∨ v_4 = "nearest" ∨ v_4 = "nearest-exact" ∨ v_4 = "area" then ndim(v_1) = 4 else if v_4 = "trilinear" then ndim(v_1) = 5) ∧ ∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0
+Rule 66 (Size or scale_factor defined exclusively.)
+{v_2 : int, v_3 : float} |= if v_2 > 0 then v_3 = 0.0 else if v_3 > 0.0 then v_2 = 0
 >>
-Rule 92 (Size and scale factor tuples must be of appropriate length)
-{v_1 : tensor, v_2 : int ⊎ tuple(int), v_3 : float ⊎ tuple(float)} |= if v_2 = 0 then (if v_3 = 0 then true else if v_3 > 0 then true else v_3.len = ndim(v_1) -2) else (if v_2 > 0 then true else v_2.len = ndim(v_1) -2)
+Rule 68 (Conditional check for Anti-alias option.)
+{v_1 : tensor, v_4 : str, v_7 : bool} |= if v_7 = true then ((v_4 = "bilinear" ∨ v_4 = "bicubic") ∧ (ndim(v_1) = 4))
 >>
-Rule 100 (If size is provided, the length of its tuple is valid)
-{v_1 : tensor, v_2 : int ⊎ tuple(int)} |= if v_2 = 0 then true else (if v_2 > 0 then true else v_2.len = ndim(v_1) - 2)
+Rule 74 (Exclusive definition of size or scale factor.)
+{v_2 : int, v_3 : float} |= (v_2 = 0) ∨ (v_3 = 0.0)
 >>
-Rule 106 (The scale factor must be positive)
-{v_3 : float ⊎ tuple(float)} |= if v_3 = 0 then true else if v_3 > 0 then v_3 > 0 else ∀i ∈ [0, v_3.len - 1] : v_3[i] > 0
+Rule 79 (Output size cannot be negative)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
 >>
-Rule 114 (Size must be positive)
-{v_2 : int ⊎ tuple(int)} |= if v_2 = 0 then true else if v_2 > 0 then v_2 > 0 else ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
+Rule 80 (The dimension of scale_factor should equal to input's spatial dimension)
+{v_1 : tensor, v_3 : tuple(float)} |= ndim(v_1) - 2 = v_3.len
 >>
-Rule 116 (Input and output must have the same number of spatial dimensions.)
-{v_1 : tensor, v_2 : int ⊎ tuple(int)} |= if v_2 = 0 then true else if v_2 > 0 then true else v_2.len = ndim(v_1) - 2
+Rule 88 (When scale_factor is not None, output size cannot be specified)
+{v_3 : float, v_2: tuple(int)} |= if v_3 > 0 then v_2.len = 0
 >>
-Rule 119 (Size and scale factor tuples must be of appropriate length, using only v1 and v2/v3 as bindings)
-{v_1 : tensor, v_2 : int ⊎ tuple(int)} |= if v_2 = 0 then true else (v_2.len = ndim(v_1) -2)
+Rule 91 (Ensure exclusive definition: size or scale_factor, not both or none. size: int, scale_factor: float)
+{v_2 : int, v_3 : float} |= (v_2 > 0 ∧ v_3 = 0.0) ∨ (v_2 = 0 ∧ v_3 > 0.0)
 >>
-Rule 124 (Size must be positive)
-{v_2 : int ⊎ tuple(int)} |= if v_2 = 0 then true else ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
+Rule 96 (At least one spatial size should be specified when size is tuple(int))
+{v_2 : tuple(int)} |= v_2.len > 0
 >>
-Rule 125 (The scale factor must be positive)
-{v_3 : float ⊎ tuple(float)} |= if v_3 = 0 then true else ∀i ∈ [0, v_3.len - 1] : v_3[i] > 0
+Rule 97 (Exclusive definition: size or scale_factor, not both or none. size: tuple, scale_factor: float)
+{v_2 : tuple(int), v_3 : float} |= (v_2.len > 0 ∧ v_3 = 0.0) ∨ (v_2.len = 0 ∧ v_3 > 0.0)
 >>
-Rule 126 (Scale factor values must be greater than zero)
-{v_3 : float ⊎ tuple(float)} |= if v_3 = 0 then true else if v_3 > 0 then v_3 > 0
+Rule 101 (Enforce recompute_scale_factor absence when size is specified.)
+{v_2 : int, v_6 : bool} |= v_2 = 0 ∨ v_6 = false
 >>
-Rule 138 (The spatial dimensions must be consistent between input and size)
-{v_1 : tensor, v_2 : int ⊎ tuple(int)} |= if v_2 = 0 then true else v_2.len = ndim(v_1) - 2
+Rule 104 (At least one of output size/ scale factor must be defined)
+{v_2 : int, v_3 : float, v_2_tuple: tuple(int), v_3_tuple: tuple(float)} |= (v_2>0) ∨ (v_3>0) ∨ (v_2_tuple.len > 0) ∨ (v_3_tuple.len > 0)
 >>
-Rule 145 (Scale factor values must be greater than zero, if size is also not defined.)
-{v_3 : float ⊎ tuple(float), v_2 : int ⊎ tuple(int)} |= if v_2 = 0 then (if v_3=0 then true else ∀i ∈ [0, if v_3 > 0 then 0 else v_3.len - 1] : v_3[i] > 0)
+Rule 115 (Ensure that when the align_corners is set to True, the mode should be one of the following.)
+{v_4 : str, v_5: bool} |= if v_5 = true then (v_4 = "linear" ∨ v_4 = "bilinear" ∨ v_4 = "bicubic" ∨ v_4 = "trilinear")
+>>
+Rule 127 (At least one of output sizes or scale factor should be non zero)
+{v_2 : int, v_3 : float, v_2_tuple : tuple(int), v_3_tuple : tuple(float)} |= (v_2 > 0) ∨ (v_3 > 0) ∨ (v_2_tuple.len > 0) ∨ (v_3_tuple.len > 0)
+>>
+Rule 135 (Ensure the validity of recompute_scale_factor when scale_factor is given.)
+{v_3 : float, v_6 : bool} |= if v_3 > 0 then v_6 = true

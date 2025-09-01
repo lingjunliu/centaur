@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If output_size is a single integer, both spatial dimensions are set to that value (Rule 23)
+# If input is 3D, then output_size must have length of 1 or 2 (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg2_value"] > 0, Select(v["arg1_shape"], 2) > 0), Select(v["arg1_shape"], 3) > 0)) if n else
-          And(And(v["arg2_value"] > 0, Select(v["arg1_shape"], 2) > 0), Select(v["arg1_shape"], 3) > 0))
+    s.add(Not(If(v["arg1_ndim"] == 3, Or(v["arg2_length"] == 1, v["arg2_length"] == 2), True)) if n else
+          If(v["arg1_ndim"] == 3, Or(v["arg2_length"] == 1, v["arg2_length"] == 2), True))
 )
 
 def rule_23_func(arg1, arg2, solver=None, neg=False):
@@ -20,23 +20,22 @@ def rule_23_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_value = Int('arg2_value')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_length = Int('arg2_length')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_length == len(arg2))
 
         # Constraints for rule 23
-        rule_23(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_23(solver, {'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_23(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_23(solver, {'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length']}, neg)

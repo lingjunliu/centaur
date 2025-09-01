@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If a tuple of int has a dimension of 2, then the product of all values cannot be zero (Rule 90)
+# Precision loss for the model more it impacts the API effect (Rule 90)
 
 rule_90 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_length"] == 2, Select(v["arg1_values"], 0) * Select(v["arg1_values"], 1) != 0, False)) if n else
-          If(v["arg1_length"] == 2, Select(v["arg1_values"], 0) * Select(v["arg1_values"], 1) != 0, False))
+    s.add(Not(v["arg1_value"] > 0.0001) if n else
+          v["arg1_value"] > 0.0001)
 )
 
 def rule_90_func(arg1, solver=None, neg=False):
@@ -17,23 +17,20 @@ def rule_90_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not isinstance(arg1, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
-        arg1_values = Array('arg1_values', IntSort(), IntSort())
+        arg1_value = Real('arg1_value')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 90
-        rule_90(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values})
+        rule_90(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_90(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values']}, neg)
+        rule_90(solver, {'arg1_value': arg1['value']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if dimension is out of range error, length has to be zero (Rule 48)
+# If start is tensor then the maximum value of start tensor should be less than dimension's shape (Rule 48)
 
 rule_48 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg2_value"] > v["arg1_ndim"] - 1, v["arg2_value"] < 0 - v["arg1_ndim"]), v["arg3_value"] == 0, False)) if n else
-          If(Or(v["arg2_value"] > v["arg1_ndim"] - 1, v["arg2_value"] < 0 - v["arg1_ndim"]), v["arg3_value"] == 0, False))
+    s.add(Not(If(v["arg3_ndim"] == 0, Select(v["arg3_range"], 1) < Select(v["arg1_shape"], v["arg2_value"]), True)) if n else
+          If(v["arg3_ndim"] == 0, Select(v["arg3_range"], 1) < Select(v["arg1_shape"], v["arg2_value"]), True))
 )
 
 def rule_48_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -23,24 +23,28 @@ def rule_48_func(arg1, arg2, arg3, solver=None, neg=False):
             return False
         if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
-        if not (isinstance(arg3, (int, np.integer)) and not isinstance(arg3, bool)):
+        if not isinstance(arg3, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg2_value = Int('arg2_value')
-        arg3_value = Int('arg3_value')
+        arg3_ndim = Int('arg3_ndim')
+        arg3_range = Array('arg3_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg2_value == int(arg2))
-        solver.add(arg3_value == int(arg3))
+        solver.add(arg3_ndim == arg3.ndim)
+        arg3_range = Store(arg3_range, 0, int(np.min(arg3)))
+        arg3_range = Store(arg3_range, 1, int(np.max(arg3)))
 
         # Constraints for rule 48
-        rule_48(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
+        rule_48(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value, 'arg3_range': arg3_range, 'arg3_ndim': arg3_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_48(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)
+        rule_48(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value'], 'arg3_range': arg3['range'], 'arg3_ndim': arg3['ndim']}, neg)

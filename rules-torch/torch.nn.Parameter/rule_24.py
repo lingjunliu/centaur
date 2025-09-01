@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Parameter's tensor must be floating or complex if requires_grad, or not require gradients (Rule 24)
+# If requires_grad is true, then the dtype of the data tensor should be a floating point or complex number, which translates to an index between 7 and 11 (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"], (And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 10)), False)) if n else
-          If(v["arg2_value"], (And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 10)), False))
+    s.add(Not(If(v["arg2_value"] == True, And(7 <= v["arg1_dtype"], v["arg1_dtype"] <= 11), True)) if n else
+          If(v["arg2_value"] == True, And(7 <= v["arg1_dtype"], v["arg1_dtype"] <= 11), True))
 )
 
 def rule_24_func(arg1, arg2, solver=None, neg=False):

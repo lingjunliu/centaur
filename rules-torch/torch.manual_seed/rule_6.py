@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if seed is negative it's remapped using the formula (Rule 6)
+# seed must be less than or equal to the maximum value (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] < 0, v["arg1_value"] + 18446744073709551616 >= 0, False)) if n else
-          If(v["arg1_value"] < 0, v["arg1_value"] + 18446744073709551616 >= 0, False))
+    s.add(Not(v["arg1_value"] <= 18446744073709551615) if n else
+          v["arg1_value"] <= 18446744073709551615)
 )
 
 def rule_6_func(arg1, solver=None, neg=False):

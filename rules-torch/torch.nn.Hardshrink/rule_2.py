@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# lambd should not be a large value to prevent overflow when converting to Half type (Rule 2)
+# lambd value should be representable as half to avoid overflow. (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 10000) if n else
-          v["arg1_value"] < 10000)
+    s.add(Not(And(v["arg1_value"] < 65504, v["arg1_value"] > -65504)) if n else
+          And(v["arg1_value"] < 65504, v["arg1_value"] > -65504))
 )
 
 def rule_2_func(arg1, solver=None, neg=False):

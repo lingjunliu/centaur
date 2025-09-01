@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Negative dimension values must be representable in int32 (Rule 37)
+# The dimension value should not be close to the maximum or minimum integer value to prevent overflow during calculations (Rule 37)
 
 rule_37 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] > -2147483648) if n else
-          v["arg1_value"] > -2147483648)
+    s.add(Not(And(v["arg1_value"] > -2147483647, v["arg1_value"] < 2147483647)) if n else
+          And(v["arg1_value"] > -2147483647, v["arg1_value"] < 2147483647))
 )
 
 def rule_37_func(arg1, solver=None, neg=False):

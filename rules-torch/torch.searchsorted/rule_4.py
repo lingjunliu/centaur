@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# sorted_sequence and values must have compatible shapes: N-1 dimensions of sorted_sequence must match dimensions of values (Rule 4)
+# boundaries tensor should be 1 dimension or the first N-1 dimensions of boundaries tensor and input value tensor must match (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(Or((v["arg1_ndim"] == 1), (And(And(v["arg1_ndim"] > 1, v["arg2_ndim"] > 0), (And([Implies(i < (v["arg1_ndim"] - 2 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])))))) if n else
-          Or((v["arg1_ndim"] == 1), (And(And(v["arg1_ndim"] > 1, v["arg2_ndim"] > 0), (And([Implies(i < (v["arg1_ndim"] - 2 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]))))))
+    s.add(Not(Or((v["arg1_ndim"] == 1), (And(v["arg1_ndim"] - 1 == v["arg2_ndim"], And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]))))) if n else
+          Or((v["arg1_ndim"] == 1), (And(v["arg1_ndim"] - 1 == v["arg2_ndim"], And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])))))
 )
 
 def rule_4_func(arg1, arg2, solver=None, neg=False):
@@ -39,9 +39,9 @@ def rule_4_func(arg1, arg2, solver=None, neg=False):
             arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 4
-        rule_4(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape})
+        rule_4(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_4(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape']}, neg)
+        rule_4(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim']}, neg)

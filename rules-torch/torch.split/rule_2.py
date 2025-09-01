@@ -8,8 +8,8 @@ from z3 import *
 # split_size can only be 0 if dimension size is 0 (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_shape"], v["arg3_value"]) == 0, v["arg2_value"] == 0, False)) if n else
-          If(Select(v["arg1_shape"], v["arg3_value"]) == 0, v["arg2_value"] == 0, False))
+    s.add(Not(If(v["arg2_value"] == 0, Select(v["arg1_shape"], v["arg3_value"]) == 0, True)) if n else
+          If(v["arg2_value"] == 0, Select(v["arg1_shape"], v["arg3_value"]) == 0, True))
 )
 
 def rule_2_func(arg1, arg2, arg3, solver=None, neg=False):

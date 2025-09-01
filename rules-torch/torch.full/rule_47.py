@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# size can not be NONE type. (Rule 47)
+# if fill_value is boolean, then dtype should be boolean or any numerical type. (Rule 47)
 
 rule_47 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] != 12) if n else
-          v["arg1_value"] != 12)
+    s.add(Not(If(Or(v["arg1_value"] == 0, (And(v["arg1_value"] >= 1, v["arg1_value"] <= 10))), True, False)) if n else
+          If(Or(v["arg1_value"] == 0, (And(v["arg1_value"] >= 1, v["arg1_value"] <= 10))), True, False))
 )
 
 def rule_47_func(arg1, solver=None, neg=False):

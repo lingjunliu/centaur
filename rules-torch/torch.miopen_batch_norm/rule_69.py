@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If training is set to true, and weight and bias tensors must have the same dtype as input tensor (Rule 69)
+# If training is enabled and the input tensor is 3D, the dimension of running_mean and running_var must be same as input feature dimension (Rule 69)
 
 rule_69 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg4_value"] == True, And(v["arg1_dtype"] == v["arg2_dtype"], v["arg1_dtype"] == v["arg3_dtype"]), False)) if n else
-          If(v["arg4_value"] == True, And(v["arg1_dtype"] == v["arg2_dtype"], v["arg1_dtype"] == v["arg3_dtype"]), False))
+    s.add(Not(If(v["arg1_value"], If(v["arg2_ndim"] == 3, And(Select(v["arg3_shape"], 0) == Select(v["arg2_shape"], 1), Select(v["arg4_shape"], 0) == Select(v["arg2_shape"], 1)), True), True)) if n else
+          If(v["arg1_value"], If(v["arg2_ndim"] == 3, And(Select(v["arg3_shape"], 0) == Select(v["arg2_shape"], 1), Select(v["arg4_shape"], 0) == Select(v["arg2_shape"], 1)), True), True))
 )
 
 def rule_69_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
@@ -20,32 +20,37 @@ def rule_69_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, bool):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
         if not isinstance(arg3, np.ndarray):
             return False
-        if not isinstance(arg4, bool):
+        if not isinstance(arg4, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
-        arg3_dtype = Int('arg3_dtype')
-        arg4_value = Bool('arg4_value')
+        arg1_value = Bool('arg1_value')
+        arg2_ndim = Int('arg2_ndim')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg3_shape = Array('arg3_shape', IntSort(), IntSort())
+        arg4_shape = Array('arg4_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
-        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
-        solver.add(arg4_value == arg4)
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_ndim == arg2.ndim)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        for i in range(arg3.ndim):
+            arg3_shape = Store(arg3_shape, i, arg3.shape[i])
+        for i in range(arg4.ndim):
+            arg4_shape = Store(arg4_shape, i, arg4.shape[i])
 
         # Constraints for rule 69
-        rule_69(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype, 'arg4_value': arg4_value})
+        rule_69(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg3_shape': arg3_shape, 'arg4_shape': arg4_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_69(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype'], 'arg4_value': arg4['value']}, neg)
+        rule_69(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_shape': arg3['shape'], 'arg4_shape': arg4['shape']}, neg)

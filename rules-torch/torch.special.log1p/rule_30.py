@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the out tensor has a boolean dtype, then calculating log1p on the input tensor should result in a type that can be casted safely and directly to bool, disallowing complex numbers. If 'out' is not specified, this does not apply. (Rule 30)
+# If 'out' is boolean, then 'input' must be numerical. Also, if 'input' is complex, 'out' must be complex, preventing ComplexDouble being cast to Bool. (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_dtype"] == 0, v["arg1_dtype"] < 9, False)) if n else
-          If(v["arg2_dtype"] == 0, v["arg1_dtype"] < 9, False))
+    s.add(Not(If(v["arg2_dtype"] == 0, v["arg1_dtype"] < 9, If(And(v["arg1_dtype"] >= 10, v["arg1_dtype"] <= 11), And(v["arg2_dtype"] >= 10, v["arg2_dtype"] <= 11), True))) if n else
+          If(v["arg2_dtype"] == 0, v["arg1_dtype"] < 9, If(And(v["arg1_dtype"] >= 10, v["arg1_dtype"] <= 11), And(v["arg2_dtype"] >= 10, v["arg2_dtype"] <= 11), True)))
 )
 
 def rule_30_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input tensor must have floating point dtype to require gradient (Rule 6)
+# normalized_shape should be non-empty. That is it shouldn't be an empty list or tuple (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(Or((And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)), (And(9 <= v["arg1_dtype"], v["arg1_dtype"] <= 10)))) if n else
-          Or((And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)), (And(9 <= v["arg1_dtype"], v["arg1_dtype"] <= 10))))
+    s.add(Not(v["arg1_length"] > 0) if n else
+          v["arg1_length"] > 0)
 )
 
 def rule_6_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_6_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_length = Int('arg1_length')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg1_length == len(arg1))
 
         # Constraints for rule 6
-        rule_6(solver, {'arg1_dtype': arg1_dtype})
+        rule_6(solver, {'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_6(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_6(solver, {'arg1_length': arg1['length']}, neg)

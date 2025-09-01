@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Lower bound and upper bound should be finite numbers (Rule 13)
+# Check for potential NaN/Inf (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(And((And(v["arg1_value"] > -1000000000.0, v["arg1_value"] < 1000000000.0)), (And(v["arg2_value"] > -1000000000.0, v["arg2_value"] < 1000000000.0)))) if n else
-          And((And(v["arg1_value"] > -1000000000.0, v["arg1_value"] < 1000000000.0)), (And(v["arg2_value"] > -1000000000.0, v["arg2_value"] < 1000000000.0))))
+    s.add(Not(And(v["arg1_value"] == v["arg1_value"], v["arg2_value"] == v["arg2_value"])) if n else
+          And(v["arg1_value"] == v["arg1_value"], v["arg2_value"] == v["arg2_value"]))
 )
 
 def rule_13_func(arg1, arg2, solver=None, neg=False):

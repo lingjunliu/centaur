@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the tensor's dtype is float16, the value should be within the valid range and also be a representable half-precision float (Rule 11)
+# Value is within representable bounds for float16 values (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, And(And(-65504 <= v["arg2_value"], v["arg2_value"] <= 65504), (v["arg2_value"] % 0.00006103515625) == 0), False)) if n else
-          If(v["arg1_dtype"] == 6, And(And(-65504 <= v["arg2_value"], v["arg2_value"] <= 65504), (v["arg2_value"] % 0.00006103515625) == 0), False))
+    s.add(Not(If(v["arg1_dtype"] == 7, (And(v["arg2_value"] >= -65500.0, v["arg2_value"] <= 65500.0)), True)) if n else
+          If(v["arg1_dtype"] == 7, (And(v["arg2_value"] >= -65500.0, v["arg2_value"] <= 65500.0)), True))
 )
 
 def rule_11_func(arg1, arg2, solver=None, neg=False):

@@ -1,48 +1,60 @@
 >>
-Rule 1 (Tensors must have compatible sizes to avoid broadcasting errors.)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 1 (input and other tensors must have the same size)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 2 (input dtype must be floating or complex to support xlog1py.)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 2 (Prevent complex double tensors)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
 >>
-Rule 5 (If out is given, the dtype must be compatible with input and other tensors.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_3) = dtype_(v_1) ∨ dtype_(v_3) = dtype_(v_2)
+Rule 8 (Prevent complex double tensors)
+{v_2 : tensor} |= dtype_(v_2) ≠ 11
 >>
-Rule 6 (If other tensor contains nan and input tensor is zeros, then the result should be nan.)
-{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, shape(v_1, 0) - 1] : v_2[i] ≠ v_2[i]) ∧ (∃j ∈ [0, shape(v_1, 0) - 1]: v_1[j] = 0) then true
+Rule 9 (At least one tensor argument)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 7 (Tensors must have compatible sizes to avoid broadcasting errors. Considering tensors of different dimensions.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 10 (At least one tensor argument)
+{v_2 : tensor} |= ndim(v_2) ≥ 0
 >>
-Rule 8 (Ensure that if out tensor is given, its shape matches the expected output shape based on input and other tensors)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i))
+Rule 11 (input and other tensors must have compatible dimensions)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 9 (If one of the tensors are complex double, then other one should not be of non-compatible type.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+Rule 12 (Prevent complex double tensors for v_1)
+{v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
 >>
-Rule 10 (If input is ComplexDouble, other must be ComplexDouble to avoid type mismatch)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 10
+Rule 13 (Prevent complex double tensors for v_2)
+{v_2 : tensor} |= dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11
 >>
-Rule 11 (If other is ComplexDouble, input must be ComplexDouble to avoid type mismatch)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 10 then dtype_(v_1) = 10
+Rule 16 (input and other tensors must have compatible dimensions, or one is a scalar)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_1) = 0) ∨ (ndim(v_2) = 0)
 >>
-Rule 12 (Ensure out tensor has the correct dtype if provided. If input or other tensor are complex, out tensor should be complex.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_2) = 10 then dtype_(v_3) = 10
+Rule 23 (At least one argument must be a tensor, shape > 0)
+{v_1 : tensor} |= shape(v_1,0) > 0
 >>
-Rule 13 (If input and other are tensors, their shapes must be broadcastable or the same.)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))) ∨ (ndim(v_1) ≠ ndim(v_2))
+Rule 24 (At least one argument must be a tensor, shape > 0)
+{v_2 : tensor} |= shape(v_2,0) > 0
 >>
-Rule 15 (If input and other are tensors, their shapes must be broadcastable or the same to avoid size mismatch.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) else (∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2) -1] : (if ndim(v_1) - 1 - i ≥ 0 ∧ ndim(v_2) - 1 - i ≥ 0 then shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i) ∨ shape(v_1, ndim(v_1) - 1 - i) = 1 ∨ shape(v_2, ndim(v_2) - 1 - i) = 1))
+Rule 25 (Prevent complex double tensors)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11 ∧ dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11
 >>
-Rule 19 (Shape compatibility for broadcasting or identical shapes)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))) ∨ (∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2) -1] : (if ndim(v_1) - 1 - i ≥ 0 ∧ ndim(v_2) - 1 - i ≥ 0 then shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i) ∨ shape(v_1, ndim(v_1) - 1 - i) = 1 ∨ shape(v_2, ndim(v_2) - 1 - i) = 1))
+Rule 26 (input and other tensors must have compatible dimensions)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (shape(v_1, 0) = shape(v_2, 0) ∨ ndim(v_1) = 0 ∨ ndim(v_2) = 0)
 >>
-Rule 20 (dtype consistency when one is ComplexDouble to resolve `xlog1py_cpu not implemented for 'ComplexDouble'`)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 10 else if dtype_(v_2) = 10 then dtype_(v_1) = 10
+Rule 34 (input and other tensors must have compatible dimensions)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ ndim(v_1) = 0 ∨ ndim(v_2) = 0
 >>
-Rule 21 (For shape mismatch, enforce broadcasting or identical shapes)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) else ndim(v_2) -1] : (if ndim(v_1) - 1 - i ≥ 0 ∧ ndim(v_2) - 1 - i ≥ 0 then shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i) ∨ shape(v_1, ndim(v_1) - 1 - i) = 1 ∨ shape(v_2, ndim(v_2) - 1 - i) = 1))
+Rule 45 (At least one argument has a defined shape)
+{v_1 : tensor} |= shape(v_1, 0) ≥ 0
 >>
-Rule 23 (For shape mismatch, either enforce broadcasting or shapes must be identical.)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))) ∨ (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) else ndim(v_2) -1] : (if ndim(v_1) - 1 - i ≥ 0 ∧ ndim(v_2) - 1 - i ≥ 0 then shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i) ∨ shape(v_1, ndim(v_1) - 1 - i) = 1 ∨ shape(v_2, ndim(v_2) - 1 - i) = 1))
+Rule 46 (At least one argument has a defined shape)
+{v_2 : tensor} |= shape(v_2, 0) ≥ 0
+>>
+Rule 51 (Valid shape)
+{v_1 : tensor } |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1,i) > 0
+>>
+Rule 60 (At least one argument has valid shape)
+{v_1 : tensor} |= ndim(v_1) = 0 ∨ (ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1,i) > 0)
+>>
+Rule 63 (Valid shape dimensions)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 81 (Valid tensor shape dimensions)
+{v_1 : tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)

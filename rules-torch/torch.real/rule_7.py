@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# output tensor dtype is float32 if input is complex64, and float64 if input is complex128 (Rule 7)
+# If input tensor is complex64, output tensor is float32 (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 10, v["arg1_dtype"] == 7, If(v["arg1_dtype"] == 11, v["arg1_dtype"] == 8, False))) if n else
-          If(v["arg1_dtype"] == 10, v["arg1_dtype"] == 7, If(v["arg1_dtype"] == 11, v["arg1_dtype"] == 8, False)))
+    s.add(Not(If(v["arg1_dtype"] == 10, True, If(v["arg1_dtype"] == 11, True, False))) if n else
+          If(v["arg1_dtype"] == 10, True, If(v["arg1_dtype"] == 11, True, False)))
 )
 
 def rule_7_func(arg1, solver=None, neg=False):

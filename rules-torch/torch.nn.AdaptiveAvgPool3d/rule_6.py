@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# input dimension should be at least 4 (Rule 6)
+# output_size as tuple of integers or None (represented as -1 (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] >= 4) if n else
-          v["arg1_ndim"] >= 4)
+    s.add(Not(And(v["arg1_length"] == 3, And([Implies(i < (2 + 1), Select(v["arg1_values"], i) >= -1) for i in range(6)]))) if n else
+          And(v["arg1_length"] == 3, And([Implies(i < (2 + 1), Select(v["arg1_values"], i) >= -1) for i in range(6)])))
 )
 
 def rule_6_func(arg1, solver=None, neg=False):
@@ -17,20 +17,23 @@ def rule_6_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_length = Int('arg1_length')
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_length == len(arg1))
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 6
-        rule_6(solver, {'arg1_ndim': arg1_ndim})
+        rule_6(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_6(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_6(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values']}, neg)

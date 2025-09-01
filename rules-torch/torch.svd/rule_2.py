@@ -8,8 +8,8 @@ from z3 import *
 # input tensor dtype should be float, double, cfloat or cdouble (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 10), v["arg1_dtype"] == 9)) if n else
-          Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 10), v["arg1_dtype"] == 9))
+    s.add(Not(Or(Or(Or(v["arg1_dtype"] == 8, v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 7)) if n else
+          Or(Or(Or(v["arg1_dtype"] == 8, v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), v["arg1_dtype"] == 7))
 )
 
 def rule_2_func(arg1, solver=None, neg=False):

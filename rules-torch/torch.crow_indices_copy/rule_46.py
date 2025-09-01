@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# crow_indices_copy accepts one tensor argument. If the number of dimension are greater than 0 and is less than 3 then the dtype should be 3. (Rule 46)
+# The values in indices must be less than the length of the values that can be represented by dtype (Rule 46)
 
 rule_46 = lambda s, v, n=False: (
-    s.add(Not(If(And(0 < v["arg1_ndim"], v["arg1_ndim"] < 3), v["arg1_dtype"] == 3, False)) if n else
-          If(And(0 < v["arg1_ndim"], v["arg1_ndim"] < 3), v["arg1_dtype"] == 3, False))
+    s.add(Not(If(v["arg1_dtype"] == 1, Select(v["arg1_range"], 1) < 127, If(v["arg1_dtype"] == 2, Select(v["arg1_range"], 1) < 32767, If(v["arg1_dtype"] == 3, Select(v["arg1_range"], 1) < 2147483647, If(v["arg1_dtype"] == 4, Select(v["arg1_range"], 1) < 9223372036854775807, If(v["arg1_dtype"] == 5, Select(v["arg1_range"], 1) < 255, True)))))) if n else
+          If(v["arg1_dtype"] == 1, Select(v["arg1_range"], 1) < 127, If(v["arg1_dtype"] == 2, Select(v["arg1_range"], 1) < 32767, If(v["arg1_dtype"] == 3, Select(v["arg1_range"], 1) < 2147483647, If(v["arg1_dtype"] == 4, Select(v["arg1_range"], 1) < 9223372036854775807, If(v["arg1_dtype"] == 5, Select(v["arg1_range"], 1) < 255, True))))))
 )
 
 def rule_46_func(arg1, solver=None, neg=False):
@@ -22,17 +22,18 @@ def rule_46_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
         arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 46
-        rule_46(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype})
+        rule_46(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_46(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype']}, neg)
+        rule_46(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# out tensor must have compatible dtype with input A (Rule 10)
+# If A is complex, out must be complex and if A is float, out must be float. This is a combined rule for rules 8 and 9 (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(If(Or((v["arg1_dtype"] == 7), (v["arg1_dtype"] == 8)), Or((v["arg2_dtype"] == 7), (v["arg2_dtype"] == 8)), Or((v["arg2_dtype"] == 9), (v["arg2_dtype"] == 10)))) if n else
-          If(Or((v["arg1_dtype"] == 7), (v["arg1_dtype"] == 8)), Or((v["arg2_dtype"] == 7), (v["arg2_dtype"] == 8)), Or((v["arg2_dtype"] == 9), (v["arg2_dtype"] == 10))))
+    s.add(Not(Or((And((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)))), (And((Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)), (Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8)))))) if n else
+          Or((And((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)))), (And((Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)), (Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8))))))
 )
 
 def rule_10_func(arg1, arg2, solver=None, neg=False):

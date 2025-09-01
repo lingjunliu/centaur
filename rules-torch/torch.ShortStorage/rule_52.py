@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Use a 64-bit check to prevent integer overflow issues, but requiring greater precision than int (Rule 52)
+# size as float must be small (Rule 52)
 
 rule_52 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] > -1, v["arg1_value"] < 9223372036854775807 / 2)) if n else
-          And(v["arg1_value"] > -1, v["arg1_value"] < 9223372036854775807 / 2))
+    s.add(Not(v["arg1_value"] < 5000000.0) if n else
+          v["arg1_value"] < 5000000.0)
 )
 
 def rule_52_func(arg1, solver=None, neg=False):

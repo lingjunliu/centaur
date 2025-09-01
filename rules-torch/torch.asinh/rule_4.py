@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# output tensor's dtype should be at least float to accommodate potential large asinh values if input is float16 or higher (Rule 4)
+# If out is provided, its dtype must be compatible with the operation and input (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 7, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 8, v["arg2_dtype"] >= 8, If(v["arg1_dtype"] == 9, v["arg2_dtype"] >= 9, If(v["arg1_dtype"] == 10, v["arg2_dtype"] >= 10, False)))))) if n else
-          If(v["arg1_dtype"] == 6, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 7, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 8, v["arg2_dtype"] >= 8, If(v["arg1_dtype"] == 9, v["arg2_dtype"] >= 9, If(v["arg1_dtype"] == 10, v["arg2_dtype"] >= 10, False))))))
+    s.add(Not(If(v["arg1_dtype"] == 6, (Or(Or(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10)), If(v["arg1_dtype"] == 7, (Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10)), If(v["arg1_dtype"] == 8, (Or(Or(v["arg2_dtype"] == 8, v["arg2_dtype"] == 9), v["arg2_dtype"] == 10)), If(v["arg1_dtype"] == 9, (v["arg2_dtype"] == 9), If(v["arg1_dtype"] == 10, (v["arg2_dtype"] == 10), False)))))) if n else
+          If(v["arg1_dtype"] == 6, (Or(Or(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10)), If(v["arg1_dtype"] == 7, (Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10)), If(v["arg1_dtype"] == 8, (Or(Or(v["arg2_dtype"] == 8, v["arg2_dtype"] == 9), v["arg2_dtype"] == 10)), If(v["arg1_dtype"] == 9, (v["arg2_dtype"] == 9), If(v["arg1_dtype"] == 10, (v["arg2_dtype"] == 10), False))))))
 )
 
 def rule_4_func(arg1, arg2, solver=None, neg=False):

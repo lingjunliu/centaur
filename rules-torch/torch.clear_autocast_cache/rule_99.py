@@ -5,37 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If a dtype is an integer type, then a bool variable must be true. (Rule 99)
+# The minimum number of times clear_autocast_cache has been called should not exceed 50 (Rule 99)
 
 rule_99 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(Or(Or(v["arg1_value"] == 1, v["arg1_value"] == 2), v["arg1_value"] == 3), v["arg1_value"] == 4), v["arg1_value"] == 5), v["arg2_value"] == True, False)) if n else
-          If(Or(Or(Or(Or(v["arg1_value"] == 1, v["arg1_value"] == 2), v["arg1_value"] == 3), v["arg1_value"] == 4), v["arg1_value"] == 5), v["arg2_value"] == True, False))
+    s.add(Not(v["arg1_value"] <= 50) if n else
+          v["arg1_value"] <= 50)
 )
 
-def rule_99_func(arg1, arg2, solver=None, neg=False):
+def rule_99_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
-            return False
-        if not isinstance(arg2, bool):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = Int('arg1_value')
-        arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
-        solver.add(arg2_value == arg2)
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 99
-        rule_99(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_99(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_99(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_99(solver, {'arg1_value': arg1['value']}, neg)

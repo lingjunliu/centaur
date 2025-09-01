@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If reduction is "mean" or "sum", size_average is ignored and defaults to True (Rule 32)
+# If size_average is not specified, and reduce is not specified, reduction should be 'mean' (Rule 32)
 
 rule_32 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_value"] == 7, v["arg1_value"] == 8), True, False)) if n else
-          If(Or(v["arg1_value"] == 7, v["arg1_value"] == 8), True, False))
+    s.add(Not(v["arg1_value"] == 7) if n else
+          v["arg1_value"] == 7)
 )
 
 def rule_32_func(arg1, solver=None, neg=False):

@@ -5,19 +5,22 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the second argument is a tensor, its dtype must be a number type. (Rule 12)
+# If one is a tensor and the other is a number, ensure the number is not excessively large to avoid potential overflow during type promotion (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 10)) if n else
-          And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 10))
+    s.add(Not(If(v["arg1_dtype"] < 9, And(v["arg2_value"] < 1000000000.0, v["arg2_value"] > -1000000000.0), True)) if n else
+          If(v["arg1_dtype"] < 9, And(v["arg2_value"] < 1000000000.0, v["arg2_value"] > -1000000000.0), True))
 )
 
-def rule_12_func(arg1, solver=None, neg=False):
+def rule_12_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
+            return False
+        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)) or isinstance(arg2, (float, np.floating))):
             return False
 
         # Variable declarations
@@ -28,9 +31,9 @@ def rule_12_func(arg1, solver=None, neg=False):
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 12
-        rule_12(solver, {'arg1_dtype': arg1_dtype})
+        rule_12(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_12(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_12(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

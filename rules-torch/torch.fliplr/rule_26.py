@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor should have reasonable size for each dimension (Rule 26)
+# Input tensor is at least 2D and shape(v_1, 0 (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 2, Select(v["arg1_shape"], 2) < 2000, False)) if n else
-          If(v["arg1_ndim"] > 2, Select(v["arg1_shape"], 2) < 2000, False))
+    s.add(Not(And(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], 0) > 1)) if n else
+          And(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], 0) > 1))
 )
 
 def rule_26_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_26_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 26
-        rule_26(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_26(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_26(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_26(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

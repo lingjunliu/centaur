@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The input dtype cannot be of type boolean, integer, string or complex number. (Rule 21)
+# Input dtype must be a floating-point or complex type (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(And(And(And(And(v["arg1_value"] != 0, v["arg1_value"] != 1), v["arg1_value"] != 2), v["arg1_value"] != 3), v["arg1_value"] != 4), v["arg1_value"] != 5), v["arg1_value"] != 10), v["arg1_value"] != 11)) if n else
-          And(And(And(And(And(And(And(v["arg1_value"] != 0, v["arg1_value"] != 1), v["arg1_value"] != 2), v["arg1_value"] != 3), v["arg1_value"] != 4), v["arg1_value"] != 5), v["arg1_value"] != 10), v["arg1_value"] != 11))
+    s.add(Not(And(6 <= v["arg1_value"], v["arg1_value"] <= 10)) if n else
+          And(6 <= v["arg1_value"], v["arg1_value"] <= 10))
 )
 
 def rule_21_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input tensor is 5D, number of features should not be extremely large (Rule 29)
+# If num_features is large, eps must be also reasonably large (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 5, v["arg2_value"] < 4096, False)) if n else
-          If(v["arg1_ndim"] == 5, v["arg2_value"] < 4096, False))
+    s.add(Not(If(v["arg1_value"] > 1000, v["arg2_value"] > 0.000001, True)) if n else
+          If(v["arg1_value"] > 1000, v["arg2_value"] > 0.000001, True))
 )
 
 def rule_29_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,24 @@ def rule_29_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg2, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_value = Int('arg2_value')
+        arg1_value = Int('arg1_value')
+        arg2_value = Real('arg2_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg1_value == int(arg1))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 29
-        rule_29(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_29(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_29(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)
+        rule_29(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

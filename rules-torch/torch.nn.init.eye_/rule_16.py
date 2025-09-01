@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# ndim(v_1 (Rule 16)
+# alternative dimension check using arithmetic (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] != 1) if n else
-          v["arg1_ndim"] != 1)
+    s.add(Not((v["arg1_ndim"] - 2) == 0) if n else
+          (v["arg1_ndim"] - 2) == 0)
 )
 
 def rule_16_func(arg1, solver=None, neg=False):

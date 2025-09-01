@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Large number of channels indicate last dimension needs to be large to properly perform adaptive average pooling. (Rule 72)
+# To avoid OOM, restrict dimension size to 16K (Rule 72)
 
 rule_72 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_shape"], 1) > 2048, Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 100, False)) if n else
-          If(Select(v["arg1_shape"], 1) > 2048, Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 100, False))
+    s.add(Not(If(v["arg1_ndim"] == 2, And(Select(v["arg1_shape"], 0) < 16384, Select(v["arg1_shape"], 1) < 16384), If(v["arg1_ndim"] == 3, And(And(Select(v["arg1_shape"], 0) < 16384, Select(v["arg1_shape"], 1) < 16384), Select(v["arg1_shape"], 2) < 16384), True))) if n else
+          If(v["arg1_ndim"] == 2, And(Select(v["arg1_shape"], 0) < 16384, Select(v["arg1_shape"], 1) < 16384), If(v["arg1_ndim"] == 3, And(And(Select(v["arg1_shape"], 0) < 16384, Select(v["arg1_shape"], 1) < 16384), Select(v["arg1_shape"], 2) < 16384), True)))
 )
 
 def rule_72_func(arg1, solver=None, neg=False):

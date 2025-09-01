@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Tensor must be at least 2D. group size must be positive, less or equal to shape[1], with shape[1] > 0, and shape[1] must be divisible by group size (Rule 47)
+# If tensor v1 has more than one dim then ensure all of following conditions (Rule 47)
 
 rule_47 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(And(v["arg1_ndim"] >= 2, 0 < v["arg2_value"]), v["arg2_value"] <= Select(v["arg1_shape"], 1)), 0 < Select(v["arg1_shape"], 1)), (Select(v["arg1_shape"], 1) / v["arg2_value"]) * v["arg2_value"] == Select(v["arg1_shape"], 1))) if n else
-          And(And(And(And(v["arg1_ndim"] >= 2, 0 < v["arg2_value"]), v["arg2_value"] <= Select(v["arg1_shape"], 1)), 0 < Select(v["arg1_shape"], 1)), (Select(v["arg1_shape"], 1) / v["arg2_value"]) * v["arg2_value"] == Select(v["arg1_shape"], 1)))
+    s.add(Not(If(v["arg1_ndim"] > 1, And(And((v["arg2_value"] > 0), (Select(v["arg1_shape"], 1) > 0)), (Select(v["arg1_shape"], 1) % v["arg2_value"] == 0)), True)) if n else
+          If(v["arg1_ndim"] > 1, And(And((v["arg2_value"] > 0), (Select(v["arg1_shape"], 1) > 0)), (Select(v["arg1_shape"], 1) % v["arg2_value"] == 0)), True))
 )
 
 def rule_47_func(arg1, arg2, solver=None, neg=False):
@@ -36,9 +36,9 @@ def rule_47_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 47
-        rule_47(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_47(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_47(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_47(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

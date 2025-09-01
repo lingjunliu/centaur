@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the input mode is 'true', it must be exactly the boolean value true (Rule 23)
+# mode is a valid boolean, the return value of comparison should also be correct. (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, v["arg1_value"] == True, False)) if n else
-          If(v["arg1_value"] == True, v["arg1_value"] == True, False))
+    s.add(Not(And(Or((v["arg1_value"] == True), (v["arg1_value"] == False)), (v["arg1_value"] != True) == (v["arg1_value"] == False))) if n else
+          And(Or((v["arg1_value"] == True), (v["arg1_value"] == False)), (v["arg1_value"] != True) == (v["arg1_value"] == False)))
 )
 
 def rule_23_func(arg1, solver=None, neg=False):

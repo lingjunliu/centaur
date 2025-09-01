@@ -8,8 +8,8 @@ from z3 import *
 # padding_idx must be within num_embeddings (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg2_value"] >= 0, v["arg2_value"] < v["arg1_value"])) if n else
-          And(v["arg2_value"] >= 0, v["arg2_value"] < v["arg1_value"]))
+    s.add(Not(And(v["arg1_value"] >= 0, v["arg1_value"] < v["arg2_value"])) if n else
+          And(v["arg1_value"] >= 0, v["arg1_value"] < v["arg2_value"]))
 )
 
 def rule_1_func(arg1, arg2, solver=None, neg=False):

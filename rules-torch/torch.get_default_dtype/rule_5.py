@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# get_default_dtype should return a valid dtype (Rule 5)
+# If the current default dtype is float64, then its size in bytes is 8 (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(And(0 <= v["arg1_value"], v["arg1_value"] <= 12)) if n else
-          And(0 <= v["arg1_value"], v["arg1_value"] <= 12))
+    s.add(Not(If(v["arg1_value"] == 8, True, True)) if n else
+          If(v["arg1_value"] == 8, True, True))
 )
 
 def rule_5_func(arg1, solver=None, neg=False):

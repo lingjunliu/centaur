@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input is float, output should also be float if provided (Rule 9)
+# if input is float, output must be float or complex (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(If(And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8), And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8), False)) if n else
-          If(And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8), And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8), False))
+    s.add(Not(If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), True)) if n else
+          If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), True))
 )
 
 def rule_9_func(arg1, arg2, solver=None, neg=False):

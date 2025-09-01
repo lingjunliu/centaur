@@ -5,37 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If copy is False, then obj must not be a sequence to prevent ValueError, considering dtype of obj (Rule 12)
+# If copy is not specified and object is a list, it defaults to copy=True, thus object cannot be arbitrary. (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == False, v["arg1_value"] > 0, False)) if n else
-          If(v["arg2_value"] == False, v["arg1_value"] > 0, False))
+    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), True) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_length"] - 1 + 1), True) for i in range(6)]))
 )
 
-def rule_12_func(arg1, arg2, solver=None, neg=False):
+def rule_12_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
-            return False
-        if not isinstance(arg2, bool):
+        if not ((isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)) or (isinstance(arg1, list) and all(isinstance(e, (float, np.floating)) for e in arg1)) or (isinstance(arg1, list) and all(isinstance(e, bool) for e in arg1))):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_value = Bool('arg2_value')
+        arg1_length = Int('arg1_length')
 
         # Value assignments
-        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
-        solver.add(arg2_value == arg2)
+        solver.add(arg1_length == len(arg1))
 
         # Constraints for rule 12
-        rule_12(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_12(solver, {'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_12(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_12(solver, {'arg1_length': arg1['length']}, neg)

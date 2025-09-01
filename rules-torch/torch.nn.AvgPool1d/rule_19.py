@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# padding as a tuple must have a length of 1, and be non-negative (Rule 19)
+# kernel_size as tuple contains only one positive int (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_length"] == 1, Select(v["arg1_values"], 0) >= 0)) if n else
-          And(v["arg1_length"] == 1, Select(v["arg1_values"], 0) >= 0))
+    s.add(Not(And(v["arg1_length"] == 1, And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) > 0) for i in range(6)]))) if n else
+          And(v["arg1_length"] == 1, And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) > 0) for i in range(6)])))
 )
 
 def rule_19_func(arg1, solver=None, neg=False):

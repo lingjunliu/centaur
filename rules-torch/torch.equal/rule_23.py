@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# if at least one tensor is complex, their dtype must match (Rule 23)
+# If one tensor's dtype is int and the other's is float, they cannot be equal. (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If(And(And(v["arg1_dtype"] >= 9, Or(v["arg1_dtype"] <= 10, v["arg2_dtype"] >= 9)), v["arg2_dtype"] <= 10), v["arg1_dtype"] == v["arg2_dtype"], False)) if n else
-          If(And(And(v["arg1_dtype"] >= 9, Or(v["arg1_dtype"] <= 10, v["arg2_dtype"] >= 9)), v["arg2_dtype"] <= 10), v["arg1_dtype"] == v["arg2_dtype"], False))
+    s.add(Not(If(And((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8))), False, True)) if n else
+          If(And((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8))), False, True))
 )
 
 def rule_23_func(arg1, arg2, solver=None, neg=False):
