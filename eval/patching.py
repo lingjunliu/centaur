@@ -100,7 +100,7 @@ def main():
         generated_inputs = [generated_inputs[i] for i in indices[:n_inputs]]
 
     print(f"Running patched driver for {len(generated_inputs)} inputs.")
-    for best_distance, abs_input, seed, suffix in generated_inputs:
+    for creation_time, abs_input, seed, suffix in generated_inputs:
         signature = get_signature(api, lib=lib, suffix=suffix)
         rng = np.random.default_rng(seed)
         # Get the input dictionary

@@ -142,9 +142,9 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
             if param in concrete_input and rng_model.random() < optional_none_prob:
                 concrete_input[param] = None
                 abstract_input[param][0] = [None]
-        
-        generated_inputs.append((0, abstract_input, seed, selected_suffix))  # first element is distance, set as 0 for consistency
-        
+
+        generated_inputs.append((time.time(), abstract_input, seed, selected_suffix))  # first element is distance, set as 0 for consistency
+
         # Print the abstract input if print_details is True
         abstract_str = f"[{total}] Abstract input (seed {seed}, suffix: {selected_suffix})\n{abstract_print(abstract_input, cur_sig)}"
         logger.info(abstract_str)
