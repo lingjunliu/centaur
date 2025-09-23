@@ -83,6 +83,7 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
         model_collection[suffix]["z3_args"] = create_z3_args(cur_sig)
         if os.path.exists(model_dir):
             model_collection[suffix]["models"] = load_abstract_inputs(model_dir, cur_sig, lib=lib) if use_abstracts else load_existing_models(model_dir, model_collection[suffix]["z3_args"])
+            # load_existing_models is deprecated since models are now loaded as abstract inputs
         else:
             print(f"No existing models directory found for {api}_{suffix} (expected {model_dir}). Skipping.")
             continue

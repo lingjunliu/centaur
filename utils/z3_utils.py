@@ -228,6 +228,13 @@ def model_to_abs(model, signature, z3_args):
 
     return abstract_args
 
+def append_abstract_to_jsonl(abstract_input, path):
+    '''
+    Appends the abstract input to an existing JSONL file, creates the file if it doesn't exist.
+    '''
+    with open(path, "a") as f:
+        f.write(json.dumps(abstract_input) + "\n")
+
 def get_abstract_from_dict(json_dict, signature, lib="torch"):
     """
     Convert the saved JSON object to an abstract input.
