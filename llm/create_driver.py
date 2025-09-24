@@ -1,7 +1,7 @@
 from google import genai
 import os, subprocess, time
 from llm.get_api_list import update_apis
-from llm.signatures_old import signatures
+from llm.old_code.signatures_old import signatures
 from llm.llm_utils import fetch_documentation, extract_code_from_response, extract_function_info
 
 CUR_DIR = os.path.dirname(os.path.abspath(__file__))
