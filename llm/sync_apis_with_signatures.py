@@ -1,6 +1,4 @@
 from utils.defaults import supported_paramtypes
-from llm.tf_signatures import signatures as tf_signatures
-from llm.torch_signatures import signatures as torch_signatures
 from utils.misc import read_file_in_root
 from utils.new_api_utils import get_api_suffix
 import os
@@ -11,12 +9,22 @@ CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def main():
     lib = sys.argv[1] if len(sys.argv) > 1 else "torch"
+    llm = sys.argv[2] if len(sys.argv) > 2 else "gemini"
 
+    if llm == "gemini":
+        from llm.gemini.tf_signatures import signatures as tf_signatures
+        from llm.gemini.torch_signatures import signatures as torch_signatures
+    elif llm == "openai":
+        from llm.openai.tf_signatures import signatures as tf_signatures
+        from llm.openai.torch_signatures import signatures as torch_signatures
+    else:
+        raise ValueError("llm must be either 'gemini' or 'openai'")
+    
     signatures = tf_signatures if lib == "tf" else torch_signatures
     original_apis = read_file_in_root(f"{lib}_apis.txt")
     variations = set(signatures.keys())
 
-    signatures_file = os.path.join(CUR_DIR, "../signatures.json")
+    signatures_file = os.path.join(CUR_DIR, f"{llm}/signatures.json")
     with open(signatures_file, "r") as f:
         original_signatures = json.load(f)
 
@@ -45,7 +53,7 @@ def main():
             finalized_apis.add(api)
             finalized_variations.add(variation)
     
-    with open(os.path.join(CUR_DIR, f"{lib}_finalized_apis.txt"), "w") as f:
+    with open(os.path.join(CUR_DIR, f"{llm}/{lib}_finalized_apis.txt"), "w") as f:
         f.write("\n".join(sorted(finalized_apis)))
 
     for variation in sorted(finalized_variations):
@@ -54,7 +62,7 @@ def main():
     with open(signatures_file, "w") as f:
         json.dump(original_signatures, f, indent=4)
 
-    variations_file = os.path.join(CUR_DIR, f"../{lib}_variations.txt")
+    variations_file = os.path.join(CUR_DIR, f"{llm}/{lib}_variations.txt")
     with open(variations_file, "w") as f:
         f.write("\n".join(sorted(finalized_variations)))
 

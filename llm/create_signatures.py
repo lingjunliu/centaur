@@ -1,8 +1,6 @@
 from google import genai
 import os, time
-from llm.create_driver import fetch_documentation, extract_code_from_response, extract_function_info
-from llm.tf_signatures import signatures as tf_signatures
-from llm.torch_signatures import signatures as torch_signatures
+from llm.llm_utils import OAChatWrapper, fetch_documentation, extract_code_from_response, extract_function_info
 from utils.misc import read_file_in_root
 from utils.new_api_utils import get_doc_tf, get_api_suffix
 import sys
@@ -106,19 +104,25 @@ signatures["tf.signal.rfft"] = {
         prompt = prompt.replace("{examples}", examples[lib])
     return prefix + prompt
 
-def save_sig(sig, lib):
-    filepath = f"{CUR_DIR}/{lib}_signatures.py"
+def save_sig(sig, lib, llm="gemini"):
+    filepath = f"{CUR_DIR}/{llm}/{lib}_signatures.py"
     with open(filepath, 'a') as f:
         f.write(sig + '\n')
 
-def generate_signatures(api, lib="torch"):
-    model = "gemini-2.0-flash"
-    gemini_key = os.getenv("gemini_key")
-
+def generate_signatures(api, lib="torch", llm="gemini"):
     print("Running signature generation after 6 seconds...")
     time.sleep(6)
-    client = genai.Client(api_key=gemini_key)
-    chat = client.chats.create(model=model)
+    
+    if llm == "gemini":
+        model = "gemini-2.0-flash"
+        gemini_key = os.getenv("gemini_key")
+        client = genai.Client(api_key=gemini_key)
+        chat = client.chats.create(model=model)
+    elif llm == "openai":
+        chat = OAChatWrapper(model="gpt-5")
+    else:
+        raise ValueError("llm must be either 'gemini' or 'openai'")
+
     try:
         prompt = get_prompt(api, lib=lib)
     except Exception as e:
@@ -127,20 +131,23 @@ def generate_signatures(api, lib="torch"):
             f.write(f"{api}\n")
         return
     logger.info(f"[Prompt]\n\n{prompt}\n\n")
+    
     response = chat.send_message(prompt)
+    
     logger.info(f"[Response]\n\n{response.text}\n\n")
-    sig = extract_code_from_response(response.text)
-    print(f"Got response from Gemini API:\n{sig}")
+    sig = extract_code_from_response(response.text, llm=llm)
+    print(f"Got response from {llm} API:\n{sig}")
     if sig is not None:
-        save_sig(sig, lib=lib)
+        save_sig(sig, lib=lib, llm=llm)
     else:
-        with open(f"{CUR_DIR}/needs_sig_{lib}.txt", "a") as f:
+        with open(f"{CUR_DIR}/{llm}/needs_sig_{lib}.txt", "a") as f:
             f.write(f"{api}\n")
 
 def main():
     lib = sys.argv[1] if len(sys.argv) > 1 else "torch"
+    llm = sys.argv[2] if len(sys.argv) > 2 else "gemini"
 
-    logfile = f"{CUR_DIR}/signature_creation_{lib}.log"
+    logfile = f"{CUR_DIR}/{llm}/signature_creation_{lib}.log"
     # Configure logging
     logging.basicConfig(
         level=logging.INFO,                                     # Minimum log level
@@ -150,8 +157,17 @@ def main():
     )
 
     apis = read_file_in_root(f"{lib}_apis.txt")
-    signatures = torch_signatures if lib == "torch" else tf_signatures
 
+    if llm == "gemini":
+        from llm.gemini.tf_signatures import signatures as tf_signatures
+        from llm.gemini.torch_signatures import signatures as torch_signatures
+    elif llm == "openai":
+        from llm.openai.tf_signatures import signatures as tf_signatures
+        from llm.openai.torch_signatures import signatures as torch_signatures
+    else:
+        raise ValueError("llm must be either 'gemini' or 'openai'")
+
+    signatures = torch_signatures if lib == "torch" else tf_signatures
     completed = set()
     for variation in signatures.keys():
         api, suffix = get_api_suffix(variation)
@@ -162,7 +178,7 @@ def main():
             print(f"Signature exists for {api}. Skipping...")
             continue
         print(f"\nGenerating valid signatures for {api}...\n")
-        generate_signatures(api, lib=lib)
+        generate_signatures(api, lib=lib, llm=llm)
         
 if __name__ == "__main__":
     main()
