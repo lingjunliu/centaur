@@ -63,6 +63,12 @@ Rscript invariants.r Pathfinder val data/val_vs_Pathfinder_tf.csv tf > data/Path
 # Titanfuzz Tensorflow
 Rscript invariants.r Titanfuzz val data/val_vs_Titanfuzz_tf.csv tf > data/Titanfuzz_stats_tf_val.txt
 
+nAPIsTorch=$(cat data/slate_val_torch.csv | wc -l)
+nAPIsTF=$(cat data/slate_val_tf.csv | wc -l)
+
+nAPIsSLTorch=$((nAPIsTorch - 1))
+nAPIsSLTF=$((nAPIsTF - 1))
+
 echo "% Pytorch" > data/Validity_stats.txt && echo "\newcommand{\nAPIsSL}{${nAPIsSLTorch}}" >> data/Validity_stats.txt  && cat data/Titanfuzz_stats_val.txt data/ACETest_stats_val.txt data/Pathfinder_stats_val.txt >> data/Validity_stats.txt && echo "% Tensorflow" >> data/Validity_stats.txt && echo "\newcommand{\nAPIsSLtf}{${nAPIsSLTF}}" >> data/Validity_stats.txt && cat data/Titanfuzz_stats_tf_val.txt data/ACETest_stats_tf_val.txt data/Pathfinder_stats_tf_val.txt >> data/Validity_stats.txt
 
 # Validity Ratio Table
