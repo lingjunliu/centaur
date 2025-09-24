@@ -20,6 +20,7 @@ export max_memory_usage=90      # Maximum memory usage in percentage (set this b
 export max_memory_docker=400G   # Maximum memory for Docker container for TensorFlow Coverage (set this based on the memory you want to allocate for Docker)
 
 # Step 1: Infer invariants: <duration> <regen> <library> <reduce>
+# Note: Changes in <reduce> won't take effect if invariants are already generated and regen=0
 bash scripts/infer_invariants_with_slurm.sh 1200 0 $lib $reduce
 if [ "$retry" -eq 1 ]; then
   # Cancelled jobs due to memory issues are retried

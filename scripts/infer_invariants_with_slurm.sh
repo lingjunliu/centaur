@@ -4,6 +4,7 @@ duration=${1:-300}  # seconds
 regen=${2:-0}       # 1 means force invariant regenration
 lib=${3:-torch}     # library: torch or tf
 reduce=${4:-1}      # 1 means reduce ruleset, 0 means do not reduce ruleset
+# Note: Changes in <reduce> won't take effect if invariants are already generated and regen=0
 
 # alias
 if [ "$lib" = "pytorch" ]; then
