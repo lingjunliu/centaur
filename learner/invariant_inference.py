@@ -312,14 +312,16 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
 
             if len(ruleset) == 0:
                 continue
-
-            # Refining stage: If removing a rule does not decrease the validity ratio, remove it
-            print(f"Started rule refinement stage for api {api} (suffix {suff})")
-            start_time = time.time()
-            z3_args = create_z3_args(api_signature)
+            
             if reduce_rules:
+                # Refining stage: If removing a rule does not decrease the validity ratio, remove it
+                print(f"Started rule refinement stage for api {api} (suffix {suff})")
+                start_time = time.time()
+                z3_args = create_z3_args(api_signature)
                 ruleset = reduce_ruleset(ruleset, api_signature, api, z3_args, max_trial=min_val_inp, time_budget=time_budget_refinement, print_details=print_details, lib=lib, rng=rng)
-            print(f"Rule refinement took {time.time()-start_time:.2f} seconds")
+                print(f"Rule refinement took {time.time()-start_time:.2f} seconds")
+            else:
+                print(f"\n{bcolors.WARNING}!!! Skipping rule reduction as per user request. Keeping all {len(ruleset)} rules.{bcolors.ENDC}\n")
 
             # Save some stats
             infer_dir = create_subdir(get_tmp_dir(), f"infer_results_{lib}")
