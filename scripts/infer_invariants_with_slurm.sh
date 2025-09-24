@@ -2,7 +2,8 @@
 
 duration=${1:-300}  # seconds
 regen=${2:-0}       # 1 means force invariant regenration
-lib=${3-torch}      # library: torch or tf
+lib=${3:-torch}     # library: torch or tf
+reduce=${4:-1}      # 1 means reduce ruleset, 0 means do not reduce ruleset
 
 # alias
 if [ "$lib" = "pytorch" ]; then
@@ -28,7 +29,7 @@ export slurm_time=$(printf "%02d:%02d:%02d" $hours $minutes $seconds)
 job_name=inf
 slurm_sh=`dirname "$(realpath "$0")"`/slurm_base.sh # base script for slurm
 
-bash $slurm_sh "python -m learner.invariant_inference" ${job_name} ${duration} ${regen} ${lib}
+bash $slurm_sh "python -m learner.invariant_inference" ${job_name} ${duration} ${regen} ${lib} ${reduce}
 
 # Aggregating and saving results
 PROJECT_DIR=`dirname "$(realpath "$0")"`/..

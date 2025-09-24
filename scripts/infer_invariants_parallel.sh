@@ -2,7 +2,8 @@
 
 duration=${1:-300}  # seconds
 regen=${2:-0}       # 1 means force invariant regenration
-lib=${3-torch}      # library: torch or tf
+lib=${3:-torch}     # library: torch or tf
+reduce=${4:-1}      # 1 means reduce ruleset, 0 means do not reduce ruleset
 
 # alias
 if [ "$lib" = "pytorch" ]; then
@@ -24,6 +25,6 @@ mkdir -p ${tmp_results}
 result=$PROJECT_DIR/.tmp/infer_result_${lib}.csv
 echo "api,valid,invalid,valid_prcnt" > ${result}
 
-python -m utils.run_parallel "python -m learner.invariant_inference" "${duration} ${regen} ${lib}" ${tmp_results} ${result} ${job_name} ${max_parallel}
+python -m utils.run_parallel "python -m learner.invariant_inference" "${duration} ${regen} ${lib} ${reduce}" ${tmp_results} ${result} ${job_name} ${max_parallel}
 
 echo "Results saved in ${result}"
