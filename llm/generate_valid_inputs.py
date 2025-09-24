@@ -9,7 +9,7 @@ from utils.new_api_utils import get_n_variations, get_signature, get_doc_tf, get
 from utils.misc import read_file_in_root, bcolors
 import llm.valid_inputs_torch as valid_inputs_torch
 import llm.valid_inputs_tf as valid_inputs_tf
-from llm.create_driver import fetch_documentation, extract_code_from_response, extract_function_info
+from llm.llm_utils import OAChatWrapper, fetch_documentation, extract_code_from_response, extract_function_info
 import logging
 import sys
 
@@ -183,15 +183,22 @@ Please fix the error and retry the input generation. Only provide the code, skip
     """
     return prompt
 
-def generate_inputs(api, suffix=0, max_attempts=5, lib="torch"):
-    model = "gemini-2.5-pro"
-    gemini_key = os.getenv("gemini_key")
-
+def generate_inputs(api, suffix=0, max_attempts=5, lib="torch", llm="gemini"):
     print(f"{bcolors.OKBLUE}Running code generation for {api} with suffix {suffix} after 6 seconds...{bcolors.ENDC}")
     logger.info(f"[{api}] [Suffix: {suffix}].\n\n")
-    # time.sleep(6)
-    client = genai.Client(api_key=gemini_key)
-    chat = client.chats.create(model=model)
+    time.sleep(6)
+    
+    if llm == "gemini":
+        model = "gemini-2.0-flash"
+        gemini_key = os.getenv("gemini_key")
+        client = genai.Client(api_key=gemini_key)
+        chat = client.chats.create(model=model)
+    elif llm == "openai":
+        model = "gpt-5"
+        chat = OAChatWrapper(model=model)
+    else:
+        raise ValueError("llm must be either 'gemini' or 'openai'")
+    
     try:
         prompt = get_prompt(api, lib=lib, suffix=suffix)
         logger.info(f"[Prompt]\n\n{prompt}\n\n")
@@ -203,11 +210,11 @@ def generate_inputs(api, suffix=0, max_attempts=5, lib="torch"):
         time.sleep(10)
         return generate_inputs(api, suffix=suffix, max_attempts=max_attempts, lib=lib)
     except Exception as e:
-        print(f"{bcolors.FAIL}Error while sending message to Gemini API: {e}{bcolors.ENDC}")
+        print(f"{bcolors.FAIL}Error while sending message to {llm} API: {e}{bcolors.ENDC}")
         print(f"{bcolors.WARNING}Waiting 10 seconds before retrying...{bcolors.ENDC}")
         time.sleep(10)
         return generate_inputs(api, suffix=suffix, max_attempts=max_attempts, lib=lib)
-    print("Got response from Gemini API.")
+    print(f"Got response from {llm} API.")
     code = extract_code_from_response(response.text)    
     output, error = save_and_run_code(api, code, suffix=suffix, lib=lib)
     logger.info(f"[Output]\n\n{output}\n\n")
