@@ -127,10 +127,16 @@ def write_rules(dir, rules_file, lib="torch"):
 
 def main():
     lib = sys.argv[1] if len(sys.argv) > 1 else "torch"
-    if lib == "torch":
-        base_dir = os.path.abspath("../rules-torch")
+    llm = sys.argv[2] if len(sys.argv) > 2 else "gemini"
+
+    if llm == "gemini":
+        base_dir = os.path.abspath(f"../rules-{lib}")
+    elif llm == "openai":
+        base_dir = os.path.abspath(f"{llm}/rules-{lib}")
     else:
-        base_dir = os.path.abspath("../rules-tf")
+        print("llm must be either 'gemini' or 'openai'")
+        sys.exit(1)
+    
     rules_file = "rules-ebnf"
 
     for entry in os.listdir(base_dir):

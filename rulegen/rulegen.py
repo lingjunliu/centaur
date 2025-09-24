@@ -1,6 +1,6 @@
 from lark import Lark
 import os, re, time, random, json, sys
-import google.generativeai as genai
+from google import genai
 import torch, inspect, pkgutil, types, inspect
 import tensorflow as tf
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -85,12 +85,16 @@ def log_response(label, prompt, response, dir_path, num_failures=0):
         else:
             log_file.write("\n\n")
 
-def generate_rules(api, lib, max_failures=100, timeout=60):
+def generate_rules(api, lib, max_failures=100, timeout=60, llm="gemini"):
     num_failures = 0
     num_rules = 1
     rule_defs = set()
 
-    dir_path = os.path.join("../rules-torch" if lib == "torch" else "../rules-tf", api)
+    if llm == "gemini":
+        dir_path = os.path.join("../rules-torch" if lib == "torch" else "../rules-tf", api)
+    else:
+        dir_path = os.path.join(f"{llm}/rules-torch" if lib == "torch" else f"{llm}/rules-tf", api)
+
     os.makedirs(dir_path, exist_ok=True)
     file_path = os.path.join(dir_path, "rules-ebnf")
 
@@ -110,9 +114,16 @@ def generate_rules(api, lib, max_failures=100, timeout=60):
                     if len(block) == 2:
                         rule_defs.add(block[1])
 
-    genai.configure(api_key=os.getenv("gemini_key"))
-    model = genai.GenerativeModel(model_name="gemini-2.0-flash")
-    chat = model.start_chat(history=[])
+    if llm == "gemini":
+        genai.configure(api_key=os.getenv("gemini_key"))
+        model = genai.GenerativeModel(model_name="gemini-2.0-flash")
+        chat = model.start_chat(history=[])
+    elif llm == "openai":
+        from llm.llm_utils import OAChatWrapper
+        model = "gpt-5"
+        chat = OAChatWrapper(model=model)
+    else:
+        raise ValueError("Unsupported LLM. Choose 'gemini' or 'openai'.")
 
     feedback = ""
     base_time = time.time()
@@ -315,18 +326,20 @@ def generate_rules(api, lib, max_failures=100, timeout=60):
         feedback = "\n".join(feedback_messages)
 
 def main():
-    if len(sys.argv) != 2 or sys.argv[1] not in ("torch", "tf"):
-        print("Usage: python script.py [torch|tf]")
+    if len(sys.argv) < 2 or sys.argv[1] not in ("torch", "tf"):
+        print("Usage: python rulegen.py [torch|tf] [gemini|openai]")
         sys.exit(1)
 
     lib = sys.argv[1]
+    llm = sys.argv[2] if len(sys.argv) > 2 else "gemini"
+
     if lib == "torch":
         lib_apis = [api for api in api_list if api.startswith("torch.")]
     else:
         lib_apis = [api for api in api_list if api.startswith("tf.")]
     
     for api in lib_apis:
-        generate_rules(api, lib)
+        generate_rules(api, lib, llm=llm)
 
 if __name__ == "__main__":
     main()
