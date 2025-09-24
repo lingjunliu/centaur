@@ -7,31 +7,12 @@ os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 import numpy as np
 from utils.new_api_utils import get_n_variations, get_signature, get_doc_tf, get_api_suffix
 from utils.misc import read_file_in_root, bcolors
-import llm.valid_inputs_torch as valid_inputs_torch
-import llm.valid_inputs_tf as valid_inputs_tf
 from llm.llm_utils import OAChatWrapper, fetch_documentation, extract_code_from_response, extract_function_info
 import logging
 import sys
 
 CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 logger = logging.getLogger(__name__)
-
-def get_torch_api(api):
-    torch_api = None
-    with open(f"{CUR_DIR}/supported.csv", "r") as f:
-        for line in f.readlines():
-            tokens = line.strip().split(",")
-            if tokens[0] == api:
-                torch_api = tokens[1]
-                break
-    if torch_api is None:
-        with open(f"{CUR_DIR}/drivers_to_api.csv", "r") as f:
-            for line in f.readlines():
-                driver, cur_api = line.strip().split(',')
-                if driver == api:
-                    torch_api = cur_api
-                    break
-    return torch_api
 
 def get_prompt(api, lib="torch", suffix=0):
     examples = {
@@ -88,6 +69,9 @@ generated_inputs["torch.addcmul"] = addcmul_inputs()
 import tensorflow as tf
 import copy
 
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+
 def tf_sets_difference_inputs():
     list_of_inputs = []
     # Input 1, valid
@@ -135,9 +119,14 @@ generated_inputs["tf.sets.difference"] = tf_sets_difference_inputs()
         prompt = prompt.replace("{examples}", examples[lib])
     return prefix + prompt
 
-def save_and_run_code(api, code, suffix=0, lib="torch"):
+def save_and_run_code(api, code, suffix=0, lib="torch", llm="gemini"):
     key = api if suffix == 0 else f"{api}_{suffix}"
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+    tf_snippet = """
+tf.config.experimental.enable_op_determinism()
+tf.random.set_seed(42)
+""" if lib == "tf" else ""
+    
     validity_checker_code = f"""
 from utils.new_api_utils import run_api, get_signature
 from generator.input_generators import get_abstract_input
@@ -159,18 +148,17 @@ def check_valid(api, list_of_inputs, lib="{lib}", suffix=0):
 if '{key}' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key '{key}'.")
 
-tf.config.experimental.enable_op_determinism()
-tf.random.set_seed(42)
+{tf_snippet}
 check_valid('{api}', generated_inputs['{key}'], lib="{lib}", suffix={suffix})
 """
     module_name = f'{api.replace(".", "_")}_{suffix}'
-    filepath = f"{CUR_DIR}/inputs/{module_name}.py"
+    filepath = f"{CUR_DIR}/{llm}/inputs/{module_name}.py"
     with open(filepath, 'w') as f:
         f.write(validity_checker_code)
     
     try:
         # Run the generated file with a timeout of 30 sec just in case
-        result = subprocess.run(['python', '-m', f'llm.inputs.{module_name}'], capture_output=True, text=True, timeout=30)
+        result = subprocess.run(['python', '-m', f'llm.{llm}.inputs.{module_name}'], capture_output=True, text=True, timeout=30)
         
         return result.stdout.strip(), result.stderr.strip()
     except subprocess.TimeoutExpired:
@@ -208,15 +196,15 @@ def generate_inputs(api, suffix=0, max_attempts=5, lib="torch", llm="gemini"):
         print(f"{bcolors.WARNING}Server overloaded. Error: {str(ge)}{bcolors.ENDC}")
         print(f"{bcolors.WARNING}Waiting 10 seconds before retrying...{bcolors.ENDC}")
         time.sleep(10)
-        return generate_inputs(api, suffix=suffix, max_attempts=max_attempts, lib=lib)
+        return generate_inputs(api, suffix=suffix, max_attempts=max_attempts, lib=lib, llm=llm)
     except Exception as e:
         print(f"{bcolors.FAIL}Error while sending message to {llm} API: {e}{bcolors.ENDC}")
         print(f"{bcolors.WARNING}Waiting 10 seconds before retrying...{bcolors.ENDC}")
         time.sleep(10)
-        return generate_inputs(api, suffix=suffix, max_attempts=max_attempts, lib=lib)
+        return generate_inputs(api, suffix=suffix, max_attempts=max_attempts, lib=lib, llm=llm)
     print(f"Got response from {llm} API.")
-    code = extract_code_from_response(response.text)    
-    output, error = save_and_run_code(api, code, suffix=suffix, lib=lib)
+    code = extract_code_from_response(response.text, llm=llm)
+    output, error = save_and_run_code(api, code, suffix=suffix, lib=lib, llm=llm)
     logger.info(f"[Output]\n\n{output}\n\n")
     logger.info(f"[Error]\n\n{error}\n\n") if error else logger.info("No error\n\n")
     attempt = 0
@@ -243,8 +231,8 @@ def generate_inputs(api, suffix=0, max_attempts=5, lib="torch", llm="gemini"):
             continue
         print("Got response from Gemini API.")
         logger.info(f"[Response]\n\n{response.text}\n\n")
-        code = extract_code_from_response(response.text)
-        output, error = save_and_run_code(api, code, suffix=suffix, lib=lib)
+        code = extract_code_from_response(response.text, llm=llm)
+        output, error = save_and_run_code(api, code, suffix=suffix, lib=lib, llm=llm)
         logger.info(f"[Output]\n\n{output}\n\n")
         logger.info(f"[Error]\n\n{error}\n\n") if error else logger.info("No error\n\n")
         attempt += 1
@@ -259,20 +247,26 @@ def generate_inputs(api, suffix=0, max_attempts=5, lib="torch", llm="gemini"):
         logger.info(f"API: {api} Suffix: {suffix} | Input generated successfully.\n\n")
         if code is not None:
             code = code.replace("generated_inputs = {}", "")
-            with open(f"{CUR_DIR}/valid_inputs_{lib}.py", "a") as fv:
+            with open(f"{CUR_DIR}/{llm}/valid_inputs_{lib}.py", "a") as fv:
                 fv.write(code + "\n\n")
         else:
             print("No code to write to valid_inputs.py.")
     else:
         print(f"\nInput generation failed after {max_attempts} attempts.")
         logger.info(f"API: {api} Suffix: {suffix} | Input generation failed after {max_attempts} attempts.\n\n")
-    return [api, get_torch_api(api)] + to_return
+    return [api, api] + to_return
 
 def main():
     lib = sys.argv[1] if len(sys.argv) > 1 else "torch"
-    variations = read_file_in_root(f"{lib}_variations.txt")
-    
-    logfile = f"{CUR_DIR}/input_generation_{lib}.log"
+    llm = sys.argv[2] if len(sys.argv) > 2 else "gemini"
+
+    variations_file = f"{CUR_DIR}/{llm}/{lib}_variations.txt"
+    variations = []
+    if os.path.exists(variations_file):
+        with open(variations_file, "r") as f:
+            variations = [line.strip() for line in f.readlines()]
+
+    logfile = f"{CUR_DIR}/{llm}/input_generation_{lib}.log"
     # Configure logging
     logging.basicConfig(
         level=logging.INFO,                                     # Minimum log level
@@ -281,12 +275,22 @@ def main():
         filemode="a"                                            # Append/Write mode
     )
     
-    if lib == "torch":
-        valid_inputs = valid_inputs_torch
-    elif lib == "tf":
-        valid_inputs = valid_inputs_tf
+    if llm == "gemini":
+        if lib == "torch":
+            import llm.gemini.valid_inputs_torch as valid_inputs
+        elif lib == "tf":
+            import llm.gemini.valid_inputs_tf as valid_inputs
+        else:
+            raise ValueError("lib must be either 'torch' or 'tf'")
+    elif llm == "openai":
+        if lib == "torch":
+            import llm.openai.valid_inputs_torch as valid_inputs
+        elif lib == "tf":
+            import llm.openai.valid_inputs_tf as valid_inputs
+        else:
+            raise ValueError("lib must be either 'torch' or 'tf'")
     else:
-        raise ValueError(f"Invalid library: {lib}")
+        raise ValueError("llm must be either 'gemini' or 'openai'")
     
     generated_inputs = valid_inputs.generated_inputs
     existing_inputs = set(generated_inputs.keys())
@@ -302,8 +306,8 @@ def main():
         api, suffix = get_api_suffix(variation)
         start = time.time()
         print(f"\nGenerating valid inputs for {api} with suffix {suffix}...\n")
-        result = generate_inputs(api, suffix=suffix, lib=lib)
-        with open(f"{CUR_DIR}/inputs.csv", "a") as f:
+        result = generate_inputs(api, suffix=suffix, lib=lib, llm=llm)
+        with open(f"{CUR_DIR}/{llm}/inputs.csv", "a") as f:
             f.write(",".join(map(str, result)) + "\n")
         
         durations.append(time.time()-start)

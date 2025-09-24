@@ -10,15 +10,22 @@ class OAChatWrapper:
     def __init__(self, model="gpt-5"):
         self.model = model
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self.previous_response_id = None
     def send_message(self, prompt):
-        openai_response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": prompt}
-            ]
-        )
-        response_object = Response(text=openai_response.choices[0].message.content)
+        if self.previous_response_id is None:
+            openai_response = self.client.responses.create(
+                model=self.model,
+                input=[{"role": "user", "content": prompt}]
+            )
+        else:
+            openai_response = self.client.responses.create(
+                model=self.model,
+                previous_response_id=self.previous_response_id,
+                input=[{"role": "user", "content": prompt}]
+            )
+        
+        self.previous_response_id = openai_response.id
+        response_object = Response(text=openai_response.output_text)
         return response_object
     
 def extract_code_from_response(response, llm="gemini"):
