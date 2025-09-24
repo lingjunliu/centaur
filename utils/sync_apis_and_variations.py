@@ -20,4 +20,4 @@ if __name__ == "__main__":
         sync_variation_with_api(lib=lib)
     else:
         sync_variation_with_api(lib="torch")
-        sync_variation_with_api(lib="tensorflow")
+        sync_variation_with_api(lib="tf")
