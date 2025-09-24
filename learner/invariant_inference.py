@@ -38,7 +38,7 @@ def print_rules(api, ruleset):
 
 def reduce_ruleset(ruleset, signature, api, z3_args, max_trial=30, time_budget=30, print_details=False, lib="torch", rng=np.random.default_rng(42)):
     """
-    If after removing a rule, all generated inputs are still valid,
+    If after removing a rule, validity ratio does not decrease below the base validity ratio,
     then the rule is filtered out from the ruleset.
     This stage run until max_trial trials for each rule OR time_budget seconds,
     whichever comes first.
@@ -182,7 +182,7 @@ def update_ruleset(api, input_dict, ruleset, lib="torch"):
 
     return ruleset, status, exception_message
 
-def infer_invariants(api, print_details=False, regen=False, lib="torch", time_budget=60, min_val_inp=30, seed=42, z3=True, suffix=0, use_reference=False):
+def infer_invariants(api, print_details=False, regen=False, lib="torch", time_budget=60, min_val_inp=30, seed=42, z3=True, suffix=0, use_reference=False, reduce_rules=True):
     '''
         Takes an API and
         
@@ -312,13 +312,16 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
 
             if len(ruleset) == 0:
                 continue
-
-            # Refining stage: If removing a rule does not decrease the validity ratio, remove it
-            print(f"Started rule refinement stage for api {api} (suffix {suff})")
-            start_time = time.time()
-            z3_args = create_z3_args(api_signature)
-            ruleset = reduce_ruleset(ruleset, api_signature, api, z3_args, max_trial=min_val_inp, time_budget=time_budget_refinement, print_details=print_details, lib=lib, rng=rng)
-            print(f"Rule refinement took {time.time()-start_time:.2f} seconds")
+            
+            if reduce_rules:
+                # Refining stage: If removing a rule does not decrease the validity ratio, remove it
+                print(f"Started rule refinement stage for api {api} (suffix {suff})")
+                start_time = time.time()
+                z3_args = create_z3_args(api_signature)
+                ruleset = reduce_ruleset(ruleset, api_signature, api, z3_args, max_trial=min_val_inp, time_budget=time_budget_refinement, print_details=print_details, lib=lib, rng=rng)
+                print(f"Rule refinement took {time.time()-start_time:.2f} seconds")
+            else:
+                print(f"\n{bcolors.WARNING}!!! Skipping rule reduction as per user request. Keeping all {len(ruleset)} rules.{bcolors.ENDC}\n")
 
             # Save some stats
             infer_dir = create_subdir(get_tmp_dir(), f"infer_results_{lib}")
@@ -335,11 +338,12 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
     return list_of_rulesets
 
 def main():
-    # Usage: python -m learner.invariant_inference <variant> <time budget> <1 to regenerate invariants 0 otherwise>
+    # Usage: python -m learner.invariant_inference <variant> <time budget> <1 to regenerate invariants 0 otherwise> <library> <1 to reduce rules 0 otherwise>
     variant = sys.argv[1] if len(sys.argv) > 1 else "scatter"
     budget = int(sys.argv[2]) if len(sys.argv) > 2 else 30  # seconds
     regen = int(sys.argv[3]) == 1 if len(sys.argv) > 3 else False
     lib = sys.argv[4] if len(sys.argv) > 4 else "torch"
+    reduce = int(sys.argv[5]) == 1 if len(sys.argv) > 5 else True
     
     api, suffix = get_api_suffix(variant)
     # Try random generation for 60 seconds
@@ -354,8 +358,8 @@ def main():
     else:
         print(f"True invariants for {variant} already exist. Skipping random generation AND invariant inference.")
         return
-    
-    list_of_rulesets = infer_invariants(api, print_details=True, regen=regen, time_budget=budget, z3=True, lib=lib, suffix=suffix)
-    
+
+    list_of_rulesets = infer_invariants(api, print_details=True, regen=regen, time_budget=budget, z3=True, lib=lib, suffix=suffix, reduce_rules=reduce)
+
 if __name__ == "__main__":
     main()

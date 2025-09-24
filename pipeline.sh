@@ -11,6 +11,7 @@ fi
 
 lib=$1        # Library (torch or tf)
 retry=${2:-0} # Retry flag (0 means no retry, 1 means retry cancelled jobs)
+reduce=${3:-1} # 1 means reduce ruleset, 0 means do not reduce ruleset
 seed=200      # Seed for random number generation
 
 # Set environment variables for Slurm
@@ -18,13 +19,14 @@ export max_parallel=160         # Maximum number of parallel jobs (set this base
 export max_memory_usage=90      # Maximum memory usage in percentage (set this based on the percentage of memory you do not want to exceed)
 export max_memory_docker=400G   # Maximum memory for Docker container for TensorFlow Coverage (set this based on the memory you want to allocate for Docker)
 
-# Step 1: Infer invariants: <duration> <regen> <library>
-bash scripts/infer_invariants_with_slurm.sh 1200 0 $lib
+# Step 1: Infer invariants: <duration> <regen> <library> <reduce>
+# Note: Changes in <reduce> won't take effect if invariants are already generated and regen=0
+bash scripts/infer_invariants_with_slurm.sh 1200 0 $lib $reduce
 if [ "$retry" -eq 1 ]; then
   # Cancelled jobs due to memory issues are retried
   python -m utils.parse_cancelled_jobs $lib
   export elements_file=.tmp/cancelled_infs_${lib}.txt  # Set the elements file for the next steps
-  bash scripts/infer_invariants_with_slurm.sh 1200 1 $lib
+  bash scripts/infer_invariants_with_slurm.sh 1200 1 $lib $reduce
   export elements_file=${lib}_variations.txt  # Restore elements file for the next steps
 fi
 # Step 2: Generate models: <duration> <n_models> <library> <seed> <regen>
