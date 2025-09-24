@@ -125,8 +125,7 @@ def arccosh_inputs():
 
 generated_inputs["torch.arccosh"] = arccosh_inputs()
 
-import torch, copy
-import numpy as np
+
 
 def floor__inputs():
     list_of_inputs = []
@@ -177,8 +176,6 @@ def floor__inputs():
 
 generated_inputs["torch.floor_"] = floor__inputs()
 
-import torch, copy
-
 def get_rng_state_inputs():
     list_of_inputs = []
     input_dict = {}
@@ -187,8 +184,6 @@ def get_rng_state_inputs():
     return list_of_inputs
 
 generated_inputs["torch.get_rng_state"] = get_rng_state_inputs()
-
-import torch, copy, numpy as np
 
 def isposinf_inputs():
     list_of_inputs = []
@@ -280,8 +275,6 @@ def isposinf_inputs():
 
 generated_inputs["torch.isposinf"] = isposinf_inputs()
 
-import torch, copy
-
 def multiply_inputs():
     list_of_inputs = []
     
@@ -355,8 +348,6 @@ def multiply_inputs():
     return list_of_inputs
 
 generated_inputs["torch.multiply_1"] = multiply_inputs()
-
-import torch, copy, numpy as np
 
 def torch_multiply_2_inputs():
     list_of_inputs = []
@@ -438,8 +429,7 @@ def torch_multiply_2_inputs():
 
 generated_inputs["torch.multiply_2"] = torch_multiply_2_inputs()
 
-import torch, copy
-import numpy as np
+
 
 def multiply_inputs():
     list_of_inputs = []
@@ -537,8 +527,6 @@ def multiply_inputs():
 
 generated_inputs["torch.multiply_3"] = multiply_inputs()
 
-import torch, copy, numpy as np
-
 def nansum_inputs():
     list_of_inputs = []
 
@@ -602,7 +590,7 @@ def nansum_inputs():
 
 generated_inputs["torch.nansum_1"] = nansum_inputs()
 
-import torch, copy, numpy as np
+
 
 def nansum_inputs():
     list_of_inputs = []
@@ -681,8 +669,7 @@ def nansum_inputs():
 
 generated_inputs["torch.nansum_2"] = nansum_inputs()
 
-import torch, copy
-import numpy as np
+
 
 def nansum_inputs():
     list_of_inputs = []
@@ -875,7 +862,7 @@ def nansum_inputs():
 
 generated_inputs["torch.nansum_3"] = nansum_inputs()
 
-import torch, copy, numpy as np
+
 
 def nansum_inputs():
     list_of_inputs = []
@@ -936,8 +923,7 @@ def nansum_inputs():
 
 generated_inputs["torch.nansum_4"] = nansum_inputs()
 
-import torch, copy
-import numpy as np
+
 
 def maxpool3d_inputs():
     list_of_inputs = []
@@ -1090,7 +1076,7 @@ def maxpool3d_inputs():
 
 generated_inputs["torch.nn.MaxPool3d_1"] = maxpool3d_inputs()
 
-import torch, copy
+
 
 def maxpool3d_inputs():
     list_of_inputs = []
@@ -1243,8 +1229,7 @@ def maxpool3d_inputs():
 
 generated_inputs["torch.nn.MaxPool3d_10"] = maxpool3d_inputs()
 
-import torch, copy
-import numpy as np
+
 
 def maxpool3d_inputs():
     list_of_inputs = []
@@ -1412,7 +1397,7 @@ def maxpool3d_inputs():
 
 generated_inputs["torch.nn.MaxPool3d_11"] = maxpool3d_inputs()
 
-import torch, copy
+
 
 def maxpool3d_inputs():
     list_of_inputs = []
@@ -1577,7 +1562,7 @@ def maxpool3d_inputs():
 
 generated_inputs["torch.nn.MaxPool3d_12"] = maxpool3d_inputs()
 
-import torch, copy
+
 
 def maxpool3d_inputs():
     list_of_inputs = []
@@ -1742,7 +1727,7 @@ def maxpool3d_inputs():
 
 generated_inputs["torch.nn.MaxPool3d_13"] = maxpool3d_inputs()
 
-import torch, copy
+
 
 def maxpool3d_inputs_14():
     list_of_inputs = []
@@ -1907,7 +1892,7 @@ def maxpool3d_inputs_14():
 
 generated_inputs["torch.nn.MaxPool3d_14"] = maxpool3d_inputs_14()
 
-import torch, copy, numpy as np
+
 
 def maxpool3d_inputs():
     list_of_inputs = []
@@ -2072,7 +2057,7 @@ def maxpool3d_inputs():
 
 generated_inputs["torch.nn.MaxPool3d_15"] = maxpool3d_inputs()
 
-import torch, copy, numpy as np
+
 
 def maxpool3d_inputs():
     list_of_inputs = []
@@ -2225,7 +2210,7 @@ def maxpool3d_inputs():
 
 generated_inputs["torch.nn.MaxPool3d_16"] = maxpool3d_inputs()
 
-import torch, copy, numpy as np
+
 
 def maxpool3d_inputs():
     list_of_inputs = []
@@ -2390,7 +2375,7 @@ def maxpool3d_inputs():
 
 generated_inputs["torch.nn.MaxPool3d_2"] = maxpool3d_inputs()
 
-import torch, copy
+
 
 def maxpool3d_inputs():
     list_of_inputs = []
@@ -2557,7 +2542,7 @@ def maxpool3d_inputs():
 
 generated_inputs["torch.nn.MaxPool3d_3"] = maxpool3d_inputs()
 
-import torch, copy, numpy as np
+
 
 def maxpool3d_inputs():
     list_of_inputs = []
@@ -2698,7 +2683,7 @@ def maxpool3d_inputs():
 
 generated_inputs["torch.nn.MaxPool3d_4"] = maxpool3d_inputs()
 
-import torch, copy, numpy as np
+
 
 def maxpool3d_inputs():
     list_of_inputs = []
@@ -2851,7 +2836,7 @@ def maxpool3d_inputs():
 
 generated_inputs["torch.nn.MaxPool3d_5"] = maxpool3d_inputs()
 
-import torch, copy
+
 
 def maxpool3d_inputs():
     list_of_inputs = []
@@ -2990,7 +2975,7 @@ def maxpool3d_inputs():
 
 generated_inputs["torch.nn.MaxPool3d_6"] = maxpool3d_inputs()
 
-import torch, copy
+
 
 def maxpool3d_inputs():
     list_of_inputs = []
@@ -3143,7 +3128,7 @@ def maxpool3d_inputs():
 
 generated_inputs["torch.nn.MaxPool3d_7"] = maxpool3d_inputs()
 
-import torch, copy, numpy as np
+
 
 def maxpool3d_inputs():
     list_of_inputs = []
@@ -3320,7 +3305,7 @@ def maxpool3d_inputs():
 
 generated_inputs["torch.nn.MaxPool3d_8"] = maxpool3d_inputs()
 
-import torch, copy
+
 
 def maxpool3d_inputs():
     list_of_inputs = []
@@ -3485,7 +3470,7 @@ def maxpool3d_inputs():
 
 generated_inputs["torch.nn.MaxPool3d_9"] = maxpool3d_inputs()
 
-import torch, copy, numpy as np
+
 
 def logsigmoid_inputs():
     list_of_inputs = []
@@ -3534,7 +3519,7 @@ def logsigmoid_inputs():
 
 generated_inputs["torch.nn.functional.logsigmoid"] = logsigmoid_inputs()
 
-import torch, copy, numpy as np
+
 
 def sparse__inputs():
     list_of_inputs = []
@@ -3592,7 +3577,7 @@ def sparse__inputs():
 
 generated_inputs["torch.nn.init.sparse_"] = sparse__inputs()
 
-import torch, copy
+
 
 def reshape_inputs():
     list_of_inputs = []
@@ -3650,7 +3635,7 @@ def reshape_inputs():
 
 generated_inputs["torch.reshape"] = reshape_inputs()
 
-import torch, copy
+
 
 def set_autocast_enabled_inputs():
     list_of_inputs = []
@@ -3695,7 +3680,7 @@ def set_autocast_enabled_inputs():
 
 generated_inputs["torch.set_autocast_enabled"] = set_autocast_enabled_inputs()
 
-import torch, copy
+
 
 def ndtri_inputs():
     list_of_inputs = []
@@ -3762,7 +3747,7 @@ def ndtri_inputs():
 
 generated_inputs["torch.special.ndtri"] = ndtri_inputs()
 
-import torch, copy
+
 
 def xlog1py_inputs():
     list_of_inputs = []
@@ -3842,7 +3827,7 @@ def xlog1py_inputs():
 
 generated_inputs["torch.special.xlog1py_1"] = xlog1py_inputs()
 
-import torch, copy, numpy as np
+
 
 def xlog1py_inputs():
     list_of_inputs = []
@@ -3917,7 +3902,7 @@ def xlog1py_inputs():
 
 generated_inputs["torch.special.xlog1py_2"] = xlog1py_inputs()
 
-import torch, copy, numpy as np
+
 
 def xlog1py_3_inputs():
     list_of_inputs = []
@@ -3987,8 +3972,7 @@ def xlog1py_3_inputs():
 
 generated_inputs["torch.special.xlog1py_3"] = xlog1py_3_inputs()
 
-import torch, copy
-import numpy as np
+
 
 def xlog1py_inputs():
     list_of_inputs = []
@@ -4071,8 +4055,7 @@ def xlog1py_inputs():
 
 generated_inputs["torch.special.xlog1py_4"] = xlog1py_inputs()
 
-import torch, copy
-import numpy as np
+
 
 def xlog1py_inputs():
     list_of_inputs = []
@@ -4142,8 +4125,7 @@ def xlog1py_inputs():
 
 generated_inputs["torch.special.xlog1py_5"] = xlog1py_inputs()
 
-import torch, copy
-import numpy as np
+
 
 def sqrt_inplace_inputs():
     list_of_inputs = []
@@ -4193,7 +4175,7 @@ def sqrt_inplace_inputs():
 
 generated_inputs["torch.sqrt_"] = sqrt_inplace_inputs()
 
-import torch, copy
+
 
 def take_inputs():
     list_of_inputs = []
