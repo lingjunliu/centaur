@@ -20,19 +20,27 @@ mkdir -p llm/"$llm"
 # Check if llm/<llm>/inputs directory exists, if not create it
 mkdir -p llm/"$llm"/inputs
 
-# Check if llm/<llm>/signature.json file exists, if not create it as an empty json
-if [ ! -f llm/"$llm"/signature.json ]; then
-    echo "{}" > llm/"$llm"/signature.json
+# Check if llm/<llm>/signatures.json file exists, if not create it as an empty json
+if [ ! -f llm/"$llm"/signatures.json ]; then
+    echo "{}" > llm/"$llm"/signatures.json
 fi
 
 # Check if llm/<llm>/<lib>_signatures.py file exists, if not create it with signatures = {}
-if [ ! -f llm/"$llm/${lib}_signatures.py" ]; then
-    echo "signatures = {}" > llm/"$llm/${lib}_signatures.py"
+if [ ! -f llm/"$llm/torch_signatures.py" ]; then
+    echo "signatures = {}" > llm/"$llm/torch_signatures.py"
+fi
+
+if [ ! -f llm/"$llm/tf_signatures.py" ]; then
+    echo "signatures = {}" > llm/"$llm/tf_signatures.py"
 fi
 
 # Check if llm/<llm>/valid_inputs_<lib>.py file exists, if not create it with generated_inputs = {}
-if [ ! -f llm/"$llm/valid_inputs_${lib}.py" ]; then
-    echo "generated_inputs = {}" > llm/"$llm/valid_inputs_${lib}.py"
+if [ ! -f llm/"$llm/valid_inputs_torch.py" ]; then
+    echo "generated_inputs = {}" > llm/"$llm/valid_inputs_torch.py"
+fi
+
+if [ ! -f llm/"$llm/valid_inputs_tf.py" ]; then
+    echo "generated_inputs = {}" > llm/"$llm/valid_inputs_tf.py"
 fi
 
 # Step 1: Generate signatures and sync APIs with signatures

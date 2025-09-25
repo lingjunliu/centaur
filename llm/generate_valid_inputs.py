@@ -190,6 +190,13 @@ def generate_inputs(api, suffix=0, max_attempts=5, lib="torch", llm="gemini"):
     try:
         prompt = get_prompt(api, lib=lib, suffix=suffix)
         logger.info(f"[Prompt]\n\n{prompt}\n\n")
+    except Exception as e:
+        print(f"\nGenerating prompt for {api} faced exception.\n{e.__class__.__name__}: {str(e)}\n")
+        with open(f"{CUR_DIR}/{llm}/failed_input_gen_{lib}.txt", "a") as f:
+            f.write(f"{api},{suffix}\n")
+        return [api, api] + [1]*max_attempts
+
+    try:
         response = chat.send_message(prompt)
         logger.info(f"[Response]\n\n{response.text}\n\n")
     except genai.errors.ServerError as ge:
