@@ -46,11 +46,7 @@ if [ "$lib" = "torch" ]; then
 elif [ "$lib" = "tf" ]; then
   # Step 4: Collect coverage using Docker (Put resource limits here)
   docker build -t tf_216_instr_im . -f instrumented_tf/Dockerfile
-  docker run \
-  --name tf_216_instr tf_216_instr_im bash \
-  --memory=${max_memory_docker} \
-  --cpus=${max_parallel} \
-  -c "cd /workspace/repo && bash scripts/coverage_parallel.sh 0 tf ${max_parallel} html False"
+  docker run --memory=${max_memory_docker} --cpus=${max_parallel} --name tf_216_instr tf_216_instr_im bash -c "cd /workspace/repo && bash scripts/coverage_parallel.sh 0 tf ${max_parallel} html False"
   docker cp tf_216_instr:/workspace/repo/.tmp/coverage_tf.csv .tmp/coverage_tf.csv
   docker rm -f tf_216_instr
 else
