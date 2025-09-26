@@ -103,7 +103,7 @@ if [ ${RUN_MOD} -eq 1 ]; then
 fi
 
 if [ ${COMPUTE_COV} -eq 1 ]; then
-    pip install ${root_dir}/instrumented_pytorch/torch-2.2.0*
+    pip install ${root_dir}/instrumented_torch/torch-2.2.0*
     
     libname=torch
     export TORCH_BUILD_DIR=$(pip show "$libname" | grep "Location:" | awk '{print $2}')/${libname}
