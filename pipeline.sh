@@ -15,7 +15,7 @@ reduce=${3:-1} # 1 means reduce ruleset, 0 means do not reduce ruleset
 seed=200      # Seed for random number generation
 
 # Set environment variables for Slurm
-export max_parallel=160         # Maximum number of parallel jobs (set this based on the number of slurm jobs you want to spawn to run at the same time)
+export max_parallel=64         # Maximum number of parallel jobs (set this based on the number of slurm jobs you want to spawn to run at the same time)
 export max_memory_usage=90      # Maximum memory usage in percentage (set this based on the percentage of memory you do not want to exceed)
 export max_memory_docker=400G   # Maximum memory for Docker container for TensorFlow Coverage (set this based on the memory you want to allocate for Docker)
 
