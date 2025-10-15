@@ -3,8 +3,4 @@ export max_parallel=${1:-100}         # Maximum number of parallel jobs (set thi
 export max_memory_docker=${2:-400G}   # Maximum memory for Docker container for TensorFlow Coverage (set this based on the memory you want to allocate for Docker)
 
 docker build -t tf_216_instr_im . -f instrumented_tf/Dockerfile
-docker run \
---name tf_216_instr tf_216_instr_im bash \
---memory=${max_memory_docker} \
---cpus=${max_parallel} \
--it tf_216_instr_im /bin/bash
+docker run --memory=${max_memory_docker} --cpus=${max_parallel} --cpuset-cpus="0-$((${max_parallel}-1))" --name tf_216_instr -it tf_216_instr_im bash
