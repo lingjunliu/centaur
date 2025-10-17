@@ -119,7 +119,7 @@ def generate_signatures(api, lib="torch", llm="gemini"):
         client = genai.Client(api_key=gemini_key)
         chat = client.chats.create(model=model)
     elif llm == "openai":
-        chat = OAChatWrapper(model="gpt-5")
+        chat = OAChatWrapper()
     else:
         raise ValueError("llm must be either 'gemini' or 'openai'")
 

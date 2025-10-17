@@ -7,26 +7,79 @@ class Response:
         self.text = text
 
 class OAChatWrapper:
-    def __init__(self, model="gpt-5"):
-        self.model = model
-        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        self.previous_response_id = None
-    def send_message(self, prompt):
-        if self.previous_response_id is None:
-            openai_response = self.client.responses.create(
-                model=self.model,
-                input=[{"role": "user", "content": prompt}]
-            )
+    DEFAULT_MODEL = "gpt-5"
+    DEFAULT_BASE_URL = "https://api.openai.com/v1"
+
+    def __init__(self, model=None, base_url=None, api_key=None):
+        env_model = os.getenv("MODEL_NAME")
+        env_url = os.getenv("MODEL_URL")
+
+        # Prioritize explicit arguments, then env vars, then defaults
+        self.model = model or env_model or self.DEFAULT_MODEL
+        configured_url = base_url or env_url or self.DEFAULT_BASE_URL
+        normalized_url = configured_url.rstrip("/")
+
+        # Determine which OpenAI API surface to use based on the configured URL
+        if normalized_url.endswith("/chat/completions"):
+            self._api_surface = "chat_completions"
+            client_base_url = normalized_url.rsplit("/chat/completions", 1)[0]
+        elif normalized_url.endswith("/completions"):
+            self._api_surface = "completions"
+            client_base_url = normalized_url.rsplit("/completions", 1)[0]
         else:
-            openai_response = self.client.responses.create(
+            self._api_surface = "responses"
+            client_base_url = normalized_url
+
+        if not client_base_url:
+            client_base_url = self.DEFAULT_BASE_URL
+
+        self.client = OpenAI(
+            api_key=api_key or os.getenv("OPENAI_API_KEY"),
+            base_url=client_base_url,
+        )
+        self.previous_response_id = None
+        self._messages = []  # Used when interacting via chat/completions
+
+    def send_message(self, prompt):
+        if self._api_surface == "responses":
+            if self.previous_response_id is None:
+                openai_response = self.client.responses.create(
+                    model=self.model,
+                    input=[{"role": "user", "content": prompt}]
+                )
+            else:
+                openai_response = self.client.responses.create(
+                    model=self.model,
+                    previous_response_id=self.previous_response_id,
+                    input=[{"role": "user", "content": prompt}]
+                )
+            self.previous_response_id = openai_response.id
+            response_text = openai_response.output_text
+        elif self._api_surface == "chat_completions":
+            self._messages.append({"role": "user", "content": prompt})
+            completion = self.client.chat.completions.create(
                 model=self.model,
-                previous_response_id=self.previous_response_id,
-                input=[{"role": "user", "content": prompt}]
+                messages=self._messages,
             )
-        
-        self.previous_response_id = openai_response.id
-        response_object = Response(text=openai_response.output_text)
-        return response_object
+            message_content = completion.choices[0].message.content
+            if isinstance(message_content, list):
+                response_text = "".join(part if isinstance(part, str) else part.get("text", "") for part in message_content)
+            else:
+                response_text = message_content or ""
+            self._messages.append({"role": "assistant", "content": response_text})
+        elif self._api_surface == "completions":
+            # Fallback for legacy completion endpoints – maintain a running prompt.
+            self._messages.append(prompt)
+            completion = self.client.completions.create(
+                model=self.model,
+                prompt="\n\n".join(self._messages),
+            )
+            response_text = completion.choices[0].text or ""
+            self._messages.append(response_text)
+        else:
+            raise ValueError(f"Unsupported OpenAI API surface: {self._api_surface}")
+
+        return Response(text=response_text)
     
 def extract_code_from_response(response, llm="gemini"):
     # Use regular expression to find the code block within the markdown
