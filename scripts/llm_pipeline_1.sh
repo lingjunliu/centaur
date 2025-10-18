@@ -1,5 +1,7 @@
 # Update <lib>_apis.txt if you want to run on a subset of APIs
 
+set -euo pipefail
+
 lib=${1:-"torch"}  # Default to "torch" if not provided
 llm=${2:-"gemini"}  # Default to "gemini" if not provided
 
