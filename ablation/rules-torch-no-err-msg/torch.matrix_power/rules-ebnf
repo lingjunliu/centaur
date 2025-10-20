@@ -1,0 +1,153 @@
+>>
+Rule 1 (input tensor should have at least two dimensions for matrix power)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
+>>
+Rule 2 (n should be greater or equal to 0.)
+{v_2 : int} |= v_2 ≥ 0
+>>
+Rule 3 (input should be a square matrix)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
+>>
+Rule 4 (n should be smaller than or equal to 10, avoid long calculations)
+{v_2 : int} |= v_2 ≤ 10
+>>
+Rule 5 (the shape of the input tensor must be greater than 0)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 7 (if n is 0, the result will be identity matrix, so input should have compatible shape)
+{v_1 : tensor, v_2 : int} |= if v_2 = 0 then ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1)-1) = shape(v_1, ndim(v_1)-2)
+>>
+Rule 9 (input tensor should be square when number of dimensions is 2)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) = shape(v_1, 1)
+>>
+Rule 11 (input tensor dtype should be numerical)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 14 (if input tensor is a scalar, n should be 1)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then v_2 = 1
+>>
+Rule 15 (n should not be too large to avoid overflow issues)
+{v_2 : int} |= v_2 < 100
+>>
+Rule 17 (input tensor should be complex if n is negative.)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+>>
+Rule 19 (if n is negative then input tensor must be invertible)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then min(v_1) ≠ 0 ∧ max(v_1) ≠ 0
+>>
+Rule 21 (n should be within a reasonable range based on input size to prevent excessive computation)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) > 100 then v_2 < 10 else v_2 < 50
+>>
+Rule 22 (if n is negative then input tensor must be invertible, check for zero determinant approximation)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then min(v_1) > 0.0001 ∧ max(v_1) < 10000
+>>
+Rule 23 (if input is complex, n must be non-negative.)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then v_2 ≥ 0
+>>
+Rule 29 (if input is complex, then the matrix must be square)
+{v_1 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then shape(v_1, 0) = shape(v_1, 1)
+>>
+Rule 31 (if n is negative then the matrix should be numerically stable, singular values should be far from zero, this can be roughly checked via condition number approximation )
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then max(v_1) / min(v_1) < 10000
+>>
+Rule 34 (the matrix should be numerically stable, singular values should be far from zero, this can be roughly checked via condition number approximation )
+{v_1 : tensor} |= max(v_1) / min(v_1) < 10000
+>>
+Rule 35 (if input is complex, then it should have at least two dimensions)
+{v_1 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then ndim(v_1) ≥ 2
+>>
+Rule 38 (the input matrix should be square)
+{v_1 : tensor} |= shape(v_1, ndim(v_1)-1) = shape(v_1, ndim(v_1)-2)
+>>
+Rule 43 (the matrix should be numerically stable, check largest and smallest singular value)
+{v_1 : tensor} |= max(v_1) < 10000 ∧ min(v_1) > 0.0001
+>>
+Rule 44 (the input matrix should have matching shape across last two dimensions when ndim > 1)
+{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, ndim(v_1)-1) = shape(v_1, ndim(v_1)-2)
+>>
+Rule 46 (the matrix should be numerically stable, check largest singular value is not too big)
+{v_1 : tensor} |= max(v_1) < 10000
+>>
+Rule 50 (if the power is 1 the input and output should have the same dtype)
+{v_1 : tensor, v_2 : int} |= if v_2 = 1 then true else dtype_(v_1) = dtype_(v_1)
+>>
+Rule 52 (the matrix should be numerically stable, largest singular value should not be too big for float16)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then max(v_1) < 100
+>>
+Rule 56 (if the input tensor has less than 2 dimensions, then n = 1)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) < 2 then v_2 = 1
+>>
+Rule 58 (check that n is not zero if the input matrix has a zero element)
+{v_1 : tensor, v_2 : int} |= if min(v_1) = 0 then v_2 ≠ -1
+>>
+Rule 62 (if the input tensor has less than 2 dimensions, then if n < 0 then error, only n >= 0 is allowed)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) < 2 then v_2 ≥ 0
+>>
+Rule 64 (check that n != -1 for bool type matrix since inverse is not defined)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 0 then v_2 ≠ -1
+>>
+Rule 67 (check that n != -1 for bool type matrix since inverse is not defined)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then false
+>>
+Rule 68 (if input is an empty tensor, then n must be 0 or 1)
+{v_1 : tensor, v_2 : int} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then (v_2 = 0 ∨ v_2 = 1)
+>>
+Rule 70 (check that n != -1 for bool type matrix since inverse is not defined)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 0 then v_2 ≥ 0
+>>
+Rule 73 (n should be greater than -1 if the tensor has bool dtype since inverse not defined for bool matrices )
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 0 then v_2 > -1
+>>
+Rule 79 (the input matrix needs to be of a float or complex dtype, otherwise inverse may not be defined)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+>>
+Rule 84 (if the input dtype is a boolean or integer dtype, then n needs to be positive to prevent errors)
+{v_1 : tensor, v_2 : int} |= if (dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then v_2 ≥ 0
+>>
+Rule 87 (matrix with integer type, only allow n >= 0)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) < 6 then v_2 ≥ 0
+>>
+Rule 88 (check that n is not zero if the matrix has a zero determinant when trying to get the inverse; or any number close to zero when using floats)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then min(v_1) > 0.000001 ∧ max(v_1) < 1000000
+>>
+Rule 91 (check that n is not zero if the matrix has a zero determinant when trying to get the inverse; and check that matrix power result would lead to too large values)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then min(v_1) > 0.000001 ∧ max(v_1) < 1000000 else if max(v_1) > 10 then v_2 < 10
+>>
+Rule 93 (Power must be zero or positive if the input matrix has a zero element, otherwise there will be a division by zero)
+{v_1 : tensor, v_2 : int} |= if min(v_1) = 0 then v_2 ≥ 0
+>>
+Rule 95 (If input matrix is empty, the power must be non-negative.)
+{v_1 : tensor, v_2 : int} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then v_2 ≥ 0
+>>
+Rule 97 (power must be within reasonable bounds for matrices with large values or small values, otherwise it will lead to overflow and underflow respectively)
+{v_1 : tensor, v_2 : int} |= if max(v_1) > 10 then v_2 < 10 else if min(v_1) < 0.1 then v_2 > -10
+>>
+Rule 101 (For empty matrices, any power > 1 will lead to a matrix with zero entries)
+{v_1 : tensor, v_2 : int} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then (v_2 = 0 ∨ v_2 = 1)
+>>
+Rule 103 (If power is a very high number for a matrix with large values the operation may result in NaN)
+{v_1 : tensor, v_2 : int} |= if max(v_1) > 10 then v_2 < 10
+>>
+Rule 105 (If the input is a bool or integer matrix, and the power is non-one, then input matrix elements cannot be 0 for inverse to exist.)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) < 6 ∧ v_2 < 0 then min(v_1) ≠ 0
+>>
+Rule 106 (power must be within reasonable bounds to prevent overflow and underflow based on the dtype of the matrix)
+{v_1 : tensor, v_2 : int} |= if max(v_1) > 10 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then v_2 < 10
+>>
+Rule 110 (For matrices which are of shape 1x1, it will be the same as taking a scalar power, therefore n = 1 must hold )
+{v_1 : tensor, v_2 : int} |= if shape(v_1, ndim(v_1)-1) = 1 ∧ shape(v_1, ndim(v_1)-2) = 1 then v_2 = 1
+>>
+Rule 112 (If matrix entries are significantly big overflow can happen)
+{v_1 : tensor, v_2 : int} |= if max(v_1) > 100 then v_2 < 5
+>>
+Rule 114 (If trying to compute negative powers for integer/boolean matrices make sure all values inside are invertible (i.e., only -1 and 1) )
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) < 6 ∧ v_2 < 0 then (min(v_1) = -1 ∧ max(v_1) = 1)
+>>
+Rule 115 (If power is a very high number for a matrix with large values the operation may result in NaN or INF, so restrict)
+{v_1 : tensor, v_2 : int} |= if max(v_1) > 100 then v_2 < 3
+>>
+Rule 116 (For input matrices with dimensions greater than 2, the dimensions of the matrix have to be compatible for matrix multiplication)
+{v_1 : tensor} |= if ndim(v_1) > 2 then shape(v_1, ndim(v_1)-1) = shape(v_1, ndim(v_1)-2)
+>>
+Rule 119 (Input matrix must be square for matrix_power, and also shape must have positive values)
+{v_1 : tensor} |= shape(v_1, ndim(v_1)-1) = shape(v_1, ndim(v_1)-2) ∧ shape(v_1, ndim(v_1)-1) > 0

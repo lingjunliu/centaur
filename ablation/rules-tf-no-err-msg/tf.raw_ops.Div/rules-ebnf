@@ -1,0 +1,150 @@
+>>
+Rule 1 (x and y tensors must have the same data type)
+{x : tensor, y : tensor} |= dtype_(x) = dtype_(y)
+>>
+Rule 2 (x must be one of the allowed dtypes)
+{x : tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 5 ∨ dtype_(x) = 1 ∨ dtype_(x) = 2 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10 ∨ dtype_(x) = 0
+>>
+Rule 3 (x and y must have the same shape if not broadcasting)
+{x : tensor, y : tensor} |= shape(x, 0) = shape(y, 0) ∨ ndim(x) ≠ ndim(y)
+>>
+Rule 8 (x and y must have the same shape if not broadcasting - simplified)
+{x : tensor, y : tensor} |= (ndim(x) = ndim(y)) ∧ (∀i ∈ [0, ndim(x) - 1] : shape(x, i) = shape(y, i))
+>>
+Rule 9 (If x is scalar, then y must also be scalar)
+{x : tensor, y : tensor} |= if ndim(x) = 0 then ndim(y) = 0
+>>
+Rule 10 (If x has higher rank, then y's shape must be broadcastable to x's shape)
+{x : tensor, y : tensor} |= if ndim(x) > ndim(y) then ∀i ∈ [0, ndim(y) - 1] : (shape(x, ndim(x) - ndim(y) + i) = shape(y, i) ∨ shape(y, i) = 1)
+>>
+Rule 11 (x and y tensors must have compatible shapes for broadcasting)
+{x : tensor, y : tensor} |= if ndim(x) ≥ ndim(y) then ∀i ∈ [0, ndim(y) - 1] : (shape(x, ndim(x) - ndim(y) + i) = shape(y, i) ∨ shape(y, i) = 1 ∨ shape(x, ndim(x) - ndim(y) + i) = 1) else ∀i ∈ [0, ndim(x) - 1] : (shape(y, ndim(y) - ndim(x) + i) = shape(x, i) ∨ shape(x, i) = 1 ∨ shape(y, ndim(y) - ndim(x) + i) = 1)
+>>
+Rule 13 (x must have at least one dimension when y has more than one)
+{x : tensor, y : tensor} |= if ndim(y) > 1 then ndim(x) > 0
+>>
+Rule 15 (x and y tensors must have compatible shapes for broadcasting - cleaned up)
+{x : tensor, y : tensor} |= if ndim(x) ≥ ndim(y) then ∀i ∈ [0, ndim(y) - 1] : shape(x, ndim(x) - ndim(y) + i) = shape(y, i) ∨ shape(y, i) = 1 ∨ shape(x, ndim(x) - ndim(y) + i) = 1 else ∀i ∈ [0, ndim(x) - 1] : shape(y, ndim(y) - ndim(x) + i) = shape(x, i) ∨ shape(x, i) = 1 ∨ shape(y, ndim(y) - ndim(x) + i) = 1
+>>
+Rule 18 (If both tensors are 0-dimensional, no shape check is needed)
+{x : tensor, y : tensor} |= if ndim(x) = 0 ∧ ndim(y) = 0 then true
+>>
+Rule 22 (if x and y have the same ndim, then at least one dimension must be equal)
+{x : tensor, y : tensor} |= if ndim(x) = ndim(y) then ∃i ∈ [0, ndim(x) - 1] : shape(x, i) = shape(y, i)
+>>
+Rule 23 (Broadcasting rule: Either dimensions match or one of them is 1, for all dimensions.)
+{x : tensor, y : tensor} |= ∀i ∈ [0, if ndim(x) > ndim(y) then ndim(x) - 1 else ndim(y) - 1] : (if ndim(x) - i - 1 ≥ 0 ∧ ndim(y) - i - 1 ≥ 0 then shape(x, ndim(x) - i - 1) = shape(y, ndim(y) - i - 1) ∨ shape(x, ndim(x) - i - 1) = 1 ∨ shape(y, ndim(y) - i - 1) = 1)
+>>
+Rule 24 (if x and y have the same ndim, then at least one dimension must be equal, or have dimension of one)
+{x : tensor, y : tensor} |= if ndim(x) = ndim(y) then ∃i ∈ [0, ndim(x) - 1] : shape(x, i) = shape(y, i) ∨ shape(x,i) = 1 ∨ shape(y, i) = 1
+>>
+Rule 25 (ndim of tensor cannot exceed a certain limit)
+{x : tensor} |= ndim(x) < 10
+>>
+Rule 26 (if either of the tensors are 0-dimensional, then no other shape requirement)
+{x : tensor, y : tensor} |= if ndim(x) = 0 ∨ ndim(y) = 0 then true
+>>
+Rule 31 (If ndim(x) > ndim(y), then the shape of y should match with the last ndim(y) dimensions of x, or has value of one)
+{x : tensor, y : tensor} |= if ndim(x) > ndim(y) then ∀i ∈ [0, ndim(y) - 1] : shape(x, ndim(x) - ndim(y) + i) = shape(y, i) ∨ shape(y, i) = 1
+>>
+Rule 33 (If ndim(y) > ndim(x), then the shape of x should match with the last ndim(x) dimensions of y, or be one)
+{x : tensor, y : tensor} |= if ndim(y) > ndim(x) then ∀i ∈ [0, ndim(x) - 1] : shape(y, ndim(y) - ndim(x) + i) = shape(x, i) ∨ shape(x, i) = 1
+>>
+Rule 35 (if ndim(x) = ndim(y) then at least one dimension should be one or same)
+{x : tensor, y : tensor} |= if ndim(x) = ndim(y) then ∃i ∈ [0, ndim(x) - 1] : shape(x, i) = 1 ∨ shape(y, i) = 1 ∨ shape(x, i) = shape(y, i)
+>>
+Rule 38 (If tensors have different ndims, the smaller ndim must be 0)
+{x: tensor, y: tensor} |= if ndim(x) ≠ ndim(y) then ndim(x) = 0 ∨ ndim(y) = 0
+>>
+Rule 39 (If ndim(x) and ndim(y) are not zero then at least one of them should have a dimension size of one)
+{x : tensor, y : tensor} |= if ndim(x) > 0 ∧ ndim(y) > 0 then (∃i ∈ [0, ndim(x) -1] : shape(x, i) = 1) ∨  (∃j ∈ [0, ndim(y) - 1]: shape(y, j) = 1)
+>>
+Rule 40 (If tensors have different ndims, the smaller ndim must be 0, only if any ndim > 1)
+{x: tensor, y: tensor} |= if (ndim(x) ≠ ndim(y)) ∧ (ndim(x) > 1 ∨ ndim(y) > 1) then ndim(x) = 0 ∨ ndim(y) = 0
+>>
+Rule 41 (If ndim(x) and ndim(y) are greater than zero then at least one of their dimensions needs to match or have a size of 1)
+{x : tensor, y : tensor} |= if ndim(x) > 0 ∧ ndim(y) > 0 then ∃i ∈ [0, if ndim(x) > ndim(y) then ndim(x) else ndim(y) - 1] : (if i < ndim(x) ∧ i < ndim(y) then shape(x, i) = shape(y, i) ∨ shape(x, i) = 1 ∨ shape(y, i) = 1)
+>>
+Rule 42 (if either tensor has ndim zero, then broadcasting is valid)
+{x: tensor, y: tensor} |= (ndim(x) = 0) ∨ (ndim(y) = 0) ∨ true
+>>
+Rule 43 (Both tensors must have same dimensions for complex numbers)
+{x: tensor, y:tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then ndim(x) = ndim(y) ∧ (∀i ∈ [0, ndim(x) - 1] : shape(x, i) = shape(y, i))
+>>
+Rule 44 (If ndim(x) and ndim(y) are greater than zero then their corresponding dimensions needs to match or at least one of them needs to have a size of 1)
+{x : tensor, y : tensor} |= if ndim(x) > 0 ∧ ndim(y) > 0 then ∀i ∈ [0, if ndim(x) > ndim(y) then ndim(x) else ndim(y) - 1] : (if i < ndim(x) ∧ i < ndim(y) then shape(x, i) = shape(y, i) ∨ shape(x, i) = 1 ∨ shape(y, i) = 1)
+>>
+Rule 45 (Tensors should at least have one dimension)
+{x : tensor, y : tensor} |= ndim(x) > 0 ∨ ndim(y) > 0
+>>
+Rule 46 (Both tensors must have same dimensions for complex numbers, if any of them is complex)
+{x: tensor, y:tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 ∨ dtype_(y) = 9 ∨ dtype_(y) = 10 then ndim(x) = ndim(y) ∧ (∀i ∈ [0, ndim(x) - 1] : shape(x, i) = shape(y, i))
+>>
+Rule 47 (Either dimensions are equal, or one of them is zero)
+{x: tensor, y: tensor} |= if ndim(x) ≠ ndim(y) then (ndim(x) = 0 ∨ ndim(y) = 0)
+>>
+Rule 50 (Either number of dimensions of the tensors should be same or anyone should be zero to enable the broadcasting)
+{x: tensor, y: tensor} |= (ndim(x) = ndim(y)) ∨ (ndim(x) = 0) ∨ (ndim(y) = 0)
+>>
+Rule 51 (If tensors have some number of dimensions then all of them must be greater than 0)
+{x: tensor, y:tensor} |= if ndim(x) > 0 then ∀i ∈ [0, ndim(x) - 1]: shape(x, i) > 0 ∧ if ndim(y) > 0 then ∀i ∈ [0, ndim(y) - 1]: shape(y, i) > 0
+>>
+Rule 52 (Either number of dimensions of the tensors should be same or anyone of the tensors can have any dimension size.)
+{x: tensor, y: tensor} |= (ndim(x) = ndim(y)) ∨ true
+>>
+Rule 54 (If one of the tensors have zero dimensions, broadcasting works, otherwise, tensors' shape should be compatible)
+{x : tensor, y : tensor} |= if ndim(x) = 0 ∨ ndim(y) = 0 then true else ∀i ∈ [0, if ndim(x) > ndim(y) then ndim(x) - 1 else ndim(y) - 1] : (if ndim(x) - i - 1 ≥ 0 ∧ ndim(y) - i - 1 ≥ 0 then shape(x, ndim(x) - i - 1) = shape(y, ndim(y) - i - 1) ∨ shape(x, ndim(x) - i - 1) = 1 ∨ shape(y, ndim(y) - i - 1) = 1)
+>>
+Rule 55 (No dimension should be negative)
+{x : tensor} |= if ndim(x) > 0 then ∀i ∈ [0, ndim(x) - 1] : shape(x, i) ≥ 0
+>>
+Rule 58 (No dimension should be non-positive if any of the tensors has a dimension.)
+{x : tensor, y: tensor} |= if ndim(x) > 0 then ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0 ∧ if ndim(y) > 0 then ∀i ∈ [0, ndim(y) - 1] : shape(y, i) > 0
+>>
+Rule 59 (Tensors of integer types can not be divided by zero)
+{x: tensor, y: tensor} |= if dtype_(x) = 1 ∨ dtype_(x) = 2 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 5 then min(y) ≠ 0 ∧ max(y) ≠ 0
+>>
+Rule 60 (If tensors have some number of dimensions then all of them must be positive)
+{x : tensor, y: tensor} |= (if ndim(x) > 0 then ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0) ∧ (if ndim(y) > 0 then ∀i ∈ [0, ndim(y) - 1] : shape(y, i) > 0)
+>>
+Rule 62 (Tensors should have compatible shapes for broadcasting)
+{x: tensor, y: tensor} |= (ndim(x) = 0 ∨ ndim(y) = 0) ∨ ∀i ∈ [0, if ndim(x) > ndim(y) then ndim(x) - 1 else ndim(y) - 1] : (if ndim(x) - i - 1 ≥ 0 ∧ ndim(y) - i - 1 ≥ 0 then shape(x, ndim(x) - i - 1) = shape(y, ndim(y) - i - 1) ∨ shape(x, ndim(x) - i - 1) = 1 ∨ shape(y, ndim(y) - i - 1) = 1)
+>>
+Rule 63 (If both the inputs are tensors, they must have same dtype.)
+{x: tensor, y: tensor} |= dtype_(x) = dtype_(y)
+>>
+Rule 67 (If y has dtype as integer, then its values should not be zero to avoid divide by zero errors.)
+{x: tensor, y: tensor} |= if dtype_(y) = 1 ∨ dtype_(y) = 2 ∨ dtype_(y) = 3 ∨ dtype_(y) = 4 ∨ dtype_(y) = 5 then min(y) ≠ 0 ∧ max(y) ≠ 0
+>>
+Rule 69 (Tensors must have at least one dimension with size 1 or shapes are equal)
+{x : tensor, y: tensor} |= if ndim(x) > 0 ∧ ndim(y) > 0 then ∃i ∈ [0, if ndim(x) > ndim(y) then ndim(x) -1 else ndim(y) - 1]: (if i < ndim(x) ∧ i < ndim(y) then (shape(x,i) = 1 ∨ shape(y, i) = 1 ∨ shape(x, i) = shape(y, i)))
+>>
+Rule 70 (X and Y should have at least one dimension)
+{x: tensor, y: tensor} |= ndim(x) > 0 ∨ ndim(y) > 0
+>>
+Rule 71 (Shape of X and Y should comply to the braodcasting, or one of them have zero dimensions)
+{x: tensor, y: tensor} |= (ndim(x) = 0 ∨ ndim(y) = 0) ∨ (∀i ∈ [0, if ndim(x) > ndim(y) then ndim(x) - 1 else ndim(y) - 1] : (if (ndim(x) - i - 1) ≥ 0 ∧ (ndim(y) - i - 1) ≥ 0 then (shape(x, (ndim(x) - i - 1)) = shape(y, (ndim(y) - i - 1)) ∨ shape(x, (ndim(x) - i - 1)) = 1 ∨ shape(y, (ndim(y) - i - 1)) = 1)))
+>>
+Rule 72 (Tensors must have compatible dimensions for broadcasting)
+{x : tensor, y: tensor} |= if ndim(x) > 0 ∧ ndim(y) > 0 then ∀i ∈ [0, if ndim(x) > ndim(y) then ndim(x) else ndim(y) - 1]: (if i < ndim(x) ∧ i < ndim(y) then (shape(x, i) = 1 ∨ shape(y, i) = 1 ∨ shape(x, i) = shape(y, i)))
+>>
+Rule 73 (One of the tensors must be zero dimensional or both tensors must have at least one dimension.)
+{x: tensor, y: tensor} |= (ndim(x) = 0 ∨ ndim(y) = 0) ∨ (ndim(x) > 0 ∧ ndim(y) > 0)
+>>
+Rule 74 (If y has dtype as integer, then it should not have zero to avoid divide by zero errors.)
+{y: tensor} |= if dtype_(y) = 1 ∨ dtype_(y) = 2 ∨ dtype_(y) = 3 ∨ dtype_(y) = 4 ∨ dtype_(y) = 5 then min(y) ≠ 0 ∧ max(y) ≠ 0
+>>
+Rule 75 (If one of the tensor has dimensions greater than 1 then the other tensor must be 0 dimensional)
+{x: tensor, y: tensor} |= if ndim(x) > 1 then ndim(y) = 0 else if ndim(y) > 1 then ndim(x) = 0
+>>
+Rule 78 (If the two tensors X and Y are of non-zero dimension sizes, then their dimensions should at least be equal)
+{x: tensor, y: tensor} |= if (ndim(x) > 0 ∧ ndim(y) > 0) then ndim(x) = ndim(y)
+>>
+Rule 81 (If the two tensors X and Y are of non-zero dimension sizes, then their dimensions should at least be equal, or have dimension of one or broadcasting should be valid)
+{x: tensor, y: tensor} |= if (ndim(x) > 0 ∧ ndim(y) > 0) then (ndim(x) = ndim(y) ∨ (∃i ∈ [0, if ndim(x) > ndim(y) then ndim(x) else ndim(y) - 1]: (if i < ndim(x) ∧ i < ndim(y) then shape(x, i) = 1 ∨ shape(y, i) = 1)))
+>>
+Rule 82 (If tensor X has some dimensions then all of them should be greater than 0, same is true for tensor Y)
+{x: tensor, y: tensor} |= (if ndim(x) > 0 then ∀i ∈ [0, ndim(x) - 1]: shape(x, i) > 0) ∧ (if ndim(y) > 0 then ∀i ∈ [0, ndim(y) - 1]: shape(y, i) > 0)
+>>
+Rule 87 (Tensors should satisfy broadcasting conditions, if they are more than 0 dimensional)
+{x: tensor, y: tensor} |= if (ndim(x) > 0 ∧ ndim(y) > 0) then ∀i ∈ [0, if ndim(x) > ndim(y) then ndim(x) else ndim(y) - 1] : (if (ndim(x) - i - 1) ≥ 0 ∧ (ndim(y) - i - 1) ≥ 0 then (shape(x, (ndim(x) - i - 1)) = shape(y, (ndim(y) - i - 1)) ∨ shape(x, (ndim(x) - i - 1)) = 1 ∨ shape(y, (ndim(y) - i - 1)) = 1))

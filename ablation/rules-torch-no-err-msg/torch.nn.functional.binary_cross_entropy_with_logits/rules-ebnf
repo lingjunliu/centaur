@@ -1,0 +1,186 @@
+>>
+Rule 1 (input and target tensors must have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 2 (weight tensor, if provided, must have the same shape as input tensor)
+{v_1 : tensor, v_3 : tensor} |= (ndim(v_3) = 0) ∨ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i))
+>>
+Rule 3 (reduction string must be one of the allowed values)
+{v_6 : str} |= v_6 = "none" ∨ v_6 = "mean" ∨ v_6 = "sum"
+>>
+Rule 4 (pos_weight tensor, if provided, must be 1D)
+{v_7 : tensor} |= ndim(v_7) > 0
+>>
+Rule 5 (target tensor should have values between 0 and 1)
+{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : min(v_2) ≥ 0 ∧ max(v_2) ≤ 1
+>>
+Rule 6 (input and pos_weight tensors should have the same dtype)
+{v_1 : tensor, v_7 : tensor} |= dtype_(v_1) = dtype_(v_7)
+>>
+Rule 7 (weight tensor, if provided, should have the same dtype as input tensor)
+{v_1 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_3)
+>>
+Rule 8 (size_average and reduce are mutually exclusive if reduction is specified)
+{v_4 : bool, v_5 : bool, v_6 : str} |= if v_6 ≠ "mean" ∧ v_6 ≠ "sum" ∧ v_6 ≠ "none" then true else if v_4 = true ∨ v_5 = true then v_6 = "mean" ∨ v_6 = "sum"
+>>
+Rule 9 (If pos_weight is specified, it must be greater than 0)
+{v_7 : tensor} |= if ndim(v_7) > 0 then min(v_7) > 0
+>>
+Rule 10 (input and target tensors must have compatible dtypes)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 11 (If weight is specified, its shape should be broadcastable to target and input tensors)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then (ndim(v_1) > 0 ∧ ndim(v_3) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_3) then ndim(v_1) - 1 else ndim(v_3) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_3) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_3, ndim(v_3) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_3, ndim(v_3) - i - 1)) ∧ (ndim(v_2) > 0 ∧ ndim(v_3) > 0 ∧ ∀i ∈ [0, if ndim(v_2) ≥ ndim(v_3) then ndim(v_2) - 1 else ndim(v_3) - 1] : ndim(v_2) - i - 1 < 0 ∨ ndim(v_3) - i - 1 < 0 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_3, ndim(v_3) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = shape(v_3, ndim(v_3) - i - 1))
+>>
+Rule 12 (If pos_weight is specified, its shape should be broadcastable to target tensor)
+{v_2 : tensor, v_7 : tensor} |= if ndim(v_7) > 0 then (ndim(v_2) > 0 ∧ ndim(v_7) > 0 ∧ ∀i ∈ [0, if ndim(v_2) ≥ ndim(v_7) then ndim(v_2) - 1 else ndim(v_7) - 1] : ndim(v_2) - i - 1 < 0 ∨ ndim(v_7) - i - 1 < 0 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_7, ndim(v_7) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = shape(v_7, ndim(v_7) - i - 1))
+>>
+Rule 14 (target tensor values should be in range [0,1] - alternative formulation)
+{v_2: tensor} |= ∀i ∈ [0, shape(v_2, 0) -1] : (v_2[i] ≥ 0) ∧ (v_2[i] ≤ 1)
+>>
+Rule 15 (weight should be non-negative if specified)
+{v_3 : tensor} |= if ndim(v_3) > 0 then min(v_3) ≥ 0
+>>
+Rule 17 (If reduction is none, size_average and reduce should not be specified)
+{v_6 : str, v_4 : bool, v_5 : bool} |= if v_6 = "none" then (v_4 = false ∧ v_5 = false)
+>>
+Rule 18 (If weight is specified then the dtype of weight must match the dtype of input)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then dtype_(v_1) = dtype_(v_3)
+>>
+Rule 19 (If pos_weight is specified then the dtype of pos_weight must match the dtype of target)
+{v_2 : tensor, v_7 : tensor} |= if ndim(v_7) > 0 then dtype_(v_2) = dtype_(v_7)
+>>
+Rule 20 (If size_average or reduce is specified, reduction must be mean or sum)
+{v_6 : str} |= if v_6 = "mean" ∨ v_6 = "sum" then true else if v_6 = "none" then true else false
+>>
+Rule 21 (If input is empty, then target should be empty)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0
+>>
+Rule 22 (If pos_weight is specified, it must be a tensor with floating point dtype)
+{v_7 : tensor} |= if ndim(v_7) > 0 then (6 ≤ dtype_(v_7) ∧ dtype_(v_7) ≤ 8)
+>>
+Rule 23 (If weight is specified, it must be a tensor with the same shape as target)
+{v_2 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then (ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i))
+>>
+Rule 24 (Input tensor cannot have complex dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 25 (Target tensor cannot have complex dtype)
+{v_2 : tensor} |= dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11
+>>
+Rule 26 (If pos_weight is specified, then it must be broadcastable to input)
+{v_1 : tensor, v_7 : tensor} |= if ndim(v_7) > 0 then (ndim(v_1) > 0 ∧ ndim(v_7) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_7) then ndim(v_1) - 1 else ndim(v_7) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_7) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_7, ndim(v_7) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_7, ndim(v_7) - i - 1))
+>>
+Rule 27 (Weight tensor cannot have complex dtype)
+{v_3 : tensor} |= if ndim(v_3) > 0 then dtype_(v_3) ≠ 10 ∧ dtype_(v_3) ≠ 11
+>>
+Rule 28 (If the input is scalar, then the target should be scalar)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
+>>
+Rule 29 (Pos_weight tensor cannot have complex dtype)
+{v_7 : tensor} |= if ndim(v_7) > 0 then dtype_(v_7) ≠ 10 ∧ dtype_(v_7) ≠ 11
+>>
+Rule 30 (If the target is scalar, then the input should be scalar)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then ndim(v_1) = 0
+>>
+Rule 31 (if weight is provided, it should not have complex dtype)
+{v_3 : tensor} |= if ndim(v_3) > 0 then (dtype_(v_3) ≠ 10) ∧ (dtype_(v_3) ≠ 11)
+>>
+Rule 32 (if pos_weight is provided, it should not have complex dtype)
+{v_7 : tensor} |= if ndim(v_7) > 0 then (dtype_(v_7) ≠ 10) ∧ (dtype_(v_7) ≠ 11)
+>>
+Rule 33 (if size_average is true then reduction should not be none)
+{v_4 : bool, v_6 : str} |= if v_4 = true then v_6 ≠ "none"
+>>
+Rule 34 (if reduce is true then reduction should not be none)
+{v_5 : bool, v_6 : str} |= if v_5 = true then v_6 ≠ "none"
+>>
+Rule 35 (if weight provided, it must be broadcastable to input)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then ndim(v_1) > 0 ∧ ndim(v_3) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_3) then ndim(v_1) - 1 else ndim(v_3) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_3) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_3, ndim(v_3) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_3, ndim(v_3) - i - 1)
+>>
+Rule 36 (Target tensor values must be within [0, 1])
+{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] ≥ 0) ∧ (v_2[i] ≤ 1)
+>>
+Rule 37 (if pos_weight is provided, it must be broadcastable to target)
+{v_2 : tensor, v_7 : tensor} |= if ndim(v_7) > 0 then ndim(v_2) > 0 ∧ ndim(v_7) > 0 ∧ ∀i ∈ [0, if ndim(v_2) ≥ ndim(v_7) then ndim(v_2) - 1 else ndim(v_7) - 1] : ndim(v_2) - i - 1 < 0 ∨ ndim(v_7) - i - 1 < 0 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_7, ndim(v_7) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = shape(v_7, ndim(v_7) - i - 1)
+>>
+Rule 38 (weight should be a float tensor)
+{v_3 : tensor} |= if ndim(v_3) > 0 then (dtype_(v_3) = 6 ∨ dtype_(v_3) = 7 ∨ dtype_(v_3) = 8)
+>>
+Rule 39 (pos_weight should be a float tensor)
+{v_7 : tensor} |= if ndim(v_7) > 0 then (dtype_(v_7) = 6 ∨ dtype_(v_7) = 7 ∨ dtype_(v_7) = 8)
+>>
+Rule 40 (If input has more than 0 dimensions, pos_weight must also have more than 0 dimensions)
+{v_1 : tensor, v_7 : tensor} |= if ndim(v_1) > 0 then ndim(v_7) > 0
+>>
+Rule 41 (If target has more than 0 dimensions, pos_weight must also have more than 0 dimensions)
+{v_2 : tensor, v_7 : tensor} |= if ndim(v_2) > 0 then ndim(v_7) > 0
+>>
+Rule 42 (If the target is scalar, pos_weight is not allowed)
+{v_2 : tensor, v_7 : tensor} |= if ndim(v_2) = 0 then ndim(v_7) = 0
+>>
+Rule 43 (if weight is provided, and it is a tensor of one element, the tensor must be positive)
+{v_3 : tensor} |= if ndim(v_3) > 0 ∧ (ndim(v_3) = 0 ∨ (ndim(v_3) = 1 ∧ shape(v_3, 0) = 1)) then min(v_3) > 0
+>>
+Rule 46 (If the input is scalar, weight is not allowed)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then ndim(v_3) = 0
+>>
+Rule 47 (If the target is scalar, weight is not allowed)
+{v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 0 then ndim(v_3) = 0
+>>
+Rule 48 (If the input is scalar, reduction must be 'none')
+{v_1 : tensor, v_6 : str} |= if ndim(v_1) = 0 then v_6 = "none"
+>>
+Rule 49 (If the target is scalar, reduction must be 'none')
+{v_2 : tensor, v_6 : str} |= if ndim(v_2) = 0 then v_6 = "none"
+>>
+Rule 50 (If the input is scalar, size_average must be false)
+{v_1 : tensor, v_4 : bool} |= if ndim(v_1) = 0 then v_4 = false
+>>
+Rule 51 (If the target is scalar, size_average must be false)
+{v_2 : tensor, v_4 : bool} |= if ndim(v_2) = 0 then v_4 = false
+>>
+Rule 52 (If the target is scalar, reduce must be false)
+{v_2 : tensor, v_5 : bool} |= if ndim(v_2) = 0 then v_5 = false
+>>
+Rule 53 (If the input is scalar, reduce must be false)
+{v_1 : tensor, v_5 : bool} |= if ndim(v_1) = 0 then v_5 = false
+>>
+Rule 55 (If size_average or reduce are both unspecified, reduction defaults to mean)
+{v_4 : bool, v_5 : bool, v_6 : str} |= if v_4 = false ∧ v_5 = false then v_6 = "mean"
+>>
+Rule 56 (If the input is scalar, size_average should be false and reduction should be none)
+{v_1 : tensor, v_4 : bool, v_6 : str} |= if ndim(v_1) = 0 then (v_4 = false ∧ v_6 = "none")
+>>
+Rule 57 (If the target is scalar, reduce should be false and reduction should be none)
+{v_2 : tensor, v_5 : bool, v_6 : str} |= if ndim(v_2) = 0 then (v_5 = false ∧ v_6 = "none")
+>>
+Rule 58 (If size_average is specified then the reduce argument should be ignored)
+{v_4 : bool, v_5: bool} |= if (v_4 = true ∨ v_4 = false) then true else if (v_5 = true ∨ v_5 = false) then true
+>>
+Rule 59 (If the input is scalar, reduce should be false and size_average should be false)
+{v_1 : tensor, v_5 : bool, v_4 : bool} |= if ndim(v_1) = 0 then (v_5 = false ∧ v_4 = false)
+>>
+Rule 60 (If pos_weight is specified, reduction cannot be none.)
+{v_6 : str, v_7: tensor} |= if ndim(v_7) > 0 then v_6 ≠ "none"
+>>
+Rule 61 (If target is scalar, pos_weight should also be scalar)
+{v_2 : tensor, v_7: tensor} |= if ndim(v_2) = 0 then ndim(v_7) = 0
+>>
+Rule 62 (If the target is scalar, weight should also be scalar)
+{v_2 : tensor, v_3: tensor} |= if ndim(v_2) = 0 then ndim(v_3) = 0
+>>
+Rule 63 (If input and target are not scalar, they should have same dimensions)
+{v_1 : tensor, v_2: tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then ndim(v_1) = ndim(v_2)
+>>
+Rule 64 (If the input and target have more than 0 dimensions, their shape should match)
+{v_1 : tensor, v_2: tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 65 (If the input and target have more than 0 dimensions, their shape should match. If one is scalar, other should be scalar)
+{v_1 : tensor, v_2: tensor} |= (ndim(v_1) = 0 ∧ ndim(v_2) = 0) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 66 (If the target has more than 0 dimensions, weight should also have more than 0 dimensions)
+{v_2 : tensor, v_3: tensor} |= if ndim(v_2) > 0 then ndim(v_3) > 0
+>>
+Rule 67 (If the target is scalar, then size_average, reduce, weight, and pos_weight must be None)
+{v_2: tensor, v_4: bool, v_5: bool, v_3: tensor, v_7:tensor} |= if ndim(v_2) = 0 then (ndim(v_3) = 0 ∧ ndim(v_7) = 0 ∧ v_4 = false ∧ v_5=false)

@@ -1,0 +1,120 @@
+>>
+Rule 1 (decimals should be non-negative if rounding to the right of the decimal)
+{v_2 : int} |= v_2 ≥ 0
+>>
+Rule 2 (input tensor and out tensor should have the same dtype if out is specified)
+{v_1 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_3)
+>>
+Rule 3 (decimals should be within a reasonable range)
+{v_2 : int} |= v_2 ≥ -10 ∧ v_2 ≤ 10
+>>
+Rule 4 (input tensor cannot be boolean)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 5 (input tensor should be of floating-point or integer dtype)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 6 (If decimals is very negative, ensure input values are not too large to avoid overflow)
+{v_1 : tensor, v_2 : int} |= if v_2 < -5 then max(v_1) < 100000
+>>
+Rule 7 (If input is an integer tensor, out must also be an integer tensor)
+{v_1 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then (dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5)
+>>
+Rule 8 (If decimals is specified, input should not be complex)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 then (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10)
+>>
+Rule 9 (If out is specified, it must have the same shape as input)
+{v_1 : tensor, v_3 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)
+>>
+Rule 10 (decimals should not lead to overflow for low precision types)
+{v_1 : tensor, v_2 : int} |= if (dtype_(v_1) = 6) then v_2 < 5
+>>
+Rule 12 (out tensor's dtype should be float if decimals is positive)
+{v_2 : int, v_3 : tensor} |= if v_2 > 0 then (dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 6)
+>>
+Rule 18 (If decimals is negative, the exponent should not be too large for the dtype to avoid overflow - float16)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then if dtype_(v_1) = 6 then (max(v_1) < 1000 ∨ v_2 > -1)
+>>
+Rule 19 (If decimals is specified, the input should have a minimum size)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 then ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0
+>>
+Rule 20 (if decimals is specified then input can't have inf values)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 then max(v_1) ≠ "inf" ∧ min(v_1) ≠ "-inf"
+>>
+Rule 21 (if decimals is specified then input can't have inf values)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 then (max(v_1) < 10000000000 ∧ min(v_1) > -10000000000)
+>>
+Rule 24 (The range of decimals value should be proper.)
+{v_2 : int} |= v_2 > -100 ∧ v_2 < 100
+>>
+Rule 25 (out's memory layout must be same as input's memory layout)
+{v_1 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_3)
+>>
+Rule 26 (if input is quantized, out should also be quantized)
+{v_1: tensor, v_3: tensor} |= if (dtype_(v_1) = 13) then (dtype_(v_3) = 13)
+>>
+Rule 27 (if input is integer, decimals must be zero)
+{v_1 : tensor, v_2 : int} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then v_2 = 0
+>>
+Rule 28 (if input is float16, decimals must be within a certain range to avoid overflow)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 6 then (v_2 ≥ -5 ∧ v_2 ≤ 5)
+>>
+Rule 29 (If decimals is specified, then input can't have NaN value)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 then min(v_1) = min(v_1) ∧ max(v_1) = max(v_1)
+>>
+Rule 30 (If decimals is specified, then input can't have NaN value - explicitly using '≠')
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 then (min(v_1) ≠ "nan" ∧ max(v_1) ≠ "nan")
+>>
+Rule 31 (If decimals is specified, the input values should be representable after scaling)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 then (min(v_1) > -10000 ∧ max(v_1) < 10000)
+>>
+Rule 33 (If decimals is specified, then input can't have NaN value - check with min and max)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 then min(v_1) ≤ max(v_1)
+>>
+Rule 35 (if out is specified, its shape must match input's)
+{v_1 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)
+>>
+Rule 36 (If decimals is specified, and if input has inf values, then it is an error)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 then (min(v_1) ≠ "-inf" ∧ max(v_1) ≠ "inf")
+>>
+Rule 37 (if decimals is used then the tensor values should be within the representable range based on decimals value)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 then min(v_1) > -10000000000 ∧ max(v_1) < 10000000000
+>>
+Rule 38 (if decimals is used then the tensor values should be within the representable range based on decimals value and dtype)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 then if dtype_(v_1) = 6 then (min(v_1) > -10000 ∧ max(v_1) < 10000) else if dtype_(v_1) = 7 then (min(v_1) > -1000000 ∧ max(v_1) < 1000000) else (min(v_1) > -10000000000 ∧ max(v_1) < 10000000000)
+>>
+Rule 40 (if out is specified, its dtype should match the input)
+{v_1 : tensor, v_3: tensor} |= dtype_(v_1) = dtype_(v_3)
+>>
+Rule 41 (if decimals is negative, and dtype is bfloat16, decimals cannot be used.)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 6 then if v_2 < 0 then false
+>>
+Rule 43 (decimals cannot be negative for float16 type)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 6 then v_2 ≥ 0
+>>
+Rule 45 (If decimals is specified, then input can't have inf values)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 46 (If decimals is specified, then input can't have inf values and the tensor is not empty)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 then (min(v_1) ≠ "-inf" ∧ max(v_1) ≠ "inf" ∧ ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 47 (If decimals is specified, the maximum value of input should be finite and greater than the minimum value)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 then (max(v_1) > min(v_1) ∧ max(v_1) < 10000000000)
+>>
+Rule 48 (If decimals is specified, the values of input should be not too big)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 then max(v_1) < 1e8
+>>
+Rule 49 (If decimals is specified, the absolute value of maximum element of input tensor cannot be too large to prevent overflow.)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 then max(v_1) < 100000000
+>>
+Rule 50 (if decimals is negative and value is too large for float16, then operation not possible)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 ∧ dtype_(v_1) = 6 then if max(v_1) > 1e4 then false
+>>
+Rule 52 (If decimals is negative and value is too large for float16, operation not possible. Max and Min)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 ∧ dtype_(v_1) = 6 then if max(v_1) > 1e4 ∨ min(v_1) < -1e4 then false
+>>
+Rule 53 (If decimals is negative, and if input has NaN value, then it is an error)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then (min(v_1) ≠ "nan" ∧ max(v_1) ≠ "nan")
+>>
+Rule 54 (If decimals is specified and negative, then no inf, nan, and empty tensor.)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then (min(v_1) ≠ "-inf" ∧ max(v_1) ≠ "inf" ∧ min(v_1) ≠ "nan" ∧ max(v_1) ≠ "nan" ∧ ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)

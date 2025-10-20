@@ -1,0 +1,126 @@
+>>
+Rule 1 (Input tensor should not have complex dtype)
+{v_1 : tensor} |= dtype_(v_1) < 9
+>>
+Rule 2 (Minimum value must be less than or equal to maximum value)
+{v_1 : float, v_2 : float} |= v_1 ≤ v_2
+>>
+Rule 3 (Input tensor should not have Float dtype if output tensor is Double)
+{v_1 : tensor, v_3 : tensor} |= if dtype_(v_3) = 8 then dtype_(v_1) ≠ 7
+>>
+Rule 7 (Input and Output tensors must have compatible dtypes, avoiding Half overflow)
+{v_1 : tensor, v_4 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_4) ≠ 1
+>>
+Rule 8 (Output tensor must have the same dtype as the input tensor if it exists, and input cannot be complex)
+{v_1 : tensor, v_4 : tensor} |= dtype_(v_1) < 9 ∧ dtype_(v_1) = dtype_(v_4)
+>>
+Rule 9 (Minimum value, if provided, cannot cause Half overflow)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 7 then v_2 > -65504
+>>
+Rule 10 (Maximum value, if provided, cannot cause Half overflow)
+{v_1 : tensor, v_3 : float} |= if dtype_(v_1) = 7 then v_3 < 65504
+>>
+Rule 11 (If input tensor has Float dtype and output tensor is specified, output tensor cannot have Double dtype)
+{v_1 : tensor, v_4 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_4) ≠ 8
+>>
+Rule 12 (If minimum value is provided and input tensor is of type Half, then minimum value should be in the valid range for Half)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 7 then -65504 ≤ v_2
+>>
+Rule 13 (If maximum value is provided and input tensor is of type Half, then maximum value should be in the valid range for Half)
+{v_1 : tensor, v_3 : float} |= if dtype_(v_1) = 7 then v_3 ≤ 65504
+>>
+Rule 14 (If the output tensor is provided, its dtype must be compatible to avoid Half overflow)
+{v_1 : tensor, v_4 : tensor} |= if dtype_(v_4) = 7 then dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5
+>>
+Rule 15 (If both min and max are specified, and the input is Half, both must be in the valid Half range.)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 7 then -65504 ≤ v_2 ∧ v_3 ≤ 65504
+>>
+Rule 16 (If input is Float and no output tensor specified, ensure float is within the range of Double, or change the type to Double)
+{v_1 : tensor} |= if dtype_(v_1) = 7 then max(v_1) < 1.7976931348623157e+308 ∧ min(v_1) > -1.7976931348623157e+308
+>>
+Rule 17 (If minimum is specified, and the input tensor is Half, then the minimum must be less than or equal to the maximum, if specified)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 7 then v_2 ≤ v_3
+>>
+Rule 19 (If output tensor is specified and the input is Half, then the output can't be Int8, Int16, Int32, Int64, or UInt8 because the values will be out of range)
+{v_1 : tensor, v_4 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_4) ≠ 1 ∧ dtype_(v_4) ≠ 2 ∧ dtype_(v_4) ≠ 3 ∧ dtype_(v_4) ≠ 4 ∧ dtype_(v_4) ≠ 5
+>>
+Rule 20 (If input is Float and the output tensor is Double, then min and max must also be within the double range.)
+{v_1 : tensor, v_2 : float, v_3 : float, v_4 : tensor} |= if dtype_(v_1) = 7 ∧ dtype_(v_4) = 8 then max(v_1) < 1.7976931348623157e+308 ∧ min(v_1) > -1.7976931348623157e+308 ∧ v_2 > -1.7976931348623157e+308 ∧ v_3 < 1.7976931348623157e+308
+>>
+Rule 24 (Input cannot be a bool tensor)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 25 (Output tensor must have same shape as input)
+{v_1 : tensor, v_4 : tensor} |= ndim(v_1) = ndim(v_4) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_4, i)
+>>
+Rule 26 (If min is specified and input tensor is of integral type, then min must also be of integral type)
+{v_1 : tensor, v_2 : float} |= if 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 then v_2 % 1 = 0
+>>
+Rule 27 (If max is specified and input tensor is of integral type, then max must also be of integral type)
+{v_1 : tensor, v_3 : float} |= if 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 then v_3 % 1 = 0
+>>
+Rule 28 (If min and max are given and the input is integral, then min <= max)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5 then v_2 <= v_3
+>>
+Rule 30 (If min is specified, and the input is int8, ensure min is within range -128 to 127)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 1 then -128 <= v_2 ∧ v_2 <= 127
+>>
+Rule 31 (If max is specified, and the input is int8, ensure max is within range -128 to 127)
+{v_1 : tensor, v_3 : float} |= if dtype_(v_1) = 1 then -128 <= v_3 ∧ v_3 <= 127
+>>
+Rule 32 (If min is specified and max is specified and input tensor is of integral type, then if output tensor is specified, its type is also integral and min and max are also appropriate to that type)
+{v_1 : tensor, v_2 : float, v_3 : float, v_4 : tensor} |= if 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5 then (1 <= dtype_(v_4) ∧ dtype_(v_4) <= 5 ∧ v_2 % 1 = 0 ∧ v_3 % 1 = 0)
+>>
+Rule 33 (If the output tensor is specified, it cannot be complex)
+{v_4 : tensor} |= dtype_(v_4) < 9
+>>
+Rule 34 (If input is of complex type then specifying min or max or out will result in error)
+{v_1 : tensor, v_2 : float, v_3 : float, v_4: tensor} |= if dtype_(v_1) >= 9 then (v_2 = 0 ∧ v_3 = 0 ∧ shape(v_4,0) = 0)
+>>
+Rule 35 (If min is specified and input tensor is of uint8 type, then min must be within the range 0 to 255)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 then 0 <= v_2 ∧ v_2 <= 255
+>>
+Rule 36 (If max is specified and input tensor is of uint8 type, then max must be within the range 0 to 255)
+{v_1 : tensor, v_3 : float} |= if dtype_(v_1) = 6 then 0 <= v_3 ∧ v_3 <= 255
+>>
+Rule 37 (If both min and max are specified and the input is uint8, then min must be less than or equal to max, and within the uint8 range)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if dtype_(v_1) = 6 then 0 <= v_2 ∧ v_2 <= v_3 ∧ v_3 <= 255
+>>
+Rule 38 (If output is specified and input is uint8, then min and max, if provided, must also be within the uint8 range)
+{v_1 : tensor, v_2 : float, v_3 : float, v_4:tensor} |= if dtype_(v_1) = 6 then (dtype_(v_4)=6 ∧ 0 <= v_2 ∧ v_2 <= 255 ∧ 0 <= v_3 ∧ v_3 <= 255)
+>>
+Rule 40 (Input and output tensors have same type unless input is float, where output can be double.)
+{v_1 : tensor, v_4 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_4) = 7 ∨ dtype_(v_4) = 8 else dtype_(v_1) = dtype_(v_4)
+>>
+Rule 41 (If input tensor has integral type and the output is specified as Half, then prevent overflow.)
+{v_1 : tensor, v_4: tensor} |= if 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5 then dtype_(v_4) != 7
+>>
+Rule 42 (Input tensor must have a numerical dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 44 (If input is Half and output is not specified, the input should be within the valid range to prevent overflow)
+{v_1: tensor} |= if dtype_(v_1) = 7 then max(v_1) <= 65504 ∧ min(v_1) >= -65504
+>>
+Rule 45 (If both min and max are specified and input tensor is of half type, then min and max must be between valid range -65504 and 65504)
+{v_1 : tensor, v_2 : float, v_3: float} |= if dtype_(v_1) = 7 then -65504 <= v_2 ∧ v_2 <= v_3 ∧ v_3 <= 65504
+>>
+Rule 46 (The output tensor if specified should have same dtype of input tensor)
+{v_1: tensor, v_4:tensor} |= if dtype_(v_1) != 7 then dtype_(v_1)=dtype_(v_4)
+>>
+Rule 50 (If both min and max are specified and the input is of int8 type, then min and max must be between valid range -128 and 127)
+{v_1 : tensor, v_2 : float, v_3: float} |= if dtype_(v_1) = 1 then -128 <= v_2 ∧ v_2 <= v_3 ∧ v_3 <= 127
+>>
+Rule 51 (If input tensor is of type Half, but min or max is not specified then default min/max for that range)
+{v_1 : tensor} |= if dtype_(v_1) = 7 then true
+>>
+Rule 55 (If input tensor is int16 and min is specified, ensure it's between -32768 to 32767)
+{v_1: tensor, v_2: float} |= if dtype_(v_1) = 2 then -32768 <= v_2 ∧ v_2 <= 32767
+>>
+Rule 56 (If input tensor is int16 and max is specified, ensure it's between -32768 to 32767)
+{v_1: tensor, v_3: float} |= if dtype_(v_1) = 2 then -32768 <= v_3 ∧ v_3 <= 32767
+>>
+Rule 57 (If both min and max are specified and the input tensor is of int16 type, then min and max must be between valid range -32768 and 32767)
+{v_1 : tensor, v_2 : float, v_3: float} |= if dtype_(v_1) = 2 then -32768 <= v_2 ∧ v_2 <= v_3 ∧ v_3 <= 32767
+>>
+Rule 58 (If input tensor is int32 and min is specified, ensure it's between -2147483648 to 2147483647)
+{v_1: tensor, v_2: float} |= if dtype_(v_1) = 3 then -2147483648 <= v_2 ∧ v_2 <= 2147483647

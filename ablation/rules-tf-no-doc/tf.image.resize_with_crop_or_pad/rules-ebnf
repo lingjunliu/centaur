@@ -1,0 +1,264 @@
+>>
+Rule 1 (target_height must be greater than 0)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 2 (image tensor must have either 3 or 4 dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4
+>>
+Rule 3 (inner 3 dimensions of image.shape must be greater than 0)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 3) > 0
+>>
+Rule 4 (Prevent potential overflow by limiting the input tensor dimensions)
+{v_1 : tensor} |= shape(v_1, 0) < 1000 ∧ shape(v_1, 1) < 1000 ∧ shape(v_1, 2) < 1000
+>>
+Rule 6 (image dimensions must be non-zero)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 7 (Combined rule for target height and width being positive)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+>>
+Rule 8 (Enforce a reasonable size limit on the target height and width)
+{v_1 : int, v_2 : int} |= v_1 < 10000 ∧ v_2 < 10000
+>>
+Rule 9 (Aspect ratio between target_height and target_width should be within a reasonable range)
+{v_1 : int, v_2 : int} |= if v_2 > 0 then v_1 / v_2 > 0.1 ∧ v_1 / v_2 < 10 else false
+>>
+Rule 10 (target_width should not be excessively large relative to image width to avoid potential OOM)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 1 then v_2 ≤ 4 * shape(v_1, 1)
+>>
+Rule 11 (target_height should not be excessively large relative to image height to avoid potential OOM)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then v_2 ≤ 4 * shape(v_1, 0)
+>>
+Rule 12 (Image dimensions must be within reasonable limits to avoid overflow issues during padding)
+{v_1: tensor} |= shape(v_1, 0) < 10000 ∧ shape(v_1, 1) < 10000
+>>
+Rule 13 (If image has only 3 dimensions, batch dimension should be 1)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) = 1
+>>
+Rule 14 (target height and width should not be zero)
+{v_1 : int, v_2 : int} |= v_1 ≠ 0 ∧ v_2 ≠ 0
+>>
+Rule 15 (At least one dimension of the image should be non-zero)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+>>
+Rule 16 (image should have a rank no larger than 4)
+{v_1 : tensor} |= ndim(v_1) ≤ 4
+>>
+Rule 19 (If the image has a batch dimension, its size should be reasonable to prevent OOM)
+{v_1 : tensor} |= if ndim(v_1) > 2 then shape(v_1, 0) < 256
+>>
+Rule 20 (Target height and width should be less than a threshold if image dimensions are small to prevent excessive padding leading to overflow)
+{v_1: tensor, v_2: int, v_3: int} |= if shape(v_1, 0) < 100 then v_2 < 500 ∧ if shape(v_1,1) < 100 then v_3 < 500
+>>
+Rule 21 (Ensure target_height * target_width is not extremely large to avoid memory exhaustion)
+{v_1 : int, v_2 : int} |= v_1 * v_2 < 100000000
+>>
+Rule 22 (Image rank must be 3 or 4 and all dimensions must be non-negative.)
+{v_1 : tensor} |= (ndim(v_1) = 3 ∨ ndim(v_1) = 4) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) ≥ 0
+>>
+Rule 23 (Image height and target height should not differ excessively to avoid extreme cropping/padding. Use if-then-else to simulate absolute difference.)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then (if shape(v_1, 0) > v_2 then shape(v_1, 0) - v_2 < 1000 else v_2 - shape(v_1, 0) < 1000)
+>>
+Rule 24 (Image width and target width should not differ excessively to avoid extreme cropping/padding. Use if-then-else to simulate absolute difference.)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 1 then (if shape(v_1, 1) > v_2 then shape(v_1, 1) - v_2 < 1000 else v_2 - shape(v_1, 1) < 1000)
+>>
+Rule 29 (The sum of the target height and target width should not exceed a limit, to prevent extreme upscaling that might lead to OOM)
+{v_1 : int, v_2 : int} |= v_1 + v_2 < 20000
+>>
+Rule 30 (If the image's height or width is very small, the target dimensions should also be limited to avoid huge padding)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if shape(v_1, 0) < 5 then v_2 < 100 ∧ if shape(v_1, 1) < 5 then v_3 < 100
+>>
+Rule 31 (The product of the image's height and width should be within a reasonable range to prevent extremely small or large images)
+{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, 0) * shape(v_1, 1) < 1000000
+>>
+Rule 32 (Target dimensions must not be larger than int32 max value divided by a constant factor)
+{v_1 : int, v_2 : int} |= v_1 < 2147483647 / 100 ∧ v_2 < 2147483647 / 100
+>>
+Rule 39 (If image's height is zero, the target_height cannot be significantly larger)
+{v_1: tensor, v_2: int} |= if shape(v_1, 0) = 0 then v_2 < 100
+>>
+Rule 41 (Target height should not be significantly smaller than the original height)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then v_2 > shape(v_1, 0) / 5
+>>
+Rule 42 (Target width should not be significantly smaller than the original width)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 1 then v_2 > shape(v_1, 1) / 5
+>>
+Rule 43 (The target height cannot exceed twice the maximum integer value divided by the target width to prevent large multiplication results)
+{v_1: int, v_2: int} |=  if v_2 > 0 then v_1 < (2147483647 / 2) / v_2
+>>
+Rule 44 (Image must have a certain number of channels.)
+{v_1: tensor} |= if ndim(v_1) = 3 then shape(v_1, 2) > 0 else if ndim(v_1) = 4 then shape(v_1, 3) > 0
+>>
+Rule 45 (The height must be smaller than max int value divided by width to prevent overflow)
+{v_1: int, v_2: int} |= if v_2 > 0 then v_1 < (2147483647 / v_2)
+>>
+Rule 46 (If width equals zero then height must be smaller than 100 to prevent extreme operations.)
+{v_1: int, v_2: int} |= if v_2 = 0 then v_1 < 100
+>>
+Rule 47 (The height of the image should be less than a constant to prevent very big images)
+{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) < 2048
+>>
+Rule 48 (The width of the image should be less than a constant to prevent very big images)
+{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, 1) < 2048
+>>
+Rule 49 (At least one of the dimensions must not be 0)
+{v_1 : tensor} |= (ndim(v_1) > 0 ∧ shape(v_1,0) > 0) ∨ (ndim(v_1) > 1 ∧ shape(v_1, 1) > 0)
+>>
+Rule 50 (If height of the image equals zero, target height should also be zero)
+{v_1: tensor, v_2: int} |= if ndim(v_1) > 0 then if shape(v_1, 0) = 0 then v_2 = 0
+>>
+Rule 51 (The product of target height and a constant should be less than the maximum integer.)
+{v_1: int} |= v_1 * 10 < 2147483647
+>>
+Rule 52 (Height of the image cannot be larger than the maximum integer value)
+{v_1: tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) < 2147483647
+>>
+Rule 53 (The target height should not be a large prime number.)
+{v_1 : int} |= v_1 % 2 = 0 ∨ v_1 < 100
+>>
+Rule 55 (The product of image height and width should not be close to max integer value)
+{v_1: tensor} |= if ndim(v_1) > 1 then shape(v_1, 0) * shape(v_1, 1) < 2000000000
+>>
+Rule 58 (The average of target height and width should be less than a threshold)
+{v_1: int, v_2: int} |= (v_1 + v_2) / 2 < 5000
+>>
+Rule 59 (Target height must be at least 10.)
+{v_1: int} |= v_1 ≥ 10
+>>
+Rule 60 (Image height should be less than the maximum integer value divided by 1000.)
+{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) < 2147483
+>>
+Rule 61 (If the image only has width and height, then both need to be positive)
+{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+>>
+Rule 62 (If the image only has a height it should be less than maximum integer divided by 10.)
+{v_1: tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) < 214748364
+>>
+Rule 63 (Target height and target width must not exceed a reasonable size. To prevent large multiplication of padding parameters during calculations.)
+{v_1: int, v_2: int} |= v_1 < 4096 ∧ v_2 < 4096
+>>
+Rule 64 (If the images height is one then the width should be lower than max int.)
+{v_1: tensor} |= if ndim(v_1) > 0 then if shape(v_1,0) = 1 then shape(v_1, 1) < 2147483647
+>>
+Rule 65 (Image height can not be excessively smaller or larger than the target height)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then shape(v_1, 0) / 2 < v_2 ∧ v_2 < shape(v_1, 0) * 2
+>>
+Rule 66 (If image contains a channel dimension target parameters have upper bound limit)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 3 ∨ ndim(v_1) = 4 then v_2 < 1000 ∧ v_3 < 1000
+>>
+Rule 67 (Ensure that the product of the image tensor shape's is not to large)
+{v_1 : tensor} |= if ndim(v_1) > 0 then if ndim(v_1) = 1 then shape(v_1, 0) < 5000000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 5000000 else if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 5000000 else shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1,3) < 5000000
+>>
+Rule 68 (If the image has width, width and height have to be positive.)
+{v_1: tensor} |= if ndim(v_1) > 1 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+>>
+Rule 69 (Combined height and width check with smaller limit.)
+{v_1: int, v_2: int} |= v_1 + v_2 < 10000
+>>
+Rule 70 (The target heigh is below 2x max int value divided by the width, If width is not 0)
+{v_1: int, v_2: int} |= if v_2 > 0 then v_1 < (2147483647 * 2) / v_2
+>>
+Rule 71 (Target dimensions cannot both be extremely large.)
+{v_1: int, v_2: int} |= (v_1 * v_2) < 5000000
+>>
+Rule 72 (If image's has a width that is 0 target dimensions should not be large)
+{v_1: tensor, v_2: int, v_3: int} |= if ndim(v_1) > 1 then if shape(v_1, 1) = 0 then v_2 < 100 ∧ v_3 < 100
+>>
+Rule 73 (Image height must not be excessively larger than target height)
+{v_1: tensor, v_2: int} |= if ndim(v_1) > 0 then shape(v_1, 0) < v_2 * 10
+>>
+Rule 74 (If image dimensions are small target dimensions should not be exponentially higher)
+{v_1: tensor, v_2: int, v_3: int} |= if ndim(v_1) > 1 then if shape(v_1,0) < 10 ∧ shape(v_1, 1) < 10 then v_2 < 100 ∧ v_3 < 100
+>>
+Rule 75 (The sum of height and width dimension is less than an acceptable value.)
+{v_1 : tensor} |= if ndim(v_1) > 1 then (shape(v_1, 0) + shape(v_1, 1)) < 5000
+>>
+Rule 77 (The product of height and width of target is no more than 100x the product of shape dimensions)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) > 1 then v_2 * v_3 < shape(v_1,0) * shape(v_1, 1) * 100
+>>
+Rule 78 (If target width is greater than 100, the target height must be specified too)
+{v_1: int, v_2: int} |= if v_2 > 100 then v_1 > 0
+>>
+Rule 79 (The target dimensions cannot be very close to the maximum integer value)
+{v_1: int, v_2: int} |= v_1 < 2147000000 ∧ v_2 < 2147000000
+>>
+Rule 80 (The image cannot have a height or width greater than maximum value.)
+{v_1: tensor} |= if ndim(v_1) > 0 then shape(v_1,0) < 2147483647
+>>
+Rule 81 (If width of the image equals zero then target height should be 0.)
+{v_1: tensor, v_2: int} |= if ndim(v_1) > 1 then if shape(v_1, 1) = 0 then v_2 = 0
+>>
+Rule 82 (if the image has no dimensions then target height and width cannot be above a certain value.)
+{v_1: tensor, v_2: int, v_3: int} |= if ndim(v_1) = 0 then v_2 < 100 ∧ v_3 < 100
+>>
+Rule 83 (If image has more than 0 dimensions and channel info, target height has to be lower than a maximum bound.)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 2 then v_2 < 5000
+>>
+Rule 84 (If target height is larger than 100, image must have two dimensions)
+{v_1 : tensor, v_2 : int} |= if v_2 > 100 then ndim(v_1) > 1
+>>
+Rule 85 (If the target width is larger than 100 then the image must have at least two dimensions.)
+{v_1: tensor, v_2: int} |= if v_2 > 100 then ndim(v_1) > 1
+>>
+Rule 86 (If target width is larger than 100, the image height should be greater than 0.)
+{v_1: tensor, v_2: int} |= if ndim(v_1) > 0 then if v_2 > 100 then shape(v_1, 0) > 0
+>>
+Rule 87 (If the image has width it can not be higher than a maximum integer.)
+{v_1: tensor} |= if ndim(v_1) > 1 then shape(v_1, 1) < 2147483647
+>>
+Rule 88 (If one dimension is less than 10, product of the shapes can not be larger than max int)
+{v_1: tensor} |= if ndim(v_1) > 0 then if shape(v_1, 0) < 10 then if ndim(v_1) > 1 then shape(v_1,0) * shape(v_1,1) < 2147483647 else shape(v_1,0) < 2147483647
+>>
+Rule 89 (If image tensor has less then three dimensions, then the target height and width must both be 1.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) < 3 then v_2 = 1 ∧ v_3 = 1
+>>
+Rule 90 (The height times the width of the input tensor has a maximum value, where width dimension is present and dimension is within 2 - 4 dimensions.)
+{v_1 : tensor} |= if ndim(v_1) > 1 then if ndim(v_1) < 5 then shape(v_1, 0) * shape(v_1, 1) < 10000000
+>>
+Rule 91 (If image height is 0 the target height has to be 0.)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then if shape(v_1, 0) = 0 then v_2 = 0
+>>
+Rule 92 (If height of the image is greater than target width then width needs to be 0 for this situation.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) > 0 then if shape(v_1, 0) > v_3 then v_2 = 0
+>>
+Rule 93 (Target dimensions should be less then 1024 to prevent large memory error.)
+{v_1 : int, v_2 : int} |= v_1 < 1024 ∧ v_2 < 1024
+>>
+Rule 94 (Target dimensions product should be less than threshold, prevent OOM.)
+{v_1 : int, v_2 : int} |= v_1 * v_2 < 1000000
+>>
+Rule 95 (The product of shape dimensions times target height and width must be less than max int.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) > 0 then if ndim(v_1) = 1 then shape(v_1, 0) * v_2 * v_3 < 2147483647 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) * v_2 * v_3 < 2147483647 else if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * v_2 * v_3 < 2147483647
+>>
+Rule 96 (If width dimension of image is greater than the maximum integer value divided by height dimension.)
+{v_1: tensor} |= if ndim(v_1) > 1 then shape(v_1, 1) < 2147483647 / shape(v_1, 0)
+>>
+Rule 97 (If the product of dimensions equals zero target height has to be zero.)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then if ndim(v_1) = 1 then if shape(v_1, 0) = 0 then v_2 = 0 else if ndim(v_1) = 2 then if shape(v_1, 0) * shape(v_1, 1) = 0 then v_2 = 0
+>>
+Rule 98 (If a dimension is 1 then the target dimensions need to be the dimension less than max integer)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) > 0 then if shape(v_1, 0) = 1 then v_2 < 2147483647 ∧ v_3 < 2147483647
+>>
+Rule 99 (If image dimensions is 4 image width can not be 0.)
+{v_1: tensor} |= if ndim(v_1) = 4 then shape(v_1, 1) > 0
+>>
+Rule 100 (If the target height is too high, then target width is less than 10.)
+{v_1: int, v_2: int} |= if v_1 > 2048 then v_2 < 10
+>>
+Rule 101 (If the image has channel information make the channel count at most 3 to avoid OOM issues)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 2) ≤ 3 else if ndim(v_1) = 4 then shape(v_1, 3) ≤ 3
+>>
+Rule 102 (The target width has to be smaller than a large number)
+{v_1: int} |= v_1 < 20000
+>>
+Rule 103 (The images dimension product must not be close to maximum int.)
+{v_1 : tensor} |= if ndim(v_1) > 0 then if ndim(v_1) = 1 then shape(v_1, 0) < 100000000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 100000000 else if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 100000000
+>>
+Rule 104 (If images first dimension is 0 it can not have an additional dimension.)
+{v_1: tensor} |= if ndim(v_1) > 0 then if shape(v_1, 0) = 0 then ndim(v_1) = 1
+>>
+Rule 105 (If height is 0 target dimensions need to both be 0 for valid behavior.)
+{v_1: tensor, v_2: int, v_3: int} |= if ndim(v_1) > 0 then if shape(v_1, 0) = 0 then v_2 = 0 ∧ v_3 = 0
+>>
+Rule 106 (Ensure that if target height is zero the width is smaller.)
+{v_1: int, v_2: int} |= if v_1 = 0 then v_2 < 500

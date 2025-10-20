@@ -1,0 +1,141 @@
+>>
+Rule 1 (a and x must have the same type, implicitly covering float32 or float64 allowed types)
+{a : tensor, x : tensor} |= dtype_(a) = dtype_(x)
+>>
+Rule 2 (a must be float32 or float64 to avoid InvalidArgumentError related to data type)
+{a : tensor} |= (dtype_(a) = 7) ∨ (dtype_(a) = 8)
+>>
+Rule 3 (Ensure that x's shape is valid to prevent Incompatible shapes error)
+{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) ≥ 0
+>>
+Rule 4 (Check if the input tensors have compatible shapes for element-wise operation)
+{a : tensor, x : tensor} |= if ndim(a) = ndim(x) then (∀i ∈ [0, ndim(a) - 1] : shape(a, i) = shape(x, i))
+>>
+Rule 5 (Check that the polygamma order 'a' is a non-negative float)
+{a : tensor} |= min(a) ≥ 0
+>>
+Rule 6 (The tensors 'a' and 'x' are not empty)
+{a : tensor, x : tensor} |= (∀i ∈ [0, ndim(a) - 1] : shape(a, i) > 0) ∧ (∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0)
+>>
+Rule 8 (Type of 'x' must be float32 or float64)
+{x : tensor} |= (dtype_(x) = 7) ∨ (dtype_(x) = 8)
+>>
+Rule 9 (Shapes of a and x should be compatible)
+{a : tensor, x : tensor} |= if ndim(a) = ndim(x) then ∀i ∈ [0, ndim(a) - 1] : shape(a, i) = shape(x, i) else false
+>>
+Rule 10 (Shape of a must be valid)
+{a : tensor} |= ∀i ∈ [0, ndim(a) - 1] : shape(a, i) > 0
+>>
+Rule 11 (Shape of x must be valid)
+{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
+>>
+Rule 12 (If a is a scalar, then x can be any shape)
+{a : tensor, x : tensor} |= if ndim(a) = 0 then true else if ndim(x) = 0 then true else (∀i ∈ [0, ndim(a) - 1] : shape(a, i) = shape(x, i))
+>>
+Rule 13 (Enforce consistent rank between a and x)
+{a : tensor, x : tensor} |= ndim(a) = ndim(x)
+>>
+Rule 15 (Shapes of 'a' and 'x' must be broadcastable)
+{a : tensor, x : tensor} |= if ndim(a) < ndim(x) then ∀i ∈ [0, ndim(a) - 1] : (shape(a, ndim(a) - 1 - i) = shape(x, ndim(x) - 1 - i) ∨ shape(a, ndim(a) - 1 - i) = 1) else if ndim(x) < ndim(a) then ∀i ∈ [0, ndim(x) - 1] : (shape(x, ndim(x) - 1 - i) = shape(a, ndim(a) - 1 - i) ∨ shape(x, ndim(x) - 1 - i) = 1) else ∀i ∈ [0, ndim(a) - 1] : shape(a, i) = shape(x, i)
+>>
+Rule 17 (If a is scalar, it should be zero)
+{a : tensor} |= if ndim(a) = 0 then min(a) ≥ 0
+>>
+Rule 18 (If x is a scalar, it should be a valid value)
+{x : tensor} |= if ndim(x) = 0 then true
+>>
+Rule 19 (If a's shape is [1], x's shape must be [1] too)
+{a : tensor, x : tensor} |= if ndim(a) = 1 ∧ shape(a, 0) = 1 then ndim(x) = 1 ∧ shape(x, 0) = 1
+>>
+Rule 20 (If x's shape is [1], a's shape must be [1] too)
+{a : tensor, x : tensor} |= if ndim(x) = 1 ∧ shape(x, 0) = 1 then ndim(a) = 1 ∧ shape(a, 0) = 1
+>>
+Rule 21 (Prevent zero-sized dimensions in input 'a')
+{a : tensor} |= ∀i ∈ [0, ndim(a) - 1] : shape(a, i) ≠ 0
+>>
+Rule 22 (Prevent zero-sized dimensions in input 'x')
+{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) ≠ 0
+>>
+Rule 23 (At least one of the tensors 'a' or 'x' has valid dimensions)
+{a : tensor, x : tensor} |= (ndim(a) = 0) ∨ (ndim(x) = 0) ∨ ((ndim(a) > 0 ∧ ∀i ∈ [0, ndim(a) - 1] : shape(a, i) > 0) ∨ (ndim(x) > 0 ∧ ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0))
+>>
+Rule 24 (If a is scalar, x must also be a scalar)
+{a : tensor, x : tensor} |= if ndim(a) = 0 then ndim(x) = 0
+>>
+Rule 25 (Either both 'a' and 'x' are scalars, or none of them is scalar)
+{a : tensor, x : tensor} |= (ndim(a) = 0 ∧ ndim(x) = 0) ∨ (ndim(a) ≠ 0 ∧ ndim(x) ≠ 0)
+>>
+Rule 27 (Shapes must be equal, or one of them must be a scalar)
+{a : tensor, x : tensor} |= (ndim(a) = 0) ∨ (ndim(x) = 0) ∨ (ndim(a) = ndim(x) ∧ ∀i ∈ [0, ndim(a) - 1] : shape(a, i) = shape(x, i))
+>>
+Rule 28 (If 'x' is a scalar, 'a' can have any shape, but must be float32 or float64)
+{a : tensor, x : tensor} |= if ndim(x) = 0 then (dtype_(a) = 7 ∨ dtype_(a) = 8)
+>>
+Rule 29 (If 'a' is not a scalar, 'x' must have compatible shape and be float32 or float64)
+{a : tensor, x : tensor} |= if ndim(a) ≠ 0 then (dtype_(x) = 7 ∨ dtype_(x) = 8) ∧ (ndim(a) = ndim(x) ∧ (∀i ∈ [0, ndim(a) - 1] : shape(a, i) = shape(x, i)))
+>>
+Rule 30 (If 'x' is not a scalar, 'a' must have compatible shape and be float32 or float64)
+{a : tensor, x : tensor} |= if ndim(x) ≠ 0 then (dtype_(a) = 7 ∨ dtype_(a) = 8) ∧ (ndim(a) = ndim(x) ∧ (∀i ∈ [0, ndim(a) - 1] : shape(a, i) = shape(x, i)))
+>>
+Rule 31 (a's dtype must be float32 or float64)
+{a : tensor} |= dtype_(a) = 7 ∨ dtype_(a) = 8
+>>
+Rule 32 (x's dtype must be float32 or float64)
+{x : tensor} |= dtype_(x) = 7 ∨ dtype_(x) = 8
+>>
+Rule 33 (Either 'a' and 'x' both are scalar, or both are not scalar and have compatible shapes)
+{a : tensor, x : tensor} |= (ndim(a) = 0 ∧ ndim(x) = 0) ∨ (ndim(a) > 0 ∧ ndim(x) > 0 ∧ ndim(a) = ndim(x) ∧ ∀i ∈ [0, ndim(a) - 1] : shape(a, i) = shape(x, i))
+>>
+Rule 34 (Shapes of a and x are compatible for broadcasting)
+{a : tensor, x : tensor} |= if ndim(a) > ndim(x) then ∀i ∈ [0, ndim(x) -1 ] : (shape(a, ndim(a) - ndim(x) + i) = shape(x, i) ∨ shape(x, i) = 1) else if ndim(x) > ndim(a) then ∀i ∈ [0, ndim(a) - 1] : (shape(x, ndim(x) - ndim(a) + i) = shape(a, i) ∨ shape(a, i) = 1) else ∀i ∈ [0, ndim(a) - 1] : shape(a, i) = shape(x, i)
+>>
+Rule 35 (All dimension sizes of 'a' and 'x' must be positive if they exist)
+{a : tensor, x : tensor} |= (ndim(a) = 0 ∨ (∀i ∈ [0, ndim(a) - 1] : shape(a, i) > 0)) ∧ (ndim(x) = 0 ∨ (∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0))
+>>
+Rule 36 (If a and x are not scalars, they have same number of dimensions and their dtypes are float32 or float64)
+{a : tensor, x : tensor} |= (ndim(a) = 0 ∧ ndim(x) = 0) ∨ (ndim(a) > 0 ∧ ndim(x) > 0 ∧ ndim(a) = ndim(x) ∧ dtype_(a) = dtype_(x) ∧ (dtype_(a) = 7 ∨ dtype_(a) = 8))
+>>
+Rule 37 (If at least one of a or x is not scalar then both must be float32 or float64)
+{a : tensor, x : tensor} |= if (ndim(a) > 0) ∨ (ndim(x) > 0) then (dtype_(a) = 7 ∨ dtype_(a) = 8) ∧ (dtype_(x) = 7 ∨ dtype_(x) = 8)
+>>
+Rule 38 (If a is scalar, then dtype of x must be float32 or float64)
+{a : tensor, x : tensor} |= if ndim(a) = 0 then dtype_(x) = 7 ∨ dtype_(x) = 8
+>>
+Rule 39 (If x is scalar, then dtype of a must be float32 or float64)
+{a : tensor, x : tensor} |= if ndim(x) = 0 then dtype_(a) = 7 ∨ dtype_(a) = 8
+>>
+Rule 40 (If ndim(a) = 1 and shape(a, 0) = 1, then dtype of x must be float32 or float64)
+{a : tensor, x : tensor} |= if ndim(a) = 1 ∧ shape(a, 0) = 1 then dtype_(x) = 7 ∨ dtype_(x) = 8
+>>
+Rule 41 (If ndim(x) = 1 and shape(x, 0) = 1, then dtype of a must be float32 or float64)
+{a : tensor, x : tensor} |= if ndim(x) = 1 ∧ shape(x, 0) = 1 then dtype_(a) = 7 ∨ dtype_(a) = 8
+>>
+Rule 42 (If 'a' and 'x' are both scalars, then their dtypes must be float32 or float64)
+{a : tensor, x : tensor} |= if ndim(a) = 0 ∧ ndim(x) = 0 then (dtype_(a) = 7 ∨ dtype_(a) = 8) ∧ (dtype_(x) = 7 ∨ dtype_(x) = 8)
+>>
+Rule 43 (Shape compatibility check between 'a' and 'x' when ndim(a) > 0 and ndim(x) > 0)
+{a : tensor, x : tensor} |= if ndim(a) > 0 ∧ ndim(x) > 0 then (ndim(a) = ndim(x) ∧ (∀i ∈ [0, ndim(a) - 1] : shape(a, i) = shape(x, i))) ∨ (∃i ∈ [0, ndim(a) - 1] : shape(a, i) = 1) ∨ (∃i ∈ [0, ndim(x) - 1] : shape(x, i) = 1)
+>>
+Rule 44 (dtype check for a and x)
+{a: tensor, x: tensor} |= (dtype_(a) = 7 ∧ dtype_(x) = 7) ∨ (dtype_(a) = 8 ∧ dtype_(x) = 8)
+>>
+Rule 45 (If the shape of 'a' is [S1, S2, ..., SN] and shape of 'x' is [T1, T2, ..., TM], then N = M and Si = Ti for all i)
+{a: tensor, x: tensor} |= if ndim(a) > 0 ∧ ndim(x) > 0 then ndim(a) = ndim(x) ∧ ∀i ∈ [0, ndim(a) - 1]: shape(a, i) = shape(x, i)
+>>
+Rule 49 (a and x must both be float32 or float64, and have compatible shapes for broadcasting)
+{a : tensor, x : tensor} |= ((dtype_(a) = 7 ∨ dtype_(a) = 8) ∧ (dtype_(x) = 7 ∨ dtype_(x) = 8)) ∧ (if ndim(a) < ndim(x) then ∀i ∈ [0, ndim(a) - 1] : (shape(a, ndim(a) - 1 - i) = shape(x, ndim(x) - 1 - i) ∨ shape(a, ndim(a) - 1 - i) = 1) else if ndim(x) < ndim(a) then ∀i ∈ [0, ndim(x) - 1] : (shape(x, ndim(x) - 1 - i) = shape(a, ndim(a) - 1 - i) ∨ shape(x, ndim(x) - 1 - i) = 1) else ∀i ∈ [0, ndim(a) - 1] : shape(a, i) = shape(x, i))
+>>
+Rule 55 (Check valid dtype and compatibility and broadcasting of a and x)
+{a: tensor, x: tensor} |= ((dtype_(a) = 7) ∨ (dtype_(a) = 8)) ∧ ((dtype_(x) = 7) ∨ (dtype_(x) = 8)) ∧ (if ndim(a) = ndim(x) then (∀i ∈ [0, ndim(a) - 1] : shape(a, i) = shape(x, i)) else (if ndim(a) < ndim(x) then ∀i ∈ [0, ndim(a) - 1] : (shape(a, i) = shape(x, ndim(x) - ndim(a) + i) ∨ shape(a, i) = 1) else ∀i ∈ [0, ndim(x) - 1] : (shape(x, i) = shape(a, ndim(a) - ndim(x) + i) ∨ shape(x, i) = 1)))
+>>
+Rule 57 (a's values are non-negative)
+{a: tensor} |= (∀i ∈ [0, ndim(a) - 1]: (shape(a, i) = 0)) ∨ (min(a) >= 0)
+>>
+Rule 58 (Polygamma requires dtype of 'a' and 'x' to be float32 or float64)
+{a : tensor, x : tensor} |= (dtype_(a) = 7 ∨ dtype_(a) = 8) ∧ (dtype_(x) = 7 ∨ dtype_(x) = 8)
+>>
+Rule 59 (Polygamma valid shapes)
+{a: tensor, x: tensor} |= ((ndim(a) = 0) ∧ (ndim(x) = 0)) ∨ ((ndim(a) > 0) ∧ (ndim(x) > 0) ∧ (ndim(a) = ndim(x)) ∧ (∀i ∈ [0, ndim(a) - 1] : shape(a, i) = shape(x, i))) ∨ ( (ndim(a) > 0) ∧ (ndim(x) >0 ) ∧ ((∃i ∈ [0, ndim(a) - 1] : shape(a, i) = 1) ∨ (∃j ∈ [0, ndim(x) - 1] : shape(x, j) = 1)))
+>>
+Rule 60 (a and x are tensors of correct type and dimension)
+{a: tensor, x: tensor} |= ((dtype_(a) = 7) ∨ (dtype_(a) = 8)) ∧ ((dtype_(x) = 7) ∨ (dtype_(x) = 8)) ∧ (((ndim(a) = 0) ∧ (ndim(x) = 0)) ∨ ((ndim(a) > 0) ∧ (ndim(x) > 0) ∧ (ndim(a) = ndim(x)) ∧ (∀i ∈ [0, ndim(a) - 1] : shape(a, i) = shape(x, i))))

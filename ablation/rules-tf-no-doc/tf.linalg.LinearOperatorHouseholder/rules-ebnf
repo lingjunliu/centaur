@@ -1,0 +1,288 @@
+>>
+Rule 1 (Householder operator should not be explicitly checked for positive definiteness, which is an impossible request and leads to an error. Assume that v_1 is an indicator of such check, or a flag for the Householder class to ensure numerical stabilility.)
+{v_1 : bool} |= v_1 = false
+>>
+Rule 2 (The Householder vector should have at least dimension of 1.)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+>>
+Rule 3 (Householder vector must be floating point or complex.)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 4 (If the Householder vector is batched (ndim > 1), all batch shapes must be compatible.)
+{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, 0) > 0
+>>
+Rule 5 (The Householder vector's inner dimension must be non-zero.)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0
+>>
+Rule 6 (Combining dimension constraints: Householder vector must have at least dimension 1 and its final dimension size is greater than zero.)
+{v_1: tensor} |= ndim(v_1) ≥ 1 ∧ shape(v_1, ndim(v_1) - 1) > 0
+>>
+Rule 7 (Checking if the dimension of Householder vector is within a limit, v_2 is the limit. )
+{v_1 : tensor, v_2 : int} |= ndim(v_1) ≤ v_2
+>>
+Rule 8 (Complex-valued Householder vector requires special handling, thus v_1 indicate whether it's complex.)
+{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_2 = true else v_2 = false
+>>
+Rule 9 (Householder operator's vector's dtype cannot be a boolean)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 11 (If given a list to construct householder vector, length of the list must greater than 0)
+{v_1 : list(float)} |= v_1.len > 0
+>>
+Rule 12 (If given a list of int for Householder vector, ensure the int are non negative. This makes sense in the context where those int are used as indices)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+>>
+Rule 13 (If vector v_1's dtype is float16, then ensure that v_2, a threshold for some calculation involving v_1, is also smaller than a value)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 then v_2 < 1000.0
+>>
+Rule 14 (Vector dtype must be specified if creating from scratch.)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10
+>>
+Rule 15 (If we are passing a vector to initialize the operator, and another boolean v_2 is provided which should indicate whether the vector will be normalized. Then v_2 can only be true)
+{v_1 : tensor, v_2 : bool} |= if ndim(v_1) > 0 then v_2 = true
+>>
+Rule 16 (If the vector is complex, the magnitude should be greater than zero.)
+{v_1: tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) > 0
+>>
+Rule 17 (The provided vector must be normalized to unit length before using it to create the householder operator.)
+{v_1: tensor} |= max(v_1) ≤ 1.0 ∧ min(v_1) ≥ -1.0
+>>
+Rule 18 (The rank should be specified by variable v_2)
+{v_1: tensor, v_2: int} |= v_2 = ndim(v_1)
+>>
+Rule 19 (The operator should not be square.)
+{v_1: tensor} |= shape(v_1, 0) ≠ shape(v_1, 1)
+>>
+Rule 20 (The vector should not be a zero vector.)
+{v_1: tensor} |= max(v_1) > 0 ∨ min(v_1) < 0
+>>
+Rule 21 (The vector's dimension should equal to a certain size v_2.)
+{v_1: tensor, v_2: int} |= shape(v_1, ndim(v_1)-1) = v_2
+>>
+Rule 22 (If providing a vector, a flag v_2 should be set as false in the case when normalization is not needed)
+{v_1: tensor, v_2: bool} |= if ndim(v_1) > 0 then v_2 = false
+>>
+Rule 23 (Vector must be finite)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, ndim(v_1) - 1) - 1] : v_1[i] < 100000000.0 ∧ v_1[i] > -100000000.0
+>>
+Rule 24 (Vector should have a specific type defined as v_2)
+{v_1: tensor, v_2: dtype} |= dtype_(v_1) = v_2
+>>
+Rule 25 (If a scale is provided, it should be non-zero.)
+{v_1: float} |= v_1 ≠ 0.0
+>>
+Rule 26 (If a tuple is passed, the length must not be zero)
+{v_1 : tuple(int)} |= v_1.len > 0
+>>
+Rule 28 (When creating the Householder operator from a scalar, the value must be non-zero, otherwise can lead to nan.)
+{v_1: float} |= v_1 ≠ 0
+>>
+Rule 29 (If a batch shape is supplied, all dimensions must be greater than zero)
+{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 30 (Ensure that the supplied vector only contains real numbers if the dtype of the vector is set to either float16, float32 or float64)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) ≥ 0
+>>
+Rule 31 (Auto-update cannot be set to true which makes no sense for a Householder operator.)
+{v_1: bool} |= v_1 = false
+>>
+Rule 32 (If a scale v_1 is provided, and the vector v_2's norm is smaller than v_1 then no update is done)
+{v_1: float, v_2 : tensor} |= if min(v_2) < v_1 then true else false
+>>
+Rule 33 (The vector must be normalized to unit length if v_1 is set to "linear".)
+{v_1: tensor, v_2: str} |= if v_2 = "linear" then max(v_1) ≤ 1.0 ∧ min(v_1) ≥ -1.0
+>>
+Rule 34 (The last dimension of a tensor v_1 must be a perfect square, if v_2 is set to be true.)
+{v_1: tensor, v_2: bool} |= if v_2 = true then ∃i ∈ [1, shape(v_1, ndim(v_1) - 1)]: i * i = shape(v_1, ndim(v_1) - 1)
+>>
+Rule 35 (The Householder vector v_1 must have a norm greater than zero to avoid division by zero.)
+{v_1: tensor} |= max(v_1) > 0
+>>
+Rule 36 (The vector must not contain NaN values)
+{v_1 : tensor} |= ∃i ∈ [0, shape(v_1, ndim(v_1) - 1) - 1] : v_1[i] ≠ "NaN"
+>>
+Rule 37 (If v_1, vector's norm, is smaller than threshold v_2, and v_3 is true, then the program will exit.)
+{v_1: tensor, v_2 : float, v_3 : bool} |= if min(v_1) < v_2 ∧ v_3 = true then false
+>>
+Rule 38 (If `dtype` is not specified, the vector v_1's dtype must be a default float data type)
+{v_1: tensor, v_2: bool} |= if v_2 = true then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 39 (The operator should be square, v_2 is the shape of tensor.)
+{v_1: tensor, v_2: int} |= shape(v_1, 0) = v_2 ∧ shape(v_1, 1) = v_2
+>>
+Rule 40 (If `dtype` is not specified, the scale must be a default float data type)
+{v_1: float, v_2: bool} |= if v_2 = true then (v_1 > 0.0 ∨ v_1 < 0.0)
+>>
+Rule 41 (If the operator is square (v_2 is true), its shape cannot be too large.)
+{v_1: tensor, v_2: bool, v_3: int} |= if v_2 = true then shape(v_1, 0) < v_3
+>>
+Rule 42 (The Householder vector should not be all zeros)
+{v_1: tensor} |= ∃i ∈ [0, shape(v_1, ndim(v_1) - 1) - 1] : v_1[i] ≠ 0
+>>
+Rule 43 (Check the size of batch dims for tensor and make sure it's not zero.)
+{v_1: tensor, v_2: int} |= if ndim(v_1) > v_2 then shape(v_1, v_2) > 0
+>>
+Rule 44 (The vector's data type must be one of the valid data types defined in list.)
+{v_1: tensor, v_2: list(dtype)} |= ∃i ∈ [0, v_2.len - 1] : dtype_(v_1) = v_2[i]
+>>
+Rule 45 (If v_1 is true, the number of rows must be greater than or equal to the number of columns for thin QR)
+{v_1: tensor, v_2: bool} |= if v_2 = true then shape(v_1,0) ≥ shape(v_1, 1)
+>>
+Rule 46 (If a scale is provided, it must be a real number)
+{v_1: float} |= v_1 ≠ "inf" ∧ v_1 ≠ "-inf" ∧ v_1 ≠ "NaN"
+>>
+Rule 47 (If a custom norm function is provided, v_1 must be a callable object or a string.)
+{v_1: str} |= v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod"
+>>
+Rule 48 (Check that `dtype` supplied is supported by the backend.)
+{v_1: dtype} |= v_1 ≠ 11
+>>
+Rule 49 (Ensure Householder Vector has no inf values)
+{v_1 : tensor} |= ∃i ∈ [0, shape(v_1, ndim(v_1) - 1) - 1] : v_1[i] ≠ "inf" ∧ v_1[i] ≠ "-inf"
+>>
+Rule 50 (Vector must not be None, if it is not None and also batch_shape is supplied then batch_shape must match batch dimensions of the vector)
+{v_1 : tensor, v_2: tuple(int)} |= if ndim(v_1) > 0 then (ndim(v_1) - 1 = v_2.len)
+>>
+Rule 51 (v_1 must be one of the supported types)
+{v_1: tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 52 (If providing a custom norm as a function v_1, and the vector is not complex, then the function signature must match a non-complex tensor)
+{v_1: str, v_2 : tensor} |= if dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10 then v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod"
+>>
+Rule 53 (If no vector is supplied and shape tuple v_1 is, then the length of v_1 must be positive.)
+{v_1: tuple(int)} |= v_1.len > 0
+>>
+Rule 57 (The dimension of the vector has to be less than the specified rank, v_2 is the rank specified and v_1 is the vector)
+{v_1: tensor, v_2: int} |= ndim(v_1) < v_2
+>>
+Rule 59 (If a shape tuple v_1 and rank v_2 are supplied, then rank can't be less than dimension of the tensor. )
+{v_1: tuple(int), v_2: int} |= v_2 ≥ v_1.len
+>>
+Rule 60 (The batch shape v_1 should have a certain length v_2.)
+{v_1: tuple(int), v_2: int} |= v_1.len = v_2
+>>
+Rule 61 (If dtype is a complex type, then vector cannot contain NaN.)
+{v_1: tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ∃i ∈ [0, shape(v_1, ndim(v_1) - 1) - 1] : v_1[i] ≠ "NaN"
+>>
+Rule 62 (Vector size is positive)
+{v_1: tensor} |= shape(v_1, ndim(v_1) - 1) > 0
+>>
+Rule 63 (If complex valued and no vector is provided, and instead a shape is, then the shape v_1 is of rank 1)
+{v_1: tuple(int), v_2 : bool} |= if v_2 = true then v_1.len = 1
+>>
+Rule 65 (The provided vector should have the correct dimension to represent an operator matrix, i.e. it has to be a square number)
+{v_1: tensor, v_2: bool} |= if v_2 = true then ∃i ∈ [0, 100] : shape(v_1, ndim(v_1) - 1) = i * i
+>>
+Rule 67 (The number of dimensions of batch_shape should not exceed a threshold. The threshold is indicated by v_2 and v_1 is batch_shape.)
+{v_1: tuple(int), v_2: int} |= v_1.len ≤ v_2
+>>
+Rule 68 (The minimum and maximum value of the vector must not match.)
+{v_1: tensor} |= min(v_1) ≠ max(v_1)
+>>
+Rule 69 (When using a vector with batch dimensions, the size of a dimension must not exceed the upper bound given.)
+{v_1: tensor, v_2: int} |= if ndim(v_1) > 1 then shape(v_1, 0) < v_2
+>>
+Rule 70 (The Householder operator v_1 can not be rank 0)
+{v_1: tensor} |= ndim(v_1) > 0
+>>
+Rule 71 (Vector must not have values that are too large/small otherwise numerical issues could arise)
+{v_1: tensor} |= max(v_1) < 1000000 ∧ min(v_1) > -1000000
+>>
+Rule 72 (The vector v_1 must not have all similar values to prevent errors such as NaN when normalising)
+{v_1: tensor} |= max(v_1) ≠ min(v_1)
+>>
+Rule 73 (When normalizing if v_1 = true, then make sure that the minimum value is bigger than the negative one.)
+{v_1: tensor, v_2: bool} |= if v_2 = true then min(v_1) > -1
+>>
+Rule 74 (The batch shape should have a reasonable size)
+{v_1: tuple(int)} |= v_1.len < 5
+>>
+Rule 76 (if the v_1 is a real tensor, and normalization is set, then values can be from -1 to 1)
+{v_1: tensor, v_2: bool} |= if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ v_2 = true then (min(v_1) ≥ -1 ∧ max(v_1) ≤ 1)
+>>
+Rule 77 (if the scale is not specified and shape is specified, the values of tensor should be valid.)
+{v_1: tuple(int), v_2: bool} |= if v_2 = true then ∀i ∈ [0, v_1.len - 1] : v_1[i] > -1000 ∧ v_1[i] < 1000
+>>
+Rule 78 (To calculate the norm correctly, the values must not be extremely low)
+{v_1: tensor} |= min(v_1) > -1e-7
+>>
+Rule 79 (Batch shape and vector ndim must comply. If batch shape has a rank of v_2 then vector must be of rank v_2 + 1.)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len + 1
+>>
+Rule 80 (Ensure the shape tuple v_1 isn't too large, i.e., no value exceeds a threshold of v_2.)
+{v_1: tuple(int), v_2: int} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < v_2
+>>
+Rule 81 (The vector if is real, must not have complex64 or complex128 dtype)
+{v_1: tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+>>
+Rule 83 (If the flag `v_2` is `true`, ensure that the norm function is one of the supported ones)
+{v_1: str, v_2: bool} |= if v_2 = true then v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod"
+>>
+Rule 84 (Ensure tensor is of rank v_2, where v_2 >= 1 and a dimension size of it is not equal to 1.)
+{v_1: tensor, v_2: int} |= ndim(v_1) = v_2 ∧ (∃i ∈ [0, v_2 - 1] : shape(v_1, i) ≠ 1)
+>>
+Rule 85 (Vector v_1 must have all entries as real (no imaginary components). This has to be true for cases such as QR decomposition.)
+{v_1: tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then true else false
+>>
+Rule 86 (To avoid undefined behaviour, scale should not be zero.)
+{v_1 : float} |= v_1 ≠ 0
+>>
+Rule 87 (Make sure if a QR decomposition is done, then the shape is compatible.)
+{v_1: tensor, v_2: bool} |= if v_2 = true then shape(v_1, 0) ≥ shape(v_1, 1)
+>>
+Rule 89 (Ensure `v_1` is a supported norm when no vector is provided.)
+{v_1: str, v_2: tensor} |= if ndim(v_2) = 0 then (v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod")
+>>
+Rule 90 (If auto-update is set to true, then the vector size cannot be of size 0.)
+{v_1: tensor, v_2: bool} |= if v_2 = true then shape(v_1, ndim(v_1) - 1) > 0
+>>
+Rule 91 (If the householder vector is initialized using a 1-D tensor then the size is greater than zero.)
+{v_1: tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) > 0
+>>
+Rule 92 (Check is provided custom norm function is a function with right input and output shape)
+{v_1:str, v_2:tensor} |= if v_1 ≠ "none" then ndim(v_2) = 1
+>>
+Rule 93 (The data type of the vector and the scale should match, i.e. they should both be floating point, it is more for QR implementation )
+{v_1: tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 95 (if complex values are supplied to create a real-valued Householder reflection, then the imaginary parts must be zero.)
+{v_1: tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then false
+>>
+Rule 97 (If applying QR decomposition, check last two dimensions make sense.)
+{v_1: tensor, v_2: bool} |= if v_2 = true then shape(v_1, ndim(v_1)-2) > shape(v_1, ndim(v_1) - 1)
+>>
+Rule 99 (All elements of shape must be positive integers )
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 1
+>>
+Rule 101 (The number of elements in a vector exceeds the maximum.)
+{v_1: tensor, v_2: int} |= shape(v_1, 0) < v_2
+>>
+Rule 102 (When given a vector with a size of 1, scaling cannot lead to infinity and will lead to incorrect matrix)
+{v_1: tensor} |= if shape(v_1, 0) = 1 then min(v_1) < 100000000 ∧ max(v_1) > -100000000
+>>
+Rule 103 (A custom norm has been provided using a function. Enforce specific data type.)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 105 (If QR decomposition is performed and a zero vector has been given in one particular place then it means there is an inconsistency.)
+{v_1: tensor, v_2: bool} |= if v_2 = true then min(v_1) ≠ 0
+>>
+Rule 106 ( If normalization set to true, then no scale can be passed since that is contradictory.)
+{v_1: float, v_2 : bool} |= if v_2 = true then v_1 = 1
+>>
+Rule 107 (Ensure that when flag v_2 is set then norm cannot be none, custom norm must be one of a choice.)
+{v_1: str, v_2: bool} |= if v_2 = true then v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod"
+>>
+Rule 108 (When using no batch_shape. Make sure no vector dimension is 0.)
+{v_1: tensor} |= shape(v_1, ndim(v_1)-1) > 0
+>>
+Rule 109 (All dimensions of batch size should be bounded since large shape means that a computation would take very long time to calculate)
+{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 1000
+>>
+Rule 111 (Make sure that if vector given, its size is not 0)
+{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 113 (If you apply a norm or scale to a Householder Vector must be rank one)
+{v_1: tensor, v_2:bool} |= if v_2 = true then ndim(v_1) = 1
+>>
+Rule 114 (To prevent calculation explosion or underflow, the shape of a vector must not be close to 0 and not too big. )
+{v_1 : tuple(int), v_2: int, v_3: int} |= ∀i ∈ [0, v_1.len - 1] : v_2 < v_1[i] ∧ v_1[i] < v_3

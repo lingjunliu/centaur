@@ -1,0 +1,237 @@
+>>
+Rule 1 (Dividend tensor's dtype should be float or complex)
+{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11
+>>
+Rule 2 (Divisor tensor's dtype should be float or complex)
+{v_2 : tensor} |= 6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 11
+>>
+Rule 3 (Dividend and divisor tensor should have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 4 (Dividend and divisor tensors should have same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 7 (Prevent division by zero: divisor tensor should not contain 0.0, expressed without negation)
+{v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : v_2[i] ≠ 0.0
+>>
+Rule 8 (If divisor contains 0, dividend must be 0)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : if v_2[i] = 0.0 then v_1[i] = 0.0
+>>
+Rule 9 (If either input is empty, the result is empty)
+{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0)
+>>
+Rule 11 (Divisor tensor should have non-zero minimum absolute value to prevent large values in the output)
+{v_2 : tensor} |= min(v_2) > 0.0
+>>
+Rule 12 (If dividend is less than divisor elementwise, then result should be <= 1 elementwise)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : if v_1[i] < v_2[i] then (v_1[i] / v_2[i]) ≤ 1.0
+>>
+Rule 20 (Prevent int division, force float division if either is int)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) <= 5) ∨ (dtype_(v_2) <= 5) then (dtype_(v_1) >= 7 ∧ dtype_(v_1) <= 9) ∧ (dtype_(v_2) >= 7 ∧ dtype_(v_2) <= 9)
+>>
+Rule 21 (Divisor cannot be zero when divisor is a float)
+{v_2 : float} |= v_2 ≠ 0.0
+>>
+Rule 22 (Divisor cannot be zero when divisor is an int)
+{v_2 : int} |= v_2 ≠ 0
+>>
+Rule 23 (When the shape of the dividend is 0 at some dimension, the divisor must be 1 at that same dimension)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : if shape(v_1, i) = 0 then shape(v_2, i) = 1
+>>
+Rule 24 (When the shape of the divisor is 0 at some dimension, the dividend must be 1 at that same dimension)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : if shape(v_2, i) = 0 then shape(v_1, i) = 1
+>>
+Rule 25 (If dividend and divisor are both of int type, output must be of int type)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) <= 5 ∧ dtype_(v_2) <= 5 then dtype_(v_1) <=5
+>>
+Rule 26 (If divisor tensor has boolean type, the dividend tensor should also have a boolean type)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 0 then dtype_(v_1) = 0
+>>
+Rule 27 (If divisor's shape has a dimension of 1, dividend's shape at the same dimension must be broadcastable, e.g. either 1 or the same size)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : if shape(v_2, i) = 1 then shape(v_1, i) = 1 ∨ shape(v_1,i) = shape(v_2, i)
+>>
+Rule 28 (If the dividend is a complex number, the divisor must be a complex number)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_2) = 10 ∨ dtype_(v_2) = 11
+>>
+Rule 30 (If the divider tensor's dtype is int, the result values should also be integers if dividend is also int)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) <= 5 then dtype_(v_1) <=5
+>>
+Rule 32 (If any element of divisor is zero, then the dividend's shape at that dimension must be equal to 1)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : if min(v_2) = 0 then shape(v_1, i) = 1
+>>
+Rule 33 (If the dividend's minimum is greater than or equal to the divisor's maximum, then the overall minimum of the result must be greater than or equal to 1)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) ≥ max(v_2) then min(v_1) / max(v_2) >= 1
+>>
+Rule 34 (If dividend and divisor's dtype is bool, the result also must be bool)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 ∧ dtype_(v_2) = 0 then dtype_(v_1) = 0
+>>
+Rule 35 (If shapes of dividend and divisor differs, the smaller dimension must be 1)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then shape(v_1, 0) = 1 else if ndim(v_2) < ndim(v_1) then shape(v_2,0) = 1
+>>
+Rule 36 (If any dimension of the divisor is zero, the corresponding dimension in the dividend must be at least 1.)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : if shape(v_2, i) = 0 then shape(v_1, i) ≥ 1
+>>
+Rule 37 (If the divider tensor is of type int, the dividend tensor also has to be of type int, and the result values must be integers)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) <= 5 then dtype_(v_1) <= 5
+>>
+Rule 38 (If max of dividend is less than min of divisor, then the result must be a number less than 1)
+{v_1 : tensor, v_2 : tensor} |= if max(v_1) < min(v_2) then max(v_1) < min(v_2)
+>>
+Rule 39 (The divisor tensor should not contain any NaN values)
+{v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : v_2[i] ≠ "NaN"
+>>
+Rule 40 (If shape of tensor is 1 at a dimension, min and max must be equal at dividend)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : if shape(v_1, i) = 1 then min(v_1) = max(v_1)
+>>
+Rule 41 (If divisor tensor has bool type, all elements must be either 0 or 1)
+{v_2 : tensor} |= if dtype_(v_2) = 0 then (min(v_2) = 0 ∧ max(v_2) = 1)
+>>
+Rule 43 (If a tensor is complex128 the other tensor must be also complex128 or complex64)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 11 then dtype_(v_2) = 10 ∨ dtype_(v_2) = 11
+>>
+Rule 44 (if a tensor has all values >=0 then another tensor has all values >=0)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) >= 0 then min(v_2) >= 0
+>>
+Rule 48 (if a tensor has all values >=0 then another tensor has all values >=0)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) ≥ 0 then min(v_2) ≥ 0
+>>
+Rule 50 (If any value in the first tensor is greater than 1, then the other tensor must contain values greater than 0)
+{v_1 : tensor, v_2 : tensor} |= if max(v_1) > 1 then max(v_2) > 0
+>>
+Rule 52 (Both tensors must have at least one dimension greater than 0)
+{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
+>>
+Rule 53 (If the first tensor's maximum is negative, then the max of the second tensor must also be negative or zero)
+{v_1 : tensor, v_2 : tensor} |= if max(v_1) < 0 then max(v_2) ≤ 0
+>>
+Rule 54 (If divisor is boolean then all values should be 0 or 1)
+{v_2 : tensor} |= if dtype_(v_2) = 0 then min(v_2) = 0 ∧ max(v_2) = 1
+>>
+Rule 55 (The shapes of the tensors should be equal in each dimension, when tensor's rank is greater than 0)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then  ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 56 (Elements in divisor must not all be the same, expressed without negation)
+{v_2 : tensor} |= ∃i ∈ [0, ndim(v_2) - 1] : ∃j ∈ [0, ndim(v_2) - 1] : v_2[i] ≠ v_2[j]
+>>
+Rule 58 (The shape must be the same in the shared dimensions)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) ≤ ndim(v_2) then ndim(v_1)-1 else ndim(v_2)-1] :  shape(v_1, i) = shape(v_2, i)
+>>
+Rule 59 (If the divisor is int and the dividend is float, then the float tensor should have all positive elements)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) < 6 ∧ dtype_(v_1) > 5 then min(v_1) > 0
+>>
+Rule 60 (At least one shape in the dividend must be more than 0)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 61 (The number of dimensions should at least be one on both the dividend and the divisor)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1
+>>
+Rule 62 (If any element of the divisor is positive, then the max element of the result must be >=0)
+{v_1 : tensor, v_2 : tensor} |= if max(v_2) > 0 then max(v_1) >=0
+>>
+Rule 63 (If the divisor has all positive values and the dividen all negatives, the division must be negative or 0)
+{v_1 : tensor, v_2 : tensor} |= if (min(v_2) > 0) ∧ (max(v_1) < 0) then max(v_1) <= 0
+>>
+Rule 64 (If shapes differs min element of smaller tensor should be 1)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then min(v_1) = 1 else if ndim(v_2) < ndim(v_1) then min(v_2) = 1
+>>
+Rule 65 (The dividor shape should not contain a zero size dimension if dividend tensor contains values that are non zero)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) ≠ max(v_1) then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2,i) ≠ 0
+>>
+Rule 66 (If shapes differs, then the larger dimension must contain a value >0)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then  ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0 else if ndim(v_2) < ndim(v_1) then  ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 67 (If the divisor tensor is boolean, the total number of Trues should be less than the total elements in dividend)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 0 then max(v_2) < shape(v_1, 0)
+>>
+Rule 68 (When dividend has shape 1, min and max of divisor must be same)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1,0) = 1 then min(v_2) = max(v_2)
+>>
+Rule 69 (The dtypes should be compatible, int/float/complex)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) <= 5 ∧ dtype_(v_2) <=5) ∨ (dtype_(v_1) > 5 ∧ dtype_(v_2) >5)
+>>
+Rule 70 (The divisor must have a zero value if a value of the dividend is zero)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) = 0 then min(v_2) = 0
+>>
+Rule 71 (The divisor must have all values greater than 0 if the divided tensor has type int)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 6 then min(v_2) > 0
+>>
+Rule 72 (if the tensor's shape is a multiple of the other tensor's shape, then the divided shape must not be zero)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1,0) % shape(v_2, 0) = 0 then shape(v_1, 0) !=0
+>>
+Rule 73 (At least one of the tensors must have ndim more than 0, so both cannot be scalars at the same time)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) >= 1 ∨ ndim(v_2) >= 1
+>>
+Rule 74 (Both should have either >0 dimensions or <0, so cannot divide a positive tensor by a negative tensor, etc)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) > 0 then min(v_2) > 0 else if min(v_1) < 0 then min(v_2) < 0
+>>
+Rule 76 (If divisor contains only values equal to 1, it shouldn't impact dividend)
+{v_1 : tensor, v_2 : tensor} |= if min(v_2) = 1 ∧ max(v_2) = 1 then min(v_1) = min(v_1)
+>>
+Rule 77 (Divisor values should be greater than or equals to the dividend values at the locations where the dividend values are smaller than 1)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : if v_1[i] < 1 then v_2[i] ≥ v_1[i]
+>>
+Rule 78 (The product between the maximum value in the divident and the maximum value in the divisor should be smaller than 100)
+{v_1 : tensor, v_2 : tensor} |= max(v_1) * max(v_2) < 100
+>>
+Rule 80 (If the division results in infinity, then the dividen must be 1)
+{v_1 : tensor, v_2: tensor} |= if min(v_1) > 1000 then min(v_2) < 1
+>>
+Rule 81 (If the tensors are different rank, then the smaller tensor must have zero at the index zero)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then shape(v_1, 0) = 0 else if ndim(v_2) < ndim(v_1) then shape(v_2, 0) = 0
+>>
+Rule 83 (if any element of dividend is nan then at the equivalent position the divisor must be also nan)
+{v_1 : tensor, v_2 : tensor} |=  ∀i ∈ [0, ndim(v_1) - 1] : if v_1[i] = "NaN" then v_2[i] = "NaN"
+>>
+Rule 84 (shape should not be a negative number, which might happen when the shape inference is not correct)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+>>
+Rule 85 (when the shape differs, then the minimum shape should not be negative)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then min(v_1) >= 0 else if ndim(v_2) < ndim(v_1) then min(v_2) >= 0
+>>
+Rule 86 (If the divident tensor is empty, then it cannot be the case that all values on the divisor are all 1's)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then max(v_2) ≠ 1 ∨ min(v_2) ≠ 1
+>>
+Rule 87 (It shouldn't be the case that all elements in the divided tensor are the same value, as that would mean it's always the same and not useful)
+{v_1 : tensor} |= max(v_1) ≠ min(v_1)
+>>
+Rule 89 (divisor and dividend should at least have 1 dimension, this prevents errors related to dimension count)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∨ ndim(v_2) > 0
+>>
+Rule 91 (If divident is float, then dvisor cannot be 0)
+{v_2 : float} |= v_2 != 0
+>>
+Rule 92 (For scalar division the value of tensor should not be the same, so there's a benefit)
+{v_2 : tensor} |= max(v_2) != min(v_2)
+>>
+Rule 93 (If dividor tensor has shape higher than 1 the other tensor must have a shape >0, otherwise it could be a waste of resources.)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2,0) > 1 then shape(v_1, 0) > 0
+>>
+Rule 94 (If we have shape[0] = 1 then max = min)
+{v_1 : tensor} |= if shape(v_1, 0) = 1 then max(v_1) = min(v_1)
+>>
+Rule 95 (In the scenario where both tensors have more than 1 dimenstion, then max must be > 0)
+{v_1 : tensor, v_2 : tensor} |=  if ndim(v_1) > 1 ∧ ndim(v_2) > 1 then max(v_1) > 0 ∧ max(v_2) > 0
+>>
+Rule 96 (Divisor can't be int, because then values will be always 0)
+{v_2: int} |= v_2 != 0
+>>
+Rule 98 (If shape is 1, all other value has to be also 1)
+{v_1: tensor, v_2: tensor} |= if shape(v_2,0) = 1 then shape(v_1, 0) = 1
+>>
+Rule 100 (It can't be the case that if divisor has a > 1 values then another one has also all <1)
+{v_1 : tensor, v_2 : tensor} |= if max(v_2) > 1 then min(v_1) >= 1
+>>
+Rule 101 (shape can't be 0 if all values are greater than 1)
+{v_1: tensor} |= if max(v_1) > 1 then shape(v_1, 0) != 0
+>>
+Rule 102 (The dtypes should be in a given range from float16 to complex128)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) >= 6 then dtype_(v_1) <=11 else dtype_(v_2) >=6 ∧ dtype_(v_2) <=11
+>>
+Rule 103 (The maxium shape must be smaller than 100)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≤ 100
+>>
+Rule 104 (The dividor shape must not contain a zero size dimension if dividend tensor contains values that are less than 0)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) < 0 then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2,i) ≠ 0
+>>
+Rule 105 (The dividen shape must not contain a zero size dimension if divisor tensor contains values that are greater than 100)
+{v_1 : tensor, v_2 : tensor} |= if max(v_2) > 100 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1,i) ≠ 0

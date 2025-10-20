@@ -1,0 +1,153 @@
+>>
+Rule 1 (num_features should be greater than 0 to avoid negative dimension errors)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 2 (eps should be a positive float to avoid division by zero or numerical instability)
+{v_1 : float} |= v_1 > 0.0
+>>
+Rule 3 (momentum should be between 0 and 1 inclusive for running mean and variance calculation)
+{v_1 : float} |= 0.0 ≤ v_1 ∧ v_1 ≤ 1.0
+>>
+Rule 4 (input tensor should be either 2D or 3D to avoid ValueError)
+{v_1 : tensor} |= ndim(v_1) = 2 ∨ ndim(v_1) = 3
+>>
+Rule 5 (track_running_stats as a boolean variable)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 8 (number of features has to match the number of channels of the input tensor)
+{v_1 : int, v_2 : tensor} |= v_1 = shape(v_2, 1)
+>>
+Rule 10 (the number of elements in running_mean equals num_features)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 0) = v_2
+>>
+Rule 11 (input tensor should not have 'Char' dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 12
+>>
+Rule 12 (input and parameters tensors should have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 13 (input tensor's size calculation should not overflow)
+{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, 1) < 2000000000
+>>
+Rule 14 (eps must be non-negative)
+{v_1: float} |= v_1 ≥ 0.0
+>>
+Rule 15 (Check for concrete integers in input tensor shape)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 16 (If affine is true, then gamma and beta must be learnable parameters)
+{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then ndim(v_2) = 1 ∧ ndim(v_3) = 1
+>>
+Rule 17 (running_mean and running_var should have the same dtype as input if track_running_stats is true)
+{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then dtype_(v_2) = dtype_(v_3)
+>>
+Rule 18 (if track_running_stats is false, running_mean and running_var are None)
+{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = false then shape(v_2, 0) = 0 ∧ shape(v_3, 0) = 0
+>>
+Rule 19 (input tensor should have a defined shape, not symbolic)
+{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 20 (Prevent memory allocation error, enforce small number of features if input has small size)
+{v_1: int, v_2: tensor} |= if shape(v_2, 0) < 10 then v_1 < 1000
+>>
+Rule 21 (If input is 3D, the number of features must be less than the sequence length to avoid overflow)
+{v_1: int, v_2: tensor} |= if ndim(v_2) = 3 then v_1 < shape(v_2, 2)
+>>
+Rule 22 (If input requires grad, it must be of floating or complex dtype)
+{v_1: tensor} |= if shape(v_1,0)>0 then 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11
+>>
+Rule 23 (If input tensor is 2D or 3D then number of features should be positive to avoid dimension error in running mean)
+{v_1: int, v_2: tensor} |= if ndim(v_2) = 2 ∨ ndim(v_2) = 3 then v_1 > 0
+>>
+Rule 24 (The input tensor's elements can not be too large)
+{v_1: tensor} |= max(v_1) < 1000000000.0
+>>
+Rule 25 (Number of features must be less than 2^30 to avoid overflow in running statistics calculation)
+{v_1 : int} |= v_1 < 1073741824
+>>
+Rule 26 (Number of features should match dimension of running_mean if track_running_stats is true.)
+{v_1: int, v_2: tensor, v_3: bool} |= if v_3 then v_1 = shape(v_2,0)
+>>
+Rule 27 (If track running stats is true, running_var should be properly initialized)
+{v_1: tensor, v_2: bool, v_3: int} |= if v_2 then shape(v_1, 0) = v_3
+>>
+Rule 28 (Avoid integer overflow during storage size calculation, set max number of features to 2^20 when sequence length is above 2^10)
+{v_1: int, v_2: tensor} |= if ndim(v_2) = 3 ∧ shape(v_2, 2) > 1024 then v_1 < 1048576
+>>
+Rule 29 (Ensure running statistics calculation does not result in NaN values due to zero variance.)
+{v_1 : tensor, v_2 : float} |= min(v_1) ≠ max(v_1) ∨ v_2 > 0.0
+>>
+Rule 30 (If track_running_stats is False, num_features is not used )
+{v_1: int, v_2: bool} |= if v_2 = false then true else v_1 > 0
+>>
+Rule 31 (Momentum value should be valid if track_running_stats is True)
+{v_1: float, v_2: bool} |= if v_2 then v_1 ≥ 0 ∧ v_1 ≤ 1
+>>
+Rule 32 (If using cuDNN, input tensor needs to be contiguous.)
+{v_1: tensor} |= shape(v_1, 0) > 0
+>>
+Rule 33 (Input dimension and the parameter must align if affine is True.)
+{v_1: tensor, v_2: bool, v_3: int} |= if v_2 then shape(v_1,1)=v_3
+>>
+Rule 34 (Shape of the input tensor must match parameter size, and also must be float/complex if affine is True.)
+{v_1: tensor, v_2: bool, v_3: int} |= if v_2 then (dtype_(v_1) > 5) ∧ (shape(v_1, 1) = v_3)
+>>
+Rule 35 (If num_feature is zero, then track running stats should be False)
+{v_1 : int, v_2 : bool} |= if v_1 = 0 then v_2 = false
+>>
+Rule 36 (Avoid memory allocation error by limiting num_features based on dtype)
+{v_1 : int, v_2 : dtype} |= if v_2 = 6 then v_1 < 2048 else if v_2 = 7 then v_1 < 4096 else if v_2 = 8 then v_1 < 8192
+>>
+Rule 37 (If track_running_stats is True, both running_mean and running_var need to be initialized.)
+{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3 then shape(v_1,0) > 0 ∧ shape(v_2, 0) > 0
+>>
+Rule 38 (If affine=False, then num_features should match the number of channels of the input, to allow correct memory access)
+{v_1 : tensor, v_2 : bool, v_3: int} |= if v_2 = false then shape(v_1,1) = v_3
+>>
+Rule 39 (Check if the sequence length is too large for intermediate storage allocation.)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1,2) < 4096
+>>
+Rule 40 (Prevent integer overflow during running variance calculation with large sequence length)
+{v_1: int, v_2: tensor} |= if ndim(v_2) = 3 then shape(v_2, 2)*v_1 < 2000000000
+>>
+Rule 41 (Storage size calculation shouldn't exceed max size)
+{v_1 : tensor} |= shape(v_1, 0)*shape(v_1, 1)*shape(v_1, 2)<2147483647
+>>
+Rule 43 (Avoid allocating huge amount of memory)
+{v_1 : tensor} |= shape(v_1, 0) < 100000000
+>>
+Rule 44 (Check num_features value is valid in the context of storage size overflow)
+{v_1: int, v_2: tensor} |= if ndim(v_2) = 3 then (v_1 * shape(v_2, 2) < 2147483647) else (shape(v_2, 1) * v_1 < 2147483647)
+>>
+Rule 45 (Check for integer overflow in running statistics accumulation by limiting the batch size)
+{v_1: int, v_2: tensor} |= if ndim(v_2) = 2 then (shape(v_2, 0) < (2147483647 / v_1)) else if ndim(v_2) = 3 then (shape(v_2, 0) < (2147483647/(v_1*shape(v_2,2))))
+>>
+Rule 46 (Check if the number of features results in valid tensor size by considering all parameters)
+{v_1 : tensor, v_2 : bool, v_3 : int} |= if v_2 then (shape(v_1,0)*v_3 * 4) < 2147483647
+>>
+Rule 47 (Shape of the gamma and beta parameters should match the number of features if affine is true, avoids size mismatch runtime error)
+{v_1 : tensor, v_2 : tensor, v_3 : bool, v_4 : int} |= if v_3 then (shape(v_1, 0) = v_4 ∧ shape(v_2, 0) = v_4)
+>>
+Rule 48 (If the sequence length is large, limit number of features to avoid extreme memory use.)
+{v_1 : tensor, v_2: int} |= if ndim(v_1) = 3 then if shape(v_1,2) > 1000 then v_2 < 200
+>>
+Rule 49 (Limit the maximum sequence length to prevent potential integer overflow in size calculations.)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1,2) < 100000
+>>
+Rule 50 (num_features * batch_size * seq_len should not overflow, restrict max sequence length further)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 then shape(v_1, 0)*shape(v_1, 1)*shape(v_1, 2)*v_2 < 2000000000 else True
+>>
+Rule 51 (If affine is True, check number of feature less than the input shape size )
+{v_1 : tensor, v_2: int, v_3: bool} |= if v_3 then (v_2 < shape(v_1,0)) else True
+>>
+Rule 52 (num_features cannot be zero if affine is True, as gamma/beta would be empty)
+{v_1 : int, v_2: bool} |= if v_2 then v_1 > 0 else True
+>>
+Rule 53 (avoid overflow, if num_features * input_len exceeds max value/ avoid creating large temporal tensor on forward pass)
+{v_1 : int, v_2: tensor} |= if ndim(v_1)=3 then (v_2*shape(v_1,2)) < 2147483647
+>>
+Rule 54 (If dtype is complex, restrict number of features)
+{v_1: int, v_2: dtype} |= if v_2 = 10 ∨ v_2 = 11 then v_1 < 1000
+>>
+Rule 55 (Limit num_features to prevent cuda error out of memory)
+{v_1 : tensor, v_2 : int} |= if shape(v_1,0) > 0 then v_2*shape(v_1, 0) < 1000000

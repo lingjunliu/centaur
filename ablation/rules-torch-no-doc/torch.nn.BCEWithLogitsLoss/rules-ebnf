@@ -1,0 +1,75 @@
+>>
+Rule 1 (Tensor shapes should match to avoid size mismatch)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 2 (Input tensor and target tensor sizes should be equal, another way)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 3 (Input tensor and target tensor sizes should be equal, if input is scalar)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 0 ∧ ndim(v_2) > 0
+>>
+Rule 5 (Ensure result type can be cast to desired output type)
+{v_1 : dtype, v_2 : dtype} |= v_1 ≠ v_2
+>>
+Rule 10 (Input tensor must have a valid dtype to avoid "log_sigmoid_cpu" error. 'Char' corresponds to a low integer value, so require a larger value.  Using dtype_ function instead of dtype)
+{v_1 : tensor} |= dtype_(v_1) > 0
+>>
+Rule 11 (Ensure result type can be cast to desired output type represented as int index in list)
+{v_1 : int, v_2 : int} |= v_1 ≠ v_2
+>>
+Rule 13 (Input and target tensors should have compatible shapes, considering broadcasting)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_1)-1]: shape(v_1,i) = shape(v_2, ndim(v_2) - ndim(v_1) + i) else ∀i ∈ [0, ndim(v_2)-1]: shape(v_2,i) = shape(v_1, ndim(v_1) - ndim(v_2) + i)
+>>
+Rule 14 (Input tensor's dtype should be at least floating point)
+{v_1 : tensor} |= dtype_(v_1) ≥ 6
+>>
+Rule 15 (Ensure result type can be cast to desired output type; use compare operator)
+{v_1 : int, v_2 : int} |= v_1 ≥ v_2
+>>
+Rule 17 (Input and target tensors should have compatible shapes, considering broadcasting)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_1)-1]: shape(v_1,i) = shape(v_2, ndim(v_2) - ndim(v_1) + i) else if ndim(v_2) < ndim(v_1) then ∀i ∈ [0, ndim(v_2)-1]: shape(v_2,i) = shape(v_1, ndim(v_1) - ndim(v_2) + i) else ∀i ∈ [0, ndim(v_1)-1]: shape(v_1,i) = shape(v_2,i)
+>>
+Rule 24 (Dtype of input tensor must be greater than or equal to the dtype of the target tensor)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≥ dtype_(v_2)
+>>
+Rule 25 (Input and target tensors should have compatible shapes. Broadcasting along dimension 0)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then true else if ndim(v_2) = 0 then true else shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 27 (Dtype of input and target tensor should be equal)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 32 (If reduction is none, require input dimensions to match output dimensions)
+{v_2 : str, v_1 : tensor} |= if v_2 = "none" then ndim(v_1) > 0
+>>
+Rule 35 (If reduction is none, then the shape of input and target must be equal)
+{v_1 : tensor, v_2: tensor, v_3 : str} |= if v_3 = "none" then ndim(v_1) = ndim(v_2) ∧  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 39 (If the target is a scalar, ensure the input is also a scalar)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then ndim(v_1) = 0
+>>
+Rule 41 (If reduction is none, then the shape of input and target must be equal, or can be broadcasted to match)
+{v_1 : tensor, v_2: tensor, v_3 : str} |= if v_3 = "none" then (ndim(v_1) = ndim(v_2) ∧  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)))
+>>
+Rule 54 (If reduction is none, then the shape of input and target must be broadcastable or equal, covering broadcasting along dimension 0)
+{v_1 : tensor, v_2: tensor, v_3 : str} |= if v_3 = "none" then (ndim(v_1) = ndim(v_2) ∧  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))) else if ndim(v_1) = 0 then true else if ndim(v_2) = 0 then true else shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 60 (If reduction is none, then the shape of input and target must be broadcastable or equal, covering broadcasting along dimension 0. Added correct paren matching)
+{v_1 : tensor, v_2: tensor, v_3 : str} |= if v_3 = "none" then ((ndim(v_1) = ndim(v_2) ∧  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)))) else if ndim(v_1) = 0 then true else if ndim(v_2) = 0 then true else shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 72 (If reduction is none, then the shape of input and target must be broadcastable or equal, covering broadcasting along dimension 0. Removed first duplicated condition by putting it inside the second.)
+{v_1 : tensor, v_2: tensor, v_3 : str} |= if v_3 = "none" then (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))) else if ndim(v_1) = 0 then true else if ndim(v_2) = 0 then true else shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 78 (If reduction is none, then the shape of input and target must be broadcastable or equal, covering broadcasting along dimension 0. Removed first duplicated condition by putting it inside the second, make it valid again)
+{v_1 : tensor, v_2: tensor, v_3 : str} |= if v_3 = "none" then (ndim(v_1) = ndim(v_2) ∧  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))) else if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then true else shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 84 (If reduction is none, then the shape of input and target must be broadcastable or equal, covering broadcasting along dimension 0. Removed first duplicated condition by putting it inside the second, make it valid again - check dim > 0 again)
+{v_1 : tensor, v_2: tensor, v_3 : str} |= if v_3 = "none" then (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))) else if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then true else (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, 0) = shape(v_2, 0))
+>>
+Rule 90 (If reduction is none, then the shape of input and target must be broadcastable or equal, covering broadcasting along dimension 0. Removed first duplicated condition by putting it inside the second, make it valid again and make sure there's at least one dim. Clean up formula)
+{v_1 : tensor, v_2: tensor, v_3 : str} |= if v_3 = "none" then (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))) else (ndim(v_1) = 0 ∧ ndim(v_2) = 0) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, 0) = shape(v_2, 0))
+>>
+Rule 96 (If reduction is none, then the shape of input and target must be broadcastable or equal, covering broadcasting along dimension 0. Clean up formula)
+{v_1 : tensor, v_2: tensor, v_3 : str} |= if v_3 = "none" then (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))) else (ndim(v_1) = 0 ∧ ndim(v_2) = 0) ∨ (shape(v_1, 0) = shape(v_2, 0))
+>>
+Rule 108 (If reduction is none, then the shape of input and target must be broadcastable or equal, covering broadcasting along dimension 0. Make it valid and easier.)
+{v_1 : tensor, v_2: tensor, v_3 : str} |= if v_3 = "none" then (ndim(v_1) = 0 ∧ ndim(v_2) = 0) ∨ (shape(v_1, 0) = shape(v_2, 0))

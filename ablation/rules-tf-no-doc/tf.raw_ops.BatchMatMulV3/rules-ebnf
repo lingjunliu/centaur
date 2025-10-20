@@ -1,0 +1,60 @@
+>>
+Rule 2 (if adj_x is true, the first two dimensions of x must be transposed before multiplication)
+{v_1 : tensor, v_2 : bool} |= if v_2 then ndim(v_1) ≥ 2
+>>
+Rule 4 (x and y must be tensors with the same dtype.)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 5 (x and y tensors must have at least dimension 2.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2
+>>
+Rule 6 (output_type must be selected from the valid dtype list)
+{v_1 : dtype} |= 0 ≤ v_1 ∧ v_1 ≤ 12
+>>
+Rule 7 (If one of adj_x or adj_y is true, then the rank of the input tensors must be at least 2)
+{v_1 : tensor, v_2 : bool, v_3 : bool} |= if v_2 ∨ v_3 then ndim(v_1) ≥ 2
+>>
+Rule 8 (The inner dimensions of x and y after potential transpositions must be compatible.)
+{v_1 : tensor, v_2 : tensor, v_3 : bool, v_4 : bool} |= if v_3 ∧ v_4 then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 1) else if v_3 then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 2) else if v_4 then shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 1) else shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 2)
+>>
+Rule 9 (The batch dimensions of x and y must be broadcastable)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) - 2 ≥ ndim(v_2) - 2 then ndim(v_1) - 3 else ndim(v_2) - 3] : ndim(v_1) - i - 3 < 0 ∨ ndim(v_2) - i - 3 < 0 ∨ shape(v_1, ndim(v_1) - i - 3) = 1 ∨ shape(v_2, ndim(v_2) - i - 3) = 1 ∨ shape(v_1, ndim(v_1) - i - 3) = shape(v_2, ndim(v_2) - i - 3)
+>>
+Rule 13 (If adj_x is true, the second to last dimension of x must match the last dimension of y.)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 1)
+>>
+Rule 14 (If adj_y is true, then the last dimension of x must match the second to last dimension of y.)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 2)
+>>
+Rule 15 (If adj_x and adj_y are both false, then the last dimension of x must match the second to last dimension of y)
+{v_1 : tensor, v_2 : tensor, v_3 : bool, v_4 : bool} |= if v_3 = false ∧ v_4 = false then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 2)
+>>
+Rule 16 (If adj_x is true and adj_y is false, then the second to last dimension of x must match the second to last dimension of y, otherwise the rule is trivially true)
+{v_1 : tensor, v_2 : tensor, v_3 : bool, v_4 : bool} |= if v_3 = true ∧ v_4 = false then shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 2)
+>>
+Rule 17 (If adj_x is false and adj_y is true, then the last dimension of x must match the last dimension of y, otherwise the rule is trivially true)
+{v_1 : tensor, v_2 : tensor, v_3 : bool, v_4 : bool} |= if v_3 = false ∧ v_4 = true then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 1)
+>>
+Rule 20 (The output_type must be a valid dtype.)
+{v_1 : dtype} |= v_1 ≥ 0 ∧ v_1 ≤ 12
+>>
+Rule 22 (If output_type is specified, it must be a valid dtype that can represent the result of the matrix multiplication.)
+{v_1 : dtype, v_2 : tensor, v_3 : tensor} |= if v_1 ≠ 12 then true else dtype_(v_2) = dtype_(v_3)
+>>
+Rule 23 (if both adj_x and adj_y are false, then the inner shapes should be compatible)
+{v_1 : tensor, v_2 : tensor, v_3: bool, v_4: bool} |= if v_3 = false ∧ v_4 = false then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 2)
+>>
+Rule 24 (Tensors x and y must have the same number of dimensions or one of them is a scalar)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∨ (ndim(v_1) = 0) ∨ (ndim(v_2) = 0)
+>>
+Rule 25 (if one of the inputs is a scalar, the other must have at least 2 dimensions.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) ≥ 2 else if ndim(v_2) = 0 then ndim(v_1) ≥ 2
+>>
+Rule 26 (When neither input is a scalar, batch dimensions must broadcast)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then ∀i ∈ [0, if ndim(v_1) - 2 ≥ ndim(v_2) - 2 then ndim(v_1) - 2 else ndim(v_2) - 2] : ndim(v_1) - i - 2 < 0 ∨ ndim(v_2) - i - 2 < 0 ∨ shape(v_1, ndim(v_1) - i - 2) = 1 ∨ shape(v_2, ndim(v_2) - i - 2) = 1 ∨ shape(v_1, ndim(v_1) - i - 2) = shape(v_2, ndim(v_2) - i - 2)
+>>
+Rule 28 (If x or y is complex type then output_type must be complex)
+{v_1: tensor, v_2: tensor, v_3: dtype} |= if (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) ∨ (dtype_(v_2) = 9) ∨ (dtype_(v_2) = 10) then (v_3 = 9) ∨ (v_3 = 10)
+>>
+Rule 29 (The inner dimension of x and y must be compatible when adj_x and adj_y are false.)
+{v_1 : tensor, v_2 : tensor, v_3 : bool, v_4 : bool} |= if (v_3 = false) ∧ (v_4 = false) then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 2)

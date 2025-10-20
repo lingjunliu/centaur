@@ -1,0 +1,30 @@
+>>
+Rule 1 (input tensor must have a floating-point or complex dtype to avoid RuntimeError: result type Float can't be cast to the desired output type Short)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 2 (input tensor must have a floating-point or complex dtype to avoid RuntimeError: result type Float can't be cast to the desired output type Short. Checking that the input is at least float16)
+{v_1 : tensor} |= dtype_(v_1) ≥ 6
+>>
+Rule 3 (out tensor must have a floating-point or complex dtype, if provided and different from input, to avoid RuntimeError: result type Float can't be cast to the desired output type Short. This rule ensures the out type is compatible with sqrt)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ dtype_(v_2) then dtype_(v_2) ≥ 6
+>>
+Rule 4 (If out is provided, its shape should match the input shape)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 5 (If out is provided, and input and out have different dtypes, out must be able to hold the result of sqrt on input. This is a more general rule)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 ∧ dtype_(v_1) ≠ dtype_(v_2) then (dtype_(v_2) ≥ 6 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 6 (Input tensor should not have integer type if out is not specified.)
+{v_1 : tensor} |= if dtype_(v_1) < 6 then false
+>>
+Rule 7 (If input tensor has integer type, out must be specified.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 6 then ndim(v_2) > 0
+>>
+Rule 8 (If input tensor has integer type and out is specified, the out tensor must have float or complex dtype)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 6 ∧ ndim(v_2) > 0 then dtype_(v_2) ≥ 6
+>>
+Rule 9 (If input is complex, out must be complex)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ ndim(v_2) > 0 then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 10 (If input is float16, float32, or float64, out must also be at least float16, float32, or float64, respectively. Prevents implicit casting issues)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 ∧ dtype_(v_1) = 6 then dtype_(v_2) ≥ 6 else if ndim(v_2) > 0 ∧ dtype_(v_1) = 7 then dtype_(v_2) ≥ 7 else if ndim(v_2) > 0 ∧ dtype_(v_1) = 8 then dtype_(v_2) ≥ 8

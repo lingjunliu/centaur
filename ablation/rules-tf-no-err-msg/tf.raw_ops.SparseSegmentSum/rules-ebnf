@@ -1,0 +1,135 @@
+>>
+Rule 1 (data must be float32, float64, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, or uint64)
+{v_1 : dtype} |= v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 3 ∨ v_1 = 5 ∨ v_1 = 2 ∨ v_1 = 1 ∨ v_1 = 4 ∨ v_1 = 6 ∨ v_1 = 0
+>>
+Rule 2 (indices must be int32 or int64)
+{v_1 : dtype} |= v_1 = 3 ∨ v_1 = 4
+>>
+Rule 4 (indices and segment_ids must have rank 1)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1
+>>
+Rule 5 (indices and segment_ids must have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 6 (sparse_gradient must be boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 7 (data must have at least rank 1)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+>>
+Rule 8 (data's dtype and return tensor's dtype should be the same)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 9 (Values in segment_ids should be sorted)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 2] : v_1[i] ≤ v_1[i + 1]
+>>
+Rule 10 (name should be a string.)
+{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "softplus" ∨ v_1 = "linear" ∨ v_1 = "valid" ∨ v_1 = "same" ∨ v_1 = "causal" ∨ v_1 = "channels_last" ∨ v_1 = "channels_first"
+>>
+Rule 11 (data's first dimension must be greater than the largest value in indices)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) = 1 ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < shape(v_1, 0)
+>>
+Rule 12 (indices values must be non-negative)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
+>>
+Rule 14 (The maximum value in segment_ids must be less than or equal to indices length)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ max(v_1) ≤ shape(v_2, 0)
+>>
+Rule 15 (segment_ids values should not exceed the number of segments)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ max(v_3) < shape(v_1, 0)
+>>
+Rule 16 (The length of indices should be less than or equal to the first dimension of data.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) = 1 ∧ shape(v_2, 0) ≤ shape(v_1, 0)
+>>
+Rule 17 (If sparse_gradient is true, data must be float or bfloat16)
+{v_1 : bool, v_2 : dtype} |= if v_1 = true then v_2 = 7 ∨ v_2 = 6
+>>
+Rule 18 (If data is bfloat16, sparse_gradient should not be true)
+{v_1 : dtype, v_2 : bool} |= if v_1 = 6 then v_2 = false
+>>
+Rule 19 (The values in segment_ids should be less than or equal to the maximum value in indices)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ max(v_1) ≤ max(v_2)
+>>
+Rule 20 (If the maximum value in segment_ids is greater than or equal to 0, the indices tensor must not be empty.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ if max(v_1) ≥ 0 then shape(v_2, 0) > 0
+>>
+Rule 21 (The values in segment_ids should be less than the number of unique segments.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ max(v_1) < shape(v_2, 0) ∧ ∀i ∈ [0, shape(v_1, 0) - 2] : v_1[i] ≤ v_1[i + 1]
+>>
+Rule 23 (if segment_ids are all zeros, output will be the sum of the rows selected by indices)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0
+>>
+Rule 25 (if segment_ids tensor is empty, then indices tensor also needs to be empty)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) = 0 then shape(v_2, 0) = 0
+>>
+Rule 26 (If indices tensor is not empty, then the minimum value in segment_ids should not be less than 0.)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) > 0 then min(v_1) ≥ 0
+>>
+Rule 27 (if data is empty then output will be empty)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0
+>>
+Rule 28 (If indices tensor is empty, all segment_ids must also be zero)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) = 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0
+>>
+Rule 29 (indices tensor must have same or less elements than data's first dimension)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then if ndim(v_2) = 1 then shape(v_2, 0) ≤ shape(v_1, 0)
+>>
+Rule 30 (The output tensor will have shape [num_segments, data.shape[1:]])
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then if ndim(v_2) = 1 then true
+>>
+Rule 31 (segment_ids must be less or equal than number of first dimension of data)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then if ndim(v_2) = 1 then max(v_2) ≤ shape(v_1,0)
+>>
+Rule 32 (If indices are int32, the maximum value should be within the int32 range.)
+{v_1 : dtype, v_2 : tensor} |= if v_1 = 3 then max(v_2) ≤ 2147483647
+>>
+Rule 34 (If indices are int64, the maximum value should be within the int64 range.)
+{v_1 : dtype, v_2 : tensor} |= if v_1 = 4 then max(v_2) ≤ 9223372036854775807
+>>
+Rule 36 (If segment_ids are int64, the maximum value should be within the int64 range.)
+{v_1 : dtype, v_2 : tensor} |= if v_1 = 4 then ∀i ∈ [0, shape(v_2, 0)-1] : v_2[i] ≤ 9223372036854775807
+>>
+Rule 38 (The indices in segment_ids tensor should be sorted in ascending order if segment_ids is not empty)
+{v_1 : tensor} |= if shape(v_1,0) > 0 then ∀i ∈ [0, shape(v_1, 0) - 2] : v_1[i] ≤ v_1[i + 1]
+>>
+Rule 39 (If indices are int32, the minimum value should not be less than 0 and the maximum value should be less than shape of data at axis 0)
+{v_1 : dtype, v_2 : tensor, v_3 : tensor} |= if v_1 = 3 then min(v_3) ≥ 0 ∧ max(v_3) < shape(v_2, 0)
+>>
+Rule 40 (If segment_ids are int32, the minimum value should not be less than 0 and the maximum value should be less than the number of segments)
+{v_1 : dtype, v_2 : tensor, v_3 : int} |= if v_1 = 3 then min(v_2) ≥ 0 ∧ max(v_2) < v_3
+>>
+Rule 41 (If indices are int64, the minimum value should not be less than 0 and the maximum value should be less than shape of data at axis 0)
+{v_1 : dtype, v_2 : tensor, v_3 : tensor} |= if v_1 = 4 then min(v_3) ≥ 0 ∧ max(v_3) < shape(v_2, 0)
+>>
+Rule 42 (If segment_ids are int64, the minimum value should not be less than 0 and the maximum value should be less than the number of segments)
+{v_1 : dtype, v_2 : tensor, v_3 : int} |= if v_1 = 4 then min(v_2) ≥ 0 ∧ max(v_2) < v_3
+>>
+Rule 43 (If indices are int64, the minimum value should not be less than 0 and the maximum value should be less than shape of data at axis 0)
+{v_1 : dtype, v_2 : tensor, v_3 : tensor} |= if v_1 = 4 then ∀i ∈ [0, shape(v_3, 0)-1] : v_3[i] ≥ 0 ∧ ∀i ∈ [0, shape(v_3, 0)-1] : v_3[i] < shape(v_2, 0)
+>>
+Rule 44 (If segment_ids are int64, the minimum value should not be less than 0 and the maximum value should be less than the number of segments)
+{v_1 : dtype, v_2 : tensor, v_3 : int} |= if v_1 = 4 then ∀i ∈ [0, shape(v_2, 0)-1] : v_2[i] ≥ 0 ∧ max(v_2) < v_3
+>>
+Rule 45 (If segment_ids are int32, then data tensor can be one of 'float32', 'float64', 'int32', 'uint8', 'int16', 'int8', 'int64', 'bfloat16', 'uint16', 'half', 'uint32', 'uint64')
+{v_1 : dtype, v_2 : dtype} |= if v_1 = 3 then v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 3 ∨ v_2 = 5 ∨ v_2 = 2 ∨ v_2 = 1 ∨ v_2 = 4 ∨ v_2 = 6 ∨ v_2 = 0
+>>
+Rule 46 (If segment_ids are int64, then data tensor can be one of 'float32', 'float64', 'int32', 'uint8', 'int16', 'int8', 'int64', 'bfloat16', 'uint16', 'half', 'uint32', 'uint64')
+{v_1 : dtype, v_2 : dtype} |= if v_1 = 4 then v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 3 ∨ v_2 = 5 ∨ v_2 = 2 ∨ v_2 = 1 ∨ v_2 = 4 ∨ v_2 = 6 ∨ v_2 = 0
+>>
+Rule 47 (If segment_ids are int32, the minimum value should not be less than 0 and the maximum value should be less than shape of data at axis 0, and values in segment_ids must be sorted.)
+{v_1 : dtype, v_2 : tensor, v_3 : tensor} |= if v_1 = 3 then min(v_2) ≥ 0 ∧ max(v_2) < shape(v_3, 0) ∧ ∀i ∈ [0, shape(v_2, 0) - 2] : v_2[i] ≤ v_2[i + 1]
+>>
+Rule 48 (If segment_ids are int64, the minimum value should not be less than 0 and the maximum value should be less than shape of data at axis 0, and values in segment_ids must be sorted.)
+{v_1 : dtype, v_2 : tensor, v_3 : tensor} |= if v_1 = 4 then min(v_2) ≥ 0 ∧ max(v_2) < shape(v_3, 0) ∧ ∀i ∈ [0, shape(v_2, 0) - 2] : v_2[i] ≤ v_2[i + 1]
+>>
+Rule 49 (Indices should be in the range [0, data.shape[0]))
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] < shape(v_2, 0)
+>>
+Rule 50 (If segment_ids are int64, then data tensor can be one of 'float32', 'float64', 'int32', 'uint8', 'int16', 'int8', 'int64', 'bfloat16', 'uint16', 'half', 'uint32', 'uint64' and if indices are int64, then data tensor can be one of 'float32', 'float64', 'int32', 'uint8', 'int16', 'int8', 'int64', 'bfloat16', 'uint16', 'half', 'uint32', 'uint64')
+{v_1 : dtype, v_2 : dtype, v_3 : dtype} |= if v_1 = 4 ∧ v_2 = 4 then v_3 = 7 ∨ v_3 = 8 ∨ v_3 = 3 ∨ v_3 = 5 ∨ v_3 = 2 ∨ v_3 = 1 ∨ v_3 = 4 ∨ v_3 = 6 ∨ v_3 = 0
+>>
+Rule 51 (If indices are int32, then data tensor can be one of 'float32', 'float64', 'int32', 'uint8', 'int16', 'int8', 'int64', 'bfloat16', 'uint16', 'half', 'uint32', 'uint64' and if segment_ids are int64, then data tensor can be one of 'float32', 'float64', 'int32', 'uint8', 'int16', 'int8', 'int64', 'bfloat16', 'uint16', 'half', 'uint32', 'uint64')
+{v_1 : dtype, v_2 : dtype, v_3 : dtype} |= if v_1 = 3 ∧ v_2 = 4 then v_3 = 7 ∨ v_3 = 8 ∨ v_3 = 3 ∨ v_3 = 5 ∨ v_3 = 2 ∨ v_3 = 1 ∨ v_3 = 4 ∨ v_3 = 6 ∨ v_3 = 0
+>>
+Rule 52 (If indices are int64, then data tensor can be one of 'float32', 'float64', 'int32', 'uint8', 'int16', 'int8', 'int64', 'bfloat16', 'uint16', 'half', 'uint32', 'uint64' and if segment_ids are int32, then data tensor can be one of 'float32', 'float64', 'int32', 'uint8', 'int16', 'int8', 'int64', 'bfloat16', 'uint16', 'half', 'uint32', 'uint64')
+{v_1 : dtype, v_2 : dtype, v_3 : dtype} |= if v_1 = 4 ∧ v_2 = 3 then v_3 = 7 ∨ v_3 = 8 ∨ v_3 = 3 ∨ v_3 = 5 ∨ v_3 = 2 ∨ v_3 = 1 ∨ v_3 = 4 ∨ v_3 = 6 ∨ v_3 = 0

@@ -1,0 +1,123 @@
+>>
+Rule 1 (data tensor must be of type bfloat16, half, float32, or float64.)
+{data : tensor} |= dtype_(data) = 6 ∨ dtype_(data) = 7 ∨ dtype_(data) = 8
+>>
+Rule 2 (indices and segment_ids tensors must be of type int32 or int64.)
+{indices : tensor, segment_ids : tensor} |= (dtype_(indices) = 3 ∨ dtype_(indices) = 4) ∧ (dtype_(segment_ids) = 3 ∨ dtype_(segment_ids) = 4)
+>>
+Rule 3 (indices and segment_ids tensors must be 1-D tensors.)
+{indices : tensor, segment_ids : tensor} |= ndim(indices) = 1 ∧ ndim(segment_ids) = 1
+>>
+Rule 4 (sparse_gradient is a boolean value)
+{sparse_gradient : bool} |= sparse_gradient = true ∨ sparse_gradient = false
+>>
+Rule 5 (length of indices should be less than or equal to the first dimension of data)
+{data : tensor, indices : tensor} |= shape(indices, 0) ≤ shape(data, 0)
+>>
+Rule 6 (indices and segment_ids should have the same length.)
+{indices : tensor, segment_ids : tensor} |= shape(indices, 0) = shape(segment_ids, 0)
+>>
+Rule 8 (segment_ids should be sorted)
+{segment_ids : tensor} |= ∀i ∈ [0, shape(segment_ids, 0) - 2] : segment_ids[i] ≤ segment_ids[i+1]
+>>
+Rule 9 (segment_ids values should be non-negative.)
+{segment_ids : tensor} |= min(segment_ids) ≥ 0
+>>
+Rule 10 (indices values should be non-negative.)
+{indices : tensor} |= min(indices) ≥ 0
+>>
+Rule 11 (max value of indices should be less than the first dimension of data.)
+{data : tensor, indices : tensor} |= max(indices) < shape(data, 0)
+>>
+Rule 12 (segment_ids values should be less than the first dimension of indices.)
+{indices : tensor, segment_ids : tensor} |= max(segment_ids) < shape(indices, 0)
+>>
+Rule 13 (If sparse gradient is true, data tensor must be float32 or float64.)
+{data : tensor, sparse_gradient : bool} |= if sparse_gradient = true then dtype_(data) = 7 ∨ dtype_(data) = 8
+>>
+Rule 14 (The segment_ids should be less than or equal to max value of segment_ids)
+{segment_ids : tensor} |= ∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] ≤ max(segment_ids)
+>>
+Rule 15 (segment_ids[i] <= segment_ids[i+1] always holds)
+{segment_ids : tensor} |= ∀i ∈ [0, shape(segment_ids, 0) - 2] : segment_ids[i] ≤ segment_ids[i + 1]
+>>
+Rule 17 (segment_ids values must be less than or equal to the number of segments)
+{data : tensor, segment_ids : tensor} |= max(segment_ids) < shape(data, 0)
+>>
+Rule 19 (max(segment_ids) + 1 should be less than or equal to the first dimension of data)
+{data : tensor, segment_ids : tensor} |= max(segment_ids) + 1 ≤ shape(data, 0)
+>>
+Rule 21 (The values in indices must be within the valid range for the data tensor's first dimension)
+{data : tensor, indices : tensor} |= ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0 ∧ indices[i] < shape(data, 0)
+>>
+Rule 22 (If segment_ids[i] and segment_ids[i+1] are the same, then indices[i] < indices[i+1])
+{indices: tensor, segment_ids: tensor} |= ∀i ∈ [0, shape(segment_ids, 0) - 2] : if segment_ids[i] = segment_ids[i+1] then indices[i] < indices[i+1]
+>>
+Rule 23 (if segment_ids[i] == segment_ids[i+1], then indices[i] < indices[i+1] must hold.)
+{indices : tensor, segment_ids : tensor} |= ∀i ∈ [0, shape(segment_ids, 0) - 2] : if segment_ids[i] = segment_ids[i + 1] then indices[i] < indices[i + 1]
+>>
+Rule 25 (indices and segment_ids must have the same dtype)
+{indices : tensor, segment_ids : tensor} |= dtype_(indices) = dtype_(segment_ids)
+>>
+Rule 26 (data's dimension must be greater than 0)
+{data: tensor} |= ndim(data) > 0
+>>
+Rule 27 (indices' dimension must be equal to 1)
+{indices: tensor} |= ndim(indices) = 1
+>>
+Rule 28 (segment_ids' dimension must be equal to 1)
+{segment_ids: tensor} |= ndim(segment_ids) = 1
+>>
+Rule 29 (Shape of indices' first dimension should match the shape of segment_ids' first dimension)
+{indices: tensor, segment_ids: tensor} |= shape(indices, 0) = shape(segment_ids, 0)
+>>
+Rule 31 (segment_ids tensor must be of type int32 or int64.)
+{segment_ids : tensor} |= dtype_(segment_ids) = 3 ∨ dtype_(segment_ids) = 4
+>>
+Rule 32 (indices tensor must be of type int32 or int64.)
+{indices : tensor} |= dtype_(indices) = 3 ∨ dtype_(indices) = 4
+>>
+Rule 34 (indices values should be less than the size of data's 0th dimension)
+{data : tensor, indices : tensor} |= ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] < shape(data, 0)
+>>
+Rule 36 (segment_ids values should be smaller than data's first dimension.)
+{data : tensor, segment_ids : tensor} |= ∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] < shape(data, 0)
+>>
+Rule 37 (if sparse_gradient is true, data must be float32)
+{data : tensor, sparse_gradient : bool} |= if sparse_gradient = true then dtype_(data) = 7
+>>
+Rule 41 (max value in indices is less or equal to data's dimension)
+{data : tensor, indices : tensor} |= max(indices) ≤ shape(data, 0) - 1
+>>
+Rule 42 (all elements of segment_ids must be smaller than the shape of data at dimension zero.)
+{data : tensor, segment_ids : tensor} |= ∀i ∈ [0, shape(segment_ids,0) -1] : segment_ids[i] < shape(data, 0)
+>>
+Rule 43 (For all i, indices[i] must be within bounds [0, shape(data, 0)-1])
+{data: tensor, indices: tensor} |= ∀i ∈ [0, shape(indices, 0) - 1] : (indices[i] ≥ 0 ∧ indices[i] < shape(data, 0))
+>>
+Rule 45 (segment_ids values should be non-decreasing within each segment indicated by indices)
+{indices : tensor, segment_ids : tensor} |= ∀i ∈ [0, shape(indices, 0) - 2] : if indices[i] = indices[i+1] then segment_ids[i] ≤ segment_ids[i+1]
+>>
+Rule 47 (max value of segment_ids should be less than or equal to number of unique segment_ids)
+{segment_ids : tensor} |= max(segment_ids) ≤ shape(segment_ids,0)
+>>
+Rule 49 (segment_ids are sorted and indices are also sorted for the same segment)
+{indices : tensor, segment_ids : tensor} |= (∀i ∈ [0, shape(segment_ids, 0) - 2] : segment_ids[i] ≤ segment_ids[i + 1]) ∧ (∀i ∈ [0, shape(indices, 0) - 2] : if segment_ids[i] = segment_ids[i + 1] then indices[i] < indices[i + 1])
+>>
+Rule 50 (The maximum segment_id must be less than the size of the data's first dimension)
+{data: tensor, segment_ids: tensor} |= max(segment_ids) < shape(data,0)
+>>
+Rule 54 (All values in segment_ids tensor should be valid segment ids)
+{segment_ids: tensor, data: tensor} |= ∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] < shape(data, 0)
+>>
+Rule 55 (segment_ids must be sorted)
+{indices : tensor, segment_ids : tensor} |= ∀i ∈ [0, shape(indices, 0) - 2] : segment_ids[i] ≤ segment_ids[i + 1]
+>>
+Rule 56 (segment_ids are monotonically increasing)
+{segment_ids: tensor} |= ∀i ∈ [0, shape(segment_ids, 0) - 2] : segment_ids[i] ≤ segment_ids[i + 1]
+>>
+Rule 57 (data's dimension should be greater or equal to 1)
+{data : tensor} |= ndim(data) >= 1
+>>
+Rule 59 (if sparse_gradient is set to true, the data tensor must have dtype float32 or float64)
+{data: tensor, sparse_gradient: bool} |= if sparse_gradient = true then (dtype_(data) = 7 ∨ dtype_(data) = 8)

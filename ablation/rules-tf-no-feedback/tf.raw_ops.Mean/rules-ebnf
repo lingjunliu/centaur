@@ -1,0 +1,126 @@
+>>
+Rule 1 (input tensor must have at least one dimension)
+{input : tensor} |= ndim(input) ≥ 1
+>>
+Rule 2 (axis tensor must have at least one dimension)
+{axis : tensor} |= ndim(axis) ≥ 1
+>>
+Rule 4 (keep_dims is either true or false)
+{keep_dims : bool} |= keep_dims = true ∨ keep_dims = false
+>>
+Rule 6 (axis tensor elements should be int32 or int64)
+{axis : tensor} |= dtype_(axis) = 3 ∨ dtype_(axis) = 4
+>>
+Rule 7 (input tensor should be a valid dtype)
+{input : tensor} |= dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 3 ∨ dtype_(input) = 5 ∨ dtype_(input) = 2 ∨ dtype_(input) = 1 ∨ dtype_(input) = 9 ∨ dtype_(input) = 4 ∨ dtype_(input) = 16 ∨ dtype_(input) = 17 ∨ dtype_(input) = 18 ∨ dtype_(input) = 15 ∨ dtype_(input) = 6 ∨ dtype_(input) = 19 ∨ dtype_(input) = 20
+>>
+Rule 8 (The number of elements in the axis tensor should be less than or equal to the number of dimensions in the input tensor)
+{input : tensor, axis : tensor} |= shape(axis, 0) ≤ ndim(input)
+>>
+Rule 9 (Input tensor's data type cannot be bool or string)
+{input : tensor} |= dtype_(input) ≠ 0 ∧ dtype_(input) ≠ 11
+>>
+Rule 10 (Axis tensor must be a vector)
+{axis : tensor} |= ndim(axis) = 1
+>>
+Rule 13 (axis values must not cause out-of-bounds access)
+{input : tensor, axis : tensor} |= ∀i ∈ [0, shape(axis, 0) - 1] : axis[i] < ndim(input) ∧ axis[i] ≥ (0 - ndim(input))
+>>
+Rule 15 (If input is complex, axis must be int32 or int64)
+{input : tensor, axis : tensor} |= if dtype_(input) = 9 ∨ dtype_(input) = 10 then dtype_(axis) = 3 ∨ dtype_(axis) = 4
+>>
+Rule 16 (axis values should be unique)
+{axis: tensor} |= ∀i ∈ [0, shape(axis, 0) - 1] : ∀j ∈ [i + 1, shape(axis, 0) - 1] : axis[i] ≠ axis[j]
+>>
+Rule 17 (If keep_dims is false, the output rank is reduced by the number of axes)
+{input : tensor, axis : tensor, keep_dims : bool} |= if keep_dims = false then shape(axis, 0) ≤ ndim(input)
+>>
+Rule 18 (If axis contains duplicate values, the behavior is undefined)
+{axis : tensor} |= ∀i ∈ [0, shape(axis, 0) - 1] : ∀j ∈ [i+1, shape(axis, 0) - 1] : axis[i] ≠ axis[j]
+>>
+Rule 24 (The axis tensor can't have more dimensions than the input tensor)
+{input : tensor, axis : tensor} |= ndim(axis) ≤ ndim(input)
+>>
+Rule 25 (If the input tensor has zero elements, the output should be NaN)
+{input : tensor} |= if (∀i ∈ [0, ndim(input) - 1] : shape(input, i) = 0) then true
+>>
+Rule 28 (If the axis tensor contains duplicate values, the result is implementation-defined.)
+{axis : tensor} |= ∀i ∈ [0, shape(axis, 0) - 1] : ∀j ∈ [i + 1, shape(axis, 0) - 1] : axis[i] ≠ axis[j]
+>>
+Rule 29 (If the axis tensor contains values outside of the valid range, an error will be raised)
+{input : tensor, axis : tensor} |= ∀i ∈ [0, shape(axis, 0) - 1] : axis[i] ≥ (0 - ndim(input)) ∧ axis[i] < ndim(input)
+>>
+Rule 33 (When reducing along all axes (axis is None), keep_dims determines whether to retain the rank)
+{input : tensor, keep_dims : bool, axis: tensor} |= if shape(axis,0) = 0 then (if keep_dims = true then ndim(input) = ndim(input) else ndim(input) = 0)
+>>
+Rule 35 (If axis is a list of integers, all elements in the list must be valid axes for the input tensor.)
+{input : tensor, axis : list(int)} |= ∀i ∈ [0, axis.len - 1] : axis[i] ≥ (0 - ndim(input)) ∧ axis[i] < ndim(input)
+>>
+Rule 36 (The input tensor must have a valid dtype (as specified in the documentation). )
+{input : tensor} |= dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 3 ∨ dtype_(input) = 5 ∨ dtype_(input) = 2 ∨ dtype_(input) = 1 ∨ dtype_(input) = 9 ∨ dtype_(input) = 4 ∨ dtype_(input) = 16 ∨ dtype_(input) = 17 ∨ dtype_(input) = 18 ∨ dtype_(input) = 15 ∨ dtype_(input) = 6 ∨ dtype_(input) = 19 ∨ dtype_(input) = 20 ∨ dtype_(input) = 21 ∨ dtype_(input) = 22
+>>
+Rule 37 (The rank of input tensor must be greater than or equal to 1.)
+{input: tensor} |= ndim(input) >= 1
+>>
+Rule 38 (If axis is a list of integers, then no element can be repeated.)
+{axis : list(int)} |= ∀i ∈ [0, axis.len - 1] : ∀j ∈ [i + 1, axis.len - 1] : axis[i] ≠ axis[j]
+>>
+Rule 39 (If the input tensor's dtype is quantized (qint*, quint*), the op is not supported.)
+{input: tensor} |= dtype_(input) ≠ 16 ∧ dtype_(input) ≠ 17 ∧ dtype_(input) ≠ 18
+>>
+Rule 40 (If the input tensor's dtype is bfloat16, the hardware must support bfloat16 arithmetic)
+{input: tensor} |= if dtype_(input) = 15 then true
+>>
+Rule 41 (If the input tensor's dtype is half, the hardware must support half-precision arithmetic.)
+{input: tensor} |= if dtype_(input) = 20 then true
+>>
+Rule 42 (If keep_dims is false, then axis can not reduce all dimensions, unless the input tensor is a scalar)
+{input: tensor, axis: tensor, keep_dims: bool} |= if keep_dims = false then (if ndim(input) = 0 then true else shape(axis, 0) < ndim(input))
+>>
+Rule 44 (If reducing along all axes (axis is None) and keep_dims is true, then output shape will be all 1s)
+{input : tensor, keep_dims : bool, axis: tensor} |= if shape(axis,0) = 0 ∧ keep_dims = true then (∀i ∈ [0, ndim(input) - 1] : shape(input, i) = 1 )
+>>
+Rule 45 (If the input has no elements and no axes are specified, the output is NaN if the input is float or complex)
+{input: tensor, axis: tensor} |= if (∀i ∈ [0, ndim(input) - 1] : shape(input, i) = 0) ∧ shape(axis, 0) = 0 ∧ (dtype_(input) = 7 ∨ dtype_(input) = 8 ∨ dtype_(input) = 9 ∨ dtype_(input) = 10 ∨ dtype_(input) = 6) then true
+>>
+Rule 46 (if keep_dims is False and only one axis is specified, the output will have dimension reduced by 1)
+{input: tensor, axis: tensor, keep_dims: bool} |= if keep_dims = false ∧ shape(axis, 0) = 1 then ndim(input) - 1 >= 0
+>>
+Rule 47 (the number of elements in 'name' cannot exceed a certain limit.)
+{name: str} |= name.len < 256
+>>
+Rule 48 (If axis is a list and keep_dims is True, then the length of the axes should be smaller or equal to the number of dimensions of the input)
+{input : tensor, axis : list(int), keep_dims : bool} |= if keep_dims = true then axis.len <= ndim(input)
+>>
+Rule 49 (when axis is a tensor of int32 or int64, and any elements in the axis tensor represents a negative axis index, such as -1, then we should apply the negative indexing rule by adding the number of dimensions in the input tensor to the axis index.)
+{input : tensor, axis : tensor} |= ∀i ∈ [0, shape(axis, 0) - 1] : if axis[i] < 0 then axis[i] + ndim(input) ≥ 0
+>>
+Rule 50 (If reducing along all axes (axis is None) and the input tensor is empty, then the output should be NaN, if keepdims is True then the output is a tensor full of NaN with original dimensions)
+{input : tensor, axis : tensor, keep_dims : bool} |= if (∀i ∈ [0, ndim(input) - 1] : shape(input, i) = 0) ∧ shape(axis, 0) = 0 then (if keep_dims = true then (∀i ∈ [0, ndim(input) - 1] : shape(input,i) = 1))
+>>
+Rule 51 (The 'name' parameter, if provided, should only contain alphanumeric characters, underscores, or dots)
+{name: str} |= ∃i ∈ [0, name.len - 1] : (name[i] ≥ "a" ∧ name[i] ≤ "z") ∨ (name[i] ≥ "A" ∧ name[i] ≤ "Z") ∨ (name[i] ≥ "0" ∧ name[i] ≤ "9") ∨ name[i] = "_" ∨ name[i] = "."
+>>
+Rule 52 (If name is an empty string, then it's valid)
+{name: str} |= if name.len = 0 then true
+>>
+Rule 54 (When the input is complex and the axis is empty, the result should still be complex)
+{input: tensor, axis: tensor} |= if (dtype_(input) = 9 ∨ dtype_(input) = 10) ∧ shape(axis, 0) = 0 then true
+>>
+Rule 55 (The size of the axis tensor should be less than or equal to the rank of the input tensor, for valid reduction.)
+{input : tensor, axis : tensor} |= shape(axis,0) ≤ ndim(input)
+>>
+Rule 56 (if the input tensor is an integer tensor, the Mean operation will cast the data to float32 before performing the mean.)
+{input: tensor} |= if (dtype_(input) = 3 ∨ dtype_(input) = 5 ∨ dtype_(input) = 2 ∨ dtype_(input) = 1 ∨ dtype_(input) = 4) then true
+>>
+Rule 57 (If the input tensor has a rank greater than zero, then the axis tensor cannot be a scalar, otherwise the behavior is undefined.)
+{input : tensor, axis : tensor} |= if ndim(input) > 0 then ndim(axis) > 0
+>>
+Rule 58 (If the input has one or more dimensions of size zero, the output is a tensor with at least one dimension of size zero if keep_dims=False.)
+{input : tensor, axis : tensor, keep_dims : bool} |= if (∃i ∈ [0, ndim(input) - 1] : shape(input, i) = 0) ∧ keep_dims = false then (∃j ∈ [0, ndim(input) - shape(axis,0) - 1] : true)
+>>
+Rule 61 (The rank of the axis tensor can be at most 1.)
+{axis: tensor} |= ndim(axis) ≤ 1
+>>
+Rule 62 (If axis is a list of int32 or int64, all elements must be of same dtype.)
+{axis: list(int)} |= ∃i ∈ [1, axis.len -1] : true

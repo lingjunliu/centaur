@@ -1,0 +1,111 @@
+>>
+Rule 1 (Input tensor dtype must be float16, float32, float64, complex64, or complex128 to avoid casting issues when taking square root.)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 2 (The input tensor's dtype should not be an integer type when a specific output dtype is desired.)
+{v_1 : tensor, v_2 : dtype} |= (dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5) ∨ (v_2 ≠ 1 ∧ v_2 ≠ 2 ∧ v_2 ≠ 3 ∧ v_2 ≠ 4 ∧ v_2 ≠ 5)
+>>
+Rule 3 (If the output dtype is short, the input dtype must be short, float16, float32, float64, complex64 or complex128)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then (dtype_(v_1) = 2 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 6 (If the desired output dtype is Short (2), the input tensor's dtype should not be Float (7) or Double (8) unless specifically intended to truncate.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then (dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8) ∨ (v_2 ≠ 2)
+>>
+Rule 7 (To cast to Short, input should be at least a Float16.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then dtype_(v_1) ≥ 6
+>>
+Rule 8 (When specifying an output dtype, it should either match the input, or at least be able to handle the potential range of values resulting from the sqrt operation. Avoids truncation.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ dtype_(v_1) then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 9 (If the target dtype is Short, then source dtype has to be Short or higher (in terms of precision).)
+{v_1: tensor, v_2: dtype} |= if v_2 = 2 then dtype_(v_1) ≥ 2
+>>
+Rule 10 (Don't cast float to short. Input tensor should not have a floating point dtype if the desired output dtype is Short)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then (dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8 ∧ dtype_(v_1) ≠ 6)
+>>
+Rule 12 (Do not specify Short as the output dtype if the input tensor's dtype is Float or Double.)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then v_2 ≠ 2
+>>
+Rule 13 (If output dtype is Short, then input dtype must be smaller or equal to avoid issues)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then dtype_(v_1) ≤ 2 ∨ dtype_(v_1) ≥ 6
+>>
+Rule 14 (If you are casting to short, the input should be no larger than int16 or a float/complex type, as sqrt results in float and float to short would lead to truncation and errors)
+{v_1: tensor, v_2: dtype} |= if v_2 = 2 then (dtype_(v_1) ≤ 2 ∨ dtype_(v_1) ≥ 6)
+>>
+Rule 15 (The output dtype must be a floating point number or higher precision to avoid casting errors with Short dtype.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then dtype_(v_1) >= 6
+>>
+Rule 16 (If the desired output type is Short, ensure the input tensor does not contain values that would cause truncation during the conversion. Specifically, avoid large floating-point values.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then max(v_1) < 32767 ∧ min(v_1) > -32768
+>>
+Rule 18 (If Short is the target dtype, input should be Short or a Float/Complex dtype, and max input value less than 32768 for avoiding data loss)
+{v_1: tensor, v_2: dtype} |= if v_2 = 2 then (dtype_(v_1) = 2 ∨ (dtype_(v_1) = 6 ∧ max(v_1) < 32768) ∨ (dtype_(v_1) = 7 ∧ max(v_1) < 32768) ∨ (dtype_(v_1) = 8 ∧ max(v_1) < 32768) ∨ (dtype_(v_1) = 9 ∧ max(v_1) < 32768) ∨ (dtype_(v_1) = 10 ∧ max(v_1) < 32768))
+>>
+Rule 19 (If casting to Short, the input tensor dtype should either be short or a more precise numeric type where all values can be represented without overflow.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then dtype_(v_1) = 2 ∨ dtype_(v_1) > 5 ∧ min(v_1) > -32768 ∧ max(v_1) < 32768
+>>
+Rule 20 (If converting to Short, either use Short directly, or a float type with values within short range)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then (dtype_(v_1) = 2 ∨ (dtype_(v_1) > 5 ∧ min(v_1) > -32768 ∧ max(v_1) < 32768))
+>>
+Rule 21 (If target dtype is Short, input should either be short OR values are between -32768 and 32767 AFTER sqrt)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then (dtype_(v_1) = 2 ∨ (min(v_1) >= 0 ∧ max(v_1) < 32767*32767 ))
+>>
+Rule 22 (Output dtype should only be Short if input is Short, or the max value in the input tensor (after potentially being adjusted during computation) is small enough to fit in Short)
+{v_1: tensor, v_2: dtype} |= if v_2 = 2 then (dtype_(v_1) = 2 ∨ (dtype_(v_1) > 5 ∧ min(v_1) >= 0 ∧ max(v_1) < 1073741824))
+>>
+Rule 23 (If target dtype is Short, the input's values should not lead to overflow *after* sqrt, and should be able to represent positive and negative values.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then (dtype_(v_1) = 2 ∨ (dtype_(v_1) >= 6 ∧ min(v_1) >= 0 ∧ max(v_1) < (32767*32767)))
+>>
+Rule 25 (When target dtype is Short, ensure the input can be safely cast to float first, and that sqrt of the result is representable by short.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then (dtype_(v_1) >= 6 ∧ (min(v_1)>=0) ∧ (max(v_1) < 1073741824))
+>>
+Rule 26 (When output is Short, ensure that we aren't losing precision by explicitly disallowing input float and double datatypes)
+{v_1: tensor, v_2: dtype} |= if v_2 = 2 then (dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8 )
+>>
+Rule 28 (If converting to Short, prevent overflow and ensure proper representation after sqrt)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then ((dtype_(v_1) ≠ 1) ∧ (min(v_1) >= 0) ∧ (max(v_1) < 1073741824))
+>>
+Rule 30 (If target is Short, input values after sqrt must be in the short range and input tensor must be able to be promoted to float without loss)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then ((dtype_(v_1) >=6) ∧ (dtype_(v_1) <=8) ∧ (min(v_1) >=0) ∧ (max(v_1) < 1073741824))
+>>
+Rule 31 (when dtype is short, data should be representable in float then short, and short is at least as large as dtype of input tensor.)
+{v_1 : tensor, v_2 : dtype} |= if v_2=2 then (((dtype_(v_1)>=6) ∧ (dtype_(v_1)<=8)) ∧ (max(v_1)<1073741824))
+>>
+Rule 32 (If dtype is Short, values must be representable as float, and be small enough AFTER taking the square root to fit into short)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then (((dtype_(v_1) >= 6) ∧ (dtype_(v_1) <= 8)) ∧ (min(v_1) >= 0) ∧ (max(v_1) < 1073741824))
+>>
+Rule 34 (Ensure that input values which become sqrt and converted to short do not under or overflow the short limits AND are float compatible.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then ((dtype_(v_1) >= 6) ∧ (dtype_(v_1) <= 8) ∧ (max(v_1)<1073741824))
+>>
+Rule 36 (if target is Short and input is float-like, input value should not go out of bound.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then ((dtype_(v_1) >= 6) ∧ (max(v_1) < 1073741824) ∧ (min(v_1) >= 0))
+>>
+Rule 37 (If casting to short after sqrt, the input tensor's max must be less than sqrt_max to prevent potential overflows. Make sure we can promote to float first.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then ((dtype_(v_1) >= 6) ∧ (max(v_1) < 1073741824))
+>>
+Rule 38 (When target is short and input's max goes beyond the short limit's square, there is potential overflow after sqrt, thus prevent this to avoid errors)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then ((dtype_(v_1) >= 6) ∧ (dtype_(v_1) <= 8) ∧ (max(v_1) < 2147483647))
+>>
+Rule 39 (If casting to short, the range of input values squared must be storable in float and not overflow short.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then ((dtype_(v_1) >= 6) ∧ (dtype_(v_1) <= 8) ∧ (max(v_1) < 2147483647) ∧ (min(v_1) >= 0))
+>>
+Rule 40 (If you intend to cast to short, then the data type of the tensor MUST be representable as floats and the square of maximum value in the tensor is within the range of int32 to avoid any data loss.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then ((dtype_(v_1) >= 6) ∧ (max(v_1) < 2147483647))
+>>
+Rule 42 (Cannot cast to short if max value of input is too high OR value < 0)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then max(v_1) < 2147483647 ∧ min(v_1) >= 0
+>>
+Rule 44 (If want to cast to short and input is float, then 5 < dtype(input) < 9, max(input) should not be too large and min(input) has to be greater than equal to zero.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then (dtype_(v_1) > 5 ∧ dtype_(v_1) < 9 ∧ max(v_1) < 2147483647 ∧ min(v_1) ≥ 0)
+>>
+Rule 45 (If target is short, input should be short (2) or it can be float6/7/8 and max should not be too high and >=0)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then ((dtype_(v_1) = 2) ∨ (dtype_(v_1) > 5 ∧ dtype_(v_1) < 9 ∧ max(v_1) < 2147483647 ∧ min(v_1) >= 0))
+>>
+Rule 46 (If the intention is to cast the tensor to Short (2), make sure the input tensor can be represented as a Float, and it's max after sqrt is smaller or equal to the short limit.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then ((dtype_(v_1) >= 6) ∧ (dtype_(v_1) <= 8) ∧ (max(v_1) < 32768*32768))
+>>
+Rule 47 (If going to Short, then max(input) must be small enough such that its sqrt doesn't overflow Short.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then max(v_1) < 1073741824
+>>
+Rule 48 (Target datatype is short and input is not short, then make sure it has enough precisions and the sqrt of the max value is smaller than 32767)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then (dtype_(v_1) ≠ 2 ∧ dtype_(v_1) > 5 ∧ max(v_1) < 1073741824)

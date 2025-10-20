@@ -1,0 +1,174 @@
+>>
+Rule 1 (Padding length should be divisible by 2)
+{v_1 : tuple(int)} |= shape(v_1, 0) % 2 = 0
+>>
+Rule 2 (Input tensor must not be of boolean type)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 3 (Input tensor must be 4D or 5D)
+{v_1 : tensor} |= ndim(v_1) = 4 ∨ ndim(v_1) = 5
+>>
+Rule 4 (Padding length should be less than or equal to two times the input dimension)
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_2, 0) ≤ 2 * ndim(v_1)
+>>
+Rule 5 (Ensure the input dimensions are large enough considering padding - dimension 1)
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_1, 2) > v_2[0] + v_2[1]
+>>
+Rule 6 (Ensure the input dimensions are large enough considering padding - dimension 2)
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_1, 3) > v_2[2] + v_2[3]
+>>
+Rule 7 (Ensure the input dimensions are large enough considering padding - dimension 3)
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_1, 4) > v_2[4] + v_2[5]
+>>
+Rule 8 (Padding values should be non-negative)
+{v_1 : tuple(int)} |= (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0)
+>>
+Rule 9 (Check for potential storage size overflow)
+{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) < 2147483647
+>>
+Rule 10 (Ensure padding values are not excessively large relative to input size to avoid negative output dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_1, 2) + v_2[0] + v_2[1] > 0 ∧ shape(v_1, 3) + v_2[2] + v_2[3] > 0 ∧ shape(v_1, 4) + v_2[4] + v_2[5] > 0
+>>
+Rule 12 (Input dimension must be greater than 0 when padding is applied)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 16 (Padding length must be even)
+{v_1 : tuple(int)} |= v_1.len % 2 = 0
+>>
+Rule 17 (Input tensor's dtype should not be complex)
+{v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 18 (All dimensions of the input tensor should be non-negative to prevent allocation errors)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+>>
+Rule 19 (Padding values must be concrete integers)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -2147483648 ∧ v_1[i] < 2147483647
+>>
+Rule 20 (Padding length must be less than or equal to two times the spatial dimension of the input)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≤ 2 * (ndim(v_1) - 2)
+>>
+Rule 24 (Padding length should not be greater than twice the spatial dimensions when input dimensions is too small)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 then v_2.len ≤ 2 * (ndim(v_1) - 0) else if ndim(v_1) = 2 then v_2.len ≤ 2 * (ndim(v_1) -1) else if ndim(v_1) = 3 then v_2.len ≤ 2 * (ndim(v_1) - 2) else if ndim(v_1) = 4 then v_2.len ≤ 2 * (ndim(v_1) - 2) else v_2.len ≤ 2 * (ndim(v_1) - 2)
+>>
+Rule 29 (Check that the padded dimensions are not negative)
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_1, 2) + v_2[0] + v_2[1] ≥ 0 ∧ shape(v_1, 3) + v_2[2] + v_2[3] ≥ 0 ∧ shape(v_1, 4) + v_2[4] + v_2[5] ≥ 0
+>>
+Rule 30 (Padding length is compatible with input dimension.)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 4 then v_2.len = 6 else if ndim(v_1) = 5 then v_2.len = 6
+>>
+Rule 31 (Padding values must not cause dimension overflow during output calculation)
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_1, 2) + v_2[0] + v_2[1] < 2147483647 ∧ shape(v_1, 3) + v_2[2] + v_2[3] < 2147483647 ∧ shape(v_1, 4) + v_2[4] + v_2[5] < 2147483647
+>>
+Rule 32 (Input tensor is not too small after padding H dimension)
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_1, 3) + v_2[2] + v_2[3] > 0
+>>
+Rule 33 (Input tensor is not too small after padding W dimension)
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_1, 4) + v_2[4] + v_2[5] > 0
+>>
+Rule 34 (Input tensor is not too small after padding D dimension)
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_1, 2) + v_2[0] + v_2[1] > 0
+>>
+Rule 35 (Input tensor and padding tuple must be compatible in size to avoid dimension errors)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 4 then v_2.len = 0 ∨ v_2.len = 6 else if ndim(v_1) = 5 then v_2.len = 0 ∨ v_2.len = 6
+>>
+Rule 37 (If input is 2D, it should return NotImplementedError)
+{v_1 : tensor} |= ndim(v_1) ≠ 2
+>>
+Rule 38 (If input is 3D, it should return NotImplementedError)
+{v_1 : tensor} |= ndim(v_1) ≠ 3
+>>
+Rule 39 (Padding values are smaller than input dimension to avoid index error)
+{v_1 : tensor, v_2 : tuple(int)} |= (v_2[0] < shape(v_1, 2) ∧ v_2[1] < shape(v_1, 2)) ∧ (v_2[2] < shape(v_1, 3) ∧ v_2[3] < shape(v_1, 3)) ∧ (v_2[4] < shape(v_1, 4) ∧ v_2[5] < shape(v_1, 4))
+>>
+Rule 40 (Padding values should not individually cause integer overflow)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len -1] : v_1[i] < 1073741823
+>>
+Rule 42 (Input tensor dimension must be greater than or equal to 1)
+{v_1: tensor} |= ndim(v_1) >= 1
+>>
+Rule 43 (Tuple length should not be greater than 6.)
+{v_1: tuple(int)} |= v_1.len <= 6
+>>
+Rule 44 (The sum of padding values and the corresponding dimension should not cause negative dimension after calculation)
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_1, 2) + v_2[0] + v_2[1] >= 0 ∧ shape(v_1, 3) + v_2[2] + v_2[3] >= 0 ∧ shape(v_1, 4) + v_2[4] + v_2[5] >= 0
+>>
+Rule 45 (The input tensor should not have extremely large dimensions that lead to memory allocation errors)
+{v_1: tensor} |= shape(v_1, 0) < 10000 ∧ shape(v_1, 1) < 10000 ∧ shape(v_1, 2) < 10000 ∧ shape(v_1, 3) < 10000 ∧ shape(v_1, 4) < 10000
+>>
+Rule 46 (For small dimensions, ensure padding doesn't lead to negative output dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= if shape(v_1, 2) < 10 then shape(v_1, 2) + v_2[0] + v_2[1] >= 0 ∧ if shape(v_1, 3) < 10 then  shape(v_1, 3) + v_2[2] + v_2[3] >= 0 ∧ if shape(v_1, 4) < 10 then shape(v_1, 4) + v_2[4] + v_2[5] >= 0
+>>
+Rule 47 (Input and output dimensions should not be negative after calculating)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, 2] : shape(v_1, 2 + i) + v_2[i * 2] + v_2[i * 2 + 1] ≥ 0
+>>
+Rule 48 (Prevent extremely large shapes by restricting individual dimensions)
+{v_1 : tensor} |= shape(v_1, 2) < 2048 ∧ shape(v_1, 3) < 2048 ∧ shape(v_1, 4) < 2048
+>>
+Rule 49 (Input tensor should have the correct number of channels)
+{v_1 : tensor} |= shape(v_1, 1) > 0
+>>
+Rule 50 (Tuple length should be zero if no padding is desired)
+{v_1 : tuple(int)} |= v_1.len = 0
+>>
+Rule 51 (Prevent memory allocation error by checking total number of elements)
+{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) < 4294967296
+>>
+Rule 52 (Padding should be less than half of the input tensor dimension)
+{v_1 : tensor, v_2 : tuple(int)} |= (v_2[0] + v_2[1] < shape(v_1, 2)) ∧ (v_2[2] + v_2[3] < shape(v_1, 3)) ∧ (v_2[4] + v_2[5] < shape(v_1, 4))
+>>
+Rule 55 (Input tensor cannot have zero dimensions to ensure correct output)
+{v_1 : tensor} |= (∀i ∈ [2, ndim(v_1) - 1] : shape(v_1, i) ≠ 0) ∨ ndim(v_1) < 3
+>>
+Rule 57 (Input tensor cannot have zero dimensions to ensure correct output, post-dimension 2)
+{v_1 : tensor} |= (∀i ∈ [2, ndim(v_1) - 1] : shape(v_1, i) ≠ 0) ∨ ndim(v_1) ≤ 2
+>>
+Rule 58 (Ensure that if any dimension has size 1, the padding for that dimension doesn't result in a negative size)
+{v_1 : tensor, v_2 : tuple(int)} |= if shape(v_1, 2) = 1 then v_2[0] + v_2[1] ≤ 0 ∧ if shape(v_1, 3) = 1 then v_2[2] + v_2[3] ≤ 0 ∧ if shape(v_1, 4) = 1 then v_2[4] + v_2[5] ≤ 0
+>>
+Rule 59 (If padding length is not 0, dimension sizes should be large enough)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len ≠ 0 then shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 ∧ shape(v_1, 4) > 0
+>>
+Rule 60 (If input dimension is 1, the padding length should be 0, preventing "Padding length should be less than or equal to two times the input dimension" error)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 then v_2.len = 0
+>>
+Rule 61 (If input dimension is less than 4 then return 'NotImplementedError')
+{v_1 : tensor} |= ndim(v_1) ≥ 4
+>>
+Rule 62 (If input dimension is 2 or 3 then return 'NotImplementedError')
+{v_1 : tensor} |= ndim(v_1) ≠ 2 ∧ ndim(v_1) ≠ 3
+>>
+Rule 64 (Combined: Dimension requirements & bool-dtype check & dimension size >0)
+{v_1: tensor} |= (ndim(v_1) = 4 ∨ ndim(v_1) = 5) ∧ dtype_(v_1) ≠ 0 ∧ (∀i ∈ [2, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 65 (Check dimension size to avoid small input dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 ∧ shape(v_1, 4) > 0 ∧ shape(v_1, 2) > (v_2[0] + v_2[1]) ∧ shape(v_1, 3) > (v_2[2] + v_2[3]) ∧ shape(v_1, 4) > (v_2[4] + v_2[5])
+>>
+Rule 66 (Combined:Dimension check & small dimension check & padding check)
+{v_1: tensor, v_2: tuple(int)} |= (ndim(v_1) = 4 ∨ ndim(v_1) = 5) ∧ (shape(v_1, 2) > (v_2[0] + v_2[1])) ∧ (shape(v_1, 3) > (v_2[2] + v_2[3])) ∧ (shape(v_1, 4) > (v_2[4] + v_2[5]))
+>>
+Rule 67 (Combined:Dimension check & small dimension check & padding check & correct dtype)
+{v_1: tensor, v_2: tuple(int)} |= (ndim(v_1) = 4 ∨ ndim(v_1) = 5) ∧ (shape(v_1, 2) > (v_2[0] + v_2[1])) ∧ (shape(v_1, 3) > (v_2[2] + v_2[3])) ∧ (shape(v_1, 4) > (v_2[4] + v_2[5])) ∧ (dtype_(v_1) ≠ 0)
+>>
+Rule 68 (Dimension check, Non-bool dtype, positive dimension, valid shape, valid padding tuple length)
+{v_1: tensor, v_2: tuple(int)} |= ((ndim(v_1) = 4) ∨ (ndim(v_1) = 5)) ∧ (dtype_(v_1) ≠ 0) ∧ (∀i ∈ [0, ndim(v_1)-1]: shape(v_1,i) > 0) ∧ (shape(v_1, 2) > (v_2[0] + v_2[1])) ∧ (shape(v_1, 3) > (v_2[2] + v_2[3])) ∧ (shape(v_1, 4) > (v_2[4] + v_2[5])) ∧ (v_2.len = 0 ∨ v_2.len = 6)
+>>
+Rule 69 (Valid dimension number, non-boolean type, all positive dimension sizes, valid padding, prevent padding related overflow/underflow)
+{v_1 : tensor, v_2 : tuple(int)} |= (((ndim(v_1) = 4) ∨ (ndim(v_1) = 5)) ∧ (dtype_(v_1) ≠ 0)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ ((shape(v_1, 2) + (v_2[0] + v_2[1]) > 0) ∧ (shape(v_1, 3) + (v_2[2] + v_2[3]) > 0) ∧ (shape(v_1, 4) + (v_2[4] + v_2[5]) > 0) ∧ (shape(v_1, 2) + (v_2[0] + v_2[1]) < 2147483647) ∧ (shape(v_1, 3) + (v_2[2] + v_2[3]) < 2147483647) ∧ (shape(v_1, 4) + (v_2[4] + v_2[5]) < 2147483647))
+>>
+Rule 70 (All-in-one: Valid dimension, valid dtype, valid shape, valid padding, avoid overflow, padding <= 2*input_dim)
+{v_1: tensor, v_2: tuple(int)} |= (((ndim(v_1) = 4) ∨ (ndim(v_1) = 5)) ∧ (dtype_(v_1) ≠ 0)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ ((shape(v_1, 2) + (v_2[0] + v_2[1]) > 0) ∧ (shape(v_1, 3) + (v_2[2] + v_2[3]) > 0) ∧ (shape(v_1, 4) + (v_2[4] + v_2[5]) > 0) ∧ (shape(v_1, 2) + (v_2[0] + v_2[1]) < 2147483647) ∧ (shape(v_1, 3) + (v_2[2] + v_2[3]) < 2147483647) ∧ (shape(v_1, 4) + (v_2[4] + v_2[5]) < 2147483647)) ∧ (v_2.len <= (2 * (ndim(v_1) - 2)))
+>>
+Rule 71 (Ultimate rule)
+{v_1: tensor, v_2: tuple(int)} |= ((ndim(v_1) = 4) ∨ (ndim(v_1) = 5)) ∧ (dtype_(v_1) ≠ 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ ((shape(v_1, 2) + (v_2[0] + v_2[1]) > 0) ∧ (shape(v_1, 3) + (v_2[2] + v_2[3]) > 0) ∧ (shape(v_1, 4) + (v_2[4] + v_2[5]) > 0) ∧ (shape(v_1, 2) + (v_2[0] + v_2[1]) < 2147483647) ∧ (shape(v_1, 3) + (v_2[2] + v_2[3]) < 2147483647) ∧ (shape(v_1, 4) + (v_2[4] + v_2[5]) < 2147483647)) ∧ (v_2.len = 0 ∨ v_2.len = 6) ∧ (v_2.len % 2 = 0) ∧ (if ndim(v_1) = 1 then v_2.len = 0) ∧ (v_2.len <= (2 * (ndim(v_1) - 2)))
+>>
+Rule 72 (Attempting to cover all constraints for the ReplicationPad3d API)
+{v_1: tensor, v_2: tuple(int)} |= if (ndim(v_1) = 4) ∨ (ndim(v_1) = 5) then (dtype_(v_1) ≠ 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ ((shape(v_1, 2) + (v_2[0] + v_2[1]) > 0) ∧ (shape(v_1, 3) + (v_2[2] + v_2[3]) > 0) ∧ (shape(v_1, 4) + (v_2[4] + v_2[5]) > 0) ∧ (shape(v_1, 2) + (v_2[0] + v_2[1]) < 2147483647) ∧ (shape(v_1, 3) + (v_2[2] + v_2[3]) < 2147483647) ∧ (shape(v_1, 4) + (v_2[4] + v_2[5]) < 2147483647)) ∧ (v_2.len = 0 ∨ (v_2.len = 6 ∧ (v_2[0] ≥ 0) ∧ (v_2[1] ≥ 0) ∧ (v_2[2] ≥ 0) ∧ (v_2[3] ≥ 0) ∧ (v_2[4] ≥ 0) ∧ (v_2[5] ≥ 0))) ∧ (v_2.len % 2 = 0) ∧ (v_2.len <= (2 * (ndim(v_1) - 2))) else false
+>>
+Rule 73 (Attempting to cover all constraints related to the 3d padding)
+{v_1: tensor, v_2: tuple(int)} |= if (ndim(v_1) = 4) ∨ (ndim(v_1) = 5) then (dtype_(v_1) ≠ 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ ((shape(v_1, 2) + (v_2[0] + v_2[1]) > 0) ∧ (shape(v_1, 3) + (v_2[2] + v_2[3]) > 0) ∧ (shape(v_1, 4) + (v_2[4] + v_2[5]) > 0) ∧ (shape(v_1, 2) + (v_2[0] + v_2[1]) < 2147483647) ∧ (shape(v_1, 3) + (v_2[2] + v_2[3]) < 2147483647) ∧ (shape(v_1, 4) + (v_2[4] + v_2[5]) < 2147483647)) ∧ (v_2.len = 0 ∨ (v_2.len = 6 ∧ (v_2[0] ≥ 0) ∧ (v_2[1] ≥ 0) ∧ (v_2[2] ≥ 0) ∧ (v_2[3] ≥ 0) ∧ (v_2[4] ≥ 0) ∧ (v_2[5] ≥ 0))) ∧ (v_2.len % 2 = 0) ∧ (v_2.len <= (2 * (ndim(v_1) - 2))) ∧ (∀i ∈ [0, v_2.len -1]: v_2[i] < 2147483647) else false
+>>
+Rule 74 (Ultimate rule - trying without checking for padding >=0)
+{v_1: tensor, v_2: tuple(int)} |= if (ndim(v_1) = 4) ∨ (ndim(v_1) = 5) then (dtype_(v_1) ≠ 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ ((shape(v_1, 2) + (v_2[0] + v_2[1]) > 0) ∧ (shape(v_1, 3) + (v_2[2] + v_2[3]) > 0) ∧ (shape(v_1, 4) + (v_2[4] + v_2[5]) > 0) ∧ (shape(v_1, 2) + (v_2[0] + v_2[1]) < 2147483647) ∧ (shape(v_1, 3) + (v_2[2] + v_2[3]) < 2147483647) ∧ (shape(v_1, 4) + (v_2[4] + v_2[5]) < 2147483647)) ∧ (v_2.len = 0 ∨ (v_2.len = 6)) ∧ (v_2.len % 2 = 0) ∧ (v_2.len <= (2 * (ndim(v_1) - 2))) ∧ (∀i ∈ [0, v_2.len -1]: v_2[i] < 2147483647) else false
+>>
+Rule 75 (Ultimate rule - trying with explicit padding checks)
+{v_1: tensor, v_2: tuple(int)} |= if (ndim(v_1) = 4) ∨ (ndim(v_1) = 5) then (dtype_(v_1) ≠ 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ ((shape(v_1, 2) + (v_2[0] + v_2[1]) > 0) ∧ (shape(v_1, 3) + (v_2[2] + v_2[3]) > 0) ∧ (shape(v_1, 4) + (v_2[4] + v_2[5]) > 0) ∧ (shape(v_1, 2) + (v_2[0] + v_2[1]) < 2147483647) ∧ (shape(v_1, 3) + (v_2[2] + v_2[3]) < 2147483647) ∧ (shape(v_1, 4) + (v_2[4] + v_2[5]) < 2147483647)) ∧ (v_2.len = 0 ∨ (v_2.len = 6 ∧ (v_2[0] ≥ 0) ∧ (v_2[1] ≥ 0) ∧ (v_2[2] ≥ 0) ∧ (v_2[3] ≥ 0) ∧ (v_2[4] ≥ 0) ∧ (v_2[5] ≥ 0) ∧ (∀i ∈ [0, v_2.len -1]: v_2[i] < 2147483647))) ∧ (v_2.len % 2 = 0) ∧ (v_2.len <= (2 * (ndim(v_1) - 2))) else false

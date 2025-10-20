@@ -1,0 +1,96 @@
+>>
+Rule 1 (lower bound should be less than or equal to the upper bound)
+{v_1 : float, v_2 : float} |= v_1 ≤ v_2
+>>
+Rule 2 (inplace should be a boolean)
+{v_3 : bool} |= v_3 = true ∨ v_3 = false
+>>
+Rule 3 (input tensor should not have Half dtype to avoid "rrelu_with_noise_out_cpu" not implemented)
+{v_4 : tensor} |= dtype_(v_4) ≠ 6
+>>
+Rule 4 (lower and upper bounds must be finite to avoid overflow during calculations)
+{v_1 : float, v_2 : float} |= v_1 < 1000000 ∧ v_2 < 1000000 ∧ v_1 > -1000000 ∧ v_2 > -1000000
+>>
+Rule 5 (The difference between lower and upper should be within the limits of float32 to avoid overflow)
+{v_1 : float, v_2 : float} |= v_2 - v_1 < 3.4028235e+38
+>>
+Rule 6 (lower and upper bounds should be valid numbers)
+{v_1 : float, v_2 : float} |= v_1 ≠ "inf" ∧ v_1 ≠ "-inf" ∧ v_1 ≠ "nan" ∧ v_2 ≠ "inf" ∧ v_2 ≠ "-inf" ∧ v_2 ≠ "nan"
+>>
+Rule 7 (input tensor should have float16, float32, or float64 dtype to avoid calculation issues and overflow)
+{v_4 : tensor} |= dtype_(v_4) = 6 ∨ dtype_(v_4) = 7 ∨ dtype_(v_4) = 8
+>>
+Rule 8 (Input tensor must be non-empty to avoid unexpected behavior.)
+{v_4 : tensor} |= ndim(v_4) > 0 ∧ ∀i ∈ [0, ndim(v_4) - 1] : shape(v_4, i) > 0
+>>
+Rule 9 (If lower bound is close to negative infinity, then upper bound should be significantly larger to avoid underflow in the average calculation.)
+{v_1 : float, v_2 : float} |= if v_1 < -1000 then v_2 > 100
+>>
+Rule 10 (If upper bound is close to positive infinity, then lower bound should be significantly smaller to avoid overflow in the average calculation.)
+{v_1 : float, v_2 : float} |= if v_2 > 1000 then v_1 < -100
+>>
+Rule 11 (If the input tensor has very small values, the lower bound should not be too negative to avoid extreme negative values after RReLU.)
+{v_1 : tensor, v_2 : float} |= if max(v_1) < 0.0001 then v_2 > -10
+>>
+Rule 13 (If inplace is true, the input tensor's dtype cannot be complex to prevent errors.)
+{v_3 : bool, v_4 : tensor} |= if v_3 = true then dtype_(v_4) ≠ 9 ∧ dtype_(v_4) ≠ 10
+>>
+Rule 15 (If the input tensor's data range is very large, the range of the RReLU bounds should also be sufficiently large)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if max(v_1) - min(v_1) > 10000 then (v_3 - v_2) > 1
+>>
+Rule 16 (If both lower and upper bounds are positive, ensure the upper bound isn't drastically larger to avoid excessive amplification.)
+{v_1 : float, v_2 : float} |= if v_1 > 0 ∧ v_2 > 0 then v_2 / v_1 < 10000
+>>
+Rule 17 (If both lower and upper bounds are negative, ensure the lower bound isn't drastically smaller to avoid excessive compression.)
+{v_1 : float, v_2 : float} |= if v_1 < 0 ∧ v_2 < 0 then v_1 / v_2 > 10000
+>>
+Rule 18 (If lower is greater than zero, upper cannot equal lower to ensure a non-deterministic function)
+{v_1 : float, v_2 : float} |= if v_1 > 0 then v_2 ≠ v_1
+>>
+Rule 20 (If lower is equal to upper bound, check if inplace=False to avoid no change in the tensor)
+{v_1 : float, v_2 : float, v_3 : bool} |= if v_1 = v_2 then v_3 = false
+>>
+Rule 22 (If inplace=True, check if input tensor requires grad is set to False to avoid unexpected behaviour.)
+{v_3 : bool, v_4 : tensor} |= if v_3 = true then ∃i ∈ [0, ndim(v_4) - 1]: shape(v_4, i) > 0
+>>
+Rule 23 (If the tensor is quantize, it could lead to precision issues)
+{v_4 : tensor} |= dtype_(v_4) ≠ 5
+>>
+Rule 24 (Avoid very large range in input tensor if both bounds are too close to each other)
+{v_1 : float, v_2 : float, v_4 : tensor} |= if v_2 - v_1 < 0.001 then max(v_4) - min(v_4) < 1000
+>>
+Rule 27 (if input tensor is almost zero and upper is negative and lower is negative then the output will be always zero)
+{v_1 : float, v_2 : float, v_4 : tensor} |= if (max(v_4) < 0.00001 ∧ min(v_4) > -0.00001) ∧ (v_1 < 0) ∧ (v_2 < 0) then false
+>>
+Rule 28 (if input tensor is almost zero and upper is negative and lower is negative and inplace is True it can potentially produce inf, so that should be avoided)
+{v_1 : float, v_2 : float, v_3: bool, v_4 : tensor} |= if (max(v_4) < 0.00001 ∧ min(v_4) > -0.00001) ∧ (v_1 < 0) ∧ (v_2 < 0) ∧ v_3 then false
+>>
+Rule 37 ( If lower = upper the input tensor range should be small to limit the numerical error )
+{v_1 : float, v_2: float, v_4:tensor} |= if (v_1 = v_2) then (max(v_4) - min(v_4)) < 1000
+>>
+Rule 39 (If there is an inf number in the input, its lower bound should be a very big -ve number to balance)
+{v_1: float, v_4 : tensor} |= if (∃i ∈ [0, ndim(v_4) - 1]: max(v_4) = "inf") then v_1 < -10000
+>>
+Rule 40 (if there is a -inf number in input, the higher bound should be a very high number to balance)
+{v_2: float, v_4 : tensor} |= if (∃i ∈ [0, ndim(v_4) - 1]: min(v_4) = "-inf") then v_2 > 10000
+>>
+Rule 42 (lower must be valid float and upper must be valid float )
+{v_1 : float, v_2: float} |= v_1 > -3.4028235e+38 ∧  v_1 < 3.4028235e+38 ∧  v_2 > -3.4028235e+38 ∧ v_2 < 3.4028235e+38
+>>
+Rule 43 ( if some tensor values are NAN , lower and upper should be close to each other to prevent undefined average)
+{v_1 : float, v_2: float, v_4:tensor} |= if (∃i ∈ [0, ndim(v_4) - 1]: max(v_4) = "nan" ∨ min(v_4) = "nan") then (v_2 - v_1) < 0.01
+>>
+Rule 45 (if there is +inf number in input, the upper bound should be a very big number to balance)
+{v_2: float, v_4 : tensor} |= if (∃i ∈ [0, ndim(v_4) - 1]: max(v_4) = "inf") then v_2 < 3.4028235e+38
+>>
+Rule 46 (inplce = True needs good memory management)
+{v_3: bool, v_4 : tensor} |= if (v_3) then shape(v_4,0) < 2000000000
+>>
+Rule 47 (The input tensor cannot be quantized when inplace is True to prevent errors with quantization)
+{v_3 : bool, v_4 : tensor} |= if v_3 = true then dtype_(v_4) ≠ 5
+>>
+Rule 48 (input = output is unsafe operation for inplace True if gradients are activated)
+{v_3 : bool, v_4 : tensor} |= if (v_3 = true) then ∃i ∈ [0, ndim(v_4) - 1]: shape(v_4, i) > 0
+>>
+Rule 50 (If some tensor values are infinite , the operation average might explode to inf as well, lets limit high difference to prevent that)
+{v_1 : float, v_2: float, v_4:tensor} |= if (∃i ∈ [0, ndim(v_4) - 1]: max(v_4) = "inf" ∨ min(v_4) = "-inf") then (v_2 - v_1) < 1000

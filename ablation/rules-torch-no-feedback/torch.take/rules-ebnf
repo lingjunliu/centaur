@@ -1,0 +1,165 @@
+>>
+Rule 2 (Input tensor should not be empty to avoid IndexError)
+{input : tensor} |= shape(input, 0) > 0 ∨ ndim(input) > 1
+>>
+Rule 3 (Input argument should be a tensor to avoid TypeError)
+{input : tensor} |= ndim(input) ≥ 0
+>>
+Rule 4 (Index should be within range of input tensor size to avoid IndexError)
+{input : tensor, index : tensor} |= ∀ i ∈ [0, shape(index, 0) - 1] : index[i] ≥ 0 ∧ index[i] < shape(input, 0) * (if ndim(input) > 1 then shape(input, 1) else 1)
+>>
+Rule 5 (Index tensor should have non-negative elements)
+{index : tensor} |= ∀ i ∈ [0, shape(index, 0) - 1] : index[i] ≥ 0
+>>
+Rule 6 (Index tensor should not be empty)
+{index : tensor} |= shape(index, 0) > 0
+>>
+Rule 7 (Index tensor should be a LongTensor)
+{index : tensor} |= dtype_(index) = 4
+>>
+Rule 8 (Input tensor should have at least one element)
+{input : tensor} |= ∃i ∈ [0, ndim(input) -1] : shape(input, i) > 0
+>>
+Rule 9 (Index should be within the bounds of the flattened input tensor)
+{input : tensor, index : tensor} |= ∀ i ∈ [0, shape(index, 0) - 1] : index[i] < max(input)
+>>
+Rule 11 (Shape of index tensor should be reasonable)
+{index: tensor} |= shape(index,0) < 1000000
+>>
+Rule 12 (Input tensor cannot have zero elements)
+{input: tensor} |= (ndim(input) = 0) ∨ (ndim(input) > 0 ∧ (∀ i ∈ [0, ndim(input) -1]: shape(input, i) > 0))
+>>
+Rule 13 (Input tensor should not be empty along any dimension)
+{input : tensor} |= ndim(input) = 0 ∨ (ndim(input) > 0 ∧ ∀ i ∈ [0, ndim(input) - 1] : shape(input, i) > 0)
+>>
+Rule 14 (Index tensor should contain indices within the valid range of the flattened input tensor)
+{input : tensor, index : tensor} |= ∀ i ∈ [0, shape(index, 0) - 1] : index[i] ≥ min(index) ∧ index[i] < (if ndim(input) > 0 then shape(input, 0) * (if ndim(input) > 1 then shape(input, 1) else 1) else 0)
+>>
+Rule 18 (Input tensor should have a defined shape)
+{input : tensor} |= ndim(input) ≥ 0 ∧ if ndim(input) > 0 then ∃i ∈ [0, ndim(input) - 1] : shape(input, i) ≥ 0
+>>
+Rule 19 (Index tensor elements must be within reasonable bounds given the dtype)
+{index : tensor} |= if dtype_(index) = 4 then ∀ i ∈ [0, shape(index, 0) - 1] : index[i] < 9223372036854775807
+>>
+Rule 20 (Index tensor must not have NaN values)
+{index : tensor} |= if dtype_(index) = 4 then ∀ i ∈ [0, shape(index, 0) - 1] : index[i] = index[i]
+>>
+Rule 23 (Product of input tensor dimensions should be representable as int64 to avoid overflow issues leading to incorrect bounds)
+{input : tensor} |= if ndim(input) = 0 then true else if ndim(input) = 1 then shape(input, 0) < 9223372036854775807 else if ndim(input) = 2 then shape(input, 0) * shape(input, 1) < 9223372036854775807
+>>
+Rule 24 (Index tensor should not contain extremely small values that could underflow)
+{index : tensor} |= ∀ i ∈ [0, shape(index, 0) - 1] : index[i] > -9223372036854775808
+>>
+Rule 25 (Ensure the input tensor isn't of a forbidden datatype, as this causes immediate errors)
+{input : tensor} |= dtype_(input) ≠ 12
+>>
+Rule 26 (Size of input must be non-zero to avoid errors)
+{input : tensor} |= (if ndim(input) > 0 then (shape(input, 0) > 0))
+>>
+Rule 27 (Prevent exceedingly large index tensors)
+{index : tensor} |= shape(index, 0) < 10000000
+>>
+Rule 28 (The maximum value in index tensor should not cause memory overflow during calculation)
+{input : tensor, index : tensor} |= (if ndim(input) > 0 then max(index) < 2147483647)
+>>
+Rule 29 (Index tensor must have a valid number of dimensions itself)
+{index : tensor} |= ndim(index) ≥ 0
+>>
+Rule 30 (Input tensor must have reasonable dimensions to avoid unusual behavior)
+{input: tensor} |= ndim(input) < 10
+>>
+Rule 31 (Index tensor elements should be within some reasonable limit relative to the input size)
+{input: tensor, index: tensor} |= ∀ i ∈ [0, shape(index, 0) - 1] : index[i] < (shape(input, 0) * (if ndim(input) > 1 then shape(input, 1) else 1) + 1000000)
+>>
+Rule 32 (The product of dimensions of the input tensor must not exceed a maximum value to prevent integer overflow when calculating offsets)
+{input : tensor} |= (if ndim(input) > 0 then shape(input, 0) * (if ndim(input) > 1 then shape(input, 1) else 1) < 4294967295)
+>>
+Rule 33 (For a 1D input tensor, the indices in index must be less than the size of input)
+{input: tensor, index: tensor} |= if ndim(input) = 1 then ∀ i ∈ [0, shape(index, 0) - 1] : index[i] < shape(input, 0)
+>>
+Rule 34 (The size of input tensor, when flattened, shouldn't be excessively large to prevent overflow)
+{input: tensor} |= (if ndim(input) > 0 then (shape(input, 0) * (if ndim(input) > 1 then shape(input, 1) else 1)) < 2147483647)
+>>
+Rule 35 (The index tensor should not have its elements close to maximum value of long to prevent integer overflow)
+{index: tensor} |= ∀ i ∈ [0, shape(index, 0) - 1] : index[i] < 9223372036854775807 - 10000
+>>
+Rule 36 (Ensure the product of dimensions is not so small that calculations cause errors)
+{input : tensor} |= if ndim(input) > 0 then shape(input, 0) * (if ndim(input) > 1 then shape(input, 1) else 1) > 0
+>>
+Rule 37 (Index tensor values should be representable in 32 bits to prevent issues with memory indexing.)
+{index: tensor} |=  ∀ i ∈ [0, shape(index, 0) - 1] : index[i] < 2147483647 ∧ index[i] > -2147483648
+>>
+Rule 39 (The input tensor should not have a shape that requires extremely large memory allocation during flattening.)
+{input: tensor} |= if ndim(input) > 0 then shape(input, 0) < 2147483647 ∧ (if ndim(input) > 1 then shape(input, 1) < 2147483647)
+>>
+Rule 40 (Index tensor shouldn't contain duplicates to prevent unexpected behaviour.)
+{index: tensor} |= ∀ i ∈ [0, shape(index, 0) - 1] : ∀ j ∈ [i + 1, shape(index, 0) - 1] : index[i] ≠ index[j]
+>>
+Rule 41 (The index tensor must not contain NaN values.)
+{index: tensor} |= ∀ i ∈ [0, shape(index, 0) - 1] : (index[i] = index[i])
+>>
+Rule 42 (For multi-dimensional input, the indices must be within the range after flattening.)
+{input: tensor, index: tensor} |= if ndim(input) > 1 then  ∀ i ∈ [0, shape(index, 0) - 1] : index[i] < (shape(input, 0) * shape(input, 1))
+>>
+Rule 44 (The maximum value of indices should be less than largest possible value for that datatype.)
+{index : tensor} |= if dtype_(index) = 4 then max(index) < 9223372036854775807
+>>
+Rule 46 (The number of elements in index tensor must be finite and reasonable.)
+{index : tensor} |= shape(index, 0) < 1000000000
+>>
+Rule 47 (The shape of the index tensor itself should be of reasonable size to avoid errors)
+{index: tensor} |= (if ndim(index) > 0 then ∀ i ∈ [0, ndim(index) -1] : shape(index, i) < 2147483647)
+>>
+Rule 48 (Index tensor values should result in valid indices within the input tensor after accounting for data type ranges.)
+{input: tensor, index: tensor} |= if dtype_(index) = 4 then ∀ i ∈ [0, shape(index, 0) - 1] : index[i] < (if ndim(input) > 0 then (shape(input, 0) * (if ndim(input) > 1 then shape(input, 1) else 1)) else 0)
+>>
+Rule 50 (If the input tensor is empty then the index tensor also must be empty)
+{input: tensor, index: tensor} |= (if (ndim(input) = 0 ∨ (∃ i ∈ [0, ndim(input) - 1] : shape(input, i) = 0)) then (ndim(index) = 0 ∨ (∃ i ∈ [0, ndim(index) - 1] : shape(index, i) = 0)))
+>>
+Rule 51 (The index tensor dtype must be in the supported integer range)
+{index: tensor} |= dtype_(index) = 1 ∨ dtype_(index) = 2 ∨ dtype_(index) = 3 ∨ dtype_(index) = 4 ∨ dtype_(index) = 5 ∨ dtype_(index) = 6
+>>
+Rule 52 (The index tensor must not have inf values)
+{index : tensor} |= ∀ i ∈ [0, shape(index, 0) - 1] : index[i] ≠ "inf" ∧ index[i] ≠ "-inf"
+>>
+Rule 53 (The input tensor must have elements if the index is non-empty.)
+{input: tensor, index: tensor} |=  (ndim(index) = 0 ∨ shape(index,0) = 0) ∨ (ndim(input) > 0 ∧ ∃i ∈ [0, ndim(input) -1] : shape(input, i) > 0)
+>>
+Rule 54 (Both tensors must be allocated on the same device.)
+{input: tensor, index: tensor} |=  (if dtype_(input) = 12 then true else (if dtype_(index) = 12 then true))
+>>
+Rule 55 (Input tensor can't have inf or -inf values)
+{input : tensor} |= ∀i ∈ [0, (if ndim(input) > 0 then (shape(input, 0) * (if ndim(input) > 1 then shape(input, 1) else 1)) else 0)-1]: input[i] ≠ "inf" ∧ input[i] ≠ "-inf"
+>>
+Rule 56 (The minimum value of indices should be greater than smallest possible value for that datatype to avoid underflow errors.)
+{index : tensor} |= if dtype_(index) = 4 then min(index) > -9223372036854775808
+>>
+Rule 57 (Input and index tensor should not reside on different devices)
+{input : tensor, index : tensor} |= dtype_(input) ≠ 12 ∧ dtype_(index) ≠ 12
+>>
+Rule 58 (The number of elements in index tensor must be less than max int value to prevent overflow)
+{index : tensor} |= shape(index, 0) < 2147483647
+>>
+Rule 59 (Input tensor must be allocated.)
+{input : tensor} |= dtype_(input) ≠ 13
+>>
+Rule 60 (The product of shape of index tensor should be small to prevent out of memory issues)
+{index: tensor} |= (if ndim(index) = 0 then true else (if ndim(index) = 1 then shape(index, 0) < 2147483647 else shape(index, 0) * shape(index,1) < 2147483647))
+>>
+Rule 61 (Indices must allow access, meaning tensor needs some length)
+{input : tensor, index : tensor} |= (if ndim(index) > 0 then (∀ i ∈ [0, shape(index, 0) - 1] : index[i] < (if ndim(input) > 0 then (shape(input, 0) * (if ndim(input) > 1 then shape(input, 1) else 1)) else 0))) ∨ (if ndim(index) = 0 then true else false)
+>>
+Rule 62 (Prevent index tensors with sizes that could lead to memory corruption, even before bounds checking)
+{index : tensor} |= shape(index, 0) < 1073741823
+>>
+Rule 64 (Index elements can only be as large as the maximum representable value in longtensor divided by size of input tensor)
+{input: tensor, index: tensor} |= ∀ i ∈ [0, shape(index, 0) - 1] : index[i] < 9223372036854775807/(if ndim(input) > 0 then shape(input, 0) * (if ndim(input) > 1 then shape(input, 1) else 1) else 1)
+>>
+Rule 65 (If the size of the input tensor exceeds the limits of an integer, the max index needs to be capped to INT_MAX.)
+{input: tensor, index: tensor} |= if shape(input, 0) > 2147483647 then ∀ i ∈ [0, shape(index, 0) - 1] : index[i] < 2147483647
+>>
+Rule 67 (Index tensor cannot be Boolean)
+{index : tensor} |= dtype_(index) ≠ 0
+>>
+Rule 68 (The product of the shape dimensions of the index tensor must be reasonably bounded.)
+{index : tensor} |= (if ndim(index) > 0 then shape(index, 0) < 100000)

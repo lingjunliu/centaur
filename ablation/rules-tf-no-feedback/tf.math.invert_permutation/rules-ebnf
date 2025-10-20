@@ -1,0 +1,120 @@
+>>
+Rule 1 (The input tensor must be 1-dimensional)
+{x : tensor} |= ndim(x) = 1
+>>
+Rule 2 (The input tensor must be of type int32 or int64)
+{x : tensor} |= dtype_(x) = 3 ∨ dtype_(x) = 4
+>>
+Rule 3 (All values in the input tensor must be non-negative)
+{x : tensor} |= ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ 0
+>>
+Rule 4 (All values in the input tensor must be less than the size of the tensor)
+{x : tensor} |= ∀i ∈ [0, shape(x, 0) - 1] : x[i] < shape(x, 0)
+>>
+Rule 5 (The input tensor must contain 0)
+{x : tensor} |= ∃i ∈ [0, shape(x, 0) - 1] : x[i] = 0
+>>
+Rule 6 (The input tensor must not contain duplicate values)
+{x : tensor} |= ∀i ∈ [0, shape(x, 0) - 1] : ∀j ∈ [i+1, shape(x, 0) - 1] : x[i] ≠ x[j]
+>>
+Rule 7 (The values in x should be in a valid range to avoid InvalidArgumentError)
+{x : tensor} |= ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ 0 ∧ x[i] ≤ shape(x, 0) - 1
+>>
+Rule 8 (All values in x must be representable as int32)
+{x : tensor} |= ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ -2147483648 ∧ x[i] ≤ 2147483647
+>>
+Rule 9 (Avoid large negative values in x)
+{x : tensor} |= min(x) ≥ -10000
+>>
+Rule 10 (Values in x should not be too large)
+{x : tensor} |= max(x) < 2147483647
+>>
+Rule 11 (All values in the input tensor must fit within the range of int32 to avoid overflow issues)
+{x : tensor} |= ∀i ∈ [0, shape(x, 0) - 1] : -2147483648 ≤ x[i] ∧ x[i] ≤ 2147483647
+>>
+Rule 12 (Combining range and data type to avoid InvalidArgumentError)
+{x : tensor} |= dtype_(x) = 3 ∧ ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ -2147483648 ∧ x[i] ≤ 2147483647 ∨ dtype_(x) = 4 ∧ ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ -9223372036854775808 ∧ x[i] ≤ 9223372036854775807
+>>
+Rule 13 (Input x should not contain values that are too small when data type is int32)
+{x : tensor} |= if dtype_(x) = 3 then min(x) > -2147483648
+>>
+Rule 14 (Input x should not contain values that are too large when data type is int32, specific upper bound)
+{x : tensor} |= if dtype_(x) = 3 then max(x) < 2147483648
+>>
+Rule 15 (Using a single bound for both data type and value range, int32 example)
+{x : tensor} |= if dtype_(x) = 3 then ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ 0 ∧ x[i] < 19
+>>
+Rule 16 (Checking for large values specifically when the shape is small)
+{x : tensor} |= if shape(x, 0) ≤ 20 then ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ -2147483648 ∧ x[i] ≤ 2147483647
+>>
+Rule 17 (Combining data type and range check, int64 version)
+{x : tensor} |= if dtype_(x) = 4 then ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ 0 ∧ x[i] < 19
+>>
+Rule 18 (More aggressive filtering with a smaller upper bound)
+{x : tensor} |= if shape(x, 0) ≤ 10 then ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ 0 ∧ x[i] < 10
+>>
+Rule 20 (Limiting shape based on datatype.)
+{x : tensor} |= if dtype_(x) = 3 then shape(x, 0) ≤ 2147483647 else if dtype_(x) = 4 then shape(x, 0) ≤ 9223372036854775807
+>>
+Rule 22 (Shape Limit based on Minimum Value.)
+{x : tensor} |= if min(x) >= -100 then shape(x, 0) <= 10000
+>>
+Rule 24 (Addressing InvalidArgumentError using combined conditions)
+{x : tensor} |= (dtype_(x) = 3 ∧ (∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ 0 ∧ x[i] ≤ 18)) ∨ (dtype_(x) = 4 ∧ (∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ 0))
+>>
+Rule 25 (Applying different bound for int32 and int64 datatypes.)
+{x : tensor} |= if dtype_(x) = 3 then (∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ -2147483648 ∧ x[i] ≤ 2147483647) else if dtype_(x) = 4 then (∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ -9223372036854775808 ∧ x[i] ≤ 9223372036854775807)
+>>
+Rule 26 (Restrict max value based on shape for int32 to prevent InvalidArgumentError)
+{x : tensor} |= if dtype_(x) = 3 then (max(x) < shape(x, 0) ∧ max(x) <= 18)
+>>
+Rule 27 (Applying bounds based on a conditional shape check)
+{x : tensor} |= if shape(x, 0) < 5 then (∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ -10 ∧ x[i] ≤ 20) else (∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ 0)
+>>
+Rule 28 (Limit max value based on shape and datatype using and.)
+{x : tensor} |= if dtype_(x) = 3 then (max(x) ≤ 18 ∧ max(x) < shape(x, 0))
+>>
+Rule 29 (Limit max value based on shape and datatype and min value)
+{x : tensor} |= if dtype_(x) = 3 then (max(x) ≤ 18 ∧ max(x) < shape(x, 0) ∧ min(x) >= 0)
+>>
+Rule 30 (Combining dtype check with value and shape limit)
+{x : tensor} |= if dtype_(x) = 3 then (∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ 0 ∧ x[i] <= 18) ∧ shape(x, 0) <= 1000
+>>
+Rule 31 (Rejecting based on min value and data type)
+{x : tensor} |= if dtype_(x) = 3 then min(x) >= -1000
+>>
+Rule 32 (Rejecting values based on datatype to address specific InvalidArgumentError)
+{x : tensor} |= if dtype_(x) = 3 then ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ -2147483648 ∧ x[i] ≤ 18
+>>
+Rule 33 (Reject specific range and datatype to prevent InvalidArgumentError)
+{x : tensor} |= if dtype_(x) = 3 then ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ -2147483648 ∧ x[i] ≤ 2147483647
+>>
+Rule 34 (Restrict all values)
+{x : tensor} |= ∀i ∈ [0, shape(x, 0) - 1] : x[i] >= 0 ∧ x[i] <= 18
+>>
+Rule 35 (Shape Limitation)
+{x : tensor} |= shape(x, 0) <= 19
+>>
+Rule 36 (Applying range based on Datatype to address specific error)
+{x : tensor} |= if dtype_(x) = 3 then ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ -2147483648 ∧ x[i] ≤ 18 else if dtype_(x) = 4 then ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ -9223372036854775808 ∧ x[i] ≤ 18
+>>
+Rule 37 (Limiting shape based on datatype combined with value bound)
+{x : tensor} |= if dtype_(x) = 3 then (∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ 0 ∧ x[i] <= 18) ∨ shape(x,0) > 19
+>>
+Rule 39 (Combined value and shape constraints for int32)
+{x : tensor} |= if dtype_(x) = 3 then (∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ 0 ∧ x[i] ≤ 18) ∧ shape(x, 0) ≤ 50
+>>
+Rule 41 (Combined restriction based on data type using IF-THEN.)
+{x : tensor} |= if dtype_(x) = 3 then ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ 0 ∧ x[i] ≤ 18 else if dtype_(x) = 4 then true
+>>
+Rule 43 (Conditional check on value range dependent on shape)
+{x : tensor} |= if shape(x, 0) < 10 then (∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ 0 ∧ x[i] ≤ 18) else (∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ -1000 ∧ x[i] ≤ 2000)
+>>
+Rule 44 (Combined condition over min, max, and shape.)
+{x : tensor} |= (min(x) ≥ 0 ∧ max(x) ≤ 18) ∨ shape(x, 0) > 50
+>>
+Rule 46 (Combined condition limiting range using max dependent on datatype)
+{x : tensor} |= if dtype_(x) = 3 then max(x) ≤ 18
+>>
+Rule 48 (More conservative values)
+{x: tensor} |=  (min(x) >= -10000) ∧  (max(x) <= 20000)

@@ -1,0 +1,147 @@
+>>
+Rule 3 (input tensor's ndim must be greater than or equal to 1)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+>>
+Rule 4 (zero_point's shape must match scale's shape, and must be a scalar or a 1D tensor)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ (ndim(v_1) ≤ 1)
+>>
+Rule 5 (output dtype must be a floating-point or integer dtype)
+{v_1 : dtype} |= (v_1 ≥ 1 ∧ v_1 ≤ 5) ∨ (v_1 ≥ 6 ∧ v_1 ≤ 8)
+>>
+Rule 6 (Check if scale tensor is non-empty)
+{v_1: tensor} |= shape(v_1, 0) > 0
+>>
+Rule 8 (quantized tensor must have a specified dtype)
+{v_1: tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 9 (The shape of the scale and zero_point tensors must be the same if both are tensors)
+{v_1: tensor, v_2: tensor} |= shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 10 (min value must be less than or equal to max value if both are given)
+{v_1: int ⊎ float, v_2: int ⊎ float} |= v_1 ≤ v_2
+>>
+Rule 11 (scale must be a floating-point tensor, encoded as dtype between 6 and 8)
+{v_1: tensor} |= (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)
+>>
+Rule 12 (zero_point must be an integer tensor, encoded as dtype between 1 and 5)
+{v_1: tensor} |= (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5)
+>>
+Rule 14 (zero_point's shape must match scale's shape, and must be a scalar or a 1D tensor if both are tensors)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ndim(v_1) ≤ 1
+>>
+Rule 15 (output dtype must be a floating-point or integer dtype)
+{v_1 : dtype} |= (v_1 = 1) ∨ (v_1 = 2) ∨ (v_1 = 3) ∨ (v_1 = 4) ∨ (v_1 = 5) ∨ (v_1 = 6) ∨ (v_1 = 7) ∨ (v_1 = 8)
+>>
+Rule 16 (Check if quantized dtype is supported)
+{v_1: dtype} |= (v_1 = 1) ∨ (v_1 = 2) ∨ (v_1 = 3) ∨ (v_1 = 4) ∨ (v_1 = 5) ∨ (v_1 = 6) ∨ (v_1 = 7) ∨ (v_1 = 8)
+>>
+Rule 17 (If both scale and zero point are provided as tensors, they must have the same number of elements)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then true else shape(v_1,0) = shape(v_2,0)
+>>
+Rule 20 (zero_point's shape must match scale's shape if both are tensors and have ndim > 0. Shape matching only enforced if ndim > 0. Scalar tensors pass this rule always.)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) > 0) ∧ (ndim(v_2) > 0) then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 23 (If both scale and zero point are provided as tensors, they must have the same number of elements if their ndims are not 0)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then shape(v_1,0) = shape(v_2,0)
+>>
+Rule 24 (Ensure scale tensor is not empty when its a tensor with ndim > 0)
+{v_1: tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) > 0
+>>
+Rule 25 (Ensure scale tensor has positive values if it's a tensor with more than 0 dimensions)
+{v_1: tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
+>>
+Rule 26 (Ensure zero_point tensor values are within the valid range for its dtype if it's a tensor with more than 0 dimensions)
+{v_1: tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : min(v_1) ≥ -128 ∧ max(v_1) ≤ 127
+>>
+Rule 27 (Dtype of input tensor must be either quantized integer or floating point)
+{v_1: tensor} |= (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) ∨ (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)
+>>
+Rule 28 (Output dtype must be floating point)
+{v_1: dtype} |= (v_1 = 6) ∨ (v_1 = 7) ∨ (v_1 = 8)
+>>
+Rule 30 (If scale and zero point are not tensors, ensure they are within allowed ranges (min/max values of the input quantized type))
+{v_1: int ⊎ float, v_2: int ⊎ float, v_3: dtype} |= if (v_3 = 1) then (v_1 ≥ -128 ∧ v_1 ≤ 127 ∧ v_2 ≥ -128 ∧ v_2 ≤ 127)
+>>
+Rule 32 (Ensure zero_point tensor values are within the valid range for its dtype if it's a tensor with more than 0 dimensions. Assuming int8 quantization)
+{v_1: tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ -128 ∧ v_1[i] ≤ 127
+>>
+Rule 34 (Dtype of output tensor should be floating point if input is quantized)
+{v_1: tensor, v_2: dtype} |= if (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) then (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8)
+>>
+Rule 39 (If scale and zero point are provided as floats, ensure they fall within the representable range of the underlying integer type being dequantized.)
+{v_1: int ⊎ float, v_2: int ⊎ float, v_3: dtype} |= if (dtype_(v_3) = 1) then (v_1 ≥ -128 ∧ v_1 ≤ 127 ∧ v_2 ≥ -128 ∧ v_2 ≤ 127)
+>>
+Rule 40 (If scale and zero point are provided as floats, ensure they fall within the representable range of the underlying integer type being dequantized. For uint8, the range is 0 to 255.)
+{v_1: int ⊎ float, v_2: int ⊎ float, v_3: dtype} |= if (dtype_(v_3) = 5) then (v_1 ≥ 0 ∧ v_1 ≤ 255 ∧ v_2 ≥ 0 ∧ v_2 ≤ 255)
+>>
+Rule 41 (If scale is a tensor then it has to have a floating point type, 6-8)
+{v_1: tensor} |= if ndim(v_1) > 0 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 42 (If zero_point is a tensor then it has to have an integer type, 1-5)
+{v_1: tensor} |= if ndim(v_1) > 0 then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5)
+>>
+Rule 43 (Ensure zero_point tensor values are within the valid range for the input quantized type if it's a tensor with more than 0 dimensions.)
+{v_1: tensor, v_2: dtype} |= if ndim(v_1) > 0 ∧ v_2 = 1 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ -128 ∧ v_1[i] ≤ 127 else if ndim(v_1) > 0 ∧ v_2 = 5 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ 255
+>>
+Rule 44 (If scale and zero point are provided as floats, ensure they fall within the representable range of the underlying integer type being dequantized.)
+{v_1: int ⊎ float, v_2: int ⊎ float, v_3: dtype} |= if (dtype_(v_3) = 1) then (v_1 ≥ -128 ∧ v_1 ≤ 127 ∧ v_2 ≥ -128 ∧ v_2 ≤ 127) else if (dtype_(v_3) = 5) then (v_1 ≥ 0 ∧ v_1 ≤ 255 ∧ v_2 ≥ 0 ∧ v_2 ≤ 255)
+>>
+Rule 47 (When both scale and zero_point are scalars (not tensors with ndim>0) and dtype of the input is int8 or uint8 then the scale and zero_point are between acceptable range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : dtype} |= if (dtype_(v_3) = 1) then (v_1 ≥ -128 ∧ v_1 ≤ 127 ∧ v_2 ≥ -128 ∧ v_2 ≤ 127) else if (dtype_(v_3) = 5) then (v_1 ≥ 0 ∧ v_1 ≤ 255 ∧ v_2 ≥ 0 ∧ v_2 ≤ 255)
+>>
+Rule 48 (The input tensor has to be a tensor)
+{v_1: tensor} |= ndim(v_1) >= 0
+>>
+Rule 51 (When both scale and zero_point are scalars (not tensors with ndim>0) and dtype of the input is int8, the scale and zero_point are between acceptable range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : dtype} |= if (dtype_(v_3) = 1) then (v_1 ≥ -128 ∧ v_1 ≤ 127 ∧ v_2 ≥ -128 ∧ v_2 ≤ 127)
+>>
+Rule 52 (When both scale and zero_point are scalars (not tensors with ndim>0) and dtype of the input is uint8, the scale and zero_point are between acceptable range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : dtype} |= if (dtype_(v_3) = 5) then (v_1 ≥ 0 ∧ v_1 ≤ 255 ∧ v_2 ≥ 0 ∧ v_2 ≤ 255)
+>>
+Rule 53 (The dtype of scale must be a float, if scale has more than 0 dimensions and the input is quantized)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) then if ndim(v_2) > 0 then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 54 (The dtype of zero_point must be an integer, if zero_point has more than 0 dimensions and the input is quantized)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) then if ndim(v_2) > 0 then (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)
+>>
+Rule 55 (Given the input dtype of int8, ensure the zero_point tensor's values are within the valid range (-128 to 127) if it is a tensor with more than 0 dimensions)
+{v_1: tensor, v_2: dtype} |= if ndim(v_1) > 0 ∧ v_2 = 1 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ -128 ∧ v_1[i] ≤ 127
+>>
+Rule 56 (Given the input dtype of uint8, ensure the zero_point tensor's values are within the valid range (0 to 255) if it is a tensor with more than 0 dimensions)
+{v_1: tensor, v_2: dtype} |= if ndim(v_1) > 0 ∧ v_2 = 5 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ 255
+>>
+Rule 59 (The dtype of scale must be a float (6, 7, or 8), if the scale has more than 0 dimensions and if the input is quantized (1, 2, 3, 4, or 5))
+{v_1: tensor, v_2: tensor} |= if ((dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5)) ∧ (ndim(v_2) > 0) then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 60 (The dtype of zero_point must be an integer (1, 2, 3, 4, or 5), if the zero_point has more than 0 dimensions and if the input is quantized (1, 2, 3, 4, or 5))
+{v_1: tensor, v_2: tensor} |= if ((dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5)) ∧ (ndim(v_2) > 0) then (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)
+>>
+Rule 65 (If the input is quantized then zero_point and scale has to be provided as parameters)
+{v_1 : tensor} |= if (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) then true
+>>
+Rule 66 (Ensure that the dtype is valid. )
+{v_1 : dtype} |= (v_1 = 1) ∨ (v_1 = 2) ∨ (v_1 = 3) ∨ (v_1 = 4) ∨ (v_1 = 5) ∨ (v_1 = 6) ∨ (v_1 = 7) ∨ (v_1 = 8) ∨ (v_1 = 12)
+>>
+Rule 67 (If input is quantized, then the scale must have a floating point type.)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 68 (If input is quantized, then zero_point must be of an integer type.)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) then (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)
+>>
+Rule 70 (If zero_point is a tensor and the input is int8, then all elements of zero_point must be between -128 and 127)
+{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_2) = 1) ∧ (ndim(v_1) > 0) then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ -128 ∧ v_1[i] ≤ 127
+>>
+Rule 71 (If zero_point is a tensor and the input is uint8, then all elements of zero_point must be between 0 and 255)
+{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_2) = 5) ∧ (ndim(v_1) > 0) then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ 255
+>>
+Rule 77 (If the zero point is a tensor then the dtype of the input is integer)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) > 0 then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5)
+>>
+Rule 79 (If the input is quantized (dtype 1-5) and zero_point is provided as a tensor, then all elements of zero_point must be in the acceptable range depending on whether it's int8 or uint8.  We use dtype of the input tensor to determine whether the zero_point has to be between 0-255 or -128 to 127.)
+{v_1: tensor, v_2: dtype} |= if (dtype_(v_2) = 1) ∧ (ndim(v_1) > 0) then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ -128 ∧ v_1[i] ≤ 127 else if (dtype_(v_2) = 5) ∧ (ndim(v_1) > 0) then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ 255
+>>
+Rule 80 (The scale has to be floating point if the input tensor has a quantized dtype (1 to 5) )
+{v_1: tensor, v_2: dtype} |= if (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 81 (The zero_point has to be integer if the input tensor has a quantized dtype (1 to 5))
+{v_1: tensor, v_2: dtype} |= if (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) then (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)

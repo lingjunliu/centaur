@@ -1,0 +1,114 @@
+>>
+Rule 1 (dim should be non-negative if it's an integer)
+{v_2 : int} |= v_2 ≥ 0
+>>
+Rule 2 (if keepdim is true, output dimension must be the same as input)
+{v_1 : tensor, v_3 : bool, v_2 : int} |= if v_3 = true then shape(v_1, v_2) = shape(v_1, v_2)
+>>
+Rule 3 (dim must be non-empty tuple)
+{v_2 : tuple(int)} |= v_2.len > 0
+>>
+Rule 4 (dim is a tuple of non-negative integers)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+>>
+Rule 5 (if dim is a tuple, each element should be within the bounds of the input tensor's dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < ndim(v_1) ∧ v_2[i] ≥ 0
+>>
+Rule 6 (if dim is an integer, it should be within the bounds of the input tensor's dimensions)
+{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1) ∧ v_2 ≥ 0
+>>
+Rule 7 (keepdim must be a boolean value)
+{v_3 : bool} |= v_3 = true ∨ v_3 = false
+>>
+Rule 8 (If input and out are tensors, their dtypes must match)
+{v_1 : tensor, v_4 : tensor} |= dtype_(v_1) = dtype_(v_4)
+>>
+Rule 9 (If input is a tensor, its dimension must be greater than 0)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 10 (dim should be within the valid range of dimensions for the input tensor if it is an integer)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ -1 * ndim(v_1) ∧ v_2 < ndim(v_1)
+>>
+Rule 11 (The length of the tuple dim should be less or equal to the number of dimensions of the input tensor)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≤ ndim(v_1)
+>>
+Rule 13 (If keepdim is False, dim must be less than ndim(input))
+{v_1 : tensor, v_2 : int, v_3 : bool} |= if v_3 = false then v_2 < ndim(v_1)
+>>
+Rule 16 (If dim is a tuple of ints, each int must be unique)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j]
+>>
+Rule 18 (When dim is an integer, the shape of out in all other dimensions is equal to shape of input)
+{v_1: tensor, v_2: int, v_4: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_2 then shape(v_1, i) = shape(v_4, i)
+>>
+Rule 19 (The out tensor must have a compatible shape with the result of the amin operation when dim is an integer)
+{v_1 : tensor, v_2 : int, v_4 : tensor, v_3 : bool} |= if v_3 = true then ∀i ∈ [0, ndim(v_1)-1] : if i ≠ v_2 then shape(v_1, i) = shape(v_4, i) else shape(v_4, i) = 1
+>>
+Rule 20 (If dim is a tuple and keepdim is false, the output tensor v_4 should have ndim(v_1) - len(v_2) dimensions.)
+{v_1 : tensor, v_2 : tuple(int), v_3 : bool, v_4 : tensor} |= if v_3 = false then ndim(v_4) = ndim(v_1) - v_2.len
+>>
+Rule 21 (if out is provided, it must have the same number of dimensions as the input if keepdim is true)
+{v_1 : tensor, v_3 : bool, v_4 : tensor} |= if v_3 = true then ndim(v_1) = ndim(v_4)
+>>
+Rule 24 (If keepdim is false, and dim is a tuple, then the number of elements in dim has to be smaller than the number of dimensions of the input tensor)
+{v_1 : tensor, v_2 : tuple(int), v_3 : bool} |= if v_3 = false then v_2.len < ndim(v_1)
+>>
+Rule 27 (If dim is a tuple, its length cannot exceed the maximum number of dimensions allowed, like 32.)
+{v_2: tuple(int)} |= v_2.len ≤ 32
+>>
+Rule 28 (If input is complex, out should be complex too)
+{v_1: tensor, v_4:tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_4) = 10 ∨ dtype_(v_4) = 11
+>>
+Rule 30 (If input has a floating-point dtype, then out must also have a floating-point dtype)
+{v_1: tensor, v_4:tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 then dtype_(v_4) = 7 ∨ dtype_(v_4) = 8 ∨ dtype_(v_4) = 9
+>>
+Rule 31 (If dim is an integer, it must be within the valid range of dimensions including negative indexing)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+>>
+Rule 33 (If input has a floating-point dtype, and out is given, then out must also have a floating-point dtype)
+{v_1: tensor, v_4:tensor} |= if (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) then (dtype_(v_4) = 7) ∨ (dtype_(v_4) = 8) ∨ (dtype_(v_4) = 9)
+>>
+Rule 35 (If out is provided and dim is an int then shape of out at dim must be 1 if keepdim is true, otherwise shape is unaltered.)
+{v_2 : int, v_3 : bool, v_4 : tensor} |= if v_3 = true then shape(v_4, v_2) = 1
+>>
+Rule 37 (The dimension to reduce on must exist in the tensor)
+{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1) ∧ v_2 ≥ (0 - ndim(v_1))
+>>
+Rule 38 (If dim is a tuple, then each element in the tuple must be within the valid range of dimensions for the input tensor)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)
+>>
+Rule 39 (If the input tensor v_1 is a bool type, then out must be a bool type as well)
+{v_1 : tensor, v_4 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_4) = 0
+>>
+Rule 42 (If input tensor v_1 and output tensor v_4 have the same number of dimensions, then their shapes must be compatible given the dim reduction )
+{v_1 : tensor, v_4 : tensor, v_2: int, v_3: bool} |= if ndim(v_1) = ndim(v_4) then if v_3 = true then shape(v_1, v_2) ≥ shape(v_4, v_2)
+>>
+Rule 44 (If keepdim is true and dim is an integer and out is passed, then the output tensor's dimension 'dim' must have size 1)
+{v_2: int, v_3: bool, v_4: tensor} |= if v_3 = true then shape(v_4, v_2) = 1
+>>
+Rule 48 (If input and out are tensors and dim is an integer, then either keepdim is true, or the number of dimensions of v1 is equal to the number of dimensions of v4 plus one)
+{v_1 : tensor, v_3 : bool, v_4 : tensor} |= if v_3 = true then ndim(v_1) = ndim(v_4) else ndim(v_1) = ndim(v_4) + 1
+>>
+Rule 49 (If input and out are defined, and dim is a tuple, then if keepdim is false, the output's dimensions is the input's dimensions minus the length of the dim tuple)
+{v_1 : tensor, v_2: tuple(int), v_3: bool, v_4: tensor} |= if v_3 = false then ndim(v_4) = ndim(v_1) - v_2.len
+>>
+Rule 50 (If input tensor v_1 and output tensor v_4 have the same number of dimensions, then if keepdim is false, the dimensions specified in dim tuple v_2 are squeezed (removed))
+{v_1: tensor, v_2: tuple(int), v_3: bool, v_4: tensor} |= if (ndim(v_1) = ndim(v_4)) ∧ (v_3 = false) then ∃ i ∈ [0, v_2.len -1] : shape(v_4, v_2[i]) < shape(v_1,v_2[i])
+>>
+Rule 51 (The dim argument cannot contain duplicate values when it's a tuple)
+{v_2: tuple(int)} |= ∀ i ∈ [0, v_2.len-1] : ∀ j ∈ [i+1, v_2.len-1] : v_2[i] ≠ v_2[j]
+>>
+Rule 52 (If out is defined and keepdim is false, then the number of dimension of out should be less than the number of dimension of input)
+{v_1: tensor, v_3: bool, v_4: tensor} |= if v_3 = false then ndim(v_4) < ndim(v_1)
+>>
+Rule 55 (If out is provided, it must have the same device as the input)
+{v_1: tensor} |= shape(v_1, 0) ≥ 0
+>>
+Rule 60 (If out is provided, then input can't be empty.)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 61 (If out is provided, then input can't be empty.)
+{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 62 (if out is given, then ndim(out) > 0)
+{v_4: tensor} |= ndim(v_4) > 0

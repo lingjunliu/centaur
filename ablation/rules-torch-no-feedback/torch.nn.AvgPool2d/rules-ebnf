@@ -1,0 +1,117 @@
+>>
+Rule 1 (kernel_size must be either a single int, or a tuple of two ints, and each element should be positive)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 2 (kernel_size must be either a single int, or a tuple of two ints, and each element should be positive)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+>>
+Rule 5 (padding must be non-negative)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 6 (padding must be non-negative)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] ≥ 0
+>>
+Rule 7 (Input tensor should be 3D or 4D)
+{v_1 : tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4
+>>
+Rule 9 (If kernel_size is tuple, stride can be int or tuple, and if stride is tuple it should have length 2)
+{v_1 : tuple(int), v_2 : tuple(int)} |= v_1.len = 2 ∧ v_2.len = 2
+>>
+Rule 11 (ceil_mode should be a boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 13 (padding should be at most half of effective kernel size, simplified: padding < kernel_size)
+{v_1 : int, v_2 : int} |= v_1 < v_2
+>>
+Rule 14 (padding should be at most half of effective kernel size, simplified: padding < kernel_size)
+{v_1 : tuple(int), v_2 : tuple(int)} |= v_1.len = 2 ∧ v_2.len = 2 ∧ v_1[0] < v_2[0] ∧ v_1[1] < v_2[1]
+>>
+Rule 23 (Kernel size cannot be zero)
+{v_1 : int} |= v_1 ≠ 0
+>>
+Rule 24 (Kernel size tuple elements cannot be zero)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ v_1[0] ≠ 0 ∧ v_1[1] ≠ 0
+>>
+Rule 27 (Input tensor must have valid dimensions (3 or 4). If 4D, the batch size must not be zero)
+{v_1 : tensor} |= (ndim(v_1) = 3) ∨ (ndim(v_1) = 4)
+>>
+Rule 28 (if kernel_size is a tuple, it should contain integers)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : true
+>>
+Rule 35 (If input tensor has 3 dimensions, the input should be C, H, W.)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+>>
+Rule 36 (If input tensor has 4 dimensions, the input should be N, C, H, W.)
+{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+>>
+Rule 37 (When stride is the same as kernel_size, it must still be a positive integer)
+{v_1 : int, v_2 : int} |= v_1 = v_2 ∧ v_1 > 0
+>>
+Rule 38 (When stride is the same as kernel_size tuple, all the elements must still be a positive integer)
+{v_1 : tuple(int), v_2 : tuple(int)} |= v_1 = v_2 ∧  v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+>>
+Rule 39 (When padding is greater than or equal to kernel size, a warning should be issued to user as this results in zero output.)
+{v_1 : int, v_2: int} |= v_1 < v_2
+>>
+Rule 42 (When ceil_mode is set to true then H_out and W_out cannot be negative where tuple parameters are specified )
+{v_1 : tensor, v_2 : tuple(int), v_3 : tuple(int), v_4: tuple(int), v_5: bool} |= if v_5 = true then (shape(v_1, 2) + 2 * v_4[0] - v_2[0]) / v_3[0] + 1 ≥ 0 ∧ (shape(v_1, 3) + 2 * v_4[1] - v_2[1]) / v_3[1] + 1 ≥ 0
+>>
+Rule 43 (When count_include_pad is false, then there is no guarantee that output will be positive)
+{v_1: bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 44 (The output shape calculated by floor function cannot be a very large negative number to cause index error.)
+{v_1 : tensor, v_2 : int, v_3: int, v_4 : int} |= (shape(v_1, 2) + 2 * v_4 - v_2) / v_3 + 1 > -1000000 ∧ (shape(v_1, 3) + 2 * v_4 - v_2) / v_3 + 1 > -1000000
+>>
+Rule 45 (The output shape calculated by floor function cannot be a very large negative number to cause index error with tuple)
+{v_1 : tensor, v_2 : tuple(int), v_3: tuple(int), v_4 : tuple(int)} |= (shape(v_1, 2) + 2 * v_4[0] - v_2[0]) / v_3[0] + 1 > -1000000 ∧ (shape(v_1, 3) + 2 * v_4[1] - v_2[1]) / v_3[1] + 1 > -1000000
+>>
+Rule 46 (If the kernel size and stride are the same, then the output size will always be smaller than the input size.)
+{v_1 : tensor, v_2 : int, v_3: int, v_4: int} |= if v_2 = v_3 then (shape(v_1, 2) + 2*v_4 - v_2) / v_3 + 1 < shape(v_1, 2)
+>>
+Rule 47 (If the kernel size and stride are the same tuples, then the output size will always be smaller than the input size.)
+{v_1 : tensor, v_2 : tuple(int), v_3: tuple(int), v_4: tuple(int)} |= if v_2[0] = v_3[0] ∧ v_2[1] = v_3[1] then (shape(v_1, 2) + 2*v_4[0] - v_2[0]) / v_3[0] + 1 < shape(v_1, 2) ∧ (shape(v_1, 3) + 2*v_4[1] - v_2[1]) / v_3[1] + 1 < shape(v_1, 3)
+>>
+Rule 51 (If count_include_pad is true and divisor_override is specified, it cannot exceed kH*kW.)
+{v_1 : bool, v_2 : int, v_3 : int, v_4 : int} |= if v_1 = true then v_2 ≤ v_3 * v_4
+>>
+Rule 52 (If count_include_pad is true and divisor_override is specified, it cannot exceed kH*kW when using tuple)
+{v_1 : bool, v_2 : int, v_3 : tuple(int)} |= if v_1 = true then v_2 ≤ v_3[0] * v_3[1]
+>>
+Rule 53 (Output height and width should not exceed input height and width, respectively, where ceil_mode is False.)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int, v_5 : bool} |= if v_5 = false then (shape(v_1, 2) + 2 * v_4 - v_2) / v_3 + 1 ≤ shape(v_1, 2) ∧ (shape(v_1, 3) + 2 * v_4 - v_2) / v_3 + 1 ≤ shape(v_1, 3)
+>>
+Rule 54 (Output height and width should not exceed input height and width, respectively, where ceil_mode is False and using tuple parameters.)
+{v_1 : tensor, v_2 : tuple(int), v_3 : tuple(int), v_4 : tuple(int), v_5 : bool} |= if v_5 = false then (shape(v_1, 2) + 2 * v_4[0] - v_2[0]) / v_3[0] + 1 ≤ shape(v_1, 2) ∧ (shape(v_1, 3) + 2 * v_4[1] - v_2[1]) / v_3[1] + 1 ≤ shape(v_1, 3)
+>>
+Rule 58 (If ceil_mode is True, then the height/width input tensor's third/fourth dimension size should be greater than zero, respectively.)
+{v_1 : tensor, v_2: bool} |= if v_2 = true then shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+>>
+Rule 59 (The height and width of kernel_size must be positive integers)
+{v_1 : int, v_2: int} |= v_1 > 0 ∧ v_2 > 0
+>>
+Rule 61 (The height and width of effective kernel size should be positive integers)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ v_1[0] > 0 ∧ v_1[1] > 0
+>>
+Rule 62 (If divisor_override is not None, count_include_pad should be False or equal to the size of the pooling region, in the one int kernel size case.)
+{v_1: int, v_2: int, v_3: bool} |= if v_1 ≠ 0 then v_3 = false ∨ v_1 = v_2 * v_2
+>>
+Rule 63 (If divisor_override is not None, count_include_pad should be False or equal to the size of the pooling region, in the two int kernel size case.)
+{v_1: int, v_2: tuple(int), v_3: bool} |= if v_1 ≠ 0 then v_3 = false ∨ v_1 = v_2[0] * v_2[1]
+>>
+Rule 67 (For 3D input tensor, the first dimension should be the number of channels, it has to be greater than zero)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) > 0
+>>
+Rule 68 (For 4D input tensor, the second dimension should be the number of channels, it has to be greater than zero)
+{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 1) > 0
+>>
+Rule 70 (If input is 3D, then padding should be less than the height and width, otherwise index error)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 3 then v_2 < shape(v_1, 1) ∧ v_2 < shape(v_1, 2)
+>>
+Rule 71 (If input is 4D, then padding[0] should be less than the height and padding[1] should be less than the width, otherwise index error)
+{v_1: tensor, v_2: tuple(int)} |= if ndim(v_1) = 4 then v_2[0] < shape(v_1, 2) ∧ v_2[1] < shape(v_1, 3)
+>>
+Rule 72 (If input is 3D, then the values of kernel_size must be smaller than the tensor height and width dimensions)
+{v_1: tensor, v_2: int, v_3: int} |= if ndim(v_1) = 3 then v_2 < shape(v_1, 1) ∧ v_3 < shape(v_1, 2)
+>>
+Rule 73 (If input is 4D, then the values of kernel_size must be smaller than the tensor height and width dimensions, respectively.)
+{v_1: tensor, v_2: int, v_3: int} |= if ndim(v_1) = 4 then v_2 < shape(v_1, 2) ∧ v_3 < shape(v_1, 3)

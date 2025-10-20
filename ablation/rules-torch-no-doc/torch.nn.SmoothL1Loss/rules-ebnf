@@ -1,0 +1,81 @@
+>>
+Rule 1 (Input tensors must have compatible sizes at non-singleton dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i)) ∨ (shape(v_1, i) = 1) ∨ (shape(v_2, i) = 1)
+>>
+Rule 2 (beta parameter should be non-negative)
+{v_1 : float} |= v_1 ≥ 0
+>>
+Rule 3 (Input tensors should not have Long dtype when running on CPU)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 4 ∧ dtype_(v_2) ≠ 4
+>>
+Rule 4 (Tensors should have the same shape or be broadcastable)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)) ∨ (ndim(v_1) = 0 ∨ ndim(v_2) = 0)
+>>
+Rule 6 (Tensors should not have Long dtype if running on CPU, ensure float or int)
+{v_1 : tensor} |= dtype_(v_1) ≠ 4 ∧ (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9)
+>>
+Rule 7 (Tensors should have the same shape or be broadcastable)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
+>>
+Rule 8 (Tensors should not have Long dtype if running on CPU and beta is specified)
+{v_1 : tensor, v_2 : float} |= if v_2 > 0 then dtype_(v_1) ≠ 4
+>>
+Rule 9 (Check if two tensors have the same number of elements)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then (∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = shape(v_2, i)) else false
+>>
+Rule 12 (If tensors have Long dtype, check condition with beta and CUDA)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 4 then v_2 > 0
+>>
+Rule 16 (Shape of input tensors should be equal or broadcastable)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
+>>
+Rule 18 (Ensure tensors with Long dtype avoid CPU execution, by restricting its usage to cases where beta=0)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 4 then v_2 = 0
+>>
+Rule 19 (Shape compatibility between input tensors)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ (shape(v_1, i) = 1) ∨ (shape(v_2, i) = 1)) else ndim(v_1) = 0 ∨ ndim(v_2) = 0
+>>
+Rule 21 (Beta must be non-negative, considering both float and int)
+{v_1 : float ⊎ int} |= v_1 ≥ 0
+>>
+Rule 24 (If the input tensors has Long dtype, beta should be zero or greater than zero)
+{v_1 : tensor, v_2 : float ⊎ int} |= if dtype_(v_1) = 4 then v_2 ≥ 0
+>>
+Rule 34 (Input tensors must be broadcastable or scalar)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∨ ndim(v_2) = 0 then true else (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))
+>>
+Rule 35 (Beta must be a non-negative number)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+>>
+Rule 37 (Input Tensors - Broadcastable Shapes or At Least One Scalar)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0 ∨ ndim(v_2) = 0) ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))
+>>
+Rule 39 (Long Dtype Tensor - Force Beta = 0 on CPU)
+{v_1 : tensor} |= if dtype_(v_1) = 4 then ∀i ∈ [0,0] : i = 0
+>>
+Rule 41 (Beta Value Restriction based on Dtype Long)
+{v_1 : tensor} |= if dtype_(v_1) = 4 then true
+>>
+Rule 47 (Check long dtype on CPU or GPU)
+{v_1 : tensor, v_2: str} |= if dtype_(v_1) = 4 then v_2 = "cpu"
+>>
+Rule 50 (Avoid Long dtype on CPU)
+{v_1 : tensor, v_2 : str, v_3 : float ⊎ int} |= if dtype_(v_1) = 4 then v_2 ≠ "cpu" ∨ v_3 = 0
+>>
+Rule 56 (Long tensors require CUDA or Beta = 0)
+{v_1 : tensor, v_2 : str} |= if dtype_(v_1) = 4 then v_2 ≠ "cpu"
+>>
+Rule 72 (Long tensors must have beta=0 if used)
+{v_1 : tensor, v_2 : float ⊎ int} |= if dtype_(v_1) = 4 then v_2 = 0
+>>
+Rule 75 (If tensor has Long dtype, beta should be zero, explicitly)
+{v_1 : tensor, v_2: float} |= if dtype_(v_1) = 4 then v_2 = 0
+>>
+Rule 78 (Long tensor requires beta = 0 for valid computation, revised)
+{v_1 : tensor} |= if dtype_(v_1) = 4 then ∀i ∈ [0, 0] : 0 = 0
+>>
+Rule 81 (If dtype is Long, beta should be zero, rewritten)
+{v_1: tensor} |= if dtype_(v_1) = 4 then true
+>>
+Rule 93 (If dtype is Long, beta should be 0 for CPU execution.)
+{v_1 : tensor, v_2 : str, v_3 : float} |= if dtype_(v_1) = 4 then v_3 = 0 ∨ v_2 ≠ "cpu"
