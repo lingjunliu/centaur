@@ -120,8 +120,7 @@ def generate_rules(api, lib, max_failures=100, timeout=60, llm="gemini"):
         chat = model.start_chat(history=[])
     elif llm == "openai":
         from llm.llm_utils import OAChatWrapper
-        model = "gpt-5"
-        chat = OAChatWrapper(model=model)
+        chat = OAChatWrapper()
     else:
         raise ValueError("Unsupported LLM. Choose 'gemini' or 'openai'.")
 

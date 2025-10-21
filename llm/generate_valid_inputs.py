@@ -182,8 +182,7 @@ def generate_inputs(api, suffix=0, max_attempts=5, lib="torch", llm="gemini"):
         client = genai.Client(api_key=gemini_key)
         chat = client.chats.create(model=model)
     elif llm == "openai":
-        model = "gpt-5"
-        chat = OAChatWrapper(model=model)
+        chat = OAChatWrapper()
     else:
         raise ValueError("llm must be either 'gemini' or 'openai'")
     
