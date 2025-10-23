@@ -19,8 +19,8 @@ fi
 export OMP_NUM_THREADS=1    # To prevent issues with coverage collection due to multithreading
 export TF_ENABLE_ONEDNN_OPTS=0  # Disable oneDNN optimizations for TensorFlow
 
-# Add 10 minutes (600 seconds) to account for rule refinement
-total_seconds=$((duration + 600))
+# Add 1h (3600 seconds) to account for rule refinement
+total_seconds=$((duration + 3600))
 
 # Convert to HH:MM:SS
 hours=$((total_seconds / 3600))
