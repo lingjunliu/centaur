@@ -93,7 +93,7 @@ def gen_concrete_input(domain, ll, arg="", rng=np.random.default_rng(42)):
         the provided rng will be used to generate the concrete input.
     '''    
     if domain in ["integer", "float", "string", "boolean", "dtype"]: # primitives and dtype
-        return list_of_available_dtypes[ll[1][0]](ll[0][0])
+        return list_of_available_dtypes[ll[1][0]](ll[0][0]) if ll[0][0] is not None else None
     elif domain == "tensor" or domain == "tensor_list": # tensors, uses the rng passed to the function        
         # Check high > low
         if ll[2][0] > ll[2][1]: # swap them
@@ -123,7 +123,8 @@ def gen_concrete_input(domain, ll, arg="", rng=np.random.default_rng(42)):
             if ll[2][0] > ll[2][1]: # swap them
                 ll[2] = [ll[2][1], ll[2][0]]
         
-        return rng.uniform(low=ll[2][0], high=ll[2][1], size=ll[0]).astype(list_of_available_dtypes[ll[1][0]])
+        val = rng.uniform(low=ll[2][0], high=ll[2][1], size=ll[0])
+        return val.astype(list_of_available_dtypes[ll[1][0]]) if val is not None else None
     elif domain == "tuple":
         # CORNER CASE: If the arg is out, the tuple is a tuple of tensors
         if arg == "out":
