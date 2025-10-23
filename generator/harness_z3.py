@@ -17,6 +17,8 @@ import logging
 
 def save_state(api, n_models, nominal, invalid, crash, excp, generated_inputs, tmp_results, input_dir, lib="torch"):
     total = nominal + invalid + crash + excp
+    if total == 0:
+        return
     valid_prcnt = round((total-invalid)*100/total,2) if total > 0 else 0
     # Save outputs
     csv_file = os.path.join(tmp_results, f"{api}_{lib}.csv")
