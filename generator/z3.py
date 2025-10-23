@@ -122,8 +122,11 @@ def sample_partitions(var_values_map, p, rng=np.random.default_rng(42)):
         sort_kind = var.sort().kind()
         if sort_kind == Z3_INT_SORT:
             if int(v2) - int(v1) < 2:
-                continue 
-            v = rng.integers(int(v1) + 1, int(v2))
+                continue
+            try:
+                v = rng.integers(int(v1) + 1, int(v2))
+            except ValueError:
+                continue
         elif sort_kind == Z3_REAL_SORT:
             if abs(v2 - v1) < 2e-6:
                 continue

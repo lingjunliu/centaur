@@ -115,8 +115,13 @@ def reduce_ruleset(ruleset, signature, api, z3_args, max_trial=30, time_budget=3
                 if elem not in block_all:
                     block_all.add(elem)
             print(f"Size of block_all: {len(block_all)}, {sys.getsizeof(block_all)*0.001*0.001} MB", flush=True)
-    
-            concrete_input, abstract_input = instantiate_args(model, signature, z3_args, lib=lib, sample_range=False)
+
+            try:
+                concrete_input, abstract_input = instantiate_args(model, signature, z3_args, lib=lib, sample_range=False)
+            except np.core._exceptions._ArrayMemoryError as e:
+                print("Skipping input due to the tensor being too large.")
+                continue
+            
             status, exception_message = oracle_crash(api, concrete_input, cpu=True, lib=lib)
             
             if status != "invalid":
@@ -348,15 +353,22 @@ def main():
     api, suffix = get_api_suffix(variant)
     # Try random generation for 60 seconds
     list_of_true_inv_apis = read_file_in_root(f"True_invariants_{lib}")
+    invariant_file = os.path.join(get_dir_in_root(f"invariants_{lib}"), variant)
     if variant not in list_of_true_inv_apis:
         print(f"Running random generation for {api} with suffix {suffix} for 60 seconds to collect baseline validity ratio.")
         valid, invalid, crash = random_fuzz(api, seed=42, duration=60, lib=lib)
         if invalid + crash == 0:
             print(f"API {api} does not throw exceptions with random inputs after running for 60 seconds. No invariants will be inferred.")
+            if os.path.isfile(invariant_file):
+                print(f"Removing existing invariants file for {variant} at {invariant_file}")
+                os.remove(invariant_file)
             append_file_in_root(f"True_invariants_{lib}", f"{variant}\n")
             return
     else:
         print(f"True invariants for {variant} already exist. Skipping random generation AND invariant inference.")
+        if os.path.isfile(invariant_file):
+            print(f"Removing existing invariants file for {variant} at {invariant_file}")
+            os.remove(invariant_file)
         return
 
     list_of_rulesets = infer_invariants(api, print_details=True, regen=regen, time_budget=budget, z3=True, lib=lib, suffix=suffix, reduce_rules=reduce)

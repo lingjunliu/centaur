@@ -122,8 +122,8 @@ def gen_concrete_input(domain, ll, arg="", rng=np.random.default_rng(42)):
             ll[2] = [ll[2][0]%2, ll[2][1]%2]
             if ll[2][0] > ll[2][1]: # swap them
                 ll[2] = [ll[2][1], ll[2][0]]
-        
-        val = rng.uniform(low=ll[2][0], high=ll[2][1], size=ll[0])
+
+        val = rng.uniform(low=ll[2][0], high=ll[2][1], size=ll[0]) if ll[0] is not None else None
         return val.astype(list_of_available_dtypes[ll[1][0]]) if val is not None else None
     elif domain == "tuple":
         # CORNER CASE: If the arg is out, the tuple is a tuple of tensors
@@ -171,7 +171,7 @@ def abstract_print(abstract, signature):
         if domain == "tensor": # tensors                
             printable += f'{arg}: \n\tshape: {tuple(ll[0])}\n\tdtype: {list_of_available_dtypes[ll[1][0]]}\n\trange: {(np.format_float_positional(ll[2][0]), np.format_float_positional(ll[2][1]))}\n'
         elif domain == "float": # floats
-            printable += f'{arg}: \n\tvalue: {np.format_float_positional(ll[0][0])}\n\tdtype: {list_of_available_dtypes[ll[1][0]]}\n'
+            printable += f'{arg}: \n\tvalue: {np.format_float_positional(ll[0][0]) if ll[0][0] is not None else None}\n\tdtype: {list_of_available_dtypes[ll[1][0]]}\n'
         else:
             printable += f'{arg}: \n\tvalue: {ll[0][0]}\n\tdtype: {list_of_available_dtypes[ll[1][0]]}\n'
         
