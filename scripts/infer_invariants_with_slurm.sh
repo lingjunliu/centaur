@@ -18,8 +18,8 @@ if [ -z "${elements_file}" ]; then
 fi
 export TF_ENABLE_ONEDNN_OPTS=0  # Disable oneDNN optimizations for TensorFlow
 
-# Add 10 minutes (600 seconds)
-total_seconds=$((duration + 600))
+# Add 1 hour (3600 seconds)
+total_seconds=$((duration + 3600))
 
 # Convert to HH:MM:SS
 hours=$((total_seconds / 3600))
