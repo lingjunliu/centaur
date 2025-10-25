@@ -1,0 +1,99 @@
+>>
+Rule 2 (Output tensor dtype should match source tensor dtype)
+{source : tensor, out : tensor} |= dtype_(source) = dtype_(out)
+>>
+Rule 3 (The storage size calculation should not overflow - simplified check for non-negative sizes)
+{size : tuple(int)} |= ∀ v_1 ∈ [0, shape(size) - 1] : size[v_1] ≥ 0
+>>
+Rule 4 (Negative strides are not supported)
+{stride : tuple(int)} |= ∀ v_1 ∈ [0, shape(stride) - 1] : stride[v_1] ≥ 0
+>>
+Rule 5 (Strides and shape should have the same length.)
+{size : tuple(int), stride : tuple(int)} |= shape(size) = shape(stride)
+>>
+Rule 6 (Storage offset should be non-negative.)
+{storage_offset : int} |= storage_offset ≥ 0
+>>
+Rule 18 (Combined size and stride rule, ensuring no out-of-bounds access - simplified)
+{size : tuple(int), stride : tuple(int)} |= (shape(size) = shape(stride)) ∧ (∀ v_1 ∈ [0, shape(size) - 1] : size[v_1] ≥ 0) ∧ (∀ v_2 ∈ [0, shape(stride) - 1] : stride[v_2] ≥ 0)
+>>
+Rule 19 (Avoid large sizes and strides that could lead to overflow during memory access)
+{size : tuple(int), stride : tuple(int)} |= (max(size) < 100000) ∧ (max(stride) < 100000)
+>>
+Rule 32 (Simplified storage size check to prevent out of bounds - needs source tensor information for complete check which isn't possible without more storage details)
+{size : tuple(int), stride : tuple(int), storage_offset : int} |= if shape(size) > 0 then storage_offset + (size[0] * stride[0]) ≤ 2147483647
+>>
+Rule 33 (Combined rule for non-negative sizes and strides to simplify)
+{size : tuple(int), stride : tuple(int)} |= (∀ v_1 ∈ [0, shape(size) - 1] : size[v_1] ≥ 0) ∧ (∀ v_2 ∈ [0, shape(stride) - 1] : stride[v_2] ≥ 0)
+>>
+Rule 36 (Sizes in the size tuple must be non-negative to prevent overflow, and shape should match stride length)
+{size : tuple(int), stride : tuple(int)} |= (∀ v_1 ∈ [0, shape(size) - 1] : size[v_1] ≥ 0) ∧ (shape(size) = shape(stride))
+>>
+Rule 44 (Check for combined size and stride values. Assuming itemsize = 1 for simplicity. A tighter bound is needed)
+{size : tuple(int), stride : tuple(int), storage_offset : int} |= if shape(size) > 0 then storage_offset + (size[0] * stride[0]) < 2147483647
+>>
+Rule 45 (Combined rule for non-negative size and stride values, storage offset, and shape length checks)
+{size : tuple(int), stride : tuple(int), storage_offset : int} |= (shape(size) = shape(stride)) ∧ (storage_offset ≥ 0) ∧ (∀ v_1 ∈ [0, shape(size) - 1] : size[v_1] ≥ 0) ∧ (∀ v_2 ∈ [0, shape(stride) - 1] : stride[v_2] ≥ 0)
+>>
+Rule 46 (Prevent excessively large sizes and strides.)
+{size : tuple(int), stride : tuple(int)} |= (max(size) < 10000) ∧ (max(stride) < 10000)
+>>
+Rule 51 (Check if any of the sizes are too large.)
+{size : tuple(int)} |= max(size) < 1000000
+>>
+Rule 52 (Check if any of the strides are too large.)
+{stride: tuple(int)} |= max(stride) < 1000000
+>>
+Rule 57 (Prevent sizes and strides exceeding maximum limit.)
+{size : tuple(int), stride : tuple(int)} |= (max(size) < 1000000) ∧ (max(stride) < 1000000)
+>>
+Rule 64 (Check storage size is valid given size and stride.)
+{size : tuple(int), stride : tuple(int), storage_offset:int, source: tensor} |= storage_offset + (size[0]*stride[0]) < shape(source)
+>>
+Rule 65 (Source tensor should have non-zero dimensions.)
+{source: tensor} |= ndim(source) > 0
+>>
+Rule 72 (Check if storage size is valid given size and stride using min and max)
+{size : tuple(int), stride : tuple(int), storage_offset:int, source: tensor} |= storage_offset + (max(size) * max(stride)) < shape(source)
+>>
+Rule 85 (Enforce a reasonable upper bound on the storage offset value, independent of size/stride)
+{storage_offset:int} |=  storage_offset < 100000000
+>>
+Rule 86 (Avoid negative sizes)
+{size : tuple(int)} |=  ∀ v_1 ∈ [0, shape(size) - 1] : size[v_1] > -1
+>>
+Rule 93 (Check for storage overflow with simplified calculation)
+{size : tuple(int), stride : tuple(int), storage_offset : int} |= storage_offset + (min(size) * min(stride)) < 2147483647
+>>
+Rule 96 (Combined size and stride checks: non-negative sizes, matching shapes, and non-negative strides + a simpler storage check to try.)
+{size : tuple(int), stride : tuple(int), storage_offset: int} |= (shape(size) = shape(stride)) ∧ (∀ v_1 ∈ [0, shape(size) - 1] : size[v_1] ≥ 0) ∧ (∀ v_2 ∈ [0, shape(stride) - 1] : stride[v_2] ≥ 0) ∧ (storage_offset + (max(size) * max(stride)) < 2147483647)
+>>
+Rule 99 (Storage offset cannot be too big)
+{storage_offset : int} |= storage_offset < 2147483647
+>>
+Rule 102 (Simplified size and stride validation)
+{size : tuple(int), stride : tuple(int)} |= (shape(size) = shape(stride)) ∧ (∀ v_1 ∈ [0, shape(size) - 1] : size[v_1] ≥ 0) ∧ (∀ v_2 ∈ [0, shape(stride) - 1] : stride[v_2] ≥ 0) ∧ (max(size) < 1000000) ∧ (max(stride) < 1000000)
+>>
+Rule 105 (Combined rule to avoid storage size errors, may need to be adapted when more itemsize info is known)
+{size : tuple(int), stride : tuple(int), storage_offset : int} |= (storage_offset + (max(size) * max(stride)) < 2147483647)
+>>
+Rule 107 (Storage offset must be a non-negative integer and have an upper bound to prevent overflow)
+{storage_offset : int} |= (storage_offset ≥ 0) ∧ (storage_offset < 2147483647)
+>>
+Rule 110 (Protect against potential storage out of bounds access. Still requires more source info for robust calculation)
+{size : tuple(int), stride : tuple(int), storage_offset : int} |= (storage_offset + (max(size) * max(stride)) < 2147483647) ∧ (max(size) < 1000000) ∧ (max(stride) < 1000000)
+>>
+Rule 115 (Upper limit on dimensions)
+{size : tuple(int)} |= ndim(size) < 10
+>>
+Rule 122 (Very basic check for possible storage out-of-bounds error from size, stride, and offset calculation. This rule requires more source tensor information to perform a full accurate check.)
+{size : tuple(int), stride : tuple(int), storage_offset : int} |= (storage_offset + (max(size) * max(stride))) < 2147483647
+>>
+Rule 123 (The shape of source tensor and out tensor should match)
+{source : tensor, out : tensor} |= shape(source) = shape(out)
+>>
+Rule 127 (Shape of size and stride should be the same)
+{size : tuple(int), stride : tuple(int)} |= (shape(size) = shape(stride))
+>>
+Rule 137 (Simplified memory check, without accessing source shape. We want to prevent the access going out of source tensor bounds.)
+{size : tuple(int), stride : tuple(int), storage_offset : int} |= (storage_offset + (min(size) * min(stride))) < 2147483647
