@@ -123,7 +123,7 @@ def gen_concrete_input(domain, ll, arg="", rng=np.random.default_rng(42)):
             if ll[2][0] > ll[2][1]: # swap them
                 ll[2] = [ll[2][1], ll[2][0]]
 
-        val = rng.uniform(low=ll[2][0], high=ll[2][1], size=ll[0]) if ll[0] is not None else None
+        val = rng.uniform(low=ll[2][0], high=ll[2][1], size=ll[0]) if None not in ll[0] else None
         return val.astype(list_of_available_dtypes[ll[1][0]]) if val is not None else None
     elif domain == "tuple":
         # CORNER CASE: If the arg is out, the tuple is a tuple of tensors
@@ -132,7 +132,7 @@ def gen_concrete_input(domain, ll, arg="", rng=np.random.default_rng(42)):
         
         return tuple([list_of_available_dtypes[ll[1][0]](x) for x in ll[0]])
     elif domain == "list":
-        return [list_of_available_dtypes[ll[1][0]](x) for x in ll[0]]
+        return [list_of_available_dtypes[ll[1][0]](x) if x is not None else None for x in ll[0]]
     else:
         raise NotImplementedError(f"Not implemented for {domain} yet")
     
