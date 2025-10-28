@@ -59,8 +59,7 @@ def get_input_size(input, signature):
 
 def get_dir_in_root(subdir):
     dir = os.path.join(CUR_DIR, f"../{subdir}")
-    if not os.path.isdir(dir):
-        os.mkdir(dir)
+    os.makedirs(dir, exist_ok=True)
     
     return dir
 
