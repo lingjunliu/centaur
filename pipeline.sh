@@ -40,8 +40,9 @@ if [ "$retry" -eq 1 ]; then
 fi
 # Step 3: Fuzz with the generated models: <duration> <n_inputs> <library> <seed>
 bash scripts/fuzz_with_slurm.sh 180 0 $lib $seed
+# Step 4: Collect coverage
 if [ "$lib" = "torch" ]; then
-  # Step 4: Collect coverage: <n_inputs>
+  # Step 4: Collect coverage: <n_inputs> <library> <html/lcov> <native_only>
   bash scripts/coverage_with_slurm.sh 0 $lib html False
 elif [ "$lib" = "tf" ]; then
   # Step 4: Collect coverage using Docker (Put resource limits here)
@@ -53,3 +54,12 @@ else
   echo "Error: Unsupported library '$lib'. Supported libraries are 'torch' and 'tf'."
   exit 1
 fi
+
+# Save the results
+timestamp=$(date +"%Y%m%d_%H%M%S")
+mv logs .tmp/
+cp -r corpus_${lib} .tmp/
+cp -r invariants_${lib} .tmp/
+zip -r results_${lib}_$timestamp.zip .tmp
+
+echo "Pipeline completed. Results saved to results_${lib}_$timestamp.zip (size: $(du -h results_${lib}_$timestamp.zip | cut -f1))"
