@@ -130,7 +130,7 @@ def gen_concrete_input(domain, ll, arg="", rng=np.random.default_rng(42)):
         if arg == "out":
             return tuple([np.array([]) for x in ll[0]])
         
-        return tuple([list_of_available_dtypes[ll[1][0]](x) for x in ll[0]])
+        return tuple([list_of_available_dtypes[ll[1][0]](x) if x is not None else None for x in ll[0]])
     elif domain == "list":
         return [list_of_available_dtypes[ll[1][0]](x) if x is not None else None for x in ll[0]]
     else:
