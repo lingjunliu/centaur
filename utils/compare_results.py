@@ -36,6 +36,21 @@ def main():
     merged_cov = pd.merge(cov_1, cov_2, on='api', suffixes=(f"_{suffix_1}", f"_{suffix_2}"))
     merged_fuzz = pd.merge(fuzz_1, fuzz_2, on='api', suffixes=(f"_{suffix_1}", f"_{suffix_2}"))
 
+    # Add a new column 'diff' to merged_cov which is the difference between the two 'cov' columns
+    merged_cov['diff'] = merged_cov[f'cov_{suffix_1}'] - merged_cov[f'cov_{suffix_2}']
+    merged_fuzz['diff'] = merged_fuzz[f'valid_prcnt_{suffix_1}'] - merged_fuzz[f'valid_prcnt_{suffix_2}']
+
+    # Add a new row at the end of merged_cov with the average of each column and round to 2 decimal places
+    avg_row_cov = pd.DataFrame(merged_cov.mean(numeric_only=True)).T
+    avg_row_cov = avg_row_cov.round(2)
+    avg_row_cov['api'] = 'average'
+    merged_cov = pd.concat([merged_cov, avg_row_cov], ignore_index=True)
+    # Add a new row at the end of merged_fuzz with the average of each column
+    avg_row_fuzz = pd.DataFrame(merged_fuzz.mean(numeric_only=True)).T
+    avg_row_fuzz = avg_row_fuzz.round(2)
+    avg_row_fuzz['api'] = 'average'
+    merged_fuzz = pd.concat([merged_fuzz, avg_row_fuzz], ignore_index=True)
+
     # Get a list of apis that are in cov_1 but not in cov_2 and vice versa
     apis_only_in_1 = set(cov_1['api']) - set(cov_2['api'])
     apis_only_in_2 = set(cov_2['api']) - set(cov_1['api'])
