@@ -7,12 +7,27 @@ os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 import numpy as np
 from utils.new_api_utils import get_n_variations, get_signature, get_doc_tf, get_api_suffix
 from utils.misc import read_file_in_root, bcolors
-from llm.llm_utils import OAChatWrapper, fetch_documentation, extract_code_from_response, extract_function_info
+from llm.llm_utils import (
+    OAChatWrapper,
+    fetch_documentation,
+    extract_code_from_response,
+    extract_function_info,
+    Response,
+    collect_token_usage,
+)
 import logging
 import sys
 
 CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 logger = logging.getLogger(__name__)
+
+def format_usage(usage):
+    if not usage:
+        return "Token usage: input=n/a, output=n/a, total=n/a"
+    input_tokens = usage.get("input_tokens", "n/a")
+    output_tokens = usage.get("output_tokens", "n/a")
+    total_tokens = usage.get("total_tokens", "n/a")
+    return f"Token usage: input={input_tokens}, output={output_tokens}, total={total_tokens}"
 
 def get_prompt(api, lib="torch", suffix=0):
     examples = {
@@ -196,8 +211,16 @@ def generate_inputs(api, suffix=0, max_attempts=5, lib="torch", llm="gemini"):
         return [api, api] + [1]*max_attempts
 
     try:
-        response = chat.send_message(prompt)
-        logger.info(f"[Response]\n\n{response.text}\n\n")
+        raw_response = chat.send_message(prompt)
+        if isinstance(raw_response, Response):
+            response_obj = raw_response
+        else:
+            response_text = getattr(raw_response, "text", None) or getattr(raw_response, "output_text", "")
+            usage_metadata = collect_token_usage(getattr(raw_response, "usage_metadata", None))
+            response_obj = Response(text=response_text, usage=usage_metadata)
+
+        logger.info(f"[Response]\n\n{response_obj.text}\n\n")
+        logger.info(f"[Usage]\n\n{format_usage(response_obj.usage)}\n\n")
     except genai.errors.ServerError as ge:
         print(f"{bcolors.WARNING}Server overloaded. Error: {str(ge)}{bcolors.ENDC}")
         print(f"{bcolors.WARNING}Waiting 10 seconds before retrying...{bcolors.ENDC}")
@@ -209,7 +232,7 @@ def generate_inputs(api, suffix=0, max_attempts=5, lib="torch", llm="gemini"):
         time.sleep(10)
         return generate_inputs(api, suffix=suffix, max_attempts=max_attempts, lib=lib, llm=llm)
     print(f"Got response from {llm} API.")
-    code = extract_code_from_response(response.text, llm=llm)
+    code = extract_code_from_response(response_obj.text, llm=llm)
     output, error = save_and_run_code(api, code, suffix=suffix, lib=lib, llm=llm)
     logger.info(f"[Output]\n\n{output}\n\n")
     logger.info(f"[Error]\n\n{error}\n\n") if error else logger.info("No error\n\n")
@@ -224,7 +247,7 @@ def generate_inputs(api, suffix=0, max_attempts=5, lib="torch", llm="gemini"):
         prompt = retry_prompt(error)
         logger.info(f"[Retry Prompt]\n\n{prompt}\n\n")
         try:
-            response = chat.send_message(prompt)
+            raw_response = chat.send_message(prompt)
         except genai.errors.ServerError as ge:
             print(f"{bcolors.WARNING}Server overloaded. Error: {str(ge)}{bcolors.ENDC}")
             print(f"{bcolors.WARNING}Waiting 10 seconds before retrying...{bcolors.ENDC}")
@@ -235,9 +258,17 @@ def generate_inputs(api, suffix=0, max_attempts=5, lib="torch", llm="gemini"):
             print(f"{bcolors.WARNING}Waiting 10 seconds before retrying...{bcolors.ENDC}")
             time.sleep(10)
             continue
-        print("Got response from Gemini API.")
-        logger.info(f"[Response]\n\n{response.text}\n\n")
-        code = extract_code_from_response(response.text, llm=llm)
+        if isinstance(raw_response, Response):
+            response_obj = raw_response
+        else:
+            response_text = getattr(raw_response, "text", None) or getattr(raw_response, "output_text", "")
+            usage_metadata = collect_token_usage(getattr(raw_response, "usage_metadata", None))
+            response_obj = Response(text=response_text, usage=usage_metadata)
+
+        print(f"Got response from {llm} API.")
+        logger.info(f"[Response]\n\n{response_obj.text}\n\n")
+        logger.info(f"[Usage]\n\n{format_usage(response_obj.usage)}\n\n")
+        code = extract_code_from_response(response_obj.text, llm=llm)
         output, error = save_and_run_code(api, code, suffix=suffix, lib=lib, llm=llm)
         logger.info(f"[Output]\n\n{output}\n\n")
         logger.info(f"[Error]\n\n{error}\n\n") if error else logger.info("No error\n\n")
