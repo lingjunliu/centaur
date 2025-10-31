@@ -8,6 +8,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from collections import defaultdict
 from utils.defaults import list_of_string_values_torch, list_of_string_values_tf
 from utils.new_api_utils import get_signature, get_n_variations
+from llm.llm_utils import OAChatWrapper, Response, collect_token_usage
 
 with open("grammar.lark", "r", encoding="utf-8") as f:
     grammar = f.read()
@@ -72,13 +73,18 @@ def load_example_rules(path="examples", k=5):
     examples = [(lines[i], lines[i + 1]) for i in range(0, len(lines), 2)]
     return random.sample(examples, min(k, len(examples)))
 
-def log_response(label, prompt, response, dir_path, num_failures=0):
+def log_response(label, prompt, response, dir_path, num_failures=0, token_usage=None):
     log_path = os.path.join(dir_path, "log-rulegen")
     with open(log_path, "a", encoding="utf-8") as log_file:
         log_file.write(">>> PROMPT\n")
         log_file.write(prompt.strip() + "\n\n")
         log_file.write("<<< RESPONSE\n")
         log_file.write(response.strip() + "\n")
+        usage = token_usage or {}
+        input_tokens = usage.get("input_tokens", "n/a")
+        output_tokens = usage.get("output_tokens", "n/a")
+        total_tokens = usage.get("total_tokens", "n/a")
+        log_file.write(f"Token usage: input={input_tokens}, output={output_tokens}, total={total_tokens}\n")
         log_file.write(f"** {label.upper()} **")
         if num_failures:
             log_file.write(f" (num_failures: {num_failures})\n\n")
@@ -119,7 +125,6 @@ def generate_rules(api, lib, max_failures=100, timeout=60, llm="gemini"):
         model = genai.GenerativeModel(model_name="gemini-2.0-flash")
         chat = model.start_chat(history=[])
     elif llm == "openai":
-        from llm.llm_utils import OAChatWrapper
         chat = OAChatWrapper()
     else:
         raise ValueError("Unsupported LLM. Choose 'gemini' or 'openai'.")
@@ -253,9 +258,16 @@ def generate_rules(api, lib, max_failures=100, timeout=60, llm="gemini"):
         prompt += "** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **\n"
         prompt += "** IMPORTANT: For module classes returning instances, include rules for their parameters. **\n"
 
-        response = chat.send_message(prompt)
-        response = response.text.strip().replace('\u2212', '-').replace(' else true', '')
-        lines = response.splitlines()
+        raw_response = chat.send_message(prompt)
+        if isinstance(raw_response, Response):
+            response_obj = raw_response
+        else:
+            response_text_raw = getattr(raw_response, "text", "") or ""
+            usage_metadata = collect_token_usage(getattr(raw_response, "usage_metadata", None))
+            response_obj = Response(text=response_text_raw, usage=usage_metadata)
+
+        response_text = (response_obj.text or "").strip().replace('\u2212', '-').replace(' else true', '')
+        lines = response_text.splitlines()
 
         feedback_messages = []
         new_rules = []
@@ -278,7 +290,7 @@ def generate_rules(api, lib, max_failures=100, timeout=60, llm="gemini"):
             num_failures += 1
             msg = "No valid rules detected. Please follow the expected output format for each rule."
             feedback_messages.append(msg)
-            log_response("format error", prompt, response, dir_path, num_failures)
+            log_response("format error", prompt, response_text, dir_path, num_failures=num_failures, token_usage=response_obj.usage)
             feedback = "\n".join(feedback_messages)
             continue
 
@@ -297,14 +309,14 @@ def generate_rules(api, lib, max_failures=100, timeout=60, llm="gemini"):
                 msg = f"Redundant variables: {rule_def} (Unused: {', '.join(redundant_vars)})"
                 num_failures += 1
                 feedback_messages.append(msg)
-                log_response("redundant variables", prompt, rule_text, dir_path, num_failures)
+                log_response("redundant variables", prompt, rule_text, dir_path, num_failures=num_failures, token_usage=response_obj.usage)
                 continue
 
             if rule_def in rule_defs:
                 msg = f"Duplicated rule: {rule_def}"
                 num_failures += 1
                 feedback_messages.append(msg)
-                log_response("duplicated rule", prompt, rule_text, dir_path, num_failures)
+                log_response("duplicated rule", prompt, rule_text, dir_path, num_failures=num_failures, token_usage=response_obj.usage)
                 continue
 
             try:
@@ -313,13 +325,13 @@ def generate_rules(api, lib, max_failures=100, timeout=60, llm="gemini"):
                 msg = f"Parse error: {rule_def} (Error: {str(e)})"
                 num_failures += 1
                 feedback_messages.append(msg)
-                log_response("parsing error", prompt, rule_text, dir_path, num_failures)
+                log_response("parsing error", prompt, rule_text, dir_path, num_failures=num_failures, token_usage=response_obj.usage)
                 continue
 
             with open(file_path, "a", encoding="utf-8") as f:
                 f.write(">>\n" + rule_text + "\n")
 
-            log_response("success", prompt, rule_text, dir_path)
+            log_response("success", prompt, rule_text, dir_path, token_usage=response_obj.usage)
             rule_defs.add(rule_def)
 
         feedback = "\n".join(feedback_messages)
