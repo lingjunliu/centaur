@@ -351,21 +351,24 @@ def main():
     reduce = int(sys.argv[5]) == 1 if len(sys.argv) > 5 else True
     
     api, suffix = get_api_suffix(variant)
+    
+    ## Since we already have true invariants for some APIs, we skip random generation
     # Try random generation for 60 seconds
     list_of_true_inv_apis = read_file_in_root(f"True_invariants_{lib}")
     invariant_file = os.path.join(get_dir_in_root(f"invariants_{lib}"), variant)
     if variant not in list_of_true_inv_apis:
-        print(f"Running random generation for {api} with suffix {suffix} for 60 seconds to collect baseline validity ratio.")
-        valid, invalid, crash = random_fuzz(api, seed=42, duration=60, lib=lib)
-        if invalid + crash == 0:
-            print(f"API {api} does not throw exceptions with random inputs after running for 60 seconds. No invariants will be inferred.")
-            if os.path.isfile(invariant_file):
-                print(f"Removing existing invariants file for {variant} at {invariant_file}")
-                os.remove(invariant_file)
-            append_file_in_root(f"True_invariants_{lib}", f"{variant}\n")
-            return
+        # print(f"Running random generation for {api} with suffix {suffix} for 60 seconds to collect baseline validity ratio.")
+        # valid, invalid, crash = random_fuzz(api, seed=42, duration=60, lib=lib)
+        # if invalid + crash == 0:
+        #     print(f"API {api} does not throw exceptions with random inputs after running for 60 seconds. No invariants will be inferred.")
+        #     if os.path.isfile(invariant_file):
+        #         print(f"Removing existing invariants file for {variant} at {invariant_file}")
+        #         os.remove(invariant_file)
+        #     append_file_in_root(f"True_invariants_{lib}", f"{variant}\n")
+        #     return
+        print(f"True invariants for {variant} do not exist. Proceeding with invariant inference.")
     else:
-        print(f"True invariants for {variant} already exist. Skipping random generation AND invariant inference.")
+        print(f"True invariants for {variant} already exist. Skipping invariant inference.")
         if os.path.isfile(invariant_file):
             print(f"Removing existing invariants file for {variant} at {invariant_file}")
             os.remove(invariant_file)

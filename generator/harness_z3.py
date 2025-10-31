@@ -135,16 +135,17 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
         else:
             concrete_input, abstract_input = instantiate_args(model, cur_sig, model_collection[selected_suffix]['z3_args'], seed=seed, lib=lib)
         
-        full_sig = get_signature_of_input(api, concrete_input, lib=lib)
+        # Skipping setting optional parameters to None with some probability
+        # full_sig = get_signature_of_input(api, concrete_input, lib=lib)
 
-        optional_params = set(full_sig.get("kwargs", {}).keys())
-        optional_params.update(['layout', 'memory_format'])
-        optional_none_prob = 0.2
+        # optional_params = set(full_sig.get("kwargs", {}).keys())
+        # optional_params.update(['layout', 'memory_format'])
+        # optional_none_prob = 0.2
 
-        for param in optional_params:
-            if param in concrete_input and rng_model.random() < optional_none_prob:
-                concrete_input[param] = None
-                abstract_input[param][0] = [None]
+        # for param in optional_params:
+        #     if param in concrete_input and rng_model.random() < optional_none_prob:
+        #         concrete_input[param] = None
+        #         abstract_input[param][0] = [None]
 
         generated_inputs.append((time.time(), abstract_input, seed, selected_suffix))  # first element is distance, set as 0 for consistency
 
