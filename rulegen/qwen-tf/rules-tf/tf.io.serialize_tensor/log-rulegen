@@ -1,0 +1,990 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.io.serialize_tensor API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Transforms a Tensor into a serialized TensorProto proto.
+
+  This operation transforms data in a `tf.Tensor` into a `tf.Tensor` of type
+  `tf.string` containing the data in a binary string in little-endian format.
+  This operation can transform scalar data and linear arrays, but it is most
+  useful in converting multidimensional arrays into a format accepted by binary
+  storage formats such as a `TFRecord` or `tf.train.Example`.
+
+  See also:
+  - `tf.io.parse_tensor`: inverse operation of `tf.io.serialize_tensor` that
+  transforms a scalar string containing a serialized Tensor in little-endian
+  format into a Tensor of a specified type.
+  - `tf.ensure_shape`: `parse_tensor` cannot statically determine the shape of
+  the parsed tensor. Use `tf.ensure_shape` to set the static shape when running
+  under a `tf.function`
+  - `.SerializeToString`, serializes a proto to a binary-string
+
+  Example of serializing scalar data:
+
+  >>> t = tf.constant(1)
+  >>> tf.io.serialize_tensor(t)
+  <tf.Tensor: shape=(), dtype=string, numpy=b'\x08...\x00'>
+
+  Example of storing non-scalar data into a `tf.train.Example`:
+
+  >>> t1 = [[1, 2]]
+  >>> t2 = [[7, 8]]
+  >>> nonscalar = tf.concat([t1, t2], 0)
+  >>> nonscalar
+  <tf.Tensor: shape=(2, 2), dtype=int32, numpy=
+  array([[1, 2],
+         [7, 8]], dtype=int32)>
+
+  Serialize the data using `tf.io.serialize_tensor`.
+
+  >>> serialized_nonscalar = tf.io.serialize_tensor(nonscalar)
+  >>> serialized_nonscalar
+  <tf.Tensor: shape=(), dtype=string, numpy=b'\x08...\x00'>
+
+  Store the data in a `tf.train.Feature`.
+
+  >>> feature_of_bytes = tf.train.Feature(
+  ...   bytes_list=tf.train.BytesList(value=[serialized_nonscalar.numpy()]))
+  >>> feature_of_bytes
+  bytes_list {
+    value: "\010...\000"
+  }
+
+  Put the `tf.train.Feature` message into a `tf.train.Example`.
+
+  >>> features_for_example = {
+  ...   'feature0': feature_of_bytes
+  ... }
+  >>> example_proto = tf.train.Example(
+  ...   features=tf.train.Features(feature=features_for_example))
+  >>> example_proto
+  features {
+    feature {
+      key: "feature0"
+      value {
+        bytes_list {
+          value: "\010...\000"
+        }
+      }
+    }
+  }
+
+  Args:
+    tensor: A `tf.Tensor`.
+    name: string.  Optional name for the op.
+
+  Returns:
+    A Tensor of dtype string.
+
+[API Signature] tensor: tensor, name: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (valid tensor rank is non-negative)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.io.serialize_tensor API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Transforms a Tensor into a serialized TensorProto proto.
+
+  This operation transforms data in a `tf.Tensor` into a `tf.Tensor` of type
+  `tf.string` containing the data in a binary string in little-endian format.
+  This operation can transform scalar data and linear arrays, but it is most
+  useful in converting multidimensional arrays into a format accepted by binary
+  storage formats such as a `TFRecord` or `tf.train.Example`.
+
+  See also:
+  - `tf.io.parse_tensor`: inverse operation of `tf.io.serialize_tensor` that
+  transforms a scalar string containing a serialized Tensor in little-endian
+  format into a Tensor of a specified type.
+  - `tf.ensure_shape`: `parse_tensor` cannot statically determine the shape of
+  the parsed tensor. Use `tf.ensure_shape` to set the static shape when running
+  under a `tf.function`
+  - `.SerializeToString`, serializes a proto to a binary-string
+
+  Example of serializing scalar data:
+
+  >>> t = tf.constant(1)
+  >>> tf.io.serialize_tensor(t)
+  <tf.Tensor: shape=(), dtype=string, numpy=b'\x08...\x00'>
+
+  Example of storing non-scalar data into a `tf.train.Example`:
+
+  >>> t1 = [[1, 2]]
+  >>> t2 = [[7, 8]]
+  >>> nonscalar = tf.concat([t1, t2], 0)
+  >>> nonscalar
+  <tf.Tensor: shape=(2, 2), dtype=int32, numpy=
+  array([[1, 2],
+         [7, 8]], dtype=int32)>
+
+  Serialize the data using `tf.io.serialize_tensor`.
+
+  >>> serialized_nonscalar = tf.io.serialize_tensor(nonscalar)
+  >>> serialized_nonscalar
+  <tf.Tensor: shape=(), dtype=string, numpy=b'\x08...\x00'>
+
+  Store the data in a `tf.train.Feature`.
+
+  >>> feature_of_bytes = tf.train.Feature(
+  ...   bytes_list=tf.train.BytesList(value=[serialized_nonscalar.numpy()]))
+  >>> feature_of_bytes
+  bytes_list {
+    value: "\010...\000"
+  }
+
+  Put the `tf.train.Feature` message into a `tf.train.Example`.
+
+  >>> features_for_example = {
+  ...   'feature0': feature_of_bytes
+  ... }
+  >>> example_proto = tf.train.Example(
+  ...   features=tf.train.Features(feature=features_for_example))
+  >>> example_proto
+  features {
+    feature {
+      key: "feature0"
+      value {
+        bytes_list {
+          value: "\010...\000"
+        }
+      }
+    }
+  }
+
+  Args:
+    tensor: A `tf.Tensor`.
+    name: string.  Optional name for the op.
+
+  Returns:
+    A Tensor of dtype string.
+
+[API Signature] tensor: tensor, name: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (all tensor dimensions are non-negative)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.io.serialize_tensor API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Transforms a Tensor into a serialized TensorProto proto.
+
+  This operation transforms data in a `tf.Tensor` into a `tf.Tensor` of type
+  `tf.string` containing the data in a binary string in little-endian format.
+  This operation can transform scalar data and linear arrays, but it is most
+  useful in converting multidimensional arrays into a format accepted by binary
+  storage formats such as a `TFRecord` or `tf.train.Example`.
+
+  See also:
+  - `tf.io.parse_tensor`: inverse operation of `tf.io.serialize_tensor` that
+  transforms a scalar string containing a serialized Tensor in little-endian
+  format into a Tensor of a specified type.
+  - `tf.ensure_shape`: `parse_tensor` cannot statically determine the shape of
+  the parsed tensor. Use `tf.ensure_shape` to set the static shape when running
+  under a `tf.function`
+  - `.SerializeToString`, serializes a proto to a binary-string
+
+  Example of serializing scalar data:
+
+  >>> t = tf.constant(1)
+  >>> tf.io.serialize_tensor(t)
+  <tf.Tensor: shape=(), dtype=string, numpy=b'\x08...\x00'>
+
+  Example of storing non-scalar data into a `tf.train.Example`:
+
+  >>> t1 = [[1, 2]]
+  >>> t2 = [[7, 8]]
+  >>> nonscalar = tf.concat([t1, t2], 0)
+  >>> nonscalar
+  <tf.Tensor: shape=(2, 2), dtype=int32, numpy=
+  array([[1, 2],
+         [7, 8]], dtype=int32)>
+
+  Serialize the data using `tf.io.serialize_tensor`.
+
+  >>> serialized_nonscalar = tf.io.serialize_tensor(nonscalar)
+  >>> serialized_nonscalar
+  <tf.Tensor: shape=(), dtype=string, numpy=b'\x08...\x00'>
+
+  Store the data in a `tf.train.Feature`.
+
+  >>> feature_of_bytes = tf.train.Feature(
+  ...   bytes_list=tf.train.BytesList(value=[serialized_nonscalar.numpy()]))
+  >>> feature_of_bytes
+  bytes_list {
+    value: "\010...\000"
+  }
+
+  Put the `tf.train.Feature` message into a `tf.train.Example`.
+
+  >>> features_for_example = {
+  ...   'feature0': feature_of_bytes
+  ... }
+  >>> example_proto = tf.train.Example(
+  ...   features=tf.train.Features(feature=features_for_example))
+  >>> example_proto
+  features {
+    feature {
+      key: "feature0"
+      value {
+        bytes_list {
+          value: "\010...\000"
+        }
+      }
+    }
+  }
+
+  Args:
+    tensor: A `tf.Tensor`.
+    name: string.  Optional name for the op.
+
+  Returns:
+    A Tensor of dtype string.
+
+[API Signature] tensor: tensor, name: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (scalar or non-scalar tensors are allowed)
+{v_1 : tensor} |= ndim(v_1) = 0 ∨ ndim(v_1) ≥ 1
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.io.serialize_tensor API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Transforms a Tensor into a serialized TensorProto proto.
+
+  This operation transforms data in a `tf.Tensor` into a `tf.Tensor` of type
+  `tf.string` containing the data in a binary string in little-endian format.
+  This operation can transform scalar data and linear arrays, but it is most
+  useful in converting multidimensional arrays into a format accepted by binary
+  storage formats such as a `TFRecord` or `tf.train.Example`.
+
+  See also:
+  - `tf.io.parse_tensor`: inverse operation of `tf.io.serialize_tensor` that
+  transforms a scalar string containing a serialized Tensor in little-endian
+  format into a Tensor of a specified type.
+  - `tf.ensure_shape`: `parse_tensor` cannot statically determine the shape of
+  the parsed tensor. Use `tf.ensure_shape` to set the static shape when running
+  under a `tf.function`
+  - `.SerializeToString`, serializes a proto to a binary-string
+
+  Example of serializing scalar data:
+
+  >>> t = tf.constant(1)
+  >>> tf.io.serialize_tensor(t)
+  <tf.Tensor: shape=(), dtype=string, numpy=b'\x08...\x00'>
+
+  Example of storing non-scalar data into a `tf.train.Example`:
+
+  >>> t1 = [[1, 2]]
+  >>> t2 = [[7, 8]]
+  >>> nonscalar = tf.concat([t1, t2], 0)
+  >>> nonscalar
+  <tf.Tensor: shape=(2, 2), dtype=int32, numpy=
+  array([[1, 2],
+         [7, 8]], dtype=int32)>
+
+  Serialize the data using `tf.io.serialize_tensor`.
+
+  >>> serialized_nonscalar = tf.io.serialize_tensor(nonscalar)
+  >>> serialized_nonscalar
+  <tf.Tensor: shape=(), dtype=string, numpy=b'\x08...\x00'>
+
+  Store the data in a `tf.train.Feature`.
+
+  >>> feature_of_bytes = tf.train.Feature(
+  ...   bytes_list=tf.train.BytesList(value=[serialized_nonscalar.numpy()]))
+  >>> feature_of_bytes
+  bytes_list {
+    value: "\010...\000"
+  }
+
+  Put the `tf.train.Feature` message into a `tf.train.Example`.
+
+  >>> features_for_example = {
+  ...   'feature0': feature_of_bytes
+  ... }
+  >>> example_proto = tf.train.Example(
+  ...   features=tf.train.Features(feature=features_for_example))
+  >>> example_proto
+  features {
+    feature {
+      key: "feature0"
+      value {
+        bytes_list {
+          value: "\010...\000"
+        }
+      }
+    }
+  }
+
+  Args:
+    tensor: A `tf.Tensor`.
+    name: string.  Optional name for the op.
+
+  Returns:
+    A Tensor of dtype string.
+
+[API Signature] tensor: tensor, name: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (dimension checks conditioned on having rank > 0)
+{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) ≥ 0 ∧ shape(v_1, ndim(v_1) - 1) ≥ 0
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.io.serialize_tensor API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Transforms a Tensor into a serialized TensorProto proto.
+
+  This operation transforms data in a `tf.Tensor` into a `tf.Tensor` of type
+  `tf.string` containing the data in a binary string in little-endian format.
+  This operation can transform scalar data and linear arrays, but it is most
+  useful in converting multidimensional arrays into a format accepted by binary
+  storage formats such as a `TFRecord` or `tf.train.Example`.
+
+  See also:
+  - `tf.io.parse_tensor`: inverse operation of `tf.io.serialize_tensor` that
+  transforms a scalar string containing a serialized Tensor in little-endian
+  format into a Tensor of a specified type.
+  - `tf.ensure_shape`: `parse_tensor` cannot statically determine the shape of
+  the parsed tensor. Use `tf.ensure_shape` to set the static shape when running
+  under a `tf.function`
+  - `.SerializeToString`, serializes a proto to a binary-string
+
+  Example of serializing scalar data:
+
+  >>> t = tf.constant(1)
+  >>> tf.io.serialize_tensor(t)
+  <tf.Tensor: shape=(), dtype=string, numpy=b'\x08...\x00'>
+
+  Example of storing non-scalar data into a `tf.train.Example`:
+
+  >>> t1 = [[1, 2]]
+  >>> t2 = [[7, 8]]
+  >>> nonscalar = tf.concat([t1, t2], 0)
+  >>> nonscalar
+  <tf.Tensor: shape=(2, 2), dtype=int32, numpy=
+  array([[1, 2],
+         [7, 8]], dtype=int32)>
+
+  Serialize the data using `tf.io.serialize_tensor`.
+
+  >>> serialized_nonscalar = tf.io.serialize_tensor(nonscalar)
+  >>> serialized_nonscalar
+  <tf.Tensor: shape=(), dtype=string, numpy=b'\x08...\x00'>
+
+  Store the data in a `tf.train.Feature`.
+
+  >>> feature_of_bytes = tf.train.Feature(
+  ...   bytes_list=tf.train.BytesList(value=[serialized_nonscalar.numpy()]))
+  >>> feature_of_bytes
+  bytes_list {
+    value: "\010...\000"
+  }
+
+  Put the `tf.train.Feature` message into a `tf.train.Example`.
+
+  >>> features_for_example = {
+  ...   'feature0': feature_of_bytes
+  ... }
+  >>> example_proto = tf.train.Example(
+  ...   features=tf.train.Features(feature=features_for_example))
+  >>> example_proto
+  features {
+    feature {
+      key: "feature0"
+      value {
+        bytes_list {
+          value: "\010...\000"
+        }
+      }
+    }
+  }
+
+  Args:
+    tensor: A `tf.Tensor`.
+    name: string.  Optional name for the op.
+
+  Returns:
+    A Tensor of dtype string.
+
+[API Signature] tensor: tensor, name: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (name must be one of the allowed strings)
+{v_2 : str} |= v_2 = "ii" ∨ v_2 = "ii->i" ∨ v_2 = "i,j->ij" ∨ v_2 = "bij,bjk->bik" ∨ v_2 = "...ij->...ji" ∨ v_2 = "bn,anm,bm->ba" ∨ v_2 = "none" ∨ v_2 = "sum" ∨ v_2 = "max" ∨ v_2 = "min" ∨ v_2 = "prod" ∨ v_2 = "relu" ∨ v_2 = "tanh" ∨ v_2 = "sigmoid" ∨ v_2 = "softmax" ∨ v_2 = "elu" ∨ v_2 = "selu" ∨ v_2 = "gelu" ∨ v_2 = "swish" ∨ v_2 = "softplus" ∨ v_2 = "linear" ∨ v_2 = "valid" ∨ v_2 = "same" ∨ v_2 = "causal" ∨ v_2 = "channels_last" ∨ v_2 = "channels_first"
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.io.serialize_tensor API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Transforms a Tensor into a serialized TensorProto proto.
+
+  This operation transforms data in a `tf.Tensor` into a `tf.Tensor` of type
+  `tf.string` containing the data in a binary string in little-endian format.
+  This operation can transform scalar data and linear arrays, but it is most
+  useful in converting multidimensional arrays into a format accepted by binary
+  storage formats such as a `TFRecord` or `tf.train.Example`.
+
+  See also:
+  - `tf.io.parse_tensor`: inverse operation of `tf.io.serialize_tensor` that
+  transforms a scalar string containing a serialized Tensor in little-endian
+  format into a Tensor of a specified type.
+  - `tf.ensure_shape`: `parse_tensor` cannot statically determine the shape of
+  the parsed tensor. Use `tf.ensure_shape` to set the static shape when running
+  under a `tf.function`
+  - `.SerializeToString`, serializes a proto to a binary-string
+
+  Example of serializing scalar data:
+
+  >>> t = tf.constant(1)
+  >>> tf.io.serialize_tensor(t)
+  <tf.Tensor: shape=(), dtype=string, numpy=b'\x08...\x00'>
+
+  Example of storing non-scalar data into a `tf.train.Example`:
+
+  >>> t1 = [[1, 2]]
+  >>> t2 = [[7, 8]]
+  >>> nonscalar = tf.concat([t1, t2], 0)
+  >>> nonscalar
+  <tf.Tensor: shape=(2, 2), dtype=int32, numpy=
+  array([[1, 2],
+         [7, 8]], dtype=int32)>
+
+  Serialize the data using `tf.io.serialize_tensor`.
+
+  >>> serialized_nonscalar = tf.io.serialize_tensor(nonscalar)
+  >>> serialized_nonscalar
+  <tf.Tensor: shape=(), dtype=string, numpy=b'\x08...\x00'>
+
+  Store the data in a `tf.train.Feature`.
+
+  >>> feature_of_bytes = tf.train.Feature(
+  ...   bytes_list=tf.train.BytesList(value=[serialized_nonscalar.numpy()]))
+  >>> feature_of_bytes
+  bytes_list {
+    value: "\010...\000"
+  }
+
+  Put the `tf.train.Feature` message into a `tf.train.Example`.
+
+  >>> features_for_example = {
+  ...   'feature0': feature_of_bytes
+  ... }
+  >>> example_proto = tf.train.Example(
+  ...   features=tf.train.Features(feature=features_for_example))
+  >>> example_proto
+  features {
+    feature {
+      key: "feature0"
+      value {
+        bytes_list {
+          value: "\010...\000"
+        }
+      }
+    }
+  }
+
+  Args:
+    tensor: A `tf.Tensor`.
+    name: string.  Optional name for the op.
+
+  Returns:
+    A Tensor of dtype string.
+
+[API Signature] tensor: tensor, name: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (tensor dtype must be well-defined)
+{v_1 : tensor} |= dtype_(v_1) = dtype_(v_1)
+** SUCCESS **
+
