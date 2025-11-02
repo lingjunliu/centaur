@@ -1,6 +1,13 @@
 from google import genai
 import os, time
-from llm.llm_utils import OAChatWrapper, fetch_documentation, extract_code_from_response, extract_function_info
+from llm.llm_utils import (
+    OAChatWrapper,
+    fetch_documentation,
+    extract_code_from_response,
+    extract_function_info,
+    Response,
+    collect_token_usage,
+)
 from utils.misc import read_file_in_root
 from utils.new_api_utils import get_doc_tf, get_api_suffix
 import sys
@@ -8,6 +15,14 @@ import logging
 
 CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 logger = logging.getLogger(__name__)
+
+def format_usage(usage):
+    if not usage:
+        return "Token usage: input=n/a, output=n/a, total=n/a"
+    input_tokens = usage.get("input_tokens", "n/a")
+    output_tokens = usage.get("output_tokens", "n/a")
+    total_tokens = usage.get("total_tokens", "n/a")
+    return f"Token usage: input={input_tokens}, output={output_tokens}, total={total_tokens}"
 
 def get_prompt(api, lib="torch"):
     examples = {
@@ -132,10 +147,17 @@ def generate_signatures(api, lib="torch", llm="gemini"):
         return
     logger.info(f"[Prompt]\n\n{prompt}\n\n")
     
-    response = chat.send_message(prompt)
-    
-    logger.info(f"[Response]\n\n{response.text}\n\n")
-    sig = extract_code_from_response(response.text, llm=llm)
+    raw_response = chat.send_message(prompt)
+    if isinstance(raw_response, Response):
+        response_obj = raw_response
+    else:
+        response_text = getattr(raw_response, "text", None) or getattr(raw_response, "output_text", "")
+        usage_metadata = collect_token_usage(getattr(raw_response, "usage_metadata", None))
+        response_obj = Response(text=response_text, usage=usage_metadata)
+
+    logger.info(f"[Response]\n\n{response_obj.text}\n\n")
+    logger.info(f"[Usage]\n\n{format_usage(response_obj.usage)}\n\n")
+    sig = extract_code_from_response(response_obj.text, llm=llm)
     print(f"Got response from {llm} API:\n{sig}")
     if sig is not None:
         save_sig(sig, lib=lib, llm=llm)
