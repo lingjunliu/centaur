@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The new shape cannot create more dimensions (Rule 93)
+# For 0-dim tensors, it is invalid to reshape to more than one dimension (Rule 93)
 
 rule_93 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_ndim"] + v["arg2_length"]) > 5, False, True)) if n else
-          If((v["arg1_ndim"] + v["arg2_length"]) > 5, False, True))
+    s.add(Not(If(v["arg1_ndim"] == 0, v["arg2_length"] <= 1, True)) if n else
+          If(v["arg1_ndim"] == 0, v["arg2_length"] <= 1, True))
 )
 
 def rule_93_func(arg1, arg2, solver=None, neg=False):

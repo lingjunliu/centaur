@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The ‘align_corners’ parameter must be a boolean if and only if the interpolation mode is ‘linear’, ‘bilinear’, ‘trilinear’ (Rule 67)
+# The eta_min should be less than eta_max in CosineAnnealingLR (Rule 67)
 
 rule_67 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or((v["arg1_value"] == 20), (v["arg1_value"] == 26)), (v["arg1_value"] == 28)), Or((v["arg2_value"] == True), (v["arg2_value"] == False)), True)) if n else
-          If(Or(Or((v["arg1_value"] == 20), (v["arg1_value"] == 26)), (v["arg1_value"] == 28)), Or((v["arg2_value"] == True), (v["arg2_value"] == False)), True))
+    s.add(Not(v["arg1_value"] <= v["arg2_value"]) if n else
+          v["arg1_value"] <= v["arg2_value"])
 )
 
 def rule_67_func(arg1, arg2, solver=None, neg=False):
@@ -18,18 +18,18 @@ def rule_67_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, str):
+        if not isinstance(arg1, (float, np.floating)):
             return False
-        if not isinstance(arg2, bool):
+        if not isinstance(arg2, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
-        arg2_value = Bool('arg2_value')
+        arg1_value = Real('arg1_value')
+        arg2_value = Real('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
+        solver.add(arg1_value == arg1)
         solver.add(arg2_value == arg2)
 
         # Constraints for rule 67

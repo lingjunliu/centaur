@@ -5,47 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If delta is 0 and reduction is none, then the result would be L1Loss and input and target must be same dtype (Rule 45)
+# Input and target tensors must have at least one dimension (Rule 45)
 
 rule_45 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_value"] == 0, v["arg3_value"] == 6), v["arg2_dtype"] == v["arg4_dtype"], True)) if n else
-          If(And(v["arg1_value"] == 0, v["arg3_value"] == 6), v["arg2_dtype"] == v["arg4_dtype"], True))
+    s.add(Not(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0)) if n else
+          And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0))
 )
 
-def rule_45_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
+def rule_45_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
-    arg4 = next(iter(arg4.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
+        if not isinstance(arg1, np.ndarray):
             return False
         if not isinstance(arg2, np.ndarray):
-            return False
-        if not isinstance(arg3, str):
-            return False
-        if not isinstance(arg4, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
-        arg2_dtype = Int('arg2_dtype')
-        arg3_value = String('arg3_value')
-        arg4_dtype = Int('arg4_dtype')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_ndim = Int('arg2_ndim')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
-        solver.add(arg3_value == list_of_string_values_torch.index(arg3))
-        solver.add(arg4_dtype == list_of_available_dtypes.index(arg4.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
 
         # Constraints for rule 45
-        rule_45(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype, 'arg3_value': arg3_value, 'arg4_dtype': arg4_dtype})
+        rule_45(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_45(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype'], 'arg3_value': arg3['value'], 'arg4_dtype': arg4['dtype']}, neg)
+        rule_45(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)

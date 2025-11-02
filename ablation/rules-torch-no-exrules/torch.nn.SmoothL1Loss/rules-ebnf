@@ -1,48 +1,78 @@
 >>
-Rule 1 (beta should be non-negative to avoid RuntimeError)
-{v_4 : float} |= v_4 ≥ 0
+Rule 1 (Beta should be non-negative)
+{v_1 : float} |= v_1 ≥ 0
 >>
-Rule 2 (input and target tensors should have the same shape to avoid RuntimeError)
-{v_5 : tensor, v_6 : tensor} |= shape(v_5) = shape(v_6)
+Rule 2 (Reduction must be one of the specified strings)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
 >>
-Rule 3 (input and target tensors' dtype should not be Long (int64) to avoid RuntimeError)
-{v_5 : tensor, v_6 : tensor} |= dtype_(v_5) ≠ 4 ∧ dtype_(v_6) ≠ 4
+Rule 3 (Input and Target tensors should have the same shape when reduction is 'none')
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "none" then shape(v_1) = shape(v_2)
 >>
-Rule 4 (reduction should be one of the allowed strings.)
-{v_3 : str} |= v_3 = "none" ∨ v_3 = "mean" ∨ v_3 = "sum"
+Rule 5 (Data type of input tensor should not be Long)
+{v_1 : tensor} |= dtype_(v_1) ≠ 4
 >>
-Rule 7 (if size_average is true, reduce should also be true)
+Rule 6 (Beta should be less than maximum representable float)
+{v_1 : float} |= v_1 < 100000000.0
+>>
+Rule 7 (Shape of input and target should be the same if reduction is not none)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 ≠ "none" then ndim(v_1) = ndim(v_2)
+>>
+Rule 20 (size_average and reduce should not co-exist and should be boolean)
+{v_1 : bool, v_2 : bool, v_3 : str} |= if (v_1 = true ∧ v_2 = false) ∨ (v_1 = false ∧ v_2 = true) then true else v_3 = "mean"
+>>
+Rule 24 (Input and Target tensors should have the same number of dimensions when reduction is 'none', unless one of them is a scalar)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "none" then (ndim(v_1) = ndim(v_2)) ∨ (ndim(v_1) = 0) ∨ (ndim(v_2) = 0)
+>>
+Rule 27 (size_average and reduce should not co-exist and should be boolean)
+{v_1 : bool, v_2 : bool, v_3 : str} |= if (v_1 = true ∧ v_2 = true) ∨ (v_1 = false ∧ v_2 = false) then v_3 = "mean"
+>>
+Rule 32 (If either of the input tensors is scalar, then the other one cannot be int64)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 0 ∨ ndim(v_2) = 0) then (dtype_(v_1) ≠ 4) ∧ (dtype_(v_2) ≠ 4)
+>>
+Rule 39 (If either of the input tensors is scalar, then the other one cannot be int64 when reduction is none.)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if ((ndim(v_1) = 0) ∨ (ndim(v_2) = 0)) ∧ (v_3 = "none") then (dtype_(v_1) ≠ 4) ∧ (dtype_(v_2) ≠ 4)
+>>
+Rule 40 (If reduction is none, data type of input tensor should not be Long)
+{v_1 : tensor, v_3 : str} |= if v_3 = "none" then dtype_(v_1) ≠ 4
+>>
+Rule 41 (size_average and reduce should not co-exist and should be boolean)
+{v_1 : bool, v_2 : bool, v_3 : str} |= (v_1 = false) ∨ (v_2 = false) ∨ (v_3 ≠ "mean")
+>>
+Rule 48 (If size_average and reduce both are defined, they should have opposite values.)
+{v_1 : bool, v_2 : bool} |= v_1 ≠ v_2
+>>
+Rule 54 (size_average and reduce cannot both be defined)
+{v_1 : bool, v_2 : bool, v_3 : str} |= if v_1 ∧ v_2 then v_3 = "mean"
+>>
+Rule 60 (Either size_average or reduce should be false)
+{v_1 : bool, v_2 : bool} |= (v_1 = false) ∨ (v_2 = false)
+>>
+Rule 64 (If both tensors are not scalar, then shapes should be equal when reduction is none and their dimensions are same.)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if (v_3 = "none") ∧ (ndim(v_1) > 0) ∧ (ndim(v_2) > 0) then (ndim(v_1) = ndim(v_2))
+>>
+Rule 66 (Either size_average or reduce should be false and must be a boolean.)
+{v_1 : bool, v_2 : bool} |= (v_1 ∨ v_2) = false ∨ (v_1 ∧ v_2) = false
+>>
+Rule 72 (Either size_average or reduce should be false and must be a boolean.)
+{v_1 : bool, v_2 : bool} |= (v_1 ∨ v_2) = false
+>>
+Rule 84 (Either size_average or reduce should be false and must be a boolean.)
+{v_1 : bool, v_2 : bool} |= (v_1 ∧ v_2) = false
+>>
+Rule 90 (It should not happen that both size_average and reduce are true)
+{v_1 : bool, v_2 : bool} |= if v_1 then v_2 = false
+>>
+Rule 97 (Data type of target tensor should not be Long when reduction is none.)
+{v_2 : tensor, v_3 : str} |= if v_3 = "none" then dtype_(v_2) ≠ 4
+>>
+Rule 104 (If reduction is none, dimension of tensor is greater than zero and input and target dimensions are different, then error should be thrown.)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if (v_3 = "none") ∧ (ndim(v_1) > 0) ∧ (ndim(v_2) > 0) then ndim(v_1) = ndim(v_2)
+>>
+Rule 109 (When size_average is true, reduce has to be true as well)
 {v_1 : bool, v_2 : bool} |= if v_1 then v_2
 >>
-Rule 8 (A more complex rule involving input tensor properties)
-{v_5 : tensor} |= ndim(v_5) > 0
+Rule 121 (Either size_average or reduce should be false if both are defined)
+{v_1 : bool, v_2 : bool} |= if v_1 = true then v_2 = false
 >>
-Rule 10 (if reduction is none, shape of output will be same as input)
-{v_3 : str, v_5 : tensor, v_6 : tensor} |= if v_3 = "none" then shape(v_5) = shape(v_6)
->>
-Rule 11 (beta should be non-negative)
-{v_4 : float} |= v_4 ≥ 0.0
->>
-Rule 23 (A more complex rule involving beta and the type of beta should be float)
-{v_4 : float} |= (v_4 + 0.0) = v_4
->>
-Rule 24 (Ensure that the input tensor has at least one dimension)
-{v_5 : tensor} |= ndim(v_5) ≥ 1
->>
-Rule 30 (If reduction is none, the dimensions of the input and target tensors should match)
-{v_3 : str, v_5 : tensor, v_6 : tensor} |= if v_3 = "none" then ndim(v_5) = ndim(v_6)
->>
-Rule 31 (If size_average is true, reduce should also be true or reduction should be set to mean)
-{v_1 : bool, v_2 : bool, v_3 : str} |= if v_1 then v_2 ∨ v_3 = "mean"
->>
-Rule 37 (Input and Target tensors should have same dtype.)
-{v_5 : tensor, v_6 : tensor} |= dtype_(v_5) = dtype_(v_6)
->>
-Rule 57 (If reduction is mean, input and output should have the same dtype)
-{v_3 : str, v_5: tensor, v_6: tensor} |= if v_3 = "mean" then dtype_(v_5) = dtype_(v_6)
->>
-Rule 64 (Beta is a float and not equal to infinity)
-{v_4: float} |= v_4 < 1000000000000000000000000.0
->>
-Rule 119 (If reduction is not none and if one tensor is 0D, then the other one must also be 0D )
-{v_3 : str, v_5: tensor, v_6: tensor} |= if v_3 ≠ "none" then (ndim(v_5) = 0) = (ndim(v_6) = 0)
+Rule 127 (It is invalid to define both size_average and reduce.)
+{v_1 : bool, v_2 : bool} |= if v_1 = true then v_2 = false else if v_2 = true then v_1 = false

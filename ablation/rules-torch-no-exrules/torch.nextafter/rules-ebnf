@@ -1,0 +1,114 @@
+>>
+Rule 1 (The output tensor should have the same dtype as the input tensor)
+{v_1 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_3)
+>>
+Rule 4 (The 'other' tensor should have the same dtype as the 'input' tensor.)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 8 (Check if the output dtype is not complex when input dtypes are not complex to prevent casting errors)
+{v_1 : tensor, v_3 : tensor} |= if (dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128") then (dtype_(v_3) = "complex64" ∨ dtype_(v_3) = "complex128")
+>>
+Rule 9 (If an output tensor is specified, it must be a tensor)
+{v_3 : tensor ⊎ str ⊎ int ⊎ float ⊎ bool ⊎ dtype} |= if v_3 = "tensor" then true else false
+>>
+Rule 11 (Shape of input must be equal to shape of other to avoid broadcasting errors)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1) = shape(v_2)
+>>
+Rule 12 (Shape of input must be equal to shape of output to avoid size mismatch errors)
+{v_1 : tensor, v_3 : tensor} |= shape(v_1) = shape(v_3)
+>>
+Rule 16 (Dtype of output tensor should be same or higher precision than input tensor)
+{v_1 : tensor, v_3 : tensor} |= if (dtype_(v_1) = "float16") then (dtype_(v_3) = "float16" ∨ dtype_(v_3) = "float32" ∨ dtype_(v_3) = "float64") else if (dtype_(v_1) = "float32") then (dtype_(v_3) = "float32" ∨ dtype_(v_3) = "float64")
+>>
+Rule 17 (The shapes of input and other should be broadcastable, rewritten)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0
+>>
+Rule 19 (If an output tensor is specified, it must be a tensor)
+{v_3 : tensor ⊎ str ⊎ int ⊎ float ⊎ bool ⊎ dtype} |= v_3 = "tensor" ∨ v_3 = "none"
+>>
+Rule 20 (Ensure input and other are not both boolean tensors)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "bool") then (dtype_(v_2) ≠ "bool")
+>>
+Rule 24 (Check if the output dtype can accommodate the input dtypes to prevent casting errors)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = "float64" ∨ dtype_(v_2) = "float64") then (dtype_(v_3) = "float64")
+>>
+Rule 25 (Check if the output dtype can accommodate the input dtypes to prevent casting errors, and at least float)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = "float64" ∨ dtype_(v_2) = "float64") then (dtype_(v_3) = "float64") else if (dtype_(v_1) = "complex64" ∨ dtype_(v_2) = "complex64") then (dtype_(v_3) = "complex64" ∨ dtype_(v_3) = "complex128") else if (dtype_(v_1) = "complex128" ∨ dtype_(v_2) = "complex128") then (dtype_(v_3) = "complex128") else (dtype_(v_3) = "float16" ∨ dtype_(v_3) = "float32" ∨ dtype_(v_3) = "float64")
+>>
+Rule 26 (The shapes of input and other should be broadcastable by comparing individual dimensions.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then true else false
+>>
+Rule 28 (If both input and other are boolean, then raise an error, it should have at least one float or int)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ "bool") ∨ (dtype_(v_2) ≠ "bool")
+>>
+Rule 30 (Check if the output dtype can accommodate the input dtypes to prevent casting errors, and at least float, and if output is specified as none, input cannot be complex)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor ⊎ str} |= if (dtype_(v_1) = "float64" ∨ dtype_(v_2) = "float64") then (if v_3 = "tensor" then dtype_(v_3) = "float64") else if (dtype_(v_1) = "complex64" ∨ dtype_(v_2) = "complex64") then (if v_3 = "tensor" then (dtype_(v_3) = "complex64" ∨ dtype_(v_3) = "complex128") else false) else if (dtype_(v_1) = "complex128" ∨ dtype_(v_2) = "complex128") then (if v_3 = "tensor" then dtype_(v_3) = "complex128" else false) else (if v_3 = "tensor" then (dtype_(v_3) = "float16" ∨ dtype_(v_3) = "float32" ∨ dtype_(v_3) = "float64"))
+>>
+Rule 32 (Check if the output dtype can accommodate the input dtypes to prevent casting errors, and at least float, and if output is specified as none, input cannot be complex. Further simplified)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor ⊎ str} |= if (dtype_(v_1) = "complex128" ∨ dtype_(v_2) = "complex128") then (if v_3 = "tensor" then dtype_(v_3) = "complex128" else false)
+>>
+Rule 33 (Shape check for input, other and output)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_1) = shape(v_2) ∧ shape(v_1) = shape(v_3)
+>>
+Rule 39 (If both input and other are boolean, then raise an error, rewritten without 'not')
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ "bool" ∨ dtype_(v_2) ≠ "bool"
+>>
+Rule 40 (If the output is specified as None, the input cannot be complex)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "none" then (dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128" ∧ dtype_(v_2) ≠ "complex64" ∧ dtype_(v_2) ≠ "complex128")
+>>
+Rule 42 (Output argument must be a tensor or None)
+{v_3 : tensor ⊎ str} |= v_3 = "tensor" ∨ v_3 = "none"
+>>
+Rule 46 (Either input or other must be a non-boolean tensor, strengthened to require input to be a floating point number)
+{v_1 : tensor} |= dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64"
+>>
+Rule 47 (Shape check for input and other to ensure they have same size. Implies broadcastability)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+>>
+Rule 48 (Input tensor must be a floating point number)
+{v_1 : tensor} |= dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128"
+>>
+Rule 49 (Other tensor must be a floating point number)
+{v_2 : tensor} |= dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" ∨  dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128"
+>>
+Rule 56 (At least one of Input or Other tensors must be a floating point number)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128") ∨ (dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" ∨  dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128")
+>>
+Rule 57 (Check if the output dtype can accommodate the input dtypes to prevent casting errors. If output is tensor, dtype should be same as input 1)
+{v_1 : tensor, v_3 : tensor ⊎ str} |= if v_3 = "tensor" then dtype_(v_1) = dtype_(v_3)
+>>
+Rule 64 (Combined check for floating/complex and output type. Requires floating or complex inputs. Requires tensor output to have same type as first input. If the output is None, the inputs cannot be complex)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor ⊎ str} |= ((dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128") ∨ (dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" ∨ dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128")) ∧ if v_3 = "tensor" then dtype_(v_1) = dtype_(v_3) else if v_3 = "none" then (dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128" ∧ dtype_(v_2) ≠ "complex64" ∧ dtype_(v_2) ≠ "complex128")
+>>
+Rule 70 (If output is None, input cannot be complex)
+{v_1 : tensor, v_3 : str} |= if v_3 = "none" then (dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128")
+>>
+Rule 72 (Check dtype of input 1 and 2 to be floating or complex, and check that if output is None then input must be real)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= (dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128") ∧ (dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" ∨ dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128") ∧ if v_3 = "none" then (dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128")
+>>
+Rule 75 (If the output is specified as None, the input and other tensor must be floating point, not complex)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "none" then (dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64") ∧ (dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64")
+>>
+Rule 78 (Both inputs must be floating or complex numbers)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128") ∧ (dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" ∨ dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128")
+>>
+Rule 79 (Check that if output is None then input and other must be floating point, not complex)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "none" then (dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128") ∧ (dtype_(v_2) ≠ "complex64" ∧ dtype_(v_2) ≠ "complex128")
+>>
+Rule 82 (One of the inputs must be float)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64"
+>>
+Rule 87 (Combine type and out checks. Enforce floating or complex numbers. If out is "none", inputs must be real. If out is a tensor, the type must be the same as input.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor ⊎ str} |= (dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128") ∧ (dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" ∨ dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128") ∧ if v_3 = "none" then (dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128" ∧ dtype_(v_2) ≠ "complex64" ∧ dtype_(v_2) ≠ "complex128") else if v_3 = "tensor" then dtype_(v_1) = dtype_(v_3)
+>>
+Rule 89 (Combine type and out checks. Enforce floating or complex numbers. If out is "none", inputs must be real. If out is a tensor, the type must be the same as input.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor ⊎ str} |= ((dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128") ∧ (dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" ∨ dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128")) ∧ if v_3 = "none" then (dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128" ∧ dtype_(v_2) ≠ "complex64" ∧ dtype_(v_2) ≠ "complex128") else if v_3 = "tensor" then dtype_(v_1) = dtype_(v_3)
+>>
+Rule 92 (Enforce shape equality to avoid size mismatch, check shape by comparing ndim first then individual dimensions)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then true else false
+>>
+Rule 95 (The output should be a tensor if specified and must have the same dtype as the first input. It can also be "none")
+{v_1 : tensor, v_3 : tensor ⊎ str} |= if v_3 = "tensor" then dtype_(v_1) = dtype_(v_3) else v_3="none" ∨ v_3 = "tensor"
+>>
+Rule 96 (Check dtypes and output type. Input and Other should be float or complex. If out is None, inputs must be real)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= ((dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128") ∧ (dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" ∨ dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128")) ∧ if v_3 = "none" then (dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128" ∧ dtype_(v_2) ≠ "complex64" ∧ dtype_(v_2) ≠ "complex128")

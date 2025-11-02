@@ -1,0 +1,129 @@
+>>
+Rule 1 (Number of interop threads must be a positive integer)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 2 (Number of interop threads must be less than or equal to a maximum value - here, let's say 128)
+{v_1 : int} |= v_1 ≤ 128
+>>
+Rule 3 (Setting number of threads interacts with a boolean debug flag; if debug is true, thread count should be small)
+{v_1 : int, v_2 : bool} |= if v_2 then v_1 ≤ 16
+>>
+Rule 5 (Number of interop threads must be a non-negative integer)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 6 (Setting a very high number of threads is discouraged, it should be less than physical cores * 2)
+{v_1 : int} |= v_1 < 64
+>>
+Rule 7 (If thread count is explicitly set to zero, it implies a single-threaded execution context, which needs to be reflected in the execution mode; assuming an external boolean variable 'single_threaded_mode' represents this)
+{v_1 : int} |= if v_1 = 0 then true
+>>
+Rule 9 (If debug mode is enabled, the maximum number of interop threads should be limited.)
+{v_1 : int, v_2 : bool} |= if v_2 then v_1 ≤ 4
+>>
+Rule 10 (Number of interop threads must be a positive integer or -1 (for default))
+{v_1 : int} |= (v_1 > 0) ∨ (v_1 = -1)
+>>
+Rule 11 (If the number of threads is set to a large value, it should be less than or equal to the maximum number of cores available)
+{v_1 : int} |= v_1 ≤ 256
+>>
+Rule 13 (When using multiple GPUs, thread number must be a multiple of the number of GPUs if it exceeds number of CPU cores, assuming ngpu is the number of GPUs.)
+{v_1 : int, v_2 : int} |= if v_1 > 8 then (v_1 % v_2 = 0)
+>>
+Rule 14 (If the number of interop threads is set to a very small number (e.g., 1), then the intraop threads should also be set to a small number)
+{v_1 : int, v_2 : int} |= if v_1 ≤ 2 then v_2 ≤ 4
+>>
+Rule 16 (If num_interop_threads is set, then it should be consistent with the global setting of num_threads, assuming global_num_threads is externally available)
+{v_1 : int, v_2 : int} |= if v_1 ≠ -1 then v_1 ≤ v_2
+>>
+Rule 17 (If the system has only one core, the number of interop threads should be limited to 1, assuming num_cores represents number of cores.)
+{v_1 : int, v_2 : int} |= if v_2 = 1 then v_1 ≤ 1
+>>
+Rule 18 (Interplay with CUDA visible devices; assuming that CUDA_VISIBLE_DEVICES is exposed as a string representing device IDs)
+{v_1: int, v_2: str} |= if v_2 ≠ "none" then v_1 > 0
+>>
+Rule 19 (Consider the impact of hyperthreading; if hyperthreading is enabled, then num_interop_threads should not exceed twice the number of physical cores. Let hyperthreading_enabled be a bool.)
+{v_1 : int, v_2 : int, v_3 : bool} |= if v_3 then v_1 ≤ (v_2 * 2) else v_1 ≤ v_2
+>>
+Rule 22 (If using MKLDNN, num_interop_threads should not be greater than num_intraop_threads, given mkldnn_enabled as boolean parameter)
+{v_1: int, v_2: int, v_3: bool} |= if v_3 then v_1 ≤ v_2
+>>
+Rule 23 (If the device type is CPU, then interop threads should be greater than zero, device_type as a string)
+{v_1: int, v_2: str} |= if v_2 = "cpu" then v_1 > 0
+>>
+Rule 24 (The number of interop threads should be a divisor of the batch size when it's greater than 1. batch_size as int.)
+{v_1: int, v_2: int} |= if v_2 > 1 then (v_2 % v_1 = 0)
+>>
+Rule 26 (Number of interop threads should not exceed the number of logical cores available in the system. Let logical_cores be an integer.)
+{v_1 : int, v_2 : int} |= if v_1 > 0 then v_1 ≤ v_2
+>>
+Rule 27 (When using more interop threads than physical cores, a warning should be raised for potential performance issues. Let physical_cores be an integer.)
+{v_1 : int, v_2 : int} |= if v_1 > v_2 ∧ v_1 ≠ -1 then true
+>>
+Rule 28 (When using multiple GPUs with data parallelism, the number of interop threads should ideally be a multiple of the number of GPUs to fully utilize the hardware resources if interop threads > number of CPU cores.Let num_gpus be an integer)
+{v_1 : int, v_2 : int, v_3 : int} |= if (v_3 > 1) ∧ (v_1 > v_2) then (v_1 % v_3 = 0)
+>>
+Rule 29 (If using a distributed training setup, the interop threads should be carefully tuned. For example, it should not exceed the number of processes per node to prevent contention. Let processes_per_node be an integer)
+{v_1: int, v_2: int} |= if v_1 > v_2 then true
+>>
+Rule 32 (If KMP_AFFINITY is set to 'granularity=fine,compact' or 'granularity=fine,scatter', then interop_threads should be less than or equal to number of physical cores. affinity_type is string, physical_cores is int.)
+{v_1 : int, v_2 : str, v_3 : int} |= if (v_2 = "granularity=fine,compact") ∨ (v_2 = "granularity=fine,scatter") then v_1 ≤ v_3
+>>
+Rule 38 (If using OpenMP and setting interop threads, OMP_NUM_THREADS must be greater than or equal to interop threads. omp_num_threads = integer)
+{v_1: int, v_2: int} |= if v_2 < v_1 then true
+>>
+Rule 42 (If using Intel MKL, interop threads should be power of 2 for optimal performance. mkl_enabled is bool)
+{v_1: int, v_2: bool} |= if v_2 then ∃ i ∈ [0, 8] : v_1 = (2 * i)
+>>
+Rule 43 (If interop threads and intraop threads sum is greater than total number of logical cores, a performance warning must be displayed. intraop_threads is int.)
+{v_1: int, v_2: int, v_3: int} |= if (v_1 + v_2) > v_3 then true
+>>
+Rule 44 (For inference tasks, interop threads can be set to the number of models running concurrently. concurrent_models is int.)
+{v_1: int, v_2: int} |= v_1 ≤ v_2
+>>
+Rule 47 (If using a GPU, setting interop threads higher can create contention, thus be restricted. gpu_present: bool)
+{v_1: int, v_2: bool} |= if v_2 then v_1 ≤ 4
+>>
+Rule 48 (If using KMP_BLOCKTIME=0, interop_threads can have detrimental effects and should be limited, kmp_blocktime_zero: bool)
+{v_1: int, v_2: bool} |= if v_2 then v_1 ≤ 2
+>>
+Rule 49 (If memory bandwidth is limited, reducing interop threads will improve performance. memory_bandwidth: int)
+{v_1: int, v_2: int} |= if v_2 < 100 then v_1 ≤ 1
+>>
+Rule 52 (If `torch.jit.enable_more_hashing()` is called, then the interop thread count must be 1 for deterministic behavior. more_hashing: bool)
+{v_1: int, v_2: bool} |= if v_2 then v_1 = 1
+>>
+Rule 54 (If running in a container with limited resources, ensure interop threads do not exceed the container limits. container_cores: int)
+{v_1: int, v_2: int} |= if v_1 > v_2 then false
+>>
+Rule 63 (If using a DataLoader with num_workers > 0, interop_threads should be chosen carefully. dataloader_workers: int.)
+{v_1: int, v_2: int} |= if v_2 > 0 then v_1 ≤ 4
+>>
+Rule 64 (If using MPS backend, interop_threads should be less or equal than 1 mps_enabled: bool.)
+{v_1: int, v_2: bool} |= if v_2 then v_1 ≤ 1
+>>
+Rule 67 (If ASan/TSan are enabled, reduce the number of interop threads to minimize memory contention and race conditions. asan_enabled: bool, tsan_enabled: bool)
+{v_1: int, v_2: bool, v_3: bool} |= if v_2 ∨ v_3 then v_1 ≤ 2
+>>
+Rule 78 (When running distributed training across multiple machines, interop threads can cause contention. Limit them to the degree of parallelism. distributed_training: bool, degree_of_parallelism: int)
+{v_1: int, v_2: bool, v_3: int} |= if v_2 then v_1 ≤ v_3
+>>
+Rule 89 (In high-throughput inference scenarios, optimize interop threads considering batch size and total cores to better the throughput. batch_size: int, total_cores: int)
+{v_1: int, v_2: int, v_3: int} |= if v_2 > 32 then v_1 ≤ v_3 else v_1 ≤ 4
+>>
+Rule 94 (When running inference with multiple instances of the same model setting interop threads to 1 may cause load imbalance and must be increased accordingly. model_instances: int, min_core: int)
+{v_1: int, v_2: int, v_3: int} |= if v_2 > 1 then v_1 ≥ v_3 else v_1 = 1
+>>
+Rule 108 (When running multiple instances of same model setting large number of interop threads may cause scheduling and cache issues. model_replicas: int)
+{v_1: int, v_2: int} |= if v_2 > 4 then v_1 < 4
+>>
+Rule 114 (If high number of model replicas and interop threads are set system may hit file descriptor limits so control accordingly. model_replicas: int, file_descriptor_limit: int)
+{v_1: int, v_2: int, v_3: int} |= if (v_2 > 8) then v_1 * v_2 ≤ v_3
+>>
+Rule 117 (If app's memory is close to system memory, using a lot of interop threads can cause OOM errors, reduce them to avoid this. system_memory_utilization: float)
+{v_1: int, v_2: float} |= if v_2 > 0.9 then v_1 ≤ 2
+>>
+Rule 119 (If application running on a shared infrastructure and has SLA requirements, interop threads should be set to predictable threads for QoS purposes. sla_guaranteed: bool, thread_count: int)
+{v_1: int, v_2: bool, v_3: int} |= if v_2 then v_1 = v_3
+>>
+Rule 127 (If model size is very large, using several interop threads may affect the memory allocation phase in the processes so it should be restricted to improve memory footprint. model_size: int)
+{v_1: int, v_2: int} |= if v_2 > 2048 then v_1 ≤ 2

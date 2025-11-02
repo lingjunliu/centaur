@@ -1,0 +1,96 @@
+>>
+Rule 1 (num_rows must be a non-negative integer)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 3 (batch_shape must be a tuple of non-negative integers or an empty tuple)
+{v_1 : tuple(int)} |= ∀ v_2 ∈ [0, v_1.len - 1] : v_1[v_2] ≥ 0
+>>
+Rule 4 (dtype must be an integer representing a valid tensorflow dtype)
+{v_1 : int} |= v_1 ≥ 0 ∧ v_1 ≤ 12
+>>
+Rule 5 (dtype of the operator cannot be bool)
+{v_1 : int} |= v_1 ≠ 0
+>>
+Rule 6 (If batch_shape is non-empty, num_rows and num_columns must be positive)
+{v_1 : tuple(int), v_2 : int, v_3 : int} |= if v_1.len > 0 then v_2 > 0 ∧ v_3 > 0
+>>
+Rule 10 (If num_rows and num_columns are both zero, batch_shape must be non-empty)
+{v_1 : int, v_2 : int, v_3 : tuple(int)} |= if v_1 = 0 ∧ v_2 = 0 then v_3.len > 0
+>>
+Rule 11 (If batch_shape is not an empty tuple, then the product of elements in batch_shape must be less than a certain limit (e.g., 10000))
+{v_1 : tuple(int)} |= if v_1.len > 0 then (∀ v_2 ∈ [0, v_1.len - 1] : v_1[v_2] > 0) ∧ (v_1[0] * v_1[1] < 10000)
+>>
+Rule 12 (If num_rows or num_columns is very large, the dtype must be a float or complex type)
+{v_1 : int, v_2 : int, v_3 : int} |= if v_1 > 1000 ∨ v_2 > 1000 then v_3 ≥ 6 ∧ v_3 ≤ 10
+>>
+Rule 16 (If the product of num_rows and num_columns exceeds a threshold, dtype must be float32 or higher)
+{v_1 : int, v_2 : int, v_3 : int} |= if v_1 * v_2 > 100000 then v_3 ≥ 7
+>>
+Rule 20 (If dtype is bool, num_rows and num_columns cannot be 0)
+{v_1 : int, v_2 : int, v_3 : int} |= if v_3 = 0 then v_1 > 0 ∧ v_2 > 0
+>>
+Rule 21 (If num_rows is 1, then batch_shape should represent row vector.)
+{v_1 : int, v_2 : tuple(int)} |= if v_1 = 1 then (∀ v_3 ∈ [0, v_2.len - 1] : v_2[v_3] > 0)
+>>
+Rule 23 (Elements in batch_shape should not exceed the maximum integer value)
+{v_1 : tuple(int)} |= ∀ v_2 ∈ [0, v_1.len - 1] : v_1[v_2] < 2147483647
+>>
+Rule 25 (The number of elements in batch_shape should not exceed a reasonable limit.)
+{v_1 : tuple(int)} |= v_1.len ≤ 10
+>>
+Rule 26 (The shape defined by the arguments (num_rows, num_columns, batch_shape) should be less than the maximum allowed tensor size)
+{v_1 : int, v_2 : int, v_3 : tuple(int)} |= if v_3.len = 0 then v_1 * v_2 < 100000000 else (v_1 * v_2 * (v_3[0] * v_3[1])) < 100000000
+>>
+Rule 27 (If dtype is int8 or uint8, the num_rows and num_columns should be less than 256 to avoid overflow issues)
+{v_1 : int, v_2 : int, v_3 : int} |= if v_3 = 1 ∨ v_3 = 5 then v_1 < 256 ∧ v_2 < 256
+>>
+Rule 31 (If batch shape is provided, it must be a valid shape (no zero dimensions except when num_rows or num_cols is zero and the output can be an empty tensor))
+{v_1 : tuple(int), v_2 : int, v_3 : int} |= if v_1.len > 0 then ((∀ v_4 ∈ [0, v_1.len - 1] : v_1[v_4] > 0) ∨ (v_2 = 0 ∨ v_3 = 0))
+>>
+Rule 33 (If num_rows and num_columns are very small (e.g., less than 3), then complex128 may not be necessary)
+{v_1 : int, v_2 : int, v_3 : int} |= if v_1 < 3 ∧ v_2 < 3 then v_3 ≠ 10
+>>
+Rule 37 (The product of all the dimension sizes including batch shape, num_rows and num_columns should be less than max int)
+{v_1 : int, v_2 : int, v_3 : tuple(int)} |= if v_3.len > 0 then (v_1 * v_2 * (∀ v_4 ∈ [0, v_3.len - 1] : v_3[v_4])) < 2147483647 else (v_1 * v_2) < 2147483647
+>>
+Rule 40 (If the shape is very large, consider using a sparse matrix to improve memory efficiency.)
+{v_1 : int, v_2 : int} |= if v_1 > 10000 ∧ v_2 > 10000 then true
+>>
+Rule 41 (If num_rows and num_columns are equal, and also large, the operator can be interpreted as a large square matrix)
+{v_1 : int, v_2 : int} |= if v_1 = v_2 then v_1 > 1000
+>>
+Rule 43 (If the input is a batch of square matrices, then num_rows must be equal to num_columns.)
+{v_1 : int, v_2 : int, v_3 : tuple(int)} |= if v_3.len > 0 then v_1 = v_2
+>>
+Rule 48 (If any of the dimensions(batch_shape, num_rows, num_cols) exceeds the maximum limit(2^31 -1) then clip them.)
+{v_1 : int, v_2 : int, v_3 : tuple(int)} |= (v_1 <= 2147483647) ∧ (v_2 <= 2147483647) ∧ (∀ v_4 ∈ [0, v_3.len - 1] : v_3[v_4] <= 2147483647)
+>>
+Rule 49 (If num_rows or num_columns is 1, then the matrix is either a row or column vector, ensure it is a valid vector)
+{v_1 : int, v_2 : int} |= (v_1 = 1) ∨ (v_2 = 1)
+>>
+Rule 51 (If a very small number of rows and columns is used, and a high precision dtype is chosen, then warn the user about potential inefficiency.)
+{v_1 : int, v_2 : int, v_3 : int} |= if (v_1 < 10) ∧ (v_2 < 10) then (v_3 != 6) ∧ (v_3 != 7)
+>>
+Rule 52 (If num_rows != num_columns, then it should not be used to represent a Symmetric matrix)
+{v_1 : int, v_2 : int} |= if (v_1 ≠ v_2) then true
+>>
+Rule 54 (If using float16, the resulting LinearOperator should not have dimensions so large that float16 precision is lost)
+{v_1 : int, v_2 : int, v_3 : int} |= if v_3 = 6 then v_1 * v_2 < 10000
+>>
+Rule 57 (If the linear operator represents a batch of matrices, then the batch shape cannot be empty.)
+{v_1 : tuple(int)} |= v_1.len > 0
+>>
+Rule 58 (If dtype is specified as int8, then dimensions must be carefully chosen so as not to exceed the maximum values that int8 can hold.)
+{v_1 : int, v_2 : int} |= if v_1 * v_2 < 127 then true
+>>
+Rule 61 (If the LinearOperator is intended for representing images, the values in batch_shape should be compatible with common image dimensions (e.g., width, height, channels).)
+{v_1 : tuple(int)} |= if v_1.len > 0 then (v_1[0] > 0) ∧ (v_1[1] > 0)
+>>
+Rule 63 (If both num_rows and num_columns are 1, check the dtype is not complex to save computation)
+{v_1 : int, v_2 : int, v_3 : int} |= if (v_1 = 1) ∧ (v_2 = 1) then v_3 < 9
+>>
+Rule 65 (If creating very large LinearOperatorZeros with default dtype, recommend using smaller dtype to reduce memory footprint.)
+{v_1 : int, v_2 : int} |= if v_1 * v_2 > 100000000 then true
+>>
+Rule 69 (If a combination of a low-precision dtype like np.int8 and a very large number of rows and/or columns is used, ensure this choice is intentional due to the risk of overflow.)
+{v_1 : int, v_2 : int, v_3 : int} |= if (v_3 = 1) ∧ (v_1 > 10000 ∨ v_2 > 10000) then true

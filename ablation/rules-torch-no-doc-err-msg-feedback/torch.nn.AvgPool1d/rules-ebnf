@@ -1,63 +1,138 @@
 >>
-Rule 10 (input tensor must have at least 3 dimensions)
-{v_1: tensor} |= ndim(v_1) ≥ 3
+Rule 5 (ceil_mode must be a boolean value)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 12 (The length of kernel_size, stride, padding, and dilation tuples should be 1 or equal to the input dimensions minus 2.)
-{v_1 : tensor, v_2 : tuple(int), v_3 : tuple(int), v_4 : tuple(int), v_5 : tuple(int)} |= (v_2.len = 1 ∨ v_2.len = ndim(v_1) - 2) ∧ (v_3.len = 1 ∨ v_3.len = ndim(v_1) - 2) ∧ (v_4.len = 1 ∨ v_4.len = ndim(v_1) - 2) ∧ (v_5.len = 1 ∨ v_5.len = ndim(v_1) - 2)
+Rule 8 (kernel_size, stride, padding, dilation should be consistent in tuple length)
+{v_1 : tuple(int), v_2 : tuple(int), v_3 : tuple(int), v_4 : tuple(int)} |= v_1.len = v_2.len ∧ v_2.len = v_3.len ∧ v_3.len = v_4.len
 >>
-Rule 13 (If kernel_size is a tuple, all elements must be greater than zero)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 9 (Input tensor must have at least 3 dimensions for AvgPool1d)
+{v_1 : tensor} |= ndim(v_1) ≥ 3
 >>
-Rule 14 (If stride is specified as a tuple, its length must match the length of kernel_size)
-{v_1 : tuple(int), v_2 : tuple(int)} |= v_1.len = v_2.len
+Rule 10 (Weight tensor for Conv1D should not have zero elements)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 18 (When count_include_pad is True, the input must be of floating-point type.)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+Rule 12 (shape of input should greater than 0)
+{v_1 : tensor} |= shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
 >>
-Rule 22 (If dilation is a tuple, each element must be no less than 1.)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 1
+Rule 15 (If padding is string it must be 'valid' or 'same')
+{v_1 : str} |= v_1 = "reflect" ∨ v_1 = "replicate" ∨ v_1 = "circular"
 >>
-Rule 23 (If the input tensor is complex, count_include_pad should be false.)
-{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then v_2 = false
+Rule 16 (If padding is a tuple, it must have a length of 1 or 2)
+{v_1 : tuple(int)} |= v_1.len = 1 ∨ v_1.len = 2
 >>
-Rule 25 (If padding is a tuple, each element must be non-negative)
+Rule 17 (Input tensor's last dimension size should be greater than or equal to kernel size)
+{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 1) ≥ v_2
+>>
+Rule 18 (Input tensor's channel size should be positive)
+{v_1 : tensor} |= shape(v_1, 1) > 0
+>>
+Rule 19 (Dilation should not be larger than the input size)
+{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, 2)
+>>
+Rule 20 (count_include_pad is only applicable if padding mode is not "valid")
+{v_1 : str, v_2 : bool} |= if v_1 = "reflect" ∨ v_1 = "replicate" ∨ v_1 = "circular" then true else v_2 = false
+>>
+Rule 22 (divisor_override must be an integer)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 23 (If count_include_pad is true, padding size should be smaller than kernel size)
+{v_1 : bool, v_2 : int, v_3 : int} |= if v_1 = true then v_2 ≤ v_3
+>>
+Rule 28 (if padding is tuple, all elements must be non-negative)
 {v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 26 (When dilation is an integer, it must be no less than 1.)
-{v_1: int} |= v_1 ≥ 1
+Rule 29 (if dilation is int, it must be positive)
+{v_1 : int} |= v_1 > 0
 >>
-Rule 27 (When kernel_size is an integer, it must be greater than 0.)
-{v_1: int} |= v_1 > 0
+Rule 30 (if dilation is tuple, all elements must be positive)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 29 (When padding is an integer, it must be non-negative)
-{v_1: int} |= v_1 ≥ 0
+Rule 31 (When dilation > 1, kernel_size has to be 1.)
+{v_1 : int, v_2 : int} |= if v_2 > 1 then v_1 = 1
 >>
-Rule 34 (When the padding_mode is replicate or reflect and the input tensor is not at least 3D, it will cause error)
-{v_1 : tensor, v_2 : str} |= if (v_2 = "replicate") ∨ (v_2 = "reflect") then ndim(v_1) ≥ 3
+Rule 32 (when kernel_size is 1, dilation can be greater than 1)
+{v_1 : int, v_2 : int} |= if v_1 = 1 then v_2 ≥ 1
 >>
-Rule 37 (padding_mode must be a valid string)
-{v_1 : str} |= v_1 = "reflect" ∨ v_1 = "replicate" ∨ v_1 = "circular" ∨ v_1 = "constant"
+Rule 38 (If count_include_pad is true, then the output size is calculated based on the padded input size)
+{v_1 : bool, v_2 : tensor, v_3 : int, v_4 : int} |= if v_1 = true then shape(v_2, 2) + 2 * v_3 ≥ v_4
 >>
-Rule 38 (The input tensor should have at least one dimension.)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 39 (kernel size can not be greater than the input size considering padding)
+{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 ≤ shape(v_1, 2) + 2 * v_3
 >>
-Rule 39 (The input tensor should have a valid dtype.)
-{v_1 : tensor} |= 0 < dtype_(v_1) ∧ dtype_(v_1) < 12
+Rule 41 (If kernel_size is a tuple, then the tuple length must be equal to the number of spatial dimensions in the input tensor (minus the batch and channel dimensions))
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len = ndim(v_1) - 2
 >>
-Rule 41 (If kernel_size is a tuple, its length must be less or equal to input's ndim - 2)
-{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≤ ndim(v_1) - 2
+Rule 45 (if padding_mode is circular, the input tensor must have at least 3 dimensions)
+{v_1 : str, v_2 : tensor} |= if v_1 = "circular" then ndim(v_2) ≥ 3
 >>
-Rule 47 (When padding_mode is replicate, the shape must be greater than zero)
-{v_1 : str, v_2 : tensor} |= if v_1 = "replicate" then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
+Rule 48 (If padding is not string type, count_include_pad can be true)
+{v_1 : str, v_2 : bool} |= if v_1 = "reflect" ∨ v_1 = "replicate" ∨ v_1 = "circular" then v_2 = false
 >>
-Rule 49 (If input tensor is complex, count_include_pad must be false, and padding_mode must be constant)
-{v_1 : tensor, v_2: bool, v_3 : str} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) then (v_2 = false ∧ v_3 = "constant")
+Rule 49 (kernel_size should be smaller than input tensor size when dilation equals to 1)
+{v_1 : int, v_2 : int, v_3: tensor} |= if v_2 = 1 then v_1 ≤ shape(v_3, 2)
 >>
-Rule 53 (The input tensor should have at least two dimensions.)
-{v_1 : tensor} |= ndim(v_1) ≥ 2
+Rule 50 (When count_include_pad is true,  shape of input tensor must be greater than kernel size.)
+{v_1 : tensor, v_2 : int, v_3 : bool} |= if v_3 = true then shape(v_1, 2) > v_2
 >>
-Rule 54 (If the input tensor is not complex, padding_mode must not be circular)
-{v_1 : tensor, v_2 : str} |= if (dtype_(v_1) ≠ 10) ∧ (dtype_(v_1) ≠ 11) then v_2 ≠ "circular"
+Rule 51 (when padding_mode is not 'circular', input size minus kernel size plus 2 times padding must be greater or equal to zero.)
+{v_1 : str, v_2 : tensor, v_3 : int, v_4 : int} |= if v_1 ≠ "circular" then shape(v_2, 2) - v_3 + 2 * v_4 ≥ 0
 >>
-Rule 56 (If stride and dilation are tuples, all their elements must be positive)
-{v_1: tuple(int), v_2: tuple(int)} |= (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] > 0)
+Rule 53 (When padding mode is reflect or replicate, then kernel size should not be greater than input size along the spatial dimension.)
+{v_1 : str, v_2 : int, v_3 : tensor} |= if v_1 = "reflect" ∨ v_1 = "replicate" then v_2 ≤ shape(v_3, 2)
+>>
+Rule 57 (When padding_mode is circular, the padding must be less or equal to input size)
+{v_1 : str, v_2 : tensor, v_3 : int} |= if v_1 = "circular" then v_3 ≤ shape(v_2,2)
+>>
+Rule 58 (If padding mode is circular and count include pad is false, kernel size must be smaller or equal to input size)
+{v_1 : str, v_2 : bool, v_3 : tensor, v_4: int} |= if v_1 = "circular" ∧ v_2 = false then v_4 ≤ shape(v_3, 2)
+>>
+Rule 59 (If padding mode is 'circular', then dilation rate should be 1)
+{v_1 : str, v_2 : int} |= if v_1 = "circular" then v_2 = 1
+>>
+Rule 64 (If padding_mode is "circular", then count_include_pad must be false.)
+{v_1 : str, v_2 : bool} |= if v_1 = "circular" then v_2 = false
+>>
+Rule 65 (kernel_size should be less than or equal to the sum of input size and padding size if padding_mode is not 'valid')
+{v_1 : str, v_2 : tensor, v_3 : int, v_4 : int} |= if v_1 ≠ "reflect" ∧ v_1 ≠ "replicate" ∧ v_1 ≠ "circular" then v_3 ≤ shape(v_2, 2) + v_4
+>>
+Rule 68 (If padding_mode is not 'circular', then dilation must be less than or equal to kernel_size)
+{v_1 : str, v_2 : int, v_3: int} |= if v_1 ≠ "circular" then v_2 ≤ v_3
+>>
+Rule 69 (If dilation > 1, then padding size should be zero)
+{v_1 : int, v_2 : int} |= if v_1 > 1 then v_2 = 0
+>>
+Rule 71 (If padding is greater than or equal to kernel_size, output size should be greater than 0)
+{v_1 : int, v_2 : int, v_3: tensor} |= if v_1 ≥ v_2 then shape(v_3, 2) > 0
+>>
+Rule 72 (When dilation is 1 and stride is 1, the output size equals the input size if padding is zero and ceil_mode is true)
+{v_1 : int, v_2: int, v_3: int, v_4: tensor, v_5: bool} |= if v_1 = 1 ∧ v_2 = 1 ∧ v_3 = 0 ∧ v_5 = true then shape(v_4,2) = shape(v_4, 2)
+>>
+Rule 74 (If count_include_pad is true, all values within the kernel's range, including padding, must be counted)
+{v_1 : bool} |= if v_1 = true then true
+>>
+Rule 75 (when padding_mode is 'constant', then the value inside the padded area will be constant)
+{v_1 : str} |= if v_1 = "constant" then true
+>>
+Rule 77 (if padding mode is either 'reflect' or 'replicate' padding should be less than half of the input's length along the last dimension)
+{v_1 : str, v_2 : tensor, v_3 : int} |= if v_1 = "reflect" ∨ v_1 = "replicate" then v_3 ≤ shape(v_2, 2) / 2
+>>
+Rule 78 (If padding is a tuple, and padding_mode is not 'circular', each element in the tuple should be less than half of input size)
+{v_1: tuple(int), v_2: tensor, v_3: str} |= if v_3 ≠ "circular" then ∀i ∈ [0, v_1.len - 1] : v_1[i] ≤ shape(v_2,2)/2
+>>
+Rule 79 (If the kernel size is greater than the stride, there will be overlap between adjacent windows.)
+{v_1 : int, v_2 : int} |= if v_1 > v_2 then true
+>>
+Rule 80 (If ceil_mode is False, then it does a floor operation)
+{v_1 : bool} |= if v_1 = false then true
+>>
+Rule 83 (The padding_mode should only be 'circular' for 3D input tensors)
+{v_1: str, v_2: tensor} |= if v_1 = "circular" then ndim(v_2) = 3
+>>
+Rule 84 (If padding mode is not 'circular' and input size is equal to kernel size with zero padding output size should be one.)
+{v_1: tensor, v_2 : int, v_3: int, v_4: str} |= if shape(v_1, 2) = v_2 ∧ v_3 = 0 ∧ v_4 ≠ "circular" then shape(v_1, 2) = 1
+>>
+Rule 85 (If the stride is greater than 1, then output size is shrunk)
+{v_1 : int, v_2 : tensor} |= if v_1 > 1 then shape(v_2, 2) > 0
+>>
+Rule 86 (if the padding_mode is reflect or replicate, padding should be less than kernel size.)
+{v_1 : str, v_2 : int} |= if v_1 = "reflect" ∨ v_1 = "replicate" then v_2 < v_2

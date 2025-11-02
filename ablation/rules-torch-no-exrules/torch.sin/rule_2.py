@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The shape of out tensor must be the the same as the input tensor (Rule 2)
+# If out tensor is specified, its shape must be the same as the input tensor's shape (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
     s.add(Not(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0)) if n else

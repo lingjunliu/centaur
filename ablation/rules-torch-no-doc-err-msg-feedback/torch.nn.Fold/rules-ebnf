@@ -1,0 +1,189 @@
+>>
+Rule 1 (kernel_size must be a tuple of length 2)
+{v_1 : tuple(int)} |= v_1.len = 2
+>>
+Rule 2 (stride must be a tuple of length 2 if not None, and must be greater than 0)
+{v_1 : tuple(int) ⊎ int} |= if v_1.len = 2 then v_1[0] > 0 ∧ v_1[1] > 0 else v_1 > 0
+>>
+Rule 4 (padding must be a tuple of length 2 if not None, and must be non-negative)
+{v_1 : tuple(int) ⊎ int} |= if v_1.len = 2 then v_1[0] ≥ 0 ∧ v_1[1] ≥ 0 else v_1 ≥ 0
+>>
+Rule 5 (ceil_mode must be a boolean value)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 7 (unfold dim should be smaller than input tensor's ndim)
+{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
+>>
+Rule 8 (kernel size should be positive)
+{v_1 : int ⊎ tuple(int)} |= if v_1.len = 2 then v_1[0] > 0 ∧ v_1[1] > 0 else v_1 > 0
+>>
+Rule 10 (input tensor's ndim should be greater than 0)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 11 (check if input tensor's dimension is valid based on provided unfold dimension)
+{v_1 : tensor, v_2 : int, v_3: int} |= ndim(v_1) > v_2 + v_3 -1
+>>
+Rule 12 (check the size of each kernel dimension is smaller than the corresponding input dimension)
+{v_1 : tensor, v_2 : int, v_3 : int ⊎ tuple(int)} |= if v_3.len = 2 then shape(v_1, v_2) ≥ v_3[0] ∧ shape(v_1, v_2 + 1) ≥ v_3[1] else shape(v_1, v_2) ≥ v_3
+>>
+Rule 13 (check if stride is smaller than or equal to kernel size)
+{v_1 : int ⊎ tuple(int), v_2 : int ⊎ tuple(int)} |= if v_1.len = 2 ∧ v_2.len = 2 then v_2[0] ≤ v_1[0] ∧ v_2[1] ≤ v_1[1] else v_2 ≤ v_1
+>>
+Rule 14 (check if dilation rate is greater than or equal to 1)
+{v_1 : int ⊎ tuple(int)} |= if v_1.len = 2 then v_1[0] ≥ 1 ∧ v_1[1] ≥ 1 else v_1 ≥ 1
+>>
+Rule 15 (padding should be less than input dimension)
+{v_1 : tensor, v_2 : int, v_3 : int ⊎ tuple(int)} |= if v_3.len = 2 then v_3[0] ≤ shape(v_1, v_2) ∧ v_3[1] ≤ shape(v_1, v_2+1) else v_3 ≤ shape(v_1, v_2)
+>>
+Rule 16 (input and output size has to match in terms of data type)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 17 (The output size must be positive)
+{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len -1] : v_1[i] > 0
+>>
+Rule 18 (The output size must have the same number of elements of kernel size)
+{v_1: tuple(int), v_2: int ⊎ tuple(int)} |= if v_2.len = 2 then v_1.len = 2 else v_1.len = 1
+>>
+Rule 20 (when padding is a tuple, the length of the tuple must match the number of spatial dimensions of the input)
+{v_1: tensor, v_2: tuple(int), v_3: int} |= v_2.len = ndim(v_1) - v_3
+>>
+Rule 22 (Dilation should not be greater than kernel size)
+{v_1: int ⊎ tuple(int), v_2: int ⊎ tuple(int)} |= if v_1.len = 2 ∧ v_2.len = 2 then v_2[0] <= v_1[0] ∧ v_2[1] <= v_1[1] else v_2 <= v_1
+>>
+Rule 23 (If padding_mode is "circular", the input must have at least 2 dimensions.)
+{v_1: tensor, v_2: str} |= if v_2 = "circular" then ndim(v_1) >= 2
+>>
+Rule 25 (ceil_mode is boolean)
+{v_1: bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 26 (the number of input channels must be greater than 0)
+{v_1: tensor} |= shape(v_1, 1) > 0
+>>
+Rule 27 (kernel_size must be smaller than or equal to the input size plus twice the padding)
+{v_1 : tensor, v_2 : int ⊎ tuple(int), v_3 : int ⊎ tuple(int), v_4 : int} |= if v_2.len = 2 ∧ v_3.len = 2 then v_2[0] <= shape(v_1, v_4) + 2 * v_3[0] ∧ v_2[1] <= shape(v_1, v_4+1) + 2 * v_3[1] else v_2 <= shape(v_1, v_4) + 2 * v_3
+>>
+Rule 28 (the number of channels in the output must be evenly divisible by groups)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 1) % v_2 = 0
+>>
+Rule 29 (stride must be positive)
+{v_1: int ⊎ tuple(int)} |= if v_1.len = 2 then v_1[0] > 0 ∧ v_1[1] > 0 else v_1 > 0
+>>
+Rule 31 (dilation * (kernel_size - 1) must be smaller than input size)
+{v_1 : tensor, v_2 : int ⊎ tuple(int), v_3 : int ⊎ tuple(int), v_4 : int} |= if v_2.len = 2 ∧ v_3.len = 2 then v_3[0] * (v_2[0] - 1) <= shape(v_1, v_4) ∧ v_3[1] * (v_2[1] - 1) <= shape(v_1, v_4+1) else v_3 * (v_2 - 1) <= shape(v_1, v_4)
+>>
+Rule 32 (padding value should be within the range of input data type)
+{v_1 : tensor, v_2 : float ⊎ int} |= if dtype_(v_1) = 1 then min(v_1) <= v_2 ∧ v_2 <= max(v_1) else if dtype_(v_1) = 2 then min(v_1) <= v_2 ∧ v_2 <= max(v_1) else if dtype_(v_1) = 3 then min(v_1) <= v_2 ∧ v_2 <= max(v_1) else if dtype_(v_1) = 4 then min(v_1) <= v_2 ∧ v_2 <= max(v_1) else if dtype_(v_1) = 5 then min(v_1) <= v_2 ∧ v_2 <= max(v_1) else if dtype_(v_1) = 6 then min(v_1) <= v_2 ∧ v_2 <= max(v_1) else if dtype_(v_1) = 7 then min(v_1) <= v_2 ∧ v_2 <= max(v_1) else if dtype_(v_1) = 8 then min(v_1) <= v_2 ∧ v_2 <= max(v_1)
+>>
+Rule 34 (padding must be non-negative)
+{v_1: int ⊎ tuple(int)} |= if v_1.len = 2 then v_1[0] >= 0 ∧ v_1[1] >= 0 else v_1 >= 0
+>>
+Rule 35 (The input tensor must have at least 3 dimensions (B, C, H, W))
+{v_1 : tensor} |= ndim(v_1) >= 3
+>>
+Rule 36 (the output size has to be positive when provided.)
+{v_1: tuple(int)} |= if v_1.len = 2 then v_1[0] > 0 ∧ v_1[1] > 0
+>>
+Rule 37 (When output_size is specified, the output size should be greater than or equal to 1)
+{v_1: tuple(int)} |= if v_1.len = 2 then v_1[0] >= 1 ∧ v_1[1] >= 1
+>>
+Rule 38 (Kernel size can not be larger than the original image.)
+{v_1: tensor, v_2: int ⊎ tuple(int), v_3: int} |= if v_2.len = 2 then v_2[0] <= shape(v_1, v_3) ∧ v_2[1] <= shape(v_1, v_3 + 1) else v_2 <= shape(v_1, v_3)
+>>
+Rule 39 (The padding must be less than or equal to the input size)
+{v_1: tensor, v_2: int ⊎ tuple(int), v_3 : int} |= if v_2.len = 2 then v_2[0] <= shape(v_1, v_3) ∧ v_2[1] <= shape(v_1, v_3 + 1) else v_2 <= shape(v_1, v_3)
+>>
+Rule 40 (When padding_mode is circular, the input must have at least 2 spatial dimensions)
+{v_1: tensor, v_2: str} |= if v_2 = "circular" then ndim(v_1) >= 4
+>>
+Rule 41 (For 3D inputs (5D tensors), the output_size must be a tuple of length 3)
+{v_1: tensor, v_2: tuple(int)} |= if ndim(v_1) = 5 then v_2.len = 3
+>>
+Rule 46 (kernel_size, stride, padding and dilation must be either a single int or a tuple of size two.)
+{v_1: int ⊎ tuple(int), v_2: int ⊎ tuple(int), v_3: int ⊎ tuple(int), v_4: int ⊎ tuple(int)} |= (v_1.len = 2 ∧ v_2.len = 2 ∧ v_3.len = 2 ∧ v_4.len = 2) ∨ (v_1.len ≠ 2 ∧ v_2.len ≠ 2 ∧ v_3.len ≠ 2 ∧ v_4.len ≠ 2)
+>>
+Rule 47 (Dilation cannot be greater than the input size when the kernel size is 1)
+{v_1: tensor, v_2: int ⊎ tuple(int), v_3: int ⊎ tuple(int), v_4: int} |= if v_2 = 1 then v_3 <= shape(v_1, v_4) else if v_2.len = 2 then if v_2[0] = 1 then v_3[0] <= shape(v_1, v_4)
+>>
+Rule 49 (The spatial dimensions (height and width) of the input tensor must be positive)
+{v_1: tensor} |= shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+>>
+Rule 51 (For 2D inputs (4D tensors), the output_size must be a tuple of length 2)
+{v_1: tensor, v_2: tuple(int)} |= if ndim(v_1) = 4 then v_2.len = 2
+>>
+Rule 53 (If the kernel is a tuple, it has to have a length of 2)
+{v_1: tuple(int)} |= v_1.len = 2
+>>
+Rule 58 (Dilation can't be greater than the input size)
+{v_1: tensor, v_2: int, v_3: int ⊎ tuple(int)} |= if v_3.len = 2 then v_3[0] <= shape(v_1, v_2) ∧ v_3[1] <= shape(v_1, v_2 + 1) else v_3 <= shape(v_1, v_2)
+>>
+Rule 63 (The number of dimensions of the output size should be equal to the number of spatial dimensions.)
+{v_1: tensor, v_2: tuple(int)} |= v_2.len = ndim(v_1) - 2
+>>
+Rule 64 (If dilation is a tuple it needs to be positive)
+{v_1: tuple(int)} |= v_1[0] > 0 ∧ v_1[1] > 0
+>>
+Rule 68 (The number of output channels must be divisible by the number of input channels times the kernel size )
+{v_1: tensor, v_2: int ⊎ tuple(int), v_3: int} |= if v_2.len = 2 then shape(v_1,1) % (v_3 * v_2[0] * v_2[1]) = 0 else shape(v_1,1) % (v_3 * v_2) = 0
+>>
+Rule 69 (the padding_mode should belong to the available list)
+{v_1: str} |= v_1 = "constant" ∨ v_1 = "reflect" ∨ v_1 = "replicate" ∨ v_1 = "circular"
+>>
+Rule 72 (Kernel size should be smaller than or equal to the sum of input size and padding)
+{v_1: tensor, v_2: int ⊎ tuple(int), v_3: int ⊎ tuple(int), v_4: int} |= if v_2.len = 2 ∧ v_3.len = 2 then v_2[0] <= shape(v_1, v_4) + v_3[0] ∧ v_2[1] <= shape(v_1, v_4+1) + v_3[1] else v_2 <= shape(v_1, v_4) + v_3
+>>
+Rule 73 (When output size is specified, the kernel size and stride must be 1)
+{v_1: tuple(int), v_2: int ⊎ tuple(int), v_3: int ⊎ tuple(int)} |= if v_1.len = 2 then v_2 = 1 ∧ v_3 = 1
+>>
+Rule 74 (the batch size must be a positive number.)
+{v_1: tensor} |= shape(v_1, 0) > 0
+>>
+Rule 75 (If dilation is a tuple it needs to be positive)
+{v_1: tuple(int)} |= v_1[0] >= 1 ∧ v_1[1] >= 1
+>>
+Rule 76 (The number of dimension of input tensor must be greater than 1)
+{v_1 : tensor} |= ndim(v_1) > 1
+>>
+Rule 77 (When the input is a 4D tensor, the number of channels should be the second dimension)
+{v_1: tensor} |= if ndim(v_1) = 4 then true
+>>
+Rule 78 (If output_size is provided, at least one of kernel_size or stride must be greater than 1.)
+{v_1: tuple(int), v_2: int ⊎ tuple(int), v_3: int ⊎ tuple(int)} |= if v_1.len = 2 then (v_2 > 1 ∨ v_3 > 1) ∨ (if v_2.len = 2 then v_2[0] > 1 ∨ v_2[1] > 1 else false) ∨ (if v_3.len = 2 then v_3[0] > 1 ∨ v_3[1] > 1 else false)
+>>
+Rule 87 (When the padding_mode is circular, the input size must be greater than the kernel size)
+{v_1: tensor, v_2: int ⊎ tuple(int), v_3: str, v_4: int} |= if v_3 = "circular" then if v_2.len = 2 then shape(v_1, v_4) > v_2[0] ∧ shape(v_1, v_4 + 1) > v_2[1] else shape(v_1, v_4) > v_2
+>>
+Rule 91 (The height and width of input tensor must be greater than zero)
+{v_1 : tensor} |= shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+>>
+Rule 92 (If dilation is a tuple it needs to be smaller or equal to the kernel)
+{v_1: tuple(int), v_2: tuple(int)} |= v_2[0] <= v_1[0] ∧ v_2[1] <= v_1[1]
+>>
+Rule 95 (If padding_mode is circular, input size must be larger than kernel)
+{v_1: tensor, v_2: int ⊎ tuple(int), v_3: str, v_4: int} |= if v_3 = "circular" then if v_2.len = 2 then shape(v_1,v_4) > v_2[0] ∧ shape(v_1, v_4 + 1) > v_2[1] else shape(v_1,v_4) > v_2
+>>
+Rule 98 (If the input tensor has 2 dimensions the output size has length 1)
+{v_1: tensor, v_2: tuple(int)} |= if ndim(v_1) = 2 then v_2.len = 1
+>>
+Rule 99 (If output_size is a tuple, then each element must be an integer)
+{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : true
+>>
+Rule 100 (The kernel size should not be greater than the input size, considering padding)
+{v_1: tensor, v_2: int ⊎ tuple(int), v_3: int ⊎ tuple(int), v_4: int} |= if v_2.len = 2 ∧ v_3.len = 2 then v_2[0] <= shape(v_1, v_4) + 2*v_3[0] ∧ v_2[1] <= shape(v_1, v_4+1) + 2*v_3[1] else v_2 <= shape(v_1, v_4) + 2*v_3
+>>
+Rule 101 (The unflattened dimension should be valid)
+{v_1: tensor, v_2: int} |= v_2 >= 0 ∧ v_2 < ndim(v_1)
+>>
+Rule 106 (When padding mode is circular padding cannot be larger than input size)
+{v_1: tensor, v_2: int ⊎ tuple(int), v_3: str, v_4: int} |= if v_3 = "circular" then if v_2.len = 2 then v_2[0] < shape(v_1, v_4) ∧ v_2[1] < shape(v_1, v_4+1) else v_2 < shape(v_1, v_4)
+>>
+Rule 111 (If kernel size is tuple the value must be positive)
+{v_1 : tuple(int)} |= v_1[0] > 0 ∧ v_1[1] > 0
+>>
+Rule 113 (If output_size was specified, dilation rate must be smaller or equal than kernel size.)
+{v_1 : tuple(int), v_2 : int ⊎ tuple(int), v_3: int ⊎ tuple(int)} |= if v_1.len = 2 then if v_2.len = 2 then v_3[0] <= v_2[0] ∧ v_3[1] <= v_2[1] else v_3 <= v_2
+>>
+Rule 114 (The input tensor dimensions have to be greater than 0)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 115 (When padding mode is reflect/replicate input size should be greater than 0)
+{v_1: tensor, v_2: str} |= if v_2 = "reflect" ∨ v_2 = "replicate" then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0

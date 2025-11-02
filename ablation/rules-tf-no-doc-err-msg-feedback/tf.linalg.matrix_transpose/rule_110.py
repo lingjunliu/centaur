@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# when given axis = None, tensor rank should be less or equal than 2 (Rule 110)
+# For a given input tensor all possible transpose axes should exist. (Rule 110)
 
 rule_110 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] <= 2, True, False)) if n else
-          If(v["arg1_ndim"] <= 2, True, False))
+    s.add(Not(Or([And(i < (v["arg1_ndim"] - 1 + 1), i >= 0) for i in range(6)])) if n else
+          Or([And(i < (v["arg1_ndim"] - 1 + 1), i >= 0) for i in range(6)]))
 )
 
 def rule_110_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If kernel_size is a tuple, its length must be less or equal to input's ndim - 2 (Rule 41)
+# If kernel_size is a tuple, then the tuple length must be equal to the number of spatial dimensions in the input tensor (minus the batch and channel dimensions (Rule 41)
 
 rule_41 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_length"] <= v["arg1_ndim"] - 2) if n else
-          v["arg2_length"] <= v["arg1_ndim"] - 2)
+    s.add(Not(v["arg2_length"] == v["arg1_ndim"] - 2) if n else
+          v["arg2_length"] == v["arg1_ndim"] - 2)
 )
 
 def rule_41_func(arg1, arg2, solver=None, neg=False):

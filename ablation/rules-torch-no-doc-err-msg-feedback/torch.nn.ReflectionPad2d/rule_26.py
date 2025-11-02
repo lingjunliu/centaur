@@ -5,32 +5,48 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The number of padding values needs to be 0, 2, or 4 (Rule 26)
+# When mode is circular, padding in each spatial dimension must be less than the corresponding dimension size (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(v["arg1_length"] == 0, v["arg1_length"] == 2), v["arg1_length"] == 4)) if n else
-          Or(Or(v["arg1_length"] == 0, v["arg1_length"] == 2), v["arg1_length"] == 4))
+    s.add(Not(If(v["arg3_value"] == 24, (If(v["arg2_length"] == 2, (And(Select(v["arg2_values"], 0) < Select(v["arg1_shape"], v["arg1_ndim"] - 2), Select(v["arg2_values"], 1) < Select(v["arg1_shape"], v["arg1_ndim"] - 1))), If(v["arg2_length"] == 4, (And(And(And(Select(v["arg2_values"], 0) < Select(v["arg1_shape"], v["arg1_ndim"] - 2), Select(v["arg2_values"], 1) < Select(v["arg1_shape"], v["arg1_ndim"] - 2)), Select(v["arg2_values"], 2) < Select(v["arg1_shape"], v["arg1_ndim"] - 1)), Select(v["arg2_values"], 3) < Select(v["arg1_shape"], v["arg1_ndim"] - 1))), True))), True)) if n else
+          If(v["arg3_value"] == 24, (If(v["arg2_length"] == 2, (And(Select(v["arg2_values"], 0) < Select(v["arg1_shape"], v["arg1_ndim"] - 2), Select(v["arg2_values"], 1) < Select(v["arg1_shape"], v["arg1_ndim"] - 1))), If(v["arg2_length"] == 4, (And(And(And(Select(v["arg2_values"], 0) < Select(v["arg1_shape"], v["arg1_ndim"] - 2), Select(v["arg2_values"], 1) < Select(v["arg1_shape"], v["arg1_ndim"] - 2)), Select(v["arg2_values"], 2) < Select(v["arg1_shape"], v["arg1_ndim"] - 1)), Select(v["arg2_values"], 3) < Select(v["arg1_shape"], v["arg1_ndim"] - 1))), True))), True))
 )
 
-def rule_26_func(arg1, solver=None, neg=False):
+def rule_26_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not ((isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)) or (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1))):
+        if not isinstance(arg1, np.ndarray):
+            return False
+        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+            return False
+        if not isinstance(arg3, str):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_length = Int('arg2_length')
+        arg2_values = Array('arg2_values', IntSort(), IntSort())
+        arg3_value = String('arg3_value')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg2_length == len(arg2))
+        for i in range(len(arg2)):
+            arg2_values = Store(arg2_values, i, arg2[i])
+        solver.add(arg3_value == list_of_string_values_torch.index(arg3))
 
         # Constraints for rule 26
-        rule_26(solver, {'arg1_length': arg1_length})
+        rule_26(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_values': arg2_values, 'arg2_length': arg2_length, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_26(solver, {'arg1_length': arg1['length']}, neg)
+        rule_26(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_values': arg2['values'], 'arg2_length': arg2['length'], 'arg3_value': arg3['value']}, neg)

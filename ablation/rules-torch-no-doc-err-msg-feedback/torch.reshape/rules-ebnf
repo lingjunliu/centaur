@@ -1,210 +1,60 @@
 >>
-Rule 1 (The size of the input tensor must be compatible with the requested size in reshape)
-{v_1 : tensor, v_2 : tuple(int)} |= (∀i ∈ [0, v_2.len - 1] : v_2[i] > 0) ∧ (∀i ∈ [0, v_2.len - 1] : ∃j ∈ [0, ndim(v_1) - 1] : shape(v_1, j) > 0)
+Rule 1 (New shape must have a non-negative number of elements)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 2 (New shape can't change the total number of elements)
-{v_1 : tensor, v_2 : tuple(int)} |= (∀i ∈ [0, v_2.len - 1] : v_2[i] > 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (if v_2.len = 0 then true else (if v_2.len = 1 then true else (if v_2.len > 1 then (∀i ∈ [0, v_2.len - 1] : v_2[i] > 0) else false)))
->>
-Rule 4 (The dimension size cannot be negative except for -1 which indicates the size is inferred from other dimensions)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ -1
->>
-Rule 8 (Reshape will throw errors when input is empty)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 9 (The new shape can't be empty, it has to have at least one dimension size)
-{v_1 : tuple(int)} |= v_1.len > 0
->>
-Rule 10 (The number of dimensions in the tensor shouldn't exceed a certain number)
-{v_1 : tensor} |= ndim(v_1) < 6
->>
-Rule 11 (Shape of tensor must have at least one element)
-{v_1 : tensor} |= ndim(v_1) > 0
->>
-Rule 12 (The product of dimensions must equal the number of elements in the tensor)
-{v_1 : tensor, v_2 : tuple(int)} |= (∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∨ v_2[i] = -1) ∧ (shape(v_1, 0) * shape(v_1, 1) = v_2[0] * v_2[1])
->>
-Rule 15 (If input is a scalar, new shape must be 1-dimensional)
-{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 0 then v_2.len = 1
->>
-Rule 16 (The dtype of input tensor should not be str)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11
->>
-Rule 17 (When new shape contain 0, tensor size must be zero)
-{v_1 : tensor, v_2 : tuple(int)} |= (∃i ∈ [0, v_2.len - 1] : v_2[i] = 0) ∧ (shape(v_1, 0) = 0)
->>
-Rule 18 (The number of dimensions in new shape cannot exceed limit)
-{v_1 : tuple(int)} |= v_1.len < 10
->>
-Rule 20 (Shape values cannot be NaN)
-{v_1 : tuple(float)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -10000000 ∧ v_1[i] < 10000000
->>
-Rule 24 (When reshaping to a scalar, the original tensor must have only one element.)
-{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = 0 then (∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 1)
->>
-Rule 25 (The new shape must contain compatible number of dimensions compared to original tensor.)
+Rule 4 (The new shape cannot be empty if the input tensor is not empty.)
 {v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) > 0 then v_2.len > 0
 >>
-Rule 28 (Reshape input can not be a bool tensor.)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 5 (Dtype of the input tensor must be a numerical type)
+{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 9
 >>
-Rule 29 (Cannot reshape an empty tuple)
-{v_1: tuple(int)} |= v_1.len > -1
+Rule 7 (Shape should have less than 10 elements)
+{v_1 : tuple(int)} |= v_1.len < 10
 >>
-Rule 31 (The size of each dimension in the new shape should fit the memory constraint)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 2147483647 ∧ v_1[i] > -2147483648
+Rule 8 (The product of the shape should not be greater than the max int)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 2147483647
 >>
-Rule 33 (If input is empty tensor, output should also be empty tensor)
-{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 0 then (∀i ∈ [0, v_2.len - 1] : v_2[i] = 0)
+Rule 10 (The shape tuple length must be within reasonable bounds)
+{v_1 : tuple(int)} |= 0 < v_1.len ∧ v_1.len < 100
 >>
-Rule 36 (Total number of elements must remain the same when reshaping)
-{v_1 : tensor, v_2 : tuple(int)} |= (∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0) ∧ (if v_2.len > 0 then (∀j ∈ [0, v_2.len - 1] : v_2[j] > 0 ∨ v_2[j] = -1) else false)
+Rule 11 (If one shape dimension is -1, only one dimension can be -1)
+{v_1 : tuple(int)} |= (∃i ∈ [0, v_1.len - 1] : v_1[i] = -1) ∨ (∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ -1)
 >>
-Rule 37 (The shape of the tensor should not be empty)
-{v_1: tensor} |= ndim(v_1) > 0
+Rule 17 (The number of dimensions of reshaped tensor should be reasonable)
+{v_1 : tuple(int)} |= v_1.len ≤ 5
 >>
-Rule 38 (It is not allowed to reshape a tensor to a tensor with dimensions greater than 5)
-{v_1 : tuple(int)} |= v_1.len < 6
+Rule 24 (If the original tensor is a scalar, the new shape can be either an empty tuple or a tuple containing 1)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 0 then (v_2.len = 0 ∨ (v_2.len = 1 ∧ v_2[0] = 1))
 >>
-Rule 39 (Shape values must be in a reasonable range)
-{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -10000 ∧ v_1[i] < 10000
+Rule 25 (If reshaping from a 0-dimensional tensor, the new shape should contain only a single dimension equal to 1 or be empty)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 0 then (v_2.len = 0) ∨ (v_2.len = 1 ∧ v_2[0] = 1)
 >>
-Rule 40 (If one of the dimension of input tensor is zero, the new tensor should also have at least one dimension zero)
-{v_1 : tensor, v_2 : tuple(int)} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∧ (∃j ∈ [0, v_2.len - 1] : v_2[j] = 0)
+Rule 31 (The number of dimensions after reshaping cannot exceed a certain limit)
+{v_1 : tuple(int)} |= v_1.len <= 8
 >>
-Rule 41 (The total number of elements in the new shape has to be less than the maximum integer value)
-{v_1: tuple(int)} |= if v_1.len > 0 then (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0) else false
+Rule 37 (The new shape cannot contain NaN values)
+{v_1 : tuple(float)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] = v_1[i]
 >>
-Rule 43 (Total number of elements must remain the same or be equal to zero)
-{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) > 0 then true else if (∀i ∈ [0, v_2.len-1] : v_2[i] = 0) then true else false
+Rule 38 (The number of dimensions after reshape operation is less or equal than the original tensor)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len <= ndim(v_1) then true else false
 >>
-Rule 44 (Reshape cannot change the size of tensor if the tensor contains only a single element)
-{v_1 : tensor, v_2: tuple(int)} |= if ndim(v_1) = 1 ∧ shape(v_1, 0) = 1 then true else (∀i ∈ [0, v_2.len - 1] : v_2[i] > 0)
+Rule 48 (It's invalid to reshape tensors with unknown shapes.)
+{v_1:tensor} |= ndim(v_1) > 0
 >>
-Rule 45 (Reshape operation only works with int, float or complex data types)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 11
+Rule 56 (Reshaping a zero-dimensional tensor is only valid if the target shape represents a single element)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 0 then if v_2.len = 1 then v_2[0] = 1 else v_2.len = 0
 >>
-Rule 46 (The number of dimensions of output tensor must be positive)
-{v_1: tuple(int)} |= v_1.len > 0
+Rule 61 (If the number of dimensions decreases during reshape, element order should be preserved)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) > v_2.len then true
 >>
-Rule 48 (Shape dimensions must be non-zero if the input tensor has non-zero shape)
-{v_1 : tensor, v_2 : tuple(int)} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀j ∈ [0, v_2.len - 1] : v_2[j] ≠ 0)
+Rule 63 (The tensor to be reshaped must have a defined dtype)
+{v_1 : tensor} |= dtype_(v_1) > 0
 >>
-Rule 51 (If the input has zero elements, the new shape should also result in zero elements)
-{v_1 : tensor, v_2 : tuple(int)} |= if (∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 0) then (∃j ∈ [0, v_2.len - 1] : v_2[j] = 0)
+Rule 87 (The maximum size of any dimension after reshaping is less than or equal to the maximum size supported by the target system)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len-1] : v_1[i] < 2147483647
 >>
-Rule 53 (Reshape doesn't affect scalar tensors with 1 element)
-{v_1 : tensor, v_2: tuple(int)} |= if ndim(v_1) = 0 then true else (∀i ∈ [0, v_2.len - 1] : v_2[i] > 0)
+Rule 93 (For 0-dim tensors, it is invalid to reshape to more than one dimension)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 0 then v_2.len <=1
 >>
-Rule 54 (Reshape from empty tensor to non-empty tensor should result in error)
-{v_1 : tensor, v_2 : tuple(int)} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then (∀j ∈ [0, v_2.len - 1] : v_2[j] = 0)
->>
-Rule 57 (Number of dimension must be reasonable)
-{v_1 : tensor} |= ndim(v_1) < 10
->>
-Rule 59 (The dimensions must be positive, except for -1)
-{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -2
->>
-Rule 60 (If the given shape is empty tuple, then the tensor must be reshaped to a scalar)
-{v_1: tensor, v_2 : tuple(int)} |= if v_2.len = 0 then ndim(v_1) = 0
->>
-Rule 61 (The total number of elements in the new shape must be a valid integer)
-{v_1: tuple(int)} |= (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0 ∨ v_1[i] = -1)
->>
-Rule 64 (If the original tensor is a scalar, the reshape must result in a one dimensional tensor)
-{v_1 : tensor, v_2: tuple(int)} |= if ndim(v_1) = 0 then v_2.len = 1
->>
-Rule 65 (If the new shape is (-1,), input tensor must be 1-dimensional)
-{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = 1 ∧ v_2[0] = -1 then ndim(v_1) = 1
->>
-Rule 67 (The output tensor should have a reasonable number of dimensions (less than 10))
-{v_1: tuple(int)} |= v_1.len < 10
->>
-Rule 68 (No individual shape value should exceed a certain maximum value)
-{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 1000000
->>
-Rule 69 (If the tensor is empty, reshape it to something which is also empty)
-{v_1 : tensor, v_2: tuple(int)} |= if shape(v_1,0) = 0 then (∀i ∈ [0, v_2.len-1] : v_2[i] = 0)
->>
-Rule 70 (If input tensor has at least one dimension equal to zero, then product of dimensions of new tensor has to be zero)
-{v_1 : tensor, v_2: tuple(int)} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then (∃j ∈ [0, v_2.len-1] : v_2[j] = 0)
->>
-Rule 71 (Reshape from an empty tensor should also have an empty tensor as result)
-{v_1 : tensor, v_2: tuple(int)} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then (if v_2.len > 0 then (∀j ∈ [0, v_2.len-1] : v_2[j] = 0))
->>
-Rule 72 (If reshaping to single dimension, tensor must have at least one element)
-{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = 1 then (∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0)
->>
-Rule 74 (If the dimension of the tensor is 1 then the number of dimension of the new tensor should also be 1)
-{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 then v_2.len = 1
->>
-Rule 78 (The values inside new shape should not have very high values)
-{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len-1] : v_1[i] < 1000000
->>
-Rule 81 (Total elements of the tensor should be less than max integer values)
-{v_1: tensor} |= shape(v_1, 0) < 2147483647
->>
-Rule 83 (Values in tuple should be finite)
-{v_1 : tuple(float)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 100000000 ∧ v_1[i] > -100000000
->>
-Rule 86 (Reshaped tensor cannot result to dimensions with negative values)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -2
->>
-Rule 87 (The maximum value of the element of the tensor cannot exceed the upper limit.)
-{v_1: tensor} |= max(v_1) < 100000000000
->>
-Rule 88 (Reshaping a zero-size tensor to a non-zero size is invalid)
-{v_1 : tensor, v_2 : tuple(int)} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then (∃j ∈ [0, v_2.len - 1] : v_2[j] = 0)
->>
-Rule 91 (The individual dimensions in the new shape must fit into int32)
-{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len-1] : v_1[i] < 2147483647
->>
-Rule 93 (The new shape cannot create more dimensions)
-{v_1: tensor, v_2: tuple(int)} |= if (ndim(v_1) + v_2.len) > 5 then false
->>
-Rule 94 (Reshape is not possible if dtype is none)
-{v_1 : tensor} |= dtype_(v_1) != -1
->>
-Rule 98 (There must be a non-zero dimension size)
-{v_1: tuple(int)} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] > 0
->>
-Rule 99 (The maximum value in the new shape should not be so large that it causes overflow)
-{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 1000000000
->>
-Rule 103 (The total elements of reshaped Tensor should be same or Zero if the Input has Zero shape.)
-{v_1: tensor, v_2: tuple(int)} |= if shape(v_1, 0) = 0 then True else (shape(v_1, 0) * shape(v_1, 1) = v_2[0] * v_2[1])
->>
-Rule 111 (The output of the reshape operation should result in a reasonable number of dimensions and sizes.)
-{v_1 : tuple(int)} |= (v_1.len < 6) ∧ (∀i ∈ [0, v_1.len-1] : v_1[i] < 1000000000)
->>
-Rule 112 (Reshape from an empty tensor to something with non-empty shape will give an error, except if shape contains 0)
-{v_1 : tensor, v_2 : tuple(int)} |= if shape(v_1, 0) = 0 then (∃j ∈ [0, v_2.len - 1]: v_2[j] = 0) else True
->>
-Rule 113 (The new tensor dimension count must be a sensible number.)
-{v_1: tuple(int)} |= v_1.len < 5
->>
-Rule 118 (Reshaping to new shape with size 0 is valid only if the original size is 0)
-{v_1 : tensor, v_2 : tuple(int)} |= if ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 0 then ∃j ∈ [0, v_2.len-1] : v_2[j] = 0
->>
-Rule 119 (New shape values should not cause memory allocation errors.)
-{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 10000000
->>
-Rule 121 (Input for reshape operation should not be none)
-{v_1 : tensor} |= v_1 != "none"
->>
-Rule 124 (The reshape function requires a tensor with float or int values to perform operations on.)
-{v_1: tensor} |= dtype_(v_1) != 11
->>
-Rule 127 (The values for shape in reshape should not exceed more than max_int_value/10000 .)
-{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 214748
->>
-Rule 130 (The total numbers of elements in the new shape should be greater than 0 if and only if the tensor's element count is greater than 0)
-{v_1: tensor, v_2: tuple(int)} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then (∀j ∈ [0, v_2.len - 1]: v_2[j] > 0)
->>
-Rule 132 (The new shape values must be between zero and the maximum integer value or negative one, for unknown shapes.)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] > -1) ∧ (v_1[i] < 2147483647) ∨ v_1[i] = -1
->>
-Rule 133 (The reshape function requires a tuple of ints with non-zero values, if the original tensor is not empty)
-{v_1 : tensor, v_2: tuple(int)} |= if (ndim(v_1) > 0) then (∀i ∈ [0, v_2.len-1]: v_2[i] >= 1) else True
->>
-Rule 137 (The tensor should contain value inside it for operations to work correctly )
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 111 (If there is only a single dimension in the new shape, and the original shape is 0-dimensional, then the single dimension in the new shape must be 1.)
+{v_1: tensor, v_2: tuple(int)} |= if ndim(v_1) = 0 then if v_2.len = 1 then v_2[0] = 1 else if v_2.len = 0 then true else false

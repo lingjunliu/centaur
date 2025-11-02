@@ -1,222 +1,225 @@
 >>
-Rule 1 (The given interpolation mode must be one of the allowed strings.)
-{v_1 : str} |= v_1 = "nearest" ∨ v_1 = "linear" ∨ v_1 = "bilinear" ∨ v_1 = "bicubic" ∨ v_1 = "trilinear" ∨ v_1 = "area"
+Rule 1 (Check if the padding mode is valid)
+{v_1 : str} |= v_1 = "reflect" ∨ v_1 = "replicate" ∨ v_1 = "circular"
 >>
-Rule 2 (The specified reduction method must be a valid string.)
-{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
+Rule 2 (Check if the interpolation mode is valid)
+{v_1 : str} |= v_1 = "nearest" ∨ v_1 = "bilinear" ∨ v_1 = "bicubic" ∨ v_1 = "trilinear" ∨ v_1 = "area" ∨ v_1 = "linear"
 >>
-Rule 3 (The specified data type is a floating point type when upcasting is enabled.)
-{v_1 : dtype, v_2 : bool} |= if v_2 then v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+Rule 3 (Check if the data type is a valid integer or float)
+{v_1 : int} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9
 >>
-Rule 4 (The shape parameter should be a tuple of integers, all non-negative.)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+Rule 4 (Check if the layout string is valid)
+{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba"
 >>
-Rule 5 (The axis parameter should be within the valid range of dimensions for the input tensor.)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ 0 ∧ v_2 < ndim(v_1)
+Rule 5 (Check if the argument for a boolean operation is valid)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 6 (If the input tensor is empty, the output should also be empty.)
-{v_1 : tensor} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then true
+Rule 6 (Check if the mode is valid)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min"
 >>
-Rule 7 (The number of elements in the indices tuple must be equal to the rank of the input tensor)
-{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len
+Rule 7 (Check if the activation is valid)
+{v_1 : str} |= v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "softplus" ∨ v_1 = "linear"
 >>
-Rule 9 (When align_corners is true, the input size must be greater than 1.)
-{v_1 : int, v_2 : bool} |= if v_2 then v_1 > 1
+Rule 8 (Check if the init mode is valid)
+{v_1 : str} |= v_1 = "linear" ∨ v_1 = "constant"
 >>
-Rule 10 (Weight tensor must have at least two dimensions.)
-{v_1 : tensor} |= ndim(v_1) ≥ 2
+Rule 9 (Check if the start value is less than the end value)
+{v_1 : int, v_2 : int} |= v_1 < v_2
 >>
-Rule 11 (The value of scale_factor must be positive.)
-{v_1 : float} |= v_1 > 0
->>
-Rule 12 (For conv transpose the output padding must be smaller than the stride)
-{v_1 : tuple(int), v_2 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < v_2[i]
->>
-Rule 13 (If the size is specified, it must have the same length as the input's number of dimensions minus the number of batch dimensions)
-{v_1 : tensor, v_2 : tuple(int), v_3 : int} |= v_2.len = ndim(v_1) - v_3
->>
-Rule 14 (Number of channels in weight must match the input tensor's number of channels.)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) = shape(v_2, 1)
->>
-Rule 15 (Dilation rate must be non-negative.)
-{v_1 : int} |= v_1 ≥ 0
->>
-Rule 16 (Number of input channels must be divisible by the number of groups.)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 1) % v_2 = 0
->>
-Rule 17 (The number of output channels must be a positive integer.)
-{v_1 : int} |= v_1 > 0
->>
-Rule 18 (The momentum value used in batch norm must be between 0 and 1.)
-{v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 1
->>
-Rule 20 (The weight and bias must have the same shape as the number of output channels for a linear layer.)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 0) = v_3
->>
-Rule 22 (The target tensor for cross entropy must contain class indices between 0 and the number of classes minus 1.)
-{v_1 : tensor, v_2 : int} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] < v_2
->>
-Rule 23 (The weight tensor for cross entropy must have non-negative values.)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
->>
-Rule 30 (The alpha value for the leaky_relu function should be greater than or equal to zero)
+Rule 10 (Check if the eps value is non-negative)
 {v_1 : float} |= v_1 ≥ 0
 >>
-Rule 33 (The number of features for batchnorm should match the size of the input)
-{v_1: tensor, v_2: int} |= shape(v_1, 1) = v_2
+Rule 11 (The specified dimension should exist in the input tensor)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ 0 ∧ v_2 < ndim(v_1)
 >>
-Rule 34 (The weight parameter for RNN should be a 2D tensor)
-{v_1 : tensor} |= ndim(v_1) = 2
+Rule 12 (Check if the scale factor is positive)
+{v_1 : float} |= v_1 > 0
 >>
-Rule 35 (The bias parameter for RNN should be a 1D tensor)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 13 (Check if the minimum value of the tensor is less than the maximum value)
+{v_1 : tensor} |= min(v_1) ≤ max(v_1)
 >>
-Rule 41 (The source and target types for type conversion must be different)
-{v_1 : dtype, v_2 : dtype} |= v_1 ≠ v_2
+Rule 14 (Check if the momentum value is in the range [0, 1])
+{v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 1
 >>
-Rule 43 (The order of the permutation must be a valid permutation of the input dimensions)
-{v_1 : tuple(int), v_2 : tensor} |= v_1.len = ndim(v_2) ∧ ∀i ∈ [0, v_1.len - 1] : 0 ≤ v_1[i] ∧ v_1[i] < ndim(v_2)
+Rule 20 (Kernel size cannot be larger than the input size)
+{v_1 : tensor, v_2 : int, v_3 : int} |= v_3 > 0 ∧ shape(v_1, v_2) > v_3
 >>
-Rule 50 (The string should be selected from the provided list)
-{v_1: str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "softplus" ∨ v_1 = "linear" ∨ v_1 = "constant" ∨ v_1 = "reflect" ∨ v_1 = "replicate" ∨ v_1 = "circular" ∨ v_1 = "nearest" ∨ v_1 = "bilinear" ∨ v_1 = "bicubic" ∨ v_1 = "trilinear" ∨ v_1 = "area" ∨ v_1 = "linear"
+Rule 21 (Stride must be positive)
+{v_1 : int} |= v_1 > 0
 >>
-Rule 56 (The total number of key dimension is within limits)
-{v_1 : int} |= v_1 < 1000000
+Rule 23 (Padding must be non-negative)
+{v_1 : int} |= v_1 ≥ 0
 >>
-Rule 58 (The number of heads in multihead attention must be a positive integer.)
-{v_1: int} |= v_1 > 0
->>
-Rule 62 (The order of the polynomial must be a non-negative integer.)
-{v_1: int} |= v_1 ≥ 0
->>
-Rule 63 (The weight for spectral norm must be a matrix)
-{v_1: tensor} |= ndim(v_1) = 2
->>
-Rule 64 (The reduction type for normalization must be a valid string)
-{v_1: str} |= v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min"
->>
-Rule 65 (The number of channels in a convolutional layer must be divisible by the number of groups)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) % v_2 = 0
->>
-Rule 71 (The type for the parameters should be a floating point number or complex)
-{v_1: dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10
->>
-Rule 72 (The number of target values must be smaller than input size for adaptive pooling)
-{v_1: tensor, v_2 : tuple(int)} |= shape(v_1, 2) > v_2[0] ∧ shape(v_1, 3) > v_2[1]
->>
-Rule 74 (The padding mode can be reflect only for input with dimension greater than one)
-{v_1: str, v_2: tensor} |= if v_1 = "reflect" then ndim(v_2) > 1
->>
-Rule 75 (The scale factor needs to be positive for upsample)
-{v_1: float} |= v_1 > 0
->>
-Rule 76 (The value of negative slope must be less than zero for leaky relu)
-{v_1: float} |= v_1 < 0
->>
-Rule 78 (The start and end angle must be between -360 and 360 degree for circular pad)
-{v_1: int, v_2 : int} |= v_1 >= -360 ∧ v_1 <= 360 ∧ v_2 >= -360 ∧ v_2 <= 360
->>
-Rule 79 (The label smoothing must be between 0 and 1 for cross entropy loss)
-{v_1: float} |= v_1 >= 0 ∧ v_1 <= 1
->>
-Rule 80 (The source dimension size must be non-negative for Transformer)
-{v_1: int} |= v_1 >= 0
->>
-Rule 81 (The total number of attention dimension must be divisible by the number of head.)
-{v_1: int, v_2 : int} |= v_1 % v_2 = 0
->>
-Rule 82 (The dropout ratio must be non-negative)
-{v_1: float} |= v_1 >= 0
->>
-Rule 83 (The non-linearity parameter for convTranspose2d must be either relu, tanh, sigmoid)
-{v_1: str} |= v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid"
->>
-Rule 85 (The number of columns of the weight matrix must be equal to the hidden size.)
-{v_1: tensor, v_2 : int} |= shape(v_1, 1) = v_2
->>
-Rule 89 (The number of features for the temporal dimension has to match the input size in the time series forecasting transformer layer)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 1) = v_2
->>
-Rule 90 (The length of sequence used for generating the mask is less than maximum sequence length)
-{v_1: int, v_2: int} |= v_1 < v_2
->>
-Rule 91 (The number of input channel and output channel should be identical for invertible layer)
-{v_1: tensor, v_2: tensor} |= shape(v_1, 1) = shape(v_2, 1)
->>
-Rule 93 (The kernel size for downsample and upsample layer must be identical)
-{v_1: tuple(int), v_2: tuple(int)} |= v_1.len = v_2.len ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] = v_2[i]
->>
-Rule 96 (The number of rows of the weight matrix must be equal to the output size.)
-{v_1: tensor, v_2 : int} |= shape(v_1, 0) = v_2
->>
-Rule 108 (The length of dim list and size list should match for unbind )
-{v_1: list(int), v_2: list(int)} |= v_1.len = v_2.len
->>
-Rule 109 (The number of dimension of weight should match the input for convTranspose3D)
-{v_1: tensor} |= ndim(v_1) = 5
->>
-Rule 111 (The batch dimension should be less than total number of dimension)
-{v_1: int, v_2: tensor} |= v_1 < ndim(v_2)
->>
-Rule 114 (The solver must be in the available option for NMF)
-{v_1: str} |= v_1 = "cd" ∨ v_1 = "mu"
->>
-Rule 115 (The size of list must be greater than zero)
-{v_1: list(int)} |= v_1.len > 0
->>
-Rule 116 (The number of source and target features must be the same )
+Rule 24 (Number of input features should be equal to number of output features)
 {v_1 : int, v_2 : int} |= v_1 = v_2
 >>
-Rule 118 (The number of features in input has to match the number of features in weight in LSTM)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 2) = v_2
+Rule 25 (Epsilon value must be a small positive number)
+{v_1 : float} |= v_1 > 0 ∧ v_1 < 1
 >>
-Rule 122 (The scaling factor must be smaller than 1 for MixUp)
-{v_1 : float} |= v_1 < 1
+Rule 28 (The end norm value should be greater than the begin norm value)
+{v_1 : float, v_2 : float} |= v_2 > v_1
 >>
-Rule 123 (The size of label must match for CTC loss)
-{v_1: tensor, v_2: tensor} |= shape(v_1, 1) = shape(v_2, 0)
+Rule 32 (The target tensor must have the same number of classes as the input tensor)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) = shape(v_2, 1)
 >>
-Rule 125 (The dimension of input and hidden size must be same for GRU)
-{v_1: tensor, v_2: int} |= shape(v_1, 2) = v_2
+Rule 33 (The weight parameter should be a tensor)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 126 (The size for dimension 1 and 2 must be same for QR solve)
-{v_1 : tensor} |= shape(v_1, 1) = shape(v_1, 2)
+Rule 34 (The number of samples in the input tensor should be greater than 0)
+{v_1 : tensor} |= shape(v_1, 0) > 0
 >>
-Rule 127 (The scaling factor cannot be zero for instance norm)
-{v_1 : float} |= v_1 ≠ 0
+Rule 35 (The number of channels should be greater than 0)
+{v_1 : tensor} |= shape(v_1, 1) > 0
 >>
-Rule 129 (The number of features must match the number of channels for spectral norm)
-{v_1: tensor, v_2: int} |= shape(v_1, 0) = v_2
+Rule 36 (The height of the input tensor should be greater than 0)
+{v_1 : tensor} |= shape(v_1, 2) > 0
 >>
-Rule 130 (The value of beta1 and beta2 must be between 0 and 1 for RAdam)
-{v_1 : float, v_2 : float} |= v_1 >= 0 ∧ v_1 <= 1 ∧ v_2 >= 0 ∧ v_2 <= 1
+Rule 37 (The width of the input tensor should be greater than 0)
+{v_1 : tensor} |= shape(v_1, 3) > 0
 >>
-Rule 132 (The label of the data should be greater than zero)
-{v_1 : tensor} |= min(v_1) > 0
+Rule 38 (The size of the feature map should be greater than 0)
+{v_1 : tensor, v_2 : int} |= shape(v_1, v_2) > 0
 >>
-Rule 133 (The number of rows should be the same for solve triangular )
-{v_1: tensor} |= shape(v_1, 0) = shape(v_1, 1)
+Rule 41 (Value should be within a valid range)
+{v_1 : float, v_2 : float, v_3 : float} |= v_1 ≥ v_2 ∧ v_1 ≤ v_3
 >>
-Rule 134 (The number of features should be same for chain CRF)
-{v_1 : int, v_2: tensor} |= v_1 = shape(v_2,1)
+Rule 42 (The target should be a valid class label)
+{v_1 : tensor, v_2 : int} |= min(v_1) ≥ 0 ∧ max(v_1) < v_2
 >>
-Rule 136 (The number of target class should be less than the input size)
-{v_1 : int, v_2: tensor} |= v_1 < shape(v_2, 1)
+Rule 44 (The input and target tensor should have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 138 (The number of state variable must match for hierarchical softmax)
-{v_1 : tensor, v_2: int} |= shape(v_1, 1) = v_2
+Rule 45 (The reduction parameter should be a string and chosen from a valid set)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
 >>
-Rule 139 (The total number of labels must be one greater than the total number of negative labels for sampled softmax loss)
-{v_1 : int, v_2: int} |= v_1 = v_2 + 1
+Rule 47 (The number of classes should be greater than 1)
+{v_1 : int} |= v_1 > 1
 >>
-Rule 141 (The number of features must match the number of columns in weight matrix )
-{v_1 : tensor, v_2: tensor} |= shape(v_1,1) = shape(v_2, 1)
+Rule 51 (The dimension must be less than the number of dimensions of the tensor)
+{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
 >>
-Rule 142 (The power need to be less than or equal to 1.0 for SparseAdam )
-{v_1: float} |= v_1 <= 1.0
+Rule 53 (The number of channels must be a multiple of the number of groups)
+{v_1 : int, v_2 : int} |= v_1 % v_2 = 0
 >>
-Rule 143 (The size of output must be valid for max unpool2d function)
-{v_1: tuple(int), v_2: tensor} |= v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[0] >= shape(v_2, 2) ∧ v_1[1] >= shape(v_2, 3)
+Rule 54 (The dimension size should be greater than or equal to 1)
+{v_1 : int} |= v_1 ≥ 1
 >>
-Rule 144 (The number of rows for parameters must be equal to the number of columns for multi-cuda)
-{v_1: tensor} |= shape(v_1, 0) = shape(v_1,1)
+Rule 56 (The number of output nodes should match the size of the last dimension of the weight tensor)
+{v_1 : int, v_2 : tensor} |= v_1 = shape(v_2, 0)
+>>
+Rule 57 (The bias tensor should have the same size as the number of output nodes)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 0) = v_2
+>>
+Rule 62 (The input data type must match the weight data type)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 63 (The number of dimensions in the input tensor must be greater than or equal to 1)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+>>
+Rule 64 (The range values should be valid)
+{v_1 : float, v_2 : float} |= v_1 ≤ v_2
+>>
+Rule 65 (The bias must be a 1D tensor if specified)
+{v_1 : tensor} |= ndim(v_1) = 1
+>>
+Rule 66 (The number of channels in the weight must be equal to number of input channels divided by groups)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_2, 1) = shape(v_1, 1) / v_3
+>>
+Rule 67 (If stride is a tuple, its length must be equal to input dimensionality minus 2)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len = ndim(v_1) - 2
+>>
+Rule 68 (The number of input channels should be a multiple of the number of groups)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 1) % v_2 = 0
+>>
+Rule 75 (The parameters alpha and gamma must be non-negative)
+{v_1 : float, v_2 : float} |= v_1 ≥ 0 ∧ v_2 ≥ 0
+>>
+Rule 77 (The input and target dimensions must match for loss functions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+>>
+Rule 79 (The beta parameter should be between 0 and 1)
+{v_1 : float} |= 0 ≤ v_1 ∧ v_1 ≤ 1
+>>
+Rule 81 (For 2D convolution, input tensor must have 4 dimensions)
+{v_1 : tensor} |= ndim(v_1) = 4
+>>
+Rule 84 (The number of dimensions in the weight tensor must be greater than or equal to number of dimensions in the input tensor)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≥ ndim(v_1)
+>>
+Rule 85 (For sequence data, batch dimension should be consistent)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 87 (The number of features must match for linear layers)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 1) = v_2
+>>
+Rule 89 (The weights must be of floating-point data type)
+{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+>>
+Rule 91 (The number of expected classes must be greater than zero)
+{v_1 : tensor} |= max(v_1) > 0
+>>
+Rule 100 (The indices must be a LongTensor)
+{v_1 : tensor} |= dtype_(v_1) = 4
+>>
+Rule 107 (Interpolate mode must be selected from a given set of values)
+{v_1 : str} |= v_1 = "nearest" ∨ v_1 = "linear" ∨ v_1 = "bilinear" ∨ v_1 = "bicubic" ∨ v_1 = "trilinear" ∨ v_1 = "area"
+>>
+Rule 108 (Padding must be non-negative)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+>>
+Rule 112 (List of integers representing size must be positive)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 115 (The start angle must be less than the end angle)
+{v_1 : float, v_2 : float} |= v_1 < v_2
+>>
+Rule 126 (The indices in the mask tensor should be either 0 or 1)
+{v_1 : tensor} |= min(v_1) ≥ 0 ∧ max(v_1) ≤ 1
+>>
+Rule 128 (Input and output tensor shapes must align with matrix multiply rules.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 1 ∧ ndim(v_2) > 1 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 2)
+>>
+Rule 135 (The initial value must not be NaN)
+{v_1 : float} |= v_1 = v_1
+>>
+Rule 139 (The indices should not be out of bounds)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= max(v_3) < shape(v_1, v_2)
+>>
+Rule 140 (The argument must be of a valid data type)
+{v_1 : int} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 11 ∨ v_1 = 12 ∨ v_1 = 13
+>>
+Rule 141 (For LayerNorm, the normalized shape should be valid)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) ≥ v_2.len
+>>
+Rule 143 (The argument must be a non-empty tuple)
+{v_1 : tuple(int)} |= v_1.len > 0
+>>
+Rule 147 (The data must not have zero dimension)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 149 (The data type must be a valid one)
+{v_1 : dtype} |= v_1 ≥ 0
+>>
+Rule 150 (The start index has to be less than the data's length)
+{v_1 : tensor, v_2 : int} |= v_2 < shape(v_1, 0)
+>>
+Rule 151 (Number of dimensions of input must agree with what operation expects)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
+>>
+Rule 152 (List of data types, all matching)
+{v_1 : list(dtype)} |= ∀i ∈ [0, v_1.len - 1] : v_1[0] = v_1[i]
+>>
+Rule 154 (Value of parameter must be an element from set of acceptable values)
+{v_1 : str} |= v_1 = "linear" ∨ v_1 = "constant" ∨ v_1 = "reflect" ∨ v_1 = "replicate" ∨ v_1 = "circular" ∨ v_1 = "nearest" ∨ v_1 = "bilinear" ∨ v_1 = "bicubic" ∨ v_1 = "trilinear" ∨ v_1 = "area" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "softplus" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min"
+>>
+Rule 156 (The number of features of input should agree with number of features used by layer.)
+{v_1 : tensor, v_2 : int} |= shape(v_1,1) = v_2
+>>
+Rule 169 (For BatchNorm, the number of features needs to align.)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) = shape(v_2, 0)
+>>
+Rule 172 (The list of dimensions has to be valid with non zero lengths.)
+{v_1 : list(int), v_2 : tensor} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < ndim(v_2) ∧ v_1[i] ≥ 0
+>>
+Rule 178 (Data type cannot be boolean)
+{v_1 : dtype} |= v_1 ≠ 0

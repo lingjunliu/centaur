@@ -1,0 +1,75 @@
+>>
+Rule 1 (The exponent `v_2` must be a scalar (0-dimensional tensor) when the base `v_1` is a tensor.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then ndim(v_2) = 0
+>>
+Rule 2 (The exponent `v_2` must be a non-negative number.)
+{v_2 : int ⊎ float} |= v_2 ≥ 0
+>>
+Rule 4 (If base `v_1` is a tensor and exponent `v_2` is also a tensor, their data types should be the same.)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 5 (If the base `v_1` is a complex number, the exponent `v_2` should be a real number.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 7 (The shape of output tensor should be the same as the shape of base tensor when both base and exponent are tensors)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1) = shape(v_2)
+>>
+Rule 13 (If base `v_1` is a boolean tensor, the exponent `v_2` must be a non-negative integer.)
+{v_1 : tensor, v_2 : int ⊎ float} |= if dtype_(v_1) = 0 then v_2 ≥ 0
+>>
+Rule 15 (If the base is complex type, then exponent should also be complex or real number. Since complex power results in complex number.)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 16 (If the base `v_1` is an unsigned integer tensor, the exponent `v_2` should be non-negative, to avoid negative results after upcasting to a floating-point type.)
+{v_1 : tensor, v_2 : int ⊎ float} |= if dtype_(v_1) = 5 then v_2 ≥ 0
+>>
+Rule 20 (If base is float16 and exponent is not an integer, it will be promoted to float32, so the exponent can't be float16)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) ≠ 6
+>>
+Rule 22 (If the exponent is a very large number, the base cannot be close to 0, or it will result in zero to the power of a very large number, yielding NaN or infinite results.)
+{v_1: tensor, v_2: float} |= if v_2 > 100 then min(v_1) > 0.0001
+>>
+Rule 25 (If the base is zero and the exponent is negative, it results in infinity, so, if base is zero, exponent must be positive.)
+{v_1: tensor, v_2: tensor} |= if min(v_1) = 0 then min(v_2) ≥ 0
+>>
+Rule 27 (If v_1 is complex64 and v_2 is a real number, then v_2's value should not be too large.)
+{v_1: tensor, v_2: float} |= if dtype_(v_1) = 9 then v_2 < 100
+>>
+Rule 31 (If v_1 is a scalar and equals zero, v_2 must be positive.)
+{v_1: int ⊎ float, v_2: int ⊎ float ⊎ tensor} |= if v_1 = 0 then v_2 > 0
+>>
+Rule 32 (If the exponent is a very small negative number, the base cannot be close to 0, or it will result in a very large number, potentially leading to overflow or underflow issues)
+{v_1: tensor, v_2: float} |= if v_2 < -100 then min(v_1) > 0.0001
+>>
+Rule 35 (If v_1 is a tensor of float16 and v_2 is a large value, upcast v_1 to float32/float64 to avoid overflow)
+{v_1: tensor, v_2: float} |= if dtype_(v_1) = 7 then v_2 < 10
+>>
+Rule 39 (If the exponent is a floating-point tensor, the base cannot be a boolean tensor because boolean tensors are typically used for masking or logical operations.)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) ≠ 7 ∧ dtype_(v_2) ≠ 8
+>>
+Rule 41 (If exponent is a tensor with large elements, then the base must be within valid boundaries to avoid overflow or underflow.)
+{v_1: tensor, v_2: tensor} |= if max(v_2) > 10 then max(v_1) < 100
+>>
+Rule 42 (If base tensor's values are close to 1 and exponent tensor is very large, the result can become unstable. So, in that scenario exponent shouldn't be very large.)
+{v_1: tensor, v_2: tensor} |= if (max(v_1) < 1.01) ∧ (min(v_1) > 0.99) then max(v_2) < 10
+>>
+Rule 44 (If v_1 is a quantized tensor and the exponent v_2 is also a tensor, v_2 must be an integer tensor.)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6
+>>
+Rule 45 (When both base v_1 and exponent v_2 are tensors, their shapes must be the same for element-wise power operation.)
+{v_1: tensor, v_2: tensor} |= if shape(v_1) ≠ shape(v_2) then false
+>>
+Rule 46 (If the base is a tensor with complex numbers and the exponent is a real tensor, make sure that the absolute value of exponent does not exceed a threshold value to prevent overflows when converted to complex type during power computation.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then if dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 then max(v_2) < 1000
+>>
+Rule 55 (If the base is a float16 tensor, then exponent cannot be int64 tensor due to potential integer overflow.)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) ≠ 5
+>>
+Rule 57 (If v_1 is a bool tensor, and v_2 is a negative int tensor, there would be a cast to float which is incorrect)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 0 then if dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 then min(v_2) ≥ 0
+>>
+Rule 60 (If the base v_1 is an integer tensor and exponent v_2 is int tensor, the result of base**exponent must not overflow)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then if dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 then true else false
+>>
+Rule 62 (When v_1 is a QInt32 tensor, v_2 must be a non-negative integer to avoid conversion back to float.)
+{v_1 : tensor, v_2 : int ⊎ float} |= if dtype_(v_1) = 3 then v_2 ≥ 0

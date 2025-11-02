@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If the parameter describes a probability it should be between zero and one (Rule 119)
+# if string is there then it must be relu (Rule 119)
 
 rule_119 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] >= 0, v["arg1_value"] <= 1)) if n else
-          And(v["arg1_value"] >= 0, v["arg1_value"] <= 1))
+    s.add(Not(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_value"] == 11, v["arg1_value"] == 12), v["arg1_value"] == 13), v["arg1_value"] == 14), v["arg1_value"] == 15), v["arg1_value"] == 16), v["arg1_value"] == 17), v["arg1_value"] == 18), v["arg1_value"] == 19), v["arg1_value"] == 20), v["arg1_value"] == 21), v["arg1_value"] == 22), v["arg1_value"] == 23), v["arg1_value"] == 24), v["arg1_value"] == 25), v["arg1_value"] == 26), v["arg1_value"] == 27), v["arg1_value"] == 28), v["arg1_value"] == 29), v["arg1_value"] == 20)) if n else
+          Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_value"] == 11, v["arg1_value"] == 12), v["arg1_value"] == 13), v["arg1_value"] == 14), v["arg1_value"] == 15), v["arg1_value"] == 16), v["arg1_value"] == 17), v["arg1_value"] == 18), v["arg1_value"] == 19), v["arg1_value"] == 20), v["arg1_value"] == 21), v["arg1_value"] == 22), v["arg1_value"] == 23), v["arg1_value"] == 24), v["arg1_value"] == 25), v["arg1_value"] == 26), v["arg1_value"] == 27), v["arg1_value"] == 28), v["arg1_value"] == 29), v["arg1_value"] == 20))
 )
 
 def rule_119_func(arg1, solver=None, neg=False):
@@ -17,15 +17,15 @@ def rule_119_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
+        if not isinstance(arg1, str):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
+        arg1_value = String('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
+        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
 
         # Constraints for rule 119
         rule_119(solver, {'arg1_value': arg1_value})

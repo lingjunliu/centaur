@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# When align_corners is true, the input size must be greater than 1. (Rule 9)
+# Check if the start value is less than the end value (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"], v["arg1_value"] > 1, True)) if n else
-          If(v["arg2_value"], v["arg1_value"] > 1, True))
+    s.add(Not(v["arg1_value"] < v["arg2_value"]) if n else
+          v["arg1_value"] < v["arg2_value"])
 )
 
 def rule_9_func(arg1, arg2, solver=None, neg=False):
@@ -20,17 +20,17 @@ def rule_9_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
-        if not isinstance(arg2, bool):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = Int('arg1_value')
-        arg2_value = Bool('arg2_value')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
         solver.add(arg1_value == int(arg1))
-        solver.add(arg2_value == arg2)
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 9
         rule_9(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})

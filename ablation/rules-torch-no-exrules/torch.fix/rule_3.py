@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor should not be float to avoid Float but expected Double error if the default dtype is double (Rule 3)
+# input tensor dtype should not be complex128 (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 8) if n else
-          v["arg1_dtype"] != 8)
+    s.add(Not(v["arg1_dtype"] != 10) if n else
+          v["arg1_dtype"] != 10)
 )
 
 def rule_3_func(arg1, solver=None, neg=False):

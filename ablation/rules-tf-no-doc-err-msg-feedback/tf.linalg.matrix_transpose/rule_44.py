@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# the axes in the list or tuple should be less than the rank (Rule 44)
+# If perm is defined the output dimensions must be the same as the input dimensions (Rule 44)
 
 rule_44 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) < v["arg1_ndim"]) for i in range(6)])) if n else
-          And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) < v["arg1_ndim"]) for i in range(6)]))
+    s.add(Not(If(v["arg2_length"] > 0, And([Implies(i < (v["arg2_length"] - 1 + 1), Or([And(j < (v["arg1_ndim"] - 1 + 1), Select(v["arg2_values"], i) == j) for j in range(6)])) for i in range(6)]), True)) if n else
+          If(v["arg2_length"] > 0, And([Implies(i < (v["arg2_length"] - 1 + 1), Or([And(j < (v["arg1_ndim"] - 1 + 1), Select(v["arg2_values"], i) == j) for j in range(6)])) for i in range(6)]), True))
 )
 
 def rule_44_func(arg1, arg2, solver=None, neg=False):
@@ -20,7 +20,7 @@ def rule_44_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
 
         # Variable declarations

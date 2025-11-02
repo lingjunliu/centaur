@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The input tensor must have a valid number of dimensions for image padding (Rule 63)
+# The input tensor can have at most 4 dimensions (batch, channel, height, width (Rule 63)
 
 rule_63 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] >= 3, v["arg1_ndim"] <= 5)) if n else
-          And(v["arg1_ndim"] >= 3, v["arg1_ndim"] <= 5))
+    s.add(Not(v["arg1_ndim"] <= 4) if n else
+          v["arg1_ndim"] <= 4)
 )
 
 def rule_63_func(arg1, solver=None, neg=False):

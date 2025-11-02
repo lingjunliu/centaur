@@ -1,0 +1,216 @@
+>>
+Rule 1 (The value to fill the tensor with must be a number when the tensor is an integer or float type.)
+{tensor_ : tensor, fill_value : int ⊎ float} |= (dtype_(tensor_) > 0) ∧ (dtype_(tensor_) < 9) ∧ (fill_value > -10000) ∧ (fill_value < 10000)
+>>
+Rule 2 (The value to fill the tensor with must be a boolean when the tensor is a boolean type.)
+{tensor_ : tensor, fill_value : bool} |= (dtype_(tensor_) = 0) ∧ ((fill_value = true) ∨ (fill_value = false))
+>>
+Rule 3 (The value to fill the tensor with should not result in an overflow for integer tensors.)
+{tensor_ : tensor, fill_value : int} |= if (dtype_(tensor_) = 1) then (fill_value ≥ -128) ∧ (fill_value ≤ 127) else if (dtype_(tensor_) = 2) then (fill_value ≥ -32768) ∧ (fill_value ≤ 32767) else if (dtype_(tensor_) = 3) then (fill_value ≥ -2147483648) ∧ (fill_value ≤ 2147483647) else if (dtype_(tensor_) = 4) then (fill_value ≥ -9223372036854775808) ∧ (fill_value ≤ 9223372036854775807) else (fill_value ≥ 0)
+>>
+Rule 4 (The value to fill the tensor with must be within a reasonable range.)
+{tensor_ : tensor, fill_value : float} |= if (dtype_(tensor_) = 7) then (fill_value > -1000.0) ∧ (fill_value < 1000.0) else if (dtype_(tensor_) = 8) then (fill_value > -1000.0) ∧ (fill_value < 1000.0)
+>>
+Rule 5 (Fill value must be within the range of float32 if the tensor is of float32 type.)
+{tensor_ : tensor, fill_value : float} |= if (dtype_(tensor_) = 7) then (fill_value ≥ -3.4028235e+38) ∧ (fill_value ≤ 3.4028235e+38)
+>>
+Rule 6 (The fill value should be non-negative if tensor dtype is uint8.)
+{tensor_ : tensor, fill_value : int} |= if (dtype_(tensor_) = 5) then (fill_value ≥ 0)
+>>
+Rule 7 (The fill value's type should match the tensor's dtype when tensor's dtype is specified.)
+{tensor_ : tensor, fill_value : int ⊎ float ⊎ bool} |=  if (dtype_(tensor_) = 0) then (fill_value = true ∨ fill_value = false) else if (dtype_(tensor_) > 0 ∧ dtype_(tensor_) < 6) then (fill_value ≥ -2147483648) ∧ (fill_value ≤ 2147483647) else if (dtype_(tensor_) > 6 ∧ dtype_(tensor_) < 9) then (fill_value > -1000.0) ∧ (fill_value < 1000.0)
+>>
+Rule 8 (Tensor must exist)
+{tensor_ : tensor} |= ndim(tensor_) > 0
+>>
+Rule 9 (Fill value cannot be NaN or Inf if the tensor is of floating point type.)
+{tensor_ : tensor, fill_value : float} |= if (dtype_(tensor_) > 6 ∧ dtype_(tensor_) < 9) then (fill_value ≠ (1.0/0.0)) ∧ (fill_value ≠ (-1.0/0.0))
+>>
+Rule 13 (When initializing weights to a constant value, the value should be close to zero for symmetry breaking in some layers.)
+{tensor_ : tensor, fill_value : float} |= if ndim(tensor_) = 2 then (fill_value > -0.1) ∧ (fill_value < 0.1)
+>>
+Rule 14 (When initializing bias to a constant value, it's often set to zero.)
+{tensor_ : tensor, fill_value : float} |= if ndim(tensor_) = 1 then fill_value = 0.0
+>>
+Rule 15 (If the fill value is an integer, it must be representable within the limits of the specified integer dtype.)
+{tensor_ : tensor, fill_value : int} |= if dtype_(tensor_) = 1 then (fill_value ≥ -128) ∧ (fill_value ≤ 127) else if dtype_(tensor_) = 2 then (fill_value ≥ -32768) ∧ (fill_value ≤ 32767) else if dtype_(tensor_) = 3 then (fill_value ≥ -2147483648) ∧ (fill_value ≤ 2147483647) else if dtype_(tensor_) = 4 then true else if dtype_(tensor_) = 5 then (fill_value ≥ 0) ∧ (fill_value ≤ 255)
+>>
+Rule 16 (The fill_value type should be compatible with the tensor's dtype.)
+{tensor_ : tensor, fill_value : int ⊎ float ⊎ bool} |= if dtype_(tensor_) = 0 then (fill_value = true ∨ fill_value = false) else if (dtype_(tensor_) > 0) ∧ (dtype_(tensor_) < 6) then true else if (dtype_(tensor_) > 6) ∧ (dtype_(tensor_) < 9) then true
+>>
+Rule 17 (Fill value shouldn't be excessively large to avoid potential numerical instability.)
+{tensor_ : tensor, fill_value : float} |= if dtype_(tensor_) = 7 then (fill_value > -1e5) ∧ (fill_value < 1e5) else if dtype_(tensor_) = 8 then (fill_value > -1e10) ∧ (fill_value < 1e10)
+>>
+Rule 18 (The tensor's dtype must be a valid numerical type.)
+{tensor_ : tensor} |= (dtype_(tensor_) ≥ 0) ∧ (dtype_(tensor_) ≤ 10)
+>>
+Rule 19 (When initializing a tensor, consider the distribution from which the fill_value comes from.)
+{tensor_ : tensor, fill_value : float} |= (min(tensor_) ≤ fill_value) ∧ (max(tensor_) ≥ fill_value)
+>>
+Rule 20 (When initializing the weight of a layer, setting fill_value to 1 can cause problems with backpropagation.)
+{tensor_ : tensor, fill_value : int ⊎ float} |= if ndim(tensor_) > 1 then fill_value ≠ 1
+>>
+Rule 21 (For Conv2d weights, the fill value should be small.)
+{tensor_ : tensor, fill_value : float} |= if (ndim(tensor_) = 4) then (fill_value > -0.01) ∧ (fill_value < 0.01)
+>>
+Rule 22 (For BatchNorm1d bias, the fill value is typically 0.)
+{tensor_ : tensor, fill_value : float} |= if (ndim(tensor_) = 1) then (fill_value = 0.0)
+>>
+Rule 23 (If the tensor is a boolean type, the fill_value must be a boolean.)
+{tensor_ : tensor, fill_value : bool} |= if dtype_(tensor_) = 0 then (fill_value = true ∨ fill_value = false)
+>>
+Rule 26 (Fill value must be in the range of allowed values for BFloat16 if the tensor is of BFloat16 type.)
+{tensor_ : tensor, fill_value : float} |= if (dtype_(tensor_) = 7) then (fill_value ≥ -3.389531387e+38) ∧ (fill_value ≤ 3.389531387e+38)
+>>
+Rule 27 (Fill value shouldn't be zero for batchnorm weight initialization)
+{tensor_ : tensor, fill_value : float} |= if (ndim(tensor_) = 1) then (fill_value ≠ 0.0)
+>>
+Rule 28 (The tensor should have at least one dimension.)
+{tensor_ : tensor} |= ndim(tensor_) ≥ 1
+>>
+Rule 29 (If fill value is used to initialize a mask, its value should be either 0 or 1.)
+{tensor_ : tensor, fill_value : int} |= if ndim(tensor_) > 0 then (fill_value = 0 ∨ fill_value = 1)
+>>
+Rule 30 (Fill value must not be extremely close to 0 if it is used as a divisor)
+{tensor_ : tensor, fill_value : float} |= if ndim(tensor_) > 0 then (fill_value < -1e-6 ∨ fill_value > 1e-6)
+>>
+Rule 31 (When using constant initialization in conjunction with other operations, avoid small values which can be problematic.)
+{tensor_ : tensor, fill_value : float} |= if ndim(tensor_) > 0 then (fill_value < -0.0001 ∨ fill_value > 0.0001)
+>>
+Rule 32 (If the tensor is a bias, and the activation function is ReLU, it's often beneficial to initialize to a small positive constant like 0.01 to avoid dead neurons.)
+{tensor_ : tensor, fill_value : float} |= if ndim(tensor_) = 1 then (fill_value = 0.01)
+>>
+Rule 33 (Fill value should be different from extreme values of the data.)
+{tensor_ : tensor, fill_value : float} |= (fill_value ≠ min(tensor_)) ∧ (fill_value ≠ max(tensor_))
+>>
+Rule 34 (If the tensor is an embedding weight matrix, avoid using a constant value other than 0 for initialization)
+{tensor_ : tensor, fill_value : float} |= if ndim(tensor_) = 2 then (fill_value = 0.0)
+>>
+Rule 35 (When initializing weights for recurrent neural networks, a constant fill value can disrupt the learning process, so avoid very small fill values)
+{tensor_ : tensor, fill_value : float} |= if ndim(tensor_) > 1 then (fill_value > 0.001 ∨ fill_value < -0.001)
+>>
+Rule 37 (When the tensor requires a specific range of values, e.g. between 0 and 1, the fill_value must respect this)
+{tensor_ : tensor, fill_value : float} |= if (min(tensor_) ≥ 0) ∧ (max(tensor_) ≤ 1) then (fill_value ≥ 0) ∧ (fill_value ≤ 1)
+>>
+Rule 38 (If the tensor is a weight in a convolutional layer and is followed by a ReLU, it's often better to initialize with a small positive number to avoid dead neurons.)
+{tensor_ : tensor, fill_value : float} |= if ndim(tensor_) = 4 then (fill_value ≥ 0) ∧ (fill_value < 0.1)
+>>
+Rule 39 (If the tensor is a gate activation parameter in LSTM network the initialization should have a value close to 1)
+{tensor_ : tensor, fill_value : float} |= if ndim(tensor_) = 2 then (fill_value > 0.9) ∧ (fill_value < 1.1)
+>>
+Rule 40 (Fill value must not result in all zero gradients which can stall learning)
+{tensor_ : tensor, fill_value : float} |= if ndim(tensor_) > 0 then (fill_value ≠ 0)
+>>
+Rule 41 (If initializing the weight of a layer that performs multiplication with the input, the value should be near 1 to avoid scaling the input to zero.)
+{tensor_ : tensor, fill_value : float} |= if ndim(tensor_) = 2 then (fill_value > 0.5) ∧ (fill_value < 1.5)
+>>
+Rule 42 (Ensure fill_value doesn't exceed maximum possible value based on target dtype)
+{tensor_ : tensor, fill_value : int} |= if (dtype_(tensor_) = 1) then fill_value ≤ 127 else if (dtype_(tensor_) = 2) then fill_value ≤ 32767 else if (dtype_(tensor_) = 3) then fill_value ≤ 2147483647 else if (dtype_(tensor_) = 4) then true else if (dtype_(tensor_) = 5) then fill_value ≤ 255
+>>
+Rule 43 (Fill value must not be negative when initializing variance or standard deviation)
+{tensor_ : tensor, fill_value : float} |= if ndim(tensor_) > 0 then (fill_value ≥ 0)
+>>
+Rule 45 (If the tensor represents log probabilities, fill_value must be a very negative number.)
+{tensor_ : tensor, fill_value : float} |= if ndim(tensor_) > 0 then (fill_value < -100.0)
+>>
+Rule 46 (Fill value must not be a value outside of representable range for float16.)
+{tensor_ : tensor, fill_value : float} |= if (dtype_(tensor_) = 6) then (fill_value > -65500.0) ∧ (fill_value < 65500.0)
+>>
+Rule 48 (If tensor requires values to be between -1 and 1, fill_value must adhere to this)
+{tensor_ : tensor, fill_value : float} |= if (min(tensor_) ≥ -1.0) ∧ (max(tensor_) ≤ 1.0) then (fill_value ≥ -1.0) ∧ (fill_value ≤ 1.0)
+>>
+Rule 50 (For sigmoid output layers, initializing biases to small negative values can help learning.)
+{tensor_ : tensor, fill_value : float} |= if ndim(tensor_) = 1 then (fill_value > -0.1) ∧ (fill_value < 0)
+>>
+Rule 51 (Fill value must not be greater than maximum values supported by datatype.)
+{tensor_ : tensor, fill_value : int} |= if (dtype_(tensor_) = 1) then fill_value ≤ 127 else if (dtype_(tensor_) = 2) then fill_value ≤ 32767 else if (dtype_(tensor_) = 3) then fill_value ≤ 2147483647 else if (dtype_(tensor_) = 5) then fill_value ≤ 255
+>>
+Rule 52 (If tensor requires values close to one, fill_value should be close to one too.)
+{tensor_ : tensor, fill_value : float} |= if (min(tensor_) ≥ 0.9) ∧ (max(tensor_) ≤ 1.1) then (fill_value ≥ 0.9) ∧ (fill_value ≤ 1.1)
+>>
+Rule 53 (When initializing layer norm weight, the fill value should be close to one.)
+{tensor_ : tensor, fill_value : float} |= if (ndim(tensor_) = 1) then (fill_value > 0.9) ∧ (fill_value < 1.1)
+>>
+Rule 54 (Fill value shouldn't result in NaN gradients)
+{tensor_ : tensor, fill_value : float} |= if ndim(tensor_) > 0 then (fill_value * fill_value < 1e15)
+>>
+Rule 56 (Ensure fill_value doesn't fall outside minimum values supported by datatype)
+{tensor_ : tensor, fill_value : int} |= if (dtype_(tensor_) = 1) then fill_value ≥ -128 else if (dtype_(tensor_) = 2) then fill_value ≥ -32768 else if (dtype_(tensor_) = 3) then fill_value ≥ -2147483648
+>>
+Rule 58 (If the fill value would result in zero variance then you should pick another value)
+{tensor_ : tensor, fill_value : float} |= if (max(tensor_) = min(tensor_)) then (max(tensor_) ≠ fill_value)
+>>
+Rule 59 (Fill value for integer tensor should be within the representable range)
+{tensor_ : tensor, fill_value : int} |= if (dtype_(tensor_) = 1) then (fill_value >= -128 ∧ fill_value <= 127) else if (dtype_(tensor_) = 2) then (fill_value >= -32768 ∧ fill_value <= 32767) else if (dtype_(tensor_) = 3) then (fill_value >= -2147483648 ∧ fill_value <= 2147483647) else if (dtype_(tensor_) = 4) then (fill_value >= -9223372036854775808 ∧ fill_value <= 9223372036854775807) else if (dtype_(tensor_) = 5) then (fill_value >= 0 ∧ fill_value <= 255)
+>>
+Rule 61 (When initializing a weight matrix that will be used to compute probabilities for classes, setting it to a small constant biases the network towards a uniform distribution initially.)
+{tensor_ : tensor, fill_value : float} |= if ndim(tensor_) = 2 then (fill_value > -0.01) ∧ (fill_value < 0.01)
+>>
+Rule 62 (When the tensor represents standard deviation, avoid initializing it to 0.)
+{tensor_ : tensor, fill_value : float} |= if ndim(tensor_) > 0 then (fill_value > 0)
+>>
+Rule 63 (If the tensor contains categorical labels, then fill value should be valid)
+{tensor_ : tensor, fill_value : int} |= if (dtype_(tensor_) = 3) then (fill_value ≥ 0) ∧ (fill_value < 1000)
+>>
+Rule 65 (When initializing the weights for a residual connection, a small value is preferred to promote identity transformation.)
+{tensor_ : tensor, fill_value : float} |= if ndim(tensor_) > 1 then (fill_value < 0.01) ∧ (fill_value > -0.01)
+>>
+Rule 66 (Ensure the fill value is within the permitted range for a `uint8` datatype.)
+{tensor_ : tensor, fill_value : int} |= if (dtype_(tensor_) = 5) then (fill_value >= 0) ∧ (fill_value <= 255)
+>>
+Rule 67 (For the log variance of a variational autoencoder, a small constant might encourage initial exploration.)
+{tensor_ : tensor, fill_value : float} |= if ndim(tensor_) = 1 then (fill_value > -0.1) ∧ (fill_value < 0.1)
+>>
+Rule 68 (Fill value for the weights of LSTM forget gate is often initialized to one or a large positive number.)
+{tensor_ : tensor, fill_value : float} |= if ndim(tensor_) = 2 then (fill_value >= 1.0) ∧ (fill_value <= 2.0)
+>>
+Rule 69 (If the tensor contains indices into an embedding table, the fill value should be a valid index.)
+{tensor_ : tensor, fill_value : int} |= if ndim(tensor_) > 0 then (fill_value >= 0) ∧ (fill_value < 10000)
+>>
+Rule 70 (Fill value shouldn't cause underflow.)
+{tensor_ : tensor, fill_value : float} |= if (dtype_(tensor_) = 7) then (fill_value > 1e-45) else if (dtype_(tensor_) = 8) then (fill_value > 1e-323)
+>>
+Rule 74 (Ensure that when initializing with `uint8`, we are using an int and a reasonable small positive number.)
+{tensor_ : tensor, fill_value : int} |= if (dtype_(tensor_) = 5) then (fill_value > 0) ∧ (fill_value < 256)
+>>
+Rule 75 (For LSTM cell initialization it is good to initialize the forget gate to 1 to alleviate vanishing gradient)
+{tensor_ : tensor, fill_value : float} |= if (ndim(tensor_) = 2) then (fill_value = 1.0)
+>>
+Rule 78 (Fill value should not exceed the bounds of smaller floating point numbers.)
+{tensor_ : tensor, fill_value : float} |= if dtype_(tensor_) = 6 then (fill_value > -65536) ∧ (fill_value < 65536)
+>>
+Rule 79 (Fill value is encouraged to be a large value if tensor is for attention mask.)
+{tensor_ : tensor, fill_value : float} |= if ndim(tensor_) > 1 then (fill_value < -1000.0)
+>>
+Rule 81 (If fill_value represents a logit value, then it should not be a very large number to prevent overflow errors in later calculations.)
+{tensor_ : tensor, fill_value : float} |= if ndim(tensor_) > 0 then (fill_value < 10.0) ∧ (fill_value > -10.0)
+>>
+Rule 82 (If the fill_value is used to initialize a tensor of type half, then the value needs to be representable by half.)
+{tensor_ : tensor, fill_value : float} |= if dtype_(tensor_) = 6 then (fill_value > -65504) ∧ (fill_value < 65504)
+>>
+Rule 85 (If tensor has a complex dtype, the real and imaginary parts of fill_value shouldn't be infinite or NaN)
+{tensor_ : tensor, fill_value : float} |= if (dtype_(tensor_) = 9) ∨ (dtype_(tensor_) = 10) then (fill_value ≠ (1.0/0.0)) ∧ (fill_value ≠ (-1.0/0.0))
+>>
+Rule 86 (The number of dimensions for weight and bias matrices should be reasonable)
+{tensor_ : tensor} |= if (ndim(tensor_) < 5) then true else false
+>>
+Rule 87 (For ReLU-based convolutional layers, it's generally preferable to use a positive value to initialize the weights.)
+{tensor_ : tensor, fill_value : float} |= if ndim(tensor_) = 4 then (fill_value > 0.0)
+>>
+Rule 88 (Make sure max value that is being initialized is not bigger than biggest allowed value)
+{tensor_ : tensor, fill_value : int} |= if (dtype_(tensor_) = 4) then (fill_value <= 9223372036854775807)
+>>
+Rule 91 (If initializing forget gate bias in an LSTM, prefer a positive initial bias to promote remembering information initially)
+{tensor_ : tensor, fill_value : float} |= if ndim(tensor_) = 1 then (fill_value > 0.0)
+>>
+Rule 93 (Fill value shouldn't be too small, as it may cause vanishing gradient.)
+{tensor_ : tensor, fill_value : float} |= if ndim(tensor_) > 0 then (fill_value > 0.000001) ∨ (fill_value < -0.000001)
+>>
+Rule 94 (Fill value shouldn't result in integer overflow for short or byte tensors.)
+{tensor_ : tensor, fill_value : int} |= if (dtype_(tensor_) = 1) then (fill_value > -129) ∧ (fill_value < 128) else if (dtype_(tensor_) = 2) then (fill_value > -32769) ∧ (fill_value < 32768)
+>>
+Rule 95 (To prevent saturation with tanh activation, value of weight tensors should be low )
+{tensor_ : tensor, fill_value : float} |= if ndim(tensor_) > 1 then (fill_value > -0.1) ∧ (fill_value < 0.1)
+>>
+Rule 96 (Initializing a boolean tensor to true or false has to be carefully checked to ensure correct operations)
+{tensor_ : tensor, fill_value : bool} |= if (dtype_(tensor_) = 0) then ((fill_value = true) ∨ (fill_value = false))

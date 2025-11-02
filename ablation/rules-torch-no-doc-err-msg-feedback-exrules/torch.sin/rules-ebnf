@@ -1,99 +1,159 @@
 >>
-Rule 1 (input tensor must have floating point or complex dtype)
-{v_1 : tensor} |= (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)
+Rule 1 (Input tensor must have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 2 (The shape of the output tensor is the same as the input tensor)
-{v_1 : tensor} |= shape(v_1) = shape(v_1)
+Rule 3 (Check if the input is a floating point or complex tensor)
+{v_1 : tensor} |= (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)
 >>
-Rule 3 (Check that dtype of input is a valid dtype.)
-{v_1 : dtype} |= (v_1 = 1) ∨ (v_1 = 2) ∨ (v_1 = 3) ∨ (v_1 = 4) ∨ (v_1 = 5) ∨ (v_1 = 6) ∨ (v_1 = 7) ∨ (v_1 = 8) ∨ (v_1 = 9) ∨ (v_1 = 10)
+Rule 4 (Output dtype can't be bool)
+{v_1 : dtype} |= v_1 ≠ 0
 >>
-Rule 4 (Check if inplace operation changes tensor dtype)
-{v_1 : tensor, v_2 : bool} |= if v_2 then dtype_(v_1) = dtype_(v_1)
+Rule 5 (Check if a scalar value is within a reasonable range)
+{v_1 : float} |= (v_1 > -1000.0) ∧ (v_1 < 1000.0)
 >>
-Rule 5 (If dim is specified in a tensor, it must be a non-negative integer)
-{v_1 : int} |= v_1 ≥ 0
+Rule 6 (Check if the input is a boolean tensor, if true it will throw an error)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 6 (If scale parameter is specified, it must be greater than 0)
-{v_1 : float} |= v_1 > 0
+Rule 7 (If optional out tensor is given, ensure its dtype matches the input tensor)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ null then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 7 (Check if the eps parameter is a non-negative float.)
-{v_1 : float} |= v_1 ≥ 0
+Rule 9 (If scale is provided, it must be a positive float)
+{v_1 : float} |= v_1 > 0.0
 >>
-Rule 8 (The string value of the mode parameter should be from a pre-defined list)
-{v_1 : str} |= (v_1 = "none") ∨ (v_1 = "mean") ∨ (v_1 = "sum") ∨ (v_1 = "max") ∨ (v_1 = "min")
->>
-Rule 9 (The string value of the align_corners parameter should be "linear")
-{v_1 : str} |= (v_1 = "linear")
->>
-Rule 10 (The string value of the recompute_scale_factor parameter should be "linear")
+Rule 10 (If training mode is specified, it must be a boolean value.)
 {v_1 : bool} |= (v_1 = true) ∨ (v_1 = false)
 >>
-Rule 13 (Check that dtype of input is a valid dtype using int representation.)
-{v_1 : int} |= (v_1 = 1) ∨ (v_1 = 2) ∨ (v_1 = 3) ∨ (v_1 = 4) ∨ (v_1 = 5) ∨ (v_1 = 6) ∨ (v_1 = 7) ∨ (v_1 = 8) ∨ (v_1 = 9) ∨ (v_1 = 10) ∨ (v_1=11) ∨ (v_1=12) ∨ (v_1=13)
->>
-Rule 16 (Check if memory_format is a string in given list)
-{v_1 : str} |= (v_1 = "ii") ∨ (v_1 = "ii->i") ∨ (v_1 = "i,j->ij") ∨ (v_1 = "bij,bjk->bik") ∨ (v_1 = "...ij->...ji") ∨ (v_1 = "bn,anm,bm->ba")
->>
-Rule 17 (Check that value for padding mode is valid.)
-{v_1 : str} |= (v_1 = "reflect") ∨ (v_1 = "replicate") ∨ (v_1 = "circular")
->>
-Rule 18 (Check interpolation mode)
-{v_1 : str} |= (v_1 = "nearest") ∨ (v_1 = "linear") ∨ (v_1 = "bilinear") ∨ (v_1 = "bicubic") ∨ (v_1 = "trilinear") ∨ (v_1 = "area")
->>
-Rule 23 (Ensure 'dim' parameter for normalization is within valid range)
-{v_1 : tensor, v_2 : int} |= (v_2 ≥ (0 - ndim(v_1))) ∧ (v_2 < ndim(v_1))
->>
-Rule 24 (Check if the output tensor shares memory with the input tensor when inplace is true)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then v_1 = v_2
->>
-Rule 25 (If groups is specified, it must be a positive integer)
+Rule 13 (Checking if groups is greater than 0)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 29 (Ensure padding is a tuple of non-negative integers if it's a tuple)
-{v_1 : tuple(int)} |= ∀ v_2 ∈ [0, v_1.len] : v_1[v_2] ≥ 0
+Rule 15 (Checking if padding is greater than or equal to 0)
+{v_1 : int} |= v_1 ≥ 0
 >>
-Rule 35 (The 'align_corners' parameter should be a boolean if upsampling with trilinear/linear)
-{v_1 : str, v_2: bool} |= if (v_1 = "trilinear") ∨ (v_1 = "linear") then (v_2 = true) ∨ (v_2 = false)
+Rule 17 (Check if the value of 'p' for norm functions is greater than or equal to zero.)
+{v_1 : float} |= v_1 ≥ 0.0
 >>
-Rule 38 (The string value for reduction must be in defined list)
+Rule 19 (The begin value should be smaller than end value in range)
+{v_1 : int, v_2 : int} |= v_1 < v_2
+>>
+Rule 20 (Ensure that the 'weight' parameter for loss functions is in the range [0, 1].)
+{v_1 : float} |= (v_1 ≥ 0.0) ∧ (v_1 ≤ 1.0)
+>>
+Rule 22 (The dimension to reduce along must be within the range of dimensions of the input tensor)
+{v_1 : tensor, v_2 : int} |= (v_2 ≥ 0) ∧ (v_2 < ndim(v_1))
+>>
+Rule 25 (Ensure that the 'layout' parameter, if specified, is a valid string option.)
+{v_1 : str} |= (v_1 = "strided") ∨ (v_1 = "sparse_coo") ∨ (v_1 = "sparse_csr") ∨ (v_1 = "sparse_csc") ∨ (v_1 = "sparse_bsc") ∨ (v_1 = "sparse_bsr")
+>>
+Rule 27 (Ensure that the 'mode' parameter for interpolation functions is a valid string option.)
+{v_1 : str} |= (v_1 = "nearest") ∨ (v_1 = "linear") ∨ (v_1 = "bilinear") ∨ (v_1 = "bicubic") ∨ (v_1 = "trilinear") ∨ (v_1 = "area")
+>>
+Rule 28 (The value of lower bound should be smaller than the value of upper bound)
+{v_1 : float, v_2 : float} |= v_1 < v_2
+>>
+Rule 29 (The 'reduction' parameter must be a valid string option.)
 {v_1 : str} |= (v_1 = "none") ∨ (v_1 = "mean") ∨ (v_1 = "sum")
 >>
-Rule 39 (Dilation must be greater or equal to 1)
+Rule 32 (If given, the weight tensor must have the correct number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ null then ndim(v_2) = ndim(v_1)
+>>
+Rule 33 (Ensure that the `mode` parameter for `torch.fft.fftfreq` is a valid string option.)
+{v_1 : str} |= (v_1 = "symmetric") ∨ (v_1 = "center") ∨ (v_1 = "twosided") ∨ (v_1 = "onesided")
+>>
+Rule 34 (The value for 'ord' parameter in norm function should be greater than zero)
+{v_1 : int ⊎ float} |= v_1 > 0
+>>
+Rule 38 (The scale parameter of the exponential distribution must be positive.)
+{v_1 : float} |= v_1 > 0
+>>
+Rule 41 (The maximum value must be greater than or equal to the minimum value for uniform distribution.)
+{v_1 : float, v_2 : float} |= v_2 ≥ v_1
+>>
+Rule 42 (The number of rows and columns in a matrix must be positive.)
+{v_1 : int, v_2 : int} |= (v_1 > 0) ∧ (v_2 > 0)
+>>
+Rule 45 (For embeddings, the padding index should be within the vocabulary size.)
+{v_1 : int, v_2 : int} |= if v_1 ≠ -1 then (v_1 ≥ 0) ∧ (v_1 < v_2)
+>>
+Rule 51 (The sample rate should be in the interval (0, 1] for the audio processing functions.)
+{v_1 : float} |= (v_1 > 0.0) ∧ (v_1 ≤ 1.0)
+>>
+Rule 52 (For LSTM, dropout value must be between 0 and 1 if num_layers > 1)
+{v_1 : int, v_2 : float} |= if v_1 > 1 then (v_2 ≥ 0.0) ∧ (v_2 ≤ 1.0)
+>>
+Rule 56 (The value of start should not be equal to end when generating arange)
+{v_1 : float, v_2 : float} |= v_1 ≠ v_2
+>>
+Rule 60 (The argument for the type must be chosen from available dtypes)
+{v_1 : dtype} |= (v_1 = 0) ∨ (v_1 = 1) ∨ (v_1 = 2) ∨ (v_1 = 3) ∨ (v_1 = 4) ∨ (v_1 = 5) ∨ (v_1 = 6) ∨ (v_1 = 7) ∨ (v_1 = 8) ∨ (v_1 = 9) ∨ (v_1 = 10) ∨ (v_1 = 12)
+>>
+Rule 61 (The 'mode' parameter for adaptive pooling functions must be a valid string option.)
+{v_1 : str} |= (v_1 = "nearest") ∨ (v_1 = "linear")
+>>
+Rule 64 (The string should be selected from given list)
+{v_1 : str} |= (v_1 = "ii") ∨ (v_1 = "ii->i") ∨ (v_1 = "i,j->ij") ∨ (v_1 = "bij,bjk->bik") ∨ (v_1 = "...ij->...ji") ∨ (v_1 = "bn,anm,bm->ba") ∨ (v_1 = "none") ∨ (v_1 = "mean") ∨ (v_1 = "sum") ∨ (v_1 = "max") ∨ (v_1 = "min") ∨ (v_1 = "relu") ∨ (v_1 = "tanh") ∨ (v_1 = "sigmoid") ∨ (v_1 = "softmax") ∨ (v_1 = "elu") ∨ (v_1 = "selu") ∨ (v_1 = "gelu") ∨ (v_1 = "swish") ∨ (v_1 = "softplus") ∨ (v_1 = "linear") ∨ (v_1 = "constant") ∨ (v_1 = "reflect") ∨ (v_1 = "replicate") ∨ (v_1 = "circular") ∨ (v_1 = "nearest") ∨ (v_1 = "bilinear") ∨ (v_1 = "bicubic") ∨ (v_1 = "trilinear") ∨ (v_1 = "area")
+>>
+Rule 66 (The suggested values of lambda1 and lambda2 are 0.95 and 0.5 for sparse_grad)
+{v_1 : float, v_2 : float} |= (v_1 ≥ 0.0) ∧ (v_1 ≤ 1.0) ∧ (v_2 ≥ 0.0) ∧ (v_2 ≤ 1.0)
+>>
+Rule 67 (The eta_min should be less than eta_max in CosineAnnealingLR)
+{v_1 : float, v_2 : float} |= v_1 ≤ v_2
+>>
+Rule 74 (The dimension size cannot be zero.)
+{v_1 : int} |= v_1 ≠ 0
+>>
+Rule 75 (The order of norm should be greater or equal to one.)
 {v_1 : int} |= v_1 ≥ 1
 >>
-Rule 40 (groups must divide both in_channels and out_channels)
-{v_1: int, v_2: int, v_3: int} |= (v_2 % v_1 = 0) ∧ (v_3 % v_1 = 0)
+Rule 85 (For multi-head attention, embed dim must be divisible by num_heads)
+{v_1 : int, v_2 : int} |= (v_1 % v_2) = 0
 >>
-Rule 67 (The ‘align_corners’ parameter must be a boolean if and only if the interpolation mode is ‘linear’, ‘bilinear’, ‘trilinear’)
-{v_1 : str, v_2 : bool} |= if (v_1 = "linear") ∨ (v_1 = "bilinear") ∨ (v_1 = "trilinear") then (v_2 = true) ∨ (v_2 = false)
+Rule 90 (The value of the weight_decay parameter should be non-negative)
+{v_1 : float} |= v_1 >= 0.0
 >>
-Rule 68 (When pad is a tuple, its length must match the number of spatial dimensions)
-{v_1 : tuple(int), v_2 : tensor} |= v_1.len = (ndim(v_2) - 2) * 2
+Rule 96 (The momentum factor used in the exponential moving average must lie within the range [0, 1])
+{v_1 : float} |= (v_1 >= 0.0) ∧ (v_1 <= 1.0)
 >>
-Rule 76 (When using bilinear, trilinear interpolation, align_corners must be specified)
-{v_1 : str, v_2 : bool} |= if (v_1 = "bilinear") ∨ (v_1 = "trilinear") then (v_2 = true) ∨ (v_2 = false)
+Rule 99 (For pairwise distance, p should be greater than or equal to zero)
+{v_1: float} |= v_1 >= 0.0
 >>
-Rule 77 (weight tensor ndim must be larger than or equal to 2)
-{v_1 : tensor} |= ndim(v_1) ≥ 2
+Rule 101 (The values in shape should be positive)
+{v_1 : list(int)} |= ∀ i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 97 (The weight tensor should be a floating-point tensor.)
-{v_1: tensor} |= (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)
+Rule 104 (The angle for the rotation should be finite)
+{v_1 : float} |= (v_1 < 1000000000000.0) ∧ (v_1 > -1000000000000.0)
 >>
-Rule 108 (If the size argument is provided, it should be a tuple of ints with length equals to the input's dimension number.)
-{v_1 : tuple(int), v_2: tensor} |= v_1.len = ndim(v_2)
+Rule 106 (The eps value for the adaptive learning rate must be positive)
+{v_1: float} |= v_1 > 0.0
 >>
-Rule 110 (The dimension argument cannot be larger or equal to the number of dimensions of the input tensor)
-{v_1: tensor, v_2: int} |= v_2 < ndim(v_1)
+Rule 107 (The value of the exponential decay value must be between zero and one for exponential scheduler)
+{v_1 : float} |= (v_1 > 0.0) ∧ (v_1 < 1.0)
 >>
-Rule 116 (The weight tensor should be a floating point tensor)
-{v_1 : tensor} |= (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)
+Rule 111 (The number of groups should be positive)
+{v_1: int} |= v_1 > 0
 >>
-Rule 120 (The string value of the align_corners parameter needs to be 'linear')
-{v_1: str} |= v_1 = "linear"
+Rule 112 (The order value of the polynomial must be greater than or equal to 1)
+{v_1 : int} |= v_1 >= 1
 >>
-Rule 129 (If antialias is enabled interpolation mode must be linear or bilinear)
-{v_1 : bool, v_2: str} |= if v_1 then (v_2 = "linear") ∨ (v_2 = "bilinear")
+Rule 118 (The start value must be smaller than end value)
+{v_1 : float, v_2: float} |= v_1 < v_2
 >>
-Rule 140 (The value for the padding should be non-negative)
-{v_1: int} |= v_1 ≥ 0
+Rule 119 (The scale factors must be positive for invertible conv1x1)
+{v_1: list(float)} |= ∀ i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 120 (For multi margin loss, p must be greater than or equal to zero)
+{v_1: int} |= v_1 >= 0
+>>
+Rule 125 (The maximum value must be greater or equal to the minimum value in a uniform distribution)
+{v_1 : float, v_2 : float} |= v_1 <= v_2
+>>
+Rule 137 (The beta1 and beta2 values must be between zero and one when using Adam or AdamW)
+{v_1 : float, v_2 : float} |= (v_1 >= 0.0) ∧ (v_1 <= 1.0) ∧ (v_2 >= 0.0) ∧ (v_2 <= 1.0)
+>>
+Rule 140 (For rfft, the dimension value must be within the range of dimensions)
+{v_1: tensor, v_2: tuple(int)} |=  ∀ i ∈ [0, v_2.len - 1] : (v_2[i] >= 0) ∧ (v_2[i] < ndim(v_1))
+>>
+Rule 142 (The suggested value of weight decay for AdamW is 0.01)
+{v_1 : float} |= v_1 >= 0
+>>
+Rule 143 (The number of elements to sample must be non-negative.)
+{v_1 : int} |= v_1 >= 0

@@ -1,0 +1,129 @@
+>>
+Rule 1 (Input tensors must have compatible shapes for vdot)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0)) ∨ (∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, ndim(v_2) - 1] : shape(v_1, i) ≠ shape(v_2, j))
+>>
+Rule 2 (If both inputs are complex, their dtypes must be compatible)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (dtype_(v_2) = 10 ∨ dtype_(v_2) = 11) then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 3 (If one input is complex and the other is not, the non-complex input must be castable to complex)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11) then true else if (dtype_(v_2) = 10 ∨ dtype_(v_2) = 11) ∧ (dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11) then true
+>>
+Rule 4 (Input tensors must have at least one dimension)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) >= 1 ∧ ndim(v_2) >= 1
+>>
+Rule 5 (Shape of at least one of the tensors must be non-zero.)
+{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
+>>
+Rule 6 (If input tensors have different dtypes, at least one must be float or complex)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ dtype_(v_2) then (dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 11) ∨ (dtype_(v_2) ≥ 6 ∧ dtype_(v_2) ≤ 11)
+>>
+Rule 7 (If input tensors have the same dtype, that dtype can't be boolean)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = dtype_(v_2) then dtype_(v_1) ≠ 0
+>>
+Rule 8 (The size of first tensor should be greater than zero)
+{v_1 : tensor} |= shape(v_1, 0) > 0
+>>
+Rule 9 (If one tensor is 0-dimensional, the other must also be 0-dimensional.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0 else if ndim(v_2) = 0 then ndim(v_1) = 0
+>>
+Rule 10 (The shapes of the tensors should be compatible.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 11 (If both tensors have integer dtypes, the result is an integer type)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5) ∧ (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 5) then true
+>>
+Rule 12 (If the first tensor is boolean, the second must not be complex)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then (dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11)
+>>
+Rule 13 (If the second tensor is boolean, the first must not be complex)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 0 then (dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11)
+>>
+Rule 14 (If both tensors are boolean, their shapes must be equal)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 ∧ dtype_(v_2) = 0 then (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)))
+>>
+Rule 15 (If the dtypes are different, then at least one of them must be a floating point or complex)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ dtype_(v_2) then (dtype_(v_1) ≥ 6 ∨ dtype_(v_2) ≥ 6)
+>>
+Rule 16 (If either input is complex, the output is complex)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∨ (dtype_(v_2) = 10 ∨ dtype_(v_2) = 11) then true
+>>
+Rule 17 (If one tensor is complex, the other tensor's dtype must be implicitly castable to complex)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) then true else if (dtype_(v_2) = 10 ∨ dtype_(v_2) = 11) then true
+>>
+Rule 18 (If both inputs are of integer type, the resulting dtype is the larger of the two)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5) ∧ (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 5) then dtype_(v_1) ≥ dtype_(v_2) ∨ dtype_(v_2) ≥ dtype_(v_1)
+>>
+Rule 19 (At least one of the input tensors must not be bool)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 0 ∨ dtype_(v_2) ≠ 0
+>>
+Rule 20 (if input tensor has only one element, the result is that element itself)
+{v_1 : tensor} |= if (ndim(v_1) = 0) ∨ (ndim(v_1) = 1 ∧ shape(v_1, 0) = 1) then true
+>>
+Rule 22 (If one of the input tensors is complex, the result dtype must be complex)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 10) ∨ (dtype_(v_1) = 11) ∨ (dtype_(v_2) = 10) ∨ (dtype_(v_2) = 11) then (dtype_(v_1) = 10) ∨ (dtype_(v_1) = 11) ∨ (dtype_(v_2) = 10) ∨ (dtype_(v_2) = 11)
+>>
+Rule 23 (If either input is float64 or complex128, result must be float64 or complex128)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 11) ∨ (dtype_(v_2) = 8) ∨ (dtype_(v_2) = 11) then true
+>>
+Rule 24 (The resultant dtype should at least be as large as the largest dtype of the inputs)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) > dtype_(v_2) then true else if dtype_(v_2) > dtype_(v_1) then true
+>>
+Rule 25 (The resulting dtype must be in the allowed dtypes list)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (dtype_(v_2) = 0 ∨ dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11)
+>>
+Rule 26 (if either input requires promotion to float64, the output is float64)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 8) ∨ (dtype_(v_2) = 8) then true
+>>
+Rule 27 (If one of the dtypes is string, then the other must be string)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 11 then dtype_(v_2) = 11 else if dtype_(v_2) = 11 then dtype_(v_1) = 11
+>>
+Rule 29 (The number of elements must be the same in both tensors)
+{v_1 : tensor, v_2 : tensor} |= ∃x ∈ [0, ndim(v_1)-1]: ∃y ∈ [0, ndim(v_2)-1]: shape(v_1,x) = shape(v_2,y)
+>>
+Rule 30 (Total number of elements in each tensor should be equal to each other.)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) > 0) ∧ (∀j ∈ [0, ndim(v_2)-1]: shape(v_2, j) > 0) ∧ (∃n1 ∈ [0, ndim(v_1)-1]: ∃n2 ∈ [0, ndim(v_2)-1]: shape(v_1,n1) = shape(v_2,n2))
+>>
+Rule 31 (The resultant shape should be a scalar(0-dimensional tensor).)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1
+>>
+Rule 33 (If one input is a scalar, the other must also be a scalar, or the other shape must have 1 element)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0 else if ndim(v_2) = 0 then ndim(v_1) = 0 else if (shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) * shape(v_1, 5) * shape(v_1, 6) * shape(v_1, 7)) = 1 then true else if (shape(v_2, 0) * shape(v_2, 1) * shape(v_2, 2) * shape(v_2, 3) * shape(v_2, 4) * shape(v_2, 5) * shape(v_2, 6) * shape(v_2, 7)) = 1 then true
+>>
+Rule 34 (If one of the inputs has dtype np.dtype, then the other must also have dtype np.dtype.)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 12 then dtype_(v_2) = 12 else if dtype_(v_2) = 12 then dtype_(v_1) = 12
+>>
+Rule 38 (Shape should not be none.)
+{v_1 : tensor} |= shape(v_1) ≠ "none"
+>>
+Rule 39 (If one of the tensors is a scalar, the resulting tensor will have the same data type as the other tensor.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then dtype_(v_1) = dtype_(v_2) else if ndim(v_2) = 0 then dtype_(v_2) = dtype_(v_1)
+>>
+Rule 41 (if the type is different then implicit casting must be supported.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) ≠ dtype_(v_2)) then true
+>>
+Rule 42 (The product of each individual shape across both arrays must be equal)
+{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1]: ∃j ∈ [0, ndim(v_2) - 1]: min(v_1) = 1 ∧ min(v_2) = 1 ∧ (shape(v_1, i) * shape(v_2, j)) > 0
+>>
+Rule 43 (The rank of the resultant tensor should be 0)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) >=0 ∧ ndim(v_2) >=0 ∧ (ndim(v_1)-ndim(v_1))=0 ∧ (ndim(v_2)-ndim(v_2))=0
+>>
+Rule 46 (If one tensor is an empty tensor, the other tensor must be too.)
+{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) = (∃j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) = 0)
+>>
+Rule 47 (If vdot is applied, then the shape must be broadcastable)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2))
+>>
+Rule 49 (Resultant tensor data type must be among the supported type.)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 ∨ dtype_(v_2) = 0 ∨ dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11
+>>
+Rule 52 (If the type of tensor is string, its length should be greater than zero)
+{v_1 : tensor} |= if dtype_(v_1) = 11 then shape(v_1,0) > 0 else True
+>>
+Rule 54 (If vdot is used then the maximum dimension must be less than eight to avoid overflow)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) <= 7 then True else if ndim(v_2) <=7 then True else False
+>>
+Rule 55 (If at least one input is float16, then the resultant data type must be at least float16 to preserve precision)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 6) ∨ (dtype_(v_2) = 6) then (dtype_(v_1) = 6) ∨ (dtype_(v_2) = 6) ∨ (dtype_(v_1) >6) ∨ (dtype_(v_2)>6)
+>>
+Rule 56 (if the maximum value is less than the minimum, then there will be an inversion and should be fixed)
+{v_1 : tensor} |= if max(v_1) < min(v_1) then True else True

@@ -1,42 +1,132 @@
 >>
-Rule 3 (reduction parameter must be a valid string)
+Rule 1 (weight should be a tensor)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 3 (weight and target should have the same shape if weight is provided)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_2.len > 0 then shape(v_1, 0) = shape(v_3, 0)
+>>
+Rule 5 (reduction can only be 'none', 'mean', or 'sum')
 {v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
 >>
-Rule 6 (target tensor elements should be between 0 and 1)
+Rule 6 (label smoothing should be between 0 and 1)
+{v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 1
+>>
+Rule 7 (if weight is a tensor, it must have the same dtype as target)
+{v_1 : tensor, v_2 : tensor} |= if v_1.len > 0 then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 9 (input and target tensor must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+>>
+Rule 10 (input and target tensor must have compatible shapes)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 11 (weight tensor can be empty)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (ndim(v_1) = 0) ∨ min(v_1) ≥ 0
+>>
+Rule 13 (If weight is given, its shape should be broadcastable to the input)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_2, i) = 1)
+>>
+Rule 15 (target values should be between 0 and 1)
 {v_1 : tensor} |= min(v_1) ≥ 0 ∧ max(v_1) ≤ 1
 >>
-Rule 7 (Input tensor can have arbitrary shape, but must be a tensor)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
+Rule 16 (weight tensor should have floating point dtype)
+{v_1 : tensor} |= if v_1.len > 0 then 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
 >>
-Rule 10 (Input and Target tensors must have compatible shapes for broadcasting)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (if ndim(v_1) - i - 1 < 0 then true else if ndim(v_2) - i - 1 < 0 then true else shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1) ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1)
->>
-Rule 13 (Target tensor must have floating point dtype)
+Rule 18 (input tensor should have floating point dtype)
 {v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
 >>
-Rule 15 (reduction parameter is valid even if input/target are empty)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= (∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = 0) ∨ (∃i ∈ [0, ndim(v_2) - 1]: shape(v_2, i) = 0) ∨ (v_3 = "none" ∨ v_3 = "mean" ∨ v_3 = "sum")
+Rule 20 (label_smoothing must be non-negative)
+{v_1 : float} |= v_1 ≥ 0
 >>
-Rule 18 (Target tensor values must be between 0 and 1 inclusive.)
-{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ min(v_1) ≥ 0 ∧ max(v_1) ≤ 1
+Rule 21 (weight cannot have negative values)
+{v_1 : tensor} |= if v_1.len > 0 then min(v_1) ≥ 0
 >>
-Rule 20 (reduction parameter should not be none when both input and target have more than zero dimensions)
-{v_1: tensor, v_2: tensor, v_3: str} |= (∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = 0) ∨ (∃i ∈ [0, ndim(v_2) - 1]: shape(v_2, i) = 0) ∨ v_3 ≠ "none"
+Rule 23 (input tensor must have non-negative values)
+{v_1 : tensor} |= min(v_1) ≥ 0
 >>
-Rule 25 (If reduction is "none", the output tensor should have the same shape as the input tensor.)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "none" then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 25 (weight tensor must have non-negative values if provided)
+{v_1 : tensor} |= if ndim(v_1) > 0 then min(v_1) ≥ 0
 >>
-Rule 26 (If reduction is "mean" or "sum", the output tensor will be a scalar or smaller, and the target can be the same or broadcastable.)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= (v_3 = "mean" ∨ v_3 = "sum") ∧ (ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0)
+Rule 27 (weight should be a tensor of floats)
+{v_1: tensor} |= if ndim(v_1) > 0 then 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
 >>
-Rule 27 (If reduction is "none", the loss tensor must have floating point dtype)
-{v_1 : tensor, v_2 : str} |= if v_2 = "none" then (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8)
+Rule 29 (input and target tensors must have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 30 (If reduction is provided then it should be one of the allowed strings)
-{v_1: str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
+Rule 31 (weight should have the same shape as the input if input has one dimension and weight is provided)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) > 0 then shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 37 (If reduction is specified as mean or sum the output should be of floating point type.)
-{v_1: tensor, v_2: str} |= (v_2 = "mean" ∨ v_2 = "sum") ∧ (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8)
+Rule 32 (if pos_weight is provided, it should have the same shape as the last dimension of input if the input has more than 1 dimension, else it must be one dimensional)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if ndim(v_1) > 1 then shape(v_2, 0) = shape(v_1, ndim(v_1) - 1) else ndim(v_2) = 1
 >>
-Rule 46 (if the output is a scalar, the reduction must not be "none")
-{v_1 : tensor, v_2 : tensor, v_3: str} |= (ndim(v_1) = 0 ∧ ndim(v_2) = 0) ∨ v_3 ≠ "none"
+Rule 33 (weight and input must have same shape if input dim > 1)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 34 (pos_weight and weight should have the same shape if both are provided and input dimension > 1)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0 then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)
+>>
+Rule 37 (Weight and Input tensors must have the same dtype, if weight is provided)
+{v_1: tensor, v_2: tensor} |= if v_2.len > 0 then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 39 (If weight is provided, the shape of the input should be equal or broadcastable to it.)
+{v_1 : tensor, v_2 : tensor} |= if v_2.len > 0 then (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1)-1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_2, i) = 1)))
+>>
+Rule 41 (label_smoothing must be less or equal than 1.0)
+{v_1 : float} |= v_1 ≤ 1.0
+>>
+Rule 42 (Reduction cannot be None if there are more than one element)
+{v_1 : tensor, v_2 : str} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1) then v_2 ≠ "none"
+>>
+Rule 43 (Input tensor can not have NaN)
+{v_1 : tensor} |= max(v_1) ≠ "NaN"
+>>
+Rule 45 (Weight tensor can not have NaN)
+{v_1 : tensor} |= if v_1.len > 0 then max(v_1) ≠ "NaN"
+>>
+Rule 47 (If reduction is mean, target must have values between 0 and 1)
+{v_1 : tensor, v_2: str} |= if v_2 = "mean" then min(v_1) ≥ 0 ∧ max(v_1) ≤ 1
+>>
+Rule 48 (If reduction is sum, target must have values between 0 and 1)
+{v_1 : tensor, v_2: str} |= if v_2 = "sum" then min(v_1) ≥ 0 ∧ max(v_1) ≤ 1
+>>
+Rule 49 (label_smoothing must be less than 1.0 to avoid all-zero targets)
+{v_1 : float} |= v_1 < 1.0
+>>
+Rule 50 (If weight is specified, input tensor cannot be an empty tensor)
+{v_1 : tensor, v_2: tensor} |= if v_2.len > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 )
+>>
+Rule 52 (Weight tensor and pos_weight tensor should have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= if v_1.len > 0 ∧ v_2.len > 0 then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 53 (If label_smoothing is used, target should be of floating type)
+{v_1 : tensor, v_2 : float} |= if v_2 > 0 then 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+>>
+Rule 54 (If pos_weight is specified, it should be a 1D tensor or have the same last dimension size as the input)
+{v_1 : tensor, v_2 : tensor} |= if v_2.len > 0 then (ndim(v_2) = 1 ∨ (ndim(v_1) > 0 ∧ shape(v_2, ndim(v_2)-1) = shape(v_1, ndim(v_1) -1)))
+>>
+Rule 55 (If the target is not between 0 and 1, reduction has to be None)
+{v_1 : tensor, v_2 : str} |= if (min(v_1) < 0 ∨ max(v_1) > 1) then v_2 = "none"
+>>
+Rule 58 (If the shape of weight and target are different, reduction has to be None)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if (ndim(v_1) ≠ ndim(v_2)) ∨ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ shape(v_2, i)) then v_3 = "none"
+>>
+Rule 61 (If the input and target are different shape, weight shape must match input's if given)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) ≠ ndim(v_2)) ∨ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ shape(v_2, i)) then if v_3.len > 0 then (ndim(v_1) = ndim(v_3) ∧ (∀i ∈ [0, ndim(v_1)-1] : (shape(v_1, i) = shape(v_3, i))))
+>>
+Rule 63 (If weight is provided and input ndim is 1, target must also be 1 dim.)
+{v_1 : tensor, v_2 : tensor} |= if v_2.len > 0 ∧ ndim(v_1) = 1 then ndim(v_2) = 1
+>>
+Rule 65 (if weight is provided, input and weight dtypes must be same or input must be complex)
+{v_1: tensor, v_2: tensor} |= if v_2.len > 0 then dtype_(v_1) = dtype_(v_2) ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 69 (If weight and pos_weight are provided, check that weight and pos_weight have the same device)
+{v_1 : tensor, v_2: tensor} |= if v_1.len > 0 ∧ v_2.len > 0 then true
+>>
+Rule 70 (Weight tensor should be float)
+{v_1: tensor} |= if v_1.len > 0 then 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+>>
+Rule 73 (if label_smoothing and reduction are both specified, they must be compatible)
+{v_1 : float, v_2 : str} |= if v_1 > 0 then v_2 = "mean" ∨ v_2 = "sum"
+>>
+Rule 74 (If the shape of weight and input are different, the reduction can not be mean or sum)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if (ndim(v_1) ≠ ndim(v_2)) ∨ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ shape(v_2, i)) then v_3 ≠ "mean" ∧ v_3 ≠ "sum"

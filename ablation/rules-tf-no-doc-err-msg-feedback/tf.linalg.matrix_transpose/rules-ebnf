@@ -1,252 +1,309 @@
 >>
-Rule 1 (Input tensor must have at least two dimensions)
+Rule 1 (The input tensor must have rank at least 2)
 {v_1 : tensor} |= ndim(v_1) ≥ 2
 >>
-Rule 2 (axes argument must be a list of integers with length 2)
-{v_1 : list(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] ≥ 0
+Rule 2 (The perm parameter, if provided, must have the same rank as the input tensor)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len = ndim(v_1)
 >>
-Rule 3 (axes values must be within the valid dimension range of the input tensor)
-{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, 1] : v_2[i] < ndim(v_1)
+Rule 3 (Each element in perm must be a valid dimension index for the input tensor)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1)
 >>
-Rule 4 (The two axes must be different)
-{v_1 : list(int)} |= v_1[0] ≠ v_1[1]
+Rule 5 (Dtype of the output should be the same as the input)
+{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) = v_2
 >>
-Rule 6 (axes argument must be a tuple of integers with length 2)
-{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] ≥ 0
+Rule 6 (Shape of the output tensor should be consistent with the perm parameter)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : shape(v_1, v_2[i]) > 0
 >>
-Rule 7 (axes values must be within the valid dimension range of the input tensor for tuple input)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, 1] : v_2[i] < ndim(v_1)
+Rule 7 (If perm is not provided, the last two dimensions are transposed. Input tensor must have at least two dimensions)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0
 >>
-Rule 8 (The two axes must be different for tuple input)
-{v_1 : tuple(int)} |= v_1[0] ≠ v_1[1]
+Rule 8 (Input tensor's dimension should be less than 8)
+{v_1 : tensor} |= ndim(v_1) ≤ 8
 >>
-Rule 11 (axes argument can be None if input tensor has only 2 dimensions)
-{v_1 : tensor} |= if ndim(v_1) = 2 then true else false
+Rule 9 (Check if v_1 is a valid boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 13 (axes argument must be valid integers)
-{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1] : -2147483648 ≤ v_1[i] ∧ v_1[i] ≤ 2147483647
+Rule 10 (If perm is provided as a tuple, its elements must be integers)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ -2147483648 ∧ v_1[i] ≤ 2147483647
 >>
-Rule 14 (If only one axis is provided, it must be transposed with the last axis)
-{v_1 : tensor, v_2 : int} |=  v_2 < ndim(v_1)
+Rule 11 (Input tensor must have a valid data type)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 16 (Input cannot have more than two axes if axes are None)
-{v_1 : tensor} |= if ndim(v_1) > 2 then false
+Rule 12 (Check if v_1 is a valid dtype)
+{v_1 : dtype} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10
 >>
-Rule 17 (If axes argument is provided it should have rank 1)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 13 (if input tensor v_1 has shape greater than zero)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 18 (axes can't be an empty list/tuple)
-{v_1 : list(int)} |= v_1.len > 0
+Rule 14 (Checking combination between tensor and int)
+{v_1 : tensor, v_2 : int} |= v_2 > min(v_1)
 >>
-Rule 19 (axes can't be a tuple with zero length)
-{v_1 : tuple(int)} |= v_1.len > 0
+Rule 15 (Checking combination between tensor and float)
+{v_1 : tensor, v_2 : float} |= v_2 > min(v_1)
 >>
-Rule 20 (When one axis is provided, the other one is implicity the last axis.)
-{v_1: tensor, v_2: int} |= v_2 < ndim(v_1)
+Rule 16 (Checking combination between two tensors)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 21 (Input tensor dimensions must be positive)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 17 (Shape of transposed tensor is not zero)
+{v_1 : tensor, v_2 : tuple(int)} |= ∃i ∈ [0, v_2.len - 1] : shape(v_1, v_2[i]) > 0
 >>
-Rule 24 (axes argument should be a sequence with length less than or equal to 2)
-{v_1 : list(int)} |= v_1.len ≤ 2
+Rule 18 (If perm is an empty tuple, it is equivalent to no permutation)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = 0 then ndim(v_1) > 0
 >>
-Rule 25 (If one axis is specified, the other must be implicitly the other one)
-{v_1 : tensor, v_2: int} |= if v_2 < 0 then v_2 + ndim(v_1) ≥ 0 else v_2 < ndim(v_1)
+Rule 19 (if perm is none, then reverse the last two dimensions)
+{v_1 : tensor, v_2 : str} |= if v_2 = "none" then ndim(v_1) ≥ 2
 >>
-Rule 26 (The axis specified needs to be a valid axis)
-{v_1: tensor, v_2: int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+Rule 20 (Check valid shapes after transposition)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : shape(v_1, v_2[i]) > 0 ∧ shape(v_1, v_2[i]) ≠ 0
 >>
-Rule 27 (axes list has to be less than or equal to input tensor's rank)
-{v_1 : tensor, v_2 : list(int)} |= v_2.len ≤ ndim(v_1)
+Rule 21 (Dtype must be int or float)
+{v_1: dtype} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 7 ∨ v_1 = 8
 >>
-Rule 29 (If axes are specified then rank has to be >=2 )
-{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then ndim(v_1) ≥ 2
+Rule 22 (Tensor of dimension 3 should have consistent shape with tuple of ints)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 3 then v_2.len = 3
 >>
-Rule 31 (If axes argument is None then the rank has to be smaller than 3)
-{v_1 : tensor} |= if ndim(v_1) < 3 then true else false
+Rule 23 (Check valid tuple of integers and their value should be less than max int)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 2147483647
 >>
-Rule 33 (The output shape must be equal to the input shape when the transpose operation is applied)
-{v_1 : tensor, v_2 : list(int)} |= shape(v_1, v_2[0]) = shape(v_1, v_2[1]) ∧ shape(v_1, v_2[1]) = shape(v_1, v_2[0])
+Rule 24 (If perm exists then perm length and input dimension must match)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then ndim(v_1) = v_2.len
 >>
-Rule 36 (axes have to be unique)
-{v_1:list(int)} |= v_1[0] ≠ v_1[1]
+Rule 25 (Permutation tuple cannot contain duplicate values.)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i + 1, v_1.len - 1] : v_1[i] ≠ v_1[j]
 >>
-Rule 38 (if axes is none and tensor has more than 2 dim then error.)
-{v_1: tensor} |= if ndim(v_1) > 2 then false
+Rule 26 (If input tensor is a vector, then perm should not be defined)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 then v_2.len = 0
 >>
-Rule 40 (Axes has to have the same length as the number of dimensions you want to transpose (2))
-{v_1: list(int)} |= v_1.len = 2
+Rule 27 (Shape cannot be negative)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 44 (the axes in the list or tuple should be less than the rank)
-{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < ndim(v_1)
+Rule 28 (Checking if type is complex64 or complex128)
+{v_1 : tensor} |= dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 45 (the axes in the tuple should be less than the rank)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < ndim(v_1)
+Rule 29 (Complex tensor must have rank >=2)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ndim(v_1) ≥ 2
 >>
-Rule 49 (If the axes is negative, its absolute value has to be less than the number of dims)
-{v_1: tensor, v_2: list(int)} |= ∀i ∈ [0, v_2.len -1]: if v_2[i] < 0 then v_2[i] * -1 < ndim(v_1)
+Rule 30 (Check for valid string)
+{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none"
 >>
-Rule 50 (If the axes is negative, its absolute value has to be less than the number of dims)
-{v_1: tensor, v_2: tuple(int)} |= ∀i ∈ [0, v_2.len -1]: if v_2[i] < 0 then v_2[i] * -1 < ndim(v_1)
+Rule 31 (If perm is defined then the output shape is a permutation of the input shape)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_1, v_2[i])
 >>
-Rule 51 (if the rank is bigger than 2, axes cannot be none)
-{v_1:tensor} |= if ndim(v_1) > 2 then false
+Rule 32 (Tuple of ints length should be less than or equal to 8)
+{v_1 : tuple(int)} |= v_1.len ≤ 8
 >>
-Rule 52 (the dimensions specified to transpose must exist in the dimensions of the tensor)
-{v_1: tensor, v_2: list(int)} |= ∀i ∈ [0, v_2.len-1]: v_2[i] < ndim(v_1)
+Rule 33 (Checking if a tensor has more than one element)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 1
 >>
-Rule 55 (the axes must be unique in the sequence)
-{v_1: list(int)} |= v_1[0] ≠ v_1[1]
+Rule 34 (Input tensor data type is not boolean)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 56 (If axes is specified then its length cannot exceed two.)
-{v_1: list(int) ⊎ tuple(int)} |= v_1.len ≤ 2
+Rule 35 (If input data type is complex then output should be complex)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 57 (If axes are specified then the result after transposing along the axes must have the same size as the original matrix)
-{v_1: tensor, v_2: list(int)} |= shape(v_1, v_2[0]) * shape(v_1, v_2[1]) > 0
+Rule 36 (Shape values of input tensor must be less than MAX_INT)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) < 2147483647
 >>
-Rule 59 (If there's no axes specified then the tensor needs to be a matrix at least)
-{v_1 : tensor} |= ndim(v_1) >=2
+Rule 37 (Tuple length can't exceed the maximum number of dimensions supported by tensorflow)
+{v_1 : tuple(int)} |= v_1.len <= 8
 >>
-Rule 61 (if both axis are the same, no transposing is done.)
-{v_1: list(int)} |= if v_1[0] = v_1[1] then true else false
+Rule 38 (Permutation should result in a valid tensor shape.)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : shape(v_1, v_2[i]) > 0
 >>
-Rule 62 (axis cannot be empty)
-{v_1: list(int)} |= v_1.len > 0
+Rule 39 (When perm is not None, the output tensor's shape[i] is equal to the input tensor's shape[perm[i]])
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = shape(v_1, v_2[i])
 >>
-Rule 63 (axis cannot be empty)
-{v_1: tuple(int)} |= v_1.len > 0
+Rule 40 (The values in perm list cannot be greater than the maximum dimensions possible)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 8
 >>
-Rule 65 (the tensor needs to have at least 2 axes)
-{v_1: tensor} |= ndim(v_1) >= 2
+Rule 41 (The input must be a matrix when no permutation is specified)
+{v_1 : tensor} |= if ndim(v_1) < 2 then false
 >>
-Rule 66 (the absolute value of the dimensions should exist)
-{v_1: tensor, v_2: list(int)} |= ∀i ∈ [0, v_2.len - 1]: if v_2[i] < 0 then v_2[i]*-1 < ndim(v_1) else v_2[i] < ndim(v_1)
+Rule 42 (The input tensor must be real when a real-valued data type is used)
+{v_1 : tensor} |= if dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 then true else false
 >>
-Rule 67 (the absolute value of the dimensions should exist)
-{v_1: tensor, v_2: int} |= if v_2 < 0 then v_2*-1 < ndim(v_1) else v_2 < ndim(v_1)
+Rule 43 (The length of the perm tuple must be less or equal than the tensor's rank)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≤ ndim(v_1)
 >>
-Rule 73 (The shape should only be swapped according to the axes value)
-{v_1: tensor, v_2: list(int)} |= shape(v_1, v_2[0]) = shape(v_1, v_2[1])
+Rule 44 (If perm is defined the output dimensions must be the same as the input dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : ∃j ∈ [0, ndim(v_1) - 1] : v_2[i] = j
 >>
-Rule 77 (if the rank is 0, then the axes argument should be none.)
-{v_1: tensor} |= if ndim(v_1) = 0 then true else false
->>
-Rule 78 (the tensor must not be scalar)
-{v_1:tensor} |= ndim(v_1) > 0
->>
-Rule 79 (axes should have at least 2 elements)
-{v_1: list(int)} |= v_1.len >= 2
->>
-Rule 80 (axes can't be negative indices larger than the rank of the tensor)
-{v_1:tensor, v_2: list(int)} |=  ∀i ∈ [0, v_2.len - 1] : v_2[i] > (0 - ndim(v_1))
->>
-Rule 81 (Negative axes are not allowed.)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
->>
-Rule 82 (Negative axes are not allowed.)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
->>
-Rule 85 (Must be a matrix when no argument is used)
-{v_1: tensor} |= if ndim(v_1) = 2 then true else false
->>
-Rule 86 (When axis are None, it transposes the last two dimensions, so number of dimensions have to be more than 1)
-{v_1: tensor} |= ndim(v_1) > 1
->>
-Rule 91 (If only one axis is specified, the other is implicitly the last axis.)
-{v_1 : tensor, v_2 : int} |=  -1 * ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) - 1
->>
-Rule 93 (If a tuple is given as axis then the length has to be two.)
-{v_1: tuple(int)} |= v_1.len = 2
->>
-Rule 102 (axes should be distinct integers)
-{v_1: list(int)} |= (v_1[0] != v_1[1])
->>
-Rule 103 (axes should have a length of 2 when axes is list or tuple)
-{v_1: list(int) ⊎ tuple(int)} |= v_1.len = 2
->>
-Rule 104 (axes should be non negative for list and tuple)
-{v_1: list(int) ⊎ tuple(int)} |= (v_1[0] >= 0) ∧ (v_1[1] >= 0)
->>
-Rule 105 (The values of axes when it is a list should be smaller than the dimension of the matrix)
-{v_1 : tensor, v_2 : list(int)} |= (v_2[0] < ndim(v_1)) ∧ (v_2[1] < ndim(v_1))
->>
-Rule 106 (When input is a vector, return same vector.)
-{v_1 : tensor} |= if ndim(v_1) = 1 then true else false
->>
-Rule 108 (When input and output has two same dimensions, the output tensor and input tensors are same)
-{v_1: tensor, v_2: list(int)} |= if shape(v_1, v_2[0]) = shape(v_1, v_2[1]) then true else false
->>
-Rule 110 (when given axis = None, tensor rank should be less or equal than 2)
-{v_1 : tensor} |= if ndim(v_1) <= 2 then true else false
->>
-Rule 111 (If axes is an integer, the value should be no more than the ndim of the input array)
-{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
->>
-Rule 113 (The axes must be non repeated.)
-{v_1 : list(int)} |= v_1[0] != v_1[1]
->>
-Rule 123 (When axis is a tuple, all its value have to be in the range)
-{v_1: tensor, v_2: tuple(int)} |= ∀i ∈ [0, v_2.len - 1]: v_2[i] < ndim(v_1)
->>
-Rule 124 (axes should have a rank 1)
-{v_1: list(int)} |= ndim(v_1) = 1
->>
-Rule 125 (axes should have a rank 1)
-{v_1: tuple(int)} |= ndim(v_1) = 1
->>
-Rule 131 (If axes are the same, matrix does not change)
-{v_1 : tensor, v_2 : list(int)} |= if v_2[0] = v_2[1] then shape(v_1, v_2[0]) = shape(v_1, v_2[1])
->>
-Rule 137 (if axis is none, and matrix rank is one, then output is the same as input)
-{v_1 : tensor} |= if ndim(v_1) = 1 then true
->>
-Rule 138 (all the elements must be within bounds of tensor dimensions)
-{v_1: tensor, v_2: list(int)} |= ∀i ∈ [0, v_2.len-1]: shape(v_1, v_2[i]) > 0
->>
-Rule 141 (If axes is not specified, the API transposes the last two dimensions)
-{v_1 : tensor} |= if ndim(v_1) >= 2 then shape(v_1, ndim(v_1)-1) > 0 ∧ shape(v_1, ndim(v_1)-2) > 0
->>
-Rule 144 (The dimensions to transpose should not be higher than 3)
-{v_1: tensor} |= ndim(v_1) <= 3
->>
-Rule 146 (The tensor must not be a scalar value)
-{v_1 : tensor} |= ndim(v_1) ≠ 0
->>
-Rule 147 (If axes are the same, no transpose is actually performed)
-{v_1 : list(int)} |= if v_1[0] = v_1[1] then true else false
->>
-Rule 148 (When specifying axes, they must be different)
-{v_1: list(int) ⊎ tuple(int)} |= v_1[0] ≠ v_1[1]
->>
-Rule 149 (if no parameters is specified , then the rank must be 2 or more)
-{v_1: tensor} |= if ndim(v_1) >= 2 then true else false
->>
-Rule 151 (If the axis parameter has a sequence and the rank of the input is equal to 2, then no axis should be the same)
-{v_1: tensor, v_2: list(int) ⊎ tuple(int)} |= if ndim(v_1) = 2 then v_2[0] ≠ v_2[1]
->>
-Rule 154 (The number of axis must be equal to two and it must be different from each other)
-{v_1: list(int) ⊎ tuple(int)} |= (v_1.len = 2) ∧ (v_1[0] ≠ v_1[1])
->>
-Rule 156 (Axes type must be unique for 2D tensor.)
-{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 2 then v_2[0] ≠ v_2[1]
->>
-Rule 157 (Negative values should not exceed tensor dimension)
-{v_1: tensor, v_2: list(int)} |= ∀i ∈ [0, v_2.len-1]: v_2[i] > (0 - ndim(v_1))
->>
-Rule 158 (Number of axes elements must be 2 for rank 2 tensor)
-{v_1: tensor, v_2: list(int)} |= if ndim(v_1) = 2 then v_2.len = 2
->>
-Rule 160 (Rank of tensor must remain same)
+Rule 48 (If the input is a scalar, transposition does not make sense.)
 {v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 161 (If Axes has 2 elements, then those should be less than ndim )
-{v_1 : tensor, v_2: list(int)} |= if v_2.len = 2 then (v_2[0] < ndim(v_1)) ∧ (v_2[1] < ndim(v_1))
+Rule 49 (String type must be "none" when perm is None)
+{v_1 : str, v_2 : tuple(int)} |= if v_2.len = 0 then v_1 = "none"
 >>
-Rule 162 (It has to be transposable if we use this function.)
-{v_1 : tensor} |= if ndim(v_1) = 2 then true else if ndim(v_1) = 3 then true else if ndim(v_1) > 3 then true else false
+Rule 50 (The values of the permutation tuple can't be negative)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 163 (If dimensions are higher than three, then it should still work as before.)
-{v_1:tensor} |= if ndim(v_1) > 3 then true else false
+Rule 51 (If input tensor has a dimension of size 1, it's shape must remain the same after transpose)
+{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1
 >>
-Rule 166 (Axis values ​​cannot exceed the rank of tensor-1.)
-{v_1 : tensor, v_2 : list(int)} |=  ∀i ∈ [0, v_2.len - 1] : v_2[i] ≤ ndim(v_1) - 1
+Rule 52 (Number of dimensions of tensor should be smaller than or equal to length of permutation if the later is present)
+{v_1: tensor, v_2: tuple(int)} |= if v_2.len > 0 then ndim(v_1) ≤ v_2.len
+>>
+Rule 53 (When the axes are specified, their number must match the number of dimensions of the matrix)
+{v_1: tensor, v_2: tuple(int)} |= if v_2.len > 0 then ndim(v_1) = v_2.len
+>>
+Rule 54 (If the perm argument is not None, all dimensions must be present.)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then ∀i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, v_2.len - 1] : i = v_2[j]
+>>
+Rule 55 (If perm is a tuple then the element must be integers.)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] = (v_1[i] / 1)
+>>
+Rule 56 (If the data type is string, the ndim should be 0)
+{v_1 : tensor} |= if dtype_(v_1) = 11 then ndim(v_1) = 0
+>>
+Rule 57 (The size of each dimension after the transpose, should not exceed max integer)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2147483647
+>>
+Rule 58 (The input tensor must have a valid shape)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 59 (When perm is not specified it should reverse the last two axes)
+{v_1 : tensor} |= if ndim(v_1) ≥ 2 then shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0
+>>
+Rule 60 (If perm is specified each dimension of input tensor shape should be the output.)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then ∀i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, v_2.len - 1] : shape(v_1, i) = shape(v_1, v_2[j])
+>>
+Rule 61 (If any shape is zero, min should be zero)
+{v_1: tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then min(v_1) = 0
+>>
+Rule 62 (Perm can not exceed the number of axis)
+{v_1 : tuple(int), v_2 : int} |= v_1.len ≤ 8 ∧ v_2 ≤ 8
+>>
+Rule 63 (The length of perm should be non zero)
+{v_1 : tuple(int)} |= v_1.len > 0
+>>
+Rule 64 (If a permutation is performed, the size of the input should be equal to the size of the output)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then ∃i ∈ [0, v_2.len - 1] : shape(v_1, i) > 0
+>>
+Rule 65 (Dimension cannot be negative)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+>>
+Rule 66 (The perm can only contain int datatypes.)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] = v_1[i]
+>>
+Rule 67 (If tensor is empty, perm must be none)
+{v_1 : tensor, v_2 : tuple(int)} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then v_2.len = 0
+>>
+Rule 69 (If permutation is not specified the operation is a no-op when ndim < 2)
+{v_1 : tensor} |= if ndim(v_1) < 2 then true else false
+>>
+Rule 70 (Dimensions of the matrix after transposition have to be greater than zero)
+{v_1 : tensor, v_2: tuple(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : shape(v_1, v_2[i]) > 0
+>>
+Rule 71 (If the data type is boolean only true and false are valid values for the element in Tensor.)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then (min(v_1) = 0 ∧ max(v_1) = 1)
+>>
+Rule 72 (When no argument is passed, the method should reverse the dimensions.)
+{v_1 : tensor} |= if ndim(v_1) > 1 then true else false
+>>
+Rule 74 (The tuple must contain integer values and can't be larger than the tensor's dimension count.)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len <= ndim(v_1) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] = (v_2[i] / 1)
+>>
+Rule 75 (Dimensions should not exceed a reasonable maximum value to avoid memory issues.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000000000
+>>
+Rule 76 (If the tensor has less than 2 dimensions the perm can't have any values.)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) < 2 then v_2.len = 0
+>>
+Rule 77 (The operation should work on all dimensions. 0 should not be a shape value)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 78 (The input tensor must be a numerical type, not boolean or string)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 80 (The indices in perm should not be equal to the rank)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < ndim(v_1)
+>>
+Rule 81 (When perm is not None, input should be at least matrix (2D))
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then ndim(v_1) ≥ 2
+>>
+Rule 82 (The type should be tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 83 (The dimensions can't be a float number)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = (shape(v_1, i) / 1)
+>>
+Rule 84 (If perm is not None, the data types should match)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then dtype_(v_1) = dtype_(v_1)
+>>
+Rule 85 (The axes in perm must be valid and positive)
+{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+>>
+Rule 86 (Shape value can not be less then zero.)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 87 (The number of shape should not exceed the rank of tensor )
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then v_2.len <= ndim(v_1)
+>>
+Rule 88 (Permutation index can't be repeated)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i+1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+>>
+Rule 93 (If the perm parameter exists, all the dimension should present in the permutation)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = ndim(v_1) then true else false
+>>
+Rule 95 (If the tensor is not empty, it needs to be transposed.)
+{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0 then true else false
+>>
+Rule 96 (The element type of tensor must be numerical)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 0
+>>
+Rule 99 (If parameter 'perm' is given, all axes from input tensor must be presented in perm.)
+{v_1: tensor, v_2: tuple(int)} |= if v_2.len > 0 then ∀i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, v_2.len - 1] : i = v_2[j]
+>>
+Rule 100 (If the perm tuple is specified, its size can not be larger then the number of dimensions in the input tensor.)
+{v_1: tensor, v_2: tuple(int)} |= if v_2.len > 0 then v_2.len ≤ ndim(v_1)
+>>
+Rule 101 (The shape of tensor can not be less than 1.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 1
+>>
+Rule 102 (The number of dimensions of a tensor is fixed)
+{v_1 : tensor} |=  ndim(v_1) > -1
+>>
+Rule 103 (If the perm parameter is given, it should has at least one dimension )
+{v_1 : tuple(int)} |= v_1.len ≥ 1
+>>
+Rule 105 (Shape of input tensor should be same as shape after transpose operation.)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then true else (∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0)
+>>
+Rule 106 (If shape value exists, the corresponding dimension index must exist within a specified axis.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0
+>>
+Rule 107 ( If the input is batched, the shape of the batch dimensions must be the same before and after the transpose. )
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 ∧ ndim(v_1) > v_2.len then ∀i ∈ [0, ndim(v_1) - v_2.len - 1] : shape(v_1, i) = shape(v_1, i)
+>>
+Rule 108 (The input shape must be the same length as the perm when perm is given)
+{v_1: tensor, v_2: tuple(int)} |= if v_2.len > 0 then v_2.len = ndim(v_1)
+>>
+Rule 109 (The transposed dimensions must be valid indexes.)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1)
+>>
+Rule 110 (For a given input tensor all possible transpose axes should exist.)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : i ≥ 0
+>>
+Rule 112 (If the dimensions of the matrix is greater than 1, then we need to provide input for the perm tuple.)
+{v_1: tensor, v_2: tuple(int)} |= if ndim(v_1) > 1 then v_2.len > 0
+>>
+Rule 113 (Only tensors with rank up to 8 (inclusive) can be transposed.)
+{v_1: tensor} |= ndim(v_1) ≤ 8
+>>
+Rule 115 (All dimensions must be included in perm)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = ndim(v_1) then ∀i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, v_2.len - 1] : i = v_2[j]
+>>
+Rule 118 (The parameter "perm" length must be equal to the number of the axis of the "tensor" parameter when it is not None )
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then v_2.len = ndim(v_1)
+>>
+Rule 119 (If the length of "perm" is not zero, its values must be valid values with input axes,)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : v_2[i] < ndim(v_1)
+>>
+Rule 120 (if the perm is empty then the matrix rank/dimension should be equal to 2)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = 0 then ndim(v_1) = 2
+>>
+Rule 121 (If the perms are given, and the input tensor is a matrix, then its elements must be 0 and 1.)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 2 ∧ v_2.len = 2 then (v_2[0] = 0 ∧ v_2[1] = 1) ∨ (v_2[0] = 1 ∧ v_2[1] = 0)
+>>
+Rule 122 (All the dimension numbers must be present in 'perm' argument)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then ∀i ∈ [0, ndim(v_1)-1] : ∃j ∈ [0, v_2.len - 1] : v_2[j] = i

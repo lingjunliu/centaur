@@ -65,9 +65,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 1 (Both input tensors must have the same dtype or be implicitly convertible to a common dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∨ (dtype_(v_1) = 1 ∧ dtype_(v_2) < 5) ∨ (dtype_(v_2) = 1 ∧ dtype_(v_1) < 5)
+Rule 1 (The dtype of the output tensor should be an integer type if both input tensors are integers)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5)
 ** SUCCESS **
+[Iteration] 1, [Token usage] 1761
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -137,8 +138,9 @@ Ex) Rule 21 (primitive type variable should not be zero)
 
 <<< RESPONSE
 Rule 2 (The shapes of the input tensors must be broadcastable)
-{v_1 : tensor, v_2 : tensor} |= ∀ i ∈ [0, min(ndim(v_1), ndim(v_2)) - 1] : (shape(v_1)[ndim(v_1) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i] ∨ shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1)
+{v_1 : tensor, v_2 : tensor} |= (∀ i ∈ [0, ndim(v_1)) : (∀ j ∈ [0, ndim(v_2)) : if i < ndim(v_1) ∧ j < ndim(v_2) then shape(v_1)[i] = shape(v_2)[j] ∨ shape(v_1)[i] = 1 ∨ shape(v_2)[j] = 1))
 ** PARSING ERROR ** (num_failures: 1)
+[Iteration] 1, [Token usage] 1761
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -207,9 +209,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 3 (The out tensor, if provided, must have a compatible dtype)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then dtype_(v_3) = dtype_(v_1) ∨ dtype_(v_3) = dtype_(v_2)
+Rule 3 (If the input is an integer type, the output cannot be a boolean)
+{v_1 : tensor} |= if (dtype_(v_1) = 0) then false
 ** SUCCESS **
+[Iteration] 1, [Token usage] 1761
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -278,9 +281,82 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 4 (The out tensor, if provided, must have a broadcasted shape)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then (∀ i ∈ [0, min(ndim(v_1), ndim(v_2), ndim(v_3)) - 1] : (shape(v_3)[ndim(v_3) - 1 - i] = shape(v_1)[ndim(v_1) - 1 - i] ∨ shape(v_3)[ndim(v_3) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i]) ∧ (ndim(v_3) ≥ ndim(v_1) ∧ ndim(v_3) ≥ ndim(v_2)))
+Rule 4 (if the dtype is provided, it should be an integer dtype)
+{v_1: dtype} |= (v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5)
+** SUCCESS **
+[Iteration] 1, [Token usage] 1761
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.lcm API parameters should satisfy. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (Check the element-wise value after lcm)
+{v_1 : tensor, v_2 : tensor} |= ∀ i ∈ [0, shape(v_1)[0]) : ∀ j ∈ [0, shape(v_2)[0]) : (v_1[i] > 0 ∧ v_2[j] > 0)
 ** PARSING ERROR ** (num_failures: 2)
+[Iteration] 1, [Token usage] 1761
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -349,9 +425,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 5 (Check if both inputs are integers or can be converted to integers)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) < 6) ∧ (dtype_(v_2) < 6)
+Rule 6 (Input tensors should have same dtype or be broadcastable to the same dtype.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ dtype_(v_2) then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)
 ** SUCCESS **
+[Iteration] 1, [Token usage] 1761
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -420,151 +497,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 6 (The input tensors must be integer tensors)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) ∧ (dtype_(v_2) = 1) ∨ (dtype_(v_2) = 2) ∨ (dtype_(v_2) = 3) ∨ (dtype_(v_2) = 4) ∨ (dtype_(v_2) = 5)
-** SUCCESS **
-
->>> PROMPT
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/" | "%"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define rules that torch.lcm API parameters should satisfy. 
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-** IMPORTANT: For module classes returning instances, include rules for their parameters. **
-
-<<< RESPONSE
-Rule 7 (If out is provided, its dtype must match the inferred output dtype)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then (dtype_(v_3) = dtype_(v_1)) ∨ (dtype_(v_3) = dtype_(v_2))
-** SUCCESS **
-
->>> PROMPT
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/" | "%"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define rules that torch.lcm API parameters should satisfy. 
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-** IMPORTANT: For module classes returning instances, include rules for their parameters. **
-
-<<< RESPONSE
-Rule 8 (The shapes of the input tensors must be broadcastable)
-{v_1 : tensor, v_2 : tensor} |= ∀ i ∈ [0, min(ndim(v_1), ndim(v_2)) - 1] : (shape(v_1)[ndim(v_1) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i] ∨ shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1)
+Rule 7 (The shapes of the input tensors must be broadcastable.)
+{v_1 : tensor, v_2 : tensor} |= ∀ i ∈ [0, min(ndim(v_1), ndim(v_2))) : if shape(v_1)[ndim(v_1) - 1 - i] ≠ shape(v_2)[ndim(v_2) - 1 - i] then shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1
 ** PARSING ERROR ** (num_failures: 3)
+[Iteration] 2, [Token usage] 3314
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -633,9 +569,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 9 (If out is provided, its shape must be the result of broadcasting the input shapes)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then ∀ i ∈ [0, min(ndim(v_1), ndim(v_2), ndim(v_3)) - 1] : (shape(v_3)[ndim(v_3) - 1 - i] = shape(v_1)[ndim(v_1) - 1 - i] ∨ shape(v_3)[ndim(v_3) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i] ∨ (shape(v_1)[ndim(v_1) - 1 - i] = 1 ∧ shape(v_3)[ndim(v_3) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i]) ∨ (shape(v_2)[ndim(v_2) - 1 - i] = 1 ∧ shape(v_3)[ndim(v_3) - 1 - i] = shape(v_1)[ndim(v_1) - 1 - i]))
-** PARSING ERROR ** (num_failures: 4)
+Rule 8 (If out is specified, its dtype must be the same as the input tensors' dtype after broadcasting.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_3) = dtype_(v_1) ∧ dtype_(v_3) = dtype_(v_2)
+** SUCCESS **
+[Iteration] 2, [Token usage] 3314
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -704,9 +641,370 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 10 (Check if scalar input is non-negative)
+Rule 9 (The input tensors should be integer types.)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6)
+** SUCCESS **
+[Iteration] 2, [Token usage] 3314
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.lcm API parameters should satisfy. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (If the input is a scalar, it should be a non-negative integer)
+{v_1 : int} |= v_1 ≥ 0
+** SUCCESS **
+[Iteration] 2, [Token usage] 3314
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.lcm API parameters should satisfy. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (The output shape must be the broadcasted shape of the two input tensors)
+{v_1 : tensor, v_2 : tensor} |= true
+** REDUNDANT VARIABLES ** (num_failures: 4)
+[Iteration] 2, [Token usage] 3314
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.lcm API parameters should satisfy. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (At least one of the inputs must be a tensor)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= true
+** REDUNDANT VARIABLES ** (num_failures: 5)
+[Iteration] 2, [Token usage] 3314
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.lcm API parameters should satisfy. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (Input tensors must be integer types)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6)
+** SUCCESS **
+[Iteration] 3, [Token usage] 4898
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.lcm API parameters should satisfy. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 14 (Scalar inputs must be non-negative integers)
 {v_1: int} |= v_1 ≥ 0
 ** SUCCESS **
+[Iteration] 3, [Token usage] 4898
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -775,9 +1073,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 11 (Both inputs must be integer types)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ∈ [1,2,3,4,5,6]) ∧ (dtype_(v_2) ∈ [1,2,3,4,5,6])
-** PARSING ERROR ** (num_failures: 5)
+Rule 15 (Shapes of input tensors must be broadcastable)
+{v_1: tensor, v_2: tensor} |= (∀ i ∈ [0, min(ndim(v_1), ndim(v_2))) : if shape(v_1)[ndim(v_1) - 1 - i] ≠ shape(v_2)[ndim(v_2) - 1 - i] then shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1) ∨ (ndim(v_1) = 0) ∨ (ndim(v_2) = 0)
+** PARSING ERROR ** (num_failures: 6)
+[Iteration] 3, [Token usage] 4898
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -846,9 +1145,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 12 (If `out` is specified, it must also be an integer type)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then dtype_(v_3) ∈ [1,2,3,4,5,6]
-** REDUNDANT VARIABLES ** (num_failures: 6)
+Rule 16 (If `out` tensor is provided, its shape must be the result of broadcasting input tensors' shapes)
+{v_1: tensor, v_2: tensor, v_3: tensor} |= true
+** REDUNDANT VARIABLES ** (num_failures: 7)
+[Iteration] 3, [Token usage] 4898
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -917,9 +1217,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 13 (If `out` is specified, it must have the same dtype as the result of type promotion between `v_1` and `v_2`)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then (if dtype_(v_1) > dtype_(v_2) then dtype_(v_3) = dtype_(v_1) else dtype_(v_3) = dtype_(v_2))
+Rule 17 (If `out` tensor is provided, its dtype must be the same as the input tensors' dtype after type promotion)
+{v_1: tensor, v_2: tensor, v_3: tensor} |= dtype_(v_3) = dtype_(v_1) ∨ dtype_(v_3) = dtype_(v_2)
 ** SUCCESS **
+[Iteration] 3, [Token usage] 4898
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -988,9 +1289,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 14 (Shapes must be broadcastable)
-{v_1 : tensor, v_2 : tensor} |= ∀ i ∈ [0, min(ndim(v_1), ndim(v_2)) - 1] : (shape(v_1)[ndim(v_1) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i] ∨ shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1)
-** PARSING ERROR ** (num_failures: 7)
+Rule 18 (At least one argument must be a tensor.)
+{v_1: tensor ⊎ int, v_2 : tensor ⊎ int} |= true
+** REDUNDANT VARIABLES ** (num_failures: 8)
+[Iteration] 3, [Token usage] 4898
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -1059,9 +1361,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 15 (If out is provided, the shape must be the broadcasted shape of input tensors)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then (∀ i ∈ [0, min(ndim(v_1), ndim(v_2), ndim(v_3)) - 1] : (shape(v_3)[ndim(v_3) - 1 - i] = shape(v_1)[ndim(v_1) - 1 - i] ∨ shape(v_3)[ndim(v_3) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i] ∨ (shape(v_1)[ndim(v_1) - 1 - i] = 1 ∧ shape(v_3)[ndim(v_3) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i]) ∨ (shape(v_2)[ndim(v_2) - 1 - i] = 1 ∧ shape(v_3)[ndim(v_3) - 1 - i] = shape(v_1)[ndim(v_1) - 1 - i]))) ∧ (ndim(v_3) ≥ ndim(v_1) ∧ ndim(v_3) ≥ ndim(v_2))
-** PARSING ERROR ** (num_failures: 8)
+Rule 19 (Input tensors must have integer dtype)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6)
+** DUPLICATED RULE ** (num_failures: 9)
+[Iteration] 4, [Token usage] 6519
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -1130,364 +1433,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 16 (Both inputs must be integer tensors)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) ∨ (dtype_(v_1) = 6) ∧ ((dtype_(v_2) = 1) ∨ (dtype_(v_2) = 2) ∨ (dtype_(v_2) = 3) ∨ (dtype_(v_2) = 4) ∨ (dtype_(v_2) = 5) ∨ (dtype_(v_2) = 6))
-** SUCCESS **
-
->>> PROMPT
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/" | "%"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define rules that torch.lcm API parameters should satisfy. 
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-** IMPORTANT: For module classes returning instances, include rules for their parameters. **
-
-<<< RESPONSE
-Rule 17 (If out is provided, it must be an integer tensor)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then ((dtype_(v_3) = 1) ∨ (dtype_(v_3) = 2) ∨ (dtype_(v_3) = 3) ∨ (dtype_(v_3) = 4) ∨ (dtype_(v_3) = 5) ∨ (dtype_(v_3) = 6))
-** REDUNDANT VARIABLES ** (num_failures: 9)
-
->>> PROMPT
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/" | "%"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define rules that torch.lcm API parameters should satisfy. 
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-** IMPORTANT: For module classes returning instances, include rules for their parameters. **
-
-<<< RESPONSE
-Rule 18 (If out is provided, its dtype should be the same as the promoted dtype of v_1 and v_2)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then (if (dtype_(v_1) > dtype_(v_2)) then (dtype_(v_3) = dtype_(v_1)) else (dtype_(v_3) = dtype_(v_2)))
-** SUCCESS **
-
->>> PROMPT
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/" | "%"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define rules that torch.lcm API parameters should satisfy. 
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-** IMPORTANT: For module classes returning instances, include rules for their parameters. **
-
-<<< RESPONSE
-Rule 19 (Shapes of input tensors v_1 and v_2 must be broadcastable)
-{v_1 : tensor, v_2 : tensor} |= ∀ i ∈ [0, min(ndim(v_1), ndim(v_2)) - 1] : (shape(v_1)[ndim(v_1) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i] ∨ shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1)
-** PARSING ERROR ** (num_failures: 10)
-
->>> PROMPT
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/" | "%"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define rules that torch.lcm API parameters should satisfy. 
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-** IMPORTANT: For module classes returning instances, include rules for their parameters. **
-
-<<< RESPONSE
-Rule 20 (If out tensor is provided, its shape should be the result of broadcasting shapes of v_1 and v_2)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then (∀ i ∈ [0, min(ndim(v_1), ndim(v_2)) - 1] : ((shape(v_3)[ndim(v_3) - 1 - i] = shape(v_1)[ndim(v_1) - 1 - i]) ∨ (shape(v_3)[ndim(v_3) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i]))) ∧ (ndim(v_3) ≥ ndim(v_1)) ∧ (ndim(v_3) ≥ ndim(v_2))
-** PARSING ERROR ** (num_failures: 11)
-
->>> PROMPT
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/" | "%"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define rules that torch.lcm API parameters should satisfy. 
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-** IMPORTANT: For module classes returning instances, include rules for their parameters. **
-
-<<< RESPONSE
-Rule 21 (Scalar inputs should be non-negative.)
+Rule 20 (Scalar inputs must be non-negative)
 {v_1 : int} |= v_1 ≥ 0
-** SUCCESS **
+** DUPLICATED RULE ** (num_failures: 10)
+[Iteration] 4, [Token usage] 6519
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -1556,9 +1505,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 22 (Both input tensors must have integer dtypes)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 6) ∧ (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 6)
-** SUCCESS **
+Rule 21 (Shapes of input tensors must be broadcastable, handling scalar inputs)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= if v_1 : tensor ∧ v_2 : tensor then (∀ i ∈ [0, min(ndim(v_1), ndim(v_2))) : if shape(v_1)[ndim(v_1) - 1 - i] ≠ shape(v_2)[ndim(v_2) - 1 - i] then shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1)
+** PARSING ERROR ** (num_failures: 11)
+[Iteration] 4, [Token usage] 6519
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -1627,9 +1577,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 23 (If an output tensor is provided, it must also have an integer dtype)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then (dtype_(v_3) ≥ 1 ∧ dtype_(v_3) ≤ 6)
+Rule 22 (If out tensor is provided, its shape must be the result of broadcasting input tensors' shapes)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int, v_3 : tensor} |= true
 ** REDUNDANT VARIABLES ** (num_failures: 12)
+[Iteration] 4, [Token usage] 6519
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -1698,9 +1649,82 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 24 (The output tensor, if provided, must have a dtype that can accommodate the result of the operation on the input dtypes)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then (dtype_(v_3) ≥ max(dtype_(v_1), dtype_(v_2)))
+Rule 23 (If out tensor is provided, its dtype must be the same as the promoted dtype of the input tensors)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) > dtype_(v_2) then dtype_(v_3) = dtype_(v_1) else dtype_(v_3) = dtype_(v_2)
+** SUCCESS **
+[Iteration] 4, [Token usage] 6519
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.lcm API parameters should satisfy. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 24 (At least one input must be a tensor)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= (v_1 : tensor) ∨ (v_2 : tensor)
 ** PARSING ERROR ** (num_failures: 13)
+[Iteration] 4, [Token usage] 6519
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -1769,9 +1793,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 25 (The shapes of the input tensors must be broadcastable according to standard broadcasting rules)
-{v_1 : tensor, v_2 : tensor} |= ∀ i ∈ [0, min(ndim(v_1), ndim(v_2)) - 1] : (shape(v_1)[ndim(v_1) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i] ∨ shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1)
-** PARSING ERROR ** (num_failures: 14)
+Rule 25 (Input tensors must have integer dtype.)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6)
+** DUPLICATED RULE ** (num_failures: 14)
+[Iteration] 5, [Token usage] 8240
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -1840,9 +1865,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 26 (If an output tensor is provided, its shape must be the result of broadcasting the input shapes)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then ∀ i ∈ [0, ndim(v_3) - 1] : ((i < ndim(v_1) ∧ i < ndim(v_2) ∧ (shape(v_3)[ndim(v_3) - 1 - i] = shape(v_1)[ndim(v_1) - 1 - i] ∨ shape(v_3)[ndim(v_3) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i])) ∨ (i < ndim(v_1) ∧ shape(v_1)[ndim(v_1) - 1 - i] ≠ 1 ∧ shape(v_3)[ndim(v_3) - 1 - i] = shape(v_1)[ndim(v_1) - 1 - i]) ∨ (i < ndim(v_2) ∧ shape(v_2)[ndim(v_2) - 1 - i] ≠ 1 ∧ shape(v_3)[ndim(v_3) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i]))
-** PARSING ERROR ** (num_failures: 15)
+Rule 26 (Scalar inputs must be non-negative.)
+{v_1 : int} |= v_1 ≥ 0
+** DUPLICATED RULE ** (num_failures: 15)
+[Iteration] 5, [Token usage] 8240
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -1911,9 +1937,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 27 (Input tensors must have integer dtype)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 6) ∧ (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 6)
-** DUPLICATED RULE ** (num_failures: 16)
+Rule 27 (Shapes of input tensors must be broadcastable, handling scalar inputs.)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= if (v_1 : tensor) ∧ (v_2 : tensor) then (∀ i ∈ [0, min(ndim(v_1), ndim(v_2))) : if shape(v_1)[ndim(v_1) - 1 - i] ≠ shape(v_2)[ndim(v_2) - 1 - i] then shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1)
+** PARSING ERROR ** (num_failures: 16)
+[Iteration] 5, [Token usage] 8240
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -1982,9 +2009,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 28 (If output tensor is provided, it must have integer dtype)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then (dtype_(v_3) ≥ 1 ∧ dtype_(v_3) ≤ 6)
+Rule 28 (If out tensor is provided, its shape must be the result of broadcasting input tensors' shapes.)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int, v_3 : tensor} |= if (v_1 : tensor) ∧ (v_2 : tensor) then true else if (v_1 : int) ∧ (v_2 : tensor) then true else if (v_1 : tensor) ∧ (v_2 : int) then true
 ** REDUNDANT VARIABLES ** (num_failures: 17)
+[Iteration] 5, [Token usage] 8240
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -2053,9 +2081,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 29 (If output tensor is provided, it should have a dtype large enough to hold result)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then dtype_(v_3) ≥ max(dtype_(v_1), dtype_(v_2))
-** PARSING ERROR ** (num_failures: 18)
+Rule 29 (If out tensor is provided, its dtype must be the same as the promoted dtype of the input tensors.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) > dtype_(v_2) then dtype_(v_3) = dtype_(v_1) else dtype_(v_3) = dtype_(v_2)
+** DUPLICATED RULE ** (num_failures: 18)
+[Iteration] 5, [Token usage] 8240
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -2124,9 +2153,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 30 (Input tensors must have broadcastable shapes)
-{v_1 : tensor, v_2 : tensor} |= ∀ i ∈ [0, min(ndim(v_1), ndim(v_2)) - 1] : (shape(v_1)[ndim(v_1) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i] ∨ shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1)
+Rule 30 (At least one input must be a tensor.)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= (v_1 : tensor) ∨ (v_2 : tensor)
 ** PARSING ERROR ** (num_failures: 19)
+[Iteration] 5, [Token usage] 8240
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -2195,9 +2225,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 31 (If output tensor is provided, its shape must be broadcasted shape of inputs)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then (ndim(v_3) ≥ ndim(v_1) ∧ ndim(v_3) ≥ ndim(v_2)) ∧ (∀ i ∈ [0, min(ndim(v_1), ndim(v_2), ndim(v_3)) - 1] : ((shape(v_1)[ndim(v_1) - 1 - i] = shape(v_3)[ndim(v_3) - 1 - i]) ∨ (shape(v_2)[ndim(v_2) - 1 - i] = shape(v_3)[ndim(v_3) - 1 - i]) ∨ ((shape(v_1)[ndim(v_1) - 1 - i] = 1) ∧ (shape(v_2)[ndim(v_2) - 1 - i] = shape(v_3)[ndim(v_3) - 1 - i])) ∨ ((shape(v_2)[ndim(v_2) - 1 - i] = 1) ∧ (shape(v_1)[ndim(v_1) - 1 - i] = shape(v_3)[ndim(v_3) - 1 - i]))))
-** PARSING ERROR ** (num_failures: 20)
+Rule 31 (If both inputs are scalar, then the output must also be a scalar)
+{v_1: int, v_2: int} |= true
+** REDUNDANT VARIABLES ** (num_failures: 20)
+[Iteration] 5, [Token usage] 8240
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -2266,9 +2297,82 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 32 (Scalar inputs must be non-negative)
+Rule 32 (Input tensors must have integer dtype)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 6) ∧ (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 6)
+** SUCCESS **
+[Iteration] 6, [Token usage] 9954
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.lcm API parameters should satisfy. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 33 (Scalar inputs must be non-negative)
 {v_1 : int} |= v_1 ≥ 0
 ** DUPLICATED RULE ** (num_failures: 21)
+[Iteration] 6, [Token usage] 9954
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -2337,9 +2441,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 33 (Both inputs must be integer tensors)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≥ 1) ∧ (dtype_(v_1) ≤ 6) ∧ (dtype_(v_2) ≥ 1) ∧ (dtype_(v_2) ≤ 6)
-** SUCCESS **
+Rule 34 (Shapes of input tensors must be broadcastable, handling scalar inputs)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= if (v_1 : tensor) ∧ (v_2 : tensor) then (∀ i ∈ [0, min(ndim(v_1), ndim(v_2))) : if shape(v_1)[ndim(v_1) - 1 - i] ≠ shape(v_2)[ndim(v_2) - 1 - i] then shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1)
+** PARSING ERROR ** (num_failures: 22)
+[Iteration] 6, [Token usage] 9954
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -2408,9 +2513,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 34 (If out is provided, its dtype must be integer)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then (dtype_(v_3) ≥ 1) ∧ (dtype_(v_3) ≤ 6)
-** REDUNDANT VARIABLES ** (num_failures: 22)
+Rule 35 (If out tensor is provided, its shape must be the result of broadcasting input tensors' shapes)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int, v_3 : tensor} |= if (v_1 : tensor) ∧ (v_2 : tensor) then true else if (v_1 : int) ∧ (v_2 : tensor) then true else if (v_1 : tensor) ∧ (v_2 : int) then true
+** REDUNDANT VARIABLES ** (num_failures: 23)
+[Iteration] 6, [Token usage] 9954
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -2479,9 +2585,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 35 (The dtype of out should be at least as large as the largest dtype of the inputs)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then dtype_(v_3) ≥ max(dtype_(v_1), dtype_(v_2))
-** PARSING ERROR ** (num_failures: 23)
+Rule 36 (If out tensor is provided, its dtype must be the same as the promoted dtype of the input tensors)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) > dtype_(v_2) then dtype_(v_3) = dtype_(v_1) else dtype_(v_3) = dtype_(v_2)
+** DUPLICATED RULE ** (num_failures: 24)
+[Iteration] 6, [Token usage] 9954
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -2550,80 +2657,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 36 (The input tensors must have broadcastable shapes)
-{v_1 : tensor, v_2 : tensor} |= ∀ i ∈ [0, min(ndim(v_1), ndim(v_2)) - 1] : (shape(v_1)[ndim(v_1) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i] ∨ shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1)
-** PARSING ERROR ** (num_failures: 24)
-
->>> PROMPT
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/" | "%"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define rules that torch.lcm API parameters should satisfy. 
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-** IMPORTANT: For module classes returning instances, include rules for their parameters. **
-
-<<< RESPONSE
-Rule 37 (If out is provided, its shape must be the result of broadcasting)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then ∀ i ∈ [0, min(ndim(v_1), ndim(v_2), ndim(v_3)) - 1] : (shape(v_3)[ndim(v_3) - 1 - i] = shape(v_1)[ndim(v_1) - 1 - i] ∨ shape(v_3)[ndim(v_3) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i] ∨ (shape(v_1)[ndim(v_1) - 1 - i] = 1 ∧ shape(v_3)[ndim(v_3) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i]) ∨ (shape(v_2)[ndim(v_2) - 1 - i] = 1 ∧ shape(v_3)[ndim(v_3) - 1 - i] = shape(v_1)[ndim(v_1) - 1 - i]))
+Rule 37 (At least one input must be a tensor)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= (v_1 : tensor) ∨ (v_2 : tensor)
 ** PARSING ERROR ** (num_failures: 25)
+[Iteration] 6, [Token usage] 9954
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -2692,9 +2729,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 38 (Scalar input must be non-negative)
-{v_1 : int} |= v_1 ≥ 0
-** DUPLICATED RULE ** (num_failures: 26)
+Rule 38 (If both inputs are scalar, then the output must also be a scalar, hence no shape rule to verify.)
+{v_1: int, v_2: int} |= true
+** REDUNDANT VARIABLES ** (num_failures: 26)
+[Iteration] 6, [Token usage] 9954
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -2763,9 +2801,82 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 39 (The input tensors must be of integer type)
+Rule 39 (If one input is a tensor and other is a scalar, the scalar should be broadcastable to the tensor shape, but since there's no direct shape comparison defined to accommodate broadcasting a scalar, skip this rule)
+{v_1: tensor ⊎ int, v_2: tensor ⊎ int} |= true
+** REDUNDANT VARIABLES ** (num_failures: 27)
+[Iteration] 6, [Token usage] 9954
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.lcm API parameters should satisfy. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 40 (Input tensors must have integer dtype)
 {v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 6) ∧ (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 6)
-** DUPLICATED RULE ** (num_failures: 27)
+** DUPLICATED RULE ** (num_failures: 28)
+[Iteration] 7, [Token usage] 11669
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -2834,9 +2945,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 40 (If an output tensor is provided, it must be of integer type)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then (dtype_(v_3) ≥ 1 ∧ dtype_(v_3) ≤ 6)
-** REDUNDANT VARIABLES ** (num_failures: 28)
+Rule 41 (Scalar inputs must be non-negative)
+{v_1 : int} |= v_1 ≥ 0
+** DUPLICATED RULE ** (num_failures: 29)
+[Iteration] 7, [Token usage] 11669
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -2905,80 +3017,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 41 (If an output tensor is provided, its dtype must be large enough to accommodate the result)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then dtype_(v_3) ≥ max(dtype_(v_1), dtype_(v_2))
-** PARSING ERROR ** (num_failures: 29)
-
->>> PROMPT
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/" | "%"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define rules that torch.lcm API parameters should satisfy. 
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-** IMPORTANT: For module classes returning instances, include rules for their parameters. **
-
-<<< RESPONSE
-Rule 42 (The input tensors must have broadcastable shapes)
-{v_1 : tensor, v_2 : tensor} |= ∀ i ∈ [0, min(ndim(v_1), ndim(v_2)) - 1] : (shape(v_1)[ndim(v_1) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i] ∨ shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1)
+Rule 42 (Shapes of input tensors must be broadcastable, handling scalar inputs.  If only one input is a tensor, broadcasting is valid.)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |=  if (v_1 : tensor) ∧ (v_2 : tensor) then (∀ i ∈ [0, min(ndim(v_1), ndim(v_2))) : if shape(v_1)[ndim(v_1) - 1 - i] ≠ shape(v_2)[ndim(v_2) - 1 - i] then shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1)
 ** PARSING ERROR ** (num_failures: 30)
+[Iteration] 7, [Token usage] 11669
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -3047,9 +3089,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 43 (If an output tensor is provided, its shape must be the broadcasted shape of the inputs)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then ∀ i ∈ [0, max(ndim(v_1), ndim(v_2)) - 1] : (if i < ndim(v_1) ∧ i < ndim(v_2) then (shape(v_3)[ndim(v_3) - 1 - i] = shape(v_1)[ndim(v_1) - 1 - i] ∨ shape(v_3)[ndim(v_3) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i]) else (if i < ndim(v_1) then shape(v_3)[ndim(v_3) - 1 - i] = shape(v_1)[ndim(v_1) - 1 - i] else shape(v_3)[ndim(v_3) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i]))
-** PARSING ERROR ** (num_failures: 31)
+Rule 43 (If out tensor is provided, its shape must be the result of broadcasting input tensors' shapes. Broadcasting handled by the framework itself.)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int, v_3 : tensor} |= true
+** REDUNDANT VARIABLES ** (num_failures: 31)
+[Iteration] 7, [Token usage] 11669
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -3118,9 +3161,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 44 (If one of the inputs is a scalar, it must be a non-negative integer)
-{v_1 : int} |= v_1 ≥ 0
+Rule 44 (If out tensor is provided, its dtype must be the same as the promoted dtype of the input tensors)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) > dtype_(v_2) then dtype_(v_3) = dtype_(v_1) else dtype_(v_3) = dtype_(v_2)
 ** DUPLICATED RULE ** (num_failures: 32)
+[Iteration] 7, [Token usage] 11669
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -3189,9 +3233,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 45 (Both input tensors must be of integer type)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 6) ∧ (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 6)
-** DUPLICATED RULE ** (num_failures: 33)
+Rule 45 (At least one input must be a tensor)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= (v_1 : tensor) ∨ (v_2 : tensor)
+** PARSING ERROR ** (num_failures: 33)
+[Iteration] 7, [Token usage] 11669
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -3260,9 +3305,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 46 (If an output tensor is provided, it must be of integer type)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then (dtype_(v_3) ≥ 1 ∧ dtype_(v_3) ≤ 6)
+Rule 46 (If both inputs are scalar, then the output must also be a scalar, hence no shape rule to verify.)
+{v_1: int, v_2: int} |= true
 ** REDUNDANT VARIABLES ** (num_failures: 34)
+[Iteration] 7, [Token usage] 11669
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -3331,9 +3377,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 47 (If an output tensor is provided, its dtype must be large enough to accommodate the result - same or larger)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then dtype_(v_3) ≥ max(dtype_(v_1), dtype_(v_2))
-** PARSING ERROR ** (num_failures: 35)
+Rule 47 (If the inputs are int and tensor, the promoted type will be tensor's dtype)
+{v_1 : int, v_2 : tensor, v_3 : tensor} |= dtype_(v_3) = dtype_(v_2)
+** REDUNDANT VARIABLES ** (num_failures: 35)
+[Iteration] 7, [Token usage] 11669
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -3402,9 +3449,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 48 (The input tensors must have broadcastable shapes)
-{v_1 : tensor, v_2 : tensor} |= ∀ i ∈ [0, min(ndim(v_1), ndim(v_2)) - 1] : (shape(v_1)[ndim(v_1) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i] ∨ shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1)
-** PARSING ERROR ** (num_failures: 36)
+Rule 48 (If the inputs are tensor and int, the promoted type will be tensor's dtype)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= dtype_(v_3) = dtype_(v_1)
+** REDUNDANT VARIABLES ** (num_failures: 36)
+[Iteration] 7, [Token usage] 11669
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -3473,9 +3521,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 49 (If an output tensor is provided, its shape must be the result of broadcasting the input shapes)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then ∀ i ∈ [0, max(ndim(v_1), ndim(v_2)) - 1] : (if i < ndim(v_1) ∧ i < ndim(v_2) then (shape(v_3)[ndim(v_3) - 1 - i] = shape(v_1)[ndim(v_1) - 1 - i] ∨ shape(v_3)[ndim(v_3) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i] ∨ shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1) else (if i < ndim(v_1) then shape(v_3)[ndim(v_3) - 1 - i] = shape(v_1)[ndim(v_1) - 1 - i] else shape(v_3)[ndim(v_3) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i]))
-** PARSING ERROR ** (num_failures: 37)
+Rule 49 (Input tensors must have integer dtype)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 6) ∧ (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 6)
+** DUPLICATED RULE ** (num_failures: 37)
+[Iteration] 8, [Token usage] 13362
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -3547,6 +3596,7 @@ Ex) Rule 21 (primitive type variable should not be zero)
 Rule 50 (Scalar inputs must be non-negative)
 {v_1 : int} |= v_1 ≥ 0
 ** DUPLICATED RULE ** (num_failures: 38)
+[Iteration] 8, [Token usage] 13362
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -3615,9 +3665,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 51 (If one input is a scalar, the other must be a tensor and non-negative)
-{v_1 : tensor, v_2 : int} |= (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 6) ∧ (v_2 ≥ 0)
-** SUCCESS **
+Rule 51 (Shapes of input tensors must be broadcastable. If one or both inputs are scalar, broadcasting is always valid, and the output takes the tensor's shape if present.  If both are tensors, usual broadcasting rules apply)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |=  if (v_1 : tensor) ∧ (v_2 : tensor) then (∀ i ∈ [0, min(ndim(v_1), ndim(v_2))) : if shape(v_1)[ndim(v_1) - 1 - i] ≠ shape(v_2)[ndim(v_2) - 1 - i] then shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1)
+** PARSING ERROR ** (num_failures: 39)
+[Iteration] 8, [Token usage] 13362
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -3686,80 +3737,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 52 (Both inputs must be integer tensors)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 6) ∧ (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 6)
-** DUPLICATED RULE ** (num_failures: 39)
-
->>> PROMPT
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/" | "%"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define rules that torch.lcm API parameters should satisfy. 
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-** IMPORTANT: For module classes returning instances, include rules for their parameters. **
-
-<<< RESPONSE
-Rule 53 (If out is provided, it should also be an integer tensor)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then (dtype_(v_3) ≥ 1 ∧ dtype_(v_3) ≤ 6)
+Rule 52 (If out tensor is provided, its shape must be the result of broadcasting input tensors' shapes. Broadcasting handled by the framework itself.)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int, v_3 : tensor} |= true
 ** REDUNDANT VARIABLES ** (num_failures: 40)
+[Iteration] 8, [Token usage] 13362
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -3828,9 +3809,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 54 (The dtype of 'out' should be at least as large as the maximum dtype of the inputs)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then dtype_(v_3) ≥ max(dtype_(v_1), dtype_(v_2))
-** PARSING ERROR ** (num_failures: 41)
+Rule 53 (If out tensor is provided, its dtype must be the same as the promoted dtype of the input tensors. The promoted type is the larger of the two input types.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) > dtype_(v_2) then dtype_(v_3) = dtype_(v_1) else dtype_(v_3) = dtype_(v_2)
+** DUPLICATED RULE ** (num_failures: 41)
+[Iteration] 8, [Token usage] 13362
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -3899,9 +3881,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 55 (The input tensors must have broadcastable shapes)
-{v_1 : tensor, v_2 : tensor} |= ∀ i ∈ [0, min(ndim(v_1), ndim(v_2)) - 1] : (shape(v_1)[ndim(v_1) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i] ∨ shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1)
+Rule 54 (At least one input must be a tensor)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= (v_1 : tensor) ∨ (v_2 : tensor)
 ** PARSING ERROR ** (num_failures: 42)
+[Iteration] 8, [Token usage] 13362
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -3970,9 +3953,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 56 (If 'out' is specified, its shape must be the result of broadcasting the input shapes)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then ∀ i ∈ [0, max(ndim(v_1), ndim(v_2)) - 1] : (if (i < ndim(v_1)) ∧ (i < ndim(v_2)) then (shape(v_3)[ndim(v_3) - 1 - i] = shape(v_1)[ndim(v_1) - 1 - i] ∨ shape(v_3)[ndim(v_3) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i]) else (if (i < ndim(v_1)) then shape(v_3)[ndim(v_3) - 1 - i] = shape(v_1)[ndim(v_1) - 1 - i] else shape(v_3)[ndim(v_3) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i]))
-** PARSING ERROR ** (num_failures: 43)
+Rule 55 (If both inputs are scalar, then the output must also be a scalar, hence no shape rule to verify. This does not need to be explicitly stated; the broadcasting rules handle it)
+{v_1: int, v_2: int} |= true
+** REDUNDANT VARIABLES ** (num_failures: 43)
+[Iteration] 8, [Token usage] 13362
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -4041,9 +4025,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 57 (Scalar inputs must be non-negative)
-{v_1 : int} |= v_1 ≥ 0
-** DUPLICATED RULE ** (num_failures: 44)
+Rule 56 (If the inputs are int and tensor, the promoted type will be tensor's dtype, or vice versa. We can consolidate Rules 8 & 9 with Rule 56 above)
+{} |= true
+** PARSING ERROR ** (num_failures: 44)
+[Iteration] 8, [Token usage] 13362
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -4112,9 +4097,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 58 (If one input is a tensor and the other is a scalar, the scalar must be non-negative)
-{v_1 : tensor, v_2 : int} |= (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 6) ∧ (v_2 ≥ 0)
-** DUPLICATED RULE ** (num_failures: 45)
+Rule 57 (Input values must be non-negative integers or tensors of non-negative integers)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= (if (v_1 : tensor) then (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 6 ∧ (∀ i ∈ [0, shape(v_1)[0]) : v_1[i] ≥ 0 )) else v_1 ≥ 0) ∧ (if (v_2 : tensor) then (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 6 ∧ (∀ i ∈ [0, shape(v_2)[0]) : v_2[i] ≥ 0)) else v_2 ≥ 0)
+** PARSING ERROR ** (num_failures: 45)
+[Iteration] 9, [Token usage] 14989
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -4183,9 +4169,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 59 (If one input is an integer and the other is a tensor, the integer must be non-negative)
-{v_1 : int, v_2 : tensor} |= (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 6) ∧ (v_1 ≥ 0)
-** SUCCESS **
+Rule 58 (Shapes of input tensors must be broadcastable. )
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= if (v_1 : tensor) ∧ (v_2 : tensor) then (∀ i ∈ [0, min(ndim(v_1), ndim(v_2))) : if shape(v_1)[ndim(v_1) - 1 - i] ≠ shape(v_2)[ndim(v_2) - 1 - i] then shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1)
+** PARSING ERROR ** (num_failures: 46)
+[Iteration] 9, [Token usage] 14989
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -4254,9 +4241,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 60 (Both inputs should be integer tensors or scalars)
-{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= true
-** REDUNDANT VARIABLES ** (num_failures: 46)
+Rule 59 (If out tensor is provided, its shape must be the result of broadcasting input tensors' shapes.)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int, v_3 : tensor} |= true
+** REDUNDANT VARIABLES ** (num_failures: 47)
+[Iteration] 9, [Token usage] 14989
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -4325,9 +4313,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 61 (Both tensor inputs must have integer dtype)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 6) ∧ (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 6)
-** DUPLICATED RULE ** (num_failures: 47)
+Rule 60 (If out tensor is provided, its dtype must be the same as the promoted dtype of the input tensors. The promoted type is the larger of the two input types.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) > dtype_(v_2) then dtype_(v_3) = dtype_(v_1) else dtype_(v_3) = dtype_(v_2)
+** DUPLICATED RULE ** (num_failures: 48)
+[Iteration] 9, [Token usage] 14989
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -4396,80 +4385,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 62 (If out is provided, it must be an integer tensor)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then (dtype_(v_3) ≥ 1 ∧ dtype_(v_3) ≤ 6)
-** REDUNDANT VARIABLES ** (num_failures: 48)
-
->>> PROMPT
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/" | "%"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define rules that torch.lcm API parameters should satisfy. 
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-** IMPORTANT: For module classes returning instances, include rules for their parameters. **
-
-<<< RESPONSE
-Rule 63 (The dtype of 'out' should be at least as large as the largest dtype of the inputs (tensor case))
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then dtype_(v_3) ≥ max(dtype_(v_1), dtype_(v_2))
+Rule 61 (At least one input must be a tensor)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= (v_1 : tensor) ∨ (v_2 : tensor)
 ** PARSING ERROR ** (num_failures: 49)
+[Iteration] 9, [Token usage] 14989
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -4538,9 +4457,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 64 (The input tensors must have broadcastable shapes)
-{v_1 : tensor, v_2 : tensor} |= ∀ i ∈ [0, min(ndim(v_1), ndim(v_2)) - 1] : (shape(v_1)[ndim(v_1) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i] ∨ shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1)
+Rule 62 (Input values must be non-negative integers or tensors of non-negative integers)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= (if (v_1 : tensor) then ((dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 6) ∧ (∀ i ∈ [0, shape(v_1).len) : v_1[i] ≥ 0 )) else v_1 ≥ 0) ∧ (if (v_2 : tensor) then ((dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 6) ∧ (∀ i ∈ [0, shape(v_2).len) : v_2[i] ≥ 0)) else v_2 ≥ 0)
 ** PARSING ERROR ** (num_failures: 50)
+[Iteration] 10, [Token usage] 16617
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -4609,9 +4529,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 65 (If 'out' is specified, its shape must be the result of broadcasting the input shapes (tensor case))
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ none then ∀ i ∈ [0, max(ndim(v_1), ndim(v_2)) - 1] : (if (i < ndim(v_1)) ∧ (i < ndim(v_2)) then (shape(v_3)[ndim(v_3) - 1 - i] = shape(v_1)[ndim(v_1) - 1 - i] ∨ shape(v_3)[ndim(v_3) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i]) else (if (i < ndim(v_1)) then shape(v_3)[ndim(v_3) - 1 - i] = shape(v_1)[ndim(v_1) - 1 - i] else shape(v_3)[ndim(v_3) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i]))
+Rule 63 (Shapes of input tensors must be broadcastable.)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= if (v_1 : tensor) ∧ (v_2 : tensor) then (∀ i ∈ [0, min(ndim(v_1), ndim(v_2))) : if shape(v_1)[ndim(v_1) - 1 - i] ≠ shape(v_2)[ndim(v_2) - 1 - i] then shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1)
 ** PARSING ERROR ** (num_failures: 51)
+[Iteration] 10, [Token usage] 16617
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -4680,9 +4601,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 66 (Scalar inputs must be non-negative)
-{v_1 : int} |= v_1 ≥ 0
-** DUPLICATED RULE ** (num_failures: 52)
+Rule 64 (If out tensor is provided, its shape must be the result of broadcasting input tensors' shapes.)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int, v_3 : tensor} |= true
+** REDUNDANT VARIABLES ** (num_failures: 52)
+[Iteration] 10, [Token usage] 16617
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -4751,9 +4673,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 67 (If one input is a tensor and the other is a scalar, the scalar must be non-negative)
-{v_1 : tensor, v_2 : int} |= (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 6) ∧ (v_2 ≥ 0)
+Rule 65 (If out tensor is provided, its dtype must be the same as the promoted dtype of the input tensors. The promoted type is the larger of the two input types.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) > dtype_(v_2) then dtype_(v_3) = dtype_(v_1) else dtype_(v_3) = dtype_(v_2)
 ** DUPLICATED RULE ** (num_failures: 53)
+[Iteration] 10, [Token usage] 16617
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -4822,9 +4745,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 68 (If one input is an integer and the other is a tensor, the integer must be non-negative)
-{v_1 : int, v_2 : tensor} |= (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 6) ∧ (v_1 ≥ 0)
-** DUPLICATED RULE ** (num_failures: 54)
+Rule 66 (At least one input must be a tensor)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= (v_1 : tensor) ∨ (v_2 : tensor)
+** PARSING ERROR ** (num_failures: 54)
+[Iteration] 10, [Token usage] 16617
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -4893,9 +4817,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 69 (If both inputs are scalars, they must be non-negative)
-{v_1 : int, v_2 : int} |= (v_1 ≥ 0) ∧ (v_2 ≥ 0)
-** SUCCESS **
+Rule 67 (Input values must be non-negative integers or tensors of non-negative integers)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= (if (v_1 : tensor) then ((dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 6) ∧ (∀ i ∈ [0, shape(v_1).len) : v_1[i] ≥ 0 )) else v_1 ≥ 0) ∧ (if (v_2 : tensor) then ((dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 6) ∧ (∀ i ∈ [0, shape(v_2).len) : v_2[i] ≥ 0)) else v_2 ≥ 0)
+** PARSING ERROR ** (num_failures: 55)
+[Iteration] 11, [Token usage] 18261
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -4964,9 +4889,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 70 (Both inputs must be integer tensors or non-negative integer scalars)
-{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= true
-** REDUNDANT VARIABLES ** (num_failures: 55)
+Rule 68 (Shapes of input tensors must be broadcastable. If both are scalars this holds true implicitly.)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= if (v_1 : tensor) ∧ (v_2 : tensor) then (∀ i ∈ [0, min(ndim(v_1), ndim(v_2))) : if shape(v_1)[ndim(v_1) - 1 - i] ≠ shape(v_2)[ndim(v_2) - 1 - i] then shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1)
+** PARSING ERROR ** (num_failures: 56)
+[Iteration] 11, [Token usage] 18261
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -5035,80 +4961,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 71 (If the inputs are tensors, they must have integer dtype)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 6) ∧ (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 6)
-** DUPLICATED RULE ** (num_failures: 56)
-
->>> PROMPT
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/" | "%"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define rules that torch.lcm API parameters should satisfy. 
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-** IMPORTANT: For module classes returning instances, include rules for their parameters. **
-
-<<< RESPONSE
-Rule 72 (If out is provided and is a tensor, it must have integer dtype)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (v_3 ≠ none) ∧ (v_3 : tensor) then (dtype_(v_3) ≥ 1 ∧ dtype_(v_3) ≤ 6)
+Rule 69 (If out tensor is provided, its shape must be the result of broadcasting input tensors' shapes. Broadcasting shape handled by the framework.)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int, v_3 : tensor} |= true
 ** REDUNDANT VARIABLES ** (num_failures: 57)
+[Iteration] 11, [Token usage] 18261
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -5177,9 +5033,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 73 (If out is provided, its dtype should be at least as large as the largest dtype of the inputs (only for tensors))
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (v_3 ≠ none) ∧ (v_3 : tensor) then dtype_(v_3) ≥ max(dtype_(v_1), dtype_(v_2))
-** PARSING ERROR ** (num_failures: 58)
+Rule 70 (If out tensor is provided, its dtype must be the same as the promoted dtype of the input tensors. The promoted type is the larger of the two input types.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) > dtype_(v_2) then dtype_(v_3) = dtype_(v_1) else dtype_(v_3) = dtype_(v_2)
+** DUPLICATED RULE ** (num_failures: 58)
+[Iteration] 11, [Token usage] 18261
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -5248,9 +5105,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 74 (If the inputs are tensors, they must have broadcastable shapes)
-{v_1 : tensor, v_2 : tensor} |= ∀ i ∈ [0, min(ndim(v_1), ndim(v_2)) - 1] : (shape(v_1)[ndim(v_1) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i] ∨ shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1)
+Rule 71 (At least one input must be a tensor)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= (v_1 : tensor) ∨ (v_2 : tensor)
 ** PARSING ERROR ** (num_failures: 59)
+[Iteration] 11, [Token usage] 18261
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -5319,9 +5177,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 75 (If out is a tensor, its shape must be the result of broadcasting the input shapes)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (v_3 ≠ none) ∧ (v_3 : tensor) then ∀ i ∈ [0, max(ndim(v_1), ndim(v_2)) - 1] : (if (i < ndim(v_1)) ∧ (i < ndim(v_2)) then (shape(v_3)[ndim(v_3) - 1 - i] = shape(v_1)[ndim(v_1) - 1 - i] ∨ shape(v_3)[ndim(v_3) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i]) else (if (i < ndim(v_1)) then shape(v_3)[ndim(v_3) - 1 - i] = shape(v_1)[ndim(v_1) - 1 - i] else shape(v_3)[ndim(v_3) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i]))
+Rule 72 (Input values must be non-negative integers or tensors of non-negative integers)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= (if (v_1 : tensor) then ((dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 6) ∧ (∀ i ∈ [0, shape(v_1).len) : v_1[i] ≥ 0 )) else v_1 ≥ 0) ∧ (if (v_2 : tensor) then ((dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 6) ∧ (∀ i ∈ [0, shape(v_2).len) : v_2[i] ≥ 0)) else v_2 ≥ 0)
 ** PARSING ERROR ** (num_failures: 60)
+[Iteration] 12, [Token usage] 19907
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -5390,9 +5249,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 76 (If one input is a tensor and the other is a scalar, the scalar must be non-negative)
-{v_1 : tensor, v_2 : int} |= (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 6) ∧ (v_2 ≥ 0)
-** DUPLICATED RULE ** (num_failures: 61)
+Rule 73 (Shapes of input tensors must be broadcastable.)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= if (v_1 : tensor) ∧ (v_2 : tensor) then (∀ i ∈ [0, min(ndim(v_1), ndim(v_2))) : if shape(v_1)[ndim(v_1) - 1 - i] ≠ shape(v_2)[ndim(v_2) - 1 - i] then shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1)
+** PARSING ERROR ** (num_failures: 61)
+[Iteration] 12, [Token usage] 19907
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -5461,9 +5321,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 77 (If one input is an integer and the other is a tensor, the integer must be non-negative)
-{v_1 : int, v_2 : tensor} |= (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 6) ∧ (v_1 ≥ 0)
-** DUPLICATED RULE ** (num_failures: 62)
+Rule 74 (If out tensor is provided, its shape must be the result of broadcasting input tensors' shapes. Broadcasting shape handled by the framework.)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int, v_3 : tensor} |= true
+** REDUNDANT VARIABLES ** (num_failures: 62)
+[Iteration] 12, [Token usage] 19907
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -5532,9 +5393,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 78 (If both inputs are scalars, they must be non-negative)
-{v_1 : int, v_2 : int} |= (v_1 ≥ 0) ∧ (v_2 ≥ 0)
+Rule 75 (If out tensor is provided, its dtype must be the same as the promoted dtype of the input tensors. The promoted type is determined by the usual type promotion rules, in this case it will always be an integer type)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) > dtype_(v_2) then dtype_(v_3) = dtype_(v_1) else dtype_(v_3) = dtype_(v_2)
 ** DUPLICATED RULE ** (num_failures: 63)
+[Iteration] 12, [Token usage] 19907
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -5603,9 +5465,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 79 (Inputs can be either tensors with integer dtype or non-negative integers.)
-{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= true
-** REDUNDANT VARIABLES ** (num_failures: 64)
+Rule 76 (At least one input must be a tensor)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= (v_1 : tensor) ∨ (v_2 : tensor)
+** PARSING ERROR ** (num_failures: 64)
+[Iteration] 12, [Token usage] 19907
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -5674,9 +5537,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 80 (If inputs are tensors, their dtype must be integer)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 6) ∧ (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 6)
-** DUPLICATED RULE ** (num_failures: 65)
+Rule 77 (Input values must be non-negative integers or tensors of non-negative integers)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= (if (v_1 : tensor) then ((dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 6) ∧ (∀ i ∈ [0, shape(v_1).len) : v_1[i] ≥ 0 )) else v_1 ≥ 0) ∧ (if (v_2 : tensor) then ((dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 6) ∧ (∀ i ∈ [0, shape(v_2).len) : v_2[i] ≥ 0)) else v_2 ≥ 0)
+** PARSING ERROR ** (num_failures: 65)
+[Iteration] 13, [Token usage] 21568
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -5745,9 +5609,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 81 (If out tensor is specified, its dtype must be an integer)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (v_3 ≠ none) then (dtype_(v_3) ≥ 1 ∧ dtype_(v_3) ≤ 6)
-** REDUNDANT VARIABLES ** (num_failures: 66)
+Rule 78 (Shapes of input tensors must be broadcastable.)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= if (v_1 : tensor) ∧ (v_2 : tensor) then (∀ i ∈ [0, min(ndim(v_1), ndim(v_2))) : if shape(v_1)[ndim(v_1) - 1 - i] ≠ shape(v_2)[ndim(v_2) - 1 - i] then shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1)
+** PARSING ERROR ** (num_failures: 66)
+[Iteration] 13, [Token usage] 21568
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -5816,9 +5681,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 82 (If out is specified and is a tensor, its dtype should be at least as large as the max dtype of the inputs, assuming inputs are tensors)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (v_3 ≠ none) then dtype_(v_3) ≥ max(dtype_(v_1), dtype_(v_2))
-** PARSING ERROR ** (num_failures: 67)
+Rule 79 (If out tensor is provided, its shape must be the result of broadcasting input tensors' shapes.)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int, v_3 : tensor} |= true
+** REDUNDANT VARIABLES ** (num_failures: 67)
+[Iteration] 13, [Token usage] 21568
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -5887,9 +5753,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 83 (If the inputs are tensors, they must have broadcastable shapes)
-{v_1 : tensor, v_2 : tensor} |= ∀ i ∈ [0, min(ndim(v_1), ndim(v_2)) - 1] : (shape(v_1)[ndim(v_1) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i] ∨ shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1)
-** PARSING ERROR ** (num_failures: 68)
+Rule 80 (If out tensor is provided, its dtype must be the same as the promoted dtype of the input tensors. The promoted type is determined by the usual type promotion rules, in this case it will always be an integer type)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) > dtype_(v_2) then dtype_(v_3) = dtype_(v_1) else dtype_(v_3) = dtype_(v_2)
+** DUPLICATED RULE ** (num_failures: 68)
+[Iteration] 13, [Token usage] 21568
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -5958,9 +5825,10 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 84 (If out is a tensor and specified, its shape must be the broadcasted shape of the tensor inputs)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (v_3 ≠ none) then ∀ i ∈ [0, max(ndim(v_1), ndim(v_2)) - 1] : (if (i < ndim(v_1)) ∧ (i < ndim(v_2)) then (shape(v_3)[ndim(v_3) - 1 - i] = shape(v_1)[ndim(v_1) - 1 - i] ∨ shape(v_3)[ndim(v_3) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i]) else (if (i < ndim(v_1)) then shape(v_3)[ndim(v_3) - 1 - i] = shape(v_1)[ndim(v_1) - 1 - i] else shape(v_3)[ndim(v_3) - 1 - i] = shape(v_2)[ndim(v_2) - 1 - i]))
+Rule 81 (At least one input must be a tensor)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= (v_1 : tensor) ∨ (v_2 : tensor)
 ** PARSING ERROR ** (num_failures: 69)
+[Iteration] 13, [Token usage] 21568
 
 >>> PROMPT
 [Rule Grammar in EBNF Notation]
@@ -6029,7 +5897,1232 @@ Ex) Rule 21 (primitive type variable should not be zero)
 ** IMPORTANT: For module classes returning instances, include rules for their parameters. **
 
 <<< RESPONSE
-Rule 85 (If any input is a scalar, it must be non-negative)
-{v_1 : int ⊎ tensor, v_2 : int ⊎ tensor} |= if v_1 : int then v_1 ≥ 0 ∧ if v_2 : int then v_2 ≥ 0
-** PARSING ERROR ** (num_failures: 70)
+Rule 82 (dtype of int cannot be bool)
+{v_1 : int} |= true
+** REDUNDANT VARIABLES ** (num_failures: 70)
+[Iteration] 13, [Token usage] 21568
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.lcm API parameters should satisfy. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 83 (Input values must be non-negative integers or tensors of non-negative integers)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= (if (v_1 : tensor) then ((dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 6) ∧ (∀ i ∈ [0, shape(v_1).len) : v_1[i] ≥ 0 )) else v_1 ≥ 0) ∧ (if (v_2 : tensor) then ((dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 6) ∧ (∀ i ∈ [0, shape(v_2).len) : v_2[i] ≥ 0)) else v_2 ≥ 0)
+** PARSING ERROR ** (num_failures: 71)
+[Iteration] 14, [Token usage] 23307
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.lcm API parameters should satisfy. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 84 (Shapes of input tensors must be broadcastable.)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= if (v_1 : tensor) ∧ (v_2 : tensor) then (∀ i ∈ [0, min(ndim(v_1), ndim(v_2))) : if shape(v_1)[ndim(v_1) - 1 - i] ≠ shape(v_2)[ndim(v_2) - 1 - i] then shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1)
+** PARSING ERROR ** (num_failures: 72)
+[Iteration] 14, [Token usage] 23307
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.lcm API parameters should satisfy. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 85 (If out tensor is provided, its shape must be the result of broadcasting input tensors' shapes. Broadcasting shape handled by the framework.)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int, v_3 : tensor} |= true
+** REDUNDANT VARIABLES ** (num_failures: 73)
+[Iteration] 14, [Token usage] 23307
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.lcm API parameters should satisfy. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 86 (If out tensor is provided, its dtype must be the same as the promoted dtype of the input tensors. The promoted type is determined by the usual type promotion rules, and it will always be an integer type.)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int, v_3 : tensor} |= if (v_1 : tensor) ∧ (v_2 : tensor) then (if dtype_(v_1) > dtype_(v_2) then dtype_(v_3) = dtype_(v_1) else dtype_(v_3) = dtype_(v_2)) else if (v_1 : tensor) ∧ (v_2 : int) then dtype_(v_3) = dtype_(v_1) else if (v_1 : int) ∧ (v_2 : tensor) then dtype_(v_3) = dtype_(v_2)
+** PARSING ERROR ** (num_failures: 74)
+[Iteration] 14, [Token usage] 23307
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.lcm API parameters should satisfy. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 87 (At least one input must be a tensor)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= (v_1 : tensor) ∨ (v_2 : tensor)
+** PARSING ERROR ** (num_failures: 75)
+[Iteration] 14, [Token usage] 23307
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.lcm API parameters should satisfy. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 88 (Input values must be non-negative integers or tensors of non-negative integers)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= (if (v_1 : tensor) then ((dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 6) ∧ (∀ i ∈ [0, shape(v_1).len) : v_1[i] ≥ 0 )) else v_1 ≥ 0) ∧ (if (v_2 : tensor) then ((dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 6) ∧ (∀ i ∈ [0, shape(v_2).len) : v_2[i] ≥ 0)) else v_2 ≥ 0)
+** PARSING ERROR ** (num_failures: 76)
+[Iteration] 15, [Token usage] 25103
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.lcm API parameters should satisfy. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 89 (Shapes of input tensors must be broadcastable.)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= if (v_1 : tensor) ∧ (v_2 : tensor) then (∀ i ∈ [0, min(ndim(v_1), ndim(v_2))) : if shape(v_1)[ndim(v_1) - 1 - i] ≠ shape(v_2)[ndim(v_2) - 1 - i] then shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1)
+** PARSING ERROR ** (num_failures: 77)
+[Iteration] 15, [Token usage] 25103
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.lcm API parameters should satisfy. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 90 (If out tensor is provided, its shape must be the result of broadcasting input tensors' shapes.)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int, v_3 : tensor} |= true
+** REDUNDANT VARIABLES ** (num_failures: 78)
+[Iteration] 15, [Token usage] 25103
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.lcm API parameters should satisfy. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 91 (If out tensor is provided, its dtype must be the same as the promoted dtype of the input tensors. The promoted type is determined by the usual type promotion rules, and it will always be an integer type.)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int, v_3 : tensor} |= if (v_1 : tensor) ∧ (v_2 : tensor) then (if dtype_(v_1) > dtype_(v_2) then dtype_(v_3) = dtype_(v_1) else dtype_(v_3) = dtype_(v_2)) else if (v_1 : tensor) ∧ (v_2 : int) then dtype_(v_3) = dtype_(v_1) else if (v_1 : int) ∧ (v_2 : tensor) then dtype_(v_3) = dtype_(v_2)
+** PARSING ERROR ** (num_failures: 79)
+[Iteration] 15, [Token usage] 25103
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.lcm API parameters should satisfy. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 92 (At least one input must be a tensor)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= (v_1 : tensor) ∨ (v_2 : tensor)
+** PARSING ERROR ** (num_failures: 80)
+[Iteration] 15, [Token usage] 25103
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.lcm API parameters should satisfy. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 93 (The integer value should be within the range of int64 (largest integer type supported))
+{v_1 : int} |= v_1 ≤ 9223372036854775807 ∧ v_1 ≥ 0
+** SUCCESS **
+[Iteration] 15, [Token usage] 25103
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.lcm API parameters should satisfy. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 94 (Input values must be non-negative integers or tensors of non-negative integers)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= (if (v_1 : tensor) then ((dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 6) ∧ (∀ i ∈ [0, shape(v_1).len) : v_1[i] ≥ 0 )) else v_1 ≥ 0) ∧ (if (v_2 : tensor) then ((dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 6) ∧ (∀ i ∈ [0, shape(v_2).len) : v_2[i] ≥ 0)) else v_2 ≥ 0)
+** PARSING ERROR ** (num_failures: 81)
+[Iteration] 16, [Token usage] 26887
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.lcm API parameters should satisfy. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 95 (Shapes of input tensors must be broadcastable.)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= if (v_1 : tensor) ∧ (v_2 : tensor) then (∀ i ∈ [0, min(ndim(v_1), ndim(v_2))) : if shape(v_1)[ndim(v_1) - 1 - i] ≠ shape(v_2)[ndim(v_2) - 1 - i] then shape(v_1)[ndim(v_1) - 1 - i] = 1 ∨ shape(v_2)[ndim(v_2) - 1 - i] = 1)
+** PARSING ERROR ** (num_failures: 82)
+[Iteration] 16, [Token usage] 26887
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.lcm API parameters should satisfy. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 96 (If out tensor is provided, its shape must be the result of broadcasting input tensors' shapes.)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int, v_3 : tensor} |= true
+** REDUNDANT VARIABLES ** (num_failures: 83)
+[Iteration] 16, [Token usage] 26887
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.lcm API parameters should satisfy. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 97 (If out tensor is provided, its dtype must be the same as the promoted dtype of the input tensors. The promoted type is determined by the usual type promotion rules, and it will always be an integer type.)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int, v_3 : tensor} |= if (v_1 : tensor) ∧ (v_2 : tensor) then (if dtype_(v_1) > dtype_(v_2) then dtype_(v_3) = dtype_(v_1) else dtype_(v_3) = dtype_(v_2)) else if (v_1 : tensor) ∧ (v_2 : int) then dtype_(v_3) = dtype_(v_1) else if (v_1 : int) ∧ (v_2 : tensor) then dtype_(v_3) = dtype_(v_2)
+** PARSING ERROR ** (num_failures: 84)
+[Iteration] 16, [Token usage] 26887
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.lcm API parameters should satisfy. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 98 (At least one input must be a tensor)
+{v_1 : tensor ⊎ int, v_2 : tensor ⊎ int} |= (v_1 : tensor) ∨ (v_2 : tensor)
+** PARSING ERROR ** (num_failures: 85)
+[Iteration] 16, [Token usage] 26887
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.lcm API parameters should satisfy. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 99 (If both inputs are int and they are different then output should be different than both inputs)
+{v_1 : int, v_2: int} |= if (v_1 ≠ v_2) then true
+** SUCCESS **
+[Iteration] 16, [Token usage] 26887
 

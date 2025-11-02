@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The weight for spectral norm must be a matrix (Rule 63)
+# The number of dimensions in the input tensor must be greater than or equal to 1 (Rule 63)
 
 rule_63 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] == 2) if n else
-          v["arg1_ndim"] == 2)
+    s.add(Not(v["arg1_ndim"] >= 1) if n else
+          v["arg1_ndim"] >= 1)
 )
 
 def rule_63_func(arg1, solver=None, neg=False):

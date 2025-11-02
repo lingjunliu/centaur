@@ -1,96 +1,51 @@
 >>
-Rule 9 (Input tensor must be 3D or 4D)
-{v_1 : tensor} |= (ndim(v_1) = 3) ∨ (ndim(v_1) = 4)
->>
-Rule 14 (Padding should be non-negative when padding is an integer to avoid negative output dimension)
+Rule 1 (Padding must be non-negative)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 15 (Padding elements should be non-negative when padding is a tuple of 4 integers to avoid negative output dimension)
-{v_1 : tuple(int)} |= (v_1[0] ≥ 0) ∧ (v_1[1] ≥ 0) ∧ (v_1[2] ≥ 0) ∧ (v_1[3] ≥ 0)
+Rule 2 (Padding tuple must have even length)
+{v_1 : tuple(int)} |= (v_1.len % 2) = 0
 >>
-Rule 70 (If padding is an integer, and the input is 4D, the padding value cannot exceed half of height dimension to avoid a negative dimension)
-{v_1 : int, v_2 : tensor} |= if ndim(v_2) = 4 then shape(v_2,1) > 2 * v_1
+Rule 4 (Padding tuple elements should be non-negative)
+{v_1 : tuple(int)} |= ∀ i ∈ [0, v_1.len] : v_1[i] ≥ 0
 >>
-Rule 71 (If padding is an integer, and the input is 4D, the padding value cannot exceed half of width dimension to avoid a negative dimension)
-{v_1 : int, v_2 : tensor} |= if ndim(v_2) = 4 then shape(v_2,2) > 2 * v_1
+Rule 6 (If padding is a tuple of length 4, it should be applied to 4D tensor.)
+{v_1 : tuple(int), v_2 : tensor} |= if (v_1.len = 4) then (ndim(v_2) = 4)
 >>
-Rule 72 (If padding is an integer, and the input is 3D, the padding value cannot exceed half of height dimension to avoid a negative dimension)
-{v_1 : int, v_2 : tensor} |= if ndim(v_2) = 3 then shape(v_2,1) > 2 * v_1
+Rule 7 (Input tensor should have 3 or 4 dimensions)
+{v_1 : tensor} |= (ndim(v_1) = 3) ∨ (ndim(v_1) = 4)
 >>
-Rule 73 (If padding is an integer, and the input is 3D, the padding value cannot exceed half of width dimension to avoid a negative dimension)
-{v_1 : int, v_2 : tensor} |= if ndim(v_2) = 3 then shape(v_2,2) > 2 * v_1
+Rule 12 (Padding tuple elements should be non-negative)
+{v_1 : tuple(int)} |= ∀ v_3 ∈ [0, v_1.len] : v_1[v_3] ≥ 0
 >>
-Rule 74 (If padding is a tuple and the input is 4D, v_1[2] + v_1[3] must be less than the image height to avoid reflection padding out of bounds)
-{v_1 : tuple(int), v_2 : tensor} |= if ndim(v_2) = 4 then shape(v_2,1) > v_1[2] + v_1[3]
+Rule 28 (Check that tuple length matches the number of dimensions - to avoid "Argument #4: Padding size should be less than the corresponding input dimension" error when tuple length is too long for the number of dimensions)
+{v_1 : tuple(int), v_2 : tensor} |= if (ndim(v_2) = 3) then (v_1.len ≤ 4) else if (ndim(v_2) = 4) then (v_1.len ≤ 8)
 >>
-Rule 75 (If padding is a tuple and the input is 4D, v_1[0] + v_1[1] must be less than the image width to avoid reflection padding out of bounds)
-{v_1 : tuple(int), v_2 : tensor} |= if ndim(v_2) = 4 then shape(v_2,2) > v_1[0] + v_1[1]
+Rule 29 (Tuple cannot contain negative padding values)
+{v_1: tuple(int)} |= ∀ i ∈ [0, v_1.len] : v_1[i] ≥ 0
 >>
-Rule 76 (If padding is a tuple and the input is 3D, v_1[2] + v_1[3] must be less than the image height to avoid reflection padding out of bounds)
-{v_1 : tuple(int), v_2 : tensor} |= if ndim(v_2) = 3 then shape(v_2,1) > v_1[2] + v_1[3]
+Rule 30 (If input is 3D, padding tuple must have length 2 or 6)
+{v_1 : tuple(int), v_2 : tensor} |= if (ndim(v_2) = 3) then ((v_1.len = 2) ∨ (v_1.len = 6))
 >>
-Rule 77 (If padding is a tuple and the input is 3D, v_1[0] + v_1[1] must be less than the image width to avoid reflection padding out of bounds)
-{v_1 : tuple(int), v_2 : tensor} |= if ndim(v_2) = 3 then shape(v_2,2) > v_1[0] + v_1[1]
+Rule 31 (If input is 4D, padding tuple must have length 2, 4 or 8)
+{v_1 : tuple(int), v_2 : tensor} |= if (ndim(v_2) = 4) then ((v_1.len = 2) ∨ (v_1.len = 4) ∨ (v_1.len = 8))
 >>
-Rule 78 (If padding is an integer, and the input is 4D, the padding value cannot exceed half of height dimension to avoid a negative dimension)
-{v_1 : int, v_2 : tensor} |= if ndim(v_2) = 4 then shape(v_2, 2) > 2 * v_1
+Rule 32 (Avoid multiplication overflow with large padding values)
+{v_1 : int, v_2 : tensor} |= if (ndim(v_2) = 4) then (v_1 < 1000) else if (ndim(v_2) = 3) then (v_1 < 1000)
 >>
-Rule 79 (If padding is an integer, and the input is 4D, the padding value cannot exceed half of width dimension to avoid a negative dimension)
-{v_1 : int, v_2 : tensor} |= if ndim(v_2) = 4 then shape(v_2, 3) > 2 * v_1
+Rule 33 (If padding is a tuple of length 6, it should be applied to 3D tensor.)
+{v_1 : tuple(int), v_2 : tensor} |= if (v_1.len = 6) then (ndim(v_2) = 3)
 >>
-Rule 80 (If padding is an integer, and the input is 3D, the padding value cannot exceed half of height dimension to avoid a negative dimension)
-{v_1 : int, v_2 : tensor} |= if ndim(v_2) = 3 then shape(v_2, 1) > 2 * v_1
+Rule 34 (If padding is a tuple of length 8, it should be applied to 4D tensor.)
+{v_1 : tuple(int), v_2 : tensor} |= if (v_1.len = 8) then (ndim(v_2) = 4)
 >>
-Rule 81 (If padding is an integer, and the input is 3D, the padding value cannot exceed half of width dimension to avoid a negative dimension)
-{v_1 : int, v_2 : tensor} |= if ndim(v_2) = 3 then shape(v_2, 2) > 2 * v_1
+Rule 38 (Check padding values are reasonable to prevent numel overflow)
+{v_1: int} |= v_1 < 50
 >>
-Rule 82 (If padding is a tuple and the input is 4D, v_1[2] + v_1[3] must be less than the image height to avoid reflection padding out of bounds)
-{v_1 : tuple(int), v_2 : tensor} |= if ndim(v_2) = 4 then shape(v_2, 2) > v_1[2] + v_1[3]
+Rule 42 (Check padding is positive to avoid negative dimension errors)
+{v_1: int} |= v_1 >= 0
 >>
-Rule 83 (If padding is a tuple and the input is 4D, v_1[0] + v_1[1] must be less than the image width to avoid reflection padding out of bounds)
-{v_1 : tuple(int), v_2 : tensor} |= if ndim(v_2) = 4 then shape(v_2, 3) > v_1[0] + v_1[1]
+Rule 44 (Check padding is positive to avoid negative dimension errors)
+{v_1: int} |= v_1 ≥ 0
 >>
-Rule 84 (If padding is a tuple and the input is 3D, v_1[2] + v_1[3] must be less than the image height to avoid reflection padding out of bounds)
-{v_1 : tuple(int), v_2 : tensor} |= if ndim(v_2) = 3 then shape(v_2, 1) > v_1[2] + v_1[3]
->>
-Rule 85 (If padding is a tuple and the input is 3D, v_1[0] + v_1[1] must be less than the image width to avoid reflection padding out of bounds)
-{v_1 : tuple(int), v_2 : tensor} |= if ndim(v_2) = 3 then shape(v_2, 2) > v_1[0] + v_1[1]
->>
-Rule 86 (Shape should be concrete integers, not symbolic)
-{v_1 : tensor} |= ∀ v_3 ∈ [0, ndim(v_1) -1] : (shape(v_1, v_3) > 0) ∨ (shape(v_1, v_3) = 0)
->>
-Rule 87 (Check if the padding length is divisible by 2 when it exceeds the input dimension)
-{v_1 : int, v_2 : tensor} |= if (ndim(v_2) * 2) < v_1 then v_1 % 2 = 0
->>
-Rule 88 (Shape should be concrete integers, not symbolic)
-{v_1 : tensor} |= ∀ v_3 ∈ [0, ndim(v_1) - 1] : shape(v_1, v_3) ≥ 0
->>
-Rule 91 (If the padding length is not a tuple and the tensor has fewer dimensions than the length, padding length must be even)
-{v_1 : int, v_2 : tensor} |= if ndim(v_2) < v_1 / 2 then v_1 % 2 = 0
->>
-Rule 92 (If the padding length is not a tuple and the tensor has fewer than half the padding length's dimensions, padding length must be even)
-{v_1 : int, v_2 : tensor} |= if ndim(v_2) < (v_1 / 2) then v_1 % 2 = 0
->>
-Rule 93 (The number of elements in shape should not result in an integer multiplication overflow)
-{v_1 : tensor} |= if ndim(v_1) = 0 then true else if ndim(v_1) = 1 then shape(v_1, 0) > 0 else if ndim(v_1) = 2 then (shape(v_1, 0) > 0) ∧ (shape(v_1, 1) > 0) else if ndim(v_1) = 3 then (shape(v_1, 0) > 0) ∧ (shape(v_1, 1) > 0) ∧ (shape(v_1, 2) > 0) else if ndim(v_1) = 4 then (shape(v_1, 0) > 0) ∧ (shape(v_1, 1) > 0) ∧ (shape(v_1, 2) > 0) ∧ (shape(v_1, 3) > 0)
->>
-Rule 94 (The product of the shape elements cannot overflow)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) < 2147483647 else if ndim(v_1) = 2 then (shape(v_1, 0) < 46340) ∨ (shape(v_1, 1) < 46340) else if ndim(v_1) = 3 then (shape(v_1, 0) < 1290) ∨ (shape(v_1, 1) < 1290) ∨ (shape(v_1, 2) < 1290) else if ndim(v_1) = 4 then (shape(v_1, 0) < 215) ∨ (shape(v_1, 1) < 215) ∨ (shape(v_1, 2) < 215) ∨ (shape(v_1, 3) < 215)
->>
-Rule 96 (The product of the shape elements cannot overflow - stricter version)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) < 2147483647 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 2147483647 else if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 2147483647 else if ndim(v_1) = 4 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) < 2147483647
->>
-Rule 97 (Padding should not cause negative dimensions)
-{v_1: int, v_2: tensor} |= if ndim(v_2) = 3 then shape(v_2, 1) + 2 * v_1 >=0 ∧ shape(v_2, 2) + 2 * v_1 >= 0 else if ndim(v_2) = 4 then shape(v_2, 2) + 2 * v_1 >=0 ∧ shape(v_2, 3) + 2 * v_1 >= 0
->>
-Rule 98 (If Padding is a tuple, the length of padding cannot make the output dimension negative)
-{v_1: tuple(int), v_2: tensor} |= if ndim(v_2) = 3 then shape(v_2, 1) + v_1[2] + v_1[3] >=0 ∧ shape(v_2, 2) + v_1[0] + v_1[1] >= 0 else if ndim(v_2) = 4 then shape(v_2, 2) + v_1[2] + v_1[3] >=0 ∧ shape(v_2, 3) + v_1[0] + v_1[1] >= 0
->>
-Rule 99 (The number of dimensions of tensor should be less than or equal to 5, since NotImplementedError: Only 2D, 3D, 4D, 5D padding with non-constant padding are supported for now)
-{v_1: tensor} |= ndim(v_1) ≤ 5
->>
-Rule 100 (The number of dimensions of the input tensor must be between 2 and 5 inclusive to be supported by the functional implementation)
-{v_1 : tensor} |= (ndim(v_1) ≥ 2) ∧ (ndim(v_1) ≤ 5)
->>
-Rule 102 (If the input tensor has only one dimension, reflection padding is impossible, will throw an error)
-{v_1: tensor} |= ndim(v_1) ≠ 1
+Rule 73 (Tuple length is valid)
+{v_1: tuple(int), v_2 : tensor} |= ((ndim(v_2) = 3) ∧ ((v_1.len = 2) ∨ (v_1.len = 6))) ∨ ((ndim(v_2) = 4) ∧ ((v_1.len = 2) ∨ (v_1.len = 4) ∨ (v_1.len = 8))) ∨ (ndim(v_2) < 3)

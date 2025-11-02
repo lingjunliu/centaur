@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If input is a complex64 or complex128, the API should not be called (Rule 56)
+# The input tensor's dtype must be a valid numerical type excluding float16 and float32, boolean, complex, or string (Rule 56)
 
 rule_56 = lambda s, v, n=False: (
-    s.add(Not(And((v["arg1_dtype"] != 9), (v["arg1_dtype"] != 10))) if n else
-          And((v["arg1_dtype"] != 9), (v["arg1_dtype"] != 10)))
+    s.add(Not(Or((And((v["arg1_dtype"] > 0), (v["arg1_dtype"] < 6))), (v["arg1_dtype"] == 8))) if n else
+          Or((And((v["arg1_dtype"] > 0), (v["arg1_dtype"] < 6))), (v["arg1_dtype"] == 8)))
 )
 
 def rule_56_func(arg1, solver=None, neg=False):

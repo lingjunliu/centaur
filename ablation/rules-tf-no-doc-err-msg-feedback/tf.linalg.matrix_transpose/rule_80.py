@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# axes can't be negative indices larger than the rank of the tensor (Rule 80)
+# The indices in perm should not be equal to the rank (Rule 80)
 
 rule_80 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) > (0 - v["arg1_ndim"])) for i in range(6)])) if n else
-          And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) > (0 - v["arg1_ndim"])) for i in range(6)]))
+    s.add(Not(And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) < v["arg1_ndim"]) for i in range(6)])) if n else
+          And([Implies(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) < v["arg1_ndim"]) for i in range(6)]))
 )
 
 def rule_80_func(arg1, arg2, solver=None, neg=False):
@@ -20,7 +20,7 @@ def rule_80_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
 
         # Variable declarations

@@ -5,32 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# If `scale` is a tensor, its ndim must be 0 (Rule 2)
+# If `v_1` is "reflect", the value of `v_2` must be an integer greater than 0 (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] == 0) if n else
-          v["arg1_ndim"] == 0)
+    s.add(Not(If(v["arg1_value"] == 22, v["arg2_value"] > 0, True)) if n else
+          If(v["arg1_value"] == 22, v["arg2_value"] > 0, True))
 )
 
-def rule_2_func(arg1, solver=None, neg=False):
+def rule_2_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, str):
+            return False
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_value = String('arg1_value')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 2
-        rule_2(solver, {'arg1_ndim': arg1_ndim})
+        rule_2(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_2(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_2(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

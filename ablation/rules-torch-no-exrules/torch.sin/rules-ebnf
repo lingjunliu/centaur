@@ -1,144 +1,111 @@
 >>
-Rule 1 (The dtype of out tensor must be the same as the input tensor)
+Rule 1 (out tensor's dtype should be the same as input tensor's dtype to avoid casting errors)
 {input : tensor, out : tensor} |= dtype_(input) = dtype_(out)
 >>
-Rule 2 (The shape of out tensor must be the the same as the input tensor)
+Rule 2 (If out tensor is specified, its shape must be the same as the input tensor's shape)
 {input : tensor, out : tensor} |= shape(input) = shape(out)
 >>
-Rule 3 (input should be a tensor)
-{input : tensor} |= ndim(input) ≥ 0
+Rule 3 (Input tensor should have a valid dtype for sin operation)
+{input : tensor} |= dtype_(input) = dtype_(input)
 >>
-Rule 4 (The dimension of input tensor must be greater than 0)
-{input : tensor} |= ndim(input) > 0
->>
-Rule 12 (Another dummy rule satisfying API signature.)
-{input : tensor, out : tensor} |= ndim(input) = ndim(out)
->>
-Rule 13 (If out is provided, input and out should have compatible dtypes to avoid casting issues.)
+Rule 4 (If both input and out tensors are provided, they should have compatible dtypes)
 {input : tensor, out : tensor} |= (dtype_(input) = dtype_(out)) ∨ (dtype_(input) = "float" ∧ dtype_(out) = "float")
 >>
-Rule 15 (If input is a float tensor, out should also be a float tensor)
-{input : tensor, out : tensor} |= if dtype_(input) = "float" then dtype_(out) = "float"
+Rule 5 (If input and out are provided and their dtypes are different, enforce type promotion is valid.)
+{input: tensor, out: tensor} |= if dtype_(input) ≠ dtype_(out) then true
 >>
-Rule 18 (If out is provided, input and out should have compatible dtypes to avoid casting issues.)
-{input : tensor, out : tensor} |= if (dtype_(input) = "float32") then (dtype_(out) = "float32")
+Rule 6 (Prevent casting error: If out is provided, its dtype should be able to accommodate the result of sin(input))
+{input : tensor, out : tensor} |= if dtype_(out) = "int" then dtype_(input) = "int"
 >>
-Rule 19 (Shape of input and output tensors should match if out is provided)
-{input : tensor, out : tensor} |= if ndim(input) > 0 then shape(input) = shape(out)
+Rule 7 (The input tensor should be a numerical type)
+{input : tensor} |= dtype_(input) = "float" ∨ dtype_(input) = "int" ∨ dtype_(input) = "complex64" ∨ dtype_(input) = "complex128" ∨ dtype_(input) = "float16" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float64"
 >>
-Rule 20 (Input tensor's dimension must be at least 1)
-{input : tensor} |= ndim(input) ≥ 1
+Rule 8 (If out tensor is specified, its dtype should be at least as precise as the input tensor's dtype to avoid overflow or underflow)
+{input : tensor, out : tensor} |= if dtype_(input) = "int" then dtype_(out) = "int" ∨ dtype_(out) = "float"
 >>
-Rule 21 (Input should be a tensor with float or complex dtype)
-{input : tensor} |= (dtype_(input) = "float32") ∨ (dtype_(input) = "float64") ∨ (dtype_(input) = "complex64") ∨ (dtype_(input) = "complex128")
+Rule 9 (If out is provided, and input is int, out must be an int or float)
+{input : tensor, out : tensor} |= if dtype_(input) = "int" then (dtype_(out) = "int" ∨ dtype_(out) = "float")
 >>
-Rule 22 (If input dtype is complex, then out dtype should also be complex)
-{input : tensor, out : tensor} |= if (dtype_(input) = "complex64") ∨ (dtype_(input) = "complex128") then (dtype_(out) = "complex64") ∨ (dtype_(out) = "complex128")
+Rule 10 (Avoid casting error: If an out tensor is provided, its dtype must be able to hold the sine values of the input tensor)
+{input : tensor, out : tensor} |= if dtype_(input) = "float16" then (dtype_(out) = "float16" ∨ dtype_(out) = "float32" ∨ dtype_(out) = "float64") else if dtype_(input) = "float32" then (dtype_(out) = "float32" ∨ dtype_(out) = "float64") else if dtype_(input) = "float64" then dtype_(out) = "float64" else if dtype_(input) = "complex64" then (dtype_(out) = "complex64" ∨ dtype_(out) = "complex128") else if dtype_(input) = "complex128" then dtype_(out) = "complex128"
 >>
-Rule 23 (If out is provided and input is float, out should be float or a higher precision float to avoid casting issues)
-{input : tensor, out : tensor} |= if (dtype_(input) = "float32") then (dtype_(out) = "float32" ∨ dtype_(out) = "float64")
+Rule 11 (If out is provided and is of integer type, ensure the input is also of integer type or a float with a limited range to prevent overflow during casting)
+{input : tensor, out : tensor} |= if dtype_(out) = "int" then (dtype_(input) = "int" ∨ (dtype_(input) = "float" ∧ max(input) < 1.0 ∧ min(input) > -1.0))
 >>
-Rule 24 (If out is provided, the number of dimensions of input and out should be equal)
-{input : tensor, out : tensor} |= if (out ≠ none) then ndim(input) = ndim(out)
+Rule 12 (If out is int, input cannot be float unless the absolute value of every element in input is less than or equal to 1)
+{input : tensor, out : tensor} |= if dtype_(out) = "int" then (dtype_(input) = "int" ∨ (dtype_(input) = "float" ∧ ∀ x ∈ [min(input), max(input)] : x ≤ 1 ∧ x ≥ -1))
 >>
-Rule 26 (Input should be a tensor with a numerical dtype.)
-{input : tensor} |= (dtype_(input) = "float32") ∨ (dtype_(input) = "float64") ∨ (dtype_(input) = "complex64") ∨ (dtype_(input) = "complex128") ∨ (dtype_(input) = "int")
+Rule 13 (If out is int, input cannot be float unless the absolute value of every element in input is less than or equal to 1. Requires all elements to satisfy this condition, otherwise it won't be safe to cast to int.)
+{input : tensor, out : tensor} |= if dtype_(out) = "int" then (dtype_(input) = "int" ∨ (dtype_(input) = "float" ∧ (min(input) ≥ -1 ∧ max(input) ≤ 1)))
 >>
-Rule 27 (If input dtype is complex, then out dtype should also be complex with same or higher precision)
-{input : tensor, out : tensor} |= if (dtype_(input) = "complex64") then (dtype_(out) = "complex64") ∨ (dtype_(out) = "complex128")
+Rule 18 (out dtype should be large enough to accommodate sin(input) dtype. Prevents float to short casting)
+{input: tensor, out: tensor} |= if dtype_(out) = "int" then dtype_(input) = "int" else if dtype_(out) = "float16" then (dtype_(input) = "int" ∨ dtype_(input) = "float16") else if dtype_(out) = "float32" then (dtype_(input) = "int" ∨ dtype_(input) = "float16" ∨ dtype_(input) = "float32")
 >>
-Rule 29 (If out is provided, the number of dimensions of input and out should be equal and greater than 0)
-{input : tensor, out : tensor} |= if (out ≠ "none") then (ndim(input) = ndim(out) ∧ ndim(input) > 0)
+Rule 19 (If out is provided and is of type Short, the input must be Int or Float. If Float then min and max must be checked)
+{input : tensor, out : tensor} |= if dtype_(out) = "int" then (dtype_(input) = "int" ∨ (dtype_(input) = "float" ∧ (min(input) >= -1 ∧ max(input) <= 1)))
 >>
-Rule 33 (If input dtype is int, then out should be float)
-{input: tensor, out: tensor} |= if (dtype_(input) = "int") then (dtype_(out) = "float32" ∨ dtype_(out) = "float64")
+Rule 21 (If out is int, and input is float, then input must be in range [-1, 1])
+{input : tensor, out : tensor} |= if dtype_(out) = "int" then (if dtype_(input) = "float" then (min(input) >= -1 ∧ max(input) <= 1))
 >>
-Rule 34 (If out is provided, and input is a floating-point tensor, the out tensor must have a floating-point dtype with at least the same precision)
-{input : tensor, out : tensor} |= if (dtype_(input) = "float32") then (dtype_(out) = "float32" ∨ dtype_(out) = "float64") else if (dtype_(input) = "float64") then (dtype_(out) = "float64")
+Rule 23 (If out is int and input is float, prevent runtime casting error by ensuring the range is valid)
+{input : tensor, out : tensor} |= if dtype_(out) = "int" then (if dtype_(input) = "float" then (min(input) ≥ -1.0 ∧ max(input) ≤ 1.0))
 >>
-Rule 36 (If input dtype is complex, then out dtype should also be complex with the same precision.)
-{input : tensor, out : tensor} |= if (dtype_(input) = "complex64") then (dtype_(out) = "complex64") else if (dtype_(input) = "complex128") then dtype_(out) = "complex128"
+Rule 24 (If out is int and input is float, prevent runtime casting error by ensuring the range is valid using AND)
+{input : tensor, out : tensor} |= if dtype_(out) = "int" then (if dtype_(input) = "float" then ((min(input) ≥ -1.0) ∧ (max(input) ≤ 1.0)))
 >>
-Rule 37 (Shape of the input tensor should match output tensor's shape when out tensor is passed)
-{input : tensor, out: tensor} |= if (out ≠ "none") then (shape(input) = shape(out))
+Rule 26 (If out is specified, and its dtype is int, then the input's dtype must be compatible to prevent casting errors)
+{input : tensor, out : tensor} |= if dtype_(out) = "int" then (dtype_(input) = "int" ∨ dtype_(input) = "float16" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float64")
 >>
-Rule 43 (If out is provided, the number of dimensions of input and out should be equal)
-{input : tensor, out : tensor} |= if (out ≠ "none") then ndim(input) = ndim(out)
+Rule 27 (If out is specified, it should have a dtype to which the result can be cast without data loss, or truncation (e.g. Float->Short))
+{input : tensor, out : tensor} |= if dtype_(out) = "int" then (dtype_(input) = "int")
 >>
-Rule 51 (If input dtype is float32, then if out is provided, dtype of out should be float32 or float64)
-{input : tensor, out : tensor} |= if (dtype_(input) = "float32" ∧ out ≠ "none") then (dtype_(out) = "float32" ∨ dtype_(out) = "float64")
+Rule 29 (If out is specified as int, input needs to be an integer type or a float tensor with values in [-1, 1])
+{input: tensor, out: tensor} |= if dtype_(out) = "int" then (dtype_(input) = "int" ∨ (dtype_(input) = "float" ∧ (min(input) ≥ -1 ∧ max(input) ≤ 1)))
 >>
-Rule 52 (If input dtype is float64, then if out is provided, dtype of out should be float64)
-{input : tensor, out : tensor} |= if (dtype_(input) = "float64" ∧ out ≠ "none") then (dtype_(out) = "float64")
+Rule 31 (If out is int, and input is float, then all elements in input must be between -1 and 1)
+{input : tensor, out : tensor} |= if dtype_(out) = "int" then (if dtype_(input) = "float" then ((min(input) ≥ -1) ∧ (max(input) ≤ 1)))
 >>
-Rule 53 (If input dtype is complex64, then if out is provided, dtype of out should be complex64)
-{input : tensor, out : tensor} |= if (dtype_(input) = "complex64" ∧ out ≠ "none") then (dtype_(out) = "complex64")
+Rule 32 (If out is specified, the input tensor must have a compatible dtype or risk a casting error)
+{input : tensor, out : tensor} |= (dtype_(out) = dtype_(input)) ∨ (dtype_(out) = "float" ∧ dtype_(input) = "int")
 >>
-Rule 54 (If input dtype is complex128, then if out is provided, dtype of out should be complex128)
-{input : tensor, out : tensor} |= if (dtype_(input) = "complex128" ∧ out ≠ "none") then (dtype_(out) = "complex128")
+Rule 33 (To prevent casting errors, out's dtype should be 'greater or equal' than input's dtype)
+{input : tensor, out : tensor} |= if dtype_(out) = "int" then dtype_(input) = "int" else if dtype_(out) = "float16" then (dtype_(input) = "int" ∨ dtype_(input) = "float16") else if dtype_(out) = "float32" then (dtype_(input) = "int" ∨ dtype_(input) = "float16" ∨ dtype_(input) = "float32") else if dtype_(out) = "float64" then (dtype_(input) = "int" ∨ dtype_(input) = "float16" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float64")
 >>
-Rule 56 (If out is provided, and input is a floating-point tensor, the out tensor must have a floating-point dtype with at least the same precision)
-{input : tensor, out : tensor} |= if (dtype_(input) = "float32" ∧ out ≠ "none") then (dtype_(out) = "float32" ∨ dtype_(out) = "float64") else if (dtype_(input) = "float64" ∧ out ≠ "none") then (dtype_(out) = "float64") else if (dtype_(input) = "complex64" ∧ out ≠ "none") then (dtype_(out) = "complex64") else if (dtype_(input) = "complex128" ∧ out ≠ "none") then (dtype_(out) = "complex128")
+Rule 34 (If out tensor is present, then it should have a dtype to which the sine of each element in input can be cast)
+{input : tensor, out : tensor} |= if dtype_(out) = "int" then (if dtype_(input) = "float" then (min(input) ≥ -1 ∧ max(input) ≤ 1) else dtype_(input) = "int")
 >>
-Rule 59 (If out is provided, and ndim of input is greater than 0 then ndim of input should be same as ndim of out)
-{input : tensor, out : tensor} |= if (out ≠ "none" ∧ ndim(input) > 0) then ndim(input) = ndim(out)
+Rule 35 (If out is specified, to avoid casting errors, it needs to have at least the same level of precision of input, in terms of dtype)
+{input : tensor, out : tensor} |= if dtype_(out) = "int" then dtype_(input) = "int" else if dtype_(out) = "float16" then (dtype_(input) = "int" ∨ dtype_(input) = "float16") else if dtype_(out) = "float32" then (dtype_(input) = "int" ∨ dtype_(input) = "float16" ∨ dtype_(input) = "float32") else if dtype_(out) = "float64" then (dtype_(input) = "int" ∨ dtype_(input) = "float16" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float64") else if dtype_(out) = "complex64" then (dtype_(input) = "int" ∨ dtype_(input) = "float16" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float64" ∨ dtype_(input) = "complex64") else if dtype_(out) = "complex128" then (dtype_(input) = "int" ∨ dtype_(input) = "float16" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float64" ∨ dtype_(input) = "complex64" ∨ dtype_(input) = "complex128")
 >>
-Rule 60 (Input should be a tensor with more than 0 dimensions.)
-{input: tensor} |= ndim(input) > 0
+Rule 36 (If out tensor is specified, then its dtype needs to allow sine values from input, to prevent casting issues)
+{input : tensor, out : tensor} |= if dtype_(out) = "int" then dtype_(input) = "int" else if dtype_(out) = "float16" then (dtype_(input) = "int" ∨ dtype_(input) = "float16") else if dtype_(out) = "float32" then (dtype_(input) = "int" ∨ dtype_(input) = "float16" ∨ dtype_(input) = "float32") else if dtype_(out) = "float64" then (dtype_(input) = "int" ∨ dtype_(input) = "float16" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float64") else if dtype_(out) = "complex64" then (dtype_(input) = "float16" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float64" ∨ dtype_(input) = "complex64") else if dtype_(out) = "complex128" then (dtype_(input) = "float16" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float64" ∨ dtype_(input) = "complex64" ∨ dtype_(input) = "complex128")
 >>
-Rule 61 (If out is provided and the number of dimensions is > 0, shape of the input tensor should match output tensor's shape)
-{input : tensor, out: tensor} |= if (out ≠ "none" ∧ ndim(input) > 0) then (shape(input) = shape(out))
+Rule 37 (If out tensor is provided, it must have a compatible dtype to store the result to prevent runtime errors)
+{input : tensor, out : tensor} |= if dtype_(out) = "int" then dtype_(input) = "int" else if dtype_(out) = "float16" then (dtype_(input) = "float16" ∨ dtype_(input) = "int") else if dtype_(out) = "float32" then (dtype_(input) = "float32" ∨ dtype_(input) = "float16" ∨ dtype_(input) = "int") else if dtype_(out) = "float64" then (dtype_(input) = "float64" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float16" ∨ dtype_(input) = "int") else if dtype_(out) = "complex64" then (dtype_(input) = "complex64" ∨ dtype_(input) = "float64" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float16") else if dtype_(out) = "complex128" then (dtype_(input) = "complex128" ∨ dtype_(input) = "complex64" ∨ dtype_(input) = "float64" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float16")
 >>
-Rule 63 (If out is provided, and input is a float32, the out should be at least float32. If input is float64, the out should be at least float64)
-{input : tensor, out : tensor} |= if (out ≠ "none") then ((dtype_(input) = "float32") ∧ (dtype_(out) = "float32" ∨ dtype_(out) = "float64")) ∨ ((dtype_(input) = "float64") ∧ (dtype_(out) = "float64")) ∨ ((dtype_(input) = "complex64") ∧ (dtype_(out) = "complex64")) ∨ ((dtype_(input) = "complex128") ∧ (dtype_(out) = "complex128"))
+Rule 40 (If out is specified and is integer, and input is float, the values in input should be between -1 and 1 to prevent data loss)
+{input : tensor, out : tensor} |= if dtype_(out) = "int" then (if dtype_(input) = "float" then (min(input) ≥ -1 ∧ max(input) ≤ 1))
 >>
-Rule 64 (If out is provided and input is complex64, the out should be complex64. If input is complex128, the out should be complex128)
-{input : tensor, out : tensor} |= if (out ≠ "none") then ((dtype_(input) = "complex64") ∧ (dtype_(out) = "complex64")) ∨ ((dtype_(input) = "complex128") ∧ (dtype_(out) = "complex128"))
+Rule 41 (If out dtype is int, ensure input is int, or float in range [-1, 1] to avoid casting errors.)
+{input: tensor, out: tensor} |= if dtype_(out) = "int" then (dtype_(input) = "int" ∨ (dtype_(input) = "float" ∧ min(input) ≥ -1 ∧ max(input) ≤ 1))
 >>
-Rule 65 (Shape of the output should match the shape of the input if the output tensor is provided)
-{input: tensor, out: tensor} |= if (out ≠ "none") then shape(input) = shape(out)
+Rule 42 (Avoids casting error. If the out tensor is an integer type, the input tensor must be integer or a float within a certain range)
+{input : tensor, out : tensor} |= if dtype_(out) = "int" then (dtype_(input) = "int" ∨ (dtype_(input) = "float" ∧ (min(input) ≥ -1.0 ∧ max(input) ≤ 1.0)))
 >>
-Rule 70 (If out is not provided then input must be a tensor of certain dtype.)
-{input: tensor, out: tensor} |= if (out = "none") then (dtype_(input) = "float32" ∨ dtype_(input) = "float64" ∨ dtype_(input) = "complex64" ∨ dtype_(input) = "complex128")
+Rule 44 (To avoid casting errors, the output tensor's data type should be able to contain the result of the sin function applied to the input)
+{input : tensor, out : tensor} |= if dtype_(out) = "int" then dtype_(input) = "int" else if dtype_(out) = "float16" then (dtype_(input) = "float16" ∨ dtype_(input) = "int") else if dtype_(out) = "float32" then (dtype_(input) = "float32" ∨ dtype_(input) = "float16" ∨ dtype_(input) = "int") else if dtype_(out) = "float64" then (dtype_(input) = "float64" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float16" ∨ dtype_(input) = "int") else if dtype_(out) = "complex64" then (dtype_(input) = "complex64" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float16" ∨ dtype_(input) = "float64" ∨ dtype_(input) = "int") else if dtype_(out) = "complex128" then (dtype_(input) = "complex128" ∨ dtype_(input) = "complex64" ∨ dtype_(input) = "float64" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float16" ∨ dtype_(input) = "int")
 >>
-Rule 74 (If dtype of input is float32 and out is none, it is valid)
-{input: tensor, out: tensor} |= if (out = "none") then (dtype_(input) = "float32")
+Rule 45 (Avoids casting errors when out is specified, ensuring its dtype can represent the sin of input)
+{input : tensor, out : tensor} |= if dtype_(out) = "int" then (dtype_(input) = "int") else if dtype_(out) = "float16" then (dtype_(input) = "int" ∨ dtype_(input) = "float16") else if dtype_(out) = "float32" then (dtype_(input) = "float32" ∨ dtype_(input) = "float16" ∨ dtype_(input) = "int") else if dtype_(out) = "float64" then (dtype_(input) = "float64" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float16" ∨ dtype_(input) = "int") else if dtype_(out) = "complex64" then (dtype_(input) = "complex64" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float64") else if dtype_(out) = "complex128" then (dtype_(input) = "complex128" ∨ dtype_(input) = "complex64" ∨ dtype_(input) = "float64")
 >>
-Rule 75 (If dtype of input is float64 and out is none, it is valid)
-{input: tensor, out: tensor} |= if (out = "none") then (dtype_(input) = "float64")
+Rule 46 (To prevent casting errors, the output tensor's data type should be able to contain the result without losing precision)
+{input : tensor, out : tensor} |= if dtype_(out) = "int" then dtype_(input) = "int" else if dtype_(out) = "float16" then (dtype_(input) = "float16" ∨ dtype_(input) = "int") else if dtype_(out) = "float32" then (dtype_(input) = "float32" ∨ dtype_(input) = "float16" ∨ dtype_(input) = "int") else if dtype_(out) = "float64" then (dtype_(input) = "float64" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float16" ∨ dtype_(input) = "int") else if dtype_(out) = "complex64" then (dtype_(input) = "complex64" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float64") else if dtype_(out) = "complex128" then (dtype_(input) = "complex128" ∨ dtype_(input) = "complex64" ∨ dtype_(input) = "float64")
 >>
-Rule 76 (If dtype of input is complex64 and out is none, it is valid)
-{input: tensor, out: tensor} |= if (out = "none") then (dtype_(input) = "complex64")
+Rule 47 (If out's type is integer, input should be integer, float, complex. Float and complex input require the value range between -1 and 1)
+{input : tensor, out : tensor} |= if dtype_(out) = "int" then (dtype_(input) = "int" ∨ (dtype_(input) = "float" ∧ min(input) ≥ -1 ∧ max(input) ≤ 1) ∨ (dtype_(input) = "complex64" ∧ min(input) ≥ -1 ∧ max(input) ≤ 1) ∨ (dtype_(input) = "complex128" ∧ min(input) ≥ -1 ∧ max(input) ≤ 1))
 >>
-Rule 77 (If dtype of input is complex128 and out is none, it is valid)
-{input: tensor, out: tensor} |= if (out = "none") then (dtype_(input) = "complex128")
+Rule 48 (If out is int, input must be int, or a float in [-1,1]. Also accounts for complex types now.)
+{input : tensor, out : tensor} |= if dtype_(out) = "int" then (dtype_(input) = "int" ∨ (dtype_(input) = "float" ∧ (min(input) ≥ -1 ∧ max(input) ≤ 1)) ∨ (dtype_(input) = "complex64" ∧ (min(input) ≥ -1 ∧ max(input) ≤ 1)) ∨ (dtype_(input) = "complex128" ∧ (min(input) ≥ -1 ∧ max(input) ≤ 1)))
 >>
-Rule 81 (If input is of type float, the output tensor's dtype can either be a float or it can be none (in which case it is inferred))
-{input: tensor, out: tensor} |= if (dtype_(input) = "float32") then (dtype_(input) = dtype_(out) ∨ out = "none") else if (dtype_(input) = "float64") then (dtype_(input) = dtype_(out) ∨ out = "none")
->>
-Rule 82 (If input is of type complex, the output tensor's dtype can either be a complex or it can be none (in which case it is inferred))
-{input: tensor, out: tensor} |= if (dtype_(input) = "complex64") then (dtype_(input) = dtype_(out) ∨ out = "none") else if (dtype_(input) = "complex128") then (dtype_(input) = dtype_(out) ∨ out = "none")
->>
-Rule 86 (If the output tensor `out` is not provided, then the dtypes for the input tensor has to be a valid dtype for the function.)
-{input: tensor, out: tensor} |= if (out = "none") then ((dtype_(input) = "float32") ∨ (dtype_(input) = "float64") ∨ (dtype_(input) = "complex64") ∨ (dtype_(input) = "complex128"))
->>
-Rule 91 (If the output tensor `out` is not provided, the dtypes for the input tensor has to be a valid dtype for the function - different combinations)
-{input: tensor} |= (dtype_(input) = "float32") ∨ (dtype_(input) = "float64") ∨ (dtype_(input) = "complex64") ∨ (dtype_(input) = "complex128")
->>
-Rule 95 (Shape of input and out should be same)
-{input: tensor, out: tensor} |= if (out ≠ "none") then (shape(input) = shape(out))
->>
-Rule 96 (If dtypes of input is complex and out is none, should be valid)
-{input: tensor, out: tensor} |= if (out = "none") then (dtype_(input) = "complex64" ∨ dtype_(input) = "complex128")
->>
-Rule 100 (if input is float32 then out can be float32)
-{input: tensor, out: tensor} |= if (dtype_(input) = "float32" ∧ out ≠ "none") then (dtype_(out) = "float32")
->>
-Rule 101 (if input is float64 then out can be float64)
-{input: tensor, out: tensor} |= if (dtype_(input) = "float64" ∧ out ≠ "none") then (dtype_(out) = "float64")
->>
-Rule 105 (If input is complex64 and out is complex128 this should be valid)
-{input: tensor, out: tensor} |= if (dtype_(input) = "complex64" ∧ out ≠ "none") then (dtype_(out) = "complex128")
->>
-Rule 106 (If input is float32 and out is float64 this should be valid)
-{input: tensor, out: tensor} |= if (dtype_(input) = "float32" ∧ out ≠ "none") then (dtype_(out) = "float64")
+Rule 50 (If out is an integer, then input must also be an integer or if it is float then min and max of the input tensor must range between -1 and 1)
+{input: tensor, out: tensor} |= if dtype_(out) = "int" then (dtype_(input) = "int" ∨ (dtype_(input) = "float" ∧ (min(input) >= -1 ∧ max(input) <= 1)))

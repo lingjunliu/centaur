@@ -1,0 +1,108 @@
+>>
+Rule 1 (dtype parameter should be valid, i.e., an element of a predefined set of integers)
+{v_1 : int} |= (v_1 ≥ 0) ∧ (v_1 ≤ 12)
+>>
+Rule 3 (Shape of the converted tensor should be at least of rank 1 if it is explicitly specified.)
+{v_1 : tuple(int)} |= v_1.len > 0
+>>
+Rule 9 (String parameter 'name' should not be empty.)
+{v_1 : str} |= v_1 ≠ ""
+>>
+Rule 10 (Check if the string parameter 'string_encoding' has valid value. It's simplified here.)
+{v_1 : str} |= (v_1 = "ii") ∨ (v_1 = "ii->i") ∨ (v_1 = "i,j->ij") ∨ (v_1 = "bij,bjk->bik") ∨ (v_1 = "...ij->...ji") ∨ (v_1 = "bn,anm,bm->ba") ∨ (v_1 = "none") ∨ (v_1 = "sum") ∨ (v_1 = "max") ∨ (v_1 = "min") ∨ (v_1 = "prod") ∨ (v_1 = "relu") ∨ (v_1 = "tanh") ∨ (v_1 = "sigmoid") ∨ (v_1 = "softmax") ∨ (v_1 = "elu") ∨ (v_1 = "selu") ∨ (v_1 = "gelu") ∨ (v_1 = "swish") ∨ (v_1 = "softplus") ∨ (v_1 = "linear") ∨ (v_1 = "valid") ∨ (v_1 = "same") ∨ (v_1 = "causal") ∨ (v_1 = "channels_last") ∨ (v_1 = "channels_first")
+>>
+Rule 11 (If value is a numpy array, its number of dimensions should be greater than 0)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 14 (If dtype is a string, it must be a valid dtype string)
+{v_1 : str} |= (v_1 = "bool") ∨ (v_1 = "np.int8") ∨ (v_1 = "np.int16") ∨ (v_1 = "np.int32") ∨ (v_1 = "np.int64") ∨ (v_1 = "np.uint8") ∨ (v_1 = "np.float16") ∨ (v_1 = "np.float32") ∨ (v_1 = "np.float64") ∨ (v_1 = "np.complex64") ∨ (v_1 = "np.complex128") ∨ (v_1 = "str") ∨ (v_1 = "np.dtype")
+>>
+Rule 16 (If the input value is a tuple, its length must be greater than 0)
+{v_1 : tuple(tensor ⊎ int ⊎ float ⊎ bool)} |= v_1.len > 0
+>>
+Rule 17 (If a shape is provided, each dimension in the shape should be a non-negative integer.)
+{v_1 : tuple(int)} |= ∀ i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+>>
+Rule 19 (If the value is a tensor and dtype is provided, ensure the dtype of the tensor is convertible/castable to the specified dtype (simplified to just checking they are unequal))
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ -1 then dtype_(v_1) ≠ v_2
+>>
+Rule 21 (Check that the tensor doesn't have inf or NaN values if it's float)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then true
+>>
+Rule 22 (If the input is a string, the length of the string must be greater than 0)
+{v_1 : str} |= v_1.len > 0
+>>
+Rule 23 (If value is a list of strings, make sure all strings are non-empty)
+{v_1 : list(str)} |= ∀ i ∈ [0, v_1.len - 1] : v_1[i] ≠ ""
+>>
+Rule 26 (If the value is a tuple of integers representing a shape, none of the dimensions should be zero unless the size of the tensor is known to be zero)
+{v_1 : tuple(int)} |= ∃ i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 45 (If shape is provided and is not empty tuple, the number of elements must be > 0)
+{v_1: tuple(int)} |= if v_1.len > 0 then (∃ i ∈ [0, v_1.len - 1] : v_1[i] > 0)
+>>
+Rule 46 (The number of elements in the shape must be less than or equal to the maximum rank of a tensor. Let's say maximum rank is 10.)
+{v_1: tuple(int)} |= v_1.len ≤ 10
+>>
+Rule 49 (If the value is complex, it can't be converted to int)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then if v_2 ≥ 1 ∧ v_2 ≤ 5 then false
+>>
+Rule 51 (If value is a list containing different types, it will cause error)
+{v_1 : list(int ⊎ float ⊎ bool ⊎ tensor ⊎ str)} |= ∀ i ∈ [0, v_1.len -1] : true
+>>
+Rule 52 (Value is a tuple containing different types, error)
+{v_1 : tuple(int ⊎ float ⊎ bool ⊎ tensor ⊎ str)} |= ∀ i ∈ [0, v_1.len -1] : true
+>>
+Rule 53 (If value is a tensor and its dtype is bool, the given dtype should also be bool or None.)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 0 then (v_2 = 0) ∨ (v_2 = -1)
+>>
+Rule 54 (If value is a list of strings, ensure no string is None)
+{v_1: list(str)} |= ∀ i ∈ [0, v_1.len - 1] : v_1[i] ≠ "none"
+>>
+Rule 55 (If dtype is specified as np.dtype, no shape should be passed)
+{v_1 : int, v_2 : tuple(int)} |= if v_1 = 12 then v_2.len = 0
+>>
+Rule 58 (shape should not contain negative numbers. Simplification is to just say shape must be positive)
+{v_1: tuple(int)} |= ∀ i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 61 (If the input is a string, it shouldn't be very long. Simplification, string length < 100)
+{v_1: str} |= v_1.len < 100
+>>
+Rule 62 (If a tensor is passed, it should have a valid dtype that exists. So it can not be int > 12 or < 0.)
+{v_1: tensor} |= (dtype_(v_1) ≥ 0) ∧ (dtype_(v_1) ≤ 12)
+>>
+Rule 63 (The provided shape must result in a tensor smaller than the maximum allowed size - simplified to checking shape elements are not too big)
+{v_1 : tuple(int)} |= ∀ i ∈ [0, v_1.len - 1] : v_1[i] < 10000
+>>
+Rule 67 (If the number of dimension in the tensor is more than 50, throw error)
+{v_1: tensor} |= ndim(v_1) < 50
+>>
+Rule 69 (If complex numbers are present, the shape cannot be empty. Skip the actual check for complex)
+{v_1: tuple(int)} |= v_1.len > 0
+>>
+Rule 77 (Shape can not contain inf values.)
+{v_1 : tuple(int)} |= ∀ i ∈ [0, v_1.len - 1] : true
+>>
+Rule 78 (If dtype is specified as a string, then it must be a valid string - similar to rule 10 in previous ones but more exhaustive. If it is not valid, it can't create tensor. Simplified by checking if not empty.)
+{v_1: str} |= v_1 ≠ ""
+>>
+Rule 85 (If the rank of input tensor is greater than allowed limit then raise error. Simplification: rank should be less than 20)
+{v_1 : tensor} |= ndim(v_1) < 20
+>>
+Rule 95 (Shape can't have negative dimensions - simplified to checking >= 0)
+{v_1: tuple(int)} |= ∀ i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+>>
+Rule 100 (If the input is an empty list/tuple, the dtype cannot be unspecified. i.e. must be specified.)
+{v_1: list(int) ⊎ tuple(int), v_2: int} |= if v_1.len = 0 then v_2 ≠ -1
+>>
+Rule 107 (if value is a Python number (not NumPy number) without dtype and is very large/small, throw OverflowError. Simplification: check range.)
+{v_1: int ⊎ float} |= (v_1 > -1000000) ∧ (v_1 < 1000000)
+>>
+Rule 117 (Name attribute can't start with underscore)
+{v_1: str} |= (v_1[0] ≠ "_") ∨ (v_1 = "_")
+>>
+Rule 135 (if the type is bfloat16, but value is not float, raise error)
+{v_1: tensor, v_2: int} |= if v_2 = 7 then dtype_(v_1) = 7
+>>
+Rule 136 (When shape element is zero and has dimension greater than 1, it raises InvalidArgumentError. Simplification to check at least one element is positive)
+{v_1: tuple(int)} |= ∃ i ∈ [0, v_1.len - 1] : v_1[i] > 0

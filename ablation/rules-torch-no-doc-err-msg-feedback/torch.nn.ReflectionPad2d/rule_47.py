@@ -5,32 +5,40 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# The input tensor must have at least 2 spatial dimensions (height and width (Rule 47)
+# The size of the padding should not make the output size exceed the maximum supported tensor dimension. (Rule 47)
 
 rule_47 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] >= 2) if n else
-          v["arg1_ndim"] >= 2)
+    s.add(Not(And((Select(v["arg1_shape"], v["arg1_ndim"] - 1) + 2 * v["arg2_value"]) < 2147483647, (Select(v["arg1_shape"], v["arg1_ndim"] - 2) + 2 * v["arg2_value"]) < 2147483647)) if n else
+          And((Select(v["arg1_shape"], v["arg1_ndim"] - 1) + 2 * v["arg2_value"]) < 2147483647, (Select(v["arg1_shape"], v["arg1_ndim"] - 2) + 2 * v["arg2_value"]) < 2147483647))
 )
 
-def rule_47_func(arg1, solver=None, neg=False):
+def rule_47_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+            return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_value = Int('arg2_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 47
-        rule_47(solver, {'arg1_ndim': arg1_ndim})
+        rule_47(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_47(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_47(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)

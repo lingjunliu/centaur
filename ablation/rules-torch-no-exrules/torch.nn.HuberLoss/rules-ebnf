@@ -5,23 +5,59 @@ Rule 1 (reduction should be a valid string)
 Rule 2 (delta must be positive)
 {v_1 : float} |= v_1 > 0.0
 >>
-Rule 3 (input and target tensors should have the same shape)
+Rule 3 (input and target tensors should have the same shape to avoid size mismatch error)
 {v_1 : tensor, v_2 : tensor} |= shape(v_1) = shape(v_2)
 >>
-Rule 4 (input and target tensors should have compatible dtypes)
+Rule 4 (input and target tensors should have compatible dtypes to avoid casting errors)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 5 (reduction must be a string)
-{v_1 : str ⊎ float ⊎ int ⊎ tensor ⊎ bool} |= (v_1 = "none") ∨ (v_1 = "mean") ∨ (v_1 = "sum")
+Rule 6 (reduction can only be "none", "mean", or "sum")
+{v_1 : str} |= if v_1 = "none" then true else if v_1 = "mean" then true else if v_1 = "sum" then true else false
 >>
-Rule 6 (delta must be a float)
-{v_1 : float ⊎ int ⊎ tensor ⊎ bool ⊎ str} |= v_1 > 0.0
+Rule 7 (If reduction is none, then the output tensor should have the same shape as the input tensor)
+{v_1 : tensor, v_2 : tensor, v_3: str} |= if v_3 = "none" then shape(v_1) = shape(v_2)
 >>
-Rule 7 (input and target tensors should have the same number of dimensions)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Rule 28 (input and target tensors should have the same number of dimensions)
+{v_1 : tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 10 (reduction has to be in a pre-defined set)
-{v_1 : str} |= (v_1 = "none") ∨ (v_1 = "mean") ∨ (v_1 = "sum")
+Rule 34 (if input and target are tensors then dtype_ of input must be float or int.)
+{v_1 : tensor} |= dtype_(v_1) = "float" ∨ dtype_(v_1) = "int"
 >>
-Rule 12 (check delta type. It should be a number)
-{v_1 : float ⊎ int} |= v_1 > 0.0
+Rule 41 (if reduction is none, then the output tensor should have the same shape as input and target tensors)
+{v_1 : tensor, v_2 : str} |= if v_2 = "none" then shape(v_1) = shape(v_1)
+>>
+Rule 42 (delta should be smaller than the maximum value it can store.)
+{v_1 : float} |= v_1 < 10000000.0
+>>
+Rule 43 (the input tensor should be of type float or int.)
+{v_1: tensor} |= dtype_(v_1) = "float" ∨ dtype_(v_1) = "int"
+>>
+Rule 48 (if reduction is mean or sum the input and target tensors must have same shape.)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "mean" ∨ v_3 = "sum" then shape(v_1) = shape(v_2)
+>>
+Rule 51 (if input and target are of type tensor their dimension should be equal to or greater than 0.)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 57 (if reduction is none, then the output tensor should have the same shape as input and target tensors)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "none" then shape(v_1) = shape(v_2)
+>>
+Rule 83 (the input and target tensor dimensions should be greater than or equal to 0.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0
+>>
+Rule 98 (delta value should be a valid float)
+{v_1: float} |= v_1 > -1000000000.0 ∧ v_1 < 1000000000.0
+>>
+Rule 99 (The dtype of input tensor should be float or int)
+{v_1: tensor} |= dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "int32" ∨ dtype_(v_1) = "int64"
+>>
+Rule 106 (delta value must be within reasonable bounds)
+{v_1: float} |= v_1 > -1000.0 ∧ v_1 < 1000.0
+>>
+Rule 107 (if dtype is Char it should be avoided)
+{v_1 : tensor} |= dtype_(v_1) ≠ "Char"
+>>
+Rule 114 (avoid Char type for tensors to prevent casting errors)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ "Char" ∧ dtype_(v_2) ≠ "Char"
+>>
+Rule 123 (Delta should not be infinity or NaN)
+{v_1 : float} |= v_1 < 1000000000.0 ∧ v_1 > -1000000000.0

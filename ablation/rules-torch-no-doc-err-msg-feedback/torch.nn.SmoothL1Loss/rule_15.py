@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# delta must be a positive number (Rule 15)
+# When reduction is not none, the output is a scalar (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] > 0) if n else
-          v["arg1_value"] > 0)
+    s.add(Not(If(v["arg1_value"] == 6, True, True)) if n else
+          If(v["arg1_value"] == 6, True, True))
 )
 
 def rule_15_func(arg1, solver=None, neg=False):
@@ -17,15 +17,15 @@ def rule_15_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
+        if not isinstance(arg1, str):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
+        arg1_value = String('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
+        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
 
         # Constraints for rule 15
         rule_15(solver, {'arg1_value': arg1_value})

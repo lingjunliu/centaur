@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
-# Input tensor must be a valid dtype for the operation to avoid type errors (Rule 27)
+# If input tensor is float16 or float32, then an error occurs (Rule 27)
 
 rule_27 = lambda s, v, n=False: (
-    s.add(Not((And((v["arg1_dtype"] != 0), (Or((v["arg1_dtype"] < 9), (v["arg1_dtype"] > 10)))))) if n else
-          (And((v["arg1_dtype"] != 0), (Or((v["arg1_dtype"] < 9), (v["arg1_dtype"] > 10))))))
+    s.add(Not(If(v["arg1_dtype"] == 6, False, If(v["arg1_dtype"] == 7, False, True))) if n else
+          If(v["arg1_dtype"] == 6, False, If(v["arg1_dtype"] == 7, False, True)))
 )
 
 def rule_27_func(arg1, solver=None, neg=False):

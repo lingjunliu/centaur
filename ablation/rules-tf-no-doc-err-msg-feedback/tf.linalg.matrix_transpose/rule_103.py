@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# axes should have a length of 2 when axes is list or tuple (Rule 103)
+# If the perm parameter is given, it should has at least one dimension  (Rule 103)
 
 rule_103 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_length"] == 2) if n else
-          v["arg1_length"] == 2)
+    s.add(Not(v["arg1_length"] >= 1) if n else
+          v["arg1_length"] >= 1)
 )
 
 def rule_103_func(arg1, solver=None, neg=False):
@@ -17,7 +17,7 @@ def rule_103_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not ((isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)) or (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1))):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations

@@ -1,96 +1,69 @@
 >>
-Rule 1 (reduction must be a string and must be one of "none", "mean", or "sum")
-{reduction : str} |= reduction = "none" ∨ reduction = "mean" ∨ reduction = "sum"
+Rule 1 (reduction should be either "none", "mean", or "sum")
+{v_1 : str} |= (v_1 = "none") ∨ (v_1 = "mean") ∨ (v_1 = "sum")
 >>
-Rule 2 (beta should be a float and greater than or equal to 0.0)
-{beta : float} |= beta ≥ 0.0
->>
-Rule 3 (size_average is deprecated and its value should not matter)
-{size_average : bool, reduce : bool} |= (size_average = true ∧ reduce = true) ∨ (size_average = false ∧ reduce = false) ∨ (size_average = true ∧ reduce = false) ∨ (size_average = false ∧ reduce = true)
->>
-Rule 4 (The dimension of input and target tensors should be the same)
-{input_tensor : tensor, target_tensor : tensor} |= ndim(input_tensor) = ndim(target_tensor)
->>
-Rule 9 (Beta should be a non-negative float value)
+Rule 2 (beta must be greater than or equal to 0.0)
 {v_1 : float} |= v_1 ≥ 0.0
 >>
-Rule 10 (Input and Target tensors should have the same shape when reduction is not 'none')
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 ≠ "none" then shape(v_1) = shape(v_2)
+Rule 3 (size_average is deprecated and should not be used, but if specified, reduce must be none)
+{v_1 : bool, v_2 : str} |= if v_1 then v_2 = "none"
 >>
-Rule 11 (Reduction should be one of the allowed string values)
-{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
+Rule 4 (If beta is 0, then SmoothL1Loss is equivalent to L1Loss.)
+{v_1 : float} |= if v_1 = 0.0 then true
 >>
-Rule 12 (Beta should be less than or equal to the maximum float value)
-{v_1 : float} |= v_1 ≤ 3.4028235e+38
+Rule 6 (momentum for SGD should be in the range [0, 1])
+{v_1 : float} |= (v_1 ≥ 0.0) ∧ (v_1 ≤ 1.0)
 >>
-Rule 14 (dtype of input and target should be the same.)
+Rule 9 (For Conv2d, padding must be non-negative)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 10 (For Conv2d, dilation must be positive)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 19 (For batchnorm, eps should be positive)
+{v_1 : float} |= v_1 > 0.0
+>>
+Rule 20 (SmoothL1Loss delta must be greater than or equal to 0.0)
+{v_1 : float} |= v_1 >= 0.0
+>>
+Rule 21 (reduction should be either "none", "mean", or "sum" or an empty string)
+{v_1 : str} |= (v_1 = "none") ∨ (v_1 = "mean") ∨ (v_1 = "sum") ∨ (v_1 = "")
+>>
+Rule 34 (padding_mode for Conv2d should be a valid string)
+{v_1 : str} |= (v_1 = "zeros") ∨ (v_1 = "reflect") ∨ (v_1 = "replicate") ∨ (v_1 = "circular")
+>>
+Rule 37 (Verify that the reduction parameter is one of allowed values when size_average is none )
+{v_1 : bool, v_2 : str} |= if v_1 = false then (v_2 = "none") ∨ (v_2 = "mean") ∨ (v_2 = "sum")
+>>
+Rule 51 (Shape of input tensor must be same as target tensor in SmoothL1Loss)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1) = shape(v_2)
+>>
+Rule 52 (dtype of input tensor must be same as target tensor in SmoothL1Loss)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 19 (If both size_average and reduce are specified, reduce overrides size_average)
-{v_1: bool, v_2: bool, v_3: str} |= if v_1 = true ∧ v_2 = false then v_3 = "none" else if v_1 = true ∧ v_2 = true then v_3 = "mean" else if v_1 = false ∧ v_2 = true then v_3 = "mean" else if v_1 = false ∧ v_2 = false then v_3 = "none"
+Rule 59 (The number of dimensions of input and target tensor should match)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 20 (Beta should be a scalar value)
-{v_1 : float} |= ndim(v_1) = 0
+Rule 62 (The range of delta should be between 0 and 1)
+{v_1: float} |= (v_1 >= 0.0) ∧ (v_1 <= 1.0)
 >>
-Rule 24 (Beta should not be infinity.)
-{v_1 : float} |= v_1 < 3.4028235e+38
+Rule 63 (For Linear Layer, in_features should be greater than 0)
+{v_1: int} |= v_1 > 0
 >>
-Rule 27 (Check if input and target have same number of elements when reduction is none.)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "none" then shape(v_1) = shape(v_2)
+Rule 65 (Value of epsilon for stable softmax should be positive)
+{v_1: float} |= v_1 > 0.0
 >>
-Rule 28 (Beta cannot be a very large number that causes overflow)
-{v_1 : float} |= v_1 < 1e10
+Rule 73 (The range of delta should be between 0 and 1)
+{v_1: float} |= (v_1 ≥ 0.0) ∧ (v_1 ≤ 1.0)
 >>
-Rule 29 (Input and target tensors must have numerical dtypes)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64") ∧ (dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64")
+Rule 77 (The dimension of weight tensor for linear layer should be 2)
+{v_1 : tensor} |= ndim(v_1) = 2
 >>
-Rule 33 (Beta should be greater than zero if we want to use smooth l1 loss)
-{v_1: float} |= v_1 ≥ 0.0
+Rule 96 (When reduction is none, the shape of output should be same as input.)
+{v_1: str, v_2: tensor, v_3: tensor} |= if v_1 = "none" then shape(v_2) = shape(v_3)
 >>
-Rule 35 (Shape of input and target must be the same if reduction is mean or sum)
-{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "mean" ∨ v_3 = "sum" then shape(v_1) = shape(v_2)
+Rule 113 (The target and input tensor should have the same size)
+{v_1: tensor, v_2: tensor} |= shape(v_1) = shape(v_2)
 >>
-Rule 36 (Check if input and target tensors are of the same data type if beta is not zero)
-{v_1 : tensor, v_2 : tensor, v_3 : float} |= if v_3 ≠ 0.0 then dtype_(v_1) = dtype_(v_2)
->>
-Rule 38 (Reduction should be None if input is scalar)
-{v_1: tensor, v_2: str} |= if ndim(v_1) = 0 then v_2 = "none"
->>
-Rule 39 (input and target should have same dtype when beta is provided.)
-{v_1: tensor, v_2: tensor, v_3: float} |= if v_3 > 0.0 then dtype_(v_1) = dtype_(v_2)
->>
-Rule 41 (The input and target tensors should have the same number of dimensions if the reduction is not none)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 ≠ "none" then ndim(v_1) = ndim(v_2)
->>
-Rule 42 (If reduction is 'mean' or 'sum', input and target must have the same shape)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "mean" ∨ v_3 = "sum" then shape(v_1) = shape(v_2)
->>
-Rule 43 (input tensor and target tensor must be float type.)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∧ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64"
->>
-Rule 51 (The reduction parameter should be 'none' if the output is expected to be the same shape as input/target.)
-{v_1 : str, v_2 : tensor, v_3 : tensor} |= if shape(v_2) = shape(v_3) then v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
->>
-Rule 54 (When reduction is 'none', the shape of the output tensor is the same as the input and target tensors)
-{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "none" then shape(v_2) = shape(v_3)
->>
-Rule 56 (If reduction is none, the dtype of the input and target must be the same)
-{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "none" then dtype_(v_1) = dtype_(v_2)
->>
-Rule 60 (beta must be a non-negative scalar float)
-{v_1: float} |= v_1 ≥ 0.0 ∧ ndim(v_1) = 0
->>
-Rule 62 (if reduction is mean/sum, then input/target should have the same shape and be at least rank 1)
-{v_1: tensor, v_2: tensor, v_3: str} |= if (v_3 = "mean" ∨ v_3 = "sum") then (shape(v_1) = shape(v_2)) ∧ (ndim(v_1) > 0)
->>
-Rule 63 (If reduction is none, then the shapes of input and target must match, and if beta is non-zero, then the dtypes must also match.)
-{v_1: tensor, v_2: tensor, v_3: str, v_4: float} |= if v_3 = "none" then (shape(v_1) = shape(v_2)) ∧ (if v_4 > 0.0 then dtype_(v_1) = dtype_(v_2))
->>
-Rule 65 (if beta > 0, input and target dtype must match, and it must be a floating point type)
-{v_1 : tensor, v_2 : tensor, v_3 : float} |= if v_3 > 0.0 then (dtype_(v_1) = dtype_(v_2)) ∧ (dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64")
->>
-Rule 68 (Input and target should have floating point dtype if beta is non-zero and reduction is not none.)
-{v_1 : tensor, v_2 : tensor, v_3 : float, v_4 : str} |= if (v_3 > 0.0) ∧ (v_4 ≠ "none") then (dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64") ∧ (dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64")
->>
-Rule 73 (if beta > 0, the dtype of input, output and target should be same)
-{v_1: tensor, v_2: tensor, v_3 : float} |= if v_3 > 0.0 then dtype_(v_1) = dtype_(v_2)
+Rule 131 (The value of delta should not be NaN)
+{v_1: float} |= v_1 = v_1

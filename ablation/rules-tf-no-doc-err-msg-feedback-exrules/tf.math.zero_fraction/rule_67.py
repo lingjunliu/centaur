@@ -1,0 +1,39 @@
+import numpy as np
+import torch 
+import tensorflow as tf
+
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
+from z3 import *
+
+# If tensor represent weights, and its zero fraction is close to 1, it is likely that it is not being trained  (Rule 67)
+
+rule_67 = lambda s, v, n=False: (
+    s.add(Not(If(v["arg1_ndim"] > 1, If(Select(v["arg1_range"], 1) > 0.99, False, True), True)) if n else
+          If(v["arg1_ndim"] > 1, If(Select(v["arg1_range"], 1) > 0.99, False, True), True))
+)
+
+def rule_67_func(arg1, solver=None, neg=False):
+    arg1 = next(iter(arg1.values()))
+
+    # Invariant learning phase
+    if not solver:
+        if not isinstance(arg1, np.ndarray):
+            return False
+
+        # Variable declarations
+        solver = Solver()
+        arg1_ndim = Int('arg1_ndim')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
+
+        # Value assignments
+        solver.add(arg1_ndim == arg1.ndim)
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+
+        # Constraints for rule 67
+        rule_67(solver, {'arg1_ndim': arg1_ndim, 'arg1_range': arg1_range})
+        return solver.check() == sat
+
+    # Fuzz input generation phase
+    else:
+        rule_67(solver, {'arg1_ndim': arg1['ndim'], 'arg1_range': arg1['range']}, neg)
