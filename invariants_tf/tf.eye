@@ -1,4 +1,9 @@
-tf.eye,1,rule_2,batch_shape
-tf.eye,1,rule_39,num_rows
-tf.eye,1,rule_71,num_columns
-tf.eye,1,rule_71,num_rows
+tf.eye,1,rule_1,num_columns
+tf.eye,1,rule_1,num_rows
+tf.eye,1,rule_12,batch_shape
+tf.eye,1,rule_2,num_columns
+tf.eye,1,rule_4,batch_shape
+tf.eye,2,rule_13,num_columns,batch_shape
+tf.eye,2,rule_14,num_rows,num_columns
+tf.eye,2,rule_17,num_rows,num_columns
+tf.eye,3,rule_34,num_rows,num_columns,batch_shape
