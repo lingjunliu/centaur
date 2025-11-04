@@ -51,7 +51,7 @@ python -m llm.sync_apis_with_signatures $lib $llm
 python -m llm.generate_valid_inputs $lib $llm
 
 # Step 3: Run rule generation for each API
-cp llm/"$llm"/signature.json .
+cp llm/"$llm"/signatures.json .
 cd rulegen
 python rulegen.py $lib $llm
 python translator.py $lib $llm
