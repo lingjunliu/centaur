@@ -9,6 +9,10 @@ def main():
     lib = sys.argv[5] if len(sys.argv) > 5 else "torch"
     output_dir = sys.argv[6] if len(sys.argv) > 6 else ".tmp"
 
+    target_apis_file = f"{lib}_apis.txt"
+    with open(target_apis_file, 'r') as f:
+        target_apis = set([line.strip() for line in f.readlines()])
+
     os.makedirs(output_dir, exist_ok=True)
 
     cov_filename = f"coverage_{lib}.csv"
@@ -54,6 +58,9 @@ def main():
     # Get a list of apis that are in cov_1 but not in cov_2 and vice versa
     apis_only_in_1 = set(cov_1['api']) - set(cov_2['api'])
     apis_only_in_2 = set(cov_2['api']) - set(cov_1['api'])
+
+    apis_only_in_1 = apis_only_in_1.intersection(target_apis)
+    apis_only_in_2 = apis_only_in_2.intersection(target_apis)
 
     # Save results
     merged_cov.to_csv(os.path.join(output_dir, f"{suffix_1}_vs_{suffix_2}_cov_{lib}.csv"), index=False)
