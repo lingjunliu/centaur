@@ -1,0 +1,93 @@
+
+from utils.new_api_utils import run_api, get_signature
+from generator.input_generators import get_abstract_input
+
+generated_inputs = dict()
+
+import torch, copy
+import numpy as np
+
+def pixelshuffle_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_arr = torch.randn(1, 4, 5, 6, dtype=torch.float32).numpy()
+    input_dict = {"upscale_factor": 2, "input": input_arr}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_arr = np.random.randn(2, 9, 4, 4).astype(np.float64)
+    input_dict = {"upscale_factor": 3, "input": input_arr}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_arr = np.random.randint(-100, 100, size=(3, 2, 32, 3, 2), dtype=np.int32)
+    input_dict = {"upscale_factor": 4, "input": input_arr}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_arr = torch.randn(7, 8, 8, dtype=torch.float16).numpy()
+    input_dict = {"upscale_factor": 1, "input": input_arr}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_arr = np.random.randint(0, 256, size=(4, 50, 1, 1), dtype=np.uint8)
+    input_dict = {"upscale_factor": 5, "input": input_arr}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_arr = np.random.randint(-128, 128, size=(5, 4, 7, 1), dtype=np.int8)
+    input_dict = {"upscale_factor": 2, "input": input_arr}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_arr = np.linspace(-1.0, 1.0, num=2*3*9*5*7, dtype=np.float32).reshape(2, 3, 9, 5, 7)
+    input_dict = {"upscale_factor": 3, "input": input_arr}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_arr = (torch.ones(1, 72, 2, 1, dtype=torch.float32) * 3.14).numpy()
+    input_dict = {"upscale_factor": 6, "input": input_arr}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_arr = np.arange(64*3*2, dtype=np.float64).reshape(64, 3, 2)
+    input_dict = {"upscale_factor": 8, "input": input_arr}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    real = np.random.randn(2, 98, 1, 4).astype(np.float32)
+    imag = np.random.randn(2, 98, 1, 4).astype(np.float32)
+    input_arr = real + 1j * imag
+    input_dict = {"upscale_factor": 7, "input": input_arr.astype(np.complex64)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11
+    input_arr = torch.randn(10, 8, 10, 12, dtype=torch.float32).numpy()
+    input_dict = {"upscale_factor": 2, "input": input_arr}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12
+    input_arr = np.random.randn(3, 100, 2, 2).astype(np.float32)
+    input_dict = {"upscale_factor": 10, "input": input_arr}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+generated_inputs["torch.nn.PixelShuffle"] = pixelshuffle_inputs()
+
+def check_valid(api, list_of_inputs, lib="torch", suffix=0):
+    for idx, input_dict in enumerate(list_of_inputs):
+        _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
+        output = run_api(api, input_dict, cpu=True, lib=lib)
+    
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
+    print("Valid")
+
+if 'torch.nn.PixelShuffle' not in generated_inputs:
+    raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'torch.nn.PixelShuffle'.")
+
+
+check_valid('torch.nn.PixelShuffle', generated_inputs['torch.nn.PixelShuffle'], lib="torch", suffix=0)

@@ -1,0 +1,39 @@
+>>
+Rule 1 (input tensor must be 3D or 4D for 2D zero padding)
+{v_2 : tensor} |= ndim(v_2) = 3 ∨ ndim(v_2) = 4
+>>
+Rule 2 (tuple padding must have length 4: left, right, top, bottom)
+{v_1 : tuple(int)} |= v_1.len = 4
+>>
+Rule 3 (tuple padding length must be divisible by 2)
+{v_1 : tuple(int)} |= v_1.len % 2 = 0
+>>
+Rule 4 (tuple padding length must not exceed two times the input dimension)
+{v_1 : tuple(int), v_2 : tensor} |= v_1.len ≤ 2 * ndim(v_2)
+>>
+Rule 5 (integer padding must be non-negative)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 6 (each side in tuple padding must be non-negative)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+>>
+Rule 7 (non-negative output spatial sizes for integer padding)
+{v_1 : int, v_2 : tensor} |= if ndim(v_2) = 4 then (shape(v_2, 2) + 2 * v_1 ≥ 0 ∧ shape(v_2, 3) + 2 * v_1 ≥ 0) else if ndim(v_2) = 3 then (shape(v_2, 1) + 2 * v_1 ≥ 0 ∧ shape(v_2, 2) + 2 * v_1 ≥ 0) else false
+>>
+Rule 8 (non-negative output spatial sizes for tuple padding)
+{v_1 : tuple(int), v_2 : tensor} |= if ndim(v_2) = 4 then (shape(v_2, 2) + v_1[2] + v_1[3] ≥ 0 ∧ shape(v_2, 3) + v_1[0] + v_1[1] ≥ 0) else if ndim(v_2) = 3 then (shape(v_2, 1) + v_1[2] + v_1[3] ≥ 0 ∧ shape(v_2, 2) + v_1[0] + v_1[1] ≥ 0) else false
+>>
+Rule 9 (total output size must not exceed int32 capacity for integer padding)
+{v_1 : int, v_2 : tensor} |= if ndim(v_2) = 4 then (shape(v_2, 0) * shape(v_2, 1) * (shape(v_2, 2) + 2 * v_1) * (shape(v_2, 3) + 2 * v_1) ≤ 2147483647) else if ndim(v_2) = 3 then (shape(v_2, 0) * (shape(v_2, 1) + 2 * v_1) * (shape(v_2, 2) + 2 * v_1) ≤ 2147483647) else false
+>>
+Rule 10 (total output size must not exceed int32 capacity for tuple padding)
+{v_1 : tuple(int), v_2 : tensor} |= if ndim(v_2) = 4 then (shape(v_2, 0) * shape(v_2, 1) * (shape(v_2, 2) + v_1[2] + v_1[3]) * (shape(v_2, 3) + v_1[0] + v_1[1]) ≤ 2147483647) else if ndim(v_2) = 3 then (shape(v_2, 0) * (shape(v_2, 1) + v_1[2] + v_1[3]) * (shape(v_2, 2) + v_1[0] + v_1[1]) ≤ 2147483647) else false
+>>
+Rule 11 (bound integer padding magnitude to avoid overflow and OOM)
+{v_1 : int} |= v_1 ≤ 1000000
+>>
+Rule 12 (bound each side in tuple padding to avoid overflow and OOM)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≤ 1000000
+>>
+Rule 13 (input tensor should have a real-valued dtype)
+{v_2 : tensor} |= dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10

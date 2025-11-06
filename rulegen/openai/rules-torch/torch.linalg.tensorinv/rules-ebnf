@@ -1,0 +1,24 @@
+>>
+Rule 1 (input tensor must be floating or complex to avoid “Expected a floating point or complex tensor”)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 2 (disallow low-precision Half to avoid “Low precision dtypes not supported. Got Half”)
+{v_1 : tensor} |= dtype_(v_1) ≠ 6
+>>
+Rule 3 (ind must be strictly positive to avoid “Expected a strictly positive integer for 'ind'”)
+{v_2 : int} |= v_2 > 0
+>>
+Rule 4 (ind must not exceed ndim(A) to avoid “ArrayRef: invalid slice”)
+{v_1 : tensor, v_2 : int} |= v_2 ≤ ndim(v_1)
+>>
+Rule 5 (balanced reshape requirement ensuring prod(A.shape[:ind]) == prod(A.shape[ind:]) to avoid mismatch error)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) = v_2 + v_2 ∧ ∀i ∈ [0, v_2 - 1] : shape(v_1, i) = shape(v_1, v_2 + i)
+>>
+Rule 6 (out tensor dtype must match result dtype to avoid “Expected result to be safely castable ... but got ...”)
+{v_1 : tensor, v_3 : tensor} |= dtype_(v_3) = dtype_(v_1)
+>>
+Rule 7 (out tensor shape must be A.shape[ind:] + A.shape[:ind])
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= v_2 ≤ ndim(v_1) ∧ ndim(v_3) = ndim(v_1) ∧ (if ndim(v_1) - v_2 > 0 then ∀i ∈ [0, ndim(v_1) - v_2 - 1] : shape(v_3, i) = shape(v_1, v_2 + i)) ∧ ∀j ∈ [0, v_2 - 1] : shape(v_3, (ndim(v_1) - v_2) + j) = shape(v_1, j)
+>>
+Rule 8 (real-valued inputs should be numerically non-singular to avoid “inv: ... matrix is singular”)
+{v_1 : tensor} |= if (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then min(v_1) > 0
