@@ -61,6 +61,7 @@ def main():
 
     apis_only_in_1 = apis_only_in_1.intersection(target_apis)
     apis_only_in_2 = apis_only_in_2.intersection(target_apis)
+    missing_either = target_apis - (set(cov_1['api']).union(set(cov_2['api'])))
 
     # Save results
     merged_cov.to_csv(os.path.join(output_dir, f"{suffix_1}_vs_{suffix_2}_cov_{lib}.csv"), index=False)
@@ -81,6 +82,11 @@ def main():
         if len(apis_only_in_2) > 0:
             f.write("\nOnly in " + suffix_2 + ":\n")
             for api in apis_only_in_2:
+                f.write(api + "\n")
+
+        if len(missing_either) > 0:
+            f.write("\nMissing in both:\n")
+            for api in missing_either:
                 f.write(api + "\n")
 
 if __name__ == "__main__":
