@@ -8,10 +8,11 @@ import torch, copy
 
 def asin_inputs():
     list_of_inputs = []
+
     
     # Input 1, valid
     input = torch.tensor([-0.5, 0.0, 0.5])
-    out = torch.zeros_like(input).numpy()
+    out = torch.empty_like(input)
     
     input_dict = {
         "input": input,
@@ -21,8 +22,8 @@ def asin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.tensor([[-0.9, 0.9], [-0.1, 0.1]])
-    out = torch.zeros_like(input).numpy()
+    input = torch.tensor([-1.0, 0.0, 1.0])
+    out = torch.empty_like(input)
     
     input_dict = {
         "input": input,
@@ -32,8 +33,8 @@ def asin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.tensor([1.0])
-    out = torch.zeros_like(input).numpy()
+    input = torch.tensor([-0.9, 0.9])
+    out = torch.empty_like(input)
     
     input_dict = {
         "input": input,
@@ -43,8 +44,8 @@ def asin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.ones((3, 2))
-    out = torch.zeros_like(input).numpy()
+    input = torch.ones((2, 3))
+    out = torch.empty_like(input)
     
     input_dict = {
         "input": input,
@@ -54,8 +55,8 @@ def asin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([0.0])
-    out = torch.zeros_like(input).numpy()
+    input = torch.randn(4)
+    out = torch.empty_like(input)
     
     input_dict = {
         "input": input,
@@ -65,8 +66,8 @@ def asin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.randn(5)
-    out = torch.zeros_like(input).numpy()
+    input = torch.tensor([0.25, -0.25])
+    out = torch.empty_like(input)
     
     input_dict = {
         "input": input,
@@ -76,8 +77,8 @@ def asin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.tensor([-0.8, 0.8, -0.3])
-    out = torch.zeros_like(input).numpy()
+    input = torch.tensor([0.75, -0.75])
+    out = torch.empty_like(input)
     
     input_dict = {
         "input": input,
@@ -87,8 +88,8 @@ def asin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([-1.0, 1.0])
-    out = torch.zeros_like(input).numpy()
+    input = torch.ones((3, 2))
+    out = torch.empty_like(input)
     
     input_dict = {
         "input": input,
@@ -98,8 +99,8 @@ def asin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.tensor([0.25, -0.25, 0.75])
-    out = torch.zeros_like(input).numpy()
+    input = torch.randn(5)
+    out = torch.empty_like(input)
     
     input_dict = {
         "input": input,
@@ -109,8 +110,8 @@ def asin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([-0.9, 0.9])
-    out = torch.zeros_like(input).numpy()
+    input = torch.tensor([0.1, -0.1])
+    out = torch.empty_like(input)
     
     input_dict = {
         "input": input,

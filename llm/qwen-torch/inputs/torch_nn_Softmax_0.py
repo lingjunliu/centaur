@@ -10,7 +10,7 @@ def softmax_inputs():
     list_of_inputs = []
     
     # Input 1, valid
-    input = torch.tensor([1.0, 2.0, 3.0]).numpy()   # tensor
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
     input_dict = {
         "input": input,
         "dim": 0
@@ -34,58 +34,64 @@ def softmax_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    input_dict = {
-        "input": input,
-        "dim": 0
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 5, valid
-    input = torch.tensor([-1.0, 0.0, 1.0]).numpy()
-    input_dict = {
-        "input": input,
-        "dim": 0
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6, valid
-    input = torch.randn(3, 4).numpy()
+    input = torch.tensor([[1.0, 2.0],
+                         [3.0, 4.0]]).numpy()
     input_dict = {
         "input": input,
         "dim": 1
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 7, valid
-    input = torch.tensor([[[0.0, 1.0], [2.0, 3.0]], [[4.0, 5.0], [6.0, 7.0]]]).numpy()
+    # Input 5, valid
+    input = torch.tensor([[[1.0, 2.0, 3.0],
+                          [4.0, 5.0, 6.0]],
+                         [[7.0, 8.0, 9.0],
+                          [10.0, 11.0, 12.0]]]).numpy()
     input_dict = {
         "input": input,
         "dim": 2
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 8, valid
-    input = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()
+    # Input 6, valid
+    input = torch.randn(3).numpy()
     input_dict = {
         "input": input,
         "dim": 0
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 9, valid
-    input = torch.ones((1, 2, 3)).numpy()
-    input_dict = {
-        "input": input,
-        "dim": 2
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10, valid
+    # Input 7, valid
     input = torch.tensor([-1.0, -2.0, -3.0]).numpy()
     input_dict = {
         "input": input,
         "dim": 0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8, valid
+    input = torch.ones((2, 2, 2)).numpy()
+    input_dict = {
+        "input": input,
+        "dim": 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9, valid
+    input = torch.randn(3, 4).numpy()
+    input_dict = {
+        "input": input,
+        "dim": 0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10, valid
+    input = torch.tensor([[[1.0, 2.0],
+                          [3.0, 4.0],
+                          [5.0, 6.0]]]).numpy()
+    input_dict = {
+        "input": input,
+        "dim": 2
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     

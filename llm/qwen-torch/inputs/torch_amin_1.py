@@ -25,7 +25,7 @@ def amin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.tensor([[-1.0, -2.0, -3.0], [4.0, 5.0, 6.0]]).numpy()
+    input = torch.tensor([[-1.0, 2.0], [-3.0, 4.0]]).numpy()
     dim = 0
     keepdim = True
     out = torch.zeros(1).numpy()
@@ -40,10 +40,10 @@ def amin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.randn((3, 4, 5)).numpy()
+    input = torch.randn(4, 5, 6).numpy()
     dim = 2
     keepdim = False
-    out = torch.zeros(3).numpy()
+    out = torch.zeros(4, 5).numpy()
     
     input_dict = {
         "input": input,
@@ -58,7 +58,7 @@ def amin_inputs():
     input = torch.tensor([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]).numpy()
     dim = 1
     keepdim = True
-    out = torch.zeros(2).numpy()
+    out = torch.zeros(2, 1).numpy()
     
     input_dict = {
         "input": input,
@@ -70,10 +70,10 @@ def amin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([[-1.0, -2.0, -3.0], [4.0, 5.0, 6.0]]).numpy()
-    dim = 1
-    keepdim = True
-    out = torch.zeros(1).numpy()
+    input = torch.tensor([[-1.0, 2.0, -3.0], [4.0, -5.0, 6.0]]).numpy()
+    dim = 0
+    keepdim = False
+    out = torch.zeros(2).numpy()
     
     input_dict = {
         "input": input,
@@ -85,10 +85,10 @@ def amin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.ones((2, 3, 4)).numpy()
+    input = torch.tensor([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]).numpy()
     dim = 0
     keepdim = False
-    out = torch.zeros(3).numpy()
+    out = torch.zeros(2).numpy()
     
     input_dict = {
         "input": input,
@@ -100,10 +100,10 @@ def amin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.randn((5, 3)).numpy()
+    input = torch.tensor([[-1.0, 2.0], [-3.0, 4.0], [-5.0, 6.0]]).numpy()
     dim = 1
-    keepdim = False
-    out = torch.zeros(5).numpy()
+    keepdim = True
+    out = torch.zeros(3, 1).numpy()
     
     input_dict = {
         "input": input,
@@ -115,10 +115,10 @@ def amin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([[-1.0, -2.0], [3.0, 4.0]]).numpy()
-    dim = 0
+    input = torch.randn(3, 4, 5).numpy()
+    dim = 2
     keepdim = True
-    out = torch.zeros(1).numpy()
+    out = torch.zeros(3, 4).numpy()
     
     input_dict = {
         "input": input,
@@ -130,7 +130,7 @@ def amin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]).numpy()
+    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]).numpy()
     dim = 1
     keepdim = False
     out = torch.zeros(3).numpy()
@@ -145,9 +145,9 @@ def amin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.randn((2, 2, 2)).numpy()
-    dim = 2
-    keepdim = True
+    input = torch.tensor([[-1.0, 2.0], [-3.0, 4.0]]).numpy()
+    dim = 0
+    keepdim = False
     out = torch.zeros(2).numpy()
     
     input_dict = {

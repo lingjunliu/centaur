@@ -10,12 +10,75 @@ def set_num_interop_threads_inputs():
     list_of_inputs = []
     
     # Input 1, valid
-    input = 1   # integer
+    input = torch.tensor(1).numpy()
     input_dict = {
-        "num_threads": input
+        "num_threads": input.item()
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
+    # Input 2, valid
+    input = torch.tensor(5).numpy()
+    input_dict = {
+        "num_threads": input.item()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 3, valid
+    input = torch.tensor(10).numpy()
+    input_dict = {
+        "num_threads": input.item()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4, valid
+    input = torch.tensor(50).numpy()
+    input_dict = {
+        "num_threads": input.item()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5, valid
+    input = torch.tensor(100).numpy()
+    input_dict = {
+        "num_threads": input.item()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6, valid
+    input = torch.tensor(500).numpy()
+    input_dict = {
+        "num_threads": input.item()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7, valid
+    input = torch.tensor(1000).numpy()
+    input_dict = {
+        "num_threads": input.item()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8, valid
+    input = torch.tensor(5000).numpy()
+    input_dict = {
+        "num_threads": input.item()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9, valid
+    input = torch.tensor(10000).numpy()
+    input_dict = {
+        "num_threads": input.item()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10, valid
+    input = torch.tensor(50000).numpy()
+    input_dict = {
+        "num_threads": input.item()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 generated_inputs["torch.set_num_interop_threads"] = set_num_interop_threads_inputs()

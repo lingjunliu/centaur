@@ -1,0 +1,71 @@
+
+from utils.new_api_utils import run_api, get_signature
+from generator.input_generators import get_abstract_input
+
+generated_inputs = dict()
+
+import torch, copy
+import numpy as np
+
+def equal_inputs():
+    list_of_inputs = []
+
+    input1 = torch.tensor([1, 2, 3]).numpy()
+    input2 = torch.tensor([1, 2, 3]).numpy()
+    list_of_inputs.append({"input": input1, "other": input2})
+
+    input1 = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    input2 = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    list_of_inputs.append({"input": input1, "other": input2})
+
+    input1 = torch.tensor([-1, -2, -3]).numpy()
+    input2 = torch.tensor([-1, -2, -3]).numpy()
+    list_of_inputs.append({"input": input1, "other": input2})
+
+    input1 = torch.tensor([1, 2]).numpy()
+    input2 = torch.tensor([1, 2]).numpy()
+    list_of_inputs.append({"input": input1, "other": input2})
+
+    input1 = torch.tensor([[1, 2], [3, 4]]).numpy()
+    input2 = torch.tensor([[1, 2], [3, 4]]).numpy()
+    list_of_inputs.append({"input": input1, "other": input2})
+
+    input1 = torch.tensor([1, 2, 3], dtype=torch.int32).numpy()
+    input2 = torch.tensor([1, 2, 3], dtype=torch.float32).numpy()
+    list_of_inputs.append({"input": input1, "other": input2})
+
+    input1 = torch.tensor([1, 2, np.nan]).numpy()
+    input2 = torch.tensor([1, 2, np.nan]).numpy()
+    list_of_inputs.append({"input": input1, "other": input2})
+
+    input1 = torch.tensor([1, 2, 3]).numpy()
+    input2 = torch.tensor([1, 2, 4]).numpy()
+    list_of_inputs.append({"input": input1, "other": input2})
+
+    input1 = torch.tensor([1]).numpy()
+    input2 = torch.tensor([1]).numpy()
+    list_of_inputs.append({"input": input1, "other": input2})
+
+    input1 = torch.tensor([1, 2, 3, 4, 5]).numpy()
+    input2 = torch.tensor([1, 2, 3, 4, 5]).numpy()
+    list_of_inputs.append({"input": input1, "other": input2})
+
+    return list_of_inputs
+
+generated_inputs["torch.equal"] = equal_inputs()
+
+def check_valid(api, list_of_inputs, lib="torch", suffix=0):
+    for idx, input_dict in enumerate(list_of_inputs):
+        _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
+        output = run_api(api, input_dict, cpu=True, lib=lib)
+    
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
+    print("Valid")
+
+if 'torch.equal' not in generated_inputs:
+    raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'torch.equal'.")
+
+
+check_valid('torch.equal', generated_inputs['torch.equal'], lib="torch", suffix=0)

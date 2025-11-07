@@ -29,60 +29,6 @@ def softshrink_inputs():
     
     # Input 3, valid
     input = torch.ones((2, 3)).numpy()
-    lambd = 0.1
-    input_dict = {
-        "input": input,
-        "lambd": lambd
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 4, valid
-    input = torch.randn(5).numpy()
-    lambd = 0.8
-    input_dict = {
-        "input": input,
-        "lambd": lambd
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 5, valid
-    input = torch.tensor([0.0, 0.0, 0.0]).numpy()
-    lambd = 0.3
-    input_dict = {
-        "input": input,
-        "lambd": lambd
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6, valid
-    input = torch.tensor([1.5, -1.5, 2.5]).numpy()
-    lambd = 0.7
-    input_dict = {
-        "input": input,
-        "lambd": lambd
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7, valid
-    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
-    lambd = 0.0
-    input_dict = {
-        "input": input,
-        "lambd": lambd
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8, valid
-    input = torch.tensor([-1.0, -2.0, -3.0]).numpy()
-    lambd = 0.0
-    input_dict = {
-        "input": input,
-        "lambd": lambd
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9, valid
-    input = torch.tensor([0.5, 1.5, 2.5]).numpy()
     lambd = 0.5
     input_dict = {
         "input": input,
@@ -90,8 +36,62 @@ def softshrink_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
+    # Input 4, valid
+    input = torch.tensor([[1.0, -2.0], [3.0, -4.0]]).numpy()
+    lambd = 0.5
+    input_dict = {
+        "input": input,
+        "lambd": lambd
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5, valid
+    input = torch.tensor([0.0]).numpy()
+    lambd = 0.5
+    input_dict = {
+        "input": input,
+        "lambd": lambd
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6, valid
+    input = torch.randn(1).numpy()
+    lambd = 0.5
+    input_dict = {
+        "input": input,
+        "lambd": lambd
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7, valid
+    input = torch.tensor([2.0, -2.0]).numpy()
+    lambd = 1.0
+    input_dict = {
+        "input": input,
+        "lambd": lambd
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8, valid
+    input = torch.tensor([1.5, -1.5]).numpy()
+    lambd = 0.3
+    input_dict = {
+        "input": input,
+        "lambd": lambd
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9, valid
+    input = torch.tensor([0.1, 0.2]).numpy()
+    lambd = 0.0
+    input_dict = {
+        "input": input,
+        "lambd": lambd
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     # Input 10, valid
-    input = torch.tensor([-1.0, 2.0, -3.0]).numpy()
+    input = torch.tensor([1.0, 2.0]).numpy()
     lambd = 0.5
     input_dict = {
         "input": input,

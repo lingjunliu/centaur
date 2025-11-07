@@ -10,8 +10,8 @@ def fix_inputs():
     list_of_inputs = []
     
     # Input 1, valid
-    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
-    out = torch.zeros((3,)).numpy()
+    input = torch.tensor([1.5, 2.7, 3.9]).numpy()   # tensor
+    out = torch.zeros((3,)).numpy()    # tensor
 
     input_dict = {
         "input": input,
@@ -21,8 +21,8 @@ def fix_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.tensor([-1.5, -2.7, -3.9]).numpy()
-    out = torch.zeros((3,)).numpy()
+    input = torch.tensor([-1.5, -2.7, -3.9]).numpy()   # tensor
+    out = torch.zeros((3,)).numpy()    # tensor
 
     input_dict = {
         "input": input,
@@ -43,8 +43,8 @@ def fix_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    out = torch.zeros((2, 2)).numpy()
+    input = torch.zeros((1, 4, 5)).numpy()
+    out = torch.zeros((1, 4, 5)).numpy()
 
     input_dict = {
         "input": input,
@@ -54,17 +54,6 @@ def fix_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.zeros((2, 2, 2)).numpy()
-    out = torch.zeros((2, 2, 2)).numpy()
-
-    input_dict = {
-        "input": input,
-        "out": out
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6, valid
     input = torch.tensor([0.0]).numpy()
     out = torch.zeros((1,)).numpy()
 
@@ -75,8 +64,19 @@ def fix_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
+    # Input 6, valid
+    input = torch.tensor([-0.1]).numpy()
+    out = torch.zeros((1,)).numpy()
+
+    input_dict = {
+        "input": input,
+        "out": out
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     # Input 7, valid
-    input = torch.tensor([-1.0]).numpy()
+    input = torch.tensor([1.99]).numpy()
     out = torch.zeros((1,)).numpy()
 
     input_dict = {
@@ -87,8 +87,8 @@ def fix_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([2.5, -3.7, 1.9]).numpy()
-    out = torch.zeros((3,)).numpy()
+    input = torch.tensor([-1.99]).numpy()
+    out = torch.zeros((1,)).numpy()
 
     input_dict = {
         "input": input,
@@ -98,8 +98,8 @@ def fix_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
-    out = torch.zeros((3,)).numpy()
+    input = torch.tensor([0.5]).numpy()
+    out = torch.zeros((1,)).numpy()
 
     input_dict = {
         "input": input,
@@ -109,8 +109,8 @@ def fix_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([-1.0, -2.0, -3.0]).numpy()
-    out = torch.zeros((3,)).numpy()
+    input = torch.tensor([-0.5]).numpy()
+    out = torch.zeros((1,)).numpy()
 
     input_dict = {
         "input": input,

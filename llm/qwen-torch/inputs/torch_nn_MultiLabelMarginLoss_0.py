@@ -22,8 +22,8 @@ def multilabelmarginloss_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.tensor([[0.5, 0.3, 0.1, 0.9]]).numpy()
-    target = torch.tensor([[0, 1, -1, 2]]).numpy()
+    input = torch.tensor([[0.1, 0.2, 0.4, 0.8]]).numpy()
+    target = torch.tensor([[3, 0, -1, 1]]).numpy()
     input_dict = {
         "size_average": False,
         "reduce": True,
@@ -34,8 +34,8 @@ def multilabelmarginloss_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.tensor([[0.1, 0.2, 0.4, 0.8], [0.9, 0.7, 0.5, 0.3]]).numpy()
-    target = torch.tensor([[3, 0, -1, 1], [2, 1, -1, 0]]).numpy()
+    input = torch.tensor([[0.1, 0.2, 0.4, 0.8]]).numpy()
+    target = torch.tensor([[3, 0, -1, 1]]).numpy()
     input_dict = {
         "size_average": True,
         "reduce": False,
@@ -46,46 +46,22 @@ def multilabelmarginloss_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.tensor([[0.1, 0.2, 0.4, 0.8]]).numpy()
-    target = torch.tensor([[3, 0, -1, 1]]).numpy()
+    input = torch.tensor([[0.1, 0.2, 0.4, 0.8], [0.3, 0.5, 0.7, 0.9]]).numpy()
+    target = torch.tensor([[3, 0, -1, 1], [2, 1, -1, 0]]).numpy()
     input_dict = {
-        "size_average": False,
-        "reduce": False,
-        "reduction": "sum",
+        "size_average": True,
+        "reduce": True,
+        "reduction": "mean",
         "input": input,
         "target": target
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([[0.1, 0.2, 0.4, 0.8], [0.9, 0.7, 0.5, 0.3]]).numpy()
+    input = torch.tensor([[0.1, 0.2, 0.4, 0.8], [0.3, 0.5, 0.7, 0.9]]).numpy()
     target = torch.tensor([[3, 0, -1, 1], [2, 1, -1, 0]]).numpy()
     input_dict = {
-        "size_average": True,
-        "reduce": True,
-        "reduction": "mean",
-        "input": input,
-        "target": target
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6, valid
-    input = torch.tensor([[0.1, 0.2, 0.4, 0.8]]).numpy()
-    target = torch.tensor([[3, 0, -1, 1]]).numpy()
-    input_dict = {
         "size_average": False,
-        "reduce": True,
-        "reduction": "mean",
-        "input": input,
-        "target": target
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7, valid
-    input = torch.tensor([[0.5, 0.3, 0.1, 0.9]]).numpy()
-    target = torch.tensor([[0, 1, -1, 2]]).numpy()
-    input_dict = {
-        "size_average": True,
         "reduce": False,
         "reduction": "sum",
         "input": input,
@@ -93,11 +69,11 @@ def multilabelmarginloss_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 8, valid
-    input = torch.tensor([[0.1, 0.2, 0.4, 0.8], [0.9, 0.7, 0.5, 0.3]]).numpy()
+    # Input 6, valid
+    input = torch.tensor([[0.1, 0.2, 0.4, 0.8], [0.3, 0.5, 0.7, 0.9]]).numpy()
     target = torch.tensor([[3, 0, -1, 1], [2, 1, -1, 0]]).numpy()
     input_dict = {
-        "size_average": False,
+        "size_average": True,
         "reduce": False,
         "reduction": "none",
         "input": input,
@@ -105,9 +81,9 @@ def multilabelmarginloss_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 9, valid
-    input = torch.tensor([[0.1, 0.2, 0.4, 0.8]]).numpy()
-    target = torch.tensor([[3, 0, -1, 1]]).numpy()
+    # Input 7, valid
+    input = torch.tensor([[0.1, 0.2, 0.4, 0.8], [0.3, 0.5, 0.7, 0.9], [0.2, 0.4, 0.6, 0.8]]).numpy()
+    target = torch.tensor([[3, 0, -1, 1], [2, 1, -1, 0], [0, 2, -1, 3]]).numpy()
     input_dict = {
         "size_average": True,
         "reduce": True,
@@ -117,9 +93,9 @@ def multilabelmarginloss_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 10, valid
-    input = torch.tensor([[0.1, 0.2, 0.4, 0.8], [0.9, 0.7, 0.5, 0.3]]).numpy()
-    target = torch.tensor([[3, 0, -1, 1], [2, 1, -1, 0]]).numpy()
+    # Input 8, valid
+    input = torch.tensor([[0.1, 0.2, 0.4, 0.8], [0.3, 0.5, 0.7, 0.9], [0.2, 0.4, 0.6, 0.8]]).numpy()
+    target = torch.tensor([[3, 0, -1, 1], [2, 1, -1, 0], [0, 2, -1, 3]]).numpy()
     input_dict = {
         "size_average": False,
         "reduce": True,
@@ -128,7 +104,31 @@ def multilabelmarginloss_inputs():
         "target": target
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
+    # Input 9, valid
+    input = torch.tensor([[0.1, 0.2, 0.4, 0.8], [0.3, 0.5, 0.7, 0.9], [0.2, 0.4, 0.6, 0.8]]).numpy()
+    target = torch.tensor([[3, 0, -1, 1], [2, 1, -1, 0], [0, 2, -1, 3]]).numpy()
+    input_dict = {
+        "size_average": True,
+        "reduce": False,
+        "reduction": "none",
+        "input": input,
+        "target": target
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10, valid
+    input = torch.tensor([[0.1, 0.2, 0.4, 0.8], [0.3, 0.5, 0.7, 0.9], [0.2, 0.4, 0.6, 0.8]]).numpy()
+    target = torch.tensor([[3, 0, -1, 1], [2, 1, -1, 0], [0, 2, -1, 3]]).numpy()
+    input_dict = {
+        "size_average": False,
+        "reduce": False,
+        "reduction": "sum",
+        "input": input,
+        "target": target
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 generated_inputs["torch.nn.MultiLabelMarginLoss"] = multilabelmarginloss_inputs()

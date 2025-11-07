@@ -9,120 +9,99 @@ import torch, copy
 def matrix_power_inputs():
     list_of_inputs = []
     
-    # Input 1, valid
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()  # tensor
-    n = 2  # integer
-    
+    # Input 1
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    n = 2
     input_dict = {
         "input": input,
         "n": n
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 2, valid
-    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]).numpy()  # tensor
-    n = 0  # integer
-    
+    # Input 2
+    input = torch.tensor([[1.0, 0.0], [0.0, 1.0]]).numpy()
+    n = 0
     input_dict = {
         "input": input,
         "n": n
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 3, valid
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()  # tensor
-    n = -1  # integer
-    
+    # Input 3
+    input = torch.tensor([[2.0, 1.0], [1.0, 1.0]]).numpy()
+    n = 3
     input_dict = {
         "input": input,
         "n": n
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 4, valid
-    input = torch.tensor([[2.0, 3.0], [4.0, 5.0]]).numpy()  # tensor
-    n = 3  # integer
-    
+    # Input 4
+    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]).numpy()
+    n = -1
     input_dict = {
         "input": input,
         "n": n
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 5, valid
-    input = torch.ones((3, 4)).numpy()  # tensor
-    n = 1  # integer
-    
+    # Input 5
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    n = 4
     input_dict = {
         "input": input,
         "n": n
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 6, valid
-    input = torch.tensor([[0.1, 0.2], [0.3, 0.4]]).numpy()  # tensor
-    n = 4  # integer
-    
+    # Input 6
+    input = torch.ones((3, 3)).numpy()
+    n = 5
     input_dict = {
         "input": input,
         "n": n
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 7, valid
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()  # tensor
-    n = 5  # integer
-    
+    # Input 7
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    n = 0
     input_dict = {
         "input": input,
         "n": n
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 8, valid
-    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]).numpy()  # tensor
-    n = -2  # integer
-    
+    # Input 8
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    n = 1
     input_dict = {
         "input": input,
         "n": n
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 9, valid
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()  # tensor
-    n = 6  # integer
-    
+    # Input 9
+    input = torch.tensor([[2.0, 3.0], [1.0, 2.0]]).numpy()
+    n = 6
     input_dict = {
         "input": input,
         "n": n
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 10, valid
-    input = torch.tensor([[2.0, 3.0], [4.0, 5.0]]).numpy()  # tensor
-    n = -3  # integer
-    
+    # Input 10
+    input = torch.tensor([[1.0, 0.0], [0.0, 1.0]]).numpy()
+    n = 7
     input_dict = {
         "input": input,
         "n": n
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs
 
 generated_inputs["torch.matrix_power"] = matrix_power_inputs()
-```
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
