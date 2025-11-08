@@ -46,12 +46,12 @@ fi
 # Step 1: Generate signatures and sync APIs with signatures
 python -m llm.create_signatures $lib $llm
 python -m llm.sync_apis_with_signatures $lib $llm
+cp llm/"$llm"/signatures.json .
 
 # Step 2: Generate valid seed inputs
 python -m llm.generate_valid_inputs $lib $llm
 
 # Step 3: Run rule generation for each API
-cp llm/"$llm"/signatures.json .
 cd rulegen
 python rulegen.py $lib $llm
 python translator.py $lib $llm
