@@ -46,8 +46,8 @@ def equal_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.ones((3, 4)).numpy()
-    other = torch.ones((3, 4)).numpy()
+    input = torch.ones((2, 3)).numpy()
+    other = torch.ones((2, 3)).numpy()
     input_dict = {
         "input": input,
         "other": other
@@ -55,8 +55,8 @@ def equal_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.zeros((2, 3, 4)).numpy()
-    other = torch.zeros((2, 3, 4)).numpy()
+    input = torch.zeros((3, 4)).numpy()
+    other = torch.zeros((3, 4)).numpy()
     input_dict = {
         "input": input,
         "other": other
@@ -64,8 +64,8 @@ def equal_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.tensor([1, 2, 3]).numpy()
-    other = torch.tensor([1, 2, 3]).numpy()
+    input = torch.tensor([1, 2, 3], dtype=torch.int64).numpy()
+    other = torch.tensor([1, 2, 3], dtype=torch.int64).numpy()
     input_dict = {
         "input": input,
         "other": other
@@ -73,15 +73,6 @@ def equal_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([0.0, 0.0, 0.0]).numpy()
-    other = torch.tensor([0.0, 0.0, 0.0]).numpy()
-    input_dict = {
-        "input": input,
-        "other": other
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9, valid
     input = torch.tensor([-1, -2, -3]).numpy()
     other = torch.tensor([-1, -2, -3]).numpy()
     input_dict = {
@@ -90,15 +81,24 @@ def equal_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 10, valid
-    input = torch.tensor([1, 2, 3]).numpy()
-    other = torch.tensor([1, 2, 3]).numpy()
+    # Input 9, valid
+    input = torch.tensor([0.0]).numpy()
+    other = torch.tensor([0.0]).numpy()
     input_dict = {
         "input": input,
         "other": other
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
+    # Input 10, valid
+    input = torch.tensor([1, 2, 3], dtype=torch.float64).numpy()
+    other = torch.tensor([1, 2, 3], dtype=torch.float64).numpy()
+    input_dict = {
+        "input": input,
+        "other": other
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs["torch.equal"] = equal_inputs()

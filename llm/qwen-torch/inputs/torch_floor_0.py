@@ -10,8 +10,8 @@ def floor_inputs():
     list_of_inputs = []
     
     # Input 1, valid
-    input = torch.tensor([-0.8166, 1.5308, -0.2530, -0.2091]).numpy()
-    out = torch.tensor([-1., 1., -1., -1.]).numpy()
+    input = torch.tensor([1.5, 2.7, 3.9])
+    out = torch.zeros_like(input)
     
     input_dict = {
         "input": input,
@@ -21,8 +21,8 @@ def floor_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.tensor([0.0]).numpy()
-    out = torch.tensor([0.0]).numpy()
+    input = torch.tensor([-1.5, -2.7, -3.9])
+    out = torch.zeros_like(input)
     
     input_dict = {
         "input": input,
@@ -32,8 +32,8 @@ def floor_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
-    out = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    input = torch.ones((2, 3))
+    out = torch.zeros_like(input)
     
     input_dict = {
         "input": input,
@@ -43,8 +43,8 @@ def floor_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.tensor([-1.5, -2.7]).numpy()
-    out = torch.tensor([-2.0, -3.0]).numpy()
+    input = torch.zeros((1, 4))
+    out = torch.zeros_like(input)
     
     input_dict = {
         "input": input,
@@ -54,8 +54,8 @@ def floor_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([1.9, 2.8]).numpy()
-    out = torch.tensor([1.0, 2.0]).numpy()
+    input = torch.randn(5)
+    out = torch.zeros_like(input)
     
     input_dict = {
         "input": input,
@@ -65,8 +65,8 @@ def floor_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.tensor([-0.1, -0.9]).numpy()
-    out = torch.tensor([-1.0, -1.0]).numpy()
+    input = torch.tensor([0.0])
+    out = torch.zeros_like(input)
     
     input_dict = {
         "input": input,
@@ -76,8 +76,8 @@ def floor_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.tensor([0.0]).numpy()
-    out = torch.tensor([0.0]).numpy()
+    input = torch.tensor([-0.1, -0.2, -0.3])
+    out = torch.zeros_like(input)
     
     input_dict = {
         "input": input,
@@ -87,8 +87,8 @@ def floor_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([-1.0, -2.0, -3.0]).numpy()
-    out = torch.tensor([-1.0, -2.0, -3.0]).numpy()
+    input = torch.tensor([1.0, 2.0, 3.0])
+    out = torch.zeros_like(input)
     
     input_dict = {
         "input": input,
@@ -98,8 +98,8 @@ def floor_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.tensor([2.5, 3.7]).numpy()
-    out = torch.tensor([2.0, 3.0]).numpy()
+    input = torch.tensor([1.9, 2.8, 3.7])
+    out = torch.zeros_like(input)
     
     input_dict = {
         "input": input,
@@ -109,8 +109,8 @@ def floor_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([-1.9, -2.8]).numpy()
-    out = torch.tensor([-2.0, -3.0]).numpy()
+    input = torch.tensor([-1.9, -2.8, -3.7])
+    out = torch.zeros_like(input)
     
     input_dict = {
         "input": input,

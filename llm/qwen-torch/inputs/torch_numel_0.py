@@ -10,73 +10,53 @@ def numel_inputs():
     list_of_inputs = []
     
     # Input 1, valid
-    input = torch.tensor([1, 2, 3, 4, 5]).numpy()   # tensor
-    input_dict = {
-        "input": input
-    }
+    input = torch.tensor([1, 2, 3]).numpy()
+    input_dict = {"input": input}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
     input = torch.zeros((4, 4)).numpy()
-    input_dict = {
-        "input": input
-    }
+    input_dict = {"input": input}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.ones((1, 2, 3, 4, 5)).numpy()
-    input_dict = {
-        "input": input
-    }
+    input = torch.ones((2, 3, 4)).numpy()
+    input_dict = {"input": input}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.randn((2, 2, 2)).numpy()
-    input_dict = {
-        "input": input
-    }
+    input = torch.randn(1, 2, 3, 4, 5).numpy()
+    input_dict = {"input": input}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([1]).numpy()
-    input_dict = {
-        "input": input
-    }
+    input = torch.tensor([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]).numpy()
+    input_dict = {"input": input}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.zeros((3, 4, 5)).numpy()
-    input_dict = {
-        "input": input
-    }
+    input = torch.zeros((3, 3, 3)).numpy()
+    input_dict = {"input": input}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
     input = torch.ones((1, 1, 1, 1)).numpy()
-    input_dict = {
-        "input": input
-    }
+    input_dict = {"input": input}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.randn((1, 2, 3, 4, 5, 6, 7)).numpy()
-    input_dict = {
-        "input": input
-    }
+    input = torch.tensor([[[[1, 2]]]]).numpy()
+    input_dict = {"input": input}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.zeros((2, 3, 4, 5, 6)).numpy()
-    input_dict = {
-        "input": input
-    }
+    input = torch.zeros((5, 5, 5, 5, 5)).numpy()
+    input_dict = {"input": input}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.ones((1, 2, 3, 4, 5, 6, 7, 8)).numpy()
-    input_dict = {
-        "input": input
-    }
+    input = torch.ones((2, 2, 2, 2, 2, 2)).numpy()
+    input_dict = {"input": input}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs

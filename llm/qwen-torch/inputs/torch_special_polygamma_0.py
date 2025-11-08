@@ -9,114 +9,94 @@ import torch, copy
 def polygamma_inputs():
     list_of_inputs = []
     
-    # Input 1, valid
+    # Input 1
     input = torch.tensor([1.0, 2.0, 3.0]).numpy()
-    n = 0  # integer
-    
+    n = 0
     input_dict = {
         "n": n,
         "input": input
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 2, valid
+    # Input 2
     input = torch.ones((2, 3)).numpy()
-    n = 1  # integer
-    
+    n = 1
     input_dict = {
         "n": n,
         "input": input
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 3, valid
+    # Input 3
     input = torch.tensor([0.5, 1.5, 2.5]).numpy()
-    n = 2  # integer
-    
+    n = 2
     input_dict = {
         "n": n,
         "input": input
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 4, valid
+    # Input 4
+    input = torch.ones((3, 4)).numpy()
+    n = 3
+    input_dict = {
+        "n": n,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5
     input = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()
-    n = 3  # integer
-    
+    n = 4
     input_dict = {
         "n": n,
         "input": input
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 5, valid
+    # Input 6
     input = torch.tensor([1.0]).numpy()
-    n = 4  # integer
-    
+    n = 5
     input_dict = {
         "n": n,
         "input": input
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 6, valid
-    input = torch.ones((3, 2)).numpy()
-    n = 5  # integer
-    
+    # Input 7
+    input = torch.ones((1, 2)).numpy()
+    n = 6
     input_dict = {
         "n": n,
         "input": input
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 7, valid
-    input = torch.tensor([1.0, 2.0]).numpy()
-    n = 6  # integer
-    
-    input_dict = {
-        "n": n,
-        "input": input
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8, valid
-    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
-    n = 7  # integer
-    
-    input_dict = {
-        "n": n,
-        "input": input
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9, valid
+    # Input 8
     input = torch.tensor([0.1, 0.2]).numpy()
-    n = 8  # integer
-    
+    n = 7
     input_dict = {
         "n": n,
         "input": input
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 10, valid
-    input = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()
-    n = 9  # integer
-    
+    # Input 9
+    input = torch.ones((4, 5)).numpy()
+    n = 8
     input_dict = {
         "n": n,
         "input": input
     }
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
+    # Input 10
+    input = torch.tensor([2.0, 3.0]).numpy()
+    n = 9
+    input_dict = {
+        "n": n,
+        "input": input
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs

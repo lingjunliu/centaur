@@ -10,111 +10,111 @@ def log1p_inputs():
     list_of_inputs = []
     
     # Input 1, valid
-    input = torch.tensor([1.0, 2.0, 3.0])
-    out = torch.empty_like(input)
-    
+    input = torch.tensor([1.0, 2.0, 3.0])   # tensor
+    out = torch.empty_like(input)    # tensor
+
     input_dict = {
-        "input": input.numpy(),
-        "out": out.numpy()
+        "input": input,
+        "out": out
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.tensor([-0.5, 0.0, 0.5])
+    input = torch.ones((2, 3))   # tensor
     out = torch.empty_like(input)
-    
+
     input_dict = {
-        "input": input.numpy(),
-        "out": out.numpy()
+        "input": input,
+        "out": out
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.ones((2, 3))
+    input = torch.randn(5)   # tensor
     out = torch.empty_like(input)
-    
+
     input_dict = {
-        "input": input.numpy(),
-        "out": out.numpy()
+        "input": input,
+        "out": out
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.randn(5)
+    input = torch.tensor([-1.0, -0.5, 0.0])   # tensor
     out = torch.empty_like(input)
-    
+
     input_dict = {
-        "input": input.numpy(),
-        "out": out.numpy()
+        "input": input,
+        "out": out
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([0.1, 0.2])
+    input = torch.tensor([0.1, 0.2, 0.3])   # tensor
     out = torch.empty_like(input)
-    
+
     input_dict = {
-        "input": input.numpy(),
-        "out": out.numpy()
+        "input": input,
+        "out": out
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.tensor([0.9, 1.1])
+    input = torch.ones((3, 4))   # tensor
     out = torch.empty_like(input)
-    
+
     input_dict = {
-        "input": input.numpy(),
-        "out": out.numpy()
+        "input": input,
+        "out": out
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.tensor([-0.9, -0.1])
+    input = torch.randn(10)   # tensor
     out = torch.empty_like(input)
-    
+
     input_dict = {
-        "input": input.numpy(),
-        "out": out.numpy()
+        "input": input,
+        "out": out
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([2.0, 3.0])
+    input = torch.tensor([2.0, 3.0, 4.0])   # tensor
     out = torch.empty_like(input)
-    
+
     input_dict = {
-        "input": input.numpy(),
-        "out": out.numpy()
+        "input": input,
+        "out": out
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.tensor([1.5, 2.5])
+    input = torch.tensor([-0.1, -0.2, -0.3])   # tensor
     out = torch.empty_like(input)
-    
+
     input_dict = {
-        "input": input.numpy(),
-        "out": out.numpy()
+        "input": input,
+        "out": out
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([-0.2, 0.8])
+    input = torch.ones((1, 2))   # tensor
     out = torch.empty_like(input)
-    
+
     input_dict = {
-        "input": input.numpy(),
-        "out": out.numpy()
+        "input": input,
+        "out": out
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))

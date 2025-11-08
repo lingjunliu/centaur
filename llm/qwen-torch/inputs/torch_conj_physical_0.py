@@ -10,9 +10,9 @@ def conj_physical_inputs():
     list_of_inputs = []
     
     # Input 1, valid
-    input = torch.tensor([1+2j, 3+4j, 5+6j], dtype=torch.complex64).numpy()  # tensor
-    out = torch.empty(input.shape, dtype=torch.complex64).numpy()    # tensor
-    
+    input = torch.tensor([1+2j, 3+4j], dtype=torch.complex64).numpy()
+    out = torch.zeros((2,)).numpy()
+
     input_dict = {
         "input": input,
         "out": out
@@ -21,9 +21,9 @@ def conj_physical_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.ones((2, 3), dtype=torch.complex64).numpy()
-    out = torch.empty(input.shape, dtype=torch.complex64).numpy()
-    
+    input = torch.tensor([1.0+2.0j, 3.0+4.0j], dtype=torch.complex64).numpy()
+    out = torch.zeros((2,)).numpy()
+
     input_dict = {
         "input": input,
         "out": out
@@ -32,93 +32,93 @@ def conj_physical_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.tensor([[1+2j, 3+4j], [5+6j, 7+8j]], dtype=torch.complex64).numpy()
-    out = torch.empty(input.shape, dtype=torch.complex64).numpy()
-    
+    input = torch.ones((2, 3), dtype=torch.complex64).numpy()
+    out = torch.zeros((2, 3)).numpy()
+
     input_dict = {
         "input": input,
         "out": out
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     # Input 4, valid
-    input = torch.tensor([1-2j, 3-4j, 5-6j], dtype=torch.complex64).numpy()
-    out = torch.empty(input.shape, dtype=torch.complex64).numpy()
-    
+    input = torch.ones((1, 5), dtype=torch.complex64).numpy()
+    out = torch.zeros((1, 5)).numpy()
+
     input_dict = {
         "input": input,
         "out": out
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     # Input 5, valid
     input = torch.zeros((3, 4), dtype=torch.complex64).numpy()
-    out = torch.empty(input.shape, dtype=torch.complex64).numpy()
-    
+    out = torch.zeros((3, 4)).numpy()
+
     input_dict = {
         "input": input,
         "out": out
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     # Input 6, valid
-    input = torch.tensor([1.0+2j, 3.0+4j], dtype=torch.complex64).numpy()
-    out = torch.empty(input.shape, dtype=torch.complex64).numpy()
-    
+    input = torch.tensor([1+2j, 3+4j, 5+6j], dtype=torch.complex64).numpy()
+    out = torch.zeros((3,)).numpy()
+
     input_dict = {
         "input": input,
         "out": out
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     # Input 7, valid
-    input = torch.ones((1, 2, 3), dtype=torch.complex64).numpy()
-    out = torch.empty(input.shape, dtype=torch.complex64).numpy()
-    
+    input = torch.ones((2, 2, 3), dtype=torch.complex64).numpy()
+    out = torch.zeros((2, 2, 3)).numpy()
+
     input_dict = {
         "input": input,
         "out": out
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     # Input 8, valid
-    input = torch.tensor([1.0-2j, 3.0-4j, 5.0-6j], dtype=torch.complex64).numpy()
-    out = torch.empty(input.shape, dtype=torch.complex64).numpy()
-    
+    input = torch.tensor([[1+2j, 3+4j], [5+6j, 7+8j]], dtype=torch.complex64).numpy()
+    out = torch.zeros((2, 2)).numpy()
+
     input_dict = {
         "input": input,
         "out": out
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     # Input 9, valid
-    input = torch.tensor([[1+2j, 3+4j, 5+6j], [7+8j, 9+10j, 11+12j]], dtype=torch.complex64).numpy()
-    out = torch.empty(input.shape, dtype=torch.complex64).numpy()
-    
+    input = torch.ones((3, 3), dtype=torch.complex64).numpy()
+    out = torch.zeros((3, 3)).numpy()
+
     input_dict = {
         "input": input,
         "out": out
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     # Input 10, valid
-    input = torch.tensor([1.0+2j], dtype=torch.complex64).numpy()
-    out = torch.empty(input.shape, dtype=torch.complex64).numpy()
-    
+    input = torch.zeros((2, 2, 2, 3), dtype=torch.complex64).numpy()
+    out = torch.zeros((2, 2, 2, 3)).numpy()
+
     input_dict = {
         "input": input,
         "out": out
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     return list_of_inputs
 
 generated_inputs["torch.conj_physical"] = conj_physical_inputs()

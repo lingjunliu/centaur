@@ -10,55 +10,75 @@ def sinc_inputs():
     list_of_inputs = []
     
     # Input 1, valid
-    input = torch.tensor([0.0, 1.0, 2.0]).numpy()
-    input_dict = {"input": input}
+    input = torch.tensor([0.0]).numpy()
+    input_dict = {
+        "input": input
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.tensor([0.5, 1.5, 2.5]).numpy()
-    input_dict = {"input": input}
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    input_dict = {
+        "input": input
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.ones((3, 4)).numpy()
-    input_dict = {"input": input}
+    input = torch.ones((2, 3)).numpy()
+    input_dict = {
+        "input": input
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.zeros((2, 2, 2)).numpy()
-    input_dict = {"input": input}
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    input_dict = {
+        "input": input
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([-1.0, -2.0, -3.0]).numpy()
-    input_dict = {"input": input}
+    input = torch.tensor([0.0]).numpy()
+    input_dict = {
+        "input": input
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.tensor([0.0, 0.5, 1.0]).numpy()
-    input_dict = {"input": input}
+    input = torch.tensor([-1.0, -2.0, -3.0]).numpy()
+    input_dict = {
+        "input": input
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()
-    input_dict = {"input": input}
+    input = torch.ones((3, 4)).numpy()
+    input_dict = {
+        "input": input
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.ones((1, 5)).numpy()
-    input_dict = {"input": input}
+    input = torch.tensor([0.5, 1.5, 2.5]).numpy()
+    input_dict = {
+        "input": input
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.tensor([0.0]).numpy()
-    input_dict = {"input": input}
+    input = torch.tensor([-0.5, -1.5, -2.5]).numpy()
+    input_dict = {
+        "input": input
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([3.14, 6.28, 9.42]).numpy()
-    input_dict = {"input": input}
+    input = torch.ones((1, 2, 3)).numpy()
+    input_dict = {
+        "input": input
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     return list_of_inputs
 
 generated_inputs["torch.special.sinc"] = sinc_inputs()
