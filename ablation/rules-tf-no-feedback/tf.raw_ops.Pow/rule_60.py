@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if y is not a scalar tensor the dtypes must match in order to correctly compute the exponent (Rule 60)
+# If y is bfloat16, x can only be bfloat16 or float32 (Rule 60)
 
 rule_60 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_ndim"] > 0, v["arg1_dtype"] == v["arg2_dtype"], True)) if n else
-          If(v["arg2_ndim"] > 0, v["arg1_dtype"] == v["arg2_dtype"], True))
+    s.add(Not(If(v["arg2_dtype"] == 6, Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), True)) if n else
+          If(v["arg2_dtype"] == 6, Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), True))
 )
 
 def rule_60_func(arg1, arg2, solver=None, neg=False):
@@ -26,18 +26,16 @@ def rule_60_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
-        arg2_ndim = Int('arg2_ndim')
         arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_ndim == arg2.ndim)
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 60
-        rule_60(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg2_ndim': arg2_ndim})
+        rule_60(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_60(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_60(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)

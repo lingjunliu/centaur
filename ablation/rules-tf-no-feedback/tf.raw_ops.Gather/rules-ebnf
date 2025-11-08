@@ -1,48 +1,87 @@
 >>
-Rule 4 (indices tensor must have at least zero dimension)
-{indices : tensor} |= ndim(indices) ≥ 0
->>
-Rule 5 (params tensor must have at least one dimension so that params.shape[1:] is valid)
-{params : tensor} |= ndim(params) ≥ 1
->>
-Rule 6 (validate_indices defaults to True and must be either true or false)
-{validate_indices : bool} |= validate_indices = true ∨ validate_indices = false
->>
-Rule 7 (indices must be an integer tensor of type int32 or int64: 3, 4)
+Rule 1 (indices must be an integer tensor)
 {indices : tensor} |= dtype_(indices) = 3 ∨ dtype_(indices) = 4
 >>
-Rule 11 (If validate_indices is true, the indices should be within the bounds of params's shape[0])
-{params : tensor, indices : tensor, validate_indices : bool} |= if validate_indices = true then (min(indices) ≥ 0 ∧ max(indices) < shape(params, 0))
+Rule 2 (validate_indices is a boolean)
+{validate_indices : bool} |= validate_indices = true ∨ validate_indices = false
 >>
-Rule 17 (If validate_indices is true, the minimum index must be non-negative)
-{indices : tensor, validate_indices : bool} |= if validate_indices = true then min(indices) ≥ 0
+Rule 3 (params and indices must be tensors)
+{params : tensor, indices : tensor} |= ndim(params) ≥ 1 ∧ ndim(indices) ≥ 0
 >>
-Rule 18 (If validate_indices is true, the maximum index must be less than the size of the first dimension of params)
-{params : tensor, indices : tensor, validate_indices : bool} |= if validate_indices = true then max(indices) < shape(params, 0)
+Rule 7 (params must be a tensor)
+{params : tensor} |= ndim(params) ≥ 0
 >>
-Rule 43 (if validate_indices is true, max(indices) must be less than shape(params, 0))
-{params : tensor, indices: tensor, validate_indices: bool} |= if validate_indices = true then max(indices) < shape(params, 0)
+Rule 8 (indices cannot be empty)
+{indices : tensor} |= (∃i ∈ [0, ndim(indices) - 1] : shape(indices, i) > 0) ∨ ndim(indices) = 0
 >>
-Rule 55 (if validate_indices is true, then the indices values must be within the valid range.)
-{params : tensor, indices : tensor, validate_indices:bool} |= if validate_indices = true then (min(indices) ≥ 0 ∧ max(indices) < shape(params,0))
+Rule 12 (dtype of params must be in a valid range)
+{params : tensor} |= 0 ≤ dtype_(params) ∧ dtype_(params) ≤ 12
 >>
-Rule 61 (if validate_indices is true then all indices should be valid for params)
-{params: tensor, indices: tensor, validate_indices: bool} |= if validate_indices = true then (min(indices) ≥ 0 ∧ max(indices) < shape(params, 0))
+Rule 13 (indices' values should not exceed the first dimension of params if validate_indices is true)
+{params : tensor, indices : tensor, validate_indices : bool} |= if validate_indices then (max(indices) < shape(params, 0))
 >>
-Rule 63 (The indices tensor must have a non-negative number of dimensions)
-{indices: tensor} |= ndim(indices) ≥ 0
+Rule 14 (name cannot be an empty string)
+{name : str} |= name ≠ ""
 >>
-Rule 70 (validate_indices is either true or false)
-{validate_indices: bool} |= validate_indices = true ∨ validate_indices = false
+Rule 19 (params and the returned tensor should have the same dtype)
+{params : tensor} |= dtype_(params) = dtype_(params)
 >>
-Rule 85 (Indices tensor must be int32 or int64)
-{indices: tensor} |= dtype_(indices) = 3 ∨ dtype_(indices) = 4
+Rule 20 (If validate_indices is true, indices values must be within the range [0, params.shape[0]))
+{params : tensor, indices : tensor, validate_indices : bool} |= if validate_indices then min(indices) ≥ 0 ∧ max(indices) < shape(params, 0)
 >>
-Rule 87 (Params tensor must have at least one dimension)
-{params: tensor} |= ndim(params) ≥ 1
+Rule 21 (if params is a scalar, indices must be also a scalar)
+{params : tensor, indices : tensor} |= if ndim(params) = 0 then ndim(indices) = 0
 >>
-Rule 94 (If validate_indices is set, indices must be valid)
-{params : tensor, indices : tensor, validate_indices : bool} |= if validate_indices = true then min(indices) ≥ 0 ∧ max(indices) < shape(params, 0)
+Rule 23 (indices's values must be within the valid range)
+{params : tensor, indices : tensor} |= (min(indices) ≥ 0) ∧ (max(indices) < shape(params, 0))
 >>
-Rule 107 (If validate_indices is true, then max(indices) must be less than the size of dimension 0 of params and min(indices) must be >= 0)
-{params : tensor, indices : tensor, validate_indices : bool} |= if validate_indices = true then (max(indices) < shape(params, 0) ∧ min(indices) ≥ 0)
+Rule 24 (if validate_indices is True, then values in `indices` are always validated to be within range)
+{validate_indices : bool, indices : tensor, params : tensor} |= if validate_indices = true then (min(indices) >= 0) ∧ (max(indices) < shape(params, 0))
+>>
+Rule 29 (name must be a valid string)
+{name : str} |= ∀i ∈ [0, name.len - 1] : (name[i] ≥ "a" ∧ name[i] ≤ "z") ∨ (name[i] ≥ "A" ∧ name[i] ≤ "Z") ∨ (name[i] ≥ "0" ∧ name[i] ≤ "9") ∨ name[i] = "_"
+>>
+Rule 30 (if indices is empty tensor, then the output tensor is empty)
+{indices : tensor, params : tensor} |= if (∃ i ∈ [0, ndim(indices) - 1] : shape(indices, i) = 0) ∧ ndim(indices) > 0 then (∃ j ∈ [1, ndim(params) - 1] : shape(params, j) = 0)
+>>
+Rule 31 (indices must be int32 or int64)
+{indices : tensor} |= (dtype_(indices) = 3) ∨ (dtype_(indices) = 4)
+>>
+Rule 32 (if indices is a permutation of range(params.shape[0]), the output is params permuted)
+{params : tensor, indices : tensor} |= if (ndim(indices) = 1) ∧ (shape(indices, 0) = shape(params, 0)) then true
+>>
+Rule 33 (The length of name should be less than 256)
+{name : str} |= name.len < 256
+>>
+Rule 34 (If indices is a permutation of params' first dimension and validate_indices is true, then output is the permuted params)
+{params : tensor, indices : tensor, validate_indices : bool} |= if (ndim(indices) = 1) ∧ (shape(indices, 0) = shape(params, 0)) ∧ validate_indices = true then true
+>>
+Rule 36 (If indices is a permutation and validate_indices is true, no out of bounds indices)
+{params : tensor, indices : tensor, validate_indices: bool} |= if validate_indices = true ∧ (ndim(indices) = 1) ∧ (shape(indices, 0) = shape(params, 0)) then (min(indices) ≥ 0) ∧ (max(indices) < shape(params, 0))
+>>
+Rule 37 (If name is not provided, use default name)
+{name : str} |= if name = "" then true
+>>
+Rule 38 (if indices are not validated, GPU might exhibit unspecified behaviour)
+{validate_indices : bool} |= if validate_indices = false then true
+>>
+Rule 41 (If indices is int32, params must be of certain types for compatibility)
+{params : tensor, indices : tensor} |= if dtype_(indices) = 3 then (dtype_(params) ≠ 11)
+>>
+Rule 42 (If indices is int64, params must be of certain types for compatibility)
+{params : tensor, indices : tensor} |= if dtype_(indices) = 4 then (dtype_(params) ≠ 11)
+>>
+Rule 47 (Indices values should be less than or equal to max int32 or int64 value, based on indices's dtype)
+{indices : tensor} |= if dtype_(indices) = 3 then max(indices) ≤ 2147483647 else if dtype_(indices) = 4 then max(indices) ≤ 9223372036854775807
+>>
+Rule 48 (Params cannot be a string tensor)
+{params : tensor} |= dtype_(params) ≠ 11
+>>
+Rule 49 (if validate indices is true, indices should be valid)
+{params: tensor, indices: tensor, validate_indices: bool} |= if validate_indices then min(indices) >= 0 ∧ max(indices) < shape(params,0)
+>>
+Rule 52 (String name is valid or not)
+{name: str} |= name = "valid" ∨ name = "same" ∨ name = "causal" ∨ name = "channels_last" ∨ name = "channels_first" ∨ true
+>>
+Rule 53 (The name must be a valid string)
+{name : str} |= ∀i ∈ [0, name.len - 1] : ((name[i] ≥ "a" ∧ name[i] ≤ "z") ∨ (name[i] ≥ "A" ∧ name[i] ≤ "Z") ∨ (name[i] ≥ "0" ∧ name[i] ≤ "9") ∨ name[i] = "_") ∨ name = ""

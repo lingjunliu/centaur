@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If v_1 is of type str and has value equal to 'sigmoid', then max value of tensor v_2 must be in range (0, 1 (Rule 107)
+# When one of the integers is 0, the bool should be true. (Rule 107)
 
 rule_107 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 13, And(Select(v["arg2_range"], 1) > 0, Select(v["arg2_range"], 1) < 1), True)) if n else
-          If(v["arg1_value"] == 13, And(Select(v["arg2_range"], 1) > 0, Select(v["arg2_range"], 1) < 1), True))
+    s.add(Not(If((v["arg1_value"] == 0), v["arg2_value"], True)) if n else
+          If((v["arg1_value"] == 0), v["arg2_value"], True))
 )
 
 def rule_107_func(arg1, arg2, solver=None, neg=False):
@@ -18,25 +18,24 @@ def rule_107_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, str):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg1_value = Int('arg1_value')
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values_tf.index(arg1))
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg1_value == int(arg1))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 107
-        rule_107(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range})
+        rule_107(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_107(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range']}, neg)
+        rule_107(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

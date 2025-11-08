@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The shape argument must be a 1D tensor with dtype int32 or int64, and seed must be a tensor of shape [2] with dtype int32 or int64. (Rule 41)
+# alpha and beta are provided as tensors (Rule 41)
 
 rule_41 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(And((v["arg1_ndim"] == 1), (Or((v["arg1_dtype"] == 3), (v["arg1_dtype"] == 4)))), (v["arg2_ndim"] == 1)), (Select(v["arg2_shape"], 0) == 2)), (Or((v["arg2_dtype"] == 3), (v["arg2_dtype"] == 4))))) if n else
-          And(And(And(And((v["arg1_ndim"] == 1), (Or((v["arg1_dtype"] == 3), (v["arg1_dtype"] == 4)))), (v["arg2_ndim"] == 1)), (Select(v["arg2_shape"], 0) == 2)), (Or((v["arg2_dtype"] == 3), (v["arg2_dtype"] == 4)))))
+    s.add(Not(And((v["arg1_ndim"] > 0), (v["arg2_ndim"] > 0))) if n else
+          And((v["arg1_ndim"] > 0), (v["arg2_ndim"] > 0)))
 )
 
 def rule_41_func(arg1, arg2, solver=None, neg=False):
@@ -26,23 +26,16 @@ def rule_41_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg1_dtype = Int('arg1_dtype')
         arg2_ndim = Int('arg2_ndim')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
-        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         solver.add(arg2_ndim == arg2.ndim)
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 41
-        rule_41(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype})
+        rule_41(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_41(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_41(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)

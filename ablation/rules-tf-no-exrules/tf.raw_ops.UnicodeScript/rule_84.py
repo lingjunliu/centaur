@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the dtype is int32, the minimum value should be equal or greater than -1 (Rule 84)
+# If min value is negative, then dtype must be float32 or float64 (Rule 84)
 
 rule_84 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 3, Select(v["arg1_range"], 0) >= -1, True)) if n else
-          If(v["arg1_dtype"] == 3, Select(v["arg1_range"], 0) >= -1, True))
+    s.add(Not(If(Select(v["arg1_range"], 0) < 0, Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), True)) if n else
+          If(Select(v["arg1_range"], 0) < 0, Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), True))
 )
 
 def rule_84_func(arg1, solver=None, neg=False):

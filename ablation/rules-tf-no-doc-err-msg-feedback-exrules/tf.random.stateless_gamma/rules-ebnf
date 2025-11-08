@@ -1,252 +1,159 @@
 >>
-Rule 1 (shape of the output tensor should be non-empty)
-{shape : tuple(int)} |= shape.len > 0
+Rule 1 (shape of the output tensor should be positive)
+{v_1 : tuple(int)} |= ∀ i ∈ [0, v_1.len] : v_1[i] > 0
 >>
-Rule 2 (dtype must be a valid dtype)
-{dtype : int} |= (dtype ≥ 0) ∧ (dtype ≤ 12)
+Rule 2 (The alpha parameter must be greater than zero)
+{v_1 : tensor} |= min(v_1) > 0
 >>
-Rule 3 (The alpha parameter must be greater than zero)
-{v_1 : tensor} |= ∀ i ∈ [0, shape(v_1)] : v_1[i] > 0.0
+Rule 3 (The dtype of alpha and seed should be compatible. In this case, they should be the same)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 5 (alpha must be a floating point tensor)
-{alpha : tensor} |= (dtype_(alpha) = 6) ∨ (dtype_(alpha) = 7) ∨ (dtype_(alpha) = 8)
+Rule 5 (Check alpha's dimension is not greater than 5)
+{v_1 : tensor} |= ndim(v_1) ≤ 5
 >>
-Rule 6 (If alpha is a scalar, it must be positive)
-{alpha : tensor} |= if ndim(alpha) = 0 then alpha > 0.0
+Rule 6 (If alpha is a scalar, then the shape must be specified.)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 0 then v_2.len > 0
 >>
-Rule 8 (Verify that seed contains only integer values)
-{seed : tensor} |= (dtype_(seed) = 1) ∨ (dtype_(seed) = 2) ∨ (dtype_(seed) = 3) ∨ (dtype_(seed) = 4) ∨ (dtype_(seed) = 5)
+Rule 7 (Check seed's dtype is int32 or int64.)
+{v_1 : tensor} |= (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4)
 >>
-Rule 9 (The shape parameter must contain only non-negative integers)
-{shape : tuple(int)} |= ∀ i ∈ [0, shape.len] : shape[i] ≥ 0
+Rule 8 (The shape cannot be an empty tuple if alpha is not scalar)
+{v_1: tensor, v_2 : tuple(int)} |= if ndim(v_1) > 0 then v_2.len > 0
 >>
-Rule 11 (shape must be a tuple of integers with positive values)
-{shape : tuple(int)} |= (shape.len > 0) ∧ (∀ i ∈ [0, shape.len] : shape[i] > 0)
+Rule 9 (The dtype parameter should be in a specific range)
+{v_1 : int} |= (v_1 ≥ 0) ∧ (v_1 ≤ 12)
 >>
-Rule 14 (dtype cannot be boolean)
-{dtype : int} |= dtype ≠ 0
+Rule 10 (If dtype is specified (not None), it should be a compatible floating-point type.)
+{v_1 : int} |= if v_1 ≠ 12 then (v_1 = 6) ∨ (v_1 = 7) ∨ (v_1 = 8)
 >>
-Rule 15 (seed rank should be equal to 1)
-{seed : tensor} |= ndim(seed) = 1
+Rule 11 (alpha tensor cannot have complex dtype)
+{v_1 : tensor} |= (dtype_(v_1) ≠ 9) ∧ (dtype_(v_1) ≠ 10)
 >>
-Rule 17 (If shape is empty tuple, alpha should be a scalar)
-{alpha : tensor, shape : tuple(int)} |= if shape.len = 0 then ndim(alpha) = 0
+Rule 13 (shape tuple elements must be integers)
+{v_1 : tuple(int)} |= ∀ i ∈ [0, v_1.len] : v_1[i] ≥ -2147483648 ∧ v_1[i] ≤ 2147483647
 >>
-Rule 18 (shape should not be a very large tuple)
-{shape : tuple(int)} |= shape.len < 100
+Rule 16 (The seed should not be all zeros.)
+{v_1: tensor} |= ∃ i ∈ [0, 2] : v_1[i] ≠ 0
 >>
-Rule 19 (dtype should be less than the maximum allowed value)
-{dtype : int} |= dtype < 13
+Rule 19 (Shape should be a tuple of integers)
+{v_1 : tuple(int)} |= v_1.len > 0
 >>
-Rule 20 (Check the first element in seed should not be negative)
-{seed : tensor} |= seed[0] ≥ 0
+Rule 21 (The elements of seed should be non-negative integers)
+{v_1: tensor} |= (v_1[0] ≥ 0) ∧ (v_1[1] ≥ 0)
 >>
-Rule 21 (Check if the second element in seed should not be negative)
-{seed : tensor} |= seed[1] ≥ 0
+Rule 22 (If alpha is a float32, then the dtype should be float32 as well if specified.)
+{v_1: tensor, v_2: int} |= if dtype_(v_1) = 7 then (if v_2 ≠ 12 then v_2 = 7)
 >>
-Rule 23 (If alpha is complex, dtype must also be complex)
-{alpha : tensor, dtype : int} |= if (dtype_(alpha) = 9) ∨ (dtype_(alpha) = 10) then (dtype = 9) ∨ (dtype = 10)
+Rule 23 (If alpha is a float64, then the dtype should be float64 as well if specified.)
+{v_1: tensor, v_2: int} |= if dtype_(v_1) = 8 then (if v_2 ≠ 12 then v_2 = 8)
 >>
-Rule 24 (Alpha must have a valid dtype)
-{alpha : tensor} |= (dtype_(alpha) = 6) ∨ (dtype_(alpha) = 7) ∨ (dtype_(alpha) = 8) ∨ (dtype_(alpha) = 9) ∨ (dtype_(alpha) = 10)
+Rule 24 (Alpha must be a real number if dtype is not specified)
+{v_1 : tensor, v_2 : int} |= if v_2 = 12 then (dtype_(v_1) ≠ 9) ∧ (dtype_(v_1) ≠ 10)
 >>
-Rule 26 (Shape values can not be very large)
-{shape : tuple(int)} |= ∀ i ∈ [0, shape.len] : shape[i] < 1000000
+Rule 25 (The length of shape should not exceed a reasonable limit)
+{v_1 : tuple(int)} |= v_1.len < 10
 >>
-Rule 28 (If alpha is not scalar, then at least one element in shape should be present)
-{alpha : tensor, shape : tuple(int)} |= if ndim(alpha) ≠ 0 then shape.len > 0
+Rule 26 (Each element of the seed should be representable as an int32)
+{v_1 : tensor} |= (v_1[0] < 2147483647) ∧ (v_1[1] < 2147483647)
 >>
-Rule 29 (The dtype parameter must be one of float or complex type)
-{dtype : int} |= (dtype = 6) ∨ (dtype = 7) ∨ (dtype = 8) ∨ (dtype = 9) ∨ (dtype = 10)
+Rule 27 (If shape is not given, then alpha must not be a scalar.)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = 0 then ndim(v_1) > 0
 >>
-Rule 33 (If dtype is float16, alpha should also be float16)
-{alpha : tensor, dtype : int} |= if dtype = 6 then dtype_(alpha) = 6
+Rule 28 (The shape parameter should be a tuple)
+{v_1 : tuple(int)} |= v_1.len ≥ 0
 >>
-Rule 34 (If dtype is float32, alpha should also be float32)
-{alpha : tensor, dtype : int} |= if dtype = 7 then dtype_(alpha) = 7
+Rule 31 (The values in alpha should be of a valid type)
+{v_1 : tensor} |= (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)
 >>
-Rule 35 (If dtype is float64, alpha should also be float64)
-{alpha : tensor, dtype : int} |= if dtype = 8 then dtype_(alpha) = 8
+Rule 32 (Seed must be int32 or int64 if dtype is not specified)
+{v_1 : tensor, v_2 : int} |= if v_2 = 12 then (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4)
 >>
-Rule 38 (If shape is an empty tuple then alpha has to be a scalar)
-{shape : tuple(int), alpha: tensor} |= if shape.len = 0 then ndim(alpha) = 0
+Rule 33 (Alpha should be a tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 42 (If alpha is a scalar then it must be greater than 0)
-{alpha: tensor} |= if ndim(alpha) = 0 then alpha > 0
+Rule 37 (The shape cannot have negative values.)
+{v_1 : tuple(int)} |= ∀ i ∈ [0, v_1.len] : v_1[i] ≥ 0
 >>
-Rule 43 (Dtype must be a valid data type from available dtypes list)
-{dtype: int} |= dtype ≥ 0 ∧ dtype ≤ 12
+Rule 38 (Dtype should either be unspecified (None) or a float type.)
+{v_1: int} |= (v_1 = 12) ∨ (v_1 = 6) ∨ (v_1 = 7) ∨ (v_1 = 8)
 >>
-Rule 47 (If alpha is complex64, dtype must be complex64 or complex128)
-{alpha: tensor, dtype: int} |= if dtype_(alpha) = 9 then (dtype = 9 ∨ dtype = 10)
+Rule 40 (The seed values should be within the representable range of int32.)
+{v_1 : tensor} |= (min(v_1) ≥ -2147483648) ∧ (max(v_1) ≤ 2147483647)
 >>
-Rule 48 (If alpha is complex128, dtype must be complex128)
-{alpha: tensor, dtype: int} |= if dtype_(alpha) = 10 then dtype = 10
+Rule 41 (The alpha values should not be infinite.)
+{v_1 : tensor} |= max(v_1) < 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0
 >>
-Rule 49 (Shape must not contain negative values.)
-{shape: tuple(int)} |= ∀ i ∈ [0, shape.len] : shape[i] ≥ 0
+Rule 43 (If the shape parameter is specified, it should have a reasonable length.)
+{v_1 : tuple(int)} |= v_1.len < 32
 >>
-Rule 51 (If alpha is float16, then dtype should be float16)
-{alpha: tensor, dtype: int} |= if dtype_(alpha) = 6 then dtype = 6
+Rule 44 (The seed tensor should be of rank 1.)
+{v_1 : tensor} |= ndim(v_1) = 1
 >>
-Rule 52 (If alpha is float32, then dtype should be float32 or float64)
-{alpha: tensor, dtype: int} |= if dtype_(alpha) = 7 then (dtype = 7 ∨ dtype = 8)
+Rule 45 (If dtype is complex64 or complex128, alpha should have a compatible complex dtype.)
+{v_1 : int, v_2 : tensor} |= if (v_1 = 9) ∨ (v_1 = 10) then ((dtype_(v_2) = 9) ∨ (dtype_(v_2) = 10))
 >>
-Rule 53 (If alpha is float64, then dtype should be float64)
-{alpha: tensor, dtype: int} |= if dtype_(alpha) = 8 then dtype = 8
+Rule 48 (If the alpha parameter is a scalar, then the shape parameter must have at least one element.)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 0 then v_2.len ≥ 1
 >>
-Rule 54 (The seed must be of integer type)
-{seed: tensor} |= (dtype_(seed) = 1) ∨ (dtype_(seed) = 2) ∨ (dtype_(seed) = 3) ∨ (dtype_(seed) = 4) ∨ (dtype_(seed) = 5)
+Rule 49 (The alpha tensor must have a floating point or complex dtype.)
+{v_1 : tensor} |= (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)
 >>
-Rule 55 (The shape parameter should not be none)
-{shape: tuple(int)} |= shape ≠ none
+Rule 50 (If dtype is specified, seed dtype has to be an integer type.)
+{v_1 : int, v_2 : tensor} |= if v_1 ≠ 12 then (dtype_(v_2) = 1) ∨ (dtype_(v_2) = 2) ∨ (dtype_(v_2) = 3) ∨ (dtype_(v_2) = 4) ∨ (dtype_(v_2) = 5)
 >>
-Rule 57 (If the length of the shape is 0, then alpha must be a scalar)
-{shape: tuple(int), alpha: tensor} |= if shape.len = 0 then ndim(alpha) = 0
+Rule 51 (If dtype is float16, then alpha should be float16 too.)
+{v_1 : int, v_2 : tensor} |= if v_1 = 6 then dtype_(v_2) = 6
 >>
-Rule 59 (If dtype is complex64, alpha's dtype must be float or complex)
-{alpha: tensor, dtype: int} |= if dtype = 9 then (dtype_(alpha) = 6 ∨ dtype_(alpha) = 7 ∨ dtype_(alpha) = 8 ∨ dtype_(alpha) = 9 ∨ dtype_(alpha) = 10)
+Rule 52 (If dtype is float32, then alpha should be float32 too.)
+{v_1 : int, v_2 : tensor} |= if v_1 = 7 then dtype_(v_2) = 7
 >>
-Rule 60 (If dtype is complex128, alpha's dtype must be float or complex)
-{alpha: tensor, dtype: int} |= if dtype = 10 then (dtype_(alpha) = 6 ∨ dtype_(alpha) = 7 ∨ dtype_(alpha) = 8 ∨ dtype_(alpha) = 9 ∨ dtype_(alpha) = 10)
+Rule 53 (If dtype is float64, then alpha should be float64 too.)
+{v_1 : int, v_2 : tensor} |= if v_1 = 8 then dtype_(v_2) = 8
 >>
-Rule 62 (If alpha is not scalar, the output shape should have at least one dimension)
-{alpha: tensor, shape: tuple(int)} |= if ndim(alpha) ≠ 0 then shape.len > 0
+Rule 54 (If dtype is complex64, then alpha should be complex64 too.)
+{v_1 : int, v_2 : tensor} |= if v_1 = 9 then dtype_(v_2) = 9
 >>
-Rule 65 (Shape must have positive number only)
-{shape: tuple(int)} |= ∀ i ∈ [0, shape.len]: shape[i] > 0
+Rule 55 (If dtype is complex128, then alpha should be complex128 too.)
+{v_1 : int, v_2 : tensor} |= if v_1 = 10 then dtype_(v_2) = 10
 >>
-Rule 66 (If the alpha's dtype is float32 or float64, dtype cannot be complex)
-{alpha: tensor, dtype: int} |= if (dtype_(alpha) = 7 ∨ dtype_(alpha) = 8) then (dtype ≠ 9 ∧ dtype ≠ 10)
+Rule 56 (If shape is not provided, the output tensor will have the same shape as alpha.)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = 0 then shape(v_1) = shape(v_1)
 >>
-Rule 67 (If dtype is complex, the alpha's dtype must be either float32, float64, complex64, or complex128)
-{alpha: tensor, dtype: int} |= if (dtype = 9 ∨ dtype = 10) then (dtype_(alpha) = 7 ∨ dtype_(alpha) = 8 ∨ dtype_(alpha) = 9 ∨ dtype_(alpha) = 10)
+Rule 57 (The values in the seed tensor should be non-negative.)
+{v_1 : tensor} |= (v_1[0] ≥ 0) ∧ (v_1[1] ≥ 0)
 >>
-Rule 71 (If the specified dtype is float16 then alpha's dtype should be float16)
-{dtype : int, alpha : tensor} |= if dtype = 6 then dtype_(alpha) = 6
+Rule 59 (If alpha is complex type, the output type should be complex type as well.)
+{v_1 : int, v_2 : tensor} |= if (dtype_(v_2) = 9) ∨ (dtype_(v_2) = 10) then (v_1 = 9) ∨ (v_1 = 10) ∨ (v_1 = 12)
 >>
-Rule 72 (If the specified dtype is float32 then alpha's dtype should be float32)
-{dtype : int, alpha : tensor} |= if dtype = 7 then dtype_(alpha) = 7
+Rule 60 (The seed tensor should only contain int32 or int64 values.)
+{v_1 : tensor} |= (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4)
 >>
-Rule 73 (If the specified dtype is float64 then alpha's dtype should be float64)
-{dtype : int, alpha : tensor} |= if dtype = 8 then dtype_(alpha) = 8
+Rule 63 (The seed must have int32 or int64 type)
+{v_1: tensor} |= (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4)
 >>
-Rule 75 (Alpha must be a tensor of floats or complex numbers.)
-{alpha: tensor} |= (dtype_(alpha) = 6) ∨ (dtype_(alpha) = 7) ∨ (dtype_(alpha) = 8) ∨ (dtype_(alpha) = 9) ∨ (dtype_(alpha) = 10)
+Rule 65 (if alpha is float type, dtype cannot be complex.)
+{v_1: tensor, v_2: int} |= if (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) then (v_2 ≠ 9) ∧ (v_2 ≠ 10)
 >>
-Rule 77 (If alpha is a tensor of complex type, dtype cannot be int or float)
-{alpha: tensor, dtype: int} |= if (dtype_(alpha) = 9) ∨ (dtype_(alpha) = 10) then (dtype = 9) ∨ (dtype = 10)
+Rule 66 (If seed has dtype int64, check the values are not too big to avoid overflow)
+{v_1 : tensor} |= if dtype_(v_1) = 4 then (v_1[0] < 9223372036854775807) ∧ (v_1[1] < 9223372036854775807)
 >>
-Rule 78 (If alpha is not a scalar then shape should be provided.)
-{alpha: tensor, shape: tuple(int)} |= if ndim(alpha) > 0 then shape.len > 0
+Rule 67 (The seed values should be representable as int64)
+{v_1 : tensor} |= ∀ i ∈ [0, 2] : (v_1[i] ≥ -9223372036854775808) ∧ (v_1[i] ≤ 9223372036854775807)
 >>
-Rule 80 (If dtype is complex64, the real and imaginary parts of the output tensor should be float32)
-{dtype : int} |= if dtype = 9 then true
+Rule 68 (Check dtype is valid)
+{v_1 : int} |= (v_1 = 6) ∨ (v_1 = 7) ∨ (v_1 = 8) ∨ (v_1 = 9) ∨ (v_1 = 10) ∨ (v_1 = 12)
 >>
-Rule 81 (If dtype is complex128, the real and imaginary parts of the output tensor should be float64)
-{dtype : int} |= if dtype = 10 then true
+Rule 69 (If alpha is scalar and shape is not provided, raise an error)
+{v_1: tensor, v_2: tuple(int)} |= if ndim(v_1) = 0 then v_2.len > 0
 >>
-Rule 82 (The shape parameter needs to be provided if alpha has more than zero dimensions)
-{alpha : tensor, shape : tuple(int)} |= if ndim(alpha) > 0 then shape.len > 0
+Rule 70 (If shape parameter is given, check it's not None)
+{v_1: tuple(int)} |= v_1.len > 0
 >>
-Rule 83 (If alpha is a scalar, its value must be greater than 0)
-{alpha : tensor} |= if ndim(alpha) = 0 then alpha > 0
+Rule 73 (The alpha values should not be negative.)
+{v_1: tensor} |= min(v_1) ≥ 0
 >>
-Rule 84 (If alpha's dtype is np.float16, then dtype should be np.float16)
-{alpha : tensor, dtype : int} |= if dtype_(alpha) = 6 then dtype = 6
+Rule 74 (Alpha cannot contain inf values)
+{v_1 : tensor} |= max(v_1) < 1000000000000.0
 >>
-Rule 85 (If alpha's dtype is np.float32, then dtype should be np.float32)
-{alpha : tensor, dtype : int} |= if dtype_(alpha) = 7 then dtype = 7
->>
-Rule 86 (If alpha's dtype is np.float64, then dtype should be np.float64)
-{alpha : tensor, dtype : int} |= if dtype_(alpha) = 8 then dtype = 8
->>
-Rule 87 (The number of elements in the shape parameter should be less than 32)
-{shape: tuple(int)} |= shape.len < 32
->>
-Rule 88 (If dtype is a complex type then alpha must have a complex or float dtype)
-{alpha : tensor, dtype : int} |= if (dtype = 9) ∨ (dtype = 10) then (dtype_(alpha) = 7) ∨ (dtype_(alpha) = 8) ∨ (dtype_(alpha) = 9) ∨ (dtype_(alpha) = 10)
->>
-Rule 90 (The shape of output tensor should not exceed maximum limit)
-{shape: tuple(int)} |= ∀ i ∈ [0, shape.len] : shape[i] < 2147483647
->>
-Rule 91 (If dtype is complex64 or complex128, alpha must also be a complex or float type)
-{dtype : int, alpha : tensor} |= if (dtype = 9) ∨ (dtype = 10) then (dtype_(alpha) = 7) ∨ (dtype_(alpha) = 8) ∨ (dtype_(alpha) = 9) ∨ (dtype_(alpha) = 10)
->>
-Rule 95 (Seed can not be none)
-{seed: tensor} |= seed ≠ none
->>
-Rule 96 (If dtype is float32 or float64, then alpha cannot be a complex type)
-{alpha: tensor, dtype : int} |= if (dtype = 7 ∨ dtype = 8) then (dtype_(alpha) ≠ 9 ∧ dtype_(alpha) ≠ 10)
->>
-Rule 98 (The values of shape should be less than or equal to max int)
-{shape: tuple(int)} |= ∀ i ∈ [0, shape.len] : shape[i] ≤ 2147483647
->>
-Rule 99 (The dtype parameter must belong to the list of valid dtypes.)
-{dtype : int} |= (dtype ≥ 0) ∧ (dtype < 13)
->>
-Rule 101 (If dtype is complex128, alpha can be float32, float64, complex64 or complex128)
-{alpha : tensor, dtype : int} |= if dtype = 10 then (dtype_(alpha) = 7 ∨ dtype_(alpha) = 8 ∨ dtype_(alpha) = 9 ∨ dtype_(alpha) = 10)
->>
-Rule 103 (The shape parameter must not contain extremely large values to prevent overflow)
-{shape: tuple(int)} |= ∀ i ∈ [0, shape.len] : shape[i] < 100000000
->>
-Rule 105 (Shape length must not be negative)
-{shape: tuple(int)} |= shape.len ≥ 0
->>
-Rule 106 (If dtype is float, alpha must be float)
-{alpha : tensor, dtype : int} |= if dtype = 7 ∨ dtype = 8 then dtype_(alpha) = 7 ∨ dtype_(alpha) = 8
->>
-Rule 113 (If dtype is a complex type, the specified alpha must be a float or complex type.)
-{alpha: tensor, dtype : int} |= if (dtype = 9) ∨ (dtype = 10) then (dtype_(alpha) = 7) ∨ (dtype_(alpha) = 8) ∨ (dtype_(alpha) = 9) ∨ (dtype_(alpha) = 10)
->>
-Rule 116 (If alpha has a dtype, then the shape cannot be None)
-{alpha : tensor, shape : tuple(int)} |= if dtype_(alpha) ≥ 0 then shape ≠ none
->>
-Rule 118 (Shape should be a tuple of integer values with all values non-negative)
-{shape: tuple(int)} |= shape.len ≥ 0 ∧ ∀ i ∈ [0, shape.len] : shape[i] ≥ 0
->>
-Rule 120 (The length of the shape parameter cannot be greater than 8, avoid very large tensors)
-{shape : tuple(int)} |= shape.len ≤ 8
->>
-Rule 125 (If dtype is a complex type, alpha must also be a float or complex type.)
-{alpha: tensor, dtype: int} |= if dtype = 9 ∨ dtype = 10 then (dtype_(alpha) = 7 ∨ dtype_(alpha) = 8 ∨ dtype_(alpha) = 9 ∨ dtype_(alpha) = 10)
->>
-Rule 136 (Values in shape must be integers)
-{shape : tuple(float)} |= ∃ i ∈ [0, shape.len] : shape[i] = shape[i]
->>
-Rule 138 (Alpha can not be none)
-{alpha : tensor} |= alpha ≠ none
->>
-Rule 141 (Alpha's dtype must match dtype if both are specified)
-{alpha : tensor, dtype : int} |= if dtype ≠ none then if dtype_(alpha) ≠ none then dtype = dtype_(alpha)
->>
-Rule 142 (The number of dimension in alpha must be less than or equal to the number of dimensions in shape)
-{alpha : tensor, shape : tuple(int)} |= if ndim(alpha) > 0 then ndim(alpha) ≤ shape.len
->>
-Rule 144 (If the dtype is a complex data type, alpha must also be a complex data type.)
-{alpha: tensor, dtype: int} |= if (dtype = 9 ∨ dtype = 10) then (dtype_(alpha) = 9 ∨ dtype_(alpha) = 10)
->>
-Rule 151 (The shape values should be valid integers)
-{shape: tuple(int)} |= ∀ i ∈ [0, shape.len] : shape[i] = (shape[i] / 1) * 1
->>
-Rule 154 (If dtype is not specified and alpha is of float type, then set dtype to alpha dtype.)
-{alpha: tensor, dtype: int} |= if dtype = none then if (dtype_(alpha) = 7 ∨ dtype_(alpha) = 8) then true
->>
-Rule 157 (If shape has values then they all must be non-negative)
-{shape : tuple(int)} |= if shape.len > 0 then ∀ i ∈ [0, shape.len] : shape[i] ≥ 0
->>
-Rule 161 (If a dtype is specified, alpha values should have the same dtype)
-{dtype: int, alpha: tensor} |= if dtype ≠ none then dtype_(alpha) = dtype
->>
-Rule 162 (If the shape parameter is not specified, alpha must be a scalar.)
-{alpha : tensor, shape : tuple(int)} |= if shape = none then ndim(alpha) = 0
->>
-Rule 166 (If alpha is a float, dtype should be a float, if alpha is a complex number, dtype should be a complex number.)
-{alpha: tensor, dtype: int} |= if (dtype_(alpha) = 7 ∨ dtype_(alpha) = 8) then (dtype = 7 ∨ dtype = 8) else if (dtype_(alpha) = 9 ∨ dtype_(alpha) = 10) then (dtype = 9 ∨ dtype = 10)
->>
-Rule 168 (The shape values must be positive.)
-{shape: tuple(int)} |= ∀ i ∈ [0, shape.len] : shape[i] > 0
->>
-Rule 170 (If seed is none, throw an exception.)
-{seed : tensor} |= seed ≠ none
+Rule 78 (Dtype should be None, float16, float32, float64, complex64, complex128)
+{v_1: int} |= (v_1=12) ∨ (v_1=6) ∨ (v_1=7) ∨ (v_1=8) ∨ (v_1=9) ∨ (v_1=10)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If lower is zero, then upper must be greater than or equal to zero (Rule 27)
+# Lower bound must be less than or equal to the upper bound. (Rule 27)
 
 rule_27 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 0.0, v["arg2_value"] >= 0.0, True)) if n else
-          If(v["arg1_value"] == 0.0, v["arg2_value"] >= 0.0, True))
+    s.add(Not(v["arg1_value"] <= v["arg2_value"]) if n else
+          v["arg1_value"] <= v["arg2_value"])
 )
 
 def rule_27_func(arg1, arg2, solver=None, neg=False):

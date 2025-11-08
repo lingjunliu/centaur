@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# the input must be a tensor with at least one dimension (Rule 42)
+# If the input is a vector, conjure does nothing (Rule 42)
 
 rule_42 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] >= 0) if n else
-          v["arg1_ndim"] >= 0)
+    s.add(Not(If(v["arg1_ndim"] == 1, True, True)) if n else
+          If(v["arg1_ndim"] == 1, True, True))
 )
 
 def rule_42_func(arg1, solver=None, neg=False):

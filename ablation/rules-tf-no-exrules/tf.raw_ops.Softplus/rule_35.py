@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the feature's datatype is float32, then the average of all elements should be less than 100 (Rule 35)
+# Check the maximum value of bfloat16 (Rule 35)
 
 rule_35 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 7, True, True)) if n else
-          If(v["arg1_dtype"] == 7, True, True))
+    s.add(Not(If((v["arg1_dtype"] == 1), Select(v["arg1_range"], 1) <= 3.3895313878755052e+38, True)) if n else
+          If((v["arg1_dtype"] == 1), Select(v["arg1_range"], 1) <= 3.3895313878755052e+38, True))
 )
 
 def rule_35_func(arg1, solver=None, neg=False):
@@ -23,14 +23,17 @@ def rule_35_func(arg1, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 35
-        rule_35(solver, {'arg1_dtype': arg1_dtype})
+        rule_35(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_35(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_35(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)

@@ -1,111 +1,144 @@
 >>
-Rule 1 (Input tensors must have the same dtype)
+Rule 2 (axis should be a valid integer)
+{axis : int} |= axis ≥ -32768 ∧ axis ≤ 32767
+>>
+Rule 3 (The dimensions of values and arr should match when axis is not None)
+{arr : tensor, values : tensor, axis : int} |= if axis ≥ 0 then ndim(values) = ndim(arr) else ndim(values) = ndim(arr)
+>>
+Rule 4 (The shape of values along the specified axis must match the shape of arr along that axis.)
+{arr : tensor, values : tensor, axis : int} |= if axis ≥ 0 then shape(arr, axis) = shape(values, axis) else shape(arr, 0) = shape(values, 0)
+>>
+Rule 5 (arr and values must have compatible dtypes)
 {arr : tensor, values : tensor} |= dtype_(arr) = dtype_(values)
 >>
-Rule 3 (If axis is None, the input arrays are flattened before use.)
-{arr : tensor, values : tensor, axis : int} |= if axis < 0 then true else ndim(arr) > 0 ∧ ndim(values) > 0
->>
-Rule 5 (The axis must be less than the number of dimensions if axis is not None)
-{arr : tensor, axis : int} |=  axis < ndim(arr)
->>
-Rule 7 (The number of dimensions of values should be greater than 0)
-{values : tensor} |= ndim(values) > 0
->>
-Rule 8 (arr should have at least one dimension if axis is specified)
-{arr : tensor, axis : int} |= if axis ≥ 0 ∨ axis < 0 then ndim(arr) > 0
->>
-Rule 9 (If the axis is specified the shape of the values along the axis should match arr)
-{arr : tensor, values : tensor, axis : int} |= if axis ≥ 0 ∨ axis < 0 then shape(arr, axis) = shape(values, axis)
->>
-Rule 10 (If the axis is None both tensors must be flattened and be 1D tensors after the operation)
-{arr : tensor, values : tensor, axis : int} |= if axis < 0 then ndim(arr) > 0 ∧ ndim(values) > 0
->>
-Rule 11 (Axis must be smaller than ndim(arr) )
-{arr : tensor, axis : int} |= axis < ndim(arr)
->>
-Rule 14 (arr must be a tensor with ndim > 0)
+Rule 7 (number of dimensions of arr is greater than 0)
 {arr : tensor} |= ndim(arr) > 0
 >>
-Rule 16 (if axis is None, then arr and values must have the same dtype)
-{arr : tensor, values : tensor, axis : int} |= if axis < -100 then dtype_(arr) = dtype_(values)
+Rule 9 (axis value check for 1D tensor)
+{arr : tensor, axis : int} |= if ndim(arr) = 1 then axis = 0 ∨ axis = -1
 >>
-Rule 20 (If the input is a scalar values must also be a scalar)
-{arr: tensor, values: tensor} |= if ndim(arr) = 0 then ndim(values) = 0
+Rule 11 (If axis is None, arr and values should be flattened before appending)
+{arr : tensor, values : tensor, axis : int} |= if axis < -100000000 then ndim(arr) = 1 ∧ ndim(values) = 1
 >>
-Rule 22 (If axis is not specified (None), arr and values are flattened before concatenation.)
-{arr : tensor, values : tensor, axis : int} |= if axis < -100 then ndim(arr) > 0 ∧ ndim(values) > 0
+Rule 13 (Number of elements in values must be positive)
+{values : tensor} |= ∀i ∈ [0, ndim(values) - 1] : shape(values, i) ≥ 0
 >>
-Rule 25 (If arr is a scalar values also should be a scalar)
-{arr : tensor, values : tensor} |= if ndim(arr) = 0 then ndim(values) = 0
+Rule 14 (If the `axis` is specified, the shapes of `arr` and `values` must match along all axes except the one specified by `axis`.)
+{arr : tensor, values : tensor, axis : int} |= ∀i ∈ [0, ndim(arr) - 1]: if i ≠ axis then shape(arr, i) = shape(values, i)
 >>
-Rule 29 (If arr is a scalar, it must have the same dtype as values.)
-{arr : tensor, values : tensor} |= if ndim(arr) = 0 then dtype_(arr) = dtype_(values)
+Rule 19 (If axis is not None, arr and values must have the same number of dimensions.)
+{arr : tensor, values : tensor, axis : int} |= if axis ≥ -100000000 then ndim(arr) = ndim(values)
 >>
-Rule 33 (If both tensors are scalars, their dtypes must be equal)
-{arr : tensor, values : tensor} |= if ndim(arr) = 0 ∧ ndim(values) = 0 then dtype_(arr) = dtype_(values)
+Rule 20 (The axis cannot be larger than the number of dimensions in arr)
+{arr : tensor, axis : int} |= if axis ≥ 0 then axis < ndim(arr)
 >>
-Rule 35 (The dimensions of the tensors should be positive)
-{arr : tensor, values : tensor} |= ndim(arr) ≥ 0 ∧ ndim(values) ≥ 0
+Rule 27 (arr and values must have the same shape, except for the dimension specified by axis)
+{arr : tensor, values : tensor, axis : int} |= ∀i ∈ [0, ndim(arr) - 1] : if i = axis then true else shape(arr, i) = shape(values, i)
 >>
-Rule 47 (If axis is None, both arr and values must have ndim >=0 )
-{arr : tensor, values : tensor, axis : int} |= if axis < -100 then ndim(arr) ≥ 0 ∧ ndim(values) ≥ 0
+Rule 29 (If axis is specified, the axis dimension in values must match the axis dimension in arr)
+{arr : tensor, values : tensor, axis : int} |= if axis ≥ 0 then shape(arr, axis) ≥ 0 ∧ shape(values, axis) ≥ 0
 >>
-Rule 50 (If axis is not None, it must be less than the number of dimensions of both input tensors.)
-{arr : tensor, values : tensor, axis : int} |= if axis ≥ 0 ∨ axis < 0 then axis < ndim(arr) ∧ axis < ndim(values)
+Rule 32 (axis should be less than or equal to the number of dimensions of arr and values)
+{arr : tensor, values : tensor, axis : int} |= if axis > 0 then axis ≤ ndim(arr) ∧ axis ≤ ndim(values)
 >>
-Rule 51 (If axis is not None, then shapes of arr and values must match along every other dimension except axis)
-{arr : tensor, values : tensor, axis : int} |= if axis ≥ 0 ∨ axis < 0 then ∀i ∈ [0, ndim(arr) - 1] : (i = axis) ∨ (shape(arr, i) = shape(values, i))
+Rule 34 (values should have dimension > 0.)
+{values : tensor} |= ndim(values) > 0
 >>
-Rule 52 (If axis is None and arr and values have ndim greater than 0, then arr and values must have the same dtype.)
-{arr : tensor, values : tensor, axis : int} |= if axis < -100 ∧ ndim(arr) > 0 ∧ ndim(values) > 0 then dtype_(arr) = dtype_(values)
+Rule 36 (if axis=None, both arrays are flattened)
+{arr : tensor, values : tensor, axis : int} |= if axis < -100000 then ndim(arr) = 1 ∧ ndim(values) = 1
 >>
-Rule 59 (The dtype for both arr and values tensor cannot be a string)
-{arr : tensor, values : tensor} |= dtype_(arr) ≠ 11 ∧ dtype_(values) ≠ 11
+Rule 37 (if axis is given, shapes of arr and values must match except for axis)
+{arr : tensor, values : tensor, axis : int} |= if axis > -100000 then ∀i ∈ [0, ndim(arr) - 1] : if i ≠ axis then shape(arr, i) = shape(values, i)
 >>
-Rule 67 (If axis is None, then the resulting tensor is always 1D)
-{axis: int} |= if axis < -100 then true
+Rule 39 (If axis is not None, dimensions of the input tensors should be greater than 0.)
+{arr : tensor, values : tensor, axis : int} |= if axis ≥ -100000000 then ndim(arr) > 0 ∧ ndim(values) > 0
 >>
-Rule 71 (If axis is defined, the axis cannot exceed the number of dimension of arr, the number of axis is less than ndim)
-{arr : tensor, axis : int} |= if axis ≥ 0 ∨ axis < 0 then axis < ndim(arr)
+Rule 41 (values needs to have same number of dimensions of arr)
+{arr : tensor, values : tensor} |=  ndim(values) = ndim(arr)
 >>
-Rule 72 (When axis is None, dtype of arr must equal to dtype of values)
-{arr: tensor, values: tensor, axis: int} |= if axis < -100 then dtype_(arr) = dtype_(values)
+Rule 43 (Check if dtype of tensors arr and values are same)
+{arr: tensor, values: tensor} |= dtype_(arr) = dtype_(values)
 >>
-Rule 83 (If axis is None, then resulting array is flattened regardless of what arr and values are.)
-{axis : int} |= if axis < -100 then true
+Rule 47 (If no axis is specified, the function flattens both input arrays)
+{arr: tensor, values: tensor, axis: int} |= if axis < -1000000 then ndim(arr) = 1 ∧ ndim(values) = 1
 >>
-Rule 84 (If axis is not None, the values should have at least one dimension.)
-{values: tensor, axis : int} |= if axis >= 0 ∨ axis < 0 then ndim(values) > 0
+Rule 49 (values should have positive values)
+{values : tensor} |= min(values) ≥ 0
 >>
-Rule 90 (If axis is provided then number of dimensions has to be at least one for values )
-{values : tensor, axis : int} |= if axis >= 0 ∨ axis < 0 then ndim(values) > 0
+Rule 51 (If axis is None, both input arrays are flattened)
+{arr : tensor, values : tensor, axis : int} |= if axis < -1000000 then ndim(arr) = 1 ∧ ndim(values) = 1
 >>
-Rule 94 (if axis exists, values must have at least one dimension)
-{values: tensor, axis: int} |= if axis ≥ 0 ∨ axis < 0 then ndim(values) > 0
+Rule 52 (The size of the axis specified in arr should match the size of the axis specified in values)
+{arr : tensor, values : tensor, axis : int} |= if axis ≥ 0 then shape(arr,axis) ≥ 0 ∧ shape(values,axis) ≥ 0
 >>
-Rule 98 (Axis has to be smaller than ndim (values).)
-{values: tensor, axis : int} |= if axis >= 0 ∨ axis < 0 then axis < ndim(values)
+Rule 60 (If axis is provided, shape of values should match the shape of arr except at axis.)
+{arr : tensor, values : tensor, axis : int} |= if axis > -1000000 then ∀i ∈ [0, ndim(arr) - 1] : if i = axis then true else shape(arr, i) = shape(values, i)
 >>
-Rule 110 (If axis is provided, dtypes have to match.)
-{arr : tensor, values : tensor, axis : int} |= if axis >= 0 ∨ axis < 0 then dtype_(arr) = dtype_(values)
+Rule 62 (If both arr and values are empty, the result should also be empty.)
+{arr : tensor, values : tensor} |= if (∀i ∈ [0, ndim(arr) - 1]: shape(arr, i) = 0) ∧ (∀i ∈ [0, ndim(values) - 1]: shape(values, i) = 0) then true
 >>
-Rule 112 (If axis is not None, values must be a tensor.)
-{values : tensor, axis : int} |= if axis >= 0 ∨ axis < 0 then ndim(values) ≥ 0
+Rule 63 (If axis is not None then the number of dimensions of `arr` and `values` should be same.)
+{arr : tensor, values : tensor, axis : int} |= if axis > -1000000 then ndim(arr) = ndim(values)
 >>
-Rule 114 (If axis is not None, the axis must be less than the number of dimensions of arr)
-{arr : tensor, axis : int} |= if axis >= 0 ∨ axis < 0 then axis < ndim(arr)
+Rule 64 (arr and values tensors must be non-empty if axis is given)
+{arr: tensor, values:tensor, axis:int} |= if axis > -1000000 then (∀i ∈ [0, ndim(arr) - 1] : shape(arr, i) > 0) ∧ (∀i ∈ [0, ndim(values) - 1] : shape(values, i) > 0)
 >>
-Rule 120 (Axis needs to be less than dimension of values)
-{values: tensor, axis: int} |= if axis >= 0 ∨ axis < 0 then axis < ndim(values)
+Rule 70 (Number of dimensions of arr and values should be greater than zero.)
+{arr: tensor, values: tensor} |= ndim(arr) > 0 ∧ ndim(values) > 0
 >>
-Rule 127 (if array is scalar, and values has ndim, then the dtypes must be same.)
-{arr: tensor, values: tensor} |= if ndim(arr) = 0 ∧ ndim(values) > 0 then dtype_(arr) = dtype_(values)
+Rule 71 (Axis cannot be None, if arr is empty)
+{arr: tensor, axis: int} |= if ∃i ∈ [0, ndim(arr) -1] : shape(arr, i) = 0 then axis > -100000
 >>
-Rule 128 (If values is a scalar, then it must have same dtype as arr if axis is None.)
-{arr: tensor, values: tensor, axis : int} |= if axis < -100 ∧ ndim(values) = 0 then dtype_(arr) = dtype_(values)
+Rule 72 (Axis cannot be None, if values is empty)
+{values: tensor, axis: int} |= if ∃i ∈ [0, ndim(values) -1] : shape(values, i) = 0 then axis > -100000
 >>
-Rule 129 (If values is not a scalar and axis is none, then the dtypes must be same.)
-{arr: tensor, values: tensor, axis : int} |= if axis < -100 ∧ ndim(values) > 0 then dtype_(arr) = dtype_(values)
+Rule 76 (Both array and values should have non-negative dimensions)
+{arr: tensor, values: tensor} |= ∀i ∈ [0, ndim(arr) - 1] : shape(arr, i) ≥ 0 ∧ ∀i ∈ [0, ndim(values) - 1] : shape(values, i) ≥ 0
 >>
-Rule 130 (If axis exists, then number of dimension of the values has to be greater or equal than zero, it must be a tensor.)
-{values: tensor, axis : int} |= if axis >= 0 ∨ axis < 0 then ndim(values) >=0
+Rule 77 (if axis not specified, both arrays will be flattened )
+{arr: tensor, values: tensor, axis: int} |= if axis < -100000000 then ndim(arr) = 1 ∧ ndim(values) = 1
+>>
+Rule 79 (arrays are flattened and then concatenated if axis is not specified)
+{arr: tensor, values: tensor, axis: int} |= if axis < -100000 then ndim(arr) = 1 ∧ ndim(values) = 1
+>>
+Rule 81 (If axis is provided the dimension of arr and value should match at that particular axis)
+{arr: tensor, values: tensor, axis: int} |= if axis > -1000000 then shape(arr, axis) > 0 ∧ shape(values, axis) > 0
+>>
+Rule 84 (Number of dimensions for arr and values must be same )
+{arr : tensor, values : tensor} |= ndim(arr) = ndim(values)
+>>
+Rule 87 (Shape compatibility when axis is specified )
+{arr: tensor, values: tensor, axis: int} |= if axis > -100000 then shape(arr, axis) = shape(values, axis)
+>>
+Rule 90 ( If the number of dimensions of arr is 0 raise an error. )
+{arr: tensor} |= ndim(arr) > 0
+>>
+Rule 92 (arr needs to have at least one dimension.)
+{arr : tensor} |= ndim(arr) ≥ 1
+>>
+Rule 95 (If values is scalar values then the shape of values has to be same as shape of array.)
+{arr: tensor, values: tensor} |= if ndim(values) = 0 then ∀i ∈ [0, ndim(arr) - 1]: shape(arr, i) = 1
+>>
+Rule 97 (If number of dimensions is 0 for arr or values then the appending will work only if axis = None and both flattens )
+{arr : tensor, values : tensor, axis : int} |= if (ndim(arr) = 0 ∨ ndim(values) = 0) then axis < -100000000
+>>
+Rule 99 ( If values does not have shape same as array and axis specified then it gets broadcasted. )
+{arr: tensor, values: tensor, axis: int} |= if (∀i ∈ [0, ndim(arr) -1] : shape(arr, i) = shape(values,i) ) ∨ axis < -100000000 then true
+>>
+Rule 100 (Data type should be same if any value is float16)
+{arr : tensor, values : tensor} |= if dtype_(arr) = 6 ∨ dtype_(values) = 6 then dtype_(arr) = 6 ∧ dtype_(values) = 6
+>>
+Rule 101 (Check positive values to avoid overflow errors if using uint8)
+{arr : tensor, values : tensor} |= if dtype_(arr) = 5 ∨ dtype_(values) = 5 then min(arr) ≥ 0 ∧ min(values) ≥ 0
+>>
+Rule 110 (If input tensors are empty then return empty array )
+{arr : tensor, values : tensor} |= if (∃i ∈ [0, ndim(arr) -1] : shape(arr, i) = 0) ∧ (∃i ∈ [0, ndim(values) -1] : shape(values, i) = 0) then true
+>>
+Rule 112 (Check all dimensions/axes must be non-negative )
+{arr : tensor} |= ∀i ∈ [0, ndim(arr) - 1] : shape(arr, i) ≥ 0
+>>
+Rule 113 (Shape compaitibility when there is an axis )
+{arr: tensor, values:tensor, axis: int} |= if axis > -10000 then (∀i ∈ [0, ndim(arr) - 1] : if i = axis then true else shape(arr, i) = shape(values, i))
+>>
+Rule 118 (If axis is None all the input parameters will be converted to 1-D)
+{arr: tensor, values: tensor, axis:int} |= if axis < -100000000 then ndim(arr) = 1 ∧ ndim(values) = 1

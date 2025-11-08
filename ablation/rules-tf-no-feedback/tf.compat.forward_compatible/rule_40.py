@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Year not negative (Rule 40)
+# If a year is divisible by 400, it is a leap year (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] >= 0) if n else
-          v["arg1_value"] >= 0)
+    s.add(Not(If(v["arg1_value"] % 400 == 0, True, False)) if n else
+          If(v["arg1_value"] % 400 == 0, True, False))
 )
 
 def rule_40_func(arg1, solver=None, neg=False):

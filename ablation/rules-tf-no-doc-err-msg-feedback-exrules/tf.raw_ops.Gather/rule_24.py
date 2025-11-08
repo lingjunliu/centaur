@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The output shape must be consistent with params and indices shapes given batch_dims (Rule 24)
+# If batch_dims is equal to the rank of params, then the rank of indices must be greater or equal to batch_dims (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(And((v["arg1_ndim"] >= v["arg3_value"]), (v["arg2_ndim"] >= v["arg3_value"]))) if n else
-          And((v["arg1_ndim"] >= v["arg3_value"]), (v["arg2_ndim"] >= v["arg3_value"])))
+    s.add(Not(If(v["arg3_value"] == v["arg1_ndim"], v["arg2_ndim"] >= v["arg3_value"], True)) if n else
+          If(v["arg3_value"] == v["arg1_ndim"], v["arg2_ndim"] >= v["arg3_value"], True))
 )
 
 def rule_24_func(arg1, arg2, arg3, solver=None, neg=False):

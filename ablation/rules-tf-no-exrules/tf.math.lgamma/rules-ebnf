@@ -1,45 +1,75 @@
 >>
-Rule 1 (Input tensor x must be of type bfloat16, half, float32, or float64)
-{x : tensor} |= (dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) ∨ (dtype_(x) = 10)
+Rule 1 (x must be a floating-point tensor: bfloat16, half, float32, or float64. This prevents the InvalidArgumentError when x is of type bool.)
+{v_1 : tensor} |= (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9)
 >>
-Rule 2 (Input tensor x cannot be of type bool)
-{x : tensor} |= dtype_(x) ≠ 0
+Rule 5 (A more explicit type check using union type.  x must be either float32 or float64)
+{v_1 : tensor} |= (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9)
 >>
-Rule 3 (Input tensor x cannot be of type int32)
-{x : tensor} |= dtype_(x) ≠ 3
+Rule 6 (x must be a floating-point tensor: bfloat16, half, float32, or float64. This prevents the InvalidArgumentError when x is of type bool.)
+{v_1 : tensor} |= (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9)
 >>
-Rule 4 (Name parameter should not be empty string)
-{name : str} |= name ≠ ""
+Rule 8 (x's values should not lead to domain errors. x > 0 to avoid inf)
+{v_1 : tensor} |= min(v_1) > 0
 >>
-Rule 6 (Name parameter can be an empty string)
-{name : str} |= (name = "") ∨ (name ≠ "")
+Rule 15 (x's values should not lead to domain errors. x > 0 to avoid inf.  Using a more complex expression to avoid simple duplication.)
+{v_1 : tensor} |= if min(v_1) < 0 then false
 >>
-Rule 7 (Input tensor x must be of type bfloat16, half, float32, or float64)
-{x : tensor} |= (dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) ∨ (dtype_(x) = 9)
+Rule 18 (x's values should not lead to domain errors. Avoid non-positive integers.)
+{v_1 : tensor} |= ∃ v_3 ∈ [0, ndim(v_1) - 1] : (min(v_1) > 0)
 >>
-Rule 16 (Name parameter must not be None)
-{name : str} |= name ≠ "none"
+Rule 22 (x's values must not be non-positive integers. Preventing domain errors that lead to inf/NaN.)
+{v_1 : tensor} |= ∀ v_3 ∈ [0, ndim(v_1) - 1] : (v_1[v_3] > 0)
 >>
-Rule 17 (Elements of input x should not lead to DomainError.)
-{x : tensor} |= ∀ i ∈ [0, ndim(x)] : x[i] > 0
+Rule 28 (The dimensions of input tensor must be within a reasonable bound)
+{v_1 : tensor} |= ndim(v_1) < 10
 >>
-Rule 18 (Check that the tensor contains floats.)
-{x : tensor} |= (dtype_(x) = 7) ∨ (dtype_(x) = 8)
+Rule 30 (x's values must not be non-positive integers, to prevent domain errors. Rewritten to avoid duplication.)
+{v_1 : tensor} |= if min(v_1) ≤ 0 then false
 >>
-Rule 23 (Elements of input x should be positive to avoid DomainError.)
-{x : tensor} |= ∀ i ∈ [0, ndim(x)] : x[i] > 0.0
+Rule 37 (Ensure the tensor has non-zero dimensions by checking its rank)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 26 (Enforce allowed data types, excluding bool)
-{x : tensor} |= if dtype_(x) = 0 then false
+Rule 45 (Shape is bounded to prevent extremely large tensors which may cause memory issues.)
+{v_1 : tensor} |= ndim(v_1) < 5
 >>
-Rule 27 (Enforce allowed data types, excluding int32)
-{x : tensor} |= if dtype_(x) = 3 then false
+Rule 51 (Combined rules: Ensure x is not an empty tensor and its values are positive.)
+{v_1 : tensor} |= (ndim(v_1) > 0) ∧ (if min(v_1) ≤ 0 then false)
 >>
-Rule 34 (Name parameter should not be 'none')
-{name : str} |= if name = "none" then false
+Rule 55 (If x's dtype is float32, prevent the maximum absolute value from exceeding a limit to avoid overflow)
+{v_1 : tensor} |= if dtype_(v_1) = 8 then max(v_1) < 1000
 >>
-Rule 61 (Input tensor x must be of type bfloat16, half, float32, or float64 - Exclude Bool)
-{x : tensor} |= (dtype_(x) ≠ 0) ∧ ((dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) ∨ (dtype_(x) = 9))
+Rule 57 (Avoid values that result in infinity or NaN results by enforcing that there are no non-positive values in the tensor)
+{v_1 : tensor} |= ∃ v_2 ∈ [0, ndim(v_1) - 1] : min(v_1) > 0
 >>
-Rule 71 (Input tensor x must be of type bfloat16, half, float32, or float64 - Exclude Bool and Int32)
-{x : tensor} |= (dtype_(x) ≠ 0) ∧ (dtype_(x) ≠ 3) ∧ ((dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) ∨ (dtype_(x) = 9))
+Rule 58 (Ensure x is a valid dtype and contains only valid values to prevent errors.)
+{v_1 : tensor} |= ((dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9)) ∧ (∃ v_2 ∈ [0, ndim(v_1) - 1] : min(v_1) > 0)
+>>
+Rule 59 (Combined rule to prevent invalid dtypes and ensure positivity of tensor elements, addressing both the InvalidArgumentError and domain errors.)
+{v_1 : tensor} |= ((dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9)) ∧ (∀ v_2 ∈ [0, ndim(v_1) - 1] : v_1[v_2] > 0)
+>>
+Rule 60 (Combined rule to enforce valid dtypes and positivity, and limit the magnitude of values for float32 tensors)
+{v_1 : tensor} |= ((dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9)) ∧ (∀ v_2 ∈ [0, ndim(v_1) - 1] : v_1[v_2] > 0) ∧ (if dtype_(v_1) = 8 then max(v_1) < 1000)
+>>
+Rule 61 (Comprehensive rule: Enforce valid dtypes, positivity, and size limits.)
+{v_1 : tensor} |= ((dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9)) ∧ (∀ v_2 ∈ [0, ndim(v_1) - 1] : v_1[v_2] > 0) ∧ (ndim(v_1) < 5)
+>>
+Rule 63 (dtype of x must be in the allowed list and can't be bool)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 68 (Valid dtypes are bfloat16, half, float32, or float64 and has at least one element)
+{v_1 : tensor} |= ((dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9)) ∧ ndim(v_1) > 0
+>>
+Rule 72 (x must have a valid floating-point dtype, must not have non-positive elements, and should be reasonably sized.)
+{v_1 : tensor} |= ((dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9)) ∧ (min(v_1) > 0) ∧ (ndim(v_1) < 5)
+>>
+Rule 73 (comprehensive rule: valid floating-point type, no non-positive values)
+{v_1 : tensor} |= ((dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9)) ∧ ∃ v_2 ∈ [0, ndim(v_1) - 1] : min(v_1) > 0
+>>
+Rule 74 (Combined rule: dtype and value constraints to prevent both InvalidArgument and math domain errors)
+{v_1 : tensor} |= ((dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9)) ∧ (min(v_1) > 0)
+>>
+Rule 75 (Combined rule checking dtype, dimensions and values)
+{v_1 : tensor} |= ((dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9)) ∧ (ndim(v_1) > 0) ∧ (min(v_1) > 0)
+>>
+Rule 76 (x must be a non-boolean tensor with positive values to avoid errors)
+{v_1 : tensor} |= (dtype_(v_1) ≠ 0) ∧ (min(v_1) > 0)

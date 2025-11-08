@@ -1,21 +1,108 @@
 >>
-Rule 1 (Input tensor 'x' should not be of boolean type to avoid InvalidArgumentError related to allowed 'T' values in Sum operation)
+Rule 1 (Input tensor should not be of boolean type to avoid InvalidArgumentError)
 {x : tensor} |= dtype_(x) ≠ 0
 >>
-Rule 2 (Input tensor 'x' must be at least 2-dimensional to avoid InvalidArgumentError in MatrixDiagPartV3)
+Rule 2 (Input tensor dimension should be at least 2 to avoid InvalidArgumentError)
 {x : tensor} |= ndim(x) ≥ 2
 >>
-Rule 4 (Input tensor 'x' must have a valid shape)
-{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
+Rule 3 (Input tensor should have a dtype in the allowed list to avoid InvalidArgumentError)
+{x : tensor} |= dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 3 ∨ dtype_(x) = 5 ∨ dtype_(x) = 2 ∨ dtype_(x) = 1 ∨ dtype_(x) = 9 ∨ dtype_(x) = 4 ∨ dtype_(x) = 14 ∨ dtype_(x) = 16 ∨ dtype_(x) = 10 ∨ dtype_(x) = 6 ∨ dtype_(x) = 17 ∨ dtype_(x) = 18
 >>
-Rule 9 (Input tensor 'x' dimensions should be greater than 1)
-{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 1
+Rule 5 (The last two dimensions of the input tensor should be equal to avoid errors during trace calculation)
+{x : tensor} |= shape(x, ndim(x) - 1) = shape(x, ndim(x) - 2)
 >>
-Rule 14 (Inner dimensions of x must be greater than 0)
-{x : tensor} |= shape(x, ndim(x) - 1) > 0 ∧ shape(x, ndim(x) - 2) > 0
+Rule 6 (Input tensor should not have dimensions equal to zero to prevent errors during calculation)
+{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) ≠ 0
 >>
-Rule 19 (The last two dimensions of input x must exist and be greater than 0)
-{x : tensor} |= ndim(x) ≥ 2 ∧ shape(x, ndim(x) - 1) > 0 ∧ shape(x, ndim(x) - 2) > 0
+Rule 7 (If input tensor's ndim is greater than 2, the last two dimensions must be greater than 0)
+{x : tensor} |= if ndim(x) > 2 then shape(x, ndim(x) - 1) > 0 ∧ shape(x, ndim(x) - 2) > 0
 >>
-Rule 39 (Inner dimensions must be positive integers.)
-{x : tensor} |= shape(x, ndim(x) - 1) > 0 ∧ shape(x, ndim(x) - 2) > 0 ∧ ndim(x) ≥ 2
+Rule 9 (The name parameter, if provided, should not be an empty string)
+{name : str} |= name ≠ ""
+>>
+Rule 10 (The name parameter, if provided, should be a valid string from the allowed list)
+{name : str} |= name = "ii" ∨ name = "ii->i" ∨ name = "i,j->ij" ∨ name = "bij,bjk->bik" ∨ name = "...ij->...ji" ∨ name = "bn,anm,bm->ba" ∨ name = "none" ∨ name = "sum" ∨ name = "max" ∨ name = "min" ∨ name = "prod" ∨ name = "relu" ∨ name = "tanh" ∨ name = "sigmoid" ∨ name = "softmax" ∨ name = "elu" ∨ name = "selu" ∨ name = "gelu" ∨ name = "swish" ∨ name = "softplus" ∨ name = "linear" ∨ name = "valid" ∨ name = "same" ∨ name = "causal" ∨ name = "channels_last" ∨ name = "channels_first"
+>>
+Rule 11 (The shape of tensor x should not be unknown.)
+{x : tensor} |= ∃i ∈ [0, ndim(x) - 1] : shape(x, i) ≠ -1
+>>
+Rule 13 (The input tensor x must have numerical dtype to avoid invalid argument error)
+{x : tensor} |= dtype_(x) = 1 ∨ dtype_(x) = 2 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 5 ∨ dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10 ∨ dtype_(x) = 11 ∨ dtype_(x) = 17 ∨ dtype_(x) = 18
+>>
+Rule 14 (The input tensor x must have a valid dtype)
+{x : tensor} |= dtype_(x) = 1 ∨ dtype_(x) = 2 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 5 ∨ dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10 ∨ dtype_(x) = 11 ∨ dtype_(x) = 14 ∨ dtype_(x) = 17 ∨ dtype_(x) = 18
+>>
+Rule 15 (If the tensor x's dtype is complex, it should be either complex64 or complex128)
+{x : tensor} |= if dtype_(x) = 9 then true else if dtype_(x) = 10 then true else if dtype_(x) = 11 then false
+>>
+Rule 16 (The last two dimensions of x can not be unknown if ndim(x) >=2)
+{x : tensor} |= if ndim(x) >=2 then shape(x, ndim(x)-1) != -1 ∧ shape(x, ndim(x)-2) != -1 else True
+>>
+Rule 17 (If x is an integer type, the trace should be also integer type.)
+{x : tensor} |= if (dtype_(x) = 1 ∨ dtype_(x) = 2 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 5) then true
+>>
+Rule 18 (The shape of the input tensor must be known)
+{x : tensor} |= ∀i ∈ [0, ndim(x) - 1] : shape(x, i) > 0 ∨ shape(x, i) = -1
+>>
+Rule 19 (If ndim(x) = 2, the shape of x[0] must be greater than zero)
+{x : tensor} |= if ndim(x) = 2 then shape(x, 0) > 0
+>>
+Rule 20 (if ndim(x) = 2, the shape of x[1] must be greater than zero)
+{x : tensor} |= if ndim(x) = 2 then shape(x, 1) > 0
+>>
+Rule 22 (If the input tensor is complex64, it can be promoted to complex128)
+{x: tensor} |= if dtype_(x) = 9 then true
+>>
+Rule 23 (If the input tensor is bfloat16 then it should be promoted to float32 or higher precision )
+{x: tensor} |= if dtype_(x) = 14 then true
+>>
+Rule 24 (if ndim(x) > 2, then the last two dimensions should have the same size.)
+{x : tensor} |= if ndim(x) > 2 then shape(x, ndim(x) - 1) = shape(x, ndim(x) - 2)
+>>
+Rule 25 (Input tensor x must have the same size in the last two dimensions if it is a matrix.)
+{x : tensor} |= if ndim(x) = 2 then shape(x, 0) = shape(x, 1)
+>>
+Rule 27 (The shape of input tensor should not be empty)
+{x : tensor} |= ∃i ∈ [0, ndim(x)-1] : shape(x, i) > 0
+>>
+Rule 28 (If the input tensor is half then it should be promoted to float32 or higher precision )
+{x: tensor} |= if dtype_(x) = 17 then true
+>>
+Rule 29 (If x is a float16, the trace should be promoted to float32 or higher)
+{x : tensor} |= if dtype_(x) = 6 then true
+>>
+Rule 30 (If ndim is at least 2 then the last two dimensions should be defined.)
+{x : tensor} |= if ndim(x) >= 2 then shape(x, ndim(x)-1) > 0 ∧ shape(x, ndim(x)-2) > 0 else True
+>>
+Rule 31 (The number of dimensions must be an integer.)
+{x : tensor} |= ndim(x) = 0 ∨ ndim(x) = 1 ∨ ndim(x) = 2 ∨ ndim(x) = 3 ∨ ndim(x) = 4 ∨ ndim(x) = 5 ∨ ndim(x) = 6 ∨ ndim(x) = 7 ∨ ndim(x) = 8
+>>
+Rule 34 (The input tensor can be only of these dtypes allowed by Sum op)
+{x: tensor} |= dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 3 ∨ dtype_(x) = 5 ∨ dtype_(x) = 2 ∨ dtype_(x) = 1 ∨ dtype_(x) = 9 ∨ dtype_(x) = 4 ∨ dtype_(x) = 14 ∨ dtype_(x) = 15 ∨ dtype_(x) = 16 ∨ dtype_(x) = 17 ∨ dtype_(x) = 18
+>>
+Rule 35 (At least one dimension of the tensor should be known.)
+{x: tensor} |= ∃i ∈ [0, ndim(x)-1] : shape(x, i) > 0 ∨ shape(x, i) = -1
+>>
+Rule 36 (Both dimension should be greater than 0)
+{x : tensor} |= if ndim(x) >= 2 then (shape(x, ndim(x) -1) > 0) ∧ (shape(x, ndim(x)-2) > 0) else True
+>>
+Rule 37 (The allowed dtypes are in the list)
+{x : tensor} |= dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 3 ∨ dtype_(x) = 5 ∨ dtype_(x) = 2 ∨ dtype_(x) = 1 ∨ dtype_(x) = 9 ∨ dtype_(x) = 4 ∨ dtype_(x) = 14 ∨ dtype_(x) = 10 ∨ dtype_(x) = 6 ∨ dtype_(x) = 17 ∨ dtype_(x) = 16
+>>
+Rule 38 (If a tensor has fewer than two dimensions, it is considered not to be a valid matrix.)
+{x : tensor} |= if ndim(x) < 2 then false
+>>
+Rule 40 (if the tensor has more than two dim, its last two dimension sizes must be positive)
+{x: tensor} |= if ndim(x) > 1 then shape(x, ndim(x) - 1) > 0 ∧ shape(x, ndim(x) - 2) > 0
+>>
+Rule 41 (The last two dimension can not be zero if x is not empty )
+{x: tensor} |= if (∀i ∈ [0, ndim(x) -1] : shape(x, i) > 0 ) then if ndim(x) > 1 then (shape(x, ndim(x)-1) > 0 ∧ shape(x, ndim(x)-2) > 0) else True else True
+>>
+Rule 42 (If dtype of x is in the allowed list, keepdims should be bool type)
+{x: tensor} |= if dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 3 ∨ dtype_(x) = 5 ∨ dtype_(x) = 2 ∨ dtype_(x) = 1 ∨ dtype_(x) = 9 ∨ dtype_(x) = 4 ∨ dtype_(x) = 14 ∨ dtype_(x) = 16 ∨ dtype_(x) = 17 ∨ dtype_(x) = 18 then True else True
+>>
+Rule 43 (Shape of x should be defined at least last two dimensions if tensor dimension is greater than 1.)
+{x: tensor} |= if ndim(x) > 1 then (shape(x, ndim(x) - 1) > 0 ∨ shape(x, ndim(x) - 1) = -1) ∧ (shape(x, ndim(x) - 2) > 0 ∨ shape(x, ndim(x) - 2) = -1) else True
+>>
+Rule 44 (If tensor is an integer type promote it to float)
+{x: tensor} |= if dtype_(x) = 1 ∨ dtype_(x) = 2 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 5 then False else True

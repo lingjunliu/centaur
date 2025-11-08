@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# dtype must be a valid dtype (Rule 2)
+# The alpha parameter must be greater than zero (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(And((v["arg1_value"] >= 0), (v["arg1_value"] <= 12))) if n else
-          And((v["arg1_value"] >= 0), (v["arg1_value"] <= 12)))
+    s.add(Not(Select(v["arg1_range"], 0) > 0) if n else
+          Select(v["arg1_range"], 0) > 0)
 )
 
 def rule_2_func(arg1, solver=None, neg=False):
@@ -17,20 +17,21 @@ def rule_2_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 2
-        rule_2(solver, {'arg1_value': arg1_value})
+        rule_2(solver, {'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_2(solver, {'arg1_value': arg1['value']}, neg)
+        rule_2(solver, {'arg1_range': arg1['range']}, neg)

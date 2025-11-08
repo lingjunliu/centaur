@@ -1,0 +1,105 @@
+>>
+Rule 1 (The exponent tensor must have the same dtype as the base tensor, or be integer/floating-point)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∨ dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 2 (The shapes of base and exponent must be broadcastable.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)
+>>
+Rule 3 (If both tensors are scalars, the result is a scalar.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0 ∧ ndim(v_2) = 0) ∨ (ndim(v_1) > 0 ∨ ndim(v_2) > 0)
+>>
+Rule 4 (If base tensor's dtype is complex, exponent tensor cannot be bool type)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) ≠ 0
+>>
+Rule 5 (If exponent tensor's dtype is bool, base tensor cannot be complex type)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 0 then dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+>>
+Rule 6 (If base tensor is integer type, then exponent tensor must be integer type.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5
+>>
+Rule 7 (If the exponent is a scalar 2.0 and base dtype is float16, float32, or float64, then the output dtype must match base dtype)
+{v_1 : tensor, v_2 : float} |= if v_2 = 2.0 then if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then true else false
+>>
+Rule 8 (Base tensor must have a valid dtype)
+{v_1 : tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 10 (If base's shape is empty, exponent's shape must be empty as well)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
+>>
+Rule 11 (If base tensor is integer type, then exponent tensor must be integer type or float type.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 13 (Pow is not supported for bool type base)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 14 (If exponent is integer and base is complex, then base's complex type must be 64 or 128)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) then if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true
+>>
+Rule 16 (If base tensor is integer type, then exponent tensor cannot be complex.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10
+>>
+Rule 17 (If exponent tensor is integer, base tensor cannot be boolean)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 then dtype_(v_1) ≠ 0
+>>
+Rule 20 (When exponent is scalar and equals -1, then all elements of base tensor must be non-zero to avoid division by zero)
+{v_1 : tensor, v_2 : float} |= if v_2 = -1.0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) > 0 ∨ max(v_1) < 0
+>>
+Rule 21 (The exponent cannot be bool when the base is a floating-point tensor)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_2) ≠ 0
+>>
+Rule 22 (If exponent tensor is floating, base tensor cannot be boolean)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 then dtype_(v_1) ≠ 0
+>>
+Rule 23 (When the base is complex, the exponent must be real (integer or floating-point))
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 25 (When exponent is scalar and equals -1, then all elements of base tensor must be non-zero to avoid division by zero, if base is floating point)
+{v_1 : tensor, v_2 : float} |= if v_2 = -1.0 then if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) > 0 ∨ max(v_1) < 0
+>>
+Rule 28 (If base tensor's dtype is int8, int16, int32 or int64, exponent tensor cannot be float16, float32, or float64 )
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then dtype_(v_2) ≠ 6 ∧ dtype_(v_2) ≠ 7 ∧ dtype_(v_2) ≠ 8
+>>
+Rule 29 (If base tensor's dtype is float16, float32, or float64 exponent tensor cannot be int8, int16, int32 or int64)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4 ∧ dtype_(v_2) ≠ 5
+>>
+Rule 32 (When exponent is scalar and equals -1, then all elements of base tensor must be non-zero to avoid division by zero, if base is floating point)
+{v_1 : tensor, v_2 : float} |= if v_2 = -1.0 then if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (min(v_1) > 0 ∨ max(v_1) < 0)
+>>
+Rule 38 (If both base and exponent are integers, the exponent cannot be negative)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) then min(v_2) ≥ 0
+>>
+Rule 39 (If base is integer, exponent needs to be integer, to avoid conversion error.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)
+>>
+Rule 40 (if base is int and exponent is float, then the base must be positive)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) then min(v_1) >= 0
+>>
+Rule 47 (When exponent is scalar and equals -1, then all elements of base tensor must be non-zero to avoid division by zero, only if base is float point, double or complex.)
+{v_1 : tensor, v_2 : float} |= if v_2 = -1.0 then if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (min(v_1) > 0 ∨ max(v_1) < 0)
+>>
+Rule 48 (When both base and exponent are integer tensors, then all values of base tensor should be non-negative)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) then min(v_1) >= 0
+>>
+Rule 49 (When base tensor is integer, exponent can be integer or floating.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) ∨ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 50 (If exponent is int tensor and base is float tensor, then Pow is supported)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) then true
+>>
+Rule 60 (If base and exponent are different datatypes promote to higher precision.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) ≠ dtype_(v_2)) then true
+>>
+Rule 61 (Pow operation only supports numerical dtypes)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 12 ∧ dtype_(v_2) ≠ 11 ∧ dtype_(v_2) ≠ 12
+>>
+Rule 65 (Exponent cannot be boolean if base is integer)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then dtype_(v_2) ≠ 0
+>>
+Rule 68 (When the base and exponent are both integer tensors, the values in base tensor should be non-negative. When base is integer, and exponent is floating-point or integer)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then (min(v_1) >= 0) ∧ ((dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) ∨ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8))
+>>
+Rule 69 (Exponent cannot be boolean if base is numerical)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then dtype_(v_2) ≠ 0
+>>
+Rule 70 (When the number of elements in base equals the number of elements in the exponent, then element-wise exponentiation is performed)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = 0) ∨ (∃j ∈ [0, ndim(v_2) - 1]: shape(v_2, j) = 0) ∨ (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i))

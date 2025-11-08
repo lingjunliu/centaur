@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If lower > 1, upper must also be greater than 1 (Rule 35)
+# It is not beneficial to set lower to 1.0 and upper to 1.0 as it won't change the image (Rule 35)
 
 rule_35 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] > 1.0, v["arg2_value"] > 1.0, True)) if n else
-          If(v["arg1_value"] > 1.0, v["arg2_value"] > 1.0, True))
+    s.add(Not(If(And((v["arg1_value"] == 1.0), (v["arg2_value"] == 1.0)), False, True)) if n else
+          If(And((v["arg1_value"] == 1.0), (v["arg2_value"] == 1.0)), False, True))
 )
 
 def rule_35_func(arg1, arg2, solver=None, neg=False):

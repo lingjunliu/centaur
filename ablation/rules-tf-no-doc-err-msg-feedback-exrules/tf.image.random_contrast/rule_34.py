@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The difference between upper and lower bounds should not exceed twice the upper bound (Rule 34)
+# Lower and upper values must be finite (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_value"] - v["arg1_value"] <= 2.0 * v["arg2_value"]) if n else
-          v["arg2_value"] - v["arg1_value"] <= 2.0 * v["arg2_value"])
+    s.add(Not(And((v["arg1_value"] < 10000000000.0), (v["arg2_value"] < 10000000000.0))) if n else
+          And((v["arg1_value"] < 10000000000.0), (v["arg2_value"] < 10000000000.0)))
 )
 
 def rule_34_func(arg1, arg2, solver=None, neg=False):

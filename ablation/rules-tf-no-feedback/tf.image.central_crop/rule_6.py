@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# central_fraction must be a positive number (Rule 6)
+# central_fraction should be a float and 0 < central_fraction <= 1 (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] > 0) if n else
-          v["arg1_value"] > 0)
+    s.add(Not(And((v["arg1_value"] > 0), (v["arg1_value"] <= 1))) if n else
+          And((v["arg1_value"] > 0), (v["arg1_value"] <= 1)))
 )
 
 def rule_6_func(arg1, solver=None, neg=False):

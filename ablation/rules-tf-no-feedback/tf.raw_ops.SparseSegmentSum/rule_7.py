@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# sparse_gradient is a boolean (Rule 7)
+# sparse_gradient must be a boolean (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
     s.add(Not(Or(v["arg1_value"] == True, v["arg1_value"] == False)) if n else

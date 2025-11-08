@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If is_non_singular is false, it should not be used in log_abs_determinant function (Rule 19)
+# Ensuring is_positive_definite is always False (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == False, True, True)) if n else
-          If(v["arg1_value"] == False, True, True))
+    s.add(Not(v["arg1_value"] == False) if n else
+          v["arg1_value"] == False)
 )
 
 def rule_19_func(arg1, solver=None, neg=False):

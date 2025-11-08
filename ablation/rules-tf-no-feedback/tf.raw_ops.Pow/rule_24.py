@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if dtype of x is complex64 or complex128, then dtype of y must be float, int or complex (Rule 24)
+# If x is bfloat16, then y must be bfloat16. (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(If(Or((v["arg1_dtype"] == 9), (v["arg1_dtype"] == 10)), Or(Or(Or(Or(Or(Or(Or((v["arg2_dtype"] == 1), (v["arg2_dtype"] == 2)), (v["arg2_dtype"] == 3)), (v["arg2_dtype"] == 4)), (v["arg2_dtype"] == 7)), (v["arg2_dtype"] == 8)), (v["arg2_dtype"] == 9)), (v["arg2_dtype"] == 10)), True)) if n else
-          If(Or((v["arg1_dtype"] == 9), (v["arg1_dtype"] == 10)), Or(Or(Or(Or(Or(Or(Or((v["arg2_dtype"] == 1), (v["arg2_dtype"] == 2)), (v["arg2_dtype"] == 3)), (v["arg2_dtype"] == 4)), (v["arg2_dtype"] == 7)), (v["arg2_dtype"] == 8)), (v["arg2_dtype"] == 9)), (v["arg2_dtype"] == 10)), True))
+    s.add(Not(If(v["arg1_dtype"] == 6, v["arg2_dtype"] == 6, True)) if n else
+          If(v["arg1_dtype"] == 6, v["arg2_dtype"] == 6, True))
 )
 
 def rule_24_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# year is close to the current year (Rule 37)
+# Month should be a valid month value (Rule 37)
 
 rule_37 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] >= 2010) if n else
-          v["arg1_value"] >= 2010)
+    s.add(Not(And((v["arg1_value"] > 0), (v["arg1_value"] < 13))) if n else
+          And((v["arg1_value"] > 0), (v["arg1_value"] < 13)))
 )
 
 def rule_37_func(arg1, solver=None, neg=False):

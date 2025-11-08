@@ -1,120 +1,132 @@
 >>
-Rule 1 (The input tensor must be 1-dimensional)
-{x : tensor} |= ndim(x) = 1
+Rule 1 (x must be a 1-D tensor)
+{v_1 : tensor} |= ndim(v_1) = 1
 >>
-Rule 2 (The input tensor must be of type int32 or int64)
-{x : tensor} |= dtype_(x) = 3 ∨ dtype_(x) = 4
+Rule 2 (x must have int32 or int64 dtype)
+{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
 >>
-Rule 3 (All values in the input tensor must be non-negative)
-{x : tensor} |= ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ 0
+Rule 3 (x must contain non-negative values)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
 >>
-Rule 4 (All values in the input tensor must be less than the size of the tensor)
-{x : tensor} |= ∀i ∈ [0, shape(x, 0) - 1] : x[i] < shape(x, 0)
+Rule 4 (x must contain unique values)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i + 1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j]
 >>
-Rule 5 (The input tensor must contain 0)
-{x : tensor} |= ∃i ∈ [0, shape(x, 0) - 1] : x[i] = 0
+Rule 5 (x must contain 0)
+{v_1 : tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0
 >>
-Rule 6 (The input tensor must not contain duplicate values)
-{x : tensor} |= ∀i ∈ [0, shape(x, 0) - 1] : ∀j ∈ [i+1, shape(x, 0) - 1] : x[i] ≠ x[j]
+Rule 6 (All values in x must be less than the length of x)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < shape(v_1, 0)
 >>
-Rule 7 (The values in x should be in a valid range to avoid InvalidArgumentError)
-{x : tensor} |= ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ 0 ∧ x[i] ≤ shape(x, 0) - 1
+Rule 7 (x must be a 1-D tensor with int32 or int64 and values within reasonable bounds)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ -10000 ∧ v_1[i] ≤ 10000
 >>
-Rule 8 (All values in x must be representable as int32)
-{x : tensor} |= ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ -2147483648 ∧ x[i] ≤ 2147483647
+Rule 8 (x must contain 0 when x has positive shape)
+{v_1 : tensor} |= if shape(v_1, 0) > 0 then ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0
 >>
-Rule 9 (Avoid large negative values in x)
-{x : tensor} |= min(x) ≥ -10000
+Rule 10 (Check if all values are non-negative)
+{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] >= 0
 >>
-Rule 10 (Values in x should not be too large)
-{x : tensor} |= max(x) < 2147483647
+Rule 11 (Check if all values are within a reasonable upper bound based on int32)
+{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] <= 2147483647
 >>
-Rule 11 (All values in the input tensor must fit within the range of int32 to avoid overflow issues)
-{x : tensor} |= ∀i ∈ [0, shape(x, 0) - 1] : -2147483648 ≤ x[i] ∧ x[i] ≤ 2147483647
+Rule 12 (tensor x's shape must be greater than 0)
+{v_1 : tensor} |= shape(v_1, 0) > 0
 >>
-Rule 12 (Combining range and data type to avoid InvalidArgumentError)
-{x : tensor} |= dtype_(x) = 3 ∧ ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ -2147483648 ∧ x[i] ≤ 2147483647 ∨ dtype_(x) = 4 ∧ ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ -9223372036854775808 ∧ x[i] ≤ 9223372036854775807
+Rule 13 (x must be a 1-D tensor with int32 or int64 and values within reasonable bounds)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ min(v_1) >= -1000 ∧ max(v_1) <= 1000
 >>
-Rule 13 (Input x should not contain values that are too small when data type is int32)
-{x : tensor} |= if dtype_(x) = 3 then min(x) > -2147483648
+Rule 16 (Check if all values are non-negative)
+{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
 >>
-Rule 14 (Input x should not contain values that are too large when data type is int32, specific upper bound)
-{x : tensor} |= if dtype_(x) = 3 then max(x) < 2147483648
+Rule 17 (Check if all values are within a reasonable upper bound based on the shape of the tensor)
+{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < shape(v_1, 0)
 >>
-Rule 15 (Using a single bound for both data type and value range, int32 example)
-{x : tensor} |= if dtype_(x) = 3 then ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ 0 ∧ x[i] < 19
+Rule 19 (x must contain unique values)
+{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [i + 1, shape(v_1, 0) - 1] : v_1[i] ≠ v_1[j]
 >>
-Rule 16 (Checking for large values specifically when the shape is small)
-{x : tensor} |= if shape(x, 0) ≤ 20 then ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ -2147483648 ∧ x[i] ≤ 2147483647
+Rule 20 (x must be a 1-D tensor with int32 or int64 and values within a valid range)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] < shape(v_1, 0)
 >>
-Rule 17 (Combining data type and range check, int64 version)
-{x : tensor} |= if dtype_(x) = 4 then ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ 0 ∧ x[i] < 19
+Rule 23 (Check if all values are non-negative and less than int max)
+{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ 2147483647
 >>
-Rule 18 (More aggressive filtering with a smaller upper bound)
-{x : tensor} |= if shape(x, 0) ≤ 10 then ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ 0 ∧ x[i] < 10
+Rule 26 (Values in x should not be extremely large negative to prevent overflow)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > -2147483648
 >>
-Rule 20 (Limiting shape based on datatype.)
-{x : tensor} |= if dtype_(x) = 3 then shape(x, 0) ≤ 2147483647 else if dtype_(x) = 4 then shape(x, 0) ≤ 9223372036854775807
+Rule 30 (Check if all values are non-negative and not excessively large or small)
+{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] < 2147483647 ∧ v_1[i] > -2147483647
 >>
-Rule 22 (Shape Limit based on Minimum Value.)
-{x : tensor} |= if min(x) >= -100 then shape(x, 0) <= 10000
+Rule 33 (The max value should not be extremely large compared to int32)
+{v_1 : tensor} |= max(v_1) < 2147483647
 >>
-Rule 24 (Addressing InvalidArgumentError using combined conditions)
-{x : tensor} |= (dtype_(x) = 3 ∧ (∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ 0 ∧ x[i] ≤ 18)) ∨ (dtype_(x) = 4 ∧ (∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ 0))
+Rule 34 (The min value should not be extremely small compared to int32)
+{v_1 : tensor} |= min(v_1) > -2147483648
 >>
-Rule 25 (Applying different bound for int32 and int64 datatypes.)
-{x : tensor} |= if dtype_(x) = 3 then (∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ -2147483648 ∧ x[i] ≤ 2147483647) else if dtype_(x) = 4 then (∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ -9223372036854775808 ∧ x[i] ≤ 9223372036854775807)
+Rule 38 (Check if all values are non-negative and not excessively large or small relative to int32 bounds)
+{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] < 2147483647 ∧ v_1[i] > -2147483648
 >>
-Rule 26 (Restrict max value based on shape for int32 to prevent InvalidArgumentError)
-{x : tensor} |= if dtype_(x) = 3 then (max(x) < shape(x, 0) ∧ max(x) <= 18)
+Rule 41 (Values must be within a reasonable range to avoid potential overflow during computation)
+{v_1 : tensor} |= min(v_1) > -100000 ∧ max(v_1) < 100000
 >>
-Rule 27 (Applying bounds based on a conditional shape check)
-{x : tensor} |= if shape(x, 0) < 5 then (∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ -10 ∧ x[i] ≤ 20) else (∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ 0)
+Rule 42 (The error message mentions the range 0-18, adding explicit constraints based on this)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ 18
 >>
-Rule 28 (Limit max value based on shape and datatype using and.)
-{x : tensor} |= if dtype_(x) = 3 then (max(x) ≤ 18 ∧ max(x) < shape(x, 0))
+Rule 46 (Check if all values are non-negative and not excessively large or small relative to int32 bounds)
+{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ -10000 ∧ v_1[i] < 2147483647
 >>
-Rule 29 (Limit max value based on shape and datatype and min value)
-{x : tensor} |= if dtype_(x) = 3 then (max(x) ≤ 18 ∧ max(x) < shape(x, 0) ∧ min(x) >= 0)
+Rule 50 (Values must be a reasonable positive value or zero)
+{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] < 1000
 >>
-Rule 30 (Combining dtype check with value and shape limit)
-{x : tensor} |= if dtype_(x) = 3 then (∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ 0 ∧ x[i] <= 18) ∧ shape(x, 0) <= 1000
+Rule 51 (x must be a 1-D tensor with int32 or int64 and values within the expected range)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ 18
 >>
-Rule 31 (Rejecting based on min value and data type)
-{x : tensor} |= if dtype_(x) = 3 then min(x) >= -1000
+Rule 54 (Check if all values are within reasonable bounds)
+{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ -100 ∧ v_1[i] < 2147483647
 >>
-Rule 32 (Rejecting values based on datatype to address specific InvalidArgumentError)
-{x : tensor} |= if dtype_(x) = 3 then ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ -2147483648 ∧ x[i] ≤ 18
+Rule 57 (Ensure min value is not too negative to trigger the specific error mentioned)
+{v_1 : tensor} |= min(v_1) ≥ -1000
 >>
-Rule 33 (Reject specific range and datatype to prevent InvalidArgumentError)
-{x : tensor} |= if dtype_(x) = 3 then ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ -2147483648 ∧ x[i] ≤ 2147483647
+Rule 58 (Ensure max value is not exceeding the maximum possible index to prevent out of bound errors)
+{v_1: tensor} |= max(v_1) < 1000
 >>
-Rule 34 (Restrict all values)
-{x : tensor} |= ∀i ∈ [0, shape(x, 0) - 1] : x[i] >= 0 ∧ x[i] <= 18
+Rule 59 (x must be a 1-D tensor with int32 or int64)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)
 >>
-Rule 35 (Shape Limitation)
-{x : tensor} |= shape(x, 0) <= 19
+Rule 62 (Values in x must be within the range that avoids the specific error)
+{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ 18
 >>
-Rule 36 (Applying range based on Datatype to address specific error)
-{x : tensor} |= if dtype_(x) = 3 then ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ -2147483648 ∧ x[i] ≤ 18 else if dtype_(x) = 4 then ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ -9223372036854775808 ∧ x[i] ≤ 18
+Rule 65 (Values in x should be reasonable small non-negative integers)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] < 100
 >>
-Rule 37 (Limiting shape based on datatype combined with value bound)
-{x : tensor} |= if dtype_(x) = 3 then (∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ 0 ∧ x[i] <= 18) ∨ shape(x,0) > 19
+Rule 66 (No extremely small values to avoid the error )
+{v_1 : tensor} |= min(v_1) >= -10
 >>
-Rule 39 (Combined value and shape constraints for int32)
-{x : tensor} |= if dtype_(x) = 3 then (∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ 0 ∧ x[i] ≤ 18) ∧ shape(x, 0) ≤ 50
+Rule 67 (x must be a 1-D tensor with int32 or int64 and reasonable values)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > -2147483648 ∧ v_1[i] < 2147483647
 >>
-Rule 41 (Combined restriction based on data type using IF-THEN.)
-{x : tensor} |= if dtype_(x) = 3 then ∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ 0 ∧ x[i] ≤ 18 else if dtype_(x) = 4 then true
+Rule 83 (Values must not be smaller than -2147483648)
+{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > -2147483648
 >>
-Rule 43 (Conditional check on value range dependent on shape)
-{x : tensor} |= if shape(x, 0) < 10 then (∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ 0 ∧ x[i] ≤ 18) else (∀i ∈ [0, shape(x, 0) - 1] : x[i] ≥ -1000 ∧ x[i] ≤ 2000)
+Rule 86 (The value must be within the specific range the error message complains about)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] <= 18
 >>
-Rule 44 (Combined condition over min, max, and shape.)
-{x : tensor} |= (min(x) ≥ 0 ∧ max(x) ≤ 18) ∨ shape(x, 0) > 50
+Rule 93 (No values may be extremely small to avoid overflow)
+{v_1: tensor} |= min(v_1) > -2147483648
 >>
-Rule 46 (Combined condition limiting range using max dependent on datatype)
-{x : tensor} |= if dtype_(x) = 3 then max(x) ≤ 18
+Rule 94 (x must be a 1-D tensor of int32 or int64 with shape > 0)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ shape(v_1, 0) > 0
 >>
-Rule 48 (More conservative values)
-{x: tensor} |=  (min(x) >= -10000) ∧  (max(x) <= 20000)
+Rule 95 (If shape is positive, x must contain 0 and other constraints)
+{v_1 : tensor} |= if shape(v_1, 0) > 0 then (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] < shape(v_1, 0))
+>>
+Rule 100 (x must be a 1-D tensor of int32 or int64 and contain reasonable sized values)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > -10000 ∧ v_1[i] < 2147483647
+>>
+Rule 101 (x must contain 0 if shape(x, 0) > 0 and all its value >=0)
+{v_1 : tensor} |= if shape(v_1, 0) > 0 then (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] >= 0)
+>>
+Rule 107 (x must contain 0 if shape(x,0) > 0 and all elements >=0 and < shape(x,0))
+{v_1 : tensor} |= if shape(v_1, 0) > 0 then (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] >= 0) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < shape(v_1, 0))
+>>
+Rule 112 (No extremely negative value allowed )
+{v_1 : tensor} |= min(v_1) >= -100000

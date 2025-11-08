@@ -1,0 +1,210 @@
+>>
+Rule 1 (The argument num_rows must be a non-negative integer.)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 3 (If batch_shape is provided, it should be a tuple of integers and each value must be non-negative)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+>>
+Rule 4 (The argument dtype must be one of valid data types (index is between 0 and 12 based on given data types))
+{v_1 : int} |= v_1 ≥ 0 ∧ v_1 ≤ 12
+>>
+Rule 5 (The shape of LinearOperatorZeros must match the input dimensions)
+{v_1 : int, v_2: int, v_3: tuple(int)} |= (v_3.len = 0) ∨ (v_1 * v_2 = 1 ∧ v_3.len = 0) ∨ (v_1 ≥ 0 ∧ v_2 ≥ 0 ∧ ∀i ∈ [0, v_3.len - 1] : v_3[i] ≥ 0)
+>>
+Rule 6 (If one of the num_rows or num_cols is zero, the other should be also zero or batch_shape is not empty)
+{v_1 : int, v_2: int, v_3: tuple(int)} |= (v_1 = 0 ∧ v_2 = 0) ∨ (v_1 ≠ 0 ∧ v_2 ≠ 0) ∨ (v_3.len > 0)
+>>
+Rule 7 (num_rows and num_cols cannot be both zero if batch_shape is not empty)
+{v_1 : int, v_2 : int, v_3 : tuple(int)} |= if v_3.len > 0 then (v_1 > 0 ∨ v_2 > 0)
+>>
+Rule 11 (If batch_shape is provided, its length should not exceed a certain limit, say, 5.)
+{v_1 : tuple(int)} |= v_1.len ≤ 5
+>>
+Rule 12 (If batch_shape is provided and num_rows or num_cols are not zero, then their product should be no more than int32 max.)
+{v_1 : int, v_2 : int, v_3 : tuple(int)} |= if v_3.len > 0 then v_1 * v_2 ≤ 2147483647
+>>
+Rule 13 (If num_rows is zero, then num_cols also must be zero.)
+{v_1 : int, v_2 : int} |= if v_1 = 0 then v_2 = 0
+>>
+Rule 15 (If a batch_shape is given, num_rows and num_cols cannot be negative.)
+{v_1 : int, v_2 : int, v_3 : tuple(int)} |= if v_3.len > 0 then (v_1 ≥ 0 ∧ v_2 ≥ 0)
+>>
+Rule 16 (num_rows and num_cols are integers and should be small enough so their product does not overflow)
+{v_1 : int, v_2 : int} |= v_1 * v_2 ≤ 2147483647 ∧ v_1 * v_2 ≥ -2147483648
+>>
+Rule 17 (The shape defined by batch_shape, num_rows and num_cols should not be zero-sized. At least one dimension should be > 0 if other parameters exist)
+{v_1: int, v_2: int, v_3: tuple(int)} |= (v_1 > 0 ∨ v_2 > 0 ∨ v_3.len > 0)
+>>
+Rule 19 (If batch_shape is provided and at least one dimension is zero, then either num_rows or num_cols must also be zero)
+{v_1 : tuple(int), v_2 : int, v_3 : int} |= if (∃i ∈ [0, v_1.len - 1] : v_1[i] = 0) then (v_2 = 0 ∨ v_3 = 0)
+>>
+Rule 20 (The number of elements in batch_shape should not be exceedingly large to prevent potential overflow issues downstream)
+{v_1 : tuple(int)} |= v_1.len ≤ 8
+>>
+Rule 21 (If both num_rows and num_cols are specified as non-zero, then the product of batch_shape elements, num_rows and num_cols should be less than the maximum integer value)
+{v_1 : tuple(int), v_2 : int, v_3 : int} |= if v_2 > 0 ∧ v_3 > 0 then (if v_1.len > 0 then (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0) ∧ (v_2 * v_3) < 2147483647 else (v_2 * v_3) < 2147483647)
+>>
+Rule 22 (If batch_shape is empty tuple, then num_rows and num_cols should not be both equal to zero at the same time.)
+{v_1 : tuple(int), v_2 : int, v_3 : int} |= if v_1.len = 0 then (v_2 > 0 ∨ v_3 > 0)
+>>
+Rule 23 (If num_rows and num_cols are not equal to 1, then batch_shape should not be an empty tuple)
+{v_1: tuple(int), v_2: int, v_3: int} |= if (v_2 ≠ 1 ∨ v_3 ≠ 1) then v_1.len > 0
+>>
+Rule 24 (The dimensions in batch_shape should not be larger than maximum dimension size if num_rows and num_cols are small)
+{v_1 : tuple(int), v_2 : int, v_3 : int} |= if (v_2 < 100 ∧ v_3 < 100) then (∀i ∈ [0, v_1.len - 1] : v_1[i] < 2000)
+>>
+Rule 25 (If the total number of elements is large, then the dimensions in batch_shape cannot be too small.)
+{v_1 : tuple(int), v_2 : int, v_3 : int} |= if v_2 * v_3 > 10000 then (∀i ∈ [0, v_1.len - 1] : v_1[i] > 1)
+>>
+Rule 27 (If num_rows and num_cols are both one, batch shape should fully determine the shape.)
+{v_1: tuple(int), v_2: int, v_3: int} |= if (v_2 = 1 ∧ v_3 = 1) then v_1.len > 0
+>>
+Rule 28 (At least num_rows or num_cols must be greater than 0, otherwise no zero linear operator.)
+{v_1: int, v_2: int} |= v_1 > 0 ∨ v_2 > 0
+>>
+Rule 30 (If all dimensions in batch_shape are one, num_rows and num_cols should not both be zero.)
+{v_1 : tuple(int), v_2 : int, v_3 : int} |= if (∀i ∈ [0, v_1.len - 1] : v_1[i] = 1) then (v_2 > 0 ∨ v_3 > 0)
+>>
+Rule 31 (The dimensions in batch_shape cannot be so small, leading to zero linear operator)
+{v_1 : tuple(int), v_2 : int, v_3 : int} |= if (v_2 = 0 ∨ v_3 = 0) then (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0)
+>>
+Rule 32 (Shape must be less than certain value, like 2048, otherwise, it will lead to memory issue)
+{v_1: int} |= v_1 ≤ 2048
+>>
+Rule 33 (If num_rows and num_cols are specified, at least one of the dimensions in batch_shape should be less than 2048.)
+{v_1: tuple(int), v_2: int, v_3: int} |= if (v_2 > 0 ∧ v_3 > 0) then (∃i ∈ [0, v_1.len - 1] : v_1[i] < 2048)
+>>
+Rule 34 (If num_rows is much greater than num_cols, then at least one element of batch_shape must be smaller than num_cols.)
+{v_1: tuple(int), v_2: int, v_3: int} |= if v_2 > 10 * v_3 then (∃i ∈ [0, v_1.len - 1] : v_1[i] < v_3)
+>>
+Rule 35 (if num_cols is much greater than num_rows, then at least one element of batch_shape must be smaller than num_rows)
+{v_1: tuple(int), v_2: int, v_3: int} |= if v_3 > 10 * v_2 then (∃i ∈ [0, v_1.len - 1] : v_1[i] < v_2)
+>>
+Rule 36 (If num_rows and num_cols are both zero, batch_shape must exist and its size be at least one)
+{v_1: tuple(int), v_2: int, v_3: int} |= if v_2 = 0 ∧ v_3 = 0 then v_1.len > 0
+>>
+Rule 37 (If num_rows = 1 or num_cols = 1, product of batch_shape elements should be less than a limit)
+{v_1: tuple(int), v_2: int, v_3: int} |= if (v_2 = 1 ∨ v_3 = 1) then (if v_1.len > 0 then (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0) ∧ (v_2 * v_3) < 10000 else (v_2 * v_3) < 10000)
+>>
+Rule 38 (The shape defined by batch_shape should have reasonable size)
+{v_1: tuple(int)} |= if v_1.len > 0 then (∀i ∈ [0, v_1.len - 1] : v_1[i] ≤ 4096)
+>>
+Rule 40 (If the size of at least one dimension in batch_shape is 1, num_rows and num_cols must be limited)
+{v_1 : tuple(int), v_2 : int, v_3 : int} |= if (∃i ∈ [0, v_1.len - 1] : v_1[i] = 1) then (v_2 < 10000 ∧ v_3 < 10000)
+>>
+Rule 41 (If dtype is complex, num_rows, num_cols should not have the max int32 value)
+{v_1 : int, v_2 : int, v_3 : int} |= if v_3 = 9 ∨ v_3 = 10 then (v_1 < 2147483647 ∧ v_2 < 2147483647)
+>>
+Rule 42 (If the linear operator is small enough (10x10), batch_shape cannot have many dimensions)
+{v_1: tuple(int), v_2: int, v_3: int} |= if (v_2 < 10 ∧ v_3 < 10) then v_1.len ≤ 3
+>>
+Rule 43 (When the num_rows/num_cols are relatively small, the product of batch_shape should be less than 2^20)
+{v_1: tuple(int), v_2: int, v_3: int} |= if v_2 < 100 ∧ v_3 < 100 then (if v_1.len > 0 then (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0) ∧ (v_2 * v_3) < 1048576 else (v_2 * v_3) < 1048576)
+>>
+Rule 44 (If num_rows is much greater than num_cols, then all elements of batch_shape cannot be too large)
+{v_1 : tuple(int), v_2 : int, v_3 : int} |= if v_2 > 1000 * v_3 then (∀i ∈ [0, v_1.len - 1] : v_1[i] < 100000)
+>>
+Rule 45 (The number of elements in batch_shape should not be significantly greater than num_rows/num_cols when either of them is relatively small)
+{v_1 : tuple(int), v_2 : int, v_3 : int} |= if (v_2 < 100 ∨ v_3 < 100) then v_1.len ≤ 4
+>>
+Rule 46 (if num_rows is zero, num_cols must be less than a threshold if batch_shape is empty)
+{v_1 : tuple(int), v_2 : int, v_3 : int} |= if v_2 = 0 ∧ v_1.len = 0 then v_3 < 1000
+>>
+Rule 48 (If num_rows and num_cols are greater than 1, batch_shape can not be an empty tuple and at least one of the elements should be positive.)
+{v_1: tuple(int), v_2: int, v_3: int} |= if (v_2 > 1 ∧ v_3 > 1) then v_1.len > 0 ∧ (∃i ∈ [0, v_1.len - 1] : v_1[i] > 0)
+>>
+Rule 49 (If num_rows is much greater than num_cols, then all elements of batch_shape should be within a range of each other)
+{v_1 : tuple(int), v_2 : int, v_3 : int} |= if v_2 > 100 * v_3 ∧ v_1.len > 1 then (∀i ∈ [0, v_1.len - 2] : v_1[i] ≤ 2 * v_1[i+1] ∧ v_1[i] ≥ 0.5 * v_1[i+1])
+>>
+Rule 50 (if num_cols is much greater than num_rows, then the dimensions in the batch_shape cannot be too high)
+{v_1 : tuple(int), v_2 : int, v_3 : int} |= if v_3 > 100 * v_2 then (∀i ∈ [0, v_1.len - 1] : v_1[i] < 5000)
+>>
+Rule 51 (If num_rows is close to 1 and num_cols is close to 1, the batch shape can at most have 3 dimensions)
+{v_1 : tuple(int), v_2 : int, v_3 : int} |= if v_2 < 5 ∧ v_3 < 5 then v_1.len ≤ 3
+>>
+Rule 52 (The product of num_rows, num_cols, and batch_shape must not lead to integer overflow)
+{v_1: tuple(int), v_2: int, v_3: int} |= (if v_1.len > 0 then (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0) ∧ (v_2 * v_3) < 2147483647 / (∀i ∈ [0, v_1.len - 1] : v_1[i])  else (v_2 * v_3) < 2147483647)
+>>
+Rule 53 (If num_rows and num_cols are small then all elements of batch_shape should smaller than a threshold)
+{v_1: tuple(int), v_2: int, v_3: int} |= if v_2 < 100 ∧ v_3 < 100 then (∀ i ∈ [0, v_1.len - 1] : v_1[i] < 10000)
+>>
+Rule 54 (If num_rows and num_cols are both equal to a prime number, batch_shape must be 1)
+{v_1 : tuple(int), v_2 : int, v_3 : int} |= if (v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 5 ∨ v_2 = 7 ∨ v_2 = 11) ∧ (v_3 = 2 ∨ v_3 = 3 ∨ v_3 = 5 ∨ v_3 = 7 ∨ v_3 = 11) then (v_1.len < 2)
+>>
+Rule 55 (If num_rows and num_cols have a common factor > 1, then at least one element of batch_shape should also be divisible by that factor)
+{v_1 : tuple(int), v_2 : int, v_3 : int} |= if (v_2 % 2 = 0 ∧ v_3 % 2 = 0) then (∃i ∈ [0, v_1.len - 1] : v_1[i] % 2 = 0)
+>>
+Rule 57 (The product of elements in batch_shape should not be much greater than max(num_rows, num_cols))
+{v_1: tuple(int), v_2: int, v_3: int} |= if (v_1.len > 0) then ((∀i ∈ [0, v_1.len - 1] : v_1[i] > 0) ∧ (v_2 < 1000 * (∀i ∈ [0, v_1.len - 1] : v_1[i]) ∧ v_3 < 1000 * (∀i ∈ [0, v_1.len - 1] : v_1[i])))
+>>
+Rule 58 (If num_rows and num_cols are 1 and dtype is not specified, the product of batch_shape should be equal to another threshold )
+{v_1: tuple(int), v_2: int, v_3: int} |= if (v_2 = 1 ∧ v_3 = 1) then (if v_1.len > 0 then (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0) ∧ (v_2 * v_3) = 10000 else (v_2 * v_3) = 10000)
+>>
+Rule 59 (If num_rows is much greater than num_cols and batch_shape contains multiple elements, at least one element in the batch shape must be less than num_cols.)
+{v_1 : tuple(int), v_2 : int, v_3 : int} |= if v_2 > 100 * v_3 ∧ v_1.len > 1 then (∃i ∈ [0, v_1.len - 1] : v_1[i] < v_3)
+>>
+Rule 60 (If num_cols is much greater than num_rows and batch_shape contains multiple elements, at least one element in the batch shape must be less than num_rows.)
+{v_1 : tuple(int), v_2 : int, v_3 : int} |= if v_3 > 100 * v_2 ∧ v_1.len > 1 then (∃i ∈ [0, v_1.len - 1] : v_1[i] < v_2)
+>>
+Rule 61 (If batch_shape is not empty and its length is greater than 1, then num_rows or num_cols cannot have a very small value, such as less than 1.)
+{v_1 : tuple(int), v_2 : int, v_3 : int} |= if v_1.len > 1 then v_2 > 1 ∨ v_3 > 1
+>>
+Rule 62 (If product of batch_shape is very small then at least one of num_rows or num_cols should be equal to one.)
+{v_1: tuple(int), v_2: int, v_3: int} |= if (if v_1.len > 0 then (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0) ∧ (v_2 * v_3) < 10 else (v_2 * v_3) < 10) then v_2 = 1 ∨ v_3 = 1
+>>
+Rule 63 (If num_rows and num_cols are same, product of batch_shape element should be equal or greater to the product of num_rows and num_cols)
+{v_1: tuple(int), v_2: int, v_3: int} |= if v_2 = v_3 then if v_1.len > 0 then ((∀i ∈ [0, v_1.len - 1] : v_1[i] > 0) ∧ (v_2 * v_3) ≥ (∀i ∈ [0, v_1.len - 1] : v_1[i]))
+>>
+Rule 64 (If num_rows and num_cols are very different, and the batch shape's length > 0, all the dimensions of batch shape must be greater or less than a constant)
+{v_1: tuple(int), v_2: int, v_3: int} |= if (v_2 > 100 * v_3 ∨ v_3 > 100 * v_2) ∧ v_1.len > 0 then ((∀i ∈ [0, v_1.len - 1] : v_1[i] < 1000) ∨ (∀i ∈ [0, v_1.len - 1] : v_1[i] > 10))
+>>
+Rule 65 (If any element of the batch_shape is significantly greater than both num_rows and num_cols, the product of the remaining batch_shape must be limited)
+{v_1: tuple(int), v_2: int, v_3: int} |= if (∃i ∈ [0, v_1.len - 1] : v_1[i] > 1000 * v_2 ∧ v_1[i] > 1000 * v_3) then (if v_1.len > 1 then (∀j ∈ [0, v_1.len - 1] : v_1[j] > 0 ∧ j ≠ i) ∧ (v_2 * v_3) < 10000 else (v_2 * v_3) < 10000)
+>>
+Rule 66 (If num_rows and num_cols and batch shape has valid value than dtype must not be bool or string.)
+{v_1: tuple(int), v_2: int, v_3: int, v_4: int} |= if v_2 > 0 ∧ v_3 > 0 ∧ v_1.len ≥ 0 then v_4 ≠ 0 ∧ v_4 ≠ 11
+>>
+Rule 68 (The values num_rows and num_cols must be non-negative and the product should not be high)
+{v_1: int, v_2: int} |= (v_1 ≥ 0 ∧ v_2 ≥ 0) ∧ v_1 * v_2 ≤ 1000000
+>>
+Rule 69 (If num_rows is much greater than num_cols and any element in batch_shape is zero than num_cols should also be zero)
+{v_1: tuple(int), v_2: int, v_3: int} |= if v_2 > 100 * v_3 ∧ (∃i ∈ [0, v_1.len - 1] : v_1[i] = 0) then v_3 = 0
+>>
+Rule 70 (The product of num_rows, num_cols and max value in the batch_shape, must be lower than max integer.)
+{v_1: tuple(int), v_2: int, v_3: int} |= if v_1.len > 0 then ((∀i ∈ [0, v_1.len - 1] : v_1[i] > 0) ∧ (v_2 * v_3 * (max(v_1))) < 2147483647) else (v_2 * v_3) < 2147483647
+>>
+Rule 71 (If all the elements in the batch_shape are same and greater than 1, num_rows and num_cols should also be greater than 1.)
+{v_1: tuple(int), v_2: int, v_3: int} |= if (∀i ∈ [0, v_1.len - 1] : v_1[i] > 1) then (v_2 > 1 ∧ v_3 > 1)
+>>
+Rule 72 (If the product of num_rows and num_cols is too large (exceed some memory limits), restrict max value in the batch_shape.)
+{v_1: tuple(int), v_2: int, v_3: int} |= if v_2 * v_3 > 100000000 then (if v_1.len > 0 then ((∀i ∈ [0, v_1.len - 1] : v_1[i] > 0) ∧ (max(v_1) < 1000) )else true)
+>>
+Rule 73 (if the product of num_rows and num_cols is zero, batch_shape can have only one element with a value of zero.)
+{v_1: tuple(int), v_2: int, v_3: int} |= if (v_2 * v_3) = 0 then (if v_1.len > 0 then ((∀i ∈ [0, v_1.len - 1] : v_1[i] =0)))
+>>
+Rule 74 (If the batch_shape is non-empty, none of its dimensions should be greater than the largest possible number in the specified data type.)
+{v_1: tuple(int), v_2: int} |= if v_1.len > 0 then (if v_2 = 1 then (∀i ∈ [0, v_1.len - 1] : v_1[i] < 128) else if v_2 = 2 then (∀i ∈ [0, v_1.len - 1] : v_1[i] < 32768) else if v_2 = 3 then (∀i ∈ [0, v_1.len - 1] : v_1[i] < 2147483648) else if v_2 = 4 then (∀i ∈ [0, v_1.len - 1] : v_1[i] < 9223372036854775808) else if v_2 = 5 then (∀i ∈ [0, v_1.len - 1] : v_1[i] < 256))
+>>
+Rule 75 (If num_rows and num_cols are small then the product of the batch_shape dimensions will result in the upper limit for other rules.)
+{v_1: tuple(int), v_2: int, v_3: int} |= if (v_2 < 100 ∧ v_3 < 100) then (if v_1.len > 0 then ((∀i ∈ [0, v_1.len - 1] : v_1[i] > 0) ∧ (v_2*v_3* (∀i ∈ [0, v_1.len - 1] : v_1[i]) < 1000000)))
+>>
+Rule 76 (num_rows and num_cols can't be too different otherwise it can cause undefined results to happen, they should be in some ratio with respect to each other)
+{v_1: int, v_2: int} |= if v_1 > 0 then v_2 / v_1 ≤ 1000 ∧ v_1 / v_2 ≤ 1000
+>>
+Rule 77 (If both num_rows and num_cols are set to 1 then batch_shape length must be 0 or 1 to avoid confusion)
+{v_1: tuple(int), v_2: int, v_3: int} |= if (v_2 = 1 ∧ v_3 = 1) then v_1.len ≤ 1
+>>
+Rule 78 (If the sum of num_rows and num_cols are even, and batch_shape is a single element, then the batch_shape's element must be even.)
+{v_1: tuple(int), v_2: int, v_3: int} |= if (v_2 + v_3) % 2 = 0 ∧ v_1.len = 1 then v_1[0] % 2 = 0
+>>
+Rule 79 (If the dimensions in batch_shape are powers of 2, then at least one of num_rows or num_cols must be power of 2 also )
+{v_1: tuple(int), v_2: int, v_3: int} |= if (v_1.len > 0 ∧ (∀i ∈ [0, v_1.len - 1] : (v_1[i] > 0) ∧ (v_1[i] ∧ (v_1[i] - 1) = 0))) then ((v_2 > 0) ∧ (v_2 ∧ (v_2 - 1) = 0)) ∨ ((v_3 > 0) ∧ (v_3 ∧ (v_3 - 1) = 0))
+>>
+Rule 80 (If at least one of the elements of batch shape are negative and num_rows * num_cols >10 then the value for the negative number in batch shape must be small and greater than some threshold.)
+{v_1: tuple(int), v_2: int, v_3: int} |= if (∃i ∈ [0, v_1.len - 1] : v_1[i] < 0) ∧ (v_2 * v_3 > 10) then (∀i ∈ [0, v_1.len - 1] : (v_1[i] > -100))
+>>
+Rule 81 (if one element of batch shape is near max integer limit, then num_rows and num_cols must not both be significantly big.)
+{v_1: tuple(int), v_2: int, v_3: int} |= if (∃i ∈ [0, v_1.len - 1] : v_1[i] > 2000000000) then (v_2 < 1000 ∨ v_3 < 1000)
+>>
+Rule 82 (If there are two dimensions specified in batch_shape that are the same, then num_rows and num_cols should not have a great difference, and must be in range)
+{v_1: tuple(int), v_2: int, v_3: int} |= if (v_1.len > 1 ∧ (∃i ∈ [0, v_1.len - 2] : v_1[i] = v_1[i+1])) then (v_2 - v_3 < 10000 ∧ v_3 -v_2 < 10000)

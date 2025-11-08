@@ -1,36 +1,198 @@
 >>
-Rule 1 (target_height must be positive)
+Rule 1 (target_height must be greater than 0 to avoid ValueError)
 {v_2 : int} |= v_2 > 0
 >>
-Rule 2 (target_width must be positive)
+Rule 2 (target_width must be greater than 0 to avoid ValueError)
 {v_3 : int} |= v_3 > 0
 >>
-Rule 3 (image shape must have either 3 or 4 dimensions)
+Rule 3 (image tensor must have either 3 or 4 dimensions to avoid ValueError)
 {v_1 : tensor} |= (ndim(v_1) = 3) ∨ (ndim(v_1) = 4)
 >>
-Rule 11 (Ensure target height is less than a reasonable limit to avoid overflow)
-{v_2 : int} |= v_2 < 10000
+Rule 9 (check the size of target height to avoid overflow error)
+{v_2 : int} |= v_2 < 1000
 >>
-Rule 12 (Ensure target width is less than a reasonable limit to avoid overflow)
-{v_3 : int} |= v_3 < 10000
+Rule 10 (check the size of target width to avoid overflow error)
+{v_3 : int} |= v_3 < 1000
 >>
-Rule 17 (Prevent overflow during padding calculations, target height and width should be relatively small compared to the data type limit)
-{v_2 : int, v_3 : int} |= (v_2 * v_3) < 2147483647
+Rule 26 (check the dtype of the image to avoid errors during processing)
+{v_1: tensor} |= dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "int32" ∨ dtype_(v_1) = "int64"
 >>
-Rule 27 (Check to prevent zero height or width after padding, leading to invalid tensor shapes)
-{v_1 : tensor, v_2 : int, v_3 : int} |= (if ndim(v_1) = 3 then (v_2 > 0) ∧ (v_3 > 0) else (v_2 > 0) ∧ (v_3 > 0))
+Rule 48 (Check element datatype)
+{v_1 : tensor} |= dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "int32" ∨ dtype_(v_1) = "int64"
 >>
-Rule 33 (target height and width product should be reasonable)
-{v_2 : int, v_3 : int} |= (v_2 * v_3) < 100000000
+Rule 49 (Limit image size to avoid memory overflow)
+{v_1 : tensor} |= ndim(v_1) < 5
 >>
-Rule 41 (Prevent potential overflow by limiting target height and width based on a constant)
-{v_2 : int, v_3 : int} |= (v_2 * v_3) < 10000000
+Rule 62 (Avoid ResourceExhaustedError by limiting the target height and width)
+{v_2 : int, v_3 : int} |= v_2 < 500 ∧ v_3 < 500
 >>
-Rule 50 (Prevent target dimensions from being too large)
-{v_2 : int, v_3 : int} |= (v_2 < 2048) ∧ (v_3 < 2048)
+Rule 71 (Check element datatype to avoid type related errors; ensure it's a numeric type)
+{v_1: tensor} |= dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "int32" ∨ dtype_(v_1) = "int64" ∨ dtype_(v_1) = "float16"
 >>
-Rule 56 (Prevent memory allocation errors)
-{v_2 : int, v_3 : int} |= (v_2 > 0) ∧ (v_3 > 0) ∧ (v_2 < 4096) ∧ (v_3 < 4096)
+Rule 75 (Limit product of target height and width to avoid allocation errors)
+{v_2 : int, v_3 : int} |= (v_2 * v_3) < 1000000
 >>
-Rule 62 (Prevent memory allocation errors - limiting large values of target height or width which can cause memory issues.)
-{v_2 : int, v_3 : int} |= (v_2 < 4096) ∧ (v_3 < 4096)
+Rule 76 (Ensure the tensor is not boolean to prevent unexpected behavior during padding)
+{v_1 : tensor} |= dtype_(v_1) ≠ "bool"
+>>
+Rule 80 (Avoid ResourceExhaustedError by limiting the target height)
+{v_2 : int} |= v_2 < 500
+>>
+Rule 81 (Avoid ResourceExhaustedError by limiting the target width)
+{v_3 : int} |=  v_3 < 500
+>>
+Rule 82 (Check element datatype is not complex to avoid issues with padding)
+{v_1: tensor} |= dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128"
+>>
+Rule 87 (Ensure the image dtype is a valid numerical type)
+{v_1 : tensor} |= dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "int32" ∨ dtype_(v_1) = "int64" ∨ dtype_(v_1) = "float16" ∨ dtype_(v_1) = "uint8" ∨ dtype_(v_1) = "int16" ∨ dtype_(v_1) = "int8"
+>>
+Rule 89 (Target height and width should not be both excessively large)
+{v_2 : int, v_3 : int} |= (v_2 + v_3) < 1500
+>>
+Rule 90 (If the image is 3D, target height must be smaller than a threshold)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 then v_2 < 750
+>>
+Rule 91 (If the image is 4D, target width must be smaller than a threshold)
+{v_1 : tensor, v_3 : int} |= if ndim(v_1) = 4 then v_3 < 750
+>>
+Rule 92 (Target height and target width should not have a large difference)
+{v_2 : int, v_3 : int} |= (v_2 - v_3) < 500 ∧ (v_3 - v_2) < 500
+>>
+Rule 93 (If the image is integer type, target height and width should be greater than 0)
+{v_1: tensor, v_2 : int, v_3 : int} |= if (dtype_(v_1) = "int32") ∨ (dtype_(v_1) = "int64") then v_2 > 0 ∧ v_3 > 0
+>>
+Rule 94 (image must have positive dimensions if target_height/target_width are small)
+{v_1: tensor, v_2 : int, v_3 : int} |= if (v_2 < 100) ∨ (v_3 < 100) then ndim(v_1) > 0
+>>
+Rule 95 (If the image is float type, target height must be less than the target width by a factor)
+{v_1: tensor, v_2: int, v_3: int} |= if (dtype_(v_1) = "float32") ∨ (dtype_(v_1) = "float64") then v_2 < (v_3 * 2)
+>>
+Rule 96 (Ensure target_height or target_width is not excessively large if the image is only 3-dimensional)
+{v_1: tensor, v_2: int, v_3: int} |= if ndim(v_1) = 3 then v_2 < 2000 ∨ v_3 < 2000
+>>
+Rule 97 (If the image's dimension is high, limit the target height and width)
+{v_1 : tensor, v_2: int, v_3: int} |= if ndim(v_1) > 3 then v_2 < 1000 ∧ v_3 < 1000
+>>
+Rule 98 (If target height and target width are the same, tensor should not be boolean)
+{v_1: tensor, v_2: int, v_3: int} |= if v_2 = v_3 then dtype_(v_1) ≠ "bool"
+>>
+Rule 103 (If the image is integer type, at least one target dim should be large)
+{v_1: tensor, v_2 : int, v_3 : int} |= if (dtype_(v_1) = "int32") ∨ (dtype_(v_1) = "int64") then (v_2 > 500) ∨ (v_3 > 500)
+>>
+Rule 104 (Ensure tensor is not string)
+{v_1: tensor} |= dtype_(v_1) ≠ "str"
+>>
+Rule 105 (If the image is float type, limit the total size)
+{v_1: tensor, v_2: int, v_3: int} |= if (dtype_(v_1) = "float32") ∨ (dtype_(v_1) = "float64") then (v_2 * v_3) < 2000000
+>>
+Rule 106 (If target height and target width are small, limit dimension)
+{v_1: tensor, v_2: int, v_3: int} |= if (v_2 < 50) ∧ (v_3 < 50) then ndim(v_1) < 4
+>>
+Rule 107 (Avoid very small target dimensions)
+{v_2 : int, v_3 : int} |= v_2 > 5 ∨ v_3 > 5
+>>
+Rule 108 (If target height and target width are very different, limit the dimensions)
+{v_1: tensor, v_2: int, v_3: int} |= if (v_2 > (v_3 * 5)) ∨ (v_3 > (v_2 * 5)) then ndim(v_1) < 4
+>>
+Rule 109 (Target height and width should not be excessively different if the image is 3D)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 3 then (v_2 / v_3) < 10 ∧ (v_3 / v_2) < 10
+>>
+Rule 110 (If target height or width is close to zero, limit the product)
+{v_2 : int, v_3 : int} |= if (v_2 < 100) ∨ (v_3 < 100) then (v_2 * v_3) < 50000
+>>
+Rule 111 (If image dtype is a smaller type, limit target height and width)
+{v_1: tensor, v_2 : int, v_3 : int} |= if (dtype_(v_1) = "int8") ∨ (dtype_(v_1) = "uint8") then v_2 < 500 ∧ v_3 < 500
+>>
+Rule 112 (Target height can't be close to zero if target width is large.)
+{v_2 : int, v_3 : int} |= if v_3 > 500 then v_2 > 10
+>>
+Rule 113 (If the image is integer type, check limit for small target dims)
+{v_1: tensor, v_2 : int, v_3 : int} |= if (dtype_(v_1) = "int32") ∨ (dtype_(v_1) = "int64") then (v_2 * v_3) > 100
+>>
+Rule 115 (If the image is float type and smaller target dim, limit large dimension)
+{v_1: tensor, v_2: int, v_3: int} |= if ((dtype_(v_1) = "float32") ∨ (dtype_(v_1) = "float64")) ∧ (v_2 < v_3) then v_3 < 1000
+>>
+Rule 116 (If the API receives target sizes greater than a limit, ensure that the dtype is high enough)
+{v_1: tensor, v_2 : int, v_3 : int} |= if (v_2 > 1000) ∨ (v_3 > 1000) then (dtype_(v_1) = "float32") ∨ (dtype_(v_1) = "float64")
+>>
+Rule 117 (If target height and width are very different, limit the smaller dimensions)
+{v_2 : int, v_3 : int} |= if (v_2 > (v_3 * 5)) ∨ (v_3 > (v_2 * 5)) then (min(v_2, v_3) < 200)
+>>
+Rule 118 (Limit combined size of target dimensions if ndim is not 3)
+{v_1: tensor, v_2 : int, v_3 : int} |= if ndim(v_1) ≠ 3 then (v_2 + v_3) < 1200
+>>
+Rule 126 (If target height and target width are very different, limit the smaller dimensions - avoid min function)
+{v_2 : int, v_3 : int} |= if (v_2 > (v_3 * 5)) ∨ (v_3 > (v_2 * 5)) then if v_2 < v_3 then v_2 < 200 else v_3 < 200
+>>
+Rule 128 (Ensure if one of the target sizes is very small, other is not excessively big )
+{v_2 : int, v_3 : int} |= if (v_2 < 2) ∨ (v_3 < 2) then (v_2 < 500 ∧ v_3 < 500)
+>>
+Rule 129 (If the image is 3D and the height is very small, limit the width.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 3 ∧ v_2 < 5 then v_3 < 200
+>>
+Rule 130 (If target height or width is zero, both need to be zero.)
+{v_2 : int, v_3 : int} |= if (v_2 = 0) ∨ (v_3 = 0) then (v_2 = 0) ∧ (v_3 = 0)
+>>
+Rule 131 (If image dtype is a smaller type, limit *either* target height or width)
+{v_1: tensor, v_2 : int, v_3 : int} |= if (dtype_(v_1) = "int8") ∨ (dtype_(v_1) = "uint8") then v_2 < 500 ∨ v_3 < 500
+>>
+Rule 132 (If target width is a small value, restrict image type to a particular numerical value to prevent incorrect type assignment)
+{v_1: tensor, v_3 : int} |= if v_3 < 10 then dtype_(v_1) = "float32"
+>>
+Rule 133 (If target height is greater than a certain value, make sure target width is positive to avoid incorrect dimension creation or assignment issues)
+{v_2 : int, v_3 : int} |= if v_2 > 1000 then v_3 > 0
+>>
+Rule 134 (Ensure that if the image is more than 3D, both target dimensions are not very low.)
+{v_1: tensor, v_2: int, v_3: int} |= if ndim(v_1) > 3 then (v_2 + v_3) > 10
+>>
+Rule 135 (If the image is float type and height < width, require high dimensions)
+{v_1: tensor, v_2: int, v_3: int} |= if ((dtype_(v_1) = "float32") ∨ (dtype_(v_1) = "float64")) ∧ (v_2 < v_3) then ndim(v_1) > 2
+>>
+Rule 136 (Make sure for high values of combined width and height, image dtype can be handled )
+{v_1 : tensor, v_2: int, v_3: int} |= if (v_2 + v_3) > 1500 then (dtype_(v_1) = "float32") ∨ (dtype_(v_1) = "float64") ∨ (dtype_(v_1) = "int64")
+>>
+Rule 137 (If height and width are low values, ensure the dimensions match.)
+{v_1: tensor, v_2: int, v_3: int} |= if v_2 < 20 ∧ v_3 < 20 then ndim(v_1) < 5
+>>
+Rule 138 (The product of height and width should not be exceedingly great)
+{v_2 : int, v_3 : int} |= (v_2 * v_3) < 2000000
+>>
+Rule 141 (If image dtype is a smaller type, limit *either* target height or width significantly)
+{v_1: tensor, v_2 : int, v_3 : int} |= if (dtype_(v_1) = "int8") ∨ (dtype_(v_1) = "uint8") then v_2 < 100 ∨ v_3 < 100
+>>
+Rule 142 (If target width is extremely small, restrict image type to a particular numerical value to prevent incorrect type assignment)
+{v_1: tensor, v_3 : int} |= if v_3 < 2 then dtype_(v_1) = "float32"
+>>
+Rule 145 (If the image is float type and height < width, require minimum target height if larger than 300 to make a reasonable resize output)
+{v_1: tensor, v_2: int, v_3: int} |= if ((dtype_(v_1) = "float32") ∨ (dtype_(v_1) = "float64")) ∧ (v_2 < v_3) ∧ (v_3 > 300) then v_2 > 10
+>>
+Rule 146 (If height and width are low values, limit ndim to be high or low to avoid errors)
+{v_1: tensor, v_2: int, v_3: int} |= if v_2 < 20 ∧ v_3 < 20 then (ndim(v_1) > 4) ∨ (ndim(v_1) < 3)
+>>
+Rule 147 (The product of height and width should not be exceedingly great with smaller float types)
+{v_1: tensor, v_2 : int, v_3 : int} |= if (dtype_(v_1) = "float16") then (v_2 * v_3) < 500000
+>>
+Rule 148 (Limit target size if given a boolean type)
+{v_1: tensor, v_2: int, v_3: int} |= if (dtype_(v_1) = "bool") then (v_2 < 10) ∧ (v_3 < 10)
+>>
+Rule 150 (If target width is extremely small or is an exact multiple to height, restrict image type to a particular numerical value to prevent incorrect type assignment)
+{v_1: tensor, v_3 : int, v_2 : int} |= if (v_3 < 2) ∨ (v_2 % v_3 = 0) then dtype_(v_1) = "float32"
+>>
+Rule 151 (If target height is greater than a certain value, make sure target width isn't lower by a factor than it)
+{v_2 : int, v_3 : int} |= if v_2 > 1000 then v_3 > (v_2/5)
+>>
+Rule 152 (Ensure that if the image is a 4d image and height is below 5 make width smaller than height*2)
+{v_1: tensor, v_2: int, v_3: int} |= if ndim(v_1) = 4 ∧ v_2 < 5 then v_3 < v_2*2
+>>
+Rule 153 (If the image is float type and height < width, require *lower* width dimensions if above threshold to make a reasonable resize output)
+{v_1: tensor, v_2: int, v_3: int} |= if ((dtype_(v_1) = "float32") ∨ (dtype_(v_1) = "float64")) ∧ (v_2 < v_3) ∧ (v_3 > 300) then v_2<500
+>>
+Rule 155 (If height and width are low values, enforce smaller values or larger dimensions to limit resource intensity and prevent type issues.)
+{v_1: tensor, v_2: int, v_3: int} |= if v_2 < 20 ∧ v_3 < 20 then (v_2 < 5) ∨ (v_3 <5) ∨ (ndim(v_1) > 4)
+>>
+Rule 156 (The product of height and width should not be exceedingly great with smaller float types, unless greater dimension than 4 )
+{v_1: tensor, v_2 : int, v_3 : int} |= if (dtype_(v_1) = "float16") then if ndim(v_1) < 4 then (v_2 * v_3) < 500000
+>>
+Rule 157 (Ensure the height/width are equal to handle cases where just one value is provided in the API)
+{v_2:int, v_3: int} |= if (v_2 % v_3) = 1 then (v_2 < 2) ∧ (v_3 < 2)

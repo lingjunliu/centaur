@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# image shape must have either 3 or 4 dimensions (Rule 3)
+# image tensor must have either 3 or 4 dimensions to avoid ValueError (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
     s.add(Not(Or((v["arg1_ndim"] == 3), (v["arg1_ndim"] == 4))) if n else

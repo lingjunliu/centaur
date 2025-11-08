@@ -1,6 +1,36 @@
 >>
-Rule 1 (shape_x and shape_y must have rank 1)
+Rule 1 (shape_x and shape_y must be rank 1 tensors)
 {shape_x : tensor, shape_y : tensor} |= ndim(shape_x) = 1 ∧ ndim(shape_y) = 1
 >>
 Rule 2 (shape_x and shape_y must have non-negative dimensions)
-{shape_x : tensor, shape_y : tensor} |= (∀i ∈ [0, ndim(shape_x) - 1] : shape(shape_x, i) ≥ 0) ∧ (∀i ∈ [0, ndim(shape_y) - 1] : shape(shape_y, i) ≥ 0)
+{shape_x : tensor, shape_y : tensor} |= (∀ i ∈ [0, ndim(shape_x) - 1] : shape(shape_x, i) ≥ 0) ∧ (∀ j ∈ [0, ndim(shape_y) - 1] : shape(shape_y, j) ≥ 0)
+>>
+Rule 3 (shape_x and shape_y should not have negative dimension, preventing integer overflow)
+{shape_x : tensor, shape_y : tensor} |= (∀ i ∈ [0, ndim(shape_x) - 1] : shape(shape_x, i) > -1000) ∧ (∀ j ∈ [0, ndim(shape_y) - 1] : shape(shape_y, j) > -1000)
+>>
+Rule 5 (shape_x and shape_y should not have negative or 0 dimension)
+{shape_x : tensor, shape_y : tensor} |= (∀ i ∈ [0, ndim(shape_x) - 1] : shape(shape_x, i) > 0) ∧ (∀ j ∈ [0, ndim(shape_y) - 1] : shape(shape_y, j) > 0)
+>>
+Rule 7 (shape_x and shape_y dimensions must be compatible for broadcasting - example 2)
+{shape_x : tensor, shape_y : tensor} |= (∀ i ∈ [0, ndim(shape_x) - 1] : shape(shape_x, i) ≠ -2147483648) ∧ (∀ j ∈ [0, ndim(shape_y) - 1] : shape(shape_y, j) ≠ -2147483648)
+>>
+Rule 10 (Shape must be integer tensors)
+{shape_x : tensor, shape_y : tensor} |= dtype_(shape_x) = 3 ∧ dtype_(shape_y) = 3
+>>
+Rule 11 (Prevent incompatible shapes by ensuring elementwise compatibility)
+{shape_x : tensor, shape_y : tensor} |= if ndim(shape_x) > ndim(shape_y) then (∀ i ∈ [0, ndim(shape_y) - 1] : (shape(shape_x, ndim(shape_x) - ndim(shape_y) + i) = shape(shape_y, i) ∨ shape(shape_y, i) = 1 ∨ shape(shape_x, ndim(shape_x) - ndim(shape_y) + i) = 1)) else if ndim(shape_y) > ndim(shape_x) then (∀ i ∈ [0, ndim(shape_x) - 1] : (shape(shape_y, ndim(shape_y) - ndim(shape_x) + i) = shape(shape_x, i) ∨ shape(shape_x, i) = 1 ∨ shape(shape_y, ndim(shape_y) - ndim(shape_x) + i) = 1)) else (∀ i ∈ [0, ndim(shape_x) - 1] : (shape(shape_x, i) = shape(shape_y, i) ∨ shape(shape_x, i) = 1 ∨ shape(shape_y, i) = 1))
+>>
+Rule 15 (If both shapes contain at least one zero, ensure they are not incompatible because of the other negative dimensions.)
+{shape_x : tensor, shape_y : tensor} |= if (∃ i ∈ [0, ndim(shape_x) - 1] : shape(shape_x, i) = 0) ∧ (∃ j ∈ [0, ndim(shape_y) - 1] : shape(shape_y, j) = 0) then true else (∀ i ∈ [0, ndim(shape_x) - 1] : shape(shape_x, i) ≠ -2147483648) ∧ (∀ j ∈ [0, ndim(shape_y) - 1] : shape(shape_y, j) ≠ -2147483648)
+>>
+Rule 16 (Combine checks for vector and positive dimension)
+{shape_x : tensor, shape_y : tensor} |= ndim(shape_x) = 1 ∧ ndim(shape_y) = 1 ∧ (∀ i ∈ [0, ndim(shape_x) - 1] : shape(shape_x, i) > 0) ∧ (∀ j ∈ [0, ndim(shape_y) - 1] : shape(shape_y, j) > 0)
+>>
+Rule 17 (Prevent large negative numbers by limiting negative magnitude)
+{shape_x : tensor, shape_y : tensor} |= (∀ i ∈ [0, ndim(shape_x) - 1] : shape(shape_x, i) > -100) ∧ (∀ j ∈ [0, ndim(shape_y) - 1] : shape(shape_y, j) > -100)
+>>
+Rule 26 (Shape elements should be reasonable integers)
+{shape_x : tensor, shape_y : tensor} |= (∀ i ∈ [0, ndim(shape_x) - 1] : -10000 < shape(shape_x, i) ∧ shape(shape_x, i) < 10000) ∧ (∀ j ∈ [0, ndim(shape_y) - 1] : -10000 < shape(shape_y, j) ∧ shape(shape_y, j) < 10000)
+>>
+Rule 28 (Shape elements should not be very large or small)
+{shape_x : tensor, shape_y : tensor} |= (∀ i ∈ [0, ndim(shape_x) - 1] : 1 <= shape(shape_x, i) ∧ shape(shape_x, i) <= 2048) ∧ (∀ j ∈ [0, ndim(shape_y) - 1] : 1 <= shape(shape_y, j) ∧ shape(shape_y, j) <= 2048)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# year must be greater than a minimum valid year (Rule 5)
+# day can not be a negative integer (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] > 2000) if n else
-          v["arg1_value"] > 2000)
+    s.add(Not(v["arg1_value"] > -1) if n else
+          v["arg1_value"] > -1)
 )
 
 def rule_5_func(arg1, solver=None, neg=False):

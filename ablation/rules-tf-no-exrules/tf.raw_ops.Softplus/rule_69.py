@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if the feature's data type is float 16, the max value should be less than 10000 and the min value should be greater than -10000 (Rule 69)
+# Check that the maximum value is less than inf (Rule 69)
 
 rule_69 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, And((Select(v["arg1_range"], 1) < 10000), (Select(v["arg1_range"], 0) > -10000)), True)) if n else
-          If(v["arg1_dtype"] == 6, And((Select(v["arg1_range"], 1) < 10000), (Select(v["arg1_range"], 0) > -10000)), True))
+    s.add(Not(Select(v["arg1_range"], 1) < 1.0e+19) if n else
+          Select(v["arg1_range"], 1) < 1.0e+19)
 )
 
 def rule_69_func(arg1, solver=None, neg=False):
@@ -22,18 +22,16 @@ def rule_69_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
         arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 69
-        rule_69(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_69(solver, {'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_69(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
+        rule_69(solver, {'arg1_range': arg1['range']}, neg)

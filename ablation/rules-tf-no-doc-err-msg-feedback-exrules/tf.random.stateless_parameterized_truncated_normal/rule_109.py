@@ -5,52 +5,44 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If a shape is provided then mean, stddev, truncated_threshold should have dtypes that are float or the specified dtype (Rule 109)
+# If dtype is a boolean, then mean and stddev should either be 0 or 1. (Rule 109)
 
 rule_109 = lambda s, v, n=False: (
-    s.add(Not(If((And(v["arg5_ndim"] > 0, v["arg1_value"] != 0)), And(And((Or(Or(Or((v["arg2_dtype"] == v["arg1_value"]), (v["arg2_dtype"] == 7)), (v["arg2_dtype"] == 8)), (v["arg2_dtype"] == 6))), (Or(Or(Or((v["arg3_dtype"] == v["arg1_value"]), (v["arg3_dtype"] == 7)), (v["arg3_dtype"] == 8)), (v["arg3_dtype"] == 6)))), (Or(Or(Or((v["arg4_dtype"] == v["arg1_value"]), (v["arg4_dtype"] == 7)), (v["arg4_dtype"] == 8)), (v["arg4_dtype"] == 6)))), True)) if n else
-          If((And(v["arg5_ndim"] > 0, v["arg1_value"] != 0)), And(And((Or(Or(Or((v["arg2_dtype"] == v["arg1_value"]), (v["arg2_dtype"] == 7)), (v["arg2_dtype"] == 8)), (v["arg2_dtype"] == 6))), (Or(Or(Or((v["arg3_dtype"] == v["arg1_value"]), (v["arg3_dtype"] == 7)), (v["arg3_dtype"] == 8)), (v["arg3_dtype"] == 6)))), (Or(Or(Or((v["arg4_dtype"] == v["arg1_value"]), (v["arg4_dtype"] == 7)), (v["arg4_dtype"] == 8)), (v["arg4_dtype"] == 6)))), True))
+    s.add(Not(If(v["arg1_value"] == 0, And(And(And((Or(Select(v["arg2_range"], 0) == 0, Select(v["arg2_range"], 0) == 1)), (Or(Select(v["arg2_range"], 1) == 0, Select(v["arg2_range"], 1) == 1))), (Or(Select(v["arg3_range"], 0) == 0, Select(v["arg3_range"], 0) == 1))), (Or(Select(v["arg3_range"], 1) == 0, Select(v["arg3_range"], 1) == 1))), True)) if n else
+          If(v["arg1_value"] == 0, And(And(And((Or(Select(v["arg2_range"], 0) == 0, Select(v["arg2_range"], 0) == 1)), (Or(Select(v["arg2_range"], 1) == 0, Select(v["arg2_range"], 1) == 1))), (Or(Select(v["arg3_range"], 0) == 0, Select(v["arg3_range"], 0) == 1))), (Or(Select(v["arg3_range"], 1) == 0, Select(v["arg3_range"], 1) == 1))), True))
 )
 
-def rule_109_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):
+def rule_109_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
     arg3 = next(iter(arg3.values()))
-    arg4 = next(iter(arg4.values()))
-    arg5 = next(iter(arg5.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
         if not isinstance(arg3, np.ndarray):
             return False
-        if not isinstance(arg4, np.ndarray):
-            return False
-        if not isinstance(arg5, np.ndarray):
-            return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = Int('arg1_value')
-        arg2_dtype = Int('arg2_dtype')
-        arg3_dtype = Int('arg3_dtype')
-        arg4_dtype = Int('arg4_dtype')
-        arg5_ndim = Int('arg5_ndim')
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg3_range = Array('arg3_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
-        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
-        solver.add(arg4_dtype == list_of_available_dtypes.index(arg4.dtype))
-        solver.add(arg5_ndim == arg5.ndim)
+        solver.add(arg1_value == int(arg1))
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        arg3_range = Store(arg3_range, 0, int(np.min(arg3)))
+        arg3_range = Store(arg3_range, 1, int(np.max(arg3)))
 
         # Constraints for rule 109
-        rule_109(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype, 'arg4_dtype': arg4_dtype, 'arg5_ndim': arg5_ndim})
+        rule_109(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range, 'arg3_range': arg3_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_109(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype'], 'arg4_dtype': arg4['dtype'], 'arg5_ndim': arg5['ndim']}, neg)
+        rule_109(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range'], 'arg3_range': arg3['range']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# For tensors representing activation maps in neural networks, a zero fraction exceeding a threshold might indicate dead neurons. (Rule 58)
+# If dtype is int64, then values should be in the range of -9223372036854775808 to 9223372036854775807 (Rule 58)
 
 rule_58 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 2, True, True)) if n else
-          If(v["arg1_ndim"] > 2, True, True))
+    s.add(Not(If(v["arg1_dtype"] == 4, (And(Select(v["arg1_range"], 0) >= -9223372036854775808, Select(v["arg1_range"], 1) <= 9223372036854775807)), True)) if n else
+          If(v["arg1_dtype"] == 4, (And(Select(v["arg1_range"], 0) >= -9223372036854775808, Select(v["arg1_range"], 1) <= 9223372036854775807)), True))
 )
 
 def rule_58_func(arg1, solver=None, neg=False):
@@ -22,15 +22,18 @@ def rule_58_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 58
-        rule_58(solver, {'arg1_ndim': arg1_ndim})
+        rule_58(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_58(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_58(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)

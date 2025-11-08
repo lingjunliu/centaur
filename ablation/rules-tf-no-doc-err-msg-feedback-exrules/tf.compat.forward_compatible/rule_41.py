@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If v_1 is a string and equal to channels_first, then the minimum value of tensor v_2 must be less than its maximum value (Rule 41)
+# If the activation is "softmax", the tensor's minimum value should be non-negative (Rule 41)
 
 rule_41 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 25, Select(v["arg2_range"], 0) < Select(v["arg2_range"], 1), True)) if n else
-          If(v["arg1_value"] == 25, Select(v["arg2_range"], 0) < Select(v["arg2_range"], 1), True))
+    s.add(Not(If(v["arg1_value"] == 14, Select(v["arg2_range"], 0) >= 0, True)) if n else
+          If(v["arg1_value"] == 14, Select(v["arg2_range"], 0) >= 0, True))
 )
 
 def rule_41_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check that the tensor contains floats. (Rule 18)
+# x's values should not lead to domain errors. Avoid non-positive integers. (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(Or((v["arg1_dtype"] == 7), (v["arg1_dtype"] == 8))) if n else
-          Or((v["arg1_dtype"] == 7), (v["arg1_dtype"] == 8)))
+    s.add(Not(Or([And(v_3 < (v["arg1_ndim"] - 1 + 1), (Select(v["arg1_range"], 0) > 0)) for v_3 in range(6)])) if n else
+          Or([And(v_3 < (v["arg1_ndim"] - 1 + 1), (Select(v["arg1_range"], 0) > 0)) for v_3 in range(6)]))
 )
 
 def rule_18_func(arg1, solver=None, neg=False):
@@ -22,15 +22,18 @@ def rule_18_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_ndim = Int('arg1_ndim')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 18
-        rule_18(solver, {'arg1_dtype': arg1_dtype})
+        rule_18(solver, {'arg1_ndim': arg1_ndim, 'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_18(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_18(solver, {'arg1_ndim': arg1['ndim'], 'arg1_range': arg1['range']}, neg)

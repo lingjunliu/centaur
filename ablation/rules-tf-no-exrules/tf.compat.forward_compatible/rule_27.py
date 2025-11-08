@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# year should be less than 2100 (Rule 27)
+# Checking if month is a positive number and within reasonable bounds (Rule 27)
 
 rule_27 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 2100) if n else
-          v["arg1_value"] < 2100)
+    s.add(Not(And((v["arg1_value"] > 0), (v["arg1_value"] <= 12))) if n else
+          And((v["arg1_value"] > 0), (v["arg1_value"] <= 12)))
 )
 
 def rule_27_func(arg1, solver=None, neg=False):

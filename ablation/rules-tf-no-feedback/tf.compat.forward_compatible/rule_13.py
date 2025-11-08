@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check the relationship between month and day (Rule 13)
+# If the month is April, June, September, or November, then the day cannot be greater than 30. (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 2, v["arg2_value"] <= 29, If(Or(Or(Or(v["arg1_value"] == 4, v["arg1_value"] == 6), v["arg1_value"] == 9), v["arg1_value"] == 11), v["arg2_value"] <= 30, v["arg2_value"] <= 31))) if n else
-          If(v["arg1_value"] == 2, v["arg2_value"] <= 29, If(Or(Or(Or(v["arg1_value"] == 4, v["arg1_value"] == 6), v["arg1_value"] == 9), v["arg1_value"] == 11), v["arg2_value"] <= 30, v["arg2_value"] <= 31)))
+    s.add(Not(If(Or(Or(Or(v["arg1_value"] == 4, v["arg1_value"] == 6), v["arg1_value"] == 9), v["arg1_value"] == 11), v["arg2_value"] <= 30, True)) if n else
+          If(Or(Or(Or(v["arg1_value"] == 4, v["arg1_value"] == 6), v["arg1_value"] == 9), v["arg1_value"] == 11), v["arg2_value"] <= 30, True))
 )
 
 def rule_13_func(arg1, arg2, solver=None, neg=False):

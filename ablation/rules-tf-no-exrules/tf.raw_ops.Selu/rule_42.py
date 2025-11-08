@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The number of dimensions of features must be less than 6 and more than 0 (Rule 42)
+# The rank of features should be less than a maximum value, e.g. 10 (Rule 42)
 
 rule_42 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] < 6, v["arg1_ndim"] > 0)) if n else
-          And(v["arg1_ndim"] < 6, v["arg1_ndim"] > 0))
+    s.add(Not(v["arg1_ndim"] < 10) if n else
+          v["arg1_ndim"] < 10)
 )
 
 def rule_42_func(arg1, solver=None, neg=False):

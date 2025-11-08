@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The input can't be an int8 tensor (Rule 60)
+# The features tensor must be a float16, float32, or float64 tensor and the output tensor will have the same dtype (Rule 60)
 
 rule_60 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 1) if n else
-          v["arg1_dtype"] != 1)
+    s.add(Not((If(v["arg1_dtype"] == 6, v["arg1_dtype"] == 6, (If(v["arg1_dtype"] == 7, v["arg1_dtype"] == 7, (If(v["arg1_dtype"] == 8, v["arg1_dtype"] == 8, False))))))) if n else
+          (If(v["arg1_dtype"] == 6, v["arg1_dtype"] == 6, (If(v["arg1_dtype"] == 7, v["arg1_dtype"] == 7, (If(v["arg1_dtype"] == 8, v["arg1_dtype"] == 8, False)))))))
 )
 
 def rule_60_func(arg1, solver=None, neg=False):

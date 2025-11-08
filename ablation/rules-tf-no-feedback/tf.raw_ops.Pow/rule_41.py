@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If dtype of x is boolean, the dtype of y must also be boolean. (Rule 41)
+# If x is an integer, y cannot be complex64 or complex128 (Rule 41)
 
 rule_41 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0, True)) if n else
-          If(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0, True))
+    s.add(Not(If(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), And(v["arg2_dtype"] != 9, v["arg2_dtype"] != 10), True)) if n else
+          If(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), And(v["arg2_dtype"] != 9, v["arg2_dtype"] != 10), True))
 )
 
 def rule_41_func(arg1, arg2, solver=None, neg=False):

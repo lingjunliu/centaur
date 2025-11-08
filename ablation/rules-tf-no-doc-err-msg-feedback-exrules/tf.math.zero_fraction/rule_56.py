@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the tensor contains gradients after ReLU, a high zero fraction can mean vanishing gradient. (Rule 56)
+# If dtype is int16, then values should be in the range of -32768 to 32767 (Rule 56)
 
 rule_56 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_range"], 0) >= 0, True, True)) if n else
-          If(Select(v["arg1_range"], 0) >= 0, True, True))
+    s.add(Not(If(v["arg1_dtype"] == 2, (And(Select(v["arg1_range"], 0) >= -32768, Select(v["arg1_range"], 1) <= 32767)), True)) if n else
+          If(v["arg1_dtype"] == 2, (And(Select(v["arg1_range"], 0) >= -32768, Select(v["arg1_range"], 1) <= 32767)), True))
 )
 
 def rule_56_func(arg1, solver=None, neg=False):
@@ -22,16 +22,18 @@ def rule_56_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
+        arg1_dtype = Int('arg1_dtype')
         arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 56
-        rule_56(solver, {'arg1_range': arg1_range})
+        rule_56(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_56(solver, {'arg1_range': arg1['range']}, neg)
+        rule_56(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)

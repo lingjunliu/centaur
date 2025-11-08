@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the base tensor is complex, the exponent tensor must be real (Rule 24)
+# If base is a uint8 tensor, the exponent should also be a uint8 tensor or float tensor. (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(If(Or((v["arg1_dtype"] == 9), (v["arg1_dtype"] == 10)), Or(Or(Or(Or(Or(Or(Or((v["arg2_dtype"] == 1), (v["arg2_dtype"] == 2)), (v["arg2_dtype"] == 3)), (v["arg2_dtype"] == 4)), (v["arg2_dtype"] == 5)), (v["arg2_dtype"] == 6)), (v["arg2_dtype"] == 7)), (v["arg2_dtype"] == 8)), True)) if n else
-          If(Or((v["arg1_dtype"] == 9), (v["arg1_dtype"] == 10)), Or(Or(Or(Or(Or(Or(Or((v["arg2_dtype"] == 1), (v["arg2_dtype"] == 2)), (v["arg2_dtype"] == 3)), (v["arg2_dtype"] == 4)), (v["arg2_dtype"] == 5)), (v["arg2_dtype"] == 6)), (v["arg2_dtype"] == 7)), (v["arg2_dtype"] == 8)), True))
+    s.add(Not(If((v["arg1_dtype"] == 5), (Or(Or(Or(v["arg2_dtype"] == 5, v["arg2_dtype"] == 6), v["arg2_dtype"] == 7), v["arg2_dtype"] == 8)), True)) if n else
+          If((v["arg1_dtype"] == 5), (Or(Or(Or(v["arg2_dtype"] == 5, v["arg2_dtype"] == 6), v["arg2_dtype"] == 7), v["arg2_dtype"] == 8)), True))
 )
 
 def rule_24_func(arg1, arg2, solver=None, neg=False):

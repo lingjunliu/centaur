@@ -1,69 +1,99 @@
 >>
-Rule 1 (Both input tensors must have compatible data types for broadcasting.)
+Rule 5 (Input tensor x should be a tensor with integer or float data type)
+{x : tensor} |= (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) ∨ (dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8)
+>>
+Rule 7 (If input y is int, it should be non-negative)
+{y : int} |= y ≥ 0
+>>
+Rule 8 (Check if the input 'x' is a valid tensor.)
+{x : tensor} |= ndim(x) ≥ 0
+>>
+Rule 11 (Both input tensors must have the same dtype)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 2 (The number of dimensions of the output tensor should be greater than or equal to the maximum number of dimensions of the input tensors.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ ndim(v_2) ∧ ndim(v_2) ≥ ndim(v_1)
->>
-Rule 8 (The maximum number of dimensions must be less than or equal to 32)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≤ 32 ∧ ndim(v_2) ≤ 32
->>
-Rule 9 (At least one of the input tensors must have at least one dimension)
+Rule 12 (At least one of the input tensors should have ndim > 0)
 {v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∨ ndim(v_2) > 0
 >>
-Rule 12 (The rank (number of dimensions) of the input tensors must be non-negative.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0
+Rule 14 (If both inputs are scalars, output must be scalar)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0 ∧ ndim(v_2) = 0)
 >>
-Rule 16 (The data type of both tensors has to be numerical (int, float))
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∧ dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9
+Rule 21 (If either input is bool type, then both inputs must be bool type)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0
 >>
-Rule 20 (Number of dimensions of output can not be greater than the maximum supported rank.)
+Rule 23 (Input tensors shapes can not be none type)
+{v_1 : tensor} |= shape(v_1) ≠ "none"
+>>
+Rule 26 (Input tensors must have compatible dtypes for the given operation)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = dtype_(v_2)) ∨ ((dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ (dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4)) ∨ ((dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8))
+>>
+Rule 27 (If one of the tensors is of type float64, the other tensor must also be of type float64 or int64)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then (dtype_(v_2) = 8 ∨ dtype_(v_2) = 4)
+>>
+Rule 29 (Tensors with different number of dimensions can be broadcast only if one is a scalar)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then (ndim(v_1) = 0 ∨ ndim(v_2) = 0)
+>>
+Rule 32 (If either tensor has dimension greater than the maximum dimension allowed, then throw an exception.)
+{v_1 : tensor} |= ndim(v_1) ≤ 8
+>>
+Rule 34 (Input should be a valid tensor which has dtype not equal to string type)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 39 (Input tensors v_1 and v_2 should not have more than 8 dimensions.)
 {v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≤ 8 ∧ ndim(v_2) ≤ 8
 >>
-Rule 22 (If one of the input tensors is a scalar (ndim=0), the other tensor's shape is returned.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then true else if ndim(v_2) = 0 then true else false
+Rule 42 (Both input tensors must be defined, i.e. not None)
+{v_1 : tensor, v_2 : tensor} |= (v_1 ≠ "None") ∧ (v_2 ≠ "None")
 >>
-Rule 23 (Shapes must be of type int32 or int64.)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4)
+Rule 43 (If the shape of v_1 is unknown, v_2 must have a known shape)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1) = "unknown" then shape(v_2) ≠ "unknown"
 >>
-Rule 26 (If the shapes of v_1 and v_2 differ by rank, then the shape with the smaller rank is padded by ones.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀ i ∈ [0, ndim(v_2)-ndim(v_1)-1] : true else if ndim(v_2) < ndim(v_1) then ∀ i ∈ [0, ndim(v_1)-ndim(v_2)-1] : true
+Rule 49 (The minimum dimension size of a tensor must be greater or equal to zero.)
+{v_1 : tensor} |= min(v_1) ≥ 0
 >>
-Rule 31 (The number of dimensions in the input tensors should not exceed the maximum allowed (e.g. 10).)
-{v_1: tensor, v_2: tensor} |= ndim(v_1) ≤ 10 ∧ ndim(v_2) ≤ 10
+Rule 51 (If at least one of the input tensors is complex type, both must be complex type.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) then (dtype_(v_2) = 9) ∨ (dtype_(v_2) = 10)
 >>
-Rule 35 (The shape of the output tensor must have the same number of dimensions as the larger input tensor after broadcasting.)
+Rule 52 (Check both v_1 and v_2 are valid tensors before broadcasting)
+{v_1 : tensor, v_2 : tensor} |= (v_1 ≠ "invalid tensor") ∧ (v_2 ≠ "invalid tensor")
+>>
+Rule 58 (If v_1 has dimension 1 then v_2 cannot have dimension zero)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then ndim(v_2) ≠ 0
+>>
+Rule 59 (The number of dimensions in v_1 and v_2 cannot exceed the maximum allowed for tensors, which is often implementation-dependent.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) < 50) ∧ (ndim(v_2) < 50)
+>>
+Rule 67 (Input tensors should be in the same device)
+{v_1 : tensor, v_2 : tensor} |= (shape(v_1) = shape(v_2))
+>>
+Rule 69 (When the shapes of the input tensors are unknown, a runtime error may occur if the shapes cannot be broadcast.)
+{v_1 : tensor, v_2 : tensor} |= if (shape(v_1) = "unknown") ∧ (shape(v_2) = "unknown") then true
+>>
+Rule 70 (Input tensors can only broadcast if tensors have same dtype or int and float mixed type tensors)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = dtype_(v_2)) then true else if ((dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5)) ∧ ((dtype_(v_2) = 1) ∨ (dtype_(v_2) = 2) ∨ (dtype_(v_2) = 3) ∨ (dtype_(v_2) = 4) ∨ (dtype_(v_2) = 5) ) then true else if ((dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)) ∧ ((dtype_(v_2) = 6) ∨ (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8)) then true else false
+>>
+Rule 71 (If one of the input shape is unknown then the broadcasted shape is also unknown)
+{v_1 : tensor, v_2 : tensor} |= if (shape(v_1) = "unknown") ∨ (shape(v_2) = "unknown") then true
+>>
+Rule 73 (If shape is None, then it cannot be broadcasted.)
+{v_1 : tensor} |= if shape(v_1) = "None" then false
+>>
+Rule 75 (If one shape is of higher rank and broadcasted, the result will have the same rank)
 {v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > ndim(v_2) then true else if ndim(v_2) > ndim(v_1) then true
 >>
-Rule 51 (Number of dimensions for either tensor has to be less than a max rank.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) < 5 ∧ ndim(v_2) < 5
+Rule 79 (Input tensors must have the same number of dimensions or one of them must be a scalar.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∨ (ndim(v_1) = 0) ∨ (ndim(v_2) = 0)
 >>
-Rule 56 (The number of dimensions of the shapes must be less than 6.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) < 6 ∧ ndim(v_2) < 6
+Rule 83 (If tensor is complex, it should have even number of dimensions)
+{v_1 : tensor} |= if (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) then (ndim(v_1) % 2 = 0)
 >>
-Rule 63 (The input tensors must contain shapes of type int32 (3) or int64 (4))
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∧ (dtype_(v_2) = 3) ∨ (dtype_(v_2) = 4)
+Rule 88 (If the inputs have different ranks, prepend the shape of the tensor with smaller rank with ones until the ranks match or the smaller rank tensor becomes scalar)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∃ i ∈ [0, ndim(v_2) - ndim(v_1) - 1] : 1 = 1 else if ndim(v_2) < ndim(v_1) then ∃ i ∈ [0, ndim(v_1) - ndim(v_2) - 1] : 1=1
 >>
-Rule 65 (If one of the tensors is a scalar, the other must also be a scalar)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 0) then (ndim(v_2) = 0) else if (ndim(v_2) = 0) then (ndim(v_1) = 0)
+Rule 89 (None or unknown shape tensor can only be broadcasted with tensors with explicit shape information)
+{v_1 : tensor, v_2 : tensor} |= if (shape(v_1) = "None") ∨ (shape(v_1) = "unknown") then shape(v_2) ≠ "None" ∧ shape(v_2) ≠ "unknown" else if (shape(v_2) = "None") ∨ (shape(v_2) = "unknown") then shape(v_1) ≠ "None" ∧ shape(v_1) ≠ "unknown"
 >>
-Rule 66 (The dimension count must be a non-negative integer)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 0) ∧ (ndim(v_2) ≥ 0)
+Rule 90 (If input shape is not a valid shape (e.g., shape with non-numerical dimensions) raise a ValueError)
+{v_1 : tensor} |= if (shape(v_1) ≠ "invalid shape") then true else false
 >>
-Rule 70 (The dimension of v_1 and v_2 cannot be string.)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 11 ∧ dtype_(v_2) ≠ 11
->>
-Rule 76 (The dtype of the shape tensors v_1 and v_2 must be integer.)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∧ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
->>
-Rule 91 (Total number of dimensions must be below max value of 10.)
-{v_1: tensor, v_2: tensor} |= ndim(v_1) < 10 ∧ ndim(v_2) < 10
->>
-Rule 99 (The total number of dimensions for broadcasting cannot exceed max_rank which is 10.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) < 10 ∧ ndim(v_2) < 10
->>
-Rule 107 (If the tensors are of different data type, cast them before processing)
-{v_1: tensor, v_2: tensor} |= if dtype_(v_1) != dtype_(v_2) then true else false
->>
-Rule 108 (The maximum number of dimensions for tensors is 6.)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≤ 6) ∧ (ndim(v_2) ≤ 6)
+Rule 95 (When comparing two tensors with unknown shapes, at least the number of dimensions should be known.)
+{v_1 : tensor, v_2 : tensor} |= if (shape(v_1) = "unknown") ∧ (shape(v_2) = "unknown") then false

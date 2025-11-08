@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Tensor t's shape must be representable as a tuple of int64 (Rule 34)
+# If t is of type half, then output is float32 (Rule 34)
 
 rule_34 = lambda s, v, n=False: (
-    s.add(Not(True) if n else
-          True)
+    s.add(Not(If(v["arg1_dtype"] == 6, True, True)) if n else
+          If(v["arg1_dtype"] == 6, True, True))
 )
 
 def rule_34_func(arg1, solver=None, neg=False):
@@ -22,13 +22,15 @@ def rule_34_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 34
-        rule_34(solver, {})
+        rule_34(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_34(solver, {}, neg)
+        rule_34(solver, {'arg1_dtype': arg1['dtype']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Zero fraction calculation might not be appropriate for tensors that are already extremely sparse, like certain embeddings after heavy pruning. (Rule 57)
+# If dtype is int32, then values should be in the range of -2147483648 to 2147483647 (Rule 57)
 
 rule_57 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_range"], 1) < 0.001, False, True)) if n else
-          If(Select(v["arg1_range"], 1) < 0.001, False, True))
+    s.add(Not(If(v["arg1_dtype"] == 3, (And(Select(v["arg1_range"], 0) >= -2147483648, Select(v["arg1_range"], 1) <= 2147483647)), True)) if n else
+          If(v["arg1_dtype"] == 3, (And(Select(v["arg1_range"], 0) >= -2147483648, Select(v["arg1_range"], 1) <= 2147483647)), True))
 )
 
 def rule_57_func(arg1, solver=None, neg=False):
@@ -22,16 +22,18 @@ def rule_57_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
+        arg1_dtype = Int('arg1_dtype')
         arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 57
-        rule_57(solver, {'arg1_range': arg1_range})
+        rule_57(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_57(solver, {'arg1_range': arg1['range']}, neg)
+        rule_57(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)

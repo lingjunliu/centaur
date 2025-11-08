@@ -5,32 +5,38 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# A bool parameter should not equal to itself. (Rule 146)
+# If the maximum value is less than 0.1 and the min value greater than -0.1 for tensor, then bool is False. (Rule 146)
 
 rule_146 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] != v["arg1_value"]) if n else
-          v["arg1_value"] != v["arg1_value"])
+    s.add(Not(If(And(Select(v["arg1_range"], 1) < 0.1, Select(v["arg1_range"], 0) > -0.1), v["arg2_value"] == False, True)) if n else
+          If(And(Select(v["arg1_range"], 1) < 0.1, Select(v["arg1_range"], 0) > -0.1), v["arg2_value"] == False, True))
 )
 
-def rule_146_func(arg1, solver=None, neg=False):
+def rule_146_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not isinstance(arg1, np.ndarray):
+            return False
+        if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 146
-        rule_146(solver, {'arg1_value': arg1_value})
+        rule_146(solver, {'arg1_range': arg1_range, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_146(solver, {'arg1_value': arg1['value']}, neg)
+        rule_146(solver, {'arg1_range': arg1['range'], 'arg2_value': arg2['value']}, neg)

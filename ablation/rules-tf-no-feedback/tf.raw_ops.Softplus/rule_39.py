@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if features tensor is float64, each dimension of the shape must be less than or equal to 65535 (Rule 39)
+# If features is any supported datatype, the shape of the features tensor must have a minimum size of 1 (Rule 39)
 
 rule_39 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 8, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) <= 65535) for i in range(6)]), True)) if n else
-          If(v["arg1_dtype"] == 8, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) <= 65535) for i in range(6)]), True))
+    s.add(Not(If((Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 1), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)), And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) >= 1) for i in range(6)]), True)) if n else
+          If((Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 1), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)), And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) >= 1) for i in range(6)]), True))
 )
 
 def rule_39_func(arg1, solver=None, neg=False):
@@ -33,9 +33,9 @@ def rule_39_func(arg1, solver=None, neg=False):
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 39
-        rule_39(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_39(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype, 'arg1_shape': arg1_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_39(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_39(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype'], 'arg1_shape': arg1['shape']}, neg)

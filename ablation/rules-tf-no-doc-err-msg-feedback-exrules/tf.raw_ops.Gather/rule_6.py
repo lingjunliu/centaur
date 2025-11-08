@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The rank of the output tensor is the sum of the rank of the params and the rank of the indices minus the batch_dims. (Rule 6)
+# params and indices tensors should have at least batch_dims dimensions (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] + v["arg2_ndim"] - v["arg3_value"] >= 1) if n else
-          v["arg1_ndim"] + v["arg2_ndim"] - v["arg3_value"] >= 1)
+    s.add(Not(And(v["arg1_ndim"] >= v["arg3_value"], v["arg2_ndim"] >= v["arg3_value"])) if n else
+          And(v["arg1_ndim"] >= v["arg3_value"], v["arg2_ndim"] >= v["arg3_value"]))
 )
 
 def rule_6_func(arg1, arg2, arg3, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# tensor must have numeric or boolean dtype (Rule 28)
+# The 'value' tensor should contain numerical data, not strings (Rule 28)
 
 rule_28 = lambda s, v, n=False: (
-    s.add(Not(And(0 <= v["arg1_dtype"], v["arg1_dtype"] <= 10)) if n else
-          And(0 <= v["arg1_dtype"], v["arg1_dtype"] <= 10))
+    s.add(Not(v["arg1_dtype"] != 11) if n else
+          v["arg1_dtype"] != 11)
 )
 
 def rule_28_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Zero fraction should be close to 0.5 in a well behaved random number generator (Rule 59)
+# If dtype is uint8, then values should be in the range of 0 to 255 (Rule 59)
 
 rule_59 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), And((Select(v["arg1_range"], 0) > 0.4), (Select(v["arg1_range"], 1) < 0.6)), True)) if n else
-          If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), And((Select(v["arg1_range"], 0) > 0.4), (Select(v["arg1_range"], 1) < 0.6)), True))
+    s.add(Not(If(v["arg1_dtype"] == 5, (And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 255)), True)) if n else
+          If(v["arg1_dtype"] == 5, (And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) <= 255)), True))
 )
 
 def rule_59_func(arg1, solver=None, neg=False):

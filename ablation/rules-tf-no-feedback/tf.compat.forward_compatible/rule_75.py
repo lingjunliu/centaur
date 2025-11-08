@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Day must be in range 1-31 (Rule 75)
+# Year can not be way way way bigger than it is supposed to be. (Rule 75)
 
 rule_75 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] > 0, v["arg1_value"] < 32)) if n else
-          And(v["arg1_value"] > 0, v["arg1_value"] < 32))
+    s.add(Not(v["arg1_value"] < 100000) if n else
+          v["arg1_value"] < 100000)
 )
 
 def rule_75_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if check_types=false, len(list1 (Rule 17)
+# If list lengths are different, check_types should be false (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg3_value"], True, v["arg1_length"] == v["arg2_length"])) if n else
-          If(v["arg3_value"], True, v["arg1_length"] == v["arg2_length"]))
+    s.add(Not(If(v["arg1_length"] != v["arg2_length"], v["arg3_value"] == False, True)) if n else
+          If(v["arg1_length"] != v["arg2_length"], v["arg3_value"] == False, True))
 )
 
 def rule_17_func(arg1, arg2, arg3, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Day validity based on February, month, leap year, year must be at least 1 (Rule 32)
+# If the year is 2024 then the date must not be in the future. (Rule 32)
 
 rule_32 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] > 0, If(v["arg2_value"] == 2, If(And((v["arg1_value"] % 4 == 0), (Or(v["arg1_value"] % 100 != 0, v["arg1_value"] % 400 == 0))), v["arg3_value"] <= 29, v["arg3_value"] <= 28), If(Or(Or(Or(v["arg2_value"] == 4, v["arg2_value"] == 6), v["arg2_value"] == 9), v["arg2_value"] == 11), v["arg3_value"] <= 30, v["arg3_value"] <= 31)))) if n else
-          And(v["arg1_value"] > 0, If(v["arg2_value"] == 2, If(And((v["arg1_value"] % 4 == 0), (Or(v["arg1_value"] % 100 != 0, v["arg1_value"] % 400 == 0))), v["arg3_value"] <= 29, v["arg3_value"] <= 28), If(Or(Or(Or(v["arg2_value"] == 4, v["arg2_value"] == 6), v["arg2_value"] == 9), v["arg2_value"] == 11), v["arg3_value"] <= 30, v["arg3_value"] <= 31))))
+    s.add(Not(If(v["arg1_value"] == 2024, (Or(v["arg2_value"] < 11, (And(v["arg2_value"] == 11, v["arg3_value"] <= 9)))), True)) if n else
+          If(v["arg1_value"] == 2024, (Or(v["arg2_value"] < 11, (And(v["arg2_value"] == 11, v["arg3_value"] <= 9)))), True))
 )
 
 def rule_32_func(arg1, arg2, arg3, solver=None, neg=False):

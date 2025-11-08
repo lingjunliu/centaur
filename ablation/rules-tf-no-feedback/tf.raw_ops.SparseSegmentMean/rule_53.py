@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if data's dtype is float16, sparse_gradient should be false (Rule 53)
+# If sparse_gradient is enabled, data must have floating point precision (Rule 53)
 
 rule_53 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, v["arg2_value"] == False, True)) if n else
-          If(v["arg1_dtype"] == 6, v["arg2_value"] == False, True))
+    s.add(Not(If(v["arg2_value"] == True, Or(Or((v["arg1_dtype"] == 7), (v["arg1_dtype"] == 8)), (v["arg1_dtype"] == 9)), True)) if n else
+          If(v["arg2_value"] == True, Or(Or((v["arg1_dtype"] == 7), (v["arg1_dtype"] == 8)), (v["arg1_dtype"] == 9)), True))
 )
 
 def rule_53_func(arg1, arg2, solver=None, neg=False):

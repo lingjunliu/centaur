@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If dtype is specified as int8, then dimensions must be carefully chosen so as not to exceed the maximum values that int8 can hold. (Rule 58)
+# The dimensions of the matrix formed by num_rows and num_columns should not exceed maximum integer value when multiplied (Rule 58)
 
 rule_58 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] * v["arg2_value"] < 127, True, True)) if n else
-          If(v["arg1_value"] * v["arg2_value"] < 127, True, True))
+    s.add(Not(v["arg1_value"] * v["arg2_value"] < 2147483647) if n else
+          v["arg1_value"] * v["arg2_value"] < 2147483647)
 )
 
 def rule_58_func(arg1, arg2, solver=None, neg=False):

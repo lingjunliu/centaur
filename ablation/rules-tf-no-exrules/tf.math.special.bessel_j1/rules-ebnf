@@ -1,33 +1,69 @@
 >>
-Rule 1 (Input tensor x must be a float type to avoid InvalidArgumentError.)
-{x : tensor} |= dtype_(x) = "float32" ∨ dtype_(x) = "float64"
+Rule 1 (x must be a floating-point tensor to avoid InvalidArgumentError.)
+{x : tensor} |= (dtype_(x) = 7) ∨ (dtype_(x) = 8) ∨ (dtype_(x) = 6)
 >>
-Rule 3 (Check the tensor x has more than 1 dimension)
+Rule 2 (x cannot be a boolean tensor to avoid InvalidArgumentError.)
+{x : tensor} |= dtype_(x) ≠ 0
+>>
+Rule 3 (Shape of the input tensor x should be greater than 0)
 {x : tensor} |= ndim(x) > 0
 >>
-Rule 5 (String name must be non-empty to prevent empty op name)
-{name : str} |= name ≠ ""
+Rule 4 (x tensor must be a tensor of half, float32, or float64)
+{x : tensor} |= (dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8)
 >>
-Rule 7 (Input tensor x must be a float type to avoid InvalidArgumentError.)
-{x : tensor} |= dtype_(x) = "float32" ∨ dtype_(x) = "float64" ∨ dtype_(x) = "float16"
+Rule 7 (The tensor x cannot have complex datatypes)
+{x : tensor} |= (dtype_(x) ≠ 9) ∧ (dtype_(x) ≠ 10)
 >>
-Rule 21 (The tensor x's rank should be less than a value to avoid potential issues)
-{x : tensor} |= ndim(x) < 5
+Rule 12 (Ensure tensor x contains numerical values within reasonable bounds to prevent overflow. Limiting the maximum value of x)
+{x : tensor} |= max(x) < 1000
 >>
-Rule 33 (Check the tensor x has more than 1 dimension. Changed from > 0 to ≥ 0)
-{x : tensor} |= ndim(x) ≥ 0
+Rule 13 (Ensure tensor x contains numerical values within reasonable bounds to prevent underflow. Limiting the minimum value of x)
+{x : tensor} |= min(x) > -1000
 >>
-Rule 68 (The maximum value should not be too large)
-{x : tensor} |= max(x) < 10000
+Rule 16 (The tensor x should have at least one dimension)
+{x : tensor} |= ndim(x) ≥ 1
 >>
-Rule 76 (The minimum value of x should not be too small)
-{x : tensor} |= min(x) > -10000
+Rule 17 (Ensure x is not a quantized datatype to prevent errors.)
+{x : tensor} |= (dtype_(x) ≠ 1) ∧ (dtype_(x) ≠ 2) ∧ (dtype_(x) ≠ 3) ∧ (dtype_(x) ≠ 4) ∧ (dtype_(x) ≠ 5)
 >>
-Rule 85 (The shape of x should be valid)
-{x : tensor} |= ndim(x) ≤ 5
+Rule 23 (If the rank of x is zero, then the dtype must be a valid floating point type)
+{x : tensor} |= if ndim(x) = 0 then (dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8)
 >>
-Rule 92 (The maximum and min values should not be too extreme. Combined)
-{x : tensor} |= max(x) < 10000 ∧ min(x) > -10000
+Rule 31 (x must be a finite number to avoid INF/NaN errors.)
+{x : tensor} |= min(x) > -3.4028235e38 ∧ max(x) < 3.4028235e38
 >>
-Rule 104 (Shape should be the same)
-{x : tensor} |= shape(x) = shape(x)
+Rule 33 (Ensure x is not an integer or boolean datatype to prevent errors, which also covers the quantized data types.)
+{x : tensor} |= (dtype_(x) ≠ 0) ∧ (dtype_(x) ≠ 1) ∧ (dtype_(x) ≠ 2) ∧ (dtype_(x) ≠ 3) ∧ (dtype_(x) ≠ 4) ∧ (dtype_(x) ≠ 5)
+>>
+Rule 47 (Check for NaN and Inf values in x to avoid numerical instability. Use max/min functions.)
+{x : tensor} |= (max(x) < 3.4028235e38) ∧ (min(x) > -3.4028235e38)
+>>
+Rule 55 (Ensure there are no overflows or underflows during computation)
+{x : tensor} |= if (dtype_(x) = 6) then (min(x) > -65500) ∧ (max(x) < 65500) else if (dtype_(x) = 7) then (min(x) > -3.4e38) ∧ (max(x) < 3.4e38) else (min(x) > -1.7e308) ∧ (max(x) < 1.7e308)
+>>
+Rule 59 (Ensure x is not an unsupported datatype like bool, int, complex, or string.)
+{x : tensor} |= (dtype_(x) ≠ 0) ∧ (dtype_(x) ≠ 1) ∧ (dtype_(x) ≠ 2) ∧ (dtype_(x) ≠ 3) ∧ (dtype_(x) ≠ 4) ∧ (dtype_(x) ≠ 5) ∧ (dtype_(x) ≠ 9) ∧ (dtype_(x) ≠ 10) ∧ (dtype_(x) ≠ 11)
+>>
+Rule 63 (Limit the range of x values to prevent overflows/underflows during computation. This prevents numerical instability and ensures more reliable outputs, and covers half, float32, and float64.)
+{x : tensor} |= (min(x) > -1.7e308) ∧ (max(x) < 1.7e308)
+>>
+Rule 66 (x must be a floating-point type. Combining previous restrictions on unsupported types to be concise.)
+{x : tensor} |= (dtype_(x) > 5) ∧ (dtype_(x) < 9)
+>>
+Rule 71 (Avoid large input values in x to prevent overflows or underflows that lead to unstable computation. The range is constrained to prevent overflow with float32.)
+{x : tensor} |= (min(x) > -3.4e38) ∧ (max(x) < 3.4e38)
+>>
+Rule 74 (Limit the range of x values to prevent overflows and underflows that lead to unstable computation. Constrains float16, float32, and float64.)
+{x : tensor} |= if (dtype_(x) = 6) then (min(x) > -65500) ∧ (max(x) < 65500) else if (dtype_(x) = 7) then (min(x) > -3.4028235e38) ∧ (max(x) < 3.4028235e38) else (min(x) > -1.7976931348623157e+308) ∧ (max(x) < 1.7976931348623157e+308)
+>>
+Rule 75 (Ensure x is not an unsupported datatype to prevent errors, such as bool, integer, complex, or string. We check the negative condition.)
+{x : tensor} |= (dtype_(x) < 6) ∨ (dtype_(x) > 8)
+>>
+Rule 79 (The element values should be in range to prevent overflows and underflows. This is more generic and applies to different dtypes.)
+{x : tensor} |= (min(x) > -3.4028235e38) ∧ (max(x) < 3.4028235e38)
+>>
+Rule 86 (Limit the element values of x to prevent overflows and underflows for float32 tensors.)
+{x : tensor} |= if dtype_(x) = 7 then (min(x) > -3.4028235e38) ∧ (max(x) < 3.4028235e38)
+>>
+Rule 90 (Limit the range of x to prevent overflow and underflow. Check datatype to apply specific bounds.)
+{x : tensor} |= if (dtype_(x) = 6) then (min(x) > -65504) ∧ (max(x) < 65504) else if (dtype_(x) = 7) then (min(x) > -3.4028235e38) ∧ (max(x) < 3.4028235e38) else (min(x) > -1.7976931348623157e+308) ∧ (max(x) < 1.7976931348623157e+308)

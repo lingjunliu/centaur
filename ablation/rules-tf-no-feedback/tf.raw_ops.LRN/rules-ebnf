@@ -1,0 +1,129 @@
+>>
+Rule 1 (input tensor must be 4-dimensional)
+{input : tensor} |= ndim(input) = 4
+>>
+Rule 2 (depth_radius must be non-negative)
+{depth_radius : int} |= depth_radius ≥ 0
+>>
+Rule 3 (bias must be positive)
+{bias : float} |= bias > 0
+>>
+Rule 4 (alpha must be positive)
+{alpha : float} |= alpha > 0
+>>
+Rule 5 (beta must be non-negative)
+{beta : float} |= beta ≥ 0
+>>
+Rule 6 (input tensor dtype must be float16, float32, or bfloat16; encoded as 6, 7, or 8)
+{input : tensor} |= dtype_(input) = 6 ∨ dtype_(input) = 7 ∨ dtype_(input) = 8
+>>
+Rule 7 (depth_radius cannot exceed half the size of the last dimension of the input tensor)
+{input : tensor, depth_radius : int} |= depth_radius ≤ shape(input, 3) / 2
+>>
+Rule 9 (If depth_radius is 0, then alpha must be 0 to prevent zero division)
+{depth_radius : int, alpha : float} |= if depth_radius = 0 then alpha = 0
+>>
+Rule 10 (The depth_radius should be less than the third dimension size)
+{depth_radius : int, input : tensor} |= depth_radius < shape(input, 2)
+>>
+Rule 11 (If the input tensor's last dimension is 1, depth_radius can only be 0)
+{input : tensor, depth_radius : int} |= if shape(input, 3) = 1 then depth_radius = 0
+>>
+Rule 12 (bias must be greater than or equal to 1.0)
+{bias : float} |= bias ≥ 1.0
+>>
+Rule 13 (beta should be less than or equal to 1.0)
+{beta : float} |= beta ≤ 1.0
+>>
+Rule 14 (If the input tensor's batch size is 1, depth_radius can be increased)
+{input : tensor, depth_radius : int} |= if shape(input, 0) = 1 then depth_radius ≥ 0
+>>
+Rule 15 (alpha should be non-negative)
+{alpha : float} |= alpha ≥ 0
+>>
+Rule 16 (If beta is 0, alpha must also be 0 for correct normalization)
+{alpha : float, beta: float} |= if beta = 0 then alpha = 0
+>>
+Rule 17 (The product of bias and alpha should be greater than 0.)
+{bias : float, alpha : float} |= bias * alpha > 0
+>>
+Rule 18 (If the input tensor's height or width is 1, depth_radius can be increased)
+{input : tensor, depth_radius : int} |= if shape(input, 1) = 1 ∨ shape(input, 2) = 1 then depth_radius ≥ 0
+>>
+Rule 20 (The depth_radius parameter must be an integer representable by int32.)
+{depth_radius : int} |= -2147483648 ≤ depth_radius ∧ depth_radius ≤ 2147483647
+>>
+Rule 23 (If depth_radius is greater than 0, the last dimension of the tensor should be greater than 1)
+{input : tensor, depth_radius : int} |= if depth_radius > 0 then shape(input, 3) > 1
+>>
+Rule 24 (If the input tensor is of type half, then the bias alpha and beta should have low precision too)
+{input : tensor, bias : float, alpha : float, beta : float} |= if dtype_(input) = 6 then min(input) ≥ -65504 ∧ max(input) ≤ 65504 ∧ -65504 ≤ bias ∧ bias ≤ 65504 ∧ -65504 ≤ alpha ∧ alpha ≤ 65504 ∧ -65504 ≤ beta ∧ beta ≤ 65504 else True
+>>
+Rule 25 (If depth_radius is close to the limit of the last dimension, then alpha should be limited to avoid overflow)
+{input : tensor, depth_radius : int, alpha : float} |= if (shape(input,3) - depth_radius) < 3 then alpha < 10 else True
+>>
+Rule 26 (if depth radius is equal to the third dimension of the input, then beta has to be near 0)
+{input : tensor, depth_radius: int, beta: float} |= if depth_radius = shape(input, 2) then beta < 0.1 else True
+>>
+Rule 27 (beta should be positive if alpha is not 0)
+{alpha : float, beta : float} |= if alpha ≠ 0 then beta > 0 else True
+>>
+Rule 28 (If the input tensor has small values and alpha is large, the bias should be increased to prevent overflow.)
+{input: tensor, alpha: float, bias: float} |= if max(input) < 1 then if alpha > 10 then bias > 10 else True else True
+>>
+Rule 29 (if the bias is close to 1, then the alpha should not be too large)
+{bias : float, alpha : float} |= if bias < 1.1 then alpha < 100 else True
+>>
+Rule 30 (if bias is significantly larger than 1, then alpha and beta must be smaller to avoid overflow)
+{bias : float, alpha : float, beta : float} |= if bias > 100 then alpha < 10 ∧ beta < 1 else True
+>>
+Rule 33 (bias, alpha and beta should have the same dtype as the input)
+{input: tensor, bias: float, alpha: float, beta: float} |= (dtype_(input) = 6 ∧ -65504 ≤ bias ∧ bias ≤ 65504 ∧ -65504 ≤ alpha ∧ alpha ≤ 65504 ∧ -65504 ≤ beta ∧ beta ≤ 65504) ∨ (dtype_(input) = 7 ∧ -3.4028235e+38 ≤ bias ∧ bias ≤ 3.4028235e+38 ∧ -3.4028235e+38 ≤ alpha ∧ alpha ≤ 3.4028235e+38 ∧ -3.4028235e+38 ≤ beta ∧ beta ≤ 3.4028235e+38) ∨ (dtype_(input) = 8 ∧ -1.7976931348623157e+308 ≤ bias ∧ bias ≤ 1.7976931348623157e+308 ∧ -1.7976931348623157e+308 ≤ alpha ∧ alpha ≤ 1.7976931348623157e+308 ∧ -1.7976931348623157e+308 ≤ beta ∧ beta ≤ 1.7976931348623157e+308)
+>>
+Rule 34 (If depth_radius is greater than or equal to half of the last dimension of the input, then alpha should be small)
+{input : tensor, depth_radius : int, alpha: float} |= if depth_radius ≥ (shape(input, 3) / 2) then alpha < 5
+>>
+Rule 35 (If the input tensor contains small values, beta must be small)
+{input : tensor, beta : float} |= if max(input) < 0.1 then beta < 1 else True
+>>
+Rule 36 (If beta is close to 1, alpha should not be very small to ensure significant normalization)
+{alpha : float, beta : float} |= if beta > 0.9 then alpha > 0.1 else True
+>>
+Rule 37 (depth_radius * 2 + 1 should be less than or equal to the last dimension of the input)
+{input : tensor, depth_radius : int} |= (depth_radius * 2 + 1) ≤ shape(input, 3)
+>>
+Rule 39 (If the input tensor is not zero-centered, the bias should be adjusted to compensate.)
+{input : tensor, bias : float} |= if min(input) < 0 then bias ≥ 0 else bias ≥ 1
+>>
+Rule 41 (if depth_radius is greater than 0, then alpha must be greater than 0.)
+{depth_radius : int, alpha : float} |= if depth_radius > 0 then alpha > 0 else True
+>>
+Rule 43 (If max value in tensor is big, bias and alpha should not be 1 at the same time to avoid saturation)
+{input : tensor, bias : float, alpha: float} |= if max(input) > 10 then (bias ≠ 1 ∨ alpha ≠ 1) else True
+>>
+Rule 44 (Depth radius is smaller than or equal to the number of channels)
+{input: tensor, depth_radius: int} |= depth_radius <= shape(input,3)
+>>
+Rule 45 (If input dtype is float16 then alpha, beta and bias has to be of type float16 too.)
+{input : tensor, alpha : float, beta : float, bias:float} |= if dtype_(input) = 6 then dtype_(alpha) = 6 ∧ dtype_(beta) = 6 ∧ dtype_(bias) = 6 else True
+>>
+Rule 46 (If depth_radius is a large value, alpha must be scaled down based on the total number of elements in input to prevent overflow)
+{input : tensor, depth_radius : int, alpha : float} |= if depth_radius > 100 then alpha < (10000 / (shape(input, 0) * shape(input, 1) * shape(input, 2) * shape(input, 3))) else True
+>>
+Rule 47 (If depth_radius is very small alpha should not be too high)
+{depth_radius:int, alpha:float} |= if depth_radius < 2 then alpha <= 1000 else True
+>>
+Rule 48 (The product of alpha and beta must be within a reasonable range to avoid numerical instability)
+{alpha : float, beta : float} |= alpha * beta < 1000000
+>>
+Rule 49 (alpha and beta values must be chosen such that, when taken to power of 2, value does not overflow)
+{alpha:float, beta:float} |= if alpha > 0 then 2*beta < 100 else True
+>>
+Rule 51 (If depth_radius is zero, the returned tensor must equal input tensor)
+{input: tensor, depth_radius: int} |= if depth_radius = 0 then ndim(input) = ndim(input) else True
+>>
+Rule 52 (bias can not be a negative value to prevent division by 0.)
+{bias:float} |= bias >= 0
+>>
+Rule 53 (If depth_radius is at its default value, the input tensor must have at least 3 channels for LRN to take effect)
+{input : tensor, depth_radius : int} |= if depth_radius = 5 then shape(input, 3) ≥ 3 else True

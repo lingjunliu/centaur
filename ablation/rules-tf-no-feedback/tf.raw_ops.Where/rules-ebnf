@@ -1,75 +1,90 @@
 >>
-Rule 3 (condition tensor must have at least one dimension)
-{v_1: tensor} |= ndim(v_1) ≥ 1
+Rule 2 (condition tensor must have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 4 (condition tensor cannot have a dimension of size 0)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 3 (condition tensor must not have an empty shape)
+{v_1 : tensor} |= ∀ i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 5 (shape of condition tensor along dimension 0 should be positive)
-{v_1: tensor} |= shape(v_1, 0) > 0
+Rule 5 (dtype of condition tensor must be one of the allowed values)
+{v_1 : tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 14 ∨ dtype_(v_1) = 15 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 17 ∨ dtype_(v_1) = 18 ∨ dtype_(v_1) = 19 ∨ dtype_(v_1) = 20
 >>
-Rule 8 (condition tensor must have at least one element)
-{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 1
+Rule 7 (name is a string and not empty)
+{v_1 : str} |= v_1 ≠ ""
 >>
-Rule 9 (name must be a string with at least 1 character)
-{v_1: str} |= v_1.len > 0
+Rule 9 (If condition tensor has only one element, it must be true or non-zero)
+{v_1 : tensor} |= (ndim(v_1) = 0 ∧ (dtype_(v_1) = 0 ∧ v_1 = true)) ∨ (ndim(v_1) = 0 ∧ (dtype_(v_1) ≠ 0 ∧ v_1 ≠ 0))
 >>
-Rule 10 (condition tensor must have a rank less than or equal to 5)
-{v_1: tensor} |= ndim(v_1) ≤ 5
+Rule 10 (If condition tensor is boolean, all elements must be either true or false)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then (∀ i ∈ [0, ndim(v_1) - 1] : (∃ j ∈ [0, shape(v_1, i) - 1] : v_1[j] = true ∨ v_1[j] = false))
 >>
-Rule 13 (condition tensor's shape along each dimension must be greater than 0)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 11 (If the condition is complex, then it should have non-zero magnitude)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 11 then (∃ i ∈ [0, ndim(v_1) - 1] : ∃ j ∈ [0, shape(v_1, i) -1] : v_1[j] ≠ 0)
 >>
-Rule 14 (if name is not an empty string, then it is a string type)
-{v_1: str} |= if v_1 = "" then true else v_1.len > 0
+Rule 12 (Shape of the condition should not exceed a certain limit (e.g., maximum tensor size))
+{v_1 : tensor} |= ∀ i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000000
 >>
-Rule 17 (condition tensor cannot be a scalar)
-{v_1: tensor} |= ndim(v_1) > 0
+Rule 14 (If the condition tensor is quantized, then the scale and zero point should be appropriately configured)
+{v_1 : tensor} |= if dtype_(v_1) = 12 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 14 ∨ dtype_(v_1) = 15 then true
 >>
-Rule 19 (The name must be a string with length greater than or equal to 0)
-{v_1: str} |= v_1.len ≥ 0
+Rule 15 (name should be a valid string if provided, avoiding special characters)
+{v_1 : str} |= if v_1 = "" then true else ∀ i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = "_"
 >>
-Rule 23 (if condition's shape has more than 2 dimensions, all must have positive size)
-{v_1: tensor} |= if ndim(v_1) > 2 then ∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0
+Rule 17 (if condition is a scalar boolean tensor, it should be true)
+{v_1 : tensor} |= if (ndim(v_1) = 0) ∧ (dtype_(v_1) = 0) then v_1 = true
 >>
-Rule 24 (The name parameter can either be an empty string or a string with valid characters.)
-{v_1: str} |= (v_1 = "") ∨ (∀i ∈ [0, v_1.len - 1] : (v_1[i] >="a" ∧ v_1[i] <= "z") ∨ (v_1[i] >= "A" ∧ v_1[i] <= "Z") ∨ (v_1[i] >= "0" ∧ v_1[i] <= "9") ∨ (v_1[i] = "_"))
+Rule 18 (if condition is an empty tensor then the result would be an empty tensor)
+{v_1 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then true
 >>
-Rule 26 (The number of dimensions of the condition tensor should be less than or equal to a defined maximum, say 6.)
-{v_1: tensor} |= ndim(v_1) ≤ 6
+Rule 19 (if condition is a scalar complex tensor, it should be non-zero)
+{v_1 : tensor} |= if (ndim(v_1) = 0) ∧ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 11) then v_1 ≠ 0
 >>
-Rule 28 (The shape of the condition tensor must not exceed a certain size to prevent memory issues)
-{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) < 2048
+Rule 20 (If condition is a scalar tensor, it should have the same dtype as one of allowed types)
+{v_1 : tensor} |= if ndim(v_1) = 0 then (dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 14 ∨ dtype_(v_1) = 15 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 17 ∨ dtype_(v_1) = 18 ∨ dtype_(v_1) = 19 ∨ dtype_(v_1) = 20)
 >>
-Rule 32 (The name parameter should not be longer than 255 characters.)
-{v_1: str} |= v_1.len ≤ 255
+Rule 21 (name can be an empty string if not specified)
+{v_1 : str} |= v_1 = "" ∨ true
 >>
-Rule 36 (The number of elements in the tensor should be less than a specific number to prevent Out of Memory exception)
-{v_1 : tensor} |=  (shape(v_1, 0)*shape(v_1, 1)) < 10000000
+Rule 22 (condition tensor can't have a string dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 12
 >>
-Rule 39 (Name must be valid characters)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] = "_") ∨ (v_1[i] = "")
+Rule 23 (condition tensor can't have a dtype of type dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 13
 >>
-Rule 42 (name contains valid characters or is an empty string.)
-{v_1: str} |= (v_1 = "") ∨ ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] = "_")
+Rule 26 (condition tensor can not have negative values for unsigned integers)
+{v_1: tensor} |= if (dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 20) then min(v_1) ≥ 0
 >>
-Rule 43 (If the tensor has only one dimension then its shape has to be greater than zero.)
-{v_1: tensor} |= if (ndim(v_1) = 1) then (shape(v_1,0) > 0)
+Rule 27 (if dtype is bfloat16, complex64 or complex128 it should be nonzero)
+{v_1 : tensor} |= if (dtype_(v_1) = 14 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 11) then (∃ i ∈ [0, ndim(v_1) - 1] : ∃ j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≠ 0)
 >>
-Rule 45 (If the tensor has only a single element then the number of dimension should be 0)
-{v_1: tensor} |= if (shape(v_1, 0)*shape(v_1, 1) = 1) then (ndim(v_1) = 0)
+Rule 28 (If condition tensor is quantized, then min and max values are defined)
+{v_1 : tensor} |= if (dtype_(v_1) = 12 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 14 ∨ dtype_(v_1) = 15 ∨ dtype_(v_1) = 17 ∨ dtype_(v_1) = 18) then (min(v_1) ≠ max(v_1))
 >>
-Rule 46 (If name is not an empty string, then it contains only alphanumeric characters and underscores.)
-{v_1: str} |= if v_1 ≠ "" then ∀i ∈ [0, v_1.len - 1] : ((v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] = "_"))
+Rule 29 (The condition tensor must have a valid rank, limited by hardware capabilities)
+{v_1 : tensor} |= ndim(v_1) ≤ 64
 >>
-Rule 48 (The size of the first dimension of the tensor must be smaller than some predefined constant, say 10000)
-{v_1: tensor} |=  shape(v_1, 0) < 10000
+Rule 30 (The name argument, if provided, must be a valid TensorFlow name)
+{v_1 : str} |= if v_1 = "" then true else ∀ i ∈ [0, v_1.len - 1] : ((v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] = "_") ∨ (v_1[i] = ".") )
 >>
-Rule 52 (If the condition tensor has more than 1 dimension, then its shape along each dimension must be smaller than 2^16.)
-{v_1: tensor} |= if (ndim(v_1) > 1) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 65536
+Rule 32 (If condition is uint32 or uint64 then min value must be >= 0)
+{v_1: tensor} |= if (dtype_(v_1) = 18 ∨ dtype_(v_1) = 20) then min(v_1) ≥ 0
 >>
-Rule 55 (Name of the api should be only alphanumeric chars)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : ((v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9")) ∨ v_1 = ""
+Rule 33 (If dtype is qint8, quint8, qint16, quint16, qint32, bfloat16, half then min and max values of the range must be defined)
+{v_1: tensor} |= if (dtype_(v_1) = 12 ∨ dtype_(v_1) = 15 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 14 ∨ dtype_(v_1) = 17) then min(v_1) ≠ max(v_1)
 >>
-Rule 60 (name should be a valid string or be omitted)
-{v_1 : str} |= (v_1 = "") ∨ (∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ (v_1[i] = "_"))
+Rule 37 (if the rank of the condition is greater than 0, then the shape of each dimensions should be within the limits)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀ i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2147483647
+>>
+Rule 39 (if condition is an integer tensor, it should not be close to the min or max limit to avoid overflow)
+{v_1 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then (min(v_1) > -2147483647 ∧ max(v_1) < 2147483647)
+>>
+Rule 40 (If condition is a bool tensor, then all elements should be either true or false and nothing else)
+{v_1: tensor} |= if dtype_(v_1) = 0 then ∀ i ∈ [0, ndim(v_1) - 1] : ∀ j ∈ [0, shape(v_1, i) -1] : (v_1[j] = true ∨ v_1[j] = false)
+>>
+Rule 41 (If condition is a float tensor, it should have a range that is bigger than some epsilon to differentiate non zero values)
+{v_1: tensor} |= if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then max(v_1) - min(v_1) > 0.000001
+>>
+Rule 43 (the dimension of condition can not be greater than 255)
+{v_1: tensor} |= ndim(v_1) ≤ 255
+>>
+Rule 45 (If name is provided then its length should not be greater than 100)
+{v_1 : str} |= if v_1 ≠ "" then v_1.len ≤ 100

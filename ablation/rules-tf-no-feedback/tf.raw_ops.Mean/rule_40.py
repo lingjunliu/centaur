@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If the input tensor's dtype is bfloat16, the hardware must support bfloat16 arithmetic (Rule 40)
+# If the input tensor is quantized, then the operation is invalid (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 15, True, True)) if n else
-          If(v["arg1_dtype"] == 15, True, True))
+    s.add(Not(And(And(v["arg1_dtype"] != 14, v["arg1_dtype"] != 15), v["arg1_dtype"] != 16)) if n else
+          And(And(v["arg1_dtype"] != 14, v["arg1_dtype"] != 15), v["arg1_dtype"] != 16))
 )
 
 def rule_40_func(arg1, solver=None, neg=False):

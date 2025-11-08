@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# month should be within the valid range (Rule 2)
+# Month must be within the valid range [1, 12] (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
     s.add(Not(And(1 <= v["arg1_value"], v["arg1_value"] <= 12)) if n else

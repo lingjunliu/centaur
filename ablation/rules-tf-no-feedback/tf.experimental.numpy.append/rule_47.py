@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If axis is None, both arr and values must have ndim >=0  (Rule 47)
+# If no axis is specified, the function flattens both input arrays (Rule 47)
 
 rule_47 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg3_value"] < -100, And(v["arg1_ndim"] >= 0, v["arg2_ndim"] >= 0), True)) if n else
-          If(v["arg3_value"] < -100, And(v["arg1_ndim"] >= 0, v["arg2_ndim"] >= 0), True))
+    s.add(Not(If(v["arg3_value"] < -1000000, And(v["arg1_ndim"] == 1, v["arg2_ndim"] == 1), True)) if n else
+          If(v["arg3_value"] < -1000000, And(v["arg1_ndim"] == 1, v["arg2_ndim"] == 1), True))
 )
 
 def rule_47_func(arg1, arg2, arg3, solver=None, neg=False):

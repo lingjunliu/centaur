@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check if the parameters are greater than zero and less than 100 (Rule 72)
+# Leap year check - considering the year is an int (Rule 72)
 
 rule_72 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(And(And(v["arg1_value"] > 0, v["arg1_value"] < 100), v["arg2_value"] > 0), v["arg2_value"] < 100), v["arg3_value"] > 0), v["arg3_value"] < 100)) if n else
-          And(And(And(And(And(v["arg1_value"] > 0, v["arg1_value"] < 100), v["arg2_value"] > 0), v["arg2_value"] < 100), v["arg3_value"] > 0), v["arg3_value"] < 100))
+    s.add(Not(If(And((v["arg1_value"] % 4 == 0), (v["arg2_value"] == 2)), v["arg3_value"] < 30, True)) if n else
+          If(And((v["arg1_value"] % 4 == 0), (v["arg2_value"] == 2)), v["arg3_value"] < 30, True))
 )
 
 def rule_72_func(arg1, arg2, arg3, solver=None, neg=False):

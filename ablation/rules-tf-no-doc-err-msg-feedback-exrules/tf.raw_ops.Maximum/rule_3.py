@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If x and y are tensors, at least one dimension must be greater than 1. (Rule 3)
+# If x and y are both scalars, the result should be true (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(Or((v["arg1_ndim"] > 0), (v["arg2_ndim"] > 0))) if n else
-          Or((v["arg1_ndim"] > 0), (v["arg2_ndim"] > 0)))
+    s.add(Not(If(And(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), True, True)) if n else
+          If(And(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), True, True))
 )
 
 def rule_3_func(arg1, arg2, solver=None, neg=False):

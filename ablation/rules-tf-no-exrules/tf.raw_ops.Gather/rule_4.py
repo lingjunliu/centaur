@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# indices must have a non-negative number of dimensions (Rule 4)
+# indices must be an integer tensor with ndim >= 0 (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
     s.add(Not(v["arg1_ndim"] >= 0) if n else

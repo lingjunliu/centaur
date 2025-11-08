@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# features tensor's dtype cannot be dtype (Rule 50)
+# features tensor should not be complex64 or complex128 (Rule 50)
 
 rule_50 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 13) if n else
-          v["arg1_dtype"] != 13)
+    s.add(Not(And(v["arg1_dtype"] != 10, v["arg1_dtype"] != 11)) if n else
+          And(v["arg1_dtype"] != 10, v["arg1_dtype"] != 11))
 )
 
 def rule_50_func(arg1, solver=None, neg=False):

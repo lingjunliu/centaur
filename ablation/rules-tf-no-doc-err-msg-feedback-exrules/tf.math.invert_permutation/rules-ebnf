@@ -1,18 +1,72 @@
 >>
-Rule 1 (Input tensor must be a 1-D tensor)
+Rule 1 (The input tensor must be a 1-D tensor)
 {v_1 : tensor} |= ndim(v_1) = 1
 >>
-Rule 5 (The input tensor data type must be int32 or int64)
-{v_1 : tensor} |= dtype_(v_1) = 2 ∨ dtype_(v_1) = 3
+Rule 3 (The dtype of the input tensor must be int32 or int64.)
+{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
 >>
-Rule 9 (Input tensor's elements must be integers.)
-{v_1 : tensor} |= dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
->>
-Rule 17 (Input tensor dtype must be integer)
-{v_1 : tensor} |= dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 5
->>
-Rule 20 (Minimum value of input tensor must be 0)
+Rule 7 (Check the min value of the input tensor)
 {v_1 : tensor} |= min(v_1) = 0
 >>
-Rule 24 (Input tensor must have integer dtype.)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+Rule 12 (The minimum element in the input tensor should be greater than or equal to zero.)
+{v_1 : tensor} |= min(v_1) ≥ 0
+>>
+Rule 18 (Check both max value and data type.)
+{v_1 : tensor, v_2: int} |= max(v_1) < 1000 ∧ dtype_(v_1) = v_2
+>>
+Rule 22 (if the max element is less than 10, dtype cannot be int8)
+{v_1: tensor} |= if max(v_1) < 10 then dtype_(v_1) ≠ 1
+>>
+Rule 27 (Test case for handling very large numbers, but prevent overflow. Setting an upperbound)
+{v_1: tensor} |= max(v_1) < 2000000000
+>>
+Rule 30 (The data type should be int32 or int64. The min should be 0, max should be within 1000)
+{v_1 : tensor} |= (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ min(v_1) = 0 ∧ max(v_1) < 1000
+>>
+Rule 33 (The max element must be at most the size of the maximum positive value for its data type.)
+{v_1 : tensor} |= if dtype_(v_1) = 1 then max(v_1) < 128 else if dtype_(v_1) = 2 then max(v_1) < 32768 else if dtype_(v_1) = 3 then max(v_1) < 2147483648 else if dtype_(v_1) = 4 then true
+>>
+Rule 34 (If all elements in the tensor are less than 255, we can suggest to use the np.uint8 for the datatype)
+{v_1: tensor} |= if max(v_1) < 255 then (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5)
+>>
+Rule 42 (If the maximum element is close to the int32 limit, it is better to use int64.)
+{v_1 : tensor} |= if max(v_1) > 2000000000 then dtype_(v_1) = 4
+>>
+Rule 49 (If min is 0 and data type is np.int8)
+{v_1 : tensor} |= if min(v_1) = 0 then if dtype_(v_1) = 1 then true
+>>
+Rule 57 (If the input is int8, max value cannot be greater than 127)
+{v_1 : tensor} |= if dtype_(v_1) = 1 then max(v_1) ≤ 127
+>>
+Rule 58 (If the data type is uint8, min value must be 0)
+{v_1 : tensor} |= if dtype_(v_1) = 5 then min(v_1) = 0
+>>
+Rule 60 (If dtype is np.int8 or np.uint8, max element should be less than 256.)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 then max(v_1) < 256
+>>
+Rule 66 (if min value is not zero, then the elements are not from 0 to n-1, which is not a valid permutation)
+{v_1 : tensor} |= if min(v_1) ≠ 0 then false
+>>
+Rule 67 (if dtype is int64, max value should not be too close to int32 max)
+{v_1 : tensor} |= if dtype_(v_1) = 4 then max(v_1) < 2000000000
+>>
+Rule 68 (if the data type is int32, make sure that the maximum value will not exceed it)
+{v_1 : tensor} |= if dtype_(v_1) = 3 then max(v_1) < 2147483647
+>>
+Rule 70 (if dtype is int8, min value should not be less than -128)
+{v_1 : tensor} |= if dtype_(v_1) = 1 then min(v_1) ≥ -128
+>>
+Rule 72 (Check if all elements in input tensor are integers using min and max with a threshold)
+{v_1 : tensor} |= max(v_1) - min(v_1) < 2147483647
+>>
+Rule 74 (If min value is greater than 0, then it is not a correct input because a permutation from 0 to n-1 is required)
+{v_1 : tensor} |= if min(v_1) > 0 then false
+>>
+Rule 76 (If max value is close to int32 max, we recommend to use int64)
+{v_1 : tensor} |= if (max(v_1) > 2000000000) then (dtype_(v_1) = 4)
+>>
+Rule 82 (If the data type is uint8, min value must be 0 and max value must be less than 256)
+{v_1 : tensor} |= if dtype_(v_1) = 5 then (min(v_1) = 0 ∧ max(v_1) < 256)
+>>
+Rule 83 (Combined constraint of min, max, and data type)
+{v_1 : tensor} |= (min(v_1) = 0) ∧ (max(v_1) < 10000) ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)

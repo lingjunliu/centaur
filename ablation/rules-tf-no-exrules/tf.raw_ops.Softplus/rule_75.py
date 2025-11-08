@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if the feature's data type is float 32, the max value should be less than 10000 and the min value should be greater than -10000 (Rule 75)
+# The datatype is bfloat16, then max value should be less than a certain value (Rule 75)
 
 rule_75 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 7, And((Select(v["arg1_range"], 1) < 10000), (Select(v["arg1_range"], 0) > -10000)), True)) if n else
-          If(v["arg1_dtype"] == 7, And((Select(v["arg1_range"], 1) < 10000), (Select(v["arg1_range"], 0) > -10000)), True))
+    s.add(Not(If(v["arg1_dtype"] == 1, Select(v["arg1_range"], 1) < 3.4028235e+38, True)) if n else
+          If(v["arg1_dtype"] == 1, Select(v["arg1_range"], 1) < 3.4028235e+38, True))
 )
 
 def rule_75_func(arg1, solver=None, neg=False):

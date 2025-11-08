@@ -1,0 +1,129 @@
+>>
+Rule 1 (num_rows must be non-negative)
+{num_rows : int} |= num_rows ≥ 0
+>>
+Rule 2 (num_columns must be non-negative when provided)
+{num_columns : int} |= num_columns ≥ 0
+>>
+Rule 3 (num_rows and num_columns should not lead to resource exhaustion - a simplified heuristic)
+{num_rows : int, num_columns : int} |= num_rows * num_columns < 2147483647
+>>
+Rule 5 (name should be a string and not empty)
+{name : str} |= name ≠ ""
+>>
+Rule 6 (num_rows and num_columns should not be excessively large)
+{num_rows : int, num_columns : int} |= num_rows < 1000000 ∧ num_columns < 1000000
+>>
+Rule 10 (num_rows should not be extremely close to the maximum int value)
+{num_rows : int} |= num_rows < 2147483640
+>>
+Rule 11 (num_columns should not be extremely close to the maximum int value)
+{num_columns : int} |= num_columns < 2147483640
+>>
+Rule 12 (Check if num_rows is int32, if it's a tensor)
+{num_rows : tensor} |= dtype_(num_rows) = 3
+>>
+Rule 13 (Check if num_columns is int32, if it's a tensor)
+{num_columns : tensor} |= dtype_(num_columns) = 3
+>>
+Rule 14 (if num_rows is a tensor, its shape should be scalar)
+{num_rows : tensor} |= ndim(num_rows) = 0
+>>
+Rule 15 (if num_columns is a tensor, its shape should be scalar)
+{num_columns : tensor} |= ndim(num_columns) = 0
+>>
+Rule 16 (If num_rows is a tensor, it must be non-negative)
+{num_rows : tensor} |= min(num_rows) ≥ 0
+>>
+Rule 17 (If num_columns is a tensor, it must be non-negative)
+{num_columns : tensor} |= min(num_columns) ≥ 0
+>>
+Rule 18 (dtype is compatible with sparse tensor representation - avoids implicit casting issues)
+{dtype : dtype} |= dtype ≠ 0 ∧ dtype ≠ 1 ∧ dtype ≠ 5 ∧ dtype ≠ 11
+>>
+Rule 19 (If num_rows and num_columns are tensors, their dtypes must match)
+{num_rows : tensor, num_columns : tensor} |= dtype_(num_rows) = dtype_(num_columns)
+>>
+Rule 21 (If num_rows and num_columns are tensors and equal, their value should be restricted below a specific threshold)
+{num_rows : tensor, num_columns : tensor} |= if max(num_rows) = max(num_columns) then max(num_rows) < 10000
+>>
+Rule 22 (if num_columns is not specified, num_rows should not be too large)
+{num_rows : int} |= num_rows < 100000
+>>
+Rule 23 (If num_rows is specified as a tensor, it should be a scalar int32 tensor and be less than 100,000)
+{num_rows : tensor} |= ndim(num_rows) = 0 ∧ dtype_(num_rows) = 3 ∧ max(num_rows) < 100000
+>>
+Rule 25 (if num_columns is a tensor, it should be a scalar int32 tensor and be less than 100,000)
+{num_columns : tensor} |= ndim(num_columns) = 0 ∧ dtype_(num_columns) = 3 ∧ max(num_columns) < 100000
+>>
+Rule 26 (If num_rows and num_columns are specified, and they are equal, make sure the result size is reasonable)
+{num_rows : int, num_columns : int} |= if num_rows = num_columns then num_rows < 10000
+>>
+Rule 27 (If num_rows and num_columns are tensors, and their shapes are the same, prevent potential OOM)
+{num_rows : tensor, num_columns : tensor} |= if ndim(num_rows) = 0 ∧ ndim(num_columns) = 0 then (max(num_rows) * max(num_columns)) < 100000000
+>>
+Rule 28 (If num_rows and num_columns are integers, avoid very large sparse tensors to mitigate OOM)
+{num_rows : int, num_columns : int} |= if num_rows > 1000 ∧ num_columns > 1000 then (num_rows / num_columns) < 100 ∧ (num_columns / num_rows) < 100
+>>
+Rule 30 (If num_rows is an integer and dtype is provided, the combination should not lead to overflow)
+{num_rows : int, dtype : dtype} |= if num_rows > 2147483647 then dtype > 0
+>>
+Rule 31 (if num_rows and num_columns are integers, at least one should be less than 100000.)
+{num_rows: int, num_columns: int} |= num_rows < 100000 ∨ num_columns < 100000
+>>
+Rule 32 (If dtype is specified, it should be a valid dtype, preventing type errors during SparseTensor creation)
+{dtype : dtype} |= dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4 ∨ dtype = 5 ∨ dtype = 6 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10
+>>
+Rule 33 (If num_columns is an integer, and dtype is provided, the combination should not lead to overflow)
+{num_columns : int, dtype : dtype} |= if num_columns > 2147483647 then dtype > 0
+>>
+Rule 34 (If num_rows is not a tensor, ensure its value stays within a reasonable limit, mitigating OOM issues)
+{num_rows: int} |= num_rows < 100000000
+>>
+Rule 35 (If num_columns is not a tensor, ensure its value stays within a reasonable limit, mitigating OOM issues)
+{num_columns: int} |= num_columns < 100000000
+>>
+Rule 37 (name should be short enough to avoid exceeding the maximum name length limit)
+{name : str} |= name.len < 255
+>>
+Rule 38 (If num_columns is a tensor, prevent integer overflow for multiplication)
+{num_rows : int, num_columns: tensor} |= if (2147483647 / num_rows) > max(num_columns) then true else false
+>>
+Rule 39 (If num_rows is a tensor, prevent integer overflow for multiplication)
+{num_rows : tensor, num_columns: int} |= if (2147483647 / num_columns) > max(num_rows) then true else false
+>>
+Rule 40 (The value of dtype must be one of the supported dtypes by TensorFlow.)
+{dtype: dtype} |= dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4 ∨ dtype = 5 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10 ∨ dtype = 11
+>>
+Rule 41 (When both num_rows and num_columns are provided, ensure that their difference doesn't become exceedingly large, preventing enormous sparse tensors)
+{num_rows: int, num_columns: int} |= if num_rows > num_columns then (num_rows - num_columns) < 100000 else (num_columns - num_rows) < 100000
+>>
+Rule 42 (If a dtype other than int32 or int64 is selected, ensure that the maximum value of num_rows does not cause overflow errors.)
+{num_rows: int, dtype: dtype} |= if dtype ≠ 3 ∧ dtype ≠ 4 then num_rows < 65535
+>>
+Rule 43 (If a dtype other than int32 or int64 is selected, ensure that the maximum value of num_columns does not cause overflow errors.)
+{num_columns: int, dtype: dtype} |= if dtype ≠ 3 ∧ dtype ≠ 4 then num_columns < 65535
+>>
+Rule 44 (When creating a large sparse tensor, using float16 can reduce memory usage compared to higher precision floats, but num_rows/num_columns needs to be small enough)
+{num_rows: int, num_columns: int, dtype: dtype} |= if dtype = 6 then (num_rows * num_columns) < 1000000
+>>
+Rule 48 (If name is provided, it should consist only of alphanumeric characters or underscores.)
+{name: str} |= ∀i ∈ [0, name.len - 1] : (name[i] ≥ "a" ∧ name[i] ≤ "z") ∨ (name[i] ≥ "A" ∧ name[i] ≤ "Z") ∨ (name[i] ≥ "0" ∧ name[i] ≤ "9") ∨ name[i] = "_"
+>>
+Rule 49 (When both num_rows and num_columns are provided as tensors, ensure their combined memory footprint doesn't lead to resource exhaustion.)
+{num_rows: tensor, num_columns: tensor} |= (max(num_rows) * max(num_columns)) < 200000000
+>>
+Rule 50 (When dtype is specified as a tensor, it must have 0 dimensions and be type 'dtype')
+{dtype: tensor} |= ndim(dtype) = 0 ∧ dtype_(dtype) = 12
+>>
+Rule 54 (If num_rows is specified as a tensor and dtype is specified, prevent overflow during Range operation)
+{num_rows: tensor, dtype: dtype} |= if dtype ≠ 3 ∧ dtype ≠ 4 then max(num_rows) < 65535
+>>
+Rule 55 (If num_columns is specified as a tensor and dtype is specified, prevent overflow during Range operation)
+{num_columns: tensor, dtype: dtype} |= if dtype ≠ 3 ∧ dtype ≠ 4 then max(num_columns) < 65535
+>>
+Rule 56 (Prevent a very sparse matrix by ensuring that the ratio between the number of rows and columns is not extremely large when using float16 and specified both parameters)
+{num_rows : int, num_columns : int, dtype : dtype} |= if dtype = 6 then (if num_rows > num_columns then (num_rows / num_columns) < 1000 else (num_columns / num_rows) < 1000)
+>>
+Rule 57 (Ensure name only uses allowed characters.)
+{name : str} |= ∃i ∈ [0, name.len-1]: (name[i] ≥ "a" ∧ name[i] ≤ "z") ∨ (name[i] ≥ "A" ∧ name[i] ≤ "Z") ∨ (name[i] ≥ "0" ∧ name[i] ≤ "9") ∨ (name[i] = "_")

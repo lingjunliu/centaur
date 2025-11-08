@@ -5,42 +5,35 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If num_rows and num_columns are both zero, batch_shape must be non-empty (Rule 10)
+# The product of batch_shape should be less than 2^30 (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_value"] == 0, v["arg2_value"] == 0), v["arg3_length"] > 0, True)) if n else
-          If(And(v["arg1_value"] == 0, v["arg2_value"] == 0), v["arg3_length"] > 0, True))
+    s.add(Not(And([Implies(i < (v["arg1_length"] + 1), (And(True, (And([Implies(j < (v["arg1_length"] + 1), (And(True, (Select(v["arg1_values"], i) * Select(v["arg1_values"], j) < 1073741824)))) for j in range(6)]))))) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_length"] + 1), (And(True, (And([Implies(j < (v["arg1_length"] + 1), (And(True, (Select(v["arg1_values"], i) * Select(v["arg1_values"], j) < 1073741824)))) for j in range(6)]))))) for i in range(6)]))
 )
 
-def rule_10_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_10_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
-            return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
-            return False
-        if not (isinstance(arg3, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg3)):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_value = Int('arg2_value')
-        arg3_length = Int('arg3_length')
+        arg1_length = Int('arg1_length')
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        solver.add(arg2_value == int(arg2))
-        solver.add(arg3_length == len(arg3))
+        solver.add(arg1_length == len(arg1))
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 10
-        rule_10(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_length': arg3_length})
+        rule_10(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_10(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value'], 'arg3_length': arg3['length']}, neg)
+        rule_10(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values']}, neg)

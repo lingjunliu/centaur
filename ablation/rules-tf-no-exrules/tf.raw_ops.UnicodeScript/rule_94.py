@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If ndim is greater than 0 and the dtype is int32, then the minimum value should be greater or equal than -1 AND maximum value must be less than 1114112 (Rule 94)
+# If input has a dtype of int32, then all values must be between -1 and 1114111 (Rule 94)
 
 rule_94 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_ndim"] > 0, v["arg1_dtype"] == 3), (And(Select(v["arg1_range"], 0) >= -1, Select(v["arg1_range"], 1) < 1114112)), True)) if n else
-          If(And(v["arg1_ndim"] > 0, v["arg1_dtype"] == 3), (And(Select(v["arg1_range"], 0) >= -1, Select(v["arg1_range"], 1) < 1114112)), True))
+    s.add(Not(If(v["arg1_dtype"] == 3, And(Select(v["arg1_range"], 0) >= -1, Select(v["arg1_range"], 1) <= 1114111), True)) if n else
+          If(v["arg1_dtype"] == 3, And(Select(v["arg1_range"], 0) >= -1, Select(v["arg1_range"], 1) <= 1114111), True))
 )
 
 def rule_94_func(arg1, solver=None, neg=False):
@@ -22,20 +22,18 @@ def rule_94_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
         arg1_dtype = Int('arg1_dtype')
         arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 94
-        rule_94(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_94(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_94(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
+        rule_94(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)

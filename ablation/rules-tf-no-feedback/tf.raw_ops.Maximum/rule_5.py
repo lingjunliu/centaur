@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# input tensors have compatible shapes for broadcasting (Rule 5)
+# x has at least one dimension when y is a scalar (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == v["arg2_ndim"], True, If(v["arg1_ndim"] > v["arg2_ndim"], True, True))) if n else
-          If(v["arg1_ndim"] == v["arg2_ndim"], True, If(v["arg1_ndim"] > v["arg2_ndim"], True, True)))
+    s.add(Not(Or((v["arg2_ndim"] == 0), (v["arg1_ndim"] >= 1))) if n else
+          Or((v["arg2_ndim"] == 0), (v["arg1_ndim"] >= 1)))
 )
 
 def rule_5_func(arg1, arg2, solver=None, neg=False):

@@ -1,45 +1,144 @@
 >>
-Rule 8 (compute_full_loss should be true or false)
-{compute_full_loss : bool} |= compute_full_loss = true ∨ compute_full_loss = false
+Rule 1 (labels tensor should have the same shape as logits tensor)
+{labels : tensor, logits : tensor} |= shape(labels) = shape(logits)
 >>
-Rule 13 (target dtype should be float or int)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 2 (is_safe boolean variable should be either true or false)
+{is_safe : bool} |= is_safe = true ∨ is_safe = false
 >>
-Rule 14 (log_input dtype should be float or int)
-{v_2 : tensor} |= dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+Rule 5 (The labels tensor's dtype must be float32 or float64 when is_safe is true)
+{labels : tensor, is_safe : bool} |= if is_safe = true then (dtype_(labels) = 7 ∨ dtype_(labels) = 8)
 >>
-Rule 15 (Check for valid boolean value)
-{v_3 : bool} |= v_3 = true ∨ v_3 = false
+Rule 6 (Check if the labels tensor's dtype is valid.)
+{labels : tensor} |= dtype_(labels) = 1 ∨ dtype_(labels) = 2 ∨ dtype_(labels) = 3 ∨ dtype_(labels) = 4 ∨ dtype_(labels) = 5 ∨ dtype_(labels) = 6 ∨ dtype_(labels) = 7 ∨ dtype_(labels) = 8
 >>
-Rule 22 (target dtype must be numerical)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 7 (If labels dtype is int, logits dtype cannot be complex.)
+{labels : tensor, logits : tensor} |= if (dtype_(labels) = 1 ∨ dtype_(labels) = 2 ∨ dtype_(labels) = 3 ∨ dtype_(labels) = 4 ∨ dtype_(labels) = 5) then (dtype_(logits) ≠ 9 ∧ dtype_(logits) ≠ 10)
 >>
-Rule 23 (log_input dtype must be numerical)
-{v_2 : tensor} |= dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+Rule 8 (Shape of labels and logits tensors should have at least one dimension.)
+{labels : tensor, logits : tensor} |= ndim(labels) > 0 ∧ ndim(logits) > 0
 >>
-Rule 33 (target dtype should be a valid numerical type)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 9 (if labels contains large values, is_safe must be set to false)
+{labels: tensor, is_safe : bool} |= if max(labels) > 100 then is_safe = false
 >>
-Rule 34 (log_input dtype should be a valid numerical type)
-{v_2 : tensor} |= dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+Rule 10 (Check if both labels and logits have the same number of dimensions.)
+{labels : tensor, logits : tensor} |= ndim(labels) = ndim(logits)
 >>
-Rule 53 (Target and log_input dtypes must be the same)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 14 (If labels and logits are both float32, then the max value of labels must be less than 1000)
+{labels: tensor, logits: tensor} |= if (dtype_(labels) = 7 ∧ dtype_(logits) = 7) then max(labels) < 1000
 >>
-Rule 63 (Target rank must be greater than zero)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 16 (The minimum value of logits cannot be greater than the maximum value of labels if is_safe is false)
+{labels: tensor, logits: tensor, is_safe: bool} |= if is_safe = false then min(logits) ≤ max(labels)
 >>
-Rule 64 (Log_input rank must be greater than zero)
-{v_2 : tensor} |= ndim(v_2) > 0
+Rule 17 (Dtype of labels and logits should not be string)
+{labels: tensor, logits: tensor} |= dtype_(labels) ≠ 11 ∧ dtype_(logits) ≠ 11
 >>
-Rule 96 (If compute_full_loss is false, total loss will be returned.)
-{v_3 : bool} |= if v_3 = false then true
+Rule 24 (If labels and logits both are float, then minimum value of both should be greater than -1000)
+{labels: tensor, logits: tensor} |= if (dtype_(labels) = 7 ∨ dtype_(labels) = 8) ∧ (dtype_(logits) = 7 ∨ dtype_(logits) = 8) then min(labels) > -1000 ∧ min(logits) > -1000
 >>
-Rule 112 (No complex numbers allowed.)
-{v_1: tensor, v_2: tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11 ∧ dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11
+Rule 25 (If the labels tensor has a dtype of int64, the logits tensor must have a dtype of float32 or float64.)
+{labels: tensor, logits: tensor} |= if dtype_(labels) = 4 then (dtype_(logits) = 7 ∨ dtype_(logits) = 8)
 >>
-Rule 117 (Target must be a numerical tensor - int or float)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
+Rule 28 (The difference between max value in labels and min value in logits should not be greater than 10000 if both are float types.)
+{labels: tensor, logits: tensor} |= if (dtype_(labels) = 7 ∨ dtype_(labels) = 8) ∧ (dtype_(logits) = 7 ∨ dtype_(logits) = 8) then (max(labels) - min(logits)) ≤ 10000
 >>
-Rule 118 (Log_input must be a numerical tensor - int or float)
-{v_2 : tensor} |= dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9
+Rule 31 (If labels have dtype int8 and logits have dtype float16, is_safe should be false)
+{labels : tensor, logits : tensor, is_safe: bool} |= if dtype_(labels) = 1 ∧ dtype_(logits) = 6 then is_safe = false
+>>
+Rule 34 (If labels have dtype of int32 or int64, the maximum value in labels should be less than 2147483647)
+{labels: tensor} |= if (dtype_(labels) = 3 ∨ dtype_(labels) = 4) then max(labels) < 2147483647
+>>
+Rule 35 (If labels and logits are both of complex type, then is_safe must be false)
+{labels: tensor, logits: tensor, is_safe: bool} |= if (dtype_(labels) = 9 ∨ dtype_(labels) = 10) ∧ (dtype_(logits) = 9 ∨ dtype_(logits) = 10) then is_safe = false
+>>
+Rule 36 (Number of dimensions in labels cannot be greater than 10)
+{labels: tensor} |= ndim(labels) ≤ 10
+>>
+Rule 40 (If labels is a tensor of integers, then the minimum value must be zero.)
+{labels: tensor} |= if (dtype_(labels) = 1 ∨ dtype_(labels) = 2 ∨ dtype_(labels) = 3 ∨ dtype_(labels) = 4 ∨ dtype_(labels) = 5 ∨ dtype_(labels) = 6) then min(labels) = 0
+>>
+Rule 42 (If labels' dtype is float16, then logits' dtype must also be float16.)
+{labels: tensor, logits: tensor} |= if dtype_(labels) = 6 then dtype_(logits) = 6
+>>
+Rule 43 (Labels and Logits must have consistent data types (either both integer or both float or both complex))
+{labels: tensor, logits: tensor} |= ((dtype_(labels) = 1 ∨ dtype_(labels) = 2 ∨ dtype_(labels) = 3 ∨ dtype_(labels) = 4 ∨ dtype_(labels) = 5 ∨ dtype_(labels) = 6) ∧ (dtype_(logits) = 1 ∨ dtype_(logits) = 2 ∨ dtype_(logits) = 3 ∨ dtype_(logits) = 4 ∨ dtype_(logits) = 5 ∨ dtype_(logits) = 6)) ∨ ((dtype_(labels) = 7 ∨ dtype_(labels) = 8) ∧ (dtype_(logits) = 7 ∨ dtype_(logits) = 8)) ∨ ((dtype_(labels) = 9 ∨ dtype_(labels) = 10) ∧ (dtype_(logits) = 9 ∨ dtype_(logits) = 10))
+>>
+Rule 45 (The value of max(logits) should be greater than min(logits))
+{logits: tensor} |= max(logits) > min(logits)
+>>
+Rule 49 (Logits cannot have all the same values, unless the labels tensor is all zeros.)
+{labels: tensor, logits: tensor} |= if min(labels) = 0 ∧ max(labels) = 0 then true else min(logits) ≠ max(logits)
+>>
+Rule 51 (If labels' dtype is np.int8 and logits' dtype is np.float64, is_safe must be false.)
+{labels: tensor, logits: tensor, is_safe: bool} |= if (dtype_(labels) = 1) ∧ (dtype_(logits) = 8) then is_safe = false
+>>
+Rule 52 (The number of dimensions in logits must not exceed 5.)
+{logits: tensor} |= ndim(logits) ≤ 5
+>>
+Rule 53 (The maximum value in labels should be greater than or equal to the minimum value in labels.)
+{labels: tensor} |= max(labels) ≥ min(labels)
+>>
+Rule 54 (If labels tensor is all zeros and logits tensor is all zeros, is_safe must be true)
+{labels: tensor, logits: tensor, is_safe: bool} |= if (min(labels) = 0 ∧ max(labels) = 0) ∧ (min(logits) = 0 ∧ max(logits) = 0) then is_safe = true
+>>
+Rule 58 (If labels is int, then maximum value should be less than 100000)
+{labels: tensor} |= if (dtype_(labels) = 1 ∨ dtype_(labels) = 2 ∨ dtype_(labels) = 3 ∨ dtype_(labels) = 4 ∨ dtype_(labels) = 5 ∨ dtype_(labels) = 6) then max(labels) < 100000
+>>
+Rule 59 (The difference between the number of dimensions in logits and labels must not exceed 2.)
+{labels: tensor, logits: tensor} |= (ndim(logits) - ndim(labels)) ≤ 2 ∧ (ndim(labels) - ndim(logits)) ≤ 2
+>>
+Rule 62 (If the dtype of labels is int32, then the range of values should be within -2147483648 and 2147483647.)
+{labels: tensor} |= if dtype_(labels) = 3 then (min(labels) ≥ -2147483648 ∧ max(labels) ≤ 2147483647)
+>>
+Rule 66 (if ndim of labels is less than ndim of logits and is_safe = true, return false.)
+{labels : tensor, logits : tensor, is_safe : bool} |= if (ndim(labels) < ndim(logits)) ∧ (is_safe = true) then false
+>>
+Rule 68 (If is_safe=true, ensure that min of labels is never less than zero.)
+{labels : tensor, is_safe:bool} |= if is_safe = true then min(labels) ≥ 0
+>>
+Rule 72 (If labels or logits is complex, then is_safe should be false)
+{labels: tensor, logits: tensor, is_safe: bool} |= if (dtype_(labels) = 9 ∨ dtype_(labels) = 10) ∨ (dtype_(logits) = 9 ∨ dtype_(logits) = 10) then is_safe = false
+>>
+Rule 73 (If the difference between max and min value in logits is less than 0.0001, is_safe should be false)
+{logits: tensor, is_safe: bool} |= if (max(logits) - min(logits)) < 0.0001 then is_safe = false
+>>
+Rule 75 (If labels dtype is uint8, then logits dtype cannot be float16)
+{labels: tensor, logits: tensor} |= if dtype_(labels) = 5 then dtype_(logits) ≠ 6
+>>
+Rule 81 (The maximum value of logits should not be greater than 1000 if the minimum of labels is equal to 0 and is_safe is true)
+{labels: tensor, logits: tensor, is_safe: bool} |= if (min(labels) = 0) ∧ (is_safe = true) then max(logits) ≤ 1000
+>>
+Rule 82 (If the standard deviation of labels is zero and the standard deviation of logits is also zero, is_safe can be true)
+{labels: tensor, logits: tensor, is_safe: bool} |= if (min(labels) = max(labels)) ∧ (min(logits) = max(logits)) then is_safe = true
+>>
+Rule 84 (If is_safe is true, then the shape of the logits and labels tensors must match exactly.)
+{labels: tensor, logits: tensor, is_safe: bool} |= if is_safe = true then shape(labels) = shape(logits)
+>>
+Rule 87 (If is_safe is false and the minimum value of labels is greater than the maximum value of logits, then return false.)
+{labels: tensor, logits: tensor, is_safe: bool} |= if is_safe = false then min(labels) ≤ max(logits)
+>>
+Rule 88 (If labels is an integer type tensor, then the logit tensor should not be complex number.)
+{labels : tensor, logits : tensor} |= if(dtype_(labels) = 1 ∨ dtype_(labels) = 2 ∨ dtype_(labels) = 3 ∨ dtype_(labels) = 4 ∨ dtype_(labels) = 5 ∨ dtype_(labels) = 6) then (dtype_(logits) ≠ 9 ∧ dtype_(logits) ≠ 10)
+>>
+Rule 91 (If labels and logits both have dtype float64 and is_safe is true, the maximum value in labels should be less than or equal to the maximum value in logits.)
+{labels: tensor, logits: tensor, is_safe: bool} |= if (dtype_(labels) = 8) ∧ (dtype_(logits) = 8) ∧ (is_safe = true) then max(labels) ≤ max(logits)
+>>
+Rule 93 (The ratio between the min and max values in logits should be more than 0.001)
+{logits: tensor} |= (min(logits) / max(logits)) > 0.001 ∨ (max(logits) / min(logits)) > 0.001
+>>
+Rule 95 (Labels and Logits should have the same minimum value)
+{labels: tensor, logits: tensor} |= min(labels) = min(logits)
+>>
+Rule 97 (The maximum value within labels multiplied by two should be no larger than the maximum allowable value given the datatype.)
+{labels: tensor} |= if (dtype_(labels) = 1) then max(labels) * 2 < 127 ∧ max(labels) * 2 > -128 else if (dtype_(labels) = 2) then max(labels) * 2 < 32767 ∧ max(labels) * 2 > -32768 else if (dtype_(labels) = 3) then max(labels) * 2 < 2147483647 ∧ max(labels) * 2 > -2147483648 else if (dtype_(labels) = 4) then max(labels) * 2 < 9223372036854775807 ∧ max(labels) * 2 > -9223372036854775808
+>>
+Rule 98 (If the logits have a single dimension, the value of the first element of the logits tensor should not be "None")
+{logits : tensor} |= if ndim(logits) = 1 then logits[0] ≠ "none"
+>>
+Rule 103 (If all labels are the same, then min and max of labels must equal zero if and only if the is_safe flag is set to 'True'.)
+{labels: tensor, is_safe: bool} |= if (min(labels) = max(labels)) then (if min(labels) = 0 then is_safe = true)
+>>
+Rule 110 (Labels dtype should not be complex if is_safe is true.)
+{labels : tensor, is_safe : bool} |= if is_safe = true then (dtype_(labels) ≠ 9 ∧ dtype_(labels) ≠ 10)
+>>
+Rule 113 (The value in labels should not be so big that adding it to a float will cause an overflow.)
+{labels: tensor} |= if (dtype_(labels) = 1 ∨ dtype_(labels) = 2 ∨ dtype_(labels) = 3 ∨ dtype_(labels) = 4 ∨ dtype_(labels) = 5 ∨ dtype_(labels) = 6) then max(labels) < 1000000000

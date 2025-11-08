@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check the total size to prevent memory explosion even before element-wise calculations (Rule 36)
+# If padding is required, the target dimensions must not be excessively larger than the original dimensions (Rule 36)
 
 rule_36 = lambda s, v, n=False: (
-    s.add(Not(And((If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2), Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) * Select(v["arg1_shape"], 3))) < 100000000, v["arg2_value"] * v["arg3_value"] < 1000000)) if n else
-          And((If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2), Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) * Select(v["arg1_shape"], 3))) < 100000000, v["arg2_value"] * v["arg3_value"] < 1000000))
+    s.add(Not(If(Or(Select(v["arg1_shape"], 1) < v["arg2_value"], Select(v["arg1_shape"], 2) < v["arg3_value"]), And((v["arg2_value"] - Select(v["arg1_shape"], 1)) < 1000, (v["arg3_value"] - Select(v["arg1_shape"], 2)) < 1000), True)) if n else
+          If(Or(Select(v["arg1_shape"], 1) < v["arg2_value"], Select(v["arg1_shape"], 2) < v["arg3_value"]), And((v["arg2_value"] - Select(v["arg1_shape"], 1)) < 1000, (v["arg3_value"] - Select(v["arg1_shape"], 2)) < 1000), True))
 )
 
 def rule_36_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -28,22 +28,20 @@ def rule_36_func(arg1, arg2, arg3, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg2_value = Int('arg2_value')
         arg3_value = Int('arg3_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg2_value == int(arg2))
         solver.add(arg3_value == int(arg3))
 
         # Constraints for rule 36
-        rule_36(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
+        rule_36(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_36(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)
+        rule_36(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)

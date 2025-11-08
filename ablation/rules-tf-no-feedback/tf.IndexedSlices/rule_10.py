@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if dense_shape is provided, the number of dimensions should be consistent with values (Rule 10)
+# values should have rank >= 1 and indices should have rank = 1 (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_ndim"] > 0, v["arg1_ndim"] == v["arg2_ndim"], True)) if n else
-          If(v["arg2_ndim"] > 0, v["arg1_ndim"] == v["arg2_ndim"], True))
+    s.add(Not(And(v["arg1_ndim"] >= 1, v["arg2_ndim"] == 1)) if n else
+          And(v["arg1_ndim"] >= 1, v["arg2_ndim"] == 1))
 )
 
 def rule_10_func(arg1, arg2, solver=None, neg=False):

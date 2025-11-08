@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Converting to HSV and back should result in same dtype as input (Rule 24)
+# image is a tensor, its dtype should not be complex64 or complex128 (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not((v["arg1_dtype"] == v["arg1_dtype"])) if n else
-          (v["arg1_dtype"] == v["arg1_dtype"]))
+    s.add(Not(And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10)) if n else
+          And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10))
 )
 
 def rule_24_func(arg1, solver=None, neg=False):

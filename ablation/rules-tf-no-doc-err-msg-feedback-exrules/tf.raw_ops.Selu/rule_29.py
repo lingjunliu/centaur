@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Scale and Alpha shouldn't be extremely large (Rule 29)
+# Scale and Lambda must have same sign. (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] < 1000000.0, v["arg2_value"] < 1000000.0)) if n else
-          And(v["arg1_value"] < 1000000.0, v["arg2_value"] < 1000000.0))
+    s.add(Not(Or(Or((And(v["arg1_value"] > 0, v["arg2_value"] > 0)), (And(v["arg1_value"] < 0, v["arg2_value"] < 0))), (And(v["arg1_value"] == 0, v["arg2_value"] == 0)))) if n else
+          Or(Or((And(v["arg1_value"] > 0, v["arg2_value"] > 0)), (And(v["arg1_value"] < 0, v["arg2_value"] < 0))), (And(v["arg1_value"] == 0, v["arg2_value"] == 0))))
 )
 
 def rule_29_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# When padding, the amount of padding should be reasonable compared to image size to prevent creation of almost-empty images consuming significant memory (Rule 29)
+# Target height and width, when greater than original height and width respectively, must not result in an overly large padded image - preventing ResourceExhaustedError (Rule 29)
 
 rule_29 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 3, And(v["arg2_value"] - Select(v["arg1_shape"], 0) < 1000, v["arg3_value"] - Select(v["arg1_shape"], 1) < 1000), And(v["arg2_value"] - Select(v["arg1_shape"], 1) < 1000, v["arg3_value"] - Select(v["arg1_shape"], 2) < 1000))) if n else
-          If(v["arg1_ndim"] == 3, And(v["arg2_value"] - Select(v["arg1_shape"], 0) < 1000, v["arg3_value"] - Select(v["arg1_shape"], 1) < 1000), And(v["arg2_value"] - Select(v["arg1_shape"], 1) < 1000, v["arg3_value"] - Select(v["arg1_shape"], 2) < 1000)))
+    s.add(Not(If(And(v["arg2_value"] > Select(v["arg1_shape"], 1), v["arg3_value"] > Select(v["arg1_shape"], 2)), (v["arg2_value"] * v["arg3_value"] * Select(v["arg1_shape"], v["arg1_ndim"] - 1)) < 20000000, True)) if n else
+          If(And(v["arg2_value"] > Select(v["arg1_shape"], 1), v["arg3_value"] > Select(v["arg1_shape"], 2)), (v["arg2_value"] * v["arg3_value"] * Select(v["arg1_shape"], v["arg1_ndim"] - 1)) < 20000000, True))
 )
 
 def rule_29_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -41,9 +41,9 @@ def rule_29_func(arg1, arg2, arg3, solver=None, neg=False):
         solver.add(arg3_value == int(arg3))
 
         # Constraints for rule 29
-        rule_29(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
+        rule_29(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_29(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)
+        rule_29(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)

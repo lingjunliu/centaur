@@ -1,0 +1,87 @@
+>>
+Rule 1 (if `dim` is not None, it must be within the range of input tensor's dimensions)
+{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then v_2 < ndim(v_1)
+>>
+Rule 2 (if `keepdim` is set, the resulting tensor should have at least one dimension)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then ndim(v_1) ≥ 1
+>>
+Rule 4 (the reduction dimension must be a non-negative integer)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 5 (the input tensor must have at least one element when reduction happens)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 1
+>>
+Rule 6 (If `dim` is a tuple, all elements of the tuple should be within dimension range)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : (v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1))
+>>
+Rule 7 (the number of dimensions for input tensor is less than or equal to 5)
+{v_1 : tensor} |= ndim(v_1) ≤ 5
+>>
+Rule 8 (the output dtype must be a valid dtype, simplified version)
+{v_1 : dtype} |= v_1 ≥ 0 ∧ v_1 ≤ 12
+>>
+Rule 9 (string should be one of the allowed values)
+{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "softplus" ∨ v_1 = "linear" ∨ v_1 = "constant" ∨ v_1 = "reflect" ∨ v_1 = "replicate" ∨ v_1 = "circular" ∨ v_1 = "nearest" ∨ v_1 = "bilinear" ∨ v_1 = "bicubic" ∨ v_1 = "trilinear" ∨ v_1 = "area" ∨ v_1 = "linear"
+>>
+Rule 10 (If provided, `initial` value's dtype must match input dtype)
+{v_1 : tensor, v_2 : float ⊎ int} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 12 (if `out` is provided, its dtype should match input dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 13 (if `dim` is None, `keepdim` is ignored)
+{v_1 : int ⊎ tuple(int), v_2 : bool} |= if v_1 = -1 then v_2 = true
+>>
+Rule 14 (if dim is a tuple, it should not be empty)
+{v_1 : tuple(int)} |= v_1.len > 0
+>>
+Rule 18 (If `dim` is a tuple, the same dimension should not appear twice)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i + 1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+>>
+Rule 19 (if `initial` is provided and input is integer tensor, then `initial` must be integer)
+{v_1 : tensor, v_2 : int ⊎ float} |= if 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 then v_2 % 1 = 0
+>>
+Rule 21 (if `out` is provided, the number of dimensions must match the input tensor if `keepdim` is True, or be one less if `keepdim` is False and `dim` is not None)
+{v_1 : tensor, v_2 : tensor, v_3 : bool, v_4 : int ⊎ tuple(int)} |= if v_3 = true then ndim(v_1) = ndim(v_2) else if v_4 = -1 then true else ndim(v_1) - 1 = ndim(v_2)
+>>
+Rule 22 (if dim is a tuple, then its length must be less than the input dimension)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len < ndim(v_1)
+>>
+Rule 24 (if out is specified, and keepdim is True, the dimensions that are reduced should have size 1 in out)
+{v_1 : tensor, v_2 : tuple(int), v_3 : bool} |= if v_3 = true then ∀i ∈ [0, v_2.len - 1] : (∃j ∈ [0, ndim(v_1) - 1] : v_2[i] = j ∧ shape(v_1, j) = 1)
+>>
+Rule 25 (if dim is specified as a tuple, all dims must be within valid range)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : (-1 * ndim(v_1)) ≤ v_2[i] ∧ v_2[i] ≤ (ndim(v_1) -1)
+>>
+Rule 26 (if initial is specified, it must be within the range of the input tensor)
+{v_1 : tensor, v_2 : int ⊎ float} |= min(v_1) ≤ v_2 ∧ v_2 ≤ max(v_1)
+>>
+Rule 27 (if initial is specified, its dtype must be the same as the input tensor)
+{v_1 : tensor, v_2 : int ⊎ float} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 29 (if `dim` is specified as an integer and `keepdim` is true, then the shape of `out` along `dim` must be 1)
+{v_1 : tensor, v_2 : int, v_3 : bool} |= if v_3 = true then (∃i ∈ [0, ndim(v_1) - 1] : v_2 = i ∧ shape(v_1, i) = 1)
+>>
+Rule 30 (if `dim` is specified as an integer, it must be less than the number of dimensions of `out`)
+{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
+>>
+Rule 31 (if dim is specified, it should be a valid dimension for both input and output if out is specified)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 ≥ 0 then v_3 < ndim(v_1) ∧ v_3 < ndim(v_2)
+>>
+Rule 32 (if dim is None, then keepdim does nothing, so the dimension of out should be same as input)
+{v_1: tensor, v_2: tensor, v_3: int ⊎ tuple(int)} |= if v_3 = -1 then ndim(v_1) = ndim(v_2)
+>>
+Rule 37 (if out is provided, the shape must match expected reduced shape based on dim and keepdim)
+{v_1 : tensor, v_2 : tensor, v_3 : int ⊎ tuple(int), v_4 : bool} |= if v_3 = -1 then ndim(v_1) = ndim(v_2) else if v_4 = true then ndim(v_1) = ndim(v_2) else if v_3 = 0 then ndim(v_1) - 1 = ndim(v_2) else ndim(v_1) - v_3.len = ndim(v_2)
+>>
+Rule 41 (if out is provided and dim is specified as tuple, if keepdim is true, then dimensions specified by dim have shape 1)
+{v_1 : tensor, v_2 : tensor, v_3 : tuple(int), v_4 : bool} |= if v_4 = true then ∀i ∈ [0, v_3.len - 1] : (∃j ∈ [0, ndim(v_1) - 1] : v_3[i] = j ∧ shape(v_2, j) = 1)
+>>
+Rule 43 (if out is specified, it cannot be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 46 (if initial is specified, it must be convertible to input tensor's dtype, refined)
+{v_1 : tensor, v_2 : int ⊎ float} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then v_2 % 1 = 0
+>>
+Rule 48 (if out is specified, its number of elements must be less or equal to the input's number of elements)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then true else false

@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The input tensor x must have at least two dimensions to avoid InvalidArgumentError related to dimension requirements. (Rule 2)
+# The input tensor x must be at least 2-dimensional to avoid InvalidArgumentError. (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
     s.add(Not(v["arg1_ndim"] >= 2) if n else

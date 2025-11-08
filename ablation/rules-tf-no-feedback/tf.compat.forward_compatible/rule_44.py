@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Month and day should be valid combination. (Rule 44)
+# Combination: Year and Month are reasonable (Rule 44)
 
 rule_44 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 2, v["arg2_value"] <= 29, If(Or(Or(Or(v["arg1_value"] == 4, v["arg1_value"] == 6), v["arg1_value"] == 9), v["arg1_value"] == 11), v["arg2_value"] <= 30, v["arg2_value"] <= 31))) if n else
-          If(v["arg1_value"] == 2, v["arg2_value"] <= 29, If(Or(Or(Or(v["arg1_value"] == 4, v["arg1_value"] == 6), v["arg1_value"] == 9), v["arg1_value"] == 11), v["arg2_value"] <= 30, v["arg2_value"] <= 31)))
+    s.add(Not(And(v["arg1_value"] > 1900, v["arg2_value"] > 0)) if n else
+          And(v["arg1_value"] > 1900, v["arg2_value"] > 0))
 )
 
 def rule_44_func(arg1, arg2, solver=None, neg=False):

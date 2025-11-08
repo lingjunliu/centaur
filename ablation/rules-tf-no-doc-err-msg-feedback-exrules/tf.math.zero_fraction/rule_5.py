@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The zero fraction of a boolean tensor should be either 0 or 1 (Rule 5)
+# If the input tensor's data type is float, then the result must be less or equal than 1.0 (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 0, (Or(Select(v["arg1_range"], 0) == 0, Select(v["arg1_range"], 1) == 1)), True)) if n else
-          If(v["arg1_dtype"] == 0, (Or(Select(v["arg1_range"], 0) == 0, Select(v["arg1_range"], 1) == 1)), True))
+    s.add(Not(If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), Select(v["arg1_range"], 1) <= 1.0, True)) if n else
+          If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), Select(v["arg1_range"], 1) <= 1.0, True))
 )
 
 def rule_5_func(arg1, solver=None, neg=False):

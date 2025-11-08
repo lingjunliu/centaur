@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Sanity check for date: Day less than 32. (Rule 48)
+# Month is greater than 0 and less than or equal to 12 (Rule 48)
 
 rule_48 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] < 32) if n else
-          v["arg1_value"] < 32)
+    s.add(Not(And(v["arg1_value"] > 0, v["arg1_value"] <= 12)) if n else
+          And(v["arg1_value"] > 0, v["arg1_value"] <= 12))
 )
 
 def rule_48_func(arg1, solver=None, neg=False):

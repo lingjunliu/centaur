@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Number of dimensions for either tensor has to be less than a max rank. (Rule 51)
+# If at least one of the input tensors is complex type, both must be complex type. (Rule 51)
 
 rule_51 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] < 5, v["arg2_ndim"] < 5)) if n else
-          And(v["arg1_ndim"] < 5, v["arg2_ndim"] < 5))
+    s.add(Not(If(Or((v["arg1_dtype"] == 9), (v["arg1_dtype"] == 10)), Or((v["arg2_dtype"] == 9), (v["arg2_dtype"] == 10)), True)) if n else
+          If(Or((v["arg1_dtype"] == 9), (v["arg1_dtype"] == 10)), Or((v["arg2_dtype"] == 9), (v["arg2_dtype"] == 10)), True))
 )
 
 def rule_51_func(arg1, arg2, solver=None, neg=False):
@@ -25,17 +25,17 @@ def rule_51_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_ndim = Int('arg2_ndim')
+        arg1_dtype = Int('arg1_dtype')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 51
-        rule_51(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
+        rule_51(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_51(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_51(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)

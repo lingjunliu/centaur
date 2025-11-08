@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# features must be a tensor with a valid dtype (Rule 6)
+# if features is a bfloat16 tensor, then its dtype is 1 (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9)) if n else
-          Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9))
+    s.add(Not(If(v["arg1_dtype"] == 1, True, False)) if n else
+          If(v["arg1_dtype"] == 1, True, False))
 )
 
 def rule_6_func(arg1, solver=None, neg=False):

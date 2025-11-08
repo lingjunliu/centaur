@@ -1,93 +1,123 @@
 >>
-Rule 1 (images tensor must have rank 4)
+Rule 1 (images must be a 4-dimensional tensor)
 {images : tensor} |= ndim(images) = 4
 >>
-Rule 2 (images tensor must have type float32 or float16)
-{images : tensor} |= dtype_(images) = 6 ∨ dtype_(images) = 7
+Rule 2 (images must have dtype float32 or half)
+{images : tensor} |= dtype_(images) = 7 ∨ dtype_(images) = 6
 >>
-Rule 3 (boxes tensor must have rank 3)
+Rule 3 (boxes must be a 3-dimensional tensor)
 {boxes : tensor} |= ndim(boxes) = 3
 >>
-Rule 4 (boxes tensor must have type float32)
+Rule 4 (boxes must have dtype float32)
 {boxes : tensor} |= dtype_(boxes) = 7
 >>
-Rule 5 (boxes tensor's last dimension must be 4)
+Rule 5 (The last dimension of boxes must be 4, representing [y_min, x_min, y_max, x_max])
 {boxes : tensor} |= shape(boxes, 2) = 4
 >>
-Rule 6 (images and boxes batch size must match)
+Rule 7 (The batch size of images and boxes must be the same)
 {images : tensor, boxes : tensor} |= shape(images, 0) = shape(boxes, 0)
 >>
-Rule 9 (image height and width must be positive)
-{images : tensor} |= shape(images, 1) > 0 ∧ shape(images, 2) > 0
+Rule 9 (height of images should be greater than 0)
+{images : tensor} |= shape(images, 1) > 0
 >>
-Rule 10 (image depth must be positive)
+Rule 10 (width of images should be greater than 0)
+{images : tensor} |= shape(images, 2) > 0
+>>
+Rule 11 (depth of images should be greater than 0)
 {images : tensor} |= shape(images, 3) > 0
 >>
-Rule 14 (images tensor and the output tensor must have the same dtype)
-{images : tensor} |= dtype_(images) = dtype_(images)
+Rule 14 (images shape values must be greater than zero)
+{images : tensor} |= shape(images, 0) > 0 ∧ shape(images, 1) > 0 ∧ shape(images, 2) > 0 ∧ shape(images, 3) > 0
 >>
-Rule 17 (images tensor and output tensor must have the same shape)
+Rule 15 (boxes shape values must be greater than zero)
+{boxes : tensor} |= shape(boxes, 0) > 0 ∧ shape(boxes, 1) > 0 ∧ shape(boxes, 2) > 0
+>>
+Rule 16 (images values must be finite if float32)
+{images : tensor} |= if dtype_(images) = 7 then ∀i ∈ [0, shape(images, 0) * shape(images, 1) * shape(images, 2) * shape(images, 3) - 1] : min(images) ≠ "inf" ∧ max(images) ≠ "inf"
+>>
+Rule 17 (images values must be finite if float16)
+{images : tensor} |= if dtype_(images) = 6 then ∀i ∈ [0, shape(images, 0) * shape(images, 1) * shape(images, 2) * shape(images, 3) - 1] : min(images) ≠ "inf" ∧ max(images) ≠ "inf"
+>>
+Rule 18 (boxes values must be finite)
+{boxes : tensor} |= ∀i ∈ [0, shape(boxes, 0) * shape(boxes, 1) * shape(boxes, 2) - 1] : min(boxes) ≠ "inf" ∧ max(boxes) ≠ "inf"
+>>
+Rule 31 (Output tensor has the same shape as the input images)
 {images : tensor} |= ndim(images) = ndim(images) ∧ ∀i ∈ [0, ndim(images) - 1] : shape(images, i) = shape(images, i)
 >>
-Rule 18 (images tensor shape[1] * shape[2] * shape[3] should be less than int32 max value)
-{images : tensor} |= shape(images, 1) * shape(images, 2) * shape(images, 3) < 2147483647
+Rule 32 (Images cannot have NaN values if float32)
+{images : tensor} |= if dtype_(images) = 7 then ∀i ∈ [0, shape(images, 0) * shape(images, 1) * shape(images, 2) * shape(images, 3) - 1] : min(images) ≠ "nan" ∧ max(images) ≠ "nan"
 >>
-Rule 19 (images and output tensor should have same shape)
-{images: tensor} |= shape(images, 0) = shape(images, 0) ∧ shape(images, 1) = shape(images, 1) ∧ shape(images, 2) = shape(images, 2) ∧ shape(images, 3) = shape(images, 3)
+Rule 33 (Images cannot have NaN values if float16)
+{images : tensor} |= if dtype_(images) = 6 then ∀i ∈ [0, shape(images, 0) * shape(images, 1) * shape(images, 2) * shape(images, 3) - 1] : min(images) ≠ "nan" ∧ max(images) ≠ "nan"
 >>
-Rule 20 (the batch size should be greater than zero)
-{images : tensor} |= shape(images, 0) > 0
+Rule 34 (Boxes cannot have NaN values)
+{boxes : tensor} |= ∀i ∈ [0, shape(boxes, 0) * shape(boxes, 1) * shape(boxes, 2) - 1] : min(boxes) ≠ "nan" ∧ max(boxes) ≠ "nan"
 >>
-Rule 21 (num_bounding_boxes in boxes tensor should be greater than or equal to zero)
-{boxes : tensor} |= shape(boxes, 1) ≥ 0
+Rule 35 (If image dtype is half, then boxes cannot have NaN values)
+{images : tensor, boxes : tensor} |= if dtype_(images) = 6 then ∀i ∈ [0, shape(boxes, 0) * shape(boxes, 1) * shape(boxes, 2) - 1] : min(boxes) ≠ "nan" ∧ max(boxes) ≠ "nan"
 >>
-Rule 22 (boxes tensor shape[1] should be less than int32 max value)
-{boxes : tensor} |= shape(boxes, 1) < 2147483647
+Rule 37 (If the batch size of images is 1, then the batch size of boxes can be greater than 1)
+{images : tensor, boxes : tensor} |= if shape(images, 0) = 1 then true else shape(images, 0) = shape(boxes, 0)
 >>
-Rule 23 (If images is float16, boxes must be float32)
+Rule 38 (If the image dtype is half, then images cannot have infinite values)
+{images : tensor} |= if dtype_(images) = 6 then ∀i ∈ [0, shape(images, 0) * shape(images, 1) * shape(images, 2) * shape(images, 3) - 1] : images[i] ≠ "inf" ∧ images[i] ≠ "-inf"
+>>
+Rule 39 (If the image dtype is float32, then images cannot have infinite values)
+{images : tensor} |= if dtype_(images) = 7 then ∀i ∈ [0, shape(images, 0) * shape(images, 1) * shape(images, 2) * shape(images, 3) - 1] : images[i] ≠ "inf" ∧ images[i] ≠ "-inf"
+>>
+Rule 40 (If the batch size of images is greater than 1, the batch size of boxes must be the same)
+{images : tensor, boxes : tensor} |= if shape(images, 0) > 1 then shape(images, 0) = shape(boxes, 0)
+>>
+Rule 41 (If the image dtype is float32, then boxes cannot have infinite values)
+{images : tensor, boxes : tensor} |= if dtype_(images) = 7 then ∀i ∈ [0, shape(boxes, 0) * shape(boxes, 1) * shape(boxes, 2) - 1] : boxes[i] ≠ "inf" ∧ boxes[i] ≠ "-inf"
+>>
+Rule 42 (images should be 4-D with positive height and width)
+{images : tensor} |= ndim(images) = 4 ∧ shape(images, 1) > 0 ∧ shape(images, 2) > 0
+>>
+Rule 43 (images should be 4-D with positive depth)
+{images : tensor} |= ndim(images) = 4 ∧ shape(images, 3) > 0
+>>
+Rule 44 (boxes should be 3-D with the last dimension being 4)
+{boxes : tensor} |= ndim(boxes) = 3 ∧ shape(boxes, 2) = 4
+>>
+Rule 45 (boxes should be 3-D with positive number of bounding boxes)
+{boxes : tensor} |= ndim(boxes) = 3 ∧ shape(boxes, 1) > 0
+>>
+Rule 46 (If the image dtype is float16, then boxes cannot have infinite values)
+{images : tensor, boxes : tensor} |= if dtype_(images) = 6 then ∀i ∈ [0, shape(boxes, 0) * shape(boxes, 1) * shape(boxes, 2) - 1] : boxes[i] ≠ "inf" ∧ boxes[i] ≠ "-inf"
+>>
+Rule 47 (boxes should be 3-D with all positive shape dimensions)
+{boxes : tensor} |= ndim(boxes) = 3 ∧ shape(boxes, 0) > 0 ∧ shape(boxes, 1) > 0 ∧ shape(boxes, 2) > 0
+>>
+Rule 48 (If the image dtype is float32, then images and boxes cannot have infinite values)
+{images : tensor, boxes : tensor} |= if dtype_(images) = 7 then ∀i ∈ [0, shape(images, 0) * shape(images, 1) * shape(images, 2) * shape(images, 3) - 1] : images[i] ≠ "inf" ∧ images[i] ≠ "-inf" ∧ ∀j ∈ [0, shape(boxes, 0) * shape(boxes, 1) * shape(boxes, 2) - 1] : boxes[j] ≠ "inf" ∧ boxes[j] ≠ "-inf"
+>>
+Rule 49 (If the image dtype is float16, then images and boxes cannot have NaN values)
+{images : tensor, boxes : tensor} |= if dtype_(images) = 6 then ∀i ∈ [0, shape(images, 0) * shape(images, 1) * shape(images, 2) * shape(images, 3) - 1] : images[i] ≠ "nan" ∧ ∀j ∈ [0, shape(boxes, 0) * shape(boxes, 1) * shape(boxes, 2) - 1] : boxes[j] ≠ "nan"
+>>
+Rule 50 (The number of bounding boxes in boxes should not exceed a reasonable maximum)
+{boxes : tensor} |= shape(boxes, 1) < 1000
+>>
+Rule 51 (Images batch size should be no more than 128)
+{images : tensor} |= shape(images, 0) ≤ 128
+>>
+Rule 52 (Boxes batch size should be no more than 128)
+{boxes : tensor} |= shape(boxes, 0) ≤ 128
+>>
+Rule 53 (If images is half, then boxes must not have NaN)
+{images : tensor, boxes : tensor} |= if dtype_(images) = 6 then ∃i ∈ [0, shape(boxes, 0) * shape(boxes, 1) * 4 - 1]: boxes[i] ≠ "nan"
+>>
+Rule 54 (If images is float32, then boxes must not have NaN)
+{images : tensor, boxes : tensor} |= if dtype_(images) = 7 then ∃i ∈ [0, shape(boxes, 0) * shape(boxes, 1) * 4 - 1]: boxes[i] ≠ "nan"
+>>
+Rule 55 (If images is half, then images must not have inf)
+{images : tensor} |= if dtype_(images) = 6 then ∃i ∈ [0, shape(images, 0) * shape(images, 1) * shape(images, 2) * shape(images, 3) - 1]: images[i] ≠ "inf" ∧ images[i] ≠ "-inf"
+>>
+Rule 56 (If images is float32, then images must not have inf)
+{images : tensor} |= if dtype_(images) = 7 then ∃i ∈ [0, shape(images, 0) * shape(images, 1) * shape(images, 2) * shape(images, 3) - 1]: images[i] ≠ "inf" ∧ images[i] ≠ "-inf"
+>>
+Rule 57 (If the image dtype is half, then the boxes tensor must be float32)
 {images : tensor, boxes : tensor} |= if dtype_(images) = 6 then dtype_(boxes) = 7
 >>
-Rule 25 (boxes tensor elements should be of float type.)
-{boxes: tensor} |= ∀i ∈ [0, shape(boxes, 0) - 1] : ∀j ∈ [0, shape(boxes, 1) - 1] : ∀k ∈ [0, 3] : (dtype_(boxes) = 7)
->>
-Rule 26 (boxes tensor shape[0] * shape[1] should be less than int32 max value)
-{boxes : tensor} |= shape(boxes, 0) * shape(boxes, 1) < 2147483647
->>
-Rule 30 (boxes tensor's shape[1] (num_bounding_boxes) should be less than images tensor's shape[1] * shape[2] (height * width))
-{images : tensor, boxes : tensor} |= shape(boxes, 1) ≤ shape(images, 1) * shape(images, 2)
->>
-Rule 33 (If images is float32, boxes can be float32, else boxes must be float32)
-{images : tensor, boxes : tensor} |= if dtype_(images) = 7 then dtype_(boxes) = 7 else dtype_(boxes) = 7
->>
-Rule 37 (if boxes tensor is not empty shape(boxes, 1) should be greater then 0)
-{boxes:tensor} |= if ndim(boxes) = 3 then if shape(boxes,0) > 0 then shape(boxes,1) >= 0 else false
->>
-Rule 39 (Shape of boxes tensor must be [images_batch, num_boxes, 4])
-{images: tensor, boxes: tensor} |= ∃ batch ∈ [0,shape(images,0)] : ∃ num_boxes ∈ [0,shape(boxes,1)] : shape(boxes,0) = shape(images,0) ∧ shape(boxes,2) = 4
->>
-Rule 40 (images and output tensor must have same dtype)
-{images: tensor} |= dtype_(images) = dtype_(images)
->>
-Rule 41 (boxes tensor's shape[0] (batch size) should match images tensor's shape[0] (batch size) and be less than int32 max value)
-{images : tensor, boxes : tensor} |= shape(images, 0) = shape(boxes, 0) ∧ shape(boxes, 0) < 2147483647
->>
-Rule 43 ( images' dtype can be float16(half))
-{images : tensor} |= dtype_(images) = 6
->>
-Rule 44 (images tensor's shape[3] must be less than int32 max value)
-{images : tensor} |= shape(images, 3) < 2147483647
->>
-Rule 45 (boxes cannot be empty if number of images > 0, not strictly necessary as the op will likely work with zero boxes)
-{images : tensor, boxes:tensor} |= if shape(images, 0) > 0 then shape(boxes, 1) >= 0
->>
-Rule 47 (If images's dtype is half(float16), boxes's dtype must be float32)
-{images: tensor, boxes:tensor} |= if dtype_(images) = 6 then dtype_(boxes) = 7
->>
-Rule 48 (images can be float16 or float32 and boxes can be float32)
-{images : tensor, boxes : tensor} |= (dtype_(images) = 6 ∨ dtype_(images) = 7) ∧ dtype_(boxes) = 7
->>
-Rule 49 (If images's dtype is float32, boxes's dtype must be float32)
-{images: tensor, boxes:tensor} |= if dtype_(images) = 7 then dtype_(boxes) = 7
->>
-Rule 50 (images tensor values must be in a reasonable range)
-{images : tensor} |= min(images) ≥ -10000.0 ∧ max(images) ≤ 10000.0
+Rule 58 (If the image dtype is float32, then the boxes tensor must be float32)
+{images : tensor, boxes : tensor} |= if dtype_(images) = 7 then dtype_(boxes) = 7

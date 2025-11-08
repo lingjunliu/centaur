@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The rank of input 'v' is checked before anything else. (Rule 30)
+# if input is 1d tensor then the output will be 2d (Rule 30)
 
 rule_30 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] > 0) if n else
-          v["arg1_ndim"] > 0)
+    s.add(Not(If(v["arg1_ndim"] == 1, 2 == 2, True)) if n else
+          If(v["arg1_ndim"] == 1, 2 == 2, True))
 )
 
 def rule_30_func(arg1, solver=None, neg=False):

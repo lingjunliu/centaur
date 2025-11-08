@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if sparse_gradient is True, then the data must be of type float32 and half, and the min must be smaller than max (Rule 104)
+# If the data is bfloat16 then sparse gradient must be false (Rule 104)
 
 rule_104 = lambda s, v, n=False: (
-    s.add(Not(If(And((v["arg2_value"] == True), (Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7))), Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1), True)) if n else
-          If(And((v["arg2_value"] == True), (Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7))), Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1), True))
+    s.add(Not(If(v["arg1_dtype"] == 6, v["arg2_value"] == False, True)) if n else
+          If(v["arg1_dtype"] == 6, v["arg2_value"] == False, True))
 )
 
 def rule_104_func(arg1, arg2, solver=None, neg=False):
@@ -26,19 +26,16 @@ def rule_104_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
         arg2_value = Bool('arg2_value')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
         solver.add(arg2_value == arg2)
 
         # Constraints for rule 104
-        rule_104(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range, 'arg2_value': arg2_value})
+        rule_104(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_104(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range'], 'arg2_value': arg2['value']}, neg)
+        rule_104(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

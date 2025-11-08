@@ -1,0 +1,147 @@
+>>
+Rule 1 (The shape of the first tensor should be the same or broadcastable to the shape of the second tensor.  We check if all dimensions of the smaller tensor exist as dimensions on the bigger tensor, at the end.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≤ ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, ndim(v_2) - ndim(v_1) + i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, ndim(v_2) - ndim(v_1) + i) = 1) else (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, ndim(v_1) - ndim(v_2) + i) ∨ shape(v_2, i) = 1 ∨ shape(v_1, ndim(v_1) - ndim(v_2) + i) = 1)
+>>
+Rule 5 (Check if the result of the division is not infinity or NaN (Not a Number))
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [0, shape(v_2, 0) - 1] : v_2[j] ≠ 0
+>>
+Rule 6 (If shapes are different, number of elements must be the same. This is not the case for RealDiv, as broadcasting is allowed.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+>>
+Rule 8 (The resulting tensor type must be floating point)
+{v_1 : tensor, v_2 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8 ∧ 6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8
+>>
+Rule 9 (If one of the tensors is complex then the other one has to be complex as well)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 10 (If the input tensors are integer, the output type has to be at least float16)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) < 6 ∧ dtype_(v_2) < 6) then (dtype_(v_1) ≥ 6 ∧ dtype_(v_2) >= 6)
+>>
+Rule 11 (Check if the divisor is not zero)
+{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≠ 0
+>>
+Rule 12 (Data type should be the same across all elements.)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 13 (The numerator tensor must have at least one dimension.)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+>>
+Rule 14 (The denominator tensor must have at least one dimension.)
+{v_2 : tensor} |= ndim(v_2) ≥ 1
+>>
+Rule 17 (The shapes have to be compatible or broadcasting.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∨ (ndim(v_1) = 1 ∨ ndim(v_2) = 1)
+>>
+Rule 18 (If the tensor shapes do not match, then the smaller shape has to be broadcastable to the larger shape.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1,i) = shape(v_2, ndim(v_2) - ndim(v_1) + i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, ndim(v_2) - ndim(v_1) + i) = 1 else if ndim(v_2) < ndim(v_1) then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2,i) = shape(v_1, ndim(v_1) - ndim(v_2) + i) ∨ shape(v_2, i) = 1 ∨ shape(v_1, ndim(v_1) - ndim(v_2) + i) = 1
+>>
+Rule 22 (The shapes have to be compatible for broadcasting.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∨ (ndim(v_1) = 1 ∨ ndim(v_2) = 1) ∨ (∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) = 1) ∨ (∀i ∈ [0, ndim(v_2) -1] : shape(v_2, i) = 1)
+>>
+Rule 23 (The tensor data types cannot be boolean)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0
+>>
+Rule 24 (If the shapes are the same, element-wise division can occur)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 25 (If both tensors are of integer type, then their values must be within the representable range of the output floating-point type after division to avoid overflow or underflow.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) < 6 ∧ dtype_(v_2) < 6) then ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [0, shape(v_2, 0) - 1] : if (v_2[j] ≠ 0) then (min(v_1) / max(v_2) > -1000000000.0 ∧ max(v_1) / min(v_2) < 1000000000.0)
+>>
+Rule 26 (The shapes have to be compatible for broadcasting. At least one dimension must be equal or one of the shape values must be 1.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1) ∨ (ndim(v_1) ≠ ndim(v_2))
+>>
+Rule 29 (The number of dimensions must be non-negative.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0
+>>
+Rule 30 (At least one of the dimension shapes has to be non-zero.)
+{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
+>>
+Rule 32 (The shapes have to be compatible for broadcasting. At least one dimension must be equal or one of the shape values must be 1.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)) ∨ (ndim(v_1) ≠ ndim(v_2))
+>>
+Rule 33 (At least one of the shape values has to be non-zero if the tensors are not 0 dimensional.)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) > 0 ∧ ndim(v_2) > 0) then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
+>>
+Rule 34 (At least one of the tensor has to be of a floating point type.)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≥ 6 ∧ dtype_(v_1) <= 8) ∨ (dtype_(v_2) ≥ 6 ∧ dtype_(v_2) <= 8)
+>>
+Rule 35 (If the denominator is zero, then every element in the numerator must be zero.)
+{v_1 : tensor, v_2 : tensor} |= if ∃j ∈ [0, shape(v_2,0) - 1] : v_2[j] = 0 then ∀i ∈ [0, shape(v_1,0) - 1] : v_1[i] = 0
+>>
+Rule 36 (The shapes have to be compatible for broadcasting. At least one dimension must be equal or one of the shape values must be 1. Tensors cannot have 0 dimensions.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)) ∨ (ndim(v_1) ≠ ndim(v_2)) ∧ ndim(v_1) > 0 ∧ ndim(v_2) > 0
+>>
+Rule 39 (When both tensors are integer typed, then the result of the division must have a floating point representation that prevents overflow)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) < 6 ∧ dtype_(v_2) < 6) then (max(v_1) < 1000000000 ∧ min(v_1) > -1000000000 ∧ max(v_2) < 1000000000 ∧ min(v_2) > -1000000000)
+>>
+Rule 40 (Tensors v1 and v2 need to have values inside them.)
+{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, shape(v_1,0) - 1] : true) ∧ (∃i ∈ [0, shape(v_2,0) - 1] : true)
+>>
+Rule 43 (Tensors v1 and v2 need to have values inside them i.e. the first dimension cannot be 0.)
+{v_1 : tensor, v_2 : tensor} |= (shape(v_1,0) > 0) ∧ (shape(v_2,0) > 0)
+>>
+Rule 44 (Denominator values cannot be all zero.)
+{v_2 : tensor} |= ∃i ∈ [0, shape(v_2,0) - 1] : v_2[i] ≠ 0
+>>
+Rule 45 (If the tensors have the same number of dimensions and the same data type, element-wise real division can happen.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ (dtype_(v_1) = dtype_(v_2))
+>>
+Rule 46 (If all values inside denominator are zero, then all values in the numerator should be zero, and the types of the tensors should be the same)
+{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, shape(v_2,0) - 1] : v_2[i] = 0) then (∀j ∈ [0, shape(v_1,0) - 1] : v_1[j] = 0) ∧ (dtype_(v_1) = dtype_(v_2))
+>>
+Rule 47 (Tensors v1 and v2 need to have values inside them i.e. the shape cannot be zero in any of its dimensions.)
+{v_1 : tensor, v_2 : tensor} |= (∀k ∈ [0, ndim(v_1) - 1] : shape(v_1, k) > 0) ∧ (∀l ∈ [0, ndim(v_2) - 1] : shape(v_2, l) > 0)
+>>
+Rule 48 (Data types of tensors v1 and v2 should be either float or integer and not boolean)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) > 0) ∧ (dtype_(v_2) > 0)
+>>
+Rule 49 (When tensors are multi-dimensional, then shapes should satisfy at least one of these conditions so broadcasting can happen)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) > 1 ∧ ndim(v_2) > 1) then ((ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)))) ∨ (ndim(v_1) ≠ ndim(v_2))
+>>
+Rule 50 (The shapes of the tensors should align properly for division, taking into account number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) > 0 ∧ ndim(v_2) > 0) then (ndim(v_1) ≥ ndim(v_2)) ∨ (ndim(v_1) ≤ ndim(v_2))
+>>
+Rule 51 (If all values inside denominator are zero, then all values in the numerator should be zero. Otherwise, the denominator cannot be 0)
+{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, shape(v_2,0) - 1] : v_2[i] = 0) then (∀j ∈ [0, shape(v_1,0) - 1] : v_1[j] = 0) else (∀i ∈ [0, shape(v_2,0) - 1] : v_2[i] ≠ 0)
+>>
+Rule 52 (Tensors v1 and v2 cannot be empty)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) > 0) ∧ (ndim(v_2) > 0)
+>>
+Rule 53 (The shapes of v1 and v2 have to be the same to begin with for element-wise real division)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ (∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 54 (RealDiv only works for numeric types, so both tensors must be either an integer or a float type.)
+{v_1 : tensor, v_2 : tensor} |= ((dtype_(v_1) ≥ 1) ∧ (dtype_(v_1) ≤ 8)) ∧ ((dtype_(v_2) ≥ 1) ∧ (dtype_(v_2) ≤ 8))
+>>
+Rule 55 (Check number of shapes for tensor v1)
+{v_1 : tensor} |= ndim(v_1) < 5
+>>
+Rule 57 (Tensors v1 and v2 cannot be empty. They both must have at least one shape.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) > 0) ∧ (ndim(v_2) > 0) ∧ (shape(v_1,0) > 0) ∧ (shape(v_2, 0) > 0)
+>>
+Rule 58 (For element-wise real division, the shapes have to match, otherwise they need to be broadcastable)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = shape(v_2, i))) ∨ (∀i ∈ [0, ndim(v_2) -1]: shape(v_2, i) = 1) ∨ (∀i ∈ [0, ndim(v_1) -1]: shape(v_1, i) = 1)
+>>
+Rule 60 (If v1 and v2 are both integers, they need to fit in a range.)
+{v_1 : tensor, v_2 : tensor} |= if ((dtype_(v_1) ≥ 1) ∧ (dtype_(v_1) ≤ 5)) ∧ ((dtype_(v_2) ≥ 1) ∧ (dtype_(v_2) ≤ 5)) then (min(v_1) > -1000) ∧ (max(v_1) < 1000) ∧ (min(v_2) > -1000) ∧ (max(v_2) < 1000)
+>>
+Rule 61 (If all values inside the denominator are zero, then at least one value in the numerator must be zero, or the numerator tensor should be empty. Otherwise, the denominator cannot contain any 0s)
+{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, shape(v_2,0) - 1] : v_2[i] = 0) then ((∃j ∈ [0, shape(v_1,0) - 1] : v_1[j] = 0) ∨ (shape(v_1,0) = 0)) else (∀i ∈ [0, shape(v_2,0) - 1] : v_2[i] ≠ 0)
+>>
+Rule 64 (If v1 and v2 are both integers, they need to fit in a smaller range to avoid overflow in division.)
+{v_1 : tensor, v_2 : tensor} |= if ((dtype_(v_1) ≥ 1) ∧ (dtype_(v_1) ≤ 5)) ∧ ((dtype_(v_2) ≥ 1) ∧ (dtype_(v_2) ≤ 5)) then (min(v_1) > -1000 ∧ max(v_1) < 1000 ∧ min(v_2) > -1000 ∧ max(v_2) < 1000)
+>>
+Rule 65 (Tensors cannot have a shape that is larger than 1000)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) < 1000) ∧ (∀j ∈ [0, ndim(v_2)-1] : shape(v_2, j) < 1000)
+>>
+Rule 66 (If all values inside the denominator are zero, then the numerator tensor must also be zero, or contain at least one zero. When denominator is not zero, the other must not be zero.)
+{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, shape(v_2,0) - 1] : v_2[i] = 0) then ((∃j ∈ [0, shape(v_1,0) - 1] : v_1[j] = 0) ∨ (shape(v_1,0) = 0))
+>>
+Rule 69 (For multi-dimensional tensors, shapes should be compatible for broadcasting)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1)-1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))) ∨ (ndim(v_1) = 0 ∨ ndim(v_2) = 0)
+>>
+Rule 70 (When dealing with integer division, the result cannot cause overflow)
+{v_1 : tensor, v_2 : tensor} |= if ((dtype_(v_1) ≥ 1) ∧ (dtype_(v_1) ≤ 5)) ∧ ((dtype_(v_2) ≥ 1) ∧ (dtype_(v_2) ≤ 5)) then max(v_1)/min(v_2) < 1000000000 ∧ min(v_1)/max(v_2) > -1000000000
+>>
+Rule 75 (The first shape of tensor v2 should not be zero.)
+{v_2 : tensor} |= shape(v_2, 0) ≠ 0

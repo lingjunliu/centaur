@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If a combination of a low-precision dtype like np.int8 and a very large number of rows and/or columns is used, ensure this choice is intentional due to the risk of overflow. (Rule 69)
+# If the linear operator is square, then num_rows and num_columns must be same (Rule 69)
 
 rule_69 = lambda s, v, n=False: (
-    s.add(Not(If(And((v["arg3_value"] == 1), (Or(v["arg1_value"] > 10000, v["arg2_value"] > 10000))), True, True)) if n else
-          If(And((v["arg3_value"] == 1), (Or(v["arg1_value"] > 10000, v["arg2_value"] > 10000))), True, True))
+    s.add(Not(If(v["arg3_value"], v["arg1_value"] == v["arg2_value"], True)) if n else
+          If(v["arg3_value"], v["arg1_value"] == v["arg2_value"], True))
 )
 
 def rule_69_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -23,19 +23,19 @@ def rule_69_func(arg1, arg2, arg3, solver=None, neg=False):
             return False
         if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
-        if not (isinstance(arg3, (int, np.integer)) and not isinstance(arg3, bool)):
+        if not isinstance(arg3, bool):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = Int('arg1_value')
         arg2_value = Int('arg2_value')
-        arg3_value = Int('arg3_value')
+        arg3_value = Bool('arg3_value')
 
         # Value assignments
         solver.add(arg1_value == int(arg1))
         solver.add(arg2_value == int(arg2))
-        solver.add(arg3_value == int(arg3))
+        solver.add(arg3_value == arg3)
 
         # Constraints for rule 69
         rule_69(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_value': arg3_value})

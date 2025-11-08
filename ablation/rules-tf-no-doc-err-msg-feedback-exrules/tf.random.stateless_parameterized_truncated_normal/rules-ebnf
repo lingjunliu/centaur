@@ -1,84 +1,183 @@
 >>
-Rule 1 (mean must be a scalar tensor)
-{v_1 : tensor} |= ndim(v_1) = 0
+Rule 1 (The shape of the mean tensor must match the shape of the stdev tensor.)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1) = shape(v_2)
 >>
-Rule 2 (standard deviation must be a positive scalar)
-{v_1 : tensor} |= (ndim(v_1) = 0) ∧ (min(v_1) > 0)
->>
-Rule 3 (truncated threshold should be a float tensor)
-{v_1 : tensor} |= dtype_(v_1) = 8
->>
-Rule 6 (The standard deviation should have the same dtype as the mean.)
+Rule 2 (The dtype of the mean tensor must match the dtype of the stdev tensor.)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 7 (The truncated threshold should be smaller or equal to 2)
-{v_1 : float} |= v_1 ≤ 2.0
+Rule 3 (The shape parameter must be a non-empty tuple of integers.)
+{v_1 : tuple(int)} |= v_1.len > 0
 >>
-Rule 8 (Standard deviation cannot be negative)
-{v_1 : tensor} |= min(v_1) ≥ 0
+Rule 5 (The lower bound must be less than the upper bound.)
+{v_1 : float, v_2 : float} |= v_1 < v_2
 >>
-Rule 12 (Verify that `mean` and `stddev` are of compatible type when given, and that `dtype` is present)
-{v_1 : dtype, v_2: tensor, v_3: tensor} |= if (v_2 = 0 ∧ v_3 = 0) then true else if (v_2 ≠ 0 ∧ v_3 ≠ 0) then (dtype_(v_2) = dtype_(v_3)) ∨ (dtype_(v_2) = v_1) ∨ (dtype_(v_3) = v_1) else false
+Rule 6 (The dtype parameter must be a valid dtype, corresponding to an integer less than 13)
+{v_1 : int} |= v_1 ≥ 0 ∧ v_1 < 13
 >>
-Rule 13 (Ensure truncated threshold is positive)
-{v_1 : tensor} |= min(v_1) > 0
+Rule 9 (The mean must be a scalar or have the same shape as shape if shape is defined.)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then shape(v_1) = v_2
 >>
-Rule 21 (The standard deviation should have the same dtype as the mean if both are tensors.)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) > 0 ∧ ndim(v_2) > 0) then dtype_(v_1) = dtype_(v_2)
+Rule 12 (The dtype must be float16, float32, or float64, so an integer equal to 7, 8 or 9.)
+{v_1 : int} |= v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9
 >>
-Rule 25 (mean must be a scalar if shape is not None)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_2) > 0) then ndim(v_1) = 0
+Rule 13 (If only one element is provided in shape, then the output tensor is 1D.)
+{v_1 : tuple(int)} |= if v_1.len = 1 then ndim(v_1) = 1
 >>
-Rule 29 (seed must be int32)
-{v_1 : tensor} |= dtype_(v_1) = 4
+Rule 14 (The seed must have integer dtype)
+{v_1: tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
 >>
-Rule 37 (truncated threshold should be positive if it's a scalar)
-{v_1 : tensor} |= if ndim(v_1) = 0 then min(v_1) > 0
+Rule 15 (Shape must be non-negative.)
+{v_1: tuple(int)} |= ∀ i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 42 (If mean is a scalar, stddev must be a scalar and truncated threshold must be scalar)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then (ndim(v_2) = 0) ∧ (ndim(v_3) = 0)
+Rule 16 (If the shape is an empty tuple, the output should be scalar.)
+{v_1 : tuple(int)} |= if v_1.len = 0 then ndim(v_1) = 0
 >>
-Rule 43 (If stddev is a scalar, mean must be a scalar and truncated threshold must be scalar)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 0 then (ndim(v_1) = 0) ∧ (ndim(v_3) = 0)
+Rule 17 (Mean should be a tensor with float type.)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
 >>
-Rule 44 (If truncated_threshold is a scalar, mean must be a scalar and stddev must be scalar)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 then (ndim(v_1) = 0) ∧ (ndim(v_2) = 0)
+Rule 19 (The output's dtype should match the dtype of mean and stdev if dtype is not explicitly given. Assume v_3 corresponds to dtype)
+{v_1 : tensor, v_2: tensor, v_3: int} |= if v_3 = -1 then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 45 (If shape is provided, mean, stddev and threshold must be scalars)
-{v_1: tensor, v_2: tensor, v_3: tensor, v_4: tensor} |= if ndim(v_4) > 0 then (ndim(v_1) = 0) ∧ (ndim(v_2) = 0) ∧ (ndim(v_3) = 0)
+Rule 21 (The lower bound must be a scalar)
+{v_1 : tensor} |= ndim(v_1) = 0
 >>
-Rule 52 (truncated threshold should be positive)
-{v_1 : tensor} |= if ndim(v_1) = 0 then v_1 > 0
+Rule 23 (If dtype is complex64 or complex128, mean and stdev must also be complex)
+{v_1 : int, v_2 : tensor, v_3 : tensor} |= if v_1 = 10 ∨ v_1 = 11 then (dtype_(v_2) = 10 ∨ dtype_(v_2) = 11) ∧ (dtype_(v_3) = 10 ∨ dtype_(v_3) = 11)
 >>
-Rule 57 (If mean is a scalar, stddev and threshold must be scalars)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then (ndim(v_2) = 0 ∧ ndim(v_3) = 0)
+Rule 24 (If the shape is not provided, the shape should be inferred from the mean and the stdev.)
+{v_1 : tensor, v_2 : tensor, v_3 : tuple(int)} |= if v_3.len = 0 then shape(v_1) = shape(v_2)
 >>
-Rule 58 (If stddev is a scalar, mean and threshold must be scalars)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 0 then (ndim(v_1) = 0 ∧ ndim(v_3) = 0)
+Rule 25 (If mean and stdev are scalars, and no shape is provided, then the output is scalar.)
+{v_1 : tensor, v_2 : tensor, v_3 : tuple(int)} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ v_3.len = 0 then ndim(v_1) = 0
 >>
-Rule 59 (If truncated_threshold is a scalar, mean and stddev must be scalars)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 then (ndim(v_1) = 0 ∧ ndim(v_2) = 0)
+Rule 28 (If the mean is a scalar, the standard deviation must also be a scalar.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
 >>
-Rule 60 (truncated_threshold should be less than or equal to 2 if it is a scalar)
-{v_1: tensor} |= if ndim(v_1) = 0 then v_1 <= 2
+Rule 29 (The seed should be a rank 1 tensor, i.e., vector.)
+{v_1 : tensor} |= ndim(v_1) = 1
 >>
-Rule 68 (Standard deviation must be non-negative if it's a scalar)
-{v_1 : tensor} |= if ndim(v_1) = 0 then v_1 ≥ 0
+Rule 30 (If the dtype is not specified, it is inferred from mean and stdev, it must be a float type.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9)
 >>
-Rule 76 (If a shape is provided then mean, stddev, truncated_threshold should have compatible dtypes with the specified dtype)
-{v_1: dtype, v_2: tensor, v_3: tensor, v_4: tensor, v_5: tensor} |= if ndim(v_5) > 0 then (dtype_(v_2) = v_1) ∧ (dtype_(v_3) = v_1) ∧ (dtype_(v_4) = v_1)
+Rule 36 (If dtype is specified then the output tensor's dtype should be equal to dtype)
+{v_1: int, v_2: tensor} |= if v_1 ≠ -1 then dtype_(v_2) = v_1
 >>
-Rule 108 (truncated_threshold should be less than or equal to 2 if it is a scalar)
-{v_1: tensor} |= if ndim(v_1) = 0 then v_1 ≤ 2
+Rule 37 (The stdev must be greater than 0.)
+{v_1: tensor} |= min(v_1) > 0
 >>
-Rule 109 (If a shape is provided then mean, stddev, truncated_threshold should have dtypes that are float or the specified dtype)
-{v_1: dtype, v_2: tensor, v_3: tensor, v_4: tensor, v_5: tensor} |= if (ndim(v_5) > 0 ∧ v_1 ≠ 0) then ((dtype_(v_2) = v_1) ∨ (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8) ∨ (dtype_(v_2) = 6)) ∧ ((dtype_(v_3) = v_1) ∨ (dtype_(v_3) = 7) ∨ (dtype_(v_3) = 8) ∨ (dtype_(v_3) = 6)) ∧ ((dtype_(v_4) = v_1) ∨ (dtype_(v_4) = 7) ∨ (dtype_(v_4) = 8) ∨ (dtype_(v_4) = 6))
+Rule 38 (Lower and upper bounds should be finite.)
+{v_1: tensor, v_2: tensor} |= max(v_1) < 100000000 ∧ max(v_2) < 100000000
 >>
-Rule 110 (If shape is not provided the dtypes for mean stddev and threshold should be the same)
-{v_1: tensor, v_2: tensor, v_3: tensor, v_4: tensor} |= if ndim(v_4) = 0 then (dtype_(v_1) = dtype_(v_2)) ∧ (dtype_(v_1) = dtype_(v_3))
+Rule 40 (The generated tensor must have the same shape as the specified shape.)
+{v_1: tensor, v_2: tuple(int)} |= if v_2.len > 0 then shape(v_1) = v_2
 >>
-Rule 127 (If shape is not provided the dtypes for mean stddev and threshold should be the same if they are not scalars)
-{v_1: tensor, v_2: tensor, v_3: tensor, v_4: tensor} |= if ndim(v_4) = 0 then true else if (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0) then (dtype_(v_1) = dtype_(v_2)) ∧ (dtype_(v_1) = dtype_(v_3))
+Rule 41 (If shape is not provided and mean and stdev are not scalars, then the shapes of the mean and stdev must match.)
+{v_1 : tensor, v_2 : tensor, v_3 : tuple(int)} |= if v_3.len = 0 ∧ ndim(v_1) ≠ 0 ∧ ndim(v_2) ≠ 0 then shape(v_1) = shape(v_2)
 >>
-Rule 128 (If dtype is explicitly specified, mean, stddev, and truncated_threshold must either have that dtype or be scalars)
-{v_1: dtype, v_2: tensor, v_3: tensor, v_4: tensor} |= if v_1 ≠ 0 then ((dtype_(v_2) = v_1) ∨ (ndim(v_2) = 0)) ∧ ((dtype_(v_3) = v_1) ∨ (ndim(v_3) = 0)) ∧ ((dtype_(v_4) = v_1) ∨ (ndim(v_4) = 0))
+Rule 42 (If any of mean, stdev, lower or upper bounds are complex, then the dtype should be complex.)
+{v_1 : tensor, v_2 : tensor, v_3: tensor, v_4: tensor} |= (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∨ (dtype_(v_2) = 10 ∨ dtype_(v_2) = 11) ∨ (dtype_(v_3) = 10 ∨ dtype_(v_3) = 11) ∨ (dtype_(v_4) = 10 ∨ dtype_(v_4) = 11)
+>>
+Rule 43 (The number of dimensions of output should be less than or equal to 7)
+{v_1 : tensor} |= ndim(v_1) ≤ 7
+>>
+Rule 46 (If shape is not provided then the output has the same shape as the mean.)
+{v_1 : tensor, v_2 : tensor, v_3 : tuple(int)} |= if v_3.len = 0 then shape(v_2) = shape(v_1)
+>>
+Rule 47 (The seed must be a vector of int32 or int64.)
+{v_1: tensor} |= (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4)
+>>
+Rule 50 (If the mean is a scalar, then the standard deviation and the bounds must be scalars too.)
+{v_1: tensor, v_2: tensor, v_3: tensor, v_4: tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0 ∧ ndim(v_3) = 0 ∧ ndim(v_4) = 0
+>>
+Rule 51 (If mean and standard deviation are passed then its type should be same.)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 52 (If the dtype is complex then the mean and stdev should also be complex.)
+{v_1: int, v_2: tensor, v_3: tensor} |= if v_1 = 10 ∨ v_1 = 11 then (dtype_(v_2) = 10 ∨ dtype_(v_2) = 11) ∧ (dtype_(v_3) = 10 ∨ dtype_(v_3) = 11)
+>>
+Rule 54 (If lower bound is greater or equal to upper bound, an error should happen)
+{v_1: tensor, v_2: tensor} |= min(v_1) < max(v_2)
+>>
+Rule 56 (The standard deviation cannot be zero if lower bound and upper bound are finite)
+{v_1: tensor, v_2: tensor, v_3: tensor} |= if min(v_2) < 100000 ∧ max(v_3) < 100000 then min(v_1) > 0
+>>
+Rule 59 (If dtype is complex number, then lower and upper bound cannot be None)
+{v_1: int, v_2: tensor, v_3: tensor} |= if v_1 = 10 ∨ v_1 = 11 then ndim(v_2) = 0 ∧ ndim(v_3) = 0
+>>
+Rule 60 (If the shape is a scalar, the mean, stdev, lower and upper bounds needs to be scalars.)
+{v_1 : tuple(int), v_2: tensor, v_3: tensor, v_4: tensor, v_5: tensor} |= if v_1.len = 0 then ndim(v_2) = 0 ∧ ndim(v_3) = 0 ∧ ndim(v_4) = 0 ∧ ndim(v_5) = 0
+>>
+Rule 62 (If lower bound is specified, it should not be greater than upper bound.)
+{v_1: tensor, v_2: tensor} |= max(v_1) ≤ min(v_2)
+>>
+Rule 63 (The stdev parameter should have compatible shape to mean parameter.)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then true
+>>
+Rule 69 (The output should be a tensor of the specified dtype if specified.)
+{v_1: tensor, v_2: int} |= if v_2 ≠ -1 then dtype_(v_1) = v_2
+>>
+Rule 70 (if shape is specified, then at least one dimension should be greater than 0)
+{v_1: tuple(int)} |= ∃ i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 72 (If lower and upper bounds are given, they need to be of a supported type)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11)
+>>
+Rule 73 (If dtype is not given, it is inferred by mean, stdev, lower and upper bounds if all of them are float type, then the output's dtype will be float32 or float64)
+{v_1: tensor, v_2: tensor, v_3: tensor, v_4: tensor, v_5: int} |= if v_5 = -1 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9) ∧ (dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 9) ∧ (dtype_(v_4) = 7 ∨ dtype_(v_4) = 8 ∨ dtype_(v_4) = 9) then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
+>>
+Rule 74 (Lower bound cannot be positive infinity)
+{v_1: tensor} |= max(v_1) < 10000000
+>>
+Rule 75 (Upper bound cannot be negative infinity)
+{v_1: tensor} |= min(v_1) > -10000000
+>>
+Rule 76 (If mean, stdev, lower, and upper bounds are specified, and dtype is not given, the output will have the same dtype as them)
+{v_1: tensor, v_2: tensor, v_3: tensor, v_4: tensor, v_5: tensor} |= if dtype_(v_5) = -1 then dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3) ∧ dtype_(v_1) = dtype_(v_4)
+>>
+Rule 77 (If the mean, stdev or bound are complex, the dtype should also be complex)
+{v_1: tensor, v_2: tensor, v_3: tensor, v_4: tensor} |= (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∨ (dtype_(v_2) = 10 ∨ dtype_(v_2) = 11) ∨ (dtype_(v_3) = 10 ∨ dtype_(v_3) = 11) ∨ (dtype_(v_4) = 10 ∨ dtype_(v_4) = 11)
+>>
+Rule 78 (Standard deviation has to be non-negative, otherwise it'll throw an error.)
+{v_1: tensor} |= min(v_1) ≥ 0
+>>
+Rule 81 (Mean, stdev, lower and upper bounds should all be of the same type if a specific dtype is not specified.)
+{v_1: tensor, v_2: tensor, v_3: tensor, v_4: tensor, v_5 : int} |= if v_5 = -1 then dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3) ∧ dtype_(v_1) = dtype_(v_4)
+>>
+Rule 82 (The output dtype can not be a boolean.)
+{v_1: int} |= v_1 ≠ 0
+>>
+Rule 83 (The output dtype can only be float or complex if mean is specified as float or complex.)
+{v_1: int, v_2 : tensor} |= if (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11) then (v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 11)
+>>
+Rule 86 (The mean and standard deviation parameters should be real-valued, not complex, if the dtype is float)
+{v_1: int, v_2: tensor, v_3: tensor} |= if v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9) ∧ (dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 9)
+>>
+Rule 87 (If shape is not given but the mean and stdev are defined, the output has the same number of dimension as the mean and stdev.)
+{v_1: tensor, v_2: tensor, v_3 : tuple(int)} |= if v_3.len = 0 then ndim(v_1) = ndim(v_2)
+>>
+Rule 92 (If dtype is int then mean and standard deviation must be an integer type)
+{v_1: int, v_2: tensor, v_3: tensor} |= if v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 then (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6) ∧ (dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5 ∨ dtype_(v_3) = 6)
+>>
+Rule 93 (If the shape is not provided, then the output shape should be inferred from mean and standard deviation)
+{v_1: tensor, v_2: tensor, v_3 : tuple(int)} |= if v_3.len = 0 then shape(v_1) = shape(v_2)
+>>
+Rule 95 (The generated tensor should be of the specified dtype)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ -1 then dtype_(v_1) = v_2
+>>
+Rule 96 (If lower and upper bound are specified then lower bound needs to be less than upper bound)
+{v_1: tensor, v_2: tensor} |= min(v_1) ≤ max(v_2)
+>>
+Rule 97 (The mean, stdev, lower and upper bound need to have same dtype.)
+{v_1: tensor, v_2: tensor, v_3: tensor, v_4: tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3) ∧ dtype_(v_1) = dtype_(v_4)
+>>
+Rule 99 (Dtype should be supported.)
+{v_1: int} |= v_1 ≥ 0 ∧ v_1 < 13
+>>
+Rule 104 (The number of dimension in mean, stdev, lower and upper bound cannot be larger than 7)
+{v_1: tensor, v_2: tensor, v_3: tensor, v_4: tensor} |= ndim(v_1) ≤ 7 ∧ ndim(v_2) ≤ 7 ∧ ndim(v_3) ≤ 7 ∧ ndim(v_4) ≤ 7
+>>
+Rule 107 (If all elements in shape are zero, then the output must be a scalar)
+{v_1: tuple(int)} |= if ∀ i ∈ [0, v_1.len - 1] : v_1[i] = 0 then true
+>>
+Rule 109 (If dtype is a boolean, then mean and stddev should either be 0 or 1.)
+{v_1: int, v_2: tensor, v_3: tensor} |= if v_1 = 0 then (min(v_2) = 0 ∨ min(v_2) = 1) ∧ (max(v_2) = 0 ∨ max(v_2) = 1) ∧ (min(v_3) = 0 ∨ min(v_3) = 1) ∧ (max(v_3) = 0 ∨ max(v_3) = 1)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Prevent memory allocation errors - limiting large values of target height or width which can cause memory issues. (Rule 62)
+# Avoid ResourceExhaustedError by limiting the target height and width (Rule 62)
 
 rule_62 = lambda s, v, n=False: (
-    s.add(Not(And((v["arg1_value"] < 4096), (v["arg2_value"] < 4096))) if n else
-          And((v["arg1_value"] < 4096), (v["arg2_value"] < 4096)))
+    s.add(Not(And(v["arg1_value"] < 500, v["arg2_value"] < 500)) if n else
+          And(v["arg1_value"] < 500, v["arg2_value"] < 500))
 )
 
 def rule_62_func(arg1, arg2, solver=None, neg=False):

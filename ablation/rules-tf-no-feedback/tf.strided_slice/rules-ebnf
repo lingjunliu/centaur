@@ -1,0 +1,75 @@
+>>
+Rule 1 (begin, end, and strides must be int32 or int64 tensors to avoid InvalidArgumentError)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∧ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∧ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+>>
+Rule 2 (begin_mask, end_mask, ellipsis_mask, new_axis_mask, shrink_axis_mask should be within the range of int32 to avoid InvalidArgumentError)
+{v_1 : int, v_2 : int, v_3 : int, v_4 : int, v_5 : int} |= -2147483648 ≤ v_1 ∧ v_1 ≤ 2147483647 ∧ -2147483648 ≤ v_2 ∧ v_2 ≤ 2147483647 ∧ -2147483648 ≤ v_3 ∧ v_3 ≤ 2147483647 ∧  -2147483648 ≤ v_4 ∧ v_4 ≤ 2147483647 ∧ -2147483648 ≤ v_5 ∧ v_5 ≤ 2147483647
+>>
+Rule 3 (begin, end, and strides should be 1D equal size tensors to avoid InvalidArgumentError)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_2, 0) = shape(v_3, 0)
+>>
+Rule 5 (input_ must be a tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 6 (begin, end, and strides should be int16, int32, or int64 tensors to avoid InvalidArgumentError)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∧ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∧ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+>>
+Rule 7 (begin_mask should be a non-negative integer)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 13 (Maximum one non-zero bit in ellipsis_mask)
+{v_1 : int} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 4 ∨ v_1 = 8 ∨ v_1 = 16 ∨ v_1 = 32 ∨ v_1 = 64 ∨ v_1 = 128 ∨ v_1 = 256 ∨ v_1 = 512 ∨ v_1 = 1024 ∨ v_1 = 2048 ∨ v_1 = 4096 ∨ v_1 = 8192 ∨ v_1 = 16384 ∨ v_1 = 32768 ∨ v_1 = 65536 ∨ v_1 = 131072 ∨ v_1 = 262144 ∨ v_1 = 524288 ∨ v_1 = 1048576 ∨ v_1 = 2097152 ∨ v_1 = 4194304 ∨ v_1 = 8388608 ∨ v_1 = 16777216 ∨ v_1 = 33554432 ∨ v_1 = 67108864 ∨ v_1 = 134217728 ∨ v_1 = 268435456 ∨ v_1 = 536870912 ∨ v_1 = 1073741824
+>>
+Rule 17 (strides entries must be non-zero.)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ 0
+>>
+Rule 18 (strides tensor's shape should match the number of slicing dimensions)
+{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) ≤ ndim(v_1)
+>>
+Rule 21 (If ellipsis_mask is set, the sum of the other masks should be less than the number of dimensions of the input tensor)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int, v_5 : int, v_6 : int} |= if v_4 ≠ 0 then v_2 + v_3 + v_5 + v_6 < ndim(v_1)
+>>
+Rule 22 (begin, end and strides must have the same dtype)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_2) = dtype_(v_3)
+>>
+Rule 24 (If shrink_axis_mask is set, the corresponding begin index should be within the bounds of the dimension being shrunk.)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= if v_3 ≠ 0 then v_2[0] ≥ 0 ∧ v_2[0] < shape(v_1, v_4)
+>>
+Rule 25 (When using shrink_axis_mask, the size of that dimension must be 1 or the begin index covers it)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= if v_3 ≠ 0 then shape(v_1, v_4) = 1 ∨ v_2[0] = 0 ∧ v_2[0] = shape(v_1, v_4) - 1
+>>
+Rule 26 (if begin_mask is set, begin must have the same dtype as input_)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 ≠ 0 then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 29 (If ellipsis_mask is set, it should be less than or equal to the number of dimensions of the input tensor)
+{v_1 : tensor, v_2 : int} |= v_2 ≤ ndim(v_1)
+>>
+Rule 32 (the total number of dimensions implied by masks cannot exceed the maximum possible rank)
+{v_1: int, v_2: int, v_3: int, v_4: int, v_5: int} |= v_1 + v_2 + v_3 + v_4 + v_5 ≤ 255
+>>
+Rule 33 (When ellipsis_mask is non-zero, other masks should be zero)
+{v_1 : int, v_2 : int, v_3 : int, v_4 : int, v_5 : int} |= if v_3 ≠ 0 then v_1 = 0 ∧ v_2 = 0 ∧ v_4 = 0 ∧ v_5 = 0
+>>
+Rule 35 (If end_mask is set, end must have the same shape as begin and strides.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4: int} |= if v_4 ≠ 0 then shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_2, 0) = shape(v_3, 0)
+>>
+Rule 36 (If begin_mask is set, begin must have int32 or int64 type.)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+>>
+Rule 40 (Input tensor should have a defined number of dimensions)
+{v_1: tensor} |= ndim(v_1) > -1
+>>
+Rule 41 (if only ellipsis_mask is present, total number of dimension of begin, end and strides tensors should match the dimensions of input tensor)
+{v_1: tensor, v_2: tensor, v_3: tensor, v_4: int} |= if v_4 ≠ 0 then ndim(v_1) = shape(v_2, 0) + shape(v_3, 0) + shape(v_1,0)
+>>
+Rule 43 (If begin_mask or end_mask is non-zero, input_ must have a valid dtype i.e. one of the specified ones)
+{v_1: tensor, v_2: int} |= if v_2 ≠ 0 then (dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 ∨ dtype_(v_1) = 12 )
+>>
+Rule 44 (If begin_mask, end_mask and ellipsis_mask, and new_axis_mask and shrink_axis_mask are zero then the rank of begin, end and strides must be equal to the rank of input_)
+{v_1: tensor, v_2: tensor, v_3: tensor, v_4: int, v_5: int, v_6: int, v_7: int, v_8: int} |= if v_4 = 0 ∧ v_5 = 0 ∧ v_6 = 0 ∧ v_7 = 0 ∧ v_8 = 0 then ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ ndim(v_1) = ndim(v_1)
+>>
+Rule 47 (If strides is defined, it must be positive)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0 ∨ v_1[i] < 0
+>>
+Rule 48 (Number of masks defined by masks parameters must be equal or less than number of dimensions of input_)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : int} |= if v_4 = 0 then shape(v_2, 0) + shape(v_3, 0) <= ndim(v_1)

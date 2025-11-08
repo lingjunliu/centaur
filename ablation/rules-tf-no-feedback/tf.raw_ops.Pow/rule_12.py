@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If y is complex, x must be real or complex, not integer (Rule 12)
+# If y is complex, then x cannot be an integer. (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), (Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)), True)) if n else
-          If(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), (Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)), True))
+    s.add(Not(If(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), True)) if n else
+          If(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), True))
 )
 
 def rule_12_func(arg1, arg2, solver=None, neg=False):

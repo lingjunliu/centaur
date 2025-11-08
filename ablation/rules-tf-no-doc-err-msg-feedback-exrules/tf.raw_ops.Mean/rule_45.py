@@ -5,35 +5,45 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# When input is complex, mean should also produce complex values (Rule 45)
+# The values in reduction_indices must be unique (Rule 45)
 
 rule_45 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), And(Select(v["arg1_range"], 0) == Select(v["arg1_range"], 0), Select(v["arg1_range"], 1) == Select(v["arg1_range"], 1)), True)) if n else
-          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), And(Select(v["arg1_range"], 0) == Select(v["arg1_range"], 0), Select(v["arg1_range"], 1) == Select(v["arg1_range"], 1)), True))
+    s.add(Not(And([Implies(v["arg2_value"] < (v["arg1_length"] - 1 + 1), And([Implies(v["arg3_value"] < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], v["arg2_value"]) != Select(v["arg1_values"], v["arg3_value"])) for v["arg3_value"] in range(6)])) for v["arg2_value"] in range(6)])) if n else
+          And([Implies(v["arg2_value"] < (v["arg1_length"] - 1 + 1), And([Implies(v["arg3_value"] < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], v["arg2_value"]) != Select(v["arg1_values"], v["arg3_value"])) for v["arg3_value"] in range(6)])) for v["arg2_value"] in range(6)]))
 )
 
-def rule_45_func(arg1, solver=None, neg=False):
+def rule_45_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+            return False
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+            return False
+        if not (isinstance(arg3, (int, np.integer)) and not isinstance(arg3, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_length = Int('arg1_length')
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
+        arg2_value = Int('arg2_value')
+        arg3_value = Int('arg3_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_length == len(arg1))
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
+        solver.add(arg2_value == int(arg2))
+        solver.add(arg3_value == int(arg3))
 
         # Constraints for rule 45
-        rule_45(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_45(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_45(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
+        rule_45(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Shape of the image must have at least three dimensions (Rule 9)
+# images shape rank should be greater than 2 (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] >= 3) if n else
-          v["arg1_ndim"] >= 3)
+    s.add(Not(v["arg1_ndim"] > 2) if n else
+          v["arg1_ndim"] > 2)
 )
 
 def rule_9_func(arg1, solver=None, neg=False):

@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# day should be within the valid range for a given month and year, but we can only approximate with a simplified range. (Rule 3)
+# Day must be within a valid range [1,31] (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
     s.add(Not(And(1 <= v["arg1_value"], v["arg1_value"] <= 31)) if n else

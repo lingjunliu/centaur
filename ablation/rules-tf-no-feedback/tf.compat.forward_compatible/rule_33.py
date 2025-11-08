@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# All inputs are different (Rule 33)
+# The combination of all dates are valid (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_value"] != v["arg2_value"], v["arg2_value"] != v["arg3_value"]), v["arg1_value"] != v["arg3_value"])) if n else
-          And(And(v["arg1_value"] != v["arg2_value"], v["arg2_value"] != v["arg3_value"]), v["arg1_value"] != v["arg3_value"]))
+    s.add(Not(If(v["arg2_value"] == 2, (If(Or((And(v["arg1_value"] % 4 == 0, v["arg1_value"] % 100 != 0)), (v["arg1_value"] % 400 == 0)), v["arg3_value"] <= 29, v["arg3_value"] <= 28)), If(Or(Or(Or(v["arg2_value"] == 4, v["arg2_value"] == 6), v["arg2_value"] == 9), v["arg2_value"] == 11), v["arg3_value"] <= 30, v["arg3_value"] <= 31))) if n else
+          If(v["arg2_value"] == 2, (If(Or((And(v["arg1_value"] % 4 == 0, v["arg1_value"] % 100 != 0)), (v["arg1_value"] % 400 == 0)), v["arg3_value"] <= 29, v["arg3_value"] <= 28)), If(Or(Or(Or(v["arg2_value"] == 4, v["arg2_value"] == 6), v["arg2_value"] == 9), v["arg2_value"] == 11), v["arg3_value"] <= 30, v["arg3_value"] <= 31)))
 )
 
 def rule_33_func(arg1, arg2, arg3, solver=None, neg=False):

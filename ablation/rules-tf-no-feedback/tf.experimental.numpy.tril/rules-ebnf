@@ -1,87 +1,117 @@
 >>
-Rule 2 (m must be a tensor)
+Rule 1 (Input tensor must have at least one dimension)
 {v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 4 (If the input tensor is empty, the output tensor should also be empty)
-{v_1 : tensor} |= if shape(v_1, 0) = 0 then true
+Rule 4 (If input tensor is 1D, k must be 0)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then v_2 = 0
 >>
-Rule 6 (If k is greater than or equal to the number of columns, the result is an all-zero tensor)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then if v_2 ≥ shape(v_1, 1) then true
+Rule 7 (Input tensor must not be empty, i.e. all dimensions have length greater than 0)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 11 (For a 2D tensor, if k is negative, the number of zeroed elements is increased.)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then if v_2 < 0 then true
+Rule 8 (k must be representable by int32)
+{v_2 : int} |= v_2 ≥ -2147483648 ∧ v_2 ≤ 2147483647
 >>
-Rule 12 (For a 2D tensor, when k is zero, elements on the main diagonal and below are kept, and the upper part is zeroed)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then if v_2 = 0 then true
+Rule 9 (If the input is a scalar, then k must be zero)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then v_2 = 0
 >>
-Rule 14 (input tensor must not have string dtype)
-{v_1: tensor} |= dtype_(v_1) ≠ 11
+Rule 11 (If the input is a matrix, then k should not be greater than the number of columns minus 1)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then v_2 ≤ shape(v_1, 1)
 >>
-Rule 15 (input tensor must not have bool dtype)
-{v_1: tensor} |= dtype_(v_1) ≠ 0
+Rule 12 (If the input is a matrix, then k should not be less than the negative of the number of rows minus 1)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then v_2 ≥ (0 - shape(v_1, 0))
 >>
-Rule 16 (If the input tensor is 1-dimensional, k is greater than or equal to the number of elements in the tensor -1, the result is the original tensor)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then if v_2 ≥ shape(v_1, 0) - 1 then true
+Rule 13 (If the input is a matrix, then when k equals the number of columns, the result is a full matrix)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then if v_2 = shape(v_1, 1) then true
 >>
-Rule 18 (Input tensor cannot be complex)
-{v_1: tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+Rule 14 (If the input is a matrix, then when k equals the negative of the number of rows, then all elements are 0)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then if v_2 = (0 - shape(v_1, 0)) then true
 >>
-Rule 20 (The dimensions of the input tensor must be non-negative)
+Rule 15 (The input tensor should not have NaN values)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) -1]: min(v_1) > -100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0 ∧ max(v_1) < 100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0
+>>
+Rule 16 (The dtype of the tensor must be a valid dtype)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+>>
+Rule 18 (If the input tensor is a vector and k is 0, then the output tensor should be a zero vector)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 ∧ v_2 = 0 then true
+>>
+Rule 20 (The input tensor cannot be a boolean tensor)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 21 (The input tensor should have a valid dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 12
+>>
+Rule 23 (The rank of the tensor should be less than or equal to 32)
+{v_1 : tensor} |= ndim(v_1) ≤ 32
+>>
+Rule 24 (The k value cannot lead to an empty tensor)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then v_2 > (0 - shape(v_1, 0) - 1)
+>>
+Rule 27 (The shape of the input tensor should not exceed the maximum allowed tensor size)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2000000000
+>>
+Rule 29 (If the input is a 3D tensor and k = 0, only the last 2D slice should be lower triangular.)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 ∧ v_2 = 0 then true
+>>
+Rule 31 (If input tensor contains inf or -inf, then result should also contain inf or -inf)
+{v_1 : tensor} |= if min(v_1) = -100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0 ∨ max(v_1) = 100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0 then true
+>>
+Rule 37 (The input tensor shape dimensions cannot be negative)
 {v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 21 (For a 3D tensor, if k is greater than or equal to the number of columns, the result is a tensor where the lower triangular part of each 2D slice is all ones)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 then if v_2 ≥ shape(v_1, 1) then true
+Rule 38 (The input tensor values must not be infinite)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1]: max(v_1) < 100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0 ∧ min(v_1) > -100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0
 >>
-Rule 22 (For any n-dimensional tensor, the last two dimensions are considered)
-{v_1: tensor} |= ndim(v_1) ≥ 2
+Rule 41 (if k is greater than the number of columns -1, the result will be a filled lower triangle matrix)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then if v_2 > shape(v_1, 1) -1 then true
 >>
-Rule 25 (The input tensor has to be numerical.)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 0
+Rule 42 (if k is less than the negative of the number of rows, then the result will be a zeroed matrix)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then if v_2 < 0 - shape(v_1, 0) then true
 >>
-Rule 29 (If the input tensor is a matrix, setting k equal to shape(v_1, 0)-1 makes all the elements in the matrix to remain the same )
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then if v_2 = shape(v_1, 0) - 1 then true
+Rule 45 (k must be an integer scalar)
+{v_2 : int} |= ndim(v_2) = 0
 >>
-Rule 35 (If the input tensor is empty then result is also empty)
-{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (ndim(v_1) = 0)
+Rule 46 (if k is negative, the number of elements set to zero above the diagonal will increase)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then if v_2 < 0 then true
 >>
-Rule 40 (If input is a 0-dimensional array, then it remains unchanged.)
-{v_1 : tensor} |= if ndim(v_1) = 0 then true
+Rule 47 (If the input is a 2D square matrix, then k=0 will result in the standard lower triangular matrix)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 ∧ shape(v_1, 0) = shape(v_1, 1) then if v_2 = 0 then true
 >>
-Rule 49 (The lower triangular part of the matrix is defined as the elements on and below the diagonal.)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 54 (When k is larger than zero, the number of elements above main diagonal that remain the same as the input will increase.)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then if v_2 > 0 then true
 >>
-Rule 52 (If the input array has more than two dimensions, the operation is performed on the last two axes.)
-{v_1: tensor} |= ndim(v_1) >= 2
+Rule 55 (If m is a scalar and k is not zero, the output will still be m)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then if v_2 ≠ 0 then true
 >>
-Rule 60 (The function works also for higher dimensions.)
-{v_1 : tensor} |= ndim(v_1) > 1
+Rule 57 (The numerical value of k should be less than the maximum value of int32 to prevent overflow)
+{v_2 : int} |= v_2 < 2147483647
 >>
-Rule 62 (When input tensor is two-dimensional, only the two last dimensions are considered, and tril() is applied to each of them)
-{v_1 : tensor} |= if ndim(v_1) = 2 then true
+Rule 58 (The numerical value of k should be greater than the minimum value of int32 to prevent underflow)
+{v_2 : int} |= v_2 > -2147483648
 >>
-Rule 63 (For multi-dimensional tensors, the operation is applied on the last two dimensions)
-{v_1 : tensor} |= ndim(v_1) >= 2
+Rule 59 (If input tensor is of type float16/float32/float64, the output also has the same type.)
+{v_1 : tensor} |= (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)
 >>
-Rule 75 (tril can be used to extract triangular matrices)
-{v_1 : tensor} |= ndim(v_1) >= 1
+Rule 60 (If input tensor is of type complex64/complex128, the output also has the same type.)
+{v_1 : tensor} |= (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)
 >>
-Rule 77 (When k is larger than the number of sub-diagonals on the lower triangle, the result equals the original matrix)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then if v_2 ≥ shape(v_1, 0) then true
+Rule 61 (If input tensor is of type int8/int16/int32/int64/uint8, the output also has the same type.)
+{v_1 : tensor} |= (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5)
 >>
-Rule 84 (If the input is a vector, then it is converted to a square matrix with the elements on the diagonal.)
-{v_1 : tensor} |= if ndim(v_1) = 1 then true
+Rule 62 (When the tensor is boolean and k=0, then elements above main diagonal will be False.)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 0 then if v_2 = 0 then true
 >>
-Rule 89 (tril is usually used in linear algebra.)
-{v_1: tensor} |= ndim(v_1) > 0
+Rule 64 (The numerical value of k cannot be larger than the maximum value that can be stored in the input tensor data type to prevent overflow)
+{v_1 : tensor, v_2 : int} |= if (dtype_(v_1) = 1) then v_2 < 127 else if (dtype_(v_1) = 2) then v_2 < 32767 else if (dtype_(v_1) = 3) then v_2 < 2147483647 else if (dtype_(v_1) = 4) then v_2 < 9223372036854775807
 >>
-Rule 104 (If the input has fewer than two dimensions then it's treated as having the dimensions required.)
-{v_1: tensor} |= ndim(v_1) >= 1
+Rule 65 (The numerical value of k cannot be smaller than the minimum value that can be stored in the input tensor data type to prevent underflow)
+{v_1 : tensor, v_2 : int} |= if (dtype_(v_1) = 1) then v_2 > -128 else if (dtype_(v_1) = 2) then v_2 > -32768 else if (dtype_(v_1) = 3) then v_2 > -2147483648 else if (dtype_(v_1) = 4) then v_2 > -9223372036854775808
 >>
-Rule 118 (A positive value of k selects diagonals above the main diagonal.)
-{v_2 : int} |= v_2 > 0 ∨ v_2 ≤ 0
+Rule 66 (When k is a positive value, it indicates the number of diagonals above the main diagonal to retain. )
+{v_2 : int} |= if v_2 > 0 then true
 >>
-Rule 122 (Only works on the last two dimensions)
-{v_1: tensor} |= ndim(v_1) > 1
+Rule 67 (When k is a negative value, it indicates the number of diagonals below the main diagonal to set to zero. )
+{v_2 : int} |= if v_2 < 0 then true
 >>
-Rule 125 (Negative k selects diagonals below the main diagonal.)
-{v_2 : int} |= v_2 < 1 ∧ v_2 > -1
+Rule 70 (If the input is a sparse tensor then k should be zero)
+{v_1 : tensor, v_2 : int} |= if min(v_1) = 0 then v_2 = 0

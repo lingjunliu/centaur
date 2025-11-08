@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if the input tensor is an integer tensor, the Mean operation will cast the data to float32 before performing the mean. (Rule 56)
+# If axis is specified, it should be a tensor with int32 or int64 data type (Rule 56)
 
 rule_56 = lambda s, v, n=False: (
-    s.add(Not(If((Or(Or(Or(Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 5), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 4)), True, True)) if n else
-          If((Or(Or(Or(Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 5), v["arg1_dtype"] == 2), v["arg1_dtype"] == 1), v["arg1_dtype"] == 4)), True, True))
+    s.add(Not(Or((v["arg1_dtype"] == 3), (v["arg1_dtype"] == 5))) if n else
+          Or((v["arg1_dtype"] == 3), (v["arg1_dtype"] == 5)))
 )
 
 def rule_56_func(arg1, solver=None, neg=False):

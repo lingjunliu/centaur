@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If either x1 or x2 has string type, it should not perform floor_divide (Rule 81)
+# x1 and x2 cannot both be boolean tensors (Rule 81)
 
 rule_81 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11), False, True)) if n else
-          If(Or(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11), False, True))
+    s.add(Not(Or((v["arg1_dtype"] != 0), (v["arg2_dtype"] != 0))) if n else
+          Or((v["arg1_dtype"] != 0), (v["arg2_dtype"] != 0)))
 )
 
 def rule_81_func(arg1, arg2, solver=None, neg=False):

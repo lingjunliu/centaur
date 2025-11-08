@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# A Householder operator is always non-positive definite. (Rule 7)
+# A Householder operator is always non-positive definite, therefore is_positive_definite must be false (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
     s.add(Not(v["arg1_value"] == False) if n else

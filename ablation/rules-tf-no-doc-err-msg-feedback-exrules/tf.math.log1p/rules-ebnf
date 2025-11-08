@@ -1,87 +1,69 @@
 >>
-Rule 1 (Input tensor must have a floating-point dtype)
-{x : tensor} |= (dtype_(x) = 7) ∨ (dtype_(x) = 8)
+Rule 1 (Input tensor dtype must be float or complex)
+{v_1 : tensor} |= (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)
 >>
-Rule 2 (Shape of the output tensor should be the same as the input tensor.)
-{x : tensor} |= shape(x) = shape(x)
+Rule 4 (Output dtype is dependent on the input tensor's dtype)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 7 then v_2 = 7 else if dtype_(v_1) = 8 then v_2 = 8 else if dtype_(v_1) = 9 then v_2 = 9 else if dtype_(v_1) = 10 then v_2 = 10
 >>
-Rule 3 (Input tensor x must have dimension greater than 0)
-{x : tensor} |= ndim(x) > 0
+Rule 5 (Minimum value within the tensor must be less than the maximum value)
+{v_1 : tensor} |= min(v_1) < max(v_1)
 >>
-Rule 6 (The minimum value of the input tensor should be greater than -1)
-{x : tensor} |= min(x) > -1.0
+Rule 7 (Data type must be a valid enum value)
+{v_1 : int} |= (v_1 = 0) ∨ (v_1 = 1) ∨ (v_1 = 2) ∨ (v_1 = 3) ∨ (v_1 = 4) ∨ (v_1 = 5) ∨ (v_1 = 6) ∨ (v_1 = 7) ∨ (v_1 = 8) ∨ (v_1 = 9) ∨ (v_1 = 10) ∨ (v_1 = 11) ∨ (v_1 = 12)
 >>
-Rule 8 (The maximum value of the input tensor should be less than a reasonable upper bound to avoid overflow)
-{x : tensor} |= max(x) < 1000000.0
+Rule 9 (The minimum value of tensor should not be positive infinity)
+{v_1 : tensor} |= min(v_1) ≠ max(v_1)
 >>
-Rule 9 (If input is float32, ensure the minimum value is greater than -0.99 to prevent underflow problems with float32 precision)
-{x : tensor} |= if dtype_(x) = 8 then min(x) > -0.99
+Rule 10 (If input tensor is complex, output should also be complex.)
+{v_1 : tensor} |= if (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) then true
 >>
-Rule 16 (If the input tensor's dtype is int, it should be cast to float32 before calculation to prevent integer overflow.)
-{x : tensor} |= if (dtype_(x) = 1) ∨ (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) ∨ (dtype_(x) = 5) then true
+Rule 13 (If the input tensor's dtype is float16, float32 or float64, the output's dtype should also be float16, float32 or float64 respectively)
+{v_1 : tensor} |= if dtype_(v_1) = 7 then true else if dtype_(v_1) = 8 then true else if dtype_(v_1) = 9 then true else if dtype_(v_1) = 10 then true else if dtype_(v_1) = 6 then true else false
 >>
-Rule 18 (Input tensor should have a reasonable number of dimensions)
-{x : tensor} |= ndim(x) < 6
+Rule 15 (The number of dimensions in the tensor must be a non-negative integer)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 22 (If the input dtype is float16, the maximum value should not exceed the maximum representable value in float16)
-{x : tensor} |= if dtype_(x) = 7 then max(x) < 65500.0
+Rule 28 (The dimension of the tensor must be less than or equal to 5)
+{v_1 : tensor} |= ndim(v_1) ≤ 5
 >>
-Rule 23 (The minimum value of complex tensor should be a valid number.)
-{x : tensor} |= if (dtype_(x) = 10) ∨ (dtype_(x) = 11) then min(x) = min(x)
+Rule 29 (For float tensors, the minimum value has to be smaller or equal to the maximum value)
+{v_1 : tensor} |= if (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) then min(v_1) ≤ max(v_1)
 >>
-Rule 25 (For float64 tensors, the smallest value should not be smaller than the smallest representable float64 to avoid underflow)
-{x : tensor} |= if dtype_(x) = 8 then min(x) ≥ -1.7976931348623157e+308
+Rule 32 (The shape of tensor can't have too many dimensions)
+{v_1 : tensor} |= ndim(v_1) < 6
 >>
-Rule 30 (If the input is an integer tensor, ensure that the range of its values prevents overflow when converted to float32 and then passed to log1p)
-{x : tensor} |= if (dtype_(x) = 1) ∨ (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) ∨ (dtype_(x) = 5) then min(x) > -2147483648 ∧ max(x) < 2147483647
+Rule 45 (The absolute minimum of tensor cannot be much greater than -1.0)
+{v_1 : tensor} |= if (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) then min(v_1) > -2
 >>
-Rule 32 (If the dtype is complex128, the minimum value should be greater than -1)
-{x : tensor} |= if dtype_(x) = 11 then min(x) > -1.0
+Rule 50 (Check if input is a valid tensor)
+{v_1: tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 34 (If the dtype is float16, the minimum value should be greater than -1)
-{x : tensor} |= if dtype_(x) = 7 then min(x) > -1.0
+Rule 58 (If the tensor has the same value across the board, then it cannot be -1.0)
+{v_1: tensor} |= if min(v_1) = max(v_1) then min(v_1) > -1
 >>
-Rule 38 (If input dtype is int8, the values should not result in float32 overflow after adding 1 and converting to float32)
-{x : tensor} |= if dtype_(x) = 1 then max(x) < 2147483646
+Rule 64 (The shape of the tensor cannot have very high dimensionality as it would be computationally impractical for log1p)
+{v_1 : tensor} |= ndim(v_1) < 10
 >>
-Rule 39 (If the input is a bool tensor, it must be cast to float32)
-{x : tensor} |= if dtype_(x) = 0 then true
+Rule 74 (Tensor should contain more than one unique value)
+{v_1: tensor} |= min(v_1) ≠ max(v_1)
 >>
-Rule 40 (If the minimum of the input tensor is close to -1 (e.g., -0.9999), ensure it is not exactly equal to -1 to avoid log(0).)
-{x : tensor} |= if min(x) < -0.99 then min(x) > -1.0
+Rule 76 (Tensor cannot be of string datatype)
+{v_1: tensor} |= dtype_(v_1) ≠ 11
 >>
-Rule 42 (The number of dimensions of the input should match the expected number of dimensions of the output)
-{x : tensor} |= ndim(x) = ndim(x)
+Rule 77 (Tensor should not have an extremely high number of dimensions that might lead to inefficiency.)
+{v_1 : tensor} |= ndim(v_1) < 32
 >>
-Rule 43 (If the input is a quantized dtype, it needs to be handled differently)
-{x : tensor} |= if dtype_(x) = 12 then true
+Rule 89 (If the values in tensor are very close to each other and are between -1 and 0, it is likely an error case.)
+{v_1: tensor} |= if min(v_1) > -1 ∧ max(v_1) < 0 then min(v_1) > max(v_1) - 0.00001
 >>
-Rule 48 (For complex numbers, imaginary part should be relatively small compared to the real part + 1)
-{x : tensor} |= if (dtype_(x) = 10) ∨ (dtype_(x) = 11) then true
+Rule 92 (Input cannot be a scalar tensor with value of exactly -1)
+{v_1 : tensor} |= if ndim(v_1) = 0 then false
 >>
-Rule 50 (The input tensor must be a number and not a string.)
-{x : tensor} |= dtype_(x) ≠ 12
+Rule 96 (The tensor's values shouldn't all be exactly the same value if it is one of smaller integer types (int8, int16 or uint8))
+{v_1 : tensor} |= if (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 5) then min(v_1) ≠ max(v_1)
 >>
-Rule 54 (If the dtype of x is uint8, the maximum value cannot be greater than 254)
-{x : tensor} |= if dtype_(x) = 6 then max(x) ≤ 254
+Rule 99 (If tensor is a multi dimensional matrix with all values near -1, then it might be a bad input for the api.)
+{v_1: tensor} |= if ndim(v_1) > 1 ∧ min(v_1) > -1.1 ∧ max(v_1) < -0.9 then false
 >>
-Rule 57 (if dtype is uint8, the maximum value cannot be a negative number.)
-{x : tensor} |= if dtype_(x) = 6 then max(x) ≥ 0
->>
-Rule 58 (If the input is float64, there should not be too much difference between min and max element to avoid instability.)
-{x : tensor} |= if dtype_(x) = 8 then max(x) - min(x) < 10000
->>
-Rule 60 (If the input's dtype is int32, the minimum and maximum value should stay within a reasonable range after adding 1)
-{x : tensor} |= if dtype_(x) = 3 then min(x) > -2147483648 ∧ max(x) < 2147483647
->>
-Rule 61 (The input should have a valid dtype)
-{x : tensor} |= (dtype_(x) = 0) ∨ (dtype_(x) = 1) ∨ (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) ∨ (dtype_(x) = 5) ∨ (dtype_(x) = 6) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) ∨ (dtype_(x) = 9) ∨ (dtype_(x) = 10) ∨ (dtype_(x) = 11)
->>
-Rule 63 (The product of tensor dimensions should not exceed maximum allowed tensor size)
-{x : tensor} |= if ndim(x) > 0 then true
->>
-Rule 65 (If the input tensor is a scalar (ndim=0), ensure it is within a reasonable range to avoid overflow/underflow during computation)
-{x : tensor} |= if ndim(x) = 0 then x > -1.0 ∧ x < 1000000
->>
-Rule 76 (If x is a tensor of integer type, then the output should have floating-point type)
-{x : tensor} |= if (dtype_(x) = 1) ∨ (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) ∨ (dtype_(x) = 5) ∨ (dtype_(x) = 6) then true
+Rule 103 (If all tensor values are the same, ensure that it is not -1.0 or close to it, as it is an extreme case.)
+{v_1: tensor} |= if min(v_1) = max(v_1) then (min(v_1) < -1.1) ∨ (min(v_1) > -0.9)

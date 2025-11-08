@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The lower value must be negative if upper is equal to zero. (Rule 63)
+# Lower and upper should not be extremely large values. (Rule 63)
 
 rule_63 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == 0.0, v["arg1_value"] < 0.0, True)) if n else
-          If(v["arg2_value"] == 0.0, v["arg1_value"] < 0.0, True))
+    s.add(Not(And((v["arg1_value"] > -100000.0), (v["arg2_value"] < 100000.0))) if n else
+          And((v["arg1_value"] > -100000.0), (v["arg2_value"] < 100000.0)))
 )
 
 def rule_63_func(arg1, arg2, solver=None, neg=False):

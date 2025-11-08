@@ -1,0 +1,81 @@
+>>
+Rule 1 (x1 and x2 must have the same shape to avoid incompatible shape error)
+{x1 : tensor, x2 : tensor} |= ∀i ∈ [0, ndim(x1) - 1] : shape(x1, i) = shape(x2, i)
+>>
+Rule 2 (x1 must be either float32 or float64)
+{x1 : tensor} |= dtype_(x1) = 7 ∨ dtype_(x1) = 8
+>>
+Rule 3 (x2 must be either float32 or float64 and must be the same type as x1)
+{x1 : tensor, x2 : tensor} |= dtype_(x2) = 7 ∨ dtype_(x2) = 8 ∧ dtype_(x1) = dtype_(x2)
+>>
+Rule 5 (check number of dimensions of input tensors)
+{x1: tensor, x2: tensor} |= ndim(x1) > 0 ∧ ndim(x2) > 0
+>>
+Rule 8 (Data types of x1 and x2 should be compatible)
+{x1 : tensor, x2 : tensor} |= (dtype_(x1) = 7 ∧ dtype_(x2) = 7) ∨ (dtype_(x1) = 8 ∧ dtype_(x2) = 8)
+>>
+Rule 13 (If the shapes are different, at least one of the tensors must be broadcastable to the shape of the other)
+{x1 : tensor, x2 : tensor} |= if ndim(x1) ≠ ndim(x2) then (if ndim(x1) < ndim(x2) then (∀i ∈ [0, ndim(x1) -1]: shape(x1, i) = shape(x2, i)) else (∀i ∈ [0, ndim(x2) -1]: shape(x1, i) = shape(x2, i))) else (∀i ∈ [0, ndim(x1) -1]: shape(x1, i) = shape(x2, i))
+>>
+Rule 14 (Check if x1's shape is valid)
+{x1 : tensor} |= ndim(x1) > 0 ∧ (∀i ∈ [0, ndim(x1) - 1] : shape(x1, i) > 0)
+>>
+Rule 15 (Either shapes are equal or broadcasting is possible. Broadcasting is not possible if the dimensions are not equal)
+{x1 : tensor, x2 : tensor} |= (ndim(x1) = ndim(x2) ∧ (∀i ∈ [0, ndim(x1) - 1] : shape(x1, i) = shape(x2, i))) ∨ (ndim(x1) ≠ ndim(x2) ∧ (if ndim(x1) < ndim(x2) then (∀i ∈ [0, ndim(x1) - 1] : shape(x1, i) = shape(x2, i)) else (∀i ∈ [0, ndim(x2) - 1] : shape(x1, i) = shape(x2, i)))) ∨ (ndim(x1) > 0 ∧ ndim(x2) > 0 ∧ ∀i ∈ [0, if ndim(x1) ≥ ndim(x2) then ndim(x1) - 1 else ndim(x2) - 1] : (ndim(x1) - i - 1 < 0 ∨ ndim(x2) - i - 1 < 0 ∨ shape(x1, ndim(x1) - i - 1) = 1 ∨ shape(x2, ndim(x2) - i - 1) = 1 ∨ shape(x1, ndim(x1) - i - 1) = shape(x2, ndim(x2) - i - 1)))
+>>
+Rule 16 (If the shapes of x1 and x2 are different, they should be broadcastable)
+{x1 : tensor, x2 : tensor} |= if ndim(x1) ≠ ndim(x2) then (∀i ∈ [0, if ndim(x1) > ndim(x2) then ndim(x1) - 1 else ndim(x2) - 1] : (if ndim(x1) - i - 1 < 0 ∨ ndim(x2) - i - 1 < 0 then true else (shape(x1, ndim(x1) - i - 1) = 1 ∨ shape(x2, ndim(x2) - i - 1) = 1)))
+>>
+Rule 17 (Check if the individual dimension size of x1 and x2 are valid to avoid the Incompatible shapes error)
+{x1 : tensor, x2 : tensor} |= if ndim(x1) = ndim(x2) then (∀i ∈ [0, ndim(x1) - 1] : shape(x1, i) > 0 ∧ shape(x2, i) > 0) else (if ndim(x1) < ndim(x2) then (∀i ∈ [0, ndim(x1) - 1] : shape(x1, i) > 0 ∧ shape(x2, i) > 0) else (∀i ∈ [0, ndim(x2) - 1] : shape(x1, i) > 0 ∧ shape(x2, i) > 0))
+>>
+Rule 18 (Shapes must be compatible for NextAfter operation i.e., equal or broadcastable)
+{x1 : tensor, x2 : tensor} |= (∀i ∈ [0, if ndim(x1) > ndim(x2) then ndim(x1) else ndim(x2) -1] : (if ndim(x1)-i-1 < 0 then true else if ndim(x2)-i-1 < 0 then true else if shape(x1, ndim(x1)-i-1) = shape(x2, ndim(x2)-i-1) then true else if shape(x1, ndim(x1)-i-1) = 1 then true else if shape(x2, ndim(x2)-i-1) = 1 then true else false))
+>>
+Rule 19 (At least one tensor dimension must have a size greater than zero)
+{x1: tensor, x2: tensor} |= (∃i ∈ [0, ndim(x1)-1]: shape(x1, i) > 0) ∧ (∃i ∈ [0, ndim(x2)-1]: shape(x2, i) > 0)
+>>
+Rule 20 (For broadcasting to happen, dimensions should either be equal or one of them should be one)
+{x1 : tensor, x2 : tensor} |= if ndim(x1) = ndim(x2) then ∀i ∈ [0, ndim(x1) - 1] : (shape(x1, i) = shape(x2, i) ∨ shape(x1, i) = 1 ∨ shape(x2, i) = 1) else if ndim(x1) < ndim(x2) then ∀i ∈ [0, ndim(x1) - 1] : (shape(x1, i) = shape(x2, i) ∨ shape(x1, i) = 1 ∨ shape(x2, i) = 1) else ∀i ∈ [0, ndim(x2) - 1] : (shape(x1, i) = shape(x2, i) ∨ shape(x1, i) = 1 ∨ shape(x2, i) = 1)
+>>
+Rule 21 (If any dimension of a tensor is zero, the other tensor must also have that dimension as zero or be broadcastable)
+{x1 : tensor, x2 : tensor} |= if (∃i ∈ [0, ndim(x1)-1] : shape(x1, i) = 0) then (∃i ∈ [0, ndim(x2)-1] : shape(x2, i) = 0) ∨ (ndim(x1) < ndim(x2) ∧ (∀i ∈ [0, ndim(x1) - 1] : shape(x1, i) = shape(x2, i)))
+>>
+Rule 22 (Shapes of the input tensors should be same or broadcastable to avoid incompatible shapes)
+{x1 : tensor, x2 : tensor} |= (ndim(x1) = ndim(x2) ∧ (∀i ∈ [0, ndim(x1) - 1] : shape(x1, i) = shape(x2, i))) ∨ (ndim(x1) > 0 ∧ ndim(x2) > 0 ∧ ∀i ∈ [0, if ndim(x1) ≥ ndim(x2) then ndim(x1) - 1 else ndim(x2) - 1] : (ndim(x1) - i - 1 < 0 ∨ ndim(x2) - i - 1 < 0 ∨ shape(x1, ndim(x1) - i - 1) = 1 ∨ shape(x2, ndim(x2) - i - 1) = 1 ∨ shape(x1, ndim(x1) - i - 1) = shape(x2, ndim(x2) - i - 1)))
+>>
+Rule 24 (Shape must be valid to avoid errors like "Shape must be rank at least X but is rank Y")
+{x1: tensor} |= ndim(x1) ≥ 0
+>>
+Rule 28 (If x1 and x2 have broadcastable shapes, then their shapes must conform to broadcasting rules)
+{x1: tensor, x2: tensor} |= (∀i ∈ [0, if ndim(x1) > ndim(x2) then ndim(x1) else ndim(x2) - 1] : (if (ndim(x1) - 1 - i) < 0 then true else if (ndim(x2) - 1 - i) < 0 then true else (shape(x1, ndim(x1) - 1 - i) = shape(x2, ndim(x2) - 1 - i) ∨ shape(x1, ndim(x1) - 1 - i) = 1 ∨ shape(x2, ndim(x2) - 1 - i) = 1)))
+>>
+Rule 29 (If one of x1 and x2 is scalar and other is not, the scalar must be able to be broadcasted to the non-scalar tensor)
+{x1 : tensor, x2 : tensor} |= if (ndim(x1) = 0 ∧ ndim(x2) ≠ 0) then true else if (ndim(x2) = 0 ∧ ndim(x1) ≠ 0) then true
+>>
+Rule 30 (To avoid incompatible shape error, tensors should either have the same rank/ndim, or one should be 0-rank, or they should be broadcastable)
+{x1: tensor, x2: tensor} |= (ndim(x1) = ndim(x2)) ∨ (ndim(x1) = 0) ∨ (ndim(x2) = 0) ∨ (∀i ∈ [0, if ndim(x1) > ndim(x2) then ndim(x1) - 1 else ndim(x2) - 1] : (i >= ndim(x1) ∨ i >= ndim(x2) ∨ shape(x1, ndim(x1) - 1 - i) = shape(x2, ndim(x2) - 1 - i) ∨ shape(x1, ndim(x1) - 1 - i) = 1 ∨ shape(x2, ndim(x2) - 1 - i) = 1))
+>>
+Rule 31 (If shapes are incompatible, then ensure that shape of x1 and x2 can be broadcasted. It means that each dimension size should be either same or one of them should be 1)
+{x1: tensor, x2: tensor} |= if ndim(x1) = ndim(x2) then (∀i ∈ [0, ndim(x1)-1]: shape(x1, i) = shape(x2, i) ∨ shape(x1,i) = 1 ∨ shape(x2, i) = 1) else (∀i ∈ [0, if ndim(x1) > ndim(x2) then ndim(x1)-1 else ndim(x2) - 1]: (if i >= ndim(x1) then true else if i >= ndim(x2) then true else (shape(x1, i) = shape(x2, i) ∨ shape(x1, i) = 1 ∨ shape(x2, i) = 1)))
+>>
+Rule 33 (If x1 and x2 are not broadcastable then their dimensions must match.)
+{x1 : tensor, x2 : tensor} |= if (∀i ∈ [0, if ndim(x1) > ndim(x2) then ndim(x1) - 1 else ndim(x2) - 1]: ((ndim(x1) - 1 - i) < 0 ∨ (ndim(x2) - 1 - i) < 0 ∨ (shape(x1, ndim(x1) - 1 - i) = 1) ∨ (shape(x2, ndim(x2) - 1 - i) = 1) ∨ (shape(x1, ndim(x1) - 1 - i) = shape(x2, ndim(x2) - 1 - i)))) then true else (ndim(x1) = ndim(x2) ∧ (∀i ∈ [0, ndim(x1) - 1] : shape(x1, i) = shape(x2, i)))
+>>
+Rule 34 (If the tensors have different number of dimensions, then only dimensions that match or are 1 should be considered.)
+{x1: tensor, x2: tensor} |= if ndim(x1) != ndim(x2) then (∀i ∈ [0, if ndim(x1) > ndim(x2) then ndim(x2) else ndim(x1) -1]: (shape(x1, ndim(x1)-ndim(x2) + i) = shape(x2, i) ∨ shape(x1, ndim(x1)-ndim(x2)+i) = 1 ∨ shape(x2,i) = 1))
+>>
+Rule 37 (If both are tensors, at least one of x1 or x2 shouldn't be empty)
+{x1: tensor, x2: tensor} |= (ndim(x1) > 0 ∧ (∃i ∈ [0, ndim(x1) - 1]: shape(x1, i) > 0)) ∨ (ndim(x2) > 0 ∧ (∃i ∈ [0, ndim(x2) - 1]: shape(x2, i) > 0))
+>>
+Rule 38 (x1 and x2 can either have the same shape, can be broadcasted, or one is a scalar value to avoid incompatible shape error.)
+{x1: tensor, x2: tensor} |= (ndim(x1) = ndim(x2) ∧ (∀i ∈ [0, ndim(x1) - 1] : shape(x1, i) = shape(x2, i))) ∨ (ndim(x1) = 0 ∨ ndim(x2) = 0) ∨ (ndim(x1) > 0 ∧ ndim(x2) > 0 ∧ (∀i ∈ [0, if ndim(x1) > ndim(x2) then ndim(x1) else ndim(x2) - 1]: (if (ndim(x1) - 1 - i) < 0 then true else if (ndim(x2) - 1 - i) < 0 then true else (shape(x1, ndim(x1) - 1 - i) = 1 ∨ shape(x2, ndim(x2) - 1 - i) = 1 ∨ shape(x1, ndim(x1) - 1 - i) = shape(x2, ndim(x2) - 1 - i)))))
+>>
+Rule 39 (Shapes x1 and x2 can be different only if they are broadcastable, and the dimension must be positive if it is broadcastable)
+{x1: tensor, x2: tensor} |= if (ndim(x1) != ndim(x2)) then (∀i ∈ [0, if ndim(x1) > ndim(x2) then ndim(x2) else ndim(x1) -1]: (shape(x1, ndim(x1)-ndim(x2) + i) = shape(x2, i) ∨ shape(x1, ndim(x1)-ndim(x2)+i) = 1 ∨ shape(x2,i) = 1) ∧ shape(x1, ndim(x1)-ndim(x2)+i) > 0 ∧ shape(x2,i) > 0)
+>>
+Rule 40 (Either tensor's rank are equal, one of them is a scalar or if they aren't of equal rank or aren't scalars, check that dimension size is either equal or 1 for broadcasting to avoid incompatible shape error)
+{x1: tensor, x2: tensor} |= (ndim(x1) = ndim(x2)) ∨ (ndim(x1) = 0 ∨ ndim(x2) = 0) ∨ (∀i ∈ [0, if ndim(x1) > ndim(x2) then ndim(x1)-1 else ndim(x2) - 1] : (if (ndim(x1) - 1 - i) < 0 then true else if (ndim(x2) - 1 - i) < 0 then true else (shape(x1, ndim(x1) - 1 - i) = 1 ∨ shape(x2, ndim(x2) - 1 - i) = 1 ∨ shape(x1, ndim(x1) - 1 - i) = shape(x2, ndim(x2) - 1 - i))))
+>>
+Rule 41 (Either both are scalars or both have same dimensions or dimensions should follow broadcasting rules)
+{x1: tensor, x2: tensor} |= (ndim(x1) = 0 ∧ ndim(x2) = 0) ∨ (ndim(x1) = ndim(x2) ∧ (∀i ∈ [0, ndim(x1) - 1]: shape(x1, i) = shape(x2, i))) ∨ (ndim(x1) > 0 ∧ ndim(x2) > 0 ∧ (∀i ∈ [0, if ndim(x1) > ndim(x2) then ndim(x1) - 1 else ndim(x2) - 1]: (if (ndim(x1) - 1 - i) < 0 then true else if (ndim(x2) - 1 - i) < 0 then true else (shape(x1, ndim(x1) - 1 - i) = 1 ∨ shape(x2, ndim(x2) - 1 - i) = 1 ∨ shape(x1, ndim(x1) - 1 - i) = shape(x2, ndim(x2) - 1 - i)))))

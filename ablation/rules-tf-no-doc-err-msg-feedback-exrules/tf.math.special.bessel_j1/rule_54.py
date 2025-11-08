@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Ensure that the minimum value of the tensor is strictly less than the maximum value. (Rule 54)
+# If the dimension of tensor v_1 is one, then the maximum value should be less than 10000 (Rule 54)
 
 rule_54 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) < Select(v["arg1_range"], 1)) if n else
-          Select(v["arg1_range"], 0) < Select(v["arg1_range"], 1))
+    s.add(Not(If(v["arg1_ndim"] == 1, Select(v["arg1_range"], 1) < 10000, True)) if n else
+          If(v["arg1_ndim"] == 1, Select(v["arg1_range"], 1) < 10000, True))
 )
 
 def rule_54_func(arg1, solver=None, neg=False):
@@ -22,16 +22,18 @@ def rule_54_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
+        arg1_ndim = Int('arg1_ndim')
         arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
+        solver.add(arg1_ndim == arg1.ndim)
         arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 54
-        rule_54(solver, {'arg1_range': arg1_range})
+        rule_54(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_54(solver, {'arg1_range': arg1['range']}, neg)
+        rule_54(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']}, neg)

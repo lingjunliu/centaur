@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# parameter 't' must be a tensor of rank at least 0 and at most 7 and type half, bfloat16, float32 or float64 (Rule 57)
+# If dtype is half, the output will have dtype float32 (Rule 57)
 
 rule_57 = lambda s, v, n=False: (
-    s.add(Not(And((And(v["arg1_ndim"] >= 0, v["arg1_ndim"] <= 7)), (Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)))) if n else
-          And((And(v["arg1_ndim"] >= 0, v["arg1_ndim"] <= 7)), (Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8))))
+    s.add(Not(If(v["arg1_dtype"] == 6, True, True)) if n else
+          If(v["arg1_dtype"] == 6, True, True))
 )
 
 def rule_57_func(arg1, solver=None, neg=False):
@@ -22,17 +22,15 @@ def rule_57_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
         arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 57
-        rule_57(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim})
+        rule_57(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_57(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_57(solver, {'arg1_dtype': arg1['dtype']}, neg)

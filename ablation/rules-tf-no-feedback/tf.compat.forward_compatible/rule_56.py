@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Check no variable should be zero. (Rule 56)
+# If the year is a leap year the 29th of Feburary is possible (Rule 56)
 
 rule_56 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_value"] != 0, v["arg2_value"] != 0), v["arg3_value"] != 0)) if n else
-          And(And(v["arg1_value"] != 0, v["arg2_value"] != 0), v["arg3_value"] != 0))
+    s.add(Not(If(And((Or((And(v["arg1_value"] % 4 == 0, v["arg1_value"] % 100 != 0)), (v["arg1_value"] % 400 == 0))), (v["arg2_value"] == 2)), v["arg3_value"] <= 29, True)) if n else
+          If(And((Or((And(v["arg1_value"] % 4 == 0, v["arg1_value"] % 100 != 0)), (v["arg1_value"] % 400 == 0))), (v["arg2_value"] == 2)), v["arg3_value"] <= 29, True))
 )
 
 def rule_56_func(arg1, arg2, arg3, solver=None, neg=False):

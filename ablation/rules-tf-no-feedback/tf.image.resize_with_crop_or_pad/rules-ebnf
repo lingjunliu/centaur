@@ -1,75 +1,129 @@
 >>
-Rule 1 (target_height must be greater than 0)
+Rule 1 (target_height must be greater than 0 to avoid ValueError)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 3 (image must have either 3 or 4 dimensions)
+Rule 3 (image tensor must have either 3 or 4 dimensions)
 {v_1 : tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4
 >>
-Rule 4 (inner 3 dims of image.shape must be > 0)
-{v_1 : tensor} |= (ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0) ∨ (ndim(v_1) = 4 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0)
+Rule 4 (inner 3 dims of 'image.shape' must be > 0)
+{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
 >>
-Rule 5 (target_height and target_width cannot be negative)
-{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+Rule 5 (avoid potential integer overflow during padding calculation, limiting target dimensions based on image dimensions)
+{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 < 1024 ∧ v_3 < 1024 ∧ shape(v_1, 1) < 1024 ∧ shape(v_1, 2) < 1024
 >>
-Rule 6 (shape of the image should be reasonable to prevent overflow)
-{v_1 : tensor, v_2 : int, v_3 : int} |= shape(v_1,0) * shape(v_1,1) * shape(v_1,2) < 2147483647 ∧ v_2 < 2147483647 ∧ v_3 < 2147483647
+Rule 6 (Avoid potential memory allocation errors for very large target dimensions.)
+{v_1 : int, v_2 : int} |= v_1 * v_2 < 1000000
 >>
-Rule 7 (Avoid extremely large target dimensions leading to memory exhaustion)
-{v_1 : int, v_2 : int} |= v_1 < 4096 ∧ v_2 < 4096
+Rule 7 (Check that the multiplication of image dimensions and target dimensions will not cause integer overflow, avoiding InvalidArgumentError)
+{v_1 : tensor, v_2 : int, v_3 : int} |= shape(v_1, 1) * shape(v_1, 2) * v_2 * v_3 < 2147483647
 >>
-Rule 8 (Image dimensions must be non-zero to avoid errors during processing)
-{v_1 : tensor} |= (ndim(v_1) = 3 ∧ shape(v_1, 0) ≠ 0 ∧ shape(v_1, 1) ≠ 0 ∧ shape(v_1, 2) ≠ 0) ∨ (ndim(v_1) = 4 ∧ shape(v_1, 1) ≠ 0 ∧ shape(v_1, 2) ≠ 0 ∧ shape(v_1, 3) ≠ 0)
+Rule 8 (Image shape and target size need to be within a reasonable bound to avoid OOM, ResourceExhaustedError)
+{v_1 : tensor, v_2 : int, v_3 : int} |= shape(v_1, 1) < 2048 ∧ shape(v_1, 2) < 2048 ∧ v_2 < 2048 ∧ v_3 < 2048
 >>
-Rule 9 (Check that image dimensions are not excessively large to prevent memory exhaustion)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 100000000 else if ndim(v_1) = 4 then shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) < 100000000
+Rule 9 (If the image has 4 dimensions, the batch size should be > 0)
+{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 0) > 0
 >>
-Rule 10 (target height and width should not cause overflow during padding)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 3 then (shape(v_1, 0) + v_2 < 2147483647) ∧ (shape(v_1, 1) + v_3 < 2147483647) else (shape(v_1, 1) + v_2 < 2147483647) ∧ (shape(v_1, 2) + v_3 < 2147483647)
+Rule 10 (Check for potential overflow when calculating padding size - target height and width should be smaller than max int/2)
+{v_1 : int, v_2 : int} |= v_1 < 1073741823 ∧ v_2 < 1073741823
 >>
-Rule 11 (Check for overflow in target height and width product)
-{v_1 : int, v_2 : int} |= v_1 * v_2 < 2147483647
+Rule 11 (Check for potential overflow when calculating padding size, incorporating image dimensions)
+{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 - shape(v_1, 1) < 1073741823 ∧ v_3 - shape(v_1, 2) < 1073741823
 >>
-Rule 13 (Image dimensions and target dimensions should be reasonable multiples to prevent extreme padding/cropping)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 3 then (shape(v_1, 0) % v_2 = 0 ∨ v_2 % shape(v_1, 0) = 0) ∧ (shape(v_1, 1) % v_3 = 0 ∨ v_3 % shape(v_1, 1) = 0) else (shape(v_1, 1) % v_2 = 0 ∨ v_2 % shape(v_1, 1) = 0) ∧ (shape(v_1, 2) % v_3 = 0 ∨ v_3 % shape(v_1, 2) = 0)
+Rule 12 (Avoid ResourceExhaustedError by limiting the total number of elements)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * v_2 * v_3 < 100000000 else shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * v_2 * v_3 * shape(v_1, 0) < 100000000
 >>
-Rule 14 (If image is a batch of size zero, the target dimensions should also be small)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 4 ∧ shape(v_1, 0) = 0 then v_2 < 16 ∧ v_3 < 16
+Rule 13 (Check if image height and width are not zero)
+{v_1 : tensor} |= shape(v_1, 0) ≠ 0 ∧ shape(v_1, 1) ≠ 0
 >>
-Rule 15 (target_height and target_width are reasonable compared to the input image shape to avoid extreme zoom)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 3 then (v_2 ≤ shape(v_1, 0) * 4 ∧ v_3 ≤ shape(v_1, 1) * 4) else (v_2 ≤ shape(v_1, 1) * 4 ∧ v_3 ≤ shape(v_1, 2) * 4)
+Rule 14 (Target Height should not be largely different from original Height)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 1) / 2 <= v_2 ∧ v_2 <= shape(v_1, 1) * 2
 >>
-Rule 16 (The target height and width combined should not exceed a threshold for preventing very large output tensors.)
-{v_1 : int, v_2 : int} |= v_1 + v_2 < 8192
+Rule 15 (Target Width should not be largely different from original Width)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 2) / 2 <= v_2 ∧ v_2 <= shape(v_1, 2) * 2
 >>
-Rule 18 (Avoid large padding by enforcing the target sizes to be no more than a certain factor larger than the input sizes)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 3 then v_2 <= shape(v_1, 0) * 2 + 10 ∧ v_3 <= shape(v_1, 1) * 2 + 10 else v_2 <= shape(v_1, 1) * 2 + 10 ∧ v_3 <= shape(v_1, 2) * 2 + 10
+Rule 16 (Check if the image channel size is reasonable)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) < 256
 >>
-Rule 20 (Check if the combination of dimensions will cause an integer overflow during padding calculation)
-{v_1: tensor, v_2: int, v_3: int} |= if ndim(v_1) = 3 then shape(v_1, 0) + v_2 < 2147483647 ∧ shape(v_1, 1) + v_3 < 2147483647 else shape(v_1, 1) + v_2 < 2147483647 ∧ shape(v_1, 2) + v_3 < 2147483647
+Rule 17 (Avoid OOM error: Limit the possible pad size.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= (v_2 - shape(v_1, 1)) * (v_3 - shape(v_1, 2)) < 100000
 >>
-Rule 21 (Avoid potential integer overflow in cropping calculations when input dimensions are large but target sizes are small.)
-{v_1: tensor, v_2: int, v_3: int} |= if ndim(v_1) = 3 then (shape(v_1, 0) < 100000 ∧ shape(v_1, 1) < 100000) ∨ (v_2 > 100 ∧ v_3 > 100) else (shape(v_1, 1) < 100000 ∧ shape(v_1, 2) < 100000) ∨ (v_2 > 100 ∧ v_3 > 100)
+Rule 18 (Check the image should not have any dimension which is too large, to avoid ResourceExhaustedError)
+{v_1 : tensor} |= shape(v_1, 0) < 4096 ∧ shape(v_1, 1) < 4096 ∧ shape(v_1, 2) < 4096
 >>
-Rule 22 (If target height or width are significantly larger than input dimensions, cap target size)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 3 then if v_2 > shape(v_1,0) * 10 then v_2 < 1000 ∧ if v_3 > shape(v_1, 1) * 10 then v_3 < 1000 else if v_2 > shape(v_1, 1) * 10 then v_2 < 1000 ∧ if v_3 > shape(v_1, 2) * 10 then  v_3 < 1000
+Rule 19 (Check the image shape multiplication with target shape is in a manageable range)
+{v_1 : tensor, v_2 : int, v_3 : int} |= shape(v_1, 1) * shape(v_1, 2) * v_2 * v_3 < 4294967296
 >>
-Rule 23 (Constrain combined input and output size to limit memory usage)
-{v_1: tensor, v_2: int, v_3: int} |= if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) + v_2 * v_3 * shape(v_1, 2) < 500000000 else shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) + v_2 * v_3 * shape(v_1, 3) < 500000000
+Rule 20 (Target height cannot be larger than max int to prevent padding calculation overflow)
+{v_1 : int} |= v_1 < 2147483647
 >>
-Rule 24 (Prevent extremely small target_height and target_width when original dimensions are relatively large, prevent cropping an image to almost nothing and wasting computation)
-{v_1: tensor, v_2: int, v_3: int} |= if ndim(v_1) = 3 then if shape(v_1, 0) > 100 ∧ shape(v_1, 1) > 100 then v_2 > 10 ∧ v_3 > 10 else if shape(v_1, 1) > 100 ∧ shape(v_1, 2) > 100 then v_2 > 10 ∧ v_3 > 10
+Rule 22 (Image height or width cannot be zero to prevent division by zero errors.)
+{v_1 : tensor} |= shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
 >>
-Rule 26 (Prevent excessive padding by ensuring that the target height and width are less than the maximum allowed tensor dimension)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 3 then v_2 < 2048 ∧ v_3 < 2048 else v_2 < 2048 ∧ v_3 < 2048
+Rule 23 (If the image has 3 dimensions, the channel size should be > 0)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 2) > 0
 >>
-Rule 28 (If the batch size is very large, then limit the target size)
-{v_1: tensor, v_2: int, v_3: int} |= if ndim(v_1) = 4 ∧ shape(v_1, 0) > 256 then v_2 < 512 ∧ v_3 < 512
+Rule 24 (If the image has 4 dimensions, the channel size should be > 0)
+{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 3) > 0
 >>
-Rule 29 (When padding, the amount of padding should be reasonable compared to image size to prevent creation of almost-empty images consuming significant memory)
-{v_1: tensor, v_2: int, v_3: int} |= if ndim(v_1) = 3 then v_2 - shape(v_1, 0) < 1000 ∧ v_3 - shape(v_1, 1) < 1000 else v_2 - shape(v_1, 1) < 1000 ∧ v_3 - shape(v_1, 2) < 1000
+Rule 25 (Image's width and height should be small enough to avoid integer overflow during padding)
+{v_1 : tensor} |= shape(v_1, 1) < 65536 ∧ shape(v_1, 2) < 65536
 >>
-Rule 35 (Prevent excessive memory consumption by restricting the total number of elements after padding or cropping)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 3 then shape(v_1, 2) * v_2 * v_3 < 536870912 else shape(v_1, 3) * v_2 * v_3 < 536870912
+Rule 26 (The product of all image dimensions and target dimensions must be within the representable range of int64)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * v_2 * v_3 < 9223372036854775807 else shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * v_2 * v_3 < 9223372036854775807
 >>
-Rule 36 (Check the total size to prevent memory explosion even before element-wise calculations)
-{v_1: tensor, v_2: int, v_3: int} |= (if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) else shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3)) < 100000000 ∧ v_2 * v_3 < 1000000
+Rule 27 (Check image dimensions are consistent for padding - prevent InvalidArgumentError)
+{v_1 : tensor, v_2 : int, v_3 : int} |= shape(v_1, 1) ≤ v_2 + 2147483647 ∧ shape(v_1, 2) ≤ v_3 + 2147483647
+>>
+Rule 28 (Target height and width must be small enough relative to the image dimensions to avoid extreme cropping)
+{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 > shape(v_1,1)/100 ∧ v_3 > shape(v_1,2)/100
+>>
+Rule 29 (Target height and width, when greater than original height and width respectively, must not result in an overly large padded image - preventing ResourceExhaustedError)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 > shape(v_1, 1) ∧ v_3 > shape(v_1, 2) then (v_2 * v_3 * shape(v_1, ndim(v_1)-1)) < 20000000
+>>
+Rule 30 (Avoid zero channel size leading to errors during padding/cropping)
+{v_1: tensor} |= (ndim(v_1) = 3 ∧ shape(v_1, 2) ≠ 0) ∨ (ndim(v_1) = 4 ∧ shape(v_1, 3) ≠ 0)
+>>
+Rule 32 (If the image has 3 or 4 dimensions, at least one dimension should be smaller than the target dimensions to ensure either crop or pad happens)
+{v_1 : tensor, v_2 : int, v_3 : int} |= (ndim(v_1) = 3 ∧ (shape(v_1, 0) < v_2 ∨ shape(v_1, 1) < v_3)) ∨ (ndim(v_1) = 4 ∧ (shape(v_1, 1) < v_2 ∨ shape(v_1, 2) < v_3))
+>>
+Rule 34 (Ensure the target dimensions won't lead to an extremely large output tensor to prevent memory exhaustion)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 3 then v_2 * v_3 * shape(v_1, 2) < 200000000 else v_2 * v_3 * shape(v_1, 3) * shape(v_1, 0) < 200000000
+>>
+Rule 35 (If padding is required, the image dimensions and target dimensions should be within a reasonable range to avoid memory allocation errors - this considers height and width)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if shape(v_1, 1) < v_2 ∨ shape(v_1, 2) < v_3 then v_2 * v_3 < 4194304
+>>
+Rule 36 (If padding is required, the target dimensions must not be excessively larger than the original dimensions)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if shape(v_1, 1) < v_2 ∨ shape(v_1, 2) < v_3 then (v_2 - shape(v_1, 1)) < 1000 ∧ (v_3 - shape(v_1, 2)) < 1000
+>>
+Rule 37 (Ensure that the image shape dimensions do not contain extremely large values to avoid integer overflow during computation.)
+{v_1 : tensor} |= shape(v_1, 0) < 65536 ∧ shape(v_1, 1) < 65536 ∧ shape(v_1, 2) < 65536 ∧ if ndim(v_1) = 4 then shape(v_1, 3) < 65536
+>>
+Rule 38 (Target dimensions should not be excessively small relative to original to prevent extreme cropping and potential errors)
+{v_1 : tensor, v_2 : int, v_3 : int} |=  v_2 ≥ 1 ∧ v_3 ≥ 1 ∧ (v_2 ≥ shape(v_1, 1) / 16) ∧ (v_3 ≥ shape(v_1, 2) / 16)
+>>
+Rule 39 (The product of the original dimensions and target dimensions should be within the range of 32 bit integer to prevent potential overflow during computation.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 3 then (shape(v_1, 0) * v_2 < 2147483647) ∧ (shape(v_1, 1) * v_3 < 2147483647) else (shape(v_1, 1) * v_2 < 2147483647) ∧ (shape(v_1, 2) * v_3 < 2147483647)
+>>
+Rule 40 (If the image is 4D, the product of target dimensions and the batch size should be within a reasonable range to prevent memory exhaustion)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 4 then (v_2 * v_3 * shape(v_1, 0)) < 50000000
+>>
+Rule 41 (Prevent large differences between the target dimensions to avoid issues in downstream processing, enforcing a loose aspect ratio.)
+{v_1 : int, v_2 : int} |= v_1 ≤ v_2 * 4 ∧ v_2 ≤ v_1 * 4
+>>
+Rule 42 (To avoid InvalidArgumentError due to extremely large padding, the size of the image plus padding should not exceed the maximum integer value.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= shape(v_1,1) + (v_2 - shape(v_1,1)) ≤ 2147483647 ∧ shape(v_1,2) + (v_3 - shape(v_1,2)) ≤ 2147483647
+>>
+Rule 43 (To avoid integer overflow when calculating the new image size after padding, constrain the sum of input dimensions, target height, and target width)
+{v_1 : tensor, v_2 : int, v_3 : int} |= shape(v_1, 1) + v_2 + shape(v_1, 2) + v_3 < 4294967295
+>>
+Rule 44 (If the image is very small, the target dimensions should not be excessively large. To prevent ResourceExhaustedError.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if shape(v_1, 1) < 10 ∧ shape(v_1, 2) < 10 then v_2 < 100 ∧ v_3 < 100
+>>
+Rule 45 (Ensure that there is at least one channel in the image.)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 2) ≥ 1 else shape(v_1, 3) ≥ 1
+>>
+Rule 49 (Limit the size increase to prevent OOM errors with large increases)
+{v_1: tensor, v_2: int, v_3: int} |= if ndim(v_1) = 3 then v_2 * v_3 * shape(v_1, 2) <= shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * 10 else v_2 * v_3 * shape(v_1, 0) * shape(v_1, 3) <= shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * 10
+>>
+Rule 50 (Target height and width must be non-negative to prevent errors in calculations)
+{v_1 : int, v_2 : int} |= v_1 ≥ 0 ∧ v_2 ≥ 0

@@ -1,0 +1,270 @@
+>>
+Rule 1 (input tensor must have at least 3 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 3
+>>
+Rule 2 (data_format string must be either "channels_last" or "channels_first")
+{v_1 : str} |= v_1 = "channels_last" ∨ v_1 = "channels_first"
+>>
+Rule 3 (If data_format is "channels_first", the channel dimension should be 1.)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_first" then shape(v_1, 1) = 1
+>>
+Rule 4 (If data_format is "channels_last", the channel dimension should be ndim(v_1)-1.)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_last" then shape(v_1, ndim(v_1)-1) = 1
+>>
+Rule 5 (The data type of the input tensor should be float16, float32, or float64)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6
+>>
+Rule 6 (Input tensor must have a valid batch size (shape[0] > 0))
+{v_1 : tensor} |= shape(v_1, 0) > 0
+>>
+Rule 7 (The number of channels of the input tensor must be greater than 0 if data_format is channels_last)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_last" then shape(v_1, ndim(v_1)-1) > 0
+>>
+Rule 8 (The number of channels of the input tensor must be greater than 0 if data_format is channels_first)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_first" then shape(v_1, 1) > 0
+>>
+Rule 9 (The input tensor cannot have a dimension of size 0 other than batch and channel)
+{v_1 : tensor, v_2 : str} |= ∀i ∈ [0, ndim(v_1) - 1] : if v_2 = "channels_last" then i = 0 ∨ i = ndim(v_1)-1 ∨ shape(v_1, i) > 0 else i = 0 ∨ i = 1 ∨ shape(v_1, i) > 0
+>>
+Rule 10 (The data type of the output tensor should be the same as the data type of the input tensor)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 11 (If the input tensor has only 3 dimensions, the data_format must be channels_last.)
+{v_1 : tensor, v_2 : str} |= if ndim(v_1) = 3 then v_2 = "channels_last"
+>>
+Rule 12 (The output tensor's shape is derived based on the data_format)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_last" then ndim(v_1) + 1 = 4 else ndim(v_1) + 1 = 4
+>>
+Rule 13 (The output tensor shape should have the correct size)
+{v_1 : tensor, v_2 : str, v_3 : tensor} |= if v_2 = "channels_last" then shape(v_3,0) = shape(v_1,0) ∧ shape(v_3,1) = shape(v_1,1) ∧ shape(v_3,2) = shape(v_1,2) ∧ shape(v_3,3) = 2 else shape(v_3,0) = shape(v_1,0) ∧ shape(v_3,1) = 2 ∧ shape(v_3,2) = shape(v_1,2) ∧ shape(v_3,3) = shape(v_1,3)
+>>
+Rule 14 (The dimension after batch dimension should be greater than 1)
+{v_1 : tensor} |= shape(v_1,1) > 1
+>>
+Rule 15 (The dimension before channel dimension should be greater than 1)
+{v_1 : tensor} |= shape(v_1,ndim(v_1)-2) > 1
+>>
+Rule 16 (The output tensor's data type is float32 if the input tensor's data type is float16)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 7
+>>
+Rule 17 (The output tensor's data type is the same as the input tensor if the input tensor's data type is not float16)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ 6 then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 18 (Input tensor must have rank 3 or 4)
+{v_1 : tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4
+>>
+Rule 19 (If channels_first, channel dimension is 1, otherwise it is the last dimension)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_first" then 1 < ndim(v_1) else ndim(v_1) > 0
+>>
+Rule 20 (The number of output channels should be 2)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) = 2
+>>
+Rule 21 (If data_format is channels_first and input tensor is rank 3, output shape is [batch, 2, height, width])
+{v_1 : tensor, v_2 : str, v_3: tensor} |= if v_2 = "channels_first" ∧ ndim(v_1) = 3 then shape(v_3, 0) = shape(v_1, 0) ∧ shape(v_3, 1) = 2 ∧ shape(v_3, 2) = shape(v_1, 2) ∧ shape(v_3, 3) = shape(v_1, 3)
+>>
+Rule 22 (If data_format is channels_last and input tensor is rank 3, output shape is [batch, height, width, 2])
+{v_1 : tensor, v_2 : str, v_3: tensor} |= if v_2 = "channels_last" ∧ ndim(v_1) = 3 then shape(v_3, 0) = shape(v_1, 0) ∧ shape(v_3, 1) = shape(v_1, 1) ∧ shape(v_3, 2) = shape(v_1, 2) ∧ shape(v_3, 3) = 2
+>>
+Rule 23 (If data_format is channels_first and input tensor is rank 4, output shape is [batch, 2, height, width])
+{v_1 : tensor, v_2 : str, v_3: tensor} |= if v_2 = "channels_first" ∧ ndim(v_1) = 4 then shape(v_3, 0) = shape(v_1, 0) ∧ shape(v_3, 1) = 2 ∧ shape(v_3, 2) = shape(v_1, 2) ∧ shape(v_3, 3) = shape(v_1, 3)
+>>
+Rule 24 (If data_format is channels_last and input tensor is rank 4, output shape is [batch, height, width, 2])
+{v_1 : tensor, v_2 : str, v_3: tensor} |= if v_2 = "channels_last" ∧ ndim(v_1) = 4 then shape(v_3, 0) = shape(v_1, 0) ∧ shape(v_3, 1) = shape(v_1, 1) ∧ shape(v_3, 2) = shape(v_1, 2) ∧ shape(v_3, 3) = 2
+>>
+Rule 25 (The channels dimension must be present in the input tensor)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_first" then ndim(v_1) > 1 else ndim(v_1) > 0
+>>
+Rule 29 (The output tensor must have floating point dtype)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 31 (If data_format is channels_first, the output tensor channel dimension is located at index 1)
+{v_1: str, v_2: tensor} |= if v_1 = "channels_first" then shape(v_2, 1) = 2
+>>
+Rule 32 (If data_format is channels_last, the output tensor channel dimension is located at the last index)
+{v_1: str, v_2: tensor} |= if v_1 = "channels_last" then shape(v_2, ndim(v_2)-1) = 2
+>>
+Rule 33 (The batch size of input and output should match)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 34 (If channels_first, height and width of input and output should match)
+{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "channels_first" then shape(v_1,2) = shape(v_2,2) ∧ shape(v_1,3) = shape(v_2,3)
+>>
+Rule 35 (If channels_last, height and width of input and output should match)
+{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "channels_last" then shape(v_1,1) = shape(v_2,1) ∧ shape(v_1,2) = shape(v_2,2)
+>>
+Rule 36 (The input tensor should not be complex)
+{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+>>
+Rule 38 (The height dimension of the input and output tensor should be greater or equal to 1)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= (if v_3 = "channels_first" then shape(v_1, 2) ≥ 1 ∧ shape(v_2, 2) ≥ 1 else shape(v_1, 1) ≥ 1 ∧ shape(v_2, 1) ≥ 1)
+>>
+Rule 39 (The width dimension of the input and output tensor should be greater or equal to 1)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= (if v_3 = "channels_first" then shape(v_1, 3) ≥ 1 ∧ shape(v_2, 3) ≥ 1 else shape(v_1, 2) ≥ 1 ∧ shape(v_2, 2) ≥ 1)
+>>
+Rule 40 (The channel size of output tensor is 2.)
+{v_1: tensor, v_2: str} |= if v_2 = "channels_first" then shape(v_1, 1) = 2 else shape(v_1, ndim(v_1)-1) = 2
+>>
+Rule 41 (The number of channels of the input tensor must be 1)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_first" then shape(v_1,1) = 1 else shape(v_1, ndim(v_1)-1) = 1
+>>
+Rule 43 (The channel dimension should be the last dimension when data_format is channels_last)
+{v_1: tensor, v_2: str} |= if v_2 = "channels_last" then ndim(v_1) > 0
+>>
+Rule 44 (The data format can only be channels_first if the input is rank 4.)
+{v_1: tensor, v_2: str} |= if ndim(v_1) = 3 then v_2 = "channels_last"
+>>
+Rule 45 (The output dtype is float32)
+{v_1: tensor} |= dtype_(v_1) = 7
+>>
+Rule 46 (If the input tensor has rank 3, the output tensor has shape [batch, height, width, 2])
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 3 then ndim(v_2) = 4
+>>
+Rule 47 (If the input tensor has rank 4, the output tensor has shape [batch, height, width, 2] when data_format is channels_last)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if ndim(v_1) = 4 ∧ v_3 = "channels_last" then ndim(v_2) = 4
+>>
+Rule 48 (If the input tensor has rank 4, the output tensor has shape [batch, 2, height, width] when data_format is channels_first)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if ndim(v_1) = 4 ∧ v_3 = "channels_first" then ndim(v_2) = 4
+>>
+Rule 49 (The output tensor has the same height as the input tensor if data format is channel last)
+{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "channels_last" then shape(v_1, 1) = shape(v_2, 1)
+>>
+Rule 50 (The output tensor has the same width as the input tensor if data format is channel last)
+{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "channels_last" then shape(v_1, 2) = shape(v_2, 2)
+>>
+Rule 51 (The output tensor has the same height as the input tensor if data format is channel first)
+{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "channels_first" then shape(v_1, 2) = shape(v_2, 2)
+>>
+Rule 52 (The output tensor has the same width as the input tensor if data format is channel first)
+{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "channels_first" then shape(v_1, 3) = shape(v_2, 3)
+>>
+Rule 54 (Channel dimension of input should be 1.)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_first" then shape(v_1, 1) = 1 else shape(v_1, ndim(v_1)-1) = 1
+>>
+Rule 56 (Output tensor must be rank 4.)
+{v_1 : tensor} |= ndim(v_1) = 4
+>>
+Rule 57 (if channels_first, batch and channel is followed by at least one dimension in input tensor)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_first" then ndim(v_1) > 2
+>>
+Rule 58 (If data_format is channels_first, output has shape[0] equal to input shape[0])
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "channels_first" then shape(v_1,0) = shape(v_2,0)
+>>
+Rule 59 (If data_format is channels_last, output has shape[0] equal to input shape[0])
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "channels_last" then shape(v_1,0) = shape(v_2,0)
+>>
+Rule 60 (Input must have batch size greater than zero)
+{v_1: tensor} |= shape(v_1, 0) > 0
+>>
+Rule 61 (If input data_format is channels_first the shape[1] (channel) of the input must be 1)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_first" then shape(v_1,1) = 1
+>>
+Rule 63 (Output data type should be float32)
+{v_1 : tensor} |= dtype_(v_1) = 7
+>>
+Rule 64 (When channels_first, shape[1] of output should be 2.)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_first" then shape(v_1,1) = 2
+>>
+Rule 65 (When channels_last, shape[ndim(output)-1] of output should be 2.)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_last" then shape(v_1, ndim(v_1)-1) = 2
+>>
+Rule 66 (Input tensor should have height and width at least 1)
+{v_1 : tensor, v_2: str} |= if v_2 = "channels_first" then shape(v_1,2) > 0 ∧ shape(v_1,3) > 0 else shape(v_1,1) > 0 ∧ shape(v_1,2) > 0
+>>
+Rule 69 (if output data_format is channels_first the shape[2] (height) of the output must be same with shape[1](height) of input )
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "channels_first" then shape(v_2, 2) = shape(v_1, 2)
+>>
+Rule 70 (if output data_format is channels_first the shape[3] (width) of the output must be same with shape[2](width) of input )
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "channels_first" then shape(v_2, 3) = shape(v_1, 3)
+>>
+Rule 71 (if output data_format is channels_last the shape[1] (height) of the output must be same with shape[1](height) of input )
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "channels_last" then shape(v_2, 1) = shape(v_1, 1)
+>>
+Rule 72 (if output data_format is channels_last the shape[2] (width) of the output must be same with shape[2](width) of input )
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "channels_last" then shape(v_2, 2) = shape(v_1, 2)
+>>
+Rule 73 (shape [1] and shape [2] of the input should be greater than 1)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_first" then shape(v_1, 2) > 1 ∧ shape(v_1, 3) > 1 else shape(v_1, 1) > 1 ∧ shape(v_1, 2) > 1
+>>
+Rule 74 (If channels_first, channel dimension should have size 1)
+{v_1: tensor, v_2: str} |= if v_2 = "channels_first" then shape(v_1, 1) = 1
+>>
+Rule 75 (The dimension 1 of the input should not be zero)
+{v_1: tensor} |= shape(v_1, 1) > 0
+>>
+Rule 78 (The output tensor shape must be greater than 0 in all dimensions.)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 79 (Output height is same as input height only when the input has height greater than 1)
+{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "channels_first" then if shape(v_1,2) > 1 then shape(v_1,2) = shape(v_2,2) else if shape(v_1,1) > 1 then shape(v_1,1) = shape(v_2,1)
+>>
+Rule 80 (Output width is same as input width only when the input has width greater than 1)
+{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "channels_first" then if shape(v_1,3) > 1 then shape(v_1,3) = shape(v_2,3) else if shape(v_1,2) > 1 then shape(v_1,2) = shape(v_2,2)
+>>
+Rule 81 (If data format is channels_last the height dimension must not be zero.)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_last" then shape(v_1, 1) > 0
+>>
+Rule 82 (If data format is channels_last the width dimension must not be zero.)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_last" then shape(v_1, 2) > 0
+>>
+Rule 83 (If data format is channels_first the height dimension must not be zero.)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_first" then shape(v_1, 2) > 0
+>>
+Rule 84 (If data format is channels_first the width dimension must not be zero.)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_first" then shape(v_1, 3) > 0
+>>
+Rule 85 (if rank of input is 4 and data format is channels_first shape[0],shape[2],shape[3] should be greater than 0.)
+{v_1: tensor, v_2: str} |= if ndim(v_1) = 4 ∧ v_2 = "channels_first" then shape(v_1, 0) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+>>
+Rule 86 (if rank of input is 3 and data format is channels_last shape[0],shape[1],shape[2] should be greater than 0.)
+{v_1: tensor, v_2: str} |= if ndim(v_1) = 3 ∧ v_2 = "channels_last" then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+>>
+Rule 87 (if rank of input is 4 and data format is channels_last shape[0],shape[1],shape[2] should be greater than 0.)
+{v_1: tensor, v_2: str} |= if ndim(v_1) = 4 ∧ v_2 = "channels_last" then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+>>
+Rule 88 (if rank of input is 4 and data format is channels_first, width and height dimension is same as input’s width and height)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if ndim(v_1) = 4 ∧ v_3 = "channels_first" then shape(v_2, 2) = shape(v_1, 2) ∧ shape(v_2, 3) = shape(v_1, 3)
+>>
+Rule 89 (if rank of input is 4 and data format is channels_last, width and height dimension is same as input’s width and height)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if ndim(v_1) = 4 ∧ v_3 = "channels_last" then shape(v_2, 1) = shape(v_1, 1) ∧ shape(v_2, 2) = shape(v_1, 2)
+>>
+Rule 90 (if rank of input is 3 data format is channels_last, width and height dimension is same as input’s width and height)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if ndim(v_1) = 3 ∧ v_3 = "channels_last" then shape(v_2, 1) = shape(v_1, 1) ∧ shape(v_2, 2) = shape(v_1, 2)
+>>
+Rule 91 (If data_format is channels_first, the output tensor must have the same shape[0] as the input tensor)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "channels_first" then shape(v_2, 0) = shape(v_1, 0)
+>>
+Rule 92 (If data_format is channels_last, the output tensor must have the same shape[0] as the input tensor)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "channels_last" then shape(v_2, 0) = shape(v_1, 0)
+>>
+Rule 93 (When channels_first and the input is rank3 then width, height, and batch should be present and greater than zero)
+{v_1: tensor, v_2: str} |= if ndim(v_1) = 3 ∧ v_2 = "channels_last" then shape(v_1,0) > 0 ∧ shape(v_1,1) > 0 ∧ shape(v_1,2) > 0
+>>
+Rule 94 (Output tensor shape should be consistent with input and data format when channels_first.)
+{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "channels_first" then ndim(v_2) = 4 ∧ shape(v_2,0) = shape(v_1,0) ∧ shape(v_2,1) = 2 ∧ shape(v_2,2) = shape(v_1,2) ∧ shape(v_2,3) = shape(v_1,3)
+>>
+Rule 95 (Output tensor shape should be consistent with input and data format when channels_last.)
+{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "channels_last" then ndim(v_2) = 4 ∧ shape(v_2,0) = shape(v_1,0) ∧ shape(v_2,1) = shape(v_1,1) ∧ shape(v_2,2) = shape(v_1,2) ∧ shape(v_2,3) = 2
+>>
+Rule 96 (if the input is rank 3, height and width should be greater than or equal to 1)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 1) ≥ 1 ∧ shape(v_1, 2) ≥ 1
+>>
+Rule 97 (if the input is rank 4, and channels_first, height and width should be greater than or equal to 1)
+{v_1 : tensor, v_2: str} |= if ndim(v_1) = 4 ∧ v_2 = "channels_first" then shape(v_1, 2) ≥ 1 ∧ shape(v_1, 3) ≥ 1
+>>
+Rule 98 (if the input is rank 4, and channels_last, height and width should be greater than or equal to 1)
+{v_1 : tensor, v_2: str} |= if ndim(v_1) = 4 ∧ v_2 = "channels_last" then shape(v_1, 1) ≥ 1 ∧ shape(v_1, 2) ≥ 1
+>>
+Rule 99 (if output is channels_first, first dimension must be the batch dimension, second dimension should be the channel size (2).)
+{v_1 : tensor, v_2: str} |= if v_2 = "channels_first" then shape(v_1, 1) = 2
+>>
+Rule 100 (If the output is channels_last, the last dimension must be the channel size (2).)
+{v_1 : tensor, v_2: str} |= if v_2 = "channels_last" then shape(v_1, ndim(v_1)-1) = 2
+>>
+Rule 101 (If the input tensor's rank is 3, then the output tensor's shape[3] must be 2)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 3 then shape(v_2, 3) = 2
+>>
+Rule 102 (If the input tensor's rank is 4 and data_format is channels_last, then the output tensor's shape[3] must be 2)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if ndim(v_1) = 4 ∧ v_3 = "channels_last" then shape(v_2, 3) = 2
+>>
+Rule 103 (If the input tensor's rank is 4 and data_format is channels_first, then the output tensor's shape[1] must be 2)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if ndim(v_1) = 4 ∧ v_3 = "channels_first" then shape(v_2, 1) = 2

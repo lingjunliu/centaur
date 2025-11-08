@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# data and segment_ids should have compatible dtypes (int32 or int64 (Rule 20)
+# indices and segment_ids tensors must have compatible types (both int32 or both int64 (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 6), True, (Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 4)))) if n else
-          If(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 6), True, (Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 4))))
+    s.add(Not(Or((And(v["arg1_dtype"] == 3, v["arg2_dtype"] == 3)), (And(v["arg1_dtype"] == 5, v["arg2_dtype"] == 5)))) if n else
+          Or((And(v["arg1_dtype"] == 3, v["arg2_dtype"] == 3)), (And(v["arg1_dtype"] == 5, v["arg2_dtype"] == 5))))
 )
 
 def rule_20_func(arg1, arg2, solver=None, neg=False):

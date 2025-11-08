@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Input tensors must have a valid number of dimensions (Rule 21)
+# If the input is float, then the output should be float too (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] >= 0, v["arg1_ndim"] < 10)) if n else
-          And(v["arg1_ndim"] >= 0, v["arg1_ndim"] < 10))
+    s.add(Not(If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), True, False)) if n else
+          If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), True, False))
 )
 
 def rule_21_func(arg1, solver=None, neg=False):
@@ -22,15 +22,15 @@ def rule_21_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 21
-        rule_21(solver, {'arg1_ndim': arg1_ndim})
+        rule_21(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_21(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_21(solver, {'arg1_dtype': arg1['dtype']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The product of all the dimension sizes including batch shape, num_rows and num_columns should be less than max int (Rule 37)
+# If adjoint is true and num_rows != num_columns then error. (Rule 37)
 
 rule_37 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg3_length"] > 0, (v["arg1_value"] * v["arg2_value"] * (And([Implies(v_4 < (v["arg3_length"] - 1 + 1), Select(v["arg3_values"], v_4)) for v_4 in range(6)]))) < 2147483647, (v["arg1_value"] * v["arg2_value"]) < 2147483647)) if n else
-          If(v["arg3_length"] > 0, (v["arg1_value"] * v["arg2_value"] * (And([Implies(v_4 < (v["arg3_length"] - 1 + 1), Select(v["arg3_values"], v_4)) for v_4 in range(6)]))) < 2147483647, (v["arg1_value"] * v["arg2_value"]) < 2147483647))
+    s.add(Not(If(v["arg1_value"], v["arg2_value"] == v["arg3_value"], True)) if n else
+          If(v["arg1_value"], v["arg2_value"] == v["arg3_value"], True))
 )
 
 def rule_37_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -19,31 +19,28 @@ def rule_37_func(arg1, arg2, arg3, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not isinstance(arg1, bool):
             return False
         if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
-        if not (isinstance(arg3, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg3)):
+        if not (isinstance(arg3, (int, np.integer)) and not isinstance(arg3, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_value = Bool('arg1_value')
         arg2_value = Int('arg2_value')
-        arg3_length = Int('arg3_length')
-        arg3_values = Array('arg3_values', IntSort(), IntSort())
+        arg3_value = Int('arg3_value')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
+        solver.add(arg1_value == arg1)
         solver.add(arg2_value == int(arg2))
-        solver.add(arg3_length == len(arg3))
-        for i in range(len(arg3)):
-            arg3_values = Store(arg3_values, i, arg3[i])
+        solver.add(arg3_value == int(arg3))
 
         # Constraints for rule 37
-        rule_37(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_values': arg3_values, 'arg3_length': arg3_length})
+        rule_37(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_37(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value'], 'arg3_values': arg3['values'], 'arg3_length': arg3['length']}, neg)
+        rule_37(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)

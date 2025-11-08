@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The image tensor should not have more than 5 dimensions. (Rule 47)
+# The total number of elements in the seed tuple should be smaller than a reasonable number (Rule 47)
 
 rule_47 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] <= 5) if n else
-          v["arg1_ndim"] <= 5)
+    s.add(Not(v["arg1_length"] < 1000) if n else
+          v["arg1_length"] < 1000)
 )
 
 def rule_47_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_47_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_length = Int('arg1_length')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_length == len(arg1))
 
         # Constraints for rule 47
-        rule_47(solver, {'arg1_ndim': arg1_ndim})
+        rule_47(solver, {'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_47(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_47(solver, {'arg1_length': arg1['length']}, neg)

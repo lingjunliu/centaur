@@ -5,110 +5,95 @@ Rule 1 (max_delta must be less than or equal to 0.5)
 Rule 2 (max_delta must be non-negative)
 {v_1 : float} |= v_1 ≥ 0
 >>
-Rule 3 (image tensor must have at least three dimensions and the size of the last dimension must be 3)
-{v_1 : tensor} |= ndim(v_1) ≥ 3 ∧ shape(v_1, ndim(v_1) - 1) = 3
->>
-Rule 4 (seed must be a non-negative integer)
-{v_1 : int} |= v_1 ≥ 0
->>
-Rule 5 (check image's dtype is either float or integer)
-{v_1 : tensor} |= if 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 then true else if 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8 then true else false
->>
-Rule 6 (max_delta should be greater than 0 if the image tensor's min value is less than max value)
-{v_1 : tensor, v_2 : float} |= if min(v_1) < max(v_1) then v_2 > 0
->>
-Rule 7 (max_delta must be non-negative and less than or equal to 0.5)
-{v_1 : float} |= 0 ≤ v_1 ∧ v_1 ≤ 0.5
->>
-Rule 8 (image tensor must have a last dimension of size 3)
+Rule 3 (image's last dimension must be 3)
 {v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) = 3
 >>
-Rule 9 (image tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 4 (image should have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 11 (if image is an int type, max_delta should be small enough to avoid overflow)
-{v_1 : tensor, v_2 : float} |= if 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 6 then v_2 < 0.1
+Rule 5 (seed must be an integer if provided)
+{v_1 : int} |= v_1 ≥ -2147483648 ∧ v_1 ≤ 2147483647
 >>
-Rule 12 (max_delta must be non-negative and less than or equal to 0.5)
+Rule 6 (image's dtype should be a float)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 8 (image should not have zero dimension)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 9 (max_delta is within the valid range [0, 0.5])
 {v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 0.5
 >>
-Rule 13 (image tensor must have a shape where the last dimension is equal to 3)
-{v_1 : tensor} |= ndim(v_1) > 0 ∧ shape(v_1, ndim(v_1) - 1) = 3
+Rule 11 (seed is a non-negative integer)
+{v_1 : int} |= v_1 ≥ 0
 >>
-Rule 15 (image's dtype must be float or int)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 13 (image's data type is float or int)
+{v_1 : tensor} |= dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 16 (The image data type should be float if max_delta is not 0.)
-{v_1 : tensor, v_2 : float} |= if v_2 ≠ 0 then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 14 (check if the image is a valid tensor)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 20 (If image is an integer type, the result must also be an integer)
-{v_1 : tensor, v_2 : float} |= if 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 then v_2 = 0
+Rule 16 (when image has only one channel, max_delta should be zero)
+{v_1 : tensor, v_2 : float} |= if shape(v_1, ndim(v_1) - 1) = 1 then v_2 = 0
 >>
-Rule 21 (max_delta must be zero if image is of type bool)
-{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 0 then v_2 = 0
+Rule 17 (max_delta is within the allowed range)
+{v_1 : float} |= 0 ≤ v_1 ∧ v_1 ≤ 0.5
 >>
-Rule 25 (if the image is an int tensor, max_delta cannot be greater than 0)
-{v_1 : tensor, v_2 : float} |= if 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5 then v_2 = 0
+Rule 18 (image's last dimension is 3)
+{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, ndim(v_1) - 1) = 3
 >>
-Rule 31 (image is not a complex type tensor)
-{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+Rule 23 (image cannot have negative dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∨ ndim(v_1) = 0
 >>
-Rule 32 (max_delta is a float and is between 0.0 and 0.5)
+Rule 24 (validating image tensor datatype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 12
+>>
+Rule 28 (image's data type must be a floating-point type)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6
+>>
+Rule 29 (Check if image's datatype is in valid range)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5
+>>
+Rule 31 (if image has only one channel, max_delta should be zero or small value)
+{v_1 : tensor, v_2 : float} |= if shape(v_1, ndim(v_1) - 1) = 1 then v_2 ≤ 0.000001
+>>
+Rule 38 (image values must be within a reasonable range given the data type)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then (min(v_1) ≥ 0 ∧ max(v_1) ≤ 1) ∨ (min(v_1) ≥ 0 ∧ max(v_1) ≤ 255)
+>>
+Rule 39 (Check image tensor dimensions are non-zero if tensor has at least one dimension)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 40 (max_delta cannot be very large for numerical stability)
+{v_1 : float} |= v_1 < 100000000
+>>
+Rule 44 (Image's data type must be a float or uint)
+{v_1 : tensor} |= dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 46 (if image is empty, max_delta must be zero)
+{v_1 : tensor, v_2 : float} |= if ndim(v_1) = 0 then v_2 = 0
+>>
+Rule 49 (max_delta must be between 0.0 and 0.5)
 {v_1 : float} |= v_1 ≥ 0.0 ∧ v_1 ≤ 0.5
 >>
-Rule 35 (image data type must be a valid type for hue adjustment)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 0
+Rule 53 (image tensor must be a valid tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 46 (The image data type must be valid: float, int, or bool)
-{v_1 : tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 60 (image's values must be between 0 and 1 if the dtype is a float)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6 then min(v_1) ≥ 0 ∧ max(v_1) ≤ 1
 >>
-Rule 51 (max_delta should be 0 if the image is an integer or boolean tensor.)
-{v_1 : tensor, v_2 : float} |= if 0 <= dtype_(v_1) ∧ dtype_(v_1) <= 5 then v_2 = 0
+Rule 63 (if the last dimension of image is not 3, then max_delta must be 0 to avoid errors)
+{v_1 : tensor, v_2 : float} |= if ndim(v_1) > 0 ∧ shape(v_1, ndim(v_1) - 1) ≠ 3 then v_2 = 0
 >>
-Rule 56 (If image tensor is int or bool then max_delta should be zero)
-{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 0 ∨ (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5) then v_2 = 0
+Rule 64 (image tensor's dtype should be valid for random hue adjustment)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 60 (Image dtype must be a valid type for RGB data, or max_delta must be zero if it is an integer type)
-{v_1 : tensor, v_2 : float} |= (dtype_(v_1) = 0 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∨ (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 ∧ v_2 = 0)
+Rule 70 (If seed is given then image must be a float tensor)
+{v_1 : tensor, v_2 : int} |= if v_2 >=0 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6
 >>
-Rule 61 (if max_delta is not 0, image's dtype must be a float)
-{v_1 : tensor, v_2 : float} |= if v_2 ≠ 0 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+Rule 79 (if the image has only one channel, the max_delta value must be 0 )
+{v_1 : tensor, v_2 : float} |= if ndim(v_1) > 0 ∧ shape(v_1, ndim(v_1) - 1) = 1 then v_2 = 0
 >>
-Rule 65 (image tensor data type must be in a valid range or max_delta should be zero)
-{v_1 : tensor, v_2 : float} |= (dtype_(v_1) = 0 ∨ (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8)) ∨ (1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5 ∧ v_2 = 0)
+Rule 117 (If Image's last dimension size is equal to 3, data type will only be a float in range of 6,7,8 )
+{v_1 : tensor} |= if shape(v_1, ndim(v_1) - 1) = 3 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6
 >>
-Rule 66 (If max_delta is 0, the data type of the tensor image can be anything.)
-{v_1 : tensor, v_2 : float} |= if v_2 = 0 then true else (dtype_(v_1) = 0 ∨ (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8))
->>
-Rule 70 (if the image is a integer or boolean tensor, max_delta must be zero, else it should be float)
-{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 0 ∨ (1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5) then v_2 = 0 else (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8)
->>
-Rule 71 (if the image's data type is not float, set max_delta to zero)
-{v_1 : tensor, v_2 : float} |= if 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8 then true else v_2 = 0
->>
-Rule 75 (The image tensor's dtype should allow for hue adjustment)
-{v_1 : tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
->>
-Rule 95 (if image tensor is integer dtype then max_delta is 0 else float dtype)
-{v_1 : tensor, v_2 : float} |= (1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5 ∧ v_2 = 0) ∨ (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8)
->>
-Rule 96 (if Image is a boolean, set max_delta to 0, otherwise it can be float.)
-{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 0 then v_2 = 0 else (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8)
->>
-Rule 101 (if image tensor is integer/bool then max_delta must be zero otherwise it can be float)
-{v_1 : tensor, v_2 : float} |= (0 <= dtype_(v_1) ∧ dtype_(v_1) <= 5 ∧ v_2 = 0) ∨ (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8)
->>
-Rule 105 (Image dtype should be valid for hue adjustment or max_delta should be zero)
-{v_1 : tensor, v_2 : float} |= (dtype_(v_1) = 0 ∨ 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∨ (1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5 ∧ v_2 = 0)
->>
-Rule 106 (The image dtype should only be float if max_delta is other than 0)
-{v_1 : tensor, v_2 : float} |= if v_2 ≠ 0 then (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8)
->>
-Rule 111 (If the image tensor's min value is equal to the max, then the max delta needs to be 0, to avoid useless processing.)
-{v_1 : tensor, v_2 : float} |= if min(v_1) = max(v_1) then v_2 = 0
->>
-Rule 115 (if Image dtype is integer or bool, then delta must be 0)
-{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 0 ∨ (1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5) then v_2 = 0
->>
-Rule 136 (If Image datatype is boolean then max_delta must be zero, or if the image has the same min and max, the max_delta must be zero)
-{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 0 ∨ min(v_1) = max(v_1) then v_2 = 0
+Rule 124 (When there is seed, image's pixel values range from 0 and 1 when a proper 3 channeled image with valid data type, dtype needs to be float)
+{v_1 : tensor, v_2 : int} |= if v_2 >= 0 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6

@@ -1,300 +1,99 @@
 >>
-Rule 1 (log_input and targets must have the same shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 1 (log_input and targets must have the same shape to avoid ValueError)
+{targets : tensor, log_input : tensor} |= ∀i ∈ [0, if ndim(targets) ≥ ndim(log_input) then ndim(targets) - 1 else ndim(log_input) - 1] : ndim(targets) - i - 1 < 0 ∨ ndim(log_input) - i - 1 < 0 ∨ shape(targets, ndim(targets) - i - 1) = shape(log_input, ndim(log_input) - i - 1)
 >>
-Rule 2 (log_input must be float32 or float64)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 3 (compute_full_loss must be a boolean value)
+{compute_full_loss : bool} |= compute_full_loss = true ∨ compute_full_loss = false
 >>
-Rule 3 (compute_full_loss must be a boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 4 (log_input and targets must have the same number of dimensions)
+{targets : tensor, log_input : tensor} |= ndim(targets) = ndim(log_input)
 >>
-Rule 4 (target tensor should not be empty)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 5 (Targets tensor should have non-negative values.)
+{targets : tensor} |= min(targets) ≥ 0
 >>
-Rule 5 (compute_full_loss should affect output)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then max(v_1) > min(v_2) else max(v_1) = min(v_2)
+Rule 6 (Name should be string type.)
+{name: str} |= name = "none" ∨ name = "sum" ∨ name = "max" ∨ name = "min" ∨ name = "prod" ∨ name = "relu" ∨ name = "tanh" ∨ name = "sigmoid" ∨ name = "softmax" ∨ name = "elu" ∨ name = "selu" ∨ name = "gelu" ∨ name = "swish" ∨ name = "softplus" ∨ name = "linear" ∨ name = "valid" ∨ name = "same" ∨ name = "causal" ∨ name = "channels_last" ∨ name = "channels_first" ∨ (∃i ∈ [0, 0] : name[i] ≠ "")
 >>
-Rule 8 (targets's dtype must be float)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 7 (targets and log_input tensors must have compatible shapes)
+{targets : tensor, log_input : tensor} |= (ndim(targets) = ndim(log_input)) ∧ ∀i ∈ [0, ndim(targets) - 1] : shape(targets, i) = shape(log_input, i)
 >>
-Rule 9 (Shape of log_input should be greater than 0)
-{v_1 : tensor} |=  ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 8 (targets and log_input tensors must have the same shape dimensions, if they exist.)
+{targets : tensor, log_input : tensor} |= ∀i ∈ [0, if ndim(targets) ≥ ndim(log_input) then ndim(targets) - 1 else ndim(log_input) - 1] : (i ≥ ndim(targets) ∨ i ≥ ndim(log_input)) ∨ shape(targets, i) = shape(log_input, i)
 >>
-Rule 10 (target tensor should have numerical values)
-{v_1 : tensor} |= min(v_1) ≠ "none" ∧ max(v_1) ≠ "none"
+Rule 9 (targets and log_input tensors must either have the same shape or be broadcastable)
+{targets : tensor, log_input : tensor} |= (ndim(targets) = ndim(log_input) ∧ ∀i ∈ [0, ndim(targets) - 1] : shape(targets, i) = shape(log_input, i)) ∨ (ndim(targets) > 0 ∧ ndim(log_input) > 0 ∧ ∀i ∈ [0, if ndim(targets) ≥ ndim(log_input) then ndim(targets) - 1 else ndim(log_input) - 1] : (ndim(targets) - i - 1 < 0) ∨ (ndim(log_input) - i - 1 < 0) ∨ (shape(targets, ndim(targets) - i - 1) = 1) ∨ (shape(log_input, ndim(log_input) - i - 1) = 1) ∨ (shape(targets, ndim(targets) - i - 1) = shape(log_input, ndim(log_input) - i - 1)))
 >>
-Rule 12 (If compute_full_loss is true then some condition is true)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then min(v_1) < max(v_2)
+Rule 10 (If targets and log_input have different shapes, ensure that the operation is valid through broadcasting by checking each dimension.)
+{targets : tensor, log_input : tensor} |= if ndim(targets) ≠ ndim(log_input) then (ndim(targets) > 0 ∧ ndim(log_input) > 0 ∧ ∀i ∈ [0, if ndim(targets) ≥ ndim(log_input) then ndim(targets) - 1 else ndim(log_input) - 1] : (ndim(targets) - i - 1 < 0) ∨ (ndim(log_input) - i - 1 < 0) ∨ (shape(targets, ndim(targets) - i - 1) = 1) ∨ (shape(log_input, ndim(log_input) - i - 1) = 1) ∨ (shape(targets, ndim(targets) - i - 1) = shape(log_input, ndim(log_input) - i - 1))) else ∀i ∈ [0, ndim(targets) - 1] : shape(targets, i) = shape(log_input, i)
 >>
-Rule 13 (log_input and target dtype can only be float32 or float64 and must be the same)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∧ dtype_(v_2) = 7) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 8)
+Rule 11 (targets and log_input must have same shape to be valid)
+{targets : tensor, log_input : tensor} |= (ndim(targets) = ndim(log_input)) ∧ (∀i ∈ [0, ndim(targets) - 1] : shape(targets, i) = shape(log_input, i))
 >>
-Rule 15 (targets must have positive values, or zero when compute_full_loss is false)
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then min(v_1) ≥ 0
+Rule 12 (targets and log_input tensors shapes have the same elements.)
+{targets : tensor, log_input : tensor} |= if ndim(targets) = ndim(log_input) then ∀i ∈ [0, ndim(targets) - 1] : shape(targets, i) = shape(log_input, i) else false
 >>
-Rule 16 (log_input can't have NaN values)
-{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) ≠ "none"
+Rule 13 (targets and log_input tensors must have compatible shapes defined as either equal or broadcastable)
+{targets : tensor, log_input : tensor} |= ((ndim(targets) = ndim(log_input)) ∧ (∀i ∈ [0, ndim(targets) - 1] : shape(targets, i) = shape(log_input, i))) ∨ ((ndim(targets) > 0) ∧ (ndim(log_input) > 0) ∧ (∀i ∈ [0, if ndim(targets) ≥ ndim(log_input) then ndim(targets) - 1 else ndim(log_input) - 1] : ((ndim(targets) - i - 1 < 0) ∨ (ndim(log_input) - i - 1 < 0) ∨ (shape(targets, ndim(targets) - i - 1) = 1) ∨ (shape(log_input, ndim(log_input) - i - 1) = 1) ∨ (shape(targets, ndim(targets) - i - 1) = shape(log_input, ndim(log_input) - i - 1)))))
 >>
-Rule 17 (If name is provided, log_input dimension should be greater than 1)
-{v_1 : tensor, v_2 : str} |= if v_2 ≠ "" then ndim(v_1) > 1
+Rule 14 (log_input and targets tensors must have compatible shapes for element-wise operation)
+{targets: tensor, log_input: tensor} |= (ndim(targets) = ndim(log_input) ∧ ∀i ∈ [0, ndim(targets) - 1] : shape(targets, i) = shape(log_input, i)) ∨ (∀i ∈ [0, if ndim(targets) ≥ ndim(log_input) then ndim(targets) - 1 else ndim(log_input) - 1] : (i ≥ ndim(targets) ∨ i ≥ ndim(log_input) ∨ shape(targets, if i < ndim(targets) then ndim(targets)-1-i else 0) = shape(log_input, if i < ndim(log_input) then ndim(log_input)-1-i else 0)))
 >>
-Rule 18 (targets and log_input must have the same dtype if compute_full_loss is false)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then dtype_(v_1) = dtype_(v_2)
+Rule 15 (Targets and log_input shapes must be compatible for the operation)
+{targets : tensor, log_input : tensor} |= if ndim(targets) = ndim(log_input) then ∀i ∈ [0, ndim(targets) - 1] : shape(targets, i) = shape(log_input, i) else (ndim(targets) > 0 ∧ ndim(log_input) > 0 ∧ ∀i ∈ [0, if ndim(targets) ≥ ndim(log_input) then ndim(targets) - 1 else ndim(log_input) - 1] : (ndim(targets) - i - 1 < 0 ∨ ndim(log_input) - i - 1 < 0 ∨ shape(targets, ndim(targets) - i - 1) = 1 ∨ shape(log_input, ndim(log_input) - i - 1) = 1 ∨ shape(targets, ndim(targets) - i - 1) = shape(log_input, ndim(log_input) - i - 1)))
 >>
-Rule 19 (Check if log_input contains finite values)
-{v_1 : tensor} |= min(v_1) > -1000 ∧ max(v_1) < 1000
+Rule 17 (Either log_input and targets have same shape or they can be broadcasted together)
+{targets: tensor, log_input: tensor} |= if ndim(targets) = ndim(log_input) then (∀i ∈ [0, ndim(targets) - 1] : shape(targets, i) = shape(log_input, i)) else (∃i ∈ [0, if ndim(targets) > ndim(log_input) then ndim(targets) - 1 else ndim(log_input) - 1] : (i < ndim(targets) ∧ i < ndim(log_input) ∧ shape(targets, i) ≠ shape(log_input, i) ∧ shape(targets, i) ≠ 1 ∧ shape(log_input, i) ≠ 1) ∨ (i ≥ ndim(targets) ∧ i < ndim(log_input)) ∨ (i ≥ ndim(log_input) ∧ i < ndim(targets)))
 >>
-Rule 20 (If target is zero, log_input should not be too large)
-{v_1 : tensor, v_2 : tensor} |= if min(v_1) = 0 then max(v_2) < 100
+Rule 18 (Targets and Log_input must have matching shapes for valid Log Poisson Loss computation)
+{targets: tensor, log_input: tensor} |= (ndim(targets) = ndim(log_input)) ∧ (∀i ∈ [0, if ndim(targets) > 0 then ndim(targets) - 1 else 0] : (shape(targets, i) = shape(log_input, i)))
 >>
-Rule 21 (if targets is an integer tensor, values cannot be negative.)
-{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then min(v_1) ≥ 0
+Rule 19 (targets and log_input tensors are broadcast compatible to prevent ValueErrors)
+{targets: tensor, log_input: tensor} |= (ndim(targets) = ndim(log_input) ∧ ∀i ∈ [0, if ndim(targets) > 0 then ndim(targets) - 1 else 0]: shape(targets, i) = shape(log_input, i)) ∨ (ndim(targets) ≠ ndim(log_input) ∧ ∀i ∈ [0, if (ndim(targets) > ndim(log_input)) then ndim(targets) -1 else ndim(log_input) - 1]: ((i < ndim(targets) ∧ i < ndim(log_input) ∧ (shape(targets, ndim(targets)-1-i) = 1 ∨ shape(log_input, ndim(log_input)-1-i) = 1 ∨ shape(targets, ndim(targets)-1-i) = shape(log_input, ndim(log_input)-1-i))) ∨ (i >= ndim(targets)) ∨ (i >= ndim(log_input))))
 >>
-Rule 22 (name should be not none or an empty string)
-{v_1 : str} |= v_1 ≠ "none" ∧ v_1 ≠ ""
+Rule 20 (Targets and log_input shapes must be equal or broadcastable according to the broadcasting rules)
+{targets: tensor, log_input: tensor} |= (ndim(targets) = ndim(log_input) ∧ ∀i ∈ [0, ndim(targets)-1] : shape(targets, i) = shape(log_input, i)) ∨ (∀i ∈ [0, if ndim(targets) ≥ ndim(log_input) then ndim(targets)-1 else ndim(log_input)-1] : (i < ndim(targets) ∧ i < ndim(log_input) ∧ (shape(targets, ndim(targets)-1-i) = 1 ∨ shape(log_input, ndim(log_input)-1-i) = 1 ∨ shape(targets, ndim(targets)-1-i) = shape(log_input, ndim(log_input)-1-i))) ∨ (i >= ndim(targets)) ∨ (i >= ndim(log_input)))
 >>
-Rule 23 (When compute_full_loss is true, log_input should be of higher precision)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) = 8
+Rule 21 (To prevent ValueErrors, ensure targets and log_input have either the same shape or are broadcastable.)
+{targets : tensor, log_input : tensor} |= (ndim(targets) = ndim(log_input) ∧ ∀i ∈ [0, if ndim(targets) > 0 then ndim(targets)-1 else 0] : shape(targets,i) = shape(log_input, i)) ∨ (∀i ∈ [0, if (ndim(targets) > ndim(log_input)) then ndim(targets)-1 else ndim(log_input) -1] : (i >= ndim(targets) ∨ i >= ndim(log_input) ∨ (i < ndim(targets) ∧ i < ndim(log_input) ∧ (shape(targets, ndim(targets)-1-i) = 1 ∨ shape(log_input, ndim(log_input)-1-i) = 1 ∨ shape(targets, ndim(targets)-1-i) = shape(log_input, ndim(log_input)-1-i)))))
 >>
-Rule 24 (Targets can not have Inf values.)
-{v_1: tensor} |= min(v_1) ≠ "-inf" ∧ max(v_1) ≠ "inf"
+Rule 22 (Enforce same shape or broadcasting compatibility between targets and log_input to avoid ValueError)
+{targets: tensor, log_input: tensor} |= (ndim(targets) = ndim(log_input) ∧ (∀i ∈ [0, if ndim(targets) > 0 then ndim(targets)-1 else 0] : shape(targets,i) = shape(log_input, i))) ∨ (∀i ∈ [0, if (ndim(targets) > ndim(log_input)) then ndim(targets)-1 else ndim(log_input) -1] : (i >= ndim(targets) ∨ i >= ndim(log_input) ∨ (i < ndim(targets) ∧ i < ndim(log_input) ∧ (shape(targets, ndim(targets)-1-i) = 1 ∨ shape(log_input, ndim(log_input)-1-i) = 1 ∨ shape(targets, ndim(targets)-1-i) = shape(log_input, ndim(log_input)-1-i)))))
 >>
-Rule 25 (Name should not contain special characters.)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9")
+Rule 23 (log_input and targets must have compatible shapes as defined by either identical shape or broadcastability to avoid ValueErrors)
+{targets: tensor, log_input: tensor} |= ((ndim(targets) = ndim(log_input)) ∧ (∀i ∈ [0, if ndim(targets) > 0 then ndim(targets)-1 else 0] : shape(targets, i) = shape(log_input, i))) ∨ (∀i ∈ [0, if (ndim(targets) > ndim(log_input)) then ndim(targets)-1 else ndim(log_input) -1] : (i >= ndim(targets) ∨ i >= ndim(log_input) ∨ ((i < ndim(targets) ∧ i < ndim(log_input)) ∧ (shape(targets, ndim(targets)-1-i) = 1 ∨ shape(log_input, ndim(log_input)-1-i) = 1 ∨ shape(targets, ndim(targets)-1-i) = shape(log_input, ndim(log_input)-1-i)))))
 >>
-Rule 26 (if log_input and target are both zero, compute_full_loss should be false)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if min(v_1) = 0 ∧ max(v_1) = 0 ∧ min(v_2) = 0 ∧ max(v_2) = 0 then v_3 = false
+Rule 24 (Ensure log_input and targets are either of same shape or broadcastable, checking each dimension's compatibility for valid operation.)
+{targets : tensor, log_input : tensor} |= (ndim(targets) = ndim(log_input) ∧ ∀i ∈ [0, if ndim(targets) > 0 then ndim(targets)-1 else 0] : shape(targets, i) = shape(log_input, i)) ∨ (∀i ∈ [0, if (ndim(targets) > ndim(log_input)) then ndim(targets)-1 else ndim(log_input)-1] : (i < ndim(targets) ∧ i < ndim(log_input) ∧ (shape(targets, ndim(targets)-1-i) = 1 ∨ shape(log_input, ndim(log_input)-1-i) = 1 ∨ shape(targets, ndim(targets)-1-i) = shape(log_input, ndim(log_input)-1-i)) ∨ i >= ndim(targets) ∨ i >= ndim(log_input)))
 >>
-Rule 27 (If log_input has very small values, compute_full_loss is recommended)
-{v_1 : tensor, v_2 : bool} |= if min(v_1) < -5 then v_2 = true
+Rule 25 (targets and log_input must be broadcastable or have same shape, so element wise operation could be performed without ValueError)
+{targets : tensor, log_input : tensor} |= (∀i ∈ [0, if ndim(targets) > ndim(log_input) then ndim(targets)-1 else ndim(log_input)-1] : ((i >= ndim(targets) ∨ i >= ndim(log_input)) ∨ ((i < ndim(targets) ∧ i < ndim(log_input)) ∧ (shape(targets, ndim(targets)-1-i) = shape(log_input, ndim(log_input)-1-i) ∨ shape(targets, ndim(targets)-1-i) = 1 ∨ shape(log_input, ndim(log_input)-1-i) = 1))))
 >>
-Rule 28 (The string name should only contain alphanumeric characters and underscores)
-{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = "_"
+Rule 26 (Preventing ValueError, targets and log_input must have the same shape or be able to be broadcasted)
+{targets : tensor, log_input : tensor} |= (ndim(targets) = ndim(log_input) ∧ (∀i ∈ [0, if ndim(targets) > 0 then ndim(targets) - 1 else 0] : shape(targets, i) = shape(log_input, i))) ∨ (∀i ∈ [0, if (ndim(targets) > ndim(log_input)) then ndim(targets) - 1 else ndim(log_input) - 1] : ((i >= ndim(targets) ∨ i >= ndim(log_input)) ∨ (i < ndim(targets) ∧ i < ndim(log_input) ∧ (shape(targets, ndim(targets)-1-i) = 1 ∨ shape(log_input, ndim(log_input)-1-i) = 1 ∨ shape(targets, ndim(targets)-1-i) = shape(log_input, ndim(log_input)-1-i)))))
 >>
-Rule 30 (log_input should have finite values when computing full loss)
-{v_1: tensor, v_2: bool} |= if v_2 = true then min(v_1) > -10000 ∧ max(v_1) < 10000
+Rule 27 (Require either same shapes or valid broadcast for targets and log_input, preventing shape mismatch related ValueErrors)
+{targets: tensor, log_input: tensor} |= (∀i ∈ [0, if ndim(targets) ≥ ndim(log_input) then ndim(targets) - 1 else ndim(log_input) - 1] : (i ≥ ndim(targets) ∨ i ≥ ndim(log_input) ∨ (shape(targets, if i < ndim(targets) then ndim(targets)-1-i else 0) = shape(log_input, if i < ndim(log_input) then ndim(log_input)-1-i else 0) ∨ shape(targets, if i < ndim(targets) then ndim(targets)-1-i else 0) = 1 ∨ shape(log_input, if i < ndim(log_input) then ndim(log_input)-1-i else 0) = 1)))
 >>
-Rule 31 (Shape of log_input and targets should match, element-wise difference cannot be very large)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ max(v_1) - min(v_2) < 1000 ∧ max(v_2) - min(v_1) < 1000
+Rule 28 (Avoid Shape-related ValueErrors by ensuring targets and log_input are either exactly the same shape or are broadcast compatible)
+{targets: tensor, log_input: tensor} |= (ndim(targets) = ndim(log_input) ∧ ∀i ∈ [0, if ndim(targets) > 0 then ndim(targets) - 1 else 0] : shape(targets, i) = shape(log_input, i)) ∨ (∀i ∈ [0, if (ndim(targets) > ndim(log_input)) then ndim(targets) - 1 else ndim(log_input) - 1] : (i < ndim(targets) ∧ i < ndim(log_input) ∧ (shape(targets, ndim(targets) - 1 - i) = 1 ∨ shape(log_input, ndim(log_input) - 1 - i) = 1 ∨ shape(targets, ndim(targets) - 1 - i) = shape(log_input, ndim(log_input) - 1 - i))))
 >>
-Rule 32 (if log_input has very high values, compute_full_loss should be false.)
-{v_1 : tensor, v_2 : bool} |= if max(v_1) > 10 then v_2 = false
+Rule 29 (The shape of log_input and targets should be the same, OR the shapes should be broadcastable)
+{log_input: tensor, targets: tensor} |= (ndim(log_input) = ndim(targets) ∧ (∀i ∈ [0, if ndim(log_input) > 0 then ndim(log_input)-1 else 0] : shape(log_input, i) = shape(targets, i))) ∨ (∀i ∈ [0, if ndim(log_input) > ndim(targets) then ndim(log_input)-1 else ndim(targets)-1] : (i >= ndim(log_input) ∨ i >= ndim(targets) ∨ ((shape(log_input, if i < ndim(log_input) then ndim(log_input) -1 - i else 0) = 1) ∨ (shape(targets, if i < ndim(targets) then ndim(targets) -1 -i else 0) = 1) ∨ (shape(log_input, if i < ndim(log_input) then ndim(log_input) -1 - i else 0) = shape(targets, if i < ndim(targets) then ndim(targets) -1 -i else 0)))))
 >>
-Rule 33 (If targets and log_input are the same tensor then compute_full_loss should be false to avoid trivial result)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_1 = v_2 then v_3 = false
+Rule 30 (log_input and targets tensors must be able to broadcast to a common shape to prevent ValueErrors during element-wise operations)
+{targets: tensor, log_input: tensor} |= (∀i ∈ [0, if ndim(log_input) ≥ ndim(targets) then ndim(log_input) - 1 else ndim(targets) - 1] : (i ≥ ndim(log_input) ∨ i >= ndim(targets) ∨ (shape(log_input, if i < ndim(log_input) then ndim(log_input) - 1 - i else 0) = shape(targets, if i < ndim(targets) then ndim(targets) - 1 - i else 0) ∨ shape(log_input, if i < ndim(log_input) then ndim(log_input) - 1 - i else 0) = 1 ∨ shape(targets, if i < ndim(targets) then ndim(targets) - 1 - i else 0) = 1)))
 >>
-Rule 34 (Compute full loss should be false when shape is very large.)
-{v_1 : tensor, v_2 : bool} |= if shape(v_1,0) * shape(v_1,1) > 100000 then v_2 = false
+Rule 31 (To avoid ValueError, check if either targets and log_input are in same shape or can be broadcasted)
+{targets: tensor, log_input: tensor} |= ((ndim(targets) = ndim(log_input)) ∧ (∀i ∈ [0, if ndim(targets) > 0 then ndim(targets)-1 else 0] : shape(targets, i) = shape(log_input, i))) ∨ (∀i ∈ [0, if (ndim(targets) > ndim(log_input)) then ndim(targets)-1 else ndim(log_input)-1] : (i >= ndim(targets) ∨ i >= ndim(log_input) ∨ (i < ndim(targets) ∧ i < ndim(log_input) ∧ (shape(targets, ndim(targets)-1-i) = shape(log_input, ndim(log_input)-1-i) ∨ shape(targets, ndim(targets)-1-i) = 1 ∨ shape(log_input, ndim(log_input)-1-i) = 1))))
 >>
-Rule 36 (Name has to be shorter than 255 characters.)
-{v_1 : str} |= v_1.len < 255
+Rule 34 (Targets and log_input shapes should match, if not, then it should satisfy the rules of broadcasting to prevent ValueErrors)
+{targets : tensor, log_input : tensor} |= (ndim(targets) = ndim(log_input) ∧ (∀i ∈ [0, if ndim(targets) > 0 then ndim(targets)-1 else 0] : shape(targets, i) = shape(log_input, i))) ∨ (∀i ∈ [0, if (ndim(targets) > ndim(log_input)) then ndim(targets)-1 else ndim(log_input)-1] : (i >= ndim(targets) ∨ i >= ndim(log_input) ∨ ((i < ndim(targets) ∧ i < ndim(log_input)) ∧ ((shape(targets, ndim(targets)-1-i) = shape(log_input, ndim(log_input)-1-i)) ∨ (shape(targets, ndim(targets)-1-i) = 1) ∨ (shape(log_input, ndim(log_input)-1-i) = 1)))))
 >>
-Rule 37 (If log_input has a large variance, compute_full_loss should be true)
-{v_1 : tensor, v_2 : bool} |= if max(v_1) - min(v_1) > 100 then v_2 = true
+Rule 35 (Either targets and log_input have the same shape, or they are broadcastable, preventing ValueErrors)
+{targets: tensor, log_input: tensor} |= (ndim(targets) = ndim(log_input) ∧ (∀i ∈ [0, if ndim(targets) > 0 then ndim(targets) - 1 else 0] : shape(targets, i) = shape(log_input, i))) ∨ (ndim(targets) ≠ ndim(log_input) ∧ (∀i ∈ [0, if (ndim(targets) > ndim(log_input)) then ndim(targets) - 1 else ndim(log_input) - 1] : ((i >= ndim(targets)) ∨ (i >= ndim(log_input)) ∨ ((i < ndim(targets) ∧ i < ndim(log_input)) ∧ ((shape(targets, ndim(targets)-1-i) = shape(log_input, ndim(log_input)-1-i)) ∨ (shape(targets, ndim(targets)-1-i) = 1) ∨ (shape(log_input, ndim(log_input)-1-i) = 1))))))
 >>
-Rule 38 (Target and log_input rank should not exceed 5)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≤ 5 ∧ ndim(v_2) ≤ 5
+Rule 36 (Prevent ValueError by requiring either the same shape for Targets and Log_input or ensuring they adhere to broadcasting rules)
+{targets: tensor, log_input: tensor} |= ((ndim(targets) = ndim(log_input)) ∧ (∀i ∈ [0, if ndim(targets) > 0 then ndim(targets) - 1 else 0] : shape(targets, i) = shape(log_input, i))) ∨ (∀i ∈ [0, if (ndim(targets) > ndim(log_input)) then ndim(targets) - 1 else ndim(log_input) - 1] : (i >= ndim(targets) ∨ i >= ndim(log_input) ∨ ((i < ndim(targets) ∧ i < ndim(log_input)) ∧ ((shape(targets, ndim(targets) - 1 - i) = shape(log_input, ndim(log_input) - 1 - i)) ∨ (shape(targets, ndim(targets) - 1 - i) = 1) ∨ (shape(log_input, ndim(log_input) - 1 - i) = 1)))))
 >>
-Rule 39 (The name should start with a letter.)
-{v_1 : str} |= (v_1[0] ≥ "a" ∧ v_1[0] ≤ "z") ∨ (v_1[0] ≥ "A" ∧ v_1[0] ≤ "Z")
->>
-Rule 40 (If the name is an empty string, then log_input needs to be at least 2D.)
-{v_1 : tensor, v_2 : str} |= if v_2 = "" then ndim(v_1) ≥ 2
->>
-Rule 41 (If the target is sparse, use of compute_full_loss is advised)
-{v_1 : tensor, v_2 : bool} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 10) then v_2 = true
->>
-Rule 42 (Target and log_input shape[0] has to be greater than 1 if compute_full_loss is true)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then shape(v_1,0) > 1 ∧ shape(v_2,0) > 1
->>
-Rule 43 (compute_full_loss and name should not both be provided)
-{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 = ""
->>
-Rule 44 (When target tensor has large values, compute full loss to avoid overflow.)
-{v_1 : tensor, v_2 : bool} |= if max(v_1) > 100 then v_2 = true
->>
-Rule 45 (When log_input contains very small values and compute_full_loss=false, the name is required.)
-{v_1 : tensor, v_2 : bool, v_3 : str} |= if min(v_1) < -5 ∧ v_2 = false then v_3 ≠ ""
->>
-Rule 47 (If log_input contains values smaller than a threshold, set a name to facilitate debugging.)
-{v_1 : tensor, v_2 : str} |= if min(v_1) < -10 then v_2 ≠ ""
->>
-Rule 48 (If using compute_full_loss=True, avoid large log_input values, to prevent overflow)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then max(v_1) < 50
->>
-Rule 49 (When the target and log_input tensor have the same values and compute_full_loss is false, suggest providing a name for the result)
-{v_1 : tensor, v_2 : tensor, v_3 : bool, v_4 : str} |= if v_1 = v_2 ∧ v_3 = false then v_4 ≠ ""
->>
-Rule 50 (If the log_input is very sparse, compute full loss.)
-{v_1 : tensor, v_2 : bool} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 5) then v_2 = true
->>
-Rule 51 (When not using compute_full_loss, log_input values should not be extremely close to zero.)
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then min(v_1) > -0.001
->>
-Rule 52 (if all target values are one, it suggests there might be something wrong with the training data. Compute full loss might not be effective.)
-{v_1 : tensor, v_2 : bool} |= if min(v_1) = 1 ∧ max(v_1) = 1 then v_2 = false
->>
-Rule 53 (If you are using compute_full_loss, the target must not contain zero values.)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then min(v_1) > 0
->>
-Rule 55 (The difference between the maximum and minimum values for the log input must be reasonably narrow if not using compute_full_loss )
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then max(v_1) - min(v_1) < 100
->>
-Rule 56 (Shape values must be positive in both targets and log_input tensors)
-{v_1: tensor, v_2: tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
->>
-Rule 57 (When using compute_full_loss, values in the targets should be small to avoid overflow.)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then max(v_1) < 200
->>
-Rule 58 (If name is provided, ensure that both target and log_input are not scalar values)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 ≠ "" then (ndim(v_1) > 0 ∨ ndim(v_2) > 0)
->>
-Rule 60 (Log_input should not contain extreme negative values when target is greater than one and not using complete loss)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if max(v_2) > 1 ∧ v_3 = false then min(v_1) > -50
->>
-Rule 62 (If targets values are very large and compute full loss, and name is not specified raise error )
-{v_1 : tensor, v_2 : bool, v_3 : str} |= if max(v_1) > 1000 ∧ v_2 = true then v_3 ≠ ""
->>
-Rule 63 (If name includes reserved keywords return error.)
-{v_1 : str} |= v_1 ≠ "True" ∧ v_1 ≠ "False" ∧ v_1 ≠ "None"
->>
-Rule 64 (Ensure log_input's values are within a reasonable range, using compute_full_loss for extreme cases)
-{v_1 : tensor, v_2 : bool} |= if min(v_1) < -100 ∨ max(v_1) > 100 then v_2 = true
->>
-Rule 65 (If compute_full_loss= true then target's values range has to be greater than zero)
-{v_1: tensor, v_2: bool} |= if v_2 = true then (max(v_1) - min(v_1)) > 0
->>
-Rule 66 (Shape compatibility of target tensor and log_input)
-{v_1: tensor, v_2: tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i) else false
->>
-Rule 67 (If the loss value is very large (NaN encountered), compute full loss and provide name for debugging.)
-{v_1: tensor, v_2: bool, v_3 : str} |= if min(v_1) < -1000 ∧ max(v_1) > 1000 then v_2 = true ∧ v_3 ≠ ""
->>
-Rule 68 (Name must not contain only numbers.)
-{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z")
->>
-Rule 69 (if log_input contains positive values, then consider setting compute_full_loss to false)
-{v_1: tensor, v_2: bool} |= if min(v_1) > 0 then v_2 = false
->>
-Rule 70 (Target values should be less than Log_input values when compute_full_loss is false)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then max(v_1) > max(v_2)
->>
-Rule 71 (When Compute Full loss is turned on, data must not be outside of the range. If data is then return an error.)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then (min(v_1) > -1000 ∧ max(v_1) < 1000) ∧ (min(v_2) > -1000 ∧ max(v_2) < 1000)
->>
-Rule 72 (To prevent underflow, the log_input tensor's minimum value cannot be too small)
-{v_1 : tensor} |= min(v_1) > -1e6
->>
-Rule 73 (The specified name is too long to be useful. Provide a shorter identifier.)
-{v_1 : str} |= v_1.len < 100
->>
-Rule 74 (The range of values in target should not span multiple orders of magnitude, especially for small mean.)
-{v_1 : tensor, v_2: bool} |= if max(v_1) / min(v_1) < 100 then v_2 = false
->>
-Rule 75 (If targets are booleans, log_input shouldn't contain zeros to avoid log(0).)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 0 then min(v_1) > 0
->>
-Rule 76 (Number of elements of tensors has to be the same)
-{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [1,6]: (∀j ∈ [0,i-1]: shape(v_1,j) = shape(v_2,j))
->>
-Rule 77 (compute_full_loss should be used when targets are integers, for better approximation of log factorial)
-{v_1: tensor, v_2: bool} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then v_2 = true
->>
-Rule 78 (The provided name is the name of another variable in the current scope. Choose a different name.)
-{v_1 : str} |= v_1 ≠ "targets" ∧ v_1 ≠ "log_input" ∧ v_1 ≠ "compute_full_loss"
->>
-Rule 79 (The log input should be a logarithmic scale and contain some negative numbers when targets contain small values, without compute full loss it might lead to Zero error during calculation)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if min(v_2) < 1 ∧ v_3 = false then min(v_1) < 0
->>
-Rule 80 (When a name is provided, log_input must have values close to the expected distribution)
-{v_1: tensor, v_2: str} |= if v_2 ≠ "" then (min(v_1) > -20 ∧ max(v_1) < 20)
->>
-Rule 81 (compute_full_loss shouldn't be used in a distributed training setting. The approxmiation using Stirling's can lead to issues in gradients)
-{v_1: bool} |= v_1 = false
->>
-Rule 82 (Values in log_input should be shifted by constant to avoid underflow if target value is zero.)
-{v_1: tensor, v_2: tensor, v_3: bool} |= if min(v_2) = 0 ∧ v_3=false then max(v_1) < -10
->>
-Rule 83 (The compute_full_loss must be turned on when the values of the data are very small.)
-{v_1: tensor, v_2: tensor, v_3: bool} |= if min(v_1) < -20 ∧ min(v_2) < -20 then v_3 = true
->>
-Rule 84 (Number of dimensions of targets and log_input must not be zero)
-{v_1: tensor, v_2: tensor} |= ndim(v_1) ≠ 0 ∧ ndim(v_2) ≠ 0
->>
-Rule 85 (The provided name overlaps with the name of another function argument, it causes overwriting)
-{v_1 : str} |= v_1 ≠ "targets" ∧ v_1 ≠ "log_input" ∧ v_1 ≠ "compute_full_loss" ∧ v_1 ≠ "name"
->>
-Rule 86 (Values from log_input should have large value difference from targets for optimization to work)
-{v_1 : tensor, v_2 : tensor} |= max(v_1) - min(v_2) > 1 ∨ max(v_2) - min(v_1) > 1
->>
-Rule 89 (If all target tensor values are the same or close, then the learning rate is possibly low, hence disable compute full loss for fast training)
-{v_1: tensor, v_2: bool} |= if (max(v_1)-min(v_1)) < 0.01 then v_2 = false
->>
-Rule 90 (The mean of the target and log_input must have similiar order, data collection can be the source of issue)
-{v_1 : tensor, v_2 : tensor, v_3: bool} |= if (max(v_1) - min(v_1)) > (max(v_2) - min(v_2)) ∨ (max(v_2) - min(v_2)) > (max(v_1) - min(v_1)) then v_3 = true
->>
-Rule 92 (Check the distribution type of data before setting value for compute_full_loss, otherwise the result will be meaningless.)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if (max(v_1) < 0 ∧ max(v_2) > 0) ∨ (max(v_2) < 0 ∧ max(v_1) > 0) then v_3 = true
->>
-Rule 93 (if targets contains just 0/1, then suggest to investigate data, ensure that data is preprocessed right. )
-{v_1 : tensor, v_2 : bool, v_3 : str} |= if max(v_1) = 1 ∧ min(v_1) = 0 then v_2 = false ∧ v_3 ≠ ""
->>
-Rule 94 (If one shape size is just one element, using name will be very helpful)
-{v_1 : tensor, v_2 : str} |= if shape(v_1, 0) = 1 then v_2 ≠ ""
->>
-Rule 95 (When the difference is large due to zero inflations, compute_full_loss becomes necessary.)
-{v_1: tensor, v_2: tensor, v_3: bool} |= if (max(v_1)-min(v_1)) > 10*(max(v_2)-min(v_2)) ∨ (max(v_2)-min(v_2)) > 10*(max(v_1)-min(v_1)) then v_3=true
->>
-Rule 96 (Targets tensor shouldn't be a complex number)
-{v_1: tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
->>
-Rule 97 (If targets contains large negative numbers, compute_full_loss has issues due to log approximation hence report error)
-{v_1 : tensor, v_2 : bool} |= if min(v_1) < -50 ∧ v_2 = true then false
->>
-Rule 98 (If all elements in log_input have high variance, suggest compute full loss with some bias so it does converge or error.)
-{v_1 : tensor, v_2 : bool} |= if max(v_1) > 200 ∧ min(v_1) < -200 then v_2 = true
->>
-Rule 100 (targets should not contain just zero values for compute full loss = true , else the algorithm fails)
-{v_1: tensor, v_2: bool} |= if v_2 = true then min(v_1) > 0 ∨ max(v_1) > 0
->>
-Rule 101 (the last shape for both must be even so a correct loss is created. Otherwise it leads to incorrect results)
-{v_1: tensor, v_2: tensor} |= shape(v_1, ndim(v_1)-1) % 2 = 0 ∧ shape(v_2, ndim(v_2)-1) % 2 = 0
->>
-Rule 103 (compute_full_loss should only be enabled on CPU (not on GPU or TPU), because of Stirling's formula, suggest set it as false if not CPU)
-{v_1 : bool} |= v_1 = false
->>
-Rule 104 (Target needs to be reshaped, but use of name makes that operation less efficient. Avoid using it.)
-{v_1: tensor, v_2: tensor, v_3: str} |= if ndim(v_1) = 1 ∧ ndim(v_2) > 1 then v_3=""
->>
-Rule 105 (If not using compute full loss, target's variance needs to greater than zero or else the model learns nothing )
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then (max(v_1) - min(v_1)) > 0
->>
-Rule 107 (target tensors with large values should be avoided without using compute_full_loss)
-{v_1 : tensor, v_2 : bool} |= if max(v_1) > 1000 ∧ v_2 = false then false
->>
-Rule 108 (When not using compute_full_loss, there has to be considerable amount of non-zeroes in the tensors)
-{v_1 : tensor, v_2 : tensor, v_3: bool} |= if v_3 = false then ∃i ∈ [0, ndim(v_1)-1] : v_1[i] ≠ 0 ∧ ∃j ∈ [0, ndim(v_2)-1] : v_2[j] ≠ 0
->>
-Rule 109 (If data is normalized and log-transformed as input, provide name argument else debug will take long)
-{v_1: tensor, v_2: tensor, v_3: str} |= if min(v_1) < -5 ∧ max(v_1) < 5 ∧ min(v_2) < -5 ∧ max(v_2) < 5 then v_3 ≠ ""
->>
-Rule 110 (Targets cannot contain NaN values to avoid unexpected numerical behaviors during calculations if compute_full_loss = true)
-{v_1 : tensor, v_2: bool} |= if v_2=true then max(v_1) ≠ "none"
->>
-Rule 111 (log_input must contain negative values when compute full loss, ensure targets are above zero.)
-{v_1: tensor, v_2: tensor, v_3: bool} |= if v_3=true then ∃i ∈ [0, ndim(v_1)-1]: v_1[i] < 0 ∧ ∃j ∈ [0, ndim(v_2)-1] : v_2[j] > 0
->>
-Rule 112 (compute_full_loss should be false when data is sparse to enhance the learning procedure/ convergence time)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if min(v_1) = 0 ∧ min(v_2) = 0 then v_3 = false
->>
-Rule 114 (If both target and log_input have no variance and same values, function would always be zero and it is advised to have a name for the variable assigned zero)
-{v_1 : tensor, v_2 : tensor, v_3: str} |= if max(v_1) = min(v_1) ∧ max(v_2) = min(v_2) ∧ max(v_1) = max(v_2) then v_3 ≠ ""
->>
-Rule 115 (For higher dimensions, compute_full_loss increases runtime due to large data hence better to use name in this case.)
-{v_1 : tensor, v_2 : tensor, v_3: bool, v_4: str} |= if ndim(v_1) > 3 ∧ ndim(v_2) >3 ∧ v_3=true then v_4 ≠ ""
->>
-Rule 116 (All values should have non-zero value if the model is a generative one )
-{v_1: tensor, v_2:tensor} |= (∀i ∈ [0, ndim(v_1)-1] : v_1[i] > 0) ∧ (∀j ∈ [0, ndim(v_2)-1] : v_2[j] > 0)
->>
-Rule 119 (It is recommended to calculate the Poisson loss on a logarithmic scale, suggest to transform the data.)
-{v_1: tensor, v_2: tensor, v_3: bool} |= if max(v_1) > 10 ∧ max(v_2) > 10 then v_3 = true
+Rule 37 (To avoid a ValueError, ensure that log_input and targets have the same shape or can broadcast to a common shape)
+{log_input: tensor, targets: tensor} |= (∀i ∈ [0, if ndim(log_input) >= ndim(targets) then ndim(log_input) - 1 else ndim(targets) - 1] : (i >= ndim(log_input) ∨ i >= ndim(targets) ∨ (shape(log_input, if i < ndim(log_input) then ndim(log_input) - 1 - i else 0) = shape(targets, if i < ndim(targets) then ndim(targets) - 1 - i else 0) ∨ shape(log_input, if i < ndim(log_input) then ndim(log_input) - 1 - i else 0) = 1 ∨ shape(targets, if i < ndim(targets) then ndim(targets) - 1 - i else 0) = 1)))

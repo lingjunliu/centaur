@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If sparse_gradient is false, no constraints on data dtype (Rule 26)
+# If sparse_gradient is enabled, data's dtype must be float32 or float64 (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == False, True, (Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)))) if n else
-          If(v["arg2_value"] == False, True, (Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8))))
+    s.add(Not(If(v["arg2_value"] == True, Or(v["arg1_dtype"] == 8, v["arg1_dtype"] == 9), True)) if n else
+          If(v["arg2_value"] == True, Or(v["arg1_dtype"] == 8, v["arg1_dtype"] == 9), True))
 )
 
 def rule_26_func(arg1, arg2, solver=None, neg=False):

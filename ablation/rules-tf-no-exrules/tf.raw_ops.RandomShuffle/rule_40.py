@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If seed and seed2 are provided, they should not be the same, unless they are both zero (Rule 40)
+# seed and seed2 cannot be both non-zero at the same time. (Rule 40)
 
 rule_40 = lambda s, v, n=False: (
-    s.add(Not(If((Or(v["arg1_value"] != 0, v["arg2_value"] != 0)), v["arg1_value"] != v["arg2_value"], True)) if n else
-          If((Or(v["arg1_value"] != 0, v["arg2_value"] != 0)), v["arg1_value"] != v["arg2_value"], True))
+    s.add(Not(If(v["arg1_value"] != 0, v["arg2_value"] == 0, True)) if n else
+          If(v["arg1_value"] != 0, v["arg2_value"] == 0, True))
 )
 
 def rule_40_func(arg1, arg2, solver=None, neg=False):

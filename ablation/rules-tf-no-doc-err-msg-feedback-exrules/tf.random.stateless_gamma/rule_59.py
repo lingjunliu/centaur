@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If dtype is complex64, alpha's dtype must be float or complex (Rule 59)
+# If alpha is complex type, the output type should be complex type as well. (Rule 59)
 
 rule_59 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == 9, (Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)), True)) if n else
-          If(v["arg2_value"] == 9, (Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)), True))
+    s.add(Not(If(Or((v["arg2_dtype"] == 9), (v["arg2_dtype"] == 10)), Or(Or((v["arg1_value"] == 9), (v["arg1_value"] == 10)), (v["arg1_value"] == 12)), True)) if n else
+          If(Or((v["arg2_dtype"] == 9), (v["arg2_dtype"] == 10)), Or(Or((v["arg1_value"] == 9), (v["arg1_value"] == 10)), (v["arg1_value"] == 12)), True))
 )
 
 def rule_59_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,24 @@ def rule_59_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_value = Int('arg2_value')
+        arg1_value = Int('arg1_value')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg1_value == int(arg1))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 59
-        rule_59(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
+        rule_59(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_59(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)
+        rule_59(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype']}, neg)

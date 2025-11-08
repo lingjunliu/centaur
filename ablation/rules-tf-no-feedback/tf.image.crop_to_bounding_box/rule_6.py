@@ -8,8 +8,8 @@ from z3 import *
 # height must be >= target_height + offset_height (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) >= v["arg2_value"] + v["arg3_value"]) if n else
-          Select(v["arg1_shape"], 0) >= v["arg2_value"] + v["arg3_value"])
+    s.add(Not(If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) >= v["arg2_value"] + v["arg3_value"], If(v["arg1_ndim"] == 4, Select(v["arg1_shape"], 1) >= v["arg2_value"] + v["arg3_value"], False))) if n else
+          If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) >= v["arg2_value"] + v["arg3_value"], If(v["arg1_ndim"] == 4, Select(v["arg1_shape"], 1) >= v["arg2_value"] + v["arg3_value"], False)))
 )
 
 def rule_6_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -28,20 +28,22 @@ def rule_6_func(arg1, arg2, arg3, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
+        arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg2_value = Int('arg2_value')
         arg3_value = Int('arg3_value')
 
         # Value assignments
+        solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg2_value == int(arg2))
         solver.add(arg3_value == int(arg3))
 
         # Constraints for rule 6
-        rule_6(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
+        rule_6(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_6(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)
+        rule_6(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)

@@ -1,54 +1,219 @@
 >>
-Rule 1 (The length of the input tensor's shape must be at least 1)
-{x : tensor} |= ndim(x) ≥ 1
+Rule 2 (The input tensor's datatype should be either float16, float32 or float64)
+{x : tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8
 >>
-Rule 4 (Scale must be positive)
-{scale : float} |= scale > 0
+Rule 5 (Scale should be greater than zero)
+{scale : float} |= scale > 0.0
 >>
-Rule 5 (Alpha must be positive)
-{alpha : float} |= alpha > 0
+Rule 6 (lambda should be greater than zero)
+{lambda_ : float} |= lambda_ > 0.0
 >>
-Rule 6 (The output tensor dtype should be the same as the input tensor dtype)
-{x : tensor, output_dtype : dtype} |= dtype_(x) = output_dtype
+Rule 7 (Verify scale * lambda is also positive.)
+{scale : float, lambda_ : float} |= scale * lambda_ > 0.0
 >>
-Rule 8 (If alpha is 1.0, then the function behaves similar to a scaled exponential linear unit)
-{alpha : float} |= if alpha = 1.0 then true
+Rule 10 (Scale must be smaller than a limit for numerical stability)
+{scale : float} |= scale < 1000.0
 >>
-Rule 11 (Input tensor's dimension should be at least 1)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 11 (Lambda must be smaller than a limit for numerical stability)
+{lambda_ : float} |= lambda_ < 1000.0
 >>
-Rule 14 (Scale should be greater than 0)
-{v_1 : float} |= v_1 > 0.0
+Rule 12 (The number of dimension should be less than 8)
+{x : tensor} |= ndim(x) < 8
 >>
-Rule 20 (If scale is one, output is close to standard exponential linear unit)
-{v_1 : float} |= if v_1 = 1.0 then true
+Rule 14 (Scale cannot be NaN)
+{scale : float} |= scale = scale
 >>
-Rule 28 (The input tensor should be a real number tensor, not complex)
-{v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+Rule 15 (Lambda cannot be NaN)
+{lambda_ : float} |= lambda_ = lambda_
 >>
-Rule 29 (Scale and Alpha shouldn't be extremely large)
-{v_1 : float, v_2 : float} |= v_1 < 1000000.0 ∧ v_2 < 1000000.0
+Rule 17 (Check if element of input is greater than min value)
+{x : tensor, v_1 : float} |= min(x) > v_1
 >>
-Rule 31 (Input tensor must be of float type)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 18 (Check if element of input is less than max value)
+{x : tensor, v_1 : float} |= max(x) < v_1
 >>
-Rule 34 (Scale must be positive)
-{v_1 : float} |= v_1 > 0
+Rule 19 (Combination rule)
+{x : tensor, scale : float, lambda_ : float} |= (ndim(x) < 8) ∧ (scale > 0.0) ∧ (lambda_ > 0.0)
 >>
-Rule 36 (The length of input tensor's shape must be greater than 0)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 20 (Check relation between scale and lambda)
+{scale : float, lambda_ : float} |= scale > lambda_ - 1 ∧ scale < lambda_ + 1
 >>
-Rule 37 (If scale is 1.0 and alpha is 1.0, the output is Self-Normalized)
-{v_1 : float, v_2 : float} |= if v_1 = 1.0 ∧ v_2 = 1.0 then true
+Rule 21 (Scale should not be a very large number)
+{scale: float} |= scale < 1e10
 >>
-Rule 40 (Scale and alpha should be finite numbers)
-{v_1 : float, v_2 : float} |= (v_1 ≠ "inf") ∧ (v_1 ≠ "-inf") ∧ (v_2 ≠ "inf") ∧ (v_2 ≠ "-inf")
+Rule 22 (Lambda should not be a very large number)
+{lambda_: float} |= lambda_ < 1e10
 >>
-Rule 50 (Scale and Alpha shouldn't be negative)
-{v_1 : float, v_2 : float} |= (v_1 ≥ 0.0) ∧ (v_2 ≥ 0.0)
+Rule 23 (If ndim(x) is 0, then scale and lambda should be equal to 1.0)
+{x : tensor, scale : float, lambda_ : float} |= if ndim(x) = 0 then scale = 1.0 ∧ lambda_ = 1.0
 >>
-Rule 79 (Alpha and Scale should be finite.)
-{v_1 : float, v_2 : float} |= v_1 < 1000000000.0 ∧ v_1 > -1000000000.0 ∧ v_2 < 1000000000.0 ∧ v_2 > -1000000000.0
+Rule 24 (Minimum value of input tensor should be less than maximum value of input tensor)
+{x : tensor} |= min(x) ≤ max(x)
 >>
-Rule 89 (Scale and alpha must be finite numbers.)
-{v_1 : float, v_2 : float} |= v_1 ≠ "inf" ∧ v_1 ≠ "-inf" ∧ v_2 ≠ "inf" ∧ v_2 ≠ "-inf"
+Rule 25 (The absolute value of scale should not be too small)
+{scale : float} |= scale > 1e-10 ∨ scale < -1e-10
+>>
+Rule 26 (The absolute value of lambda should not be too small)
+{lambda_ : float} |= lambda_ > 1e-10 ∨ lambda_ < -1e-10
+>>
+Rule 29 (Scale and Lambda must have same sign.)
+{scale : float, lambda_ : float} |= (scale > 0 ∧ lambda_ > 0) ∨ (scale < 0 ∧ lambda_ < 0) ∨ (scale = 0 ∧ lambda_ = 0)
+>>
+Rule 30 (If the scale is close to zero, then Lambda should also be close to zero.)
+{scale: float, lambda_: float} |= if scale < 0.001 ∧ scale > -0.001 then lambda_ < 0.001 ∧ lambda_ > -0.001
+>>
+Rule 33 (Combination of checks)
+{x : tensor, scale : float, lambda_ : float} |= (scale > 0 ∧ lambda_ > 0) ∧ (ndim(x) > 0)
+>>
+Rule 34 (The scale should be less than the maximum value of the tensor)
+{x : tensor, scale : float} |= scale ≤ max(x)
+>>
+Rule 35 (The lambda should be less than the maximum value of the tensor)
+{x : tensor, lambda_ : float} |= lambda_ ≤ max(x)
+>>
+Rule 36 (The scale should be greater than the minimum value of the tensor)
+{x : tensor, scale : float} |= scale ≥ min(x)
+>>
+Rule 37 (The lambda should be greater than the minimum value of the tensor)
+{x : tensor, lambda_ : float} |= lambda_ ≥ min(x)
+>>
+Rule 38 (If lambda and scale are equal, then they both must be 1.0)
+{scale : float, lambda_ : float} |= if scale = lambda_ then scale = 1.0 ∧ lambda_ = 1.0
+>>
+Rule 41 (If the minimum value of the tensor is zero, then scale * lambda must be greater than zero.)
+{x : tensor, scale : float, lambda_ : float} |= if min(x) = 0 then scale * lambda_ > 0
+>>
+Rule 42 (If the maximum value of the tensor is zero, then scale * lambda must be less than zero.)
+{x : tensor, scale : float, lambda_ : float} |= if max(x) = 0 then scale * lambda_ < 0
+>>
+Rule 46 (If scale is negative, lambda should also be negative, and the maximum value of x should be less than 0)
+{x : tensor, scale : float, lambda_ : float} |= if scale < 0 then lambda_ < 0 ∧ max(x) < 0
+>>
+Rule 47 (If lambda is negative, scale should also be negative and the maximum value of x should be less than 0)
+{x : tensor, scale : float, lambda_ : float} |= if lambda_ < 0 then scale < 0 ∧ max(x) < 0
+>>
+Rule 48 (If all elements of x are same, lambda should be equal to scale)
+{x : tensor, scale : float, lambda_ : float} |= if min(x) = max(x) then lambda_ = scale
+>>
+Rule 51 (If input tensor's data type is float16 then scale and lambda should also be float16)
+{x : tensor, scale : float, lambda_ : float} |= if dtype_(x) = 6 then (scale = 1.0) ∧ (lambda_ = 1.0)
+>>
+Rule 52 (If input tensor's data type is complex64 or complex128, both scale and lambda must be 1)
+{x : tensor, scale : float, lambda_ : float} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then scale = 1.0 ∧ lambda_ = 1.0
+>>
+Rule 53 (When all elements are equal to -1 in x, scale and lambda should be equal to 1.)
+{x: tensor, scale: float, lambda_: float} |= if min(x) = -1 ∧ max(x) = -1 then scale = 1.0 ∧ lambda_ = 1.0
+>>
+Rule 54 (If the maximum absolute value in x is less than 1, then scale and lambda should be 1)
+{x : tensor, scale : float, lambda_ : float} |= if max(x) < 1 ∧ max(x) > -1 then scale = 1.0 ∧ lambda_ = 1.0
+>>
+Rule 58 (If all elements in x are positive, scale and lambda should be positive.)
+{x : tensor, scale : float, lambda_ : float} |= if min(x) > 0 then scale > 0 ∧ lambda_ > 0
+>>
+Rule 59 (If all elements in x are negative, scale and lambda should be negative.)
+{x : tensor, scale : float, lambda_ : float} |= if max(x) < 0 then scale < 0 ∧ lambda_ < 0
+>>
+Rule 60 (Scale and Lambda must be within reasonable range)
+{scale: float, lambda_: float} |= scale > -1e5 ∧ scale < 1e5 ∧ lambda_ > -1e5 ∧ lambda_ < 1e5
+>>
+Rule 62 (If dtype of x is bool, scale and lambda parameters should not be applied)
+{x: tensor, scale: float, lambda_: float} |= if dtype_(x) = 0 then scale = 1.0 ∧ lambda_ = 1.0
+>>
+Rule 64 (If the tensor is a vector, scale and lambda should both be greater than zero)
+{x : tensor, scale : float, lambda_ : float} |= if ndim(x) = 1 then scale > 0 ∧ lambda_ > 0
+>>
+Rule 65 (If the tensor is a matrix and scale is equal to lambda, they both should be equal to 1.)
+{x : tensor, scale : float, lambda_ : float} |= if ndim(x) = 2 ∧ scale = lambda_ then scale = 1.0 ∧ lambda_ = 1.0
+>>
+Rule 67 (if x is a scalar tensor and scale and lambda both are 1.0 then result should be 1.0)
+{x : tensor, scale : float, lambda_ : float} |= if ndim(x) = 0 ∧ scale = 1.0 ∧ lambda_ = 1.0 then true
+>>
+Rule 68 (Scale and lambda should not be infinity)
+{scale : float, lambda_ : float} |= scale ≠ "inf" ∧ lambda_ ≠ "inf"
+>>
+Rule 69 (Combination of rules with precedence)
+{x : tensor, scale : float, lambda_ : float} |= (ndim(x) > 0 ∧ scale > 0) ∨ (ndim(x) = 0 ∧ (scale = 0 ∨ lambda_ =0))
+>>
+Rule 70 (Scale should be greater than Lambda by some margin if Max(x) > 10)
+{x : tensor, scale : float, lambda_ : float} |= if max(x) > 10 then scale > lambda_ + 1
+>>
+Rule 71 (Scale should be less than Lambda by some margin if Min(x) < -10)
+{x : tensor, scale : float, lambda_ : float} |= if min(x) < -10 then scale < lambda_ - 1
+>>
+Rule 73 (If the number of dimensions of the input tensor is greater than 2, then scale should be equal to Lambda)
+{x : tensor, scale : float, lambda_ : float} |= if ndim(x) > 2 then scale = lambda_
+>>
+Rule 74 (If minimum value of x is greater than 100, scale should be greater than 10 and lambda should be greater than 10)
+{x: tensor, scale: float, lambda_: float} |= if min(x) > 100 then scale > 10 ∧ lambda_ > 10
+>>
+Rule 76 (If the tensor has a large number of dimensions then scale should be less than lambda)
+{x: tensor, scale: float, lambda_: float} |= if ndim(x) > 5 then scale < lambda_
+>>
+Rule 78 (The product of scale and lambda should be less than maximum float value supported by the system.)
+{scale : float, lambda_ : float} |= scale * lambda_ < 3.4028235e+38
+>>
+Rule 80 (If dtype of x is bool, scale and lambda can be either 0 or 1)
+{x : tensor, scale : float, lambda_ : float} |= if dtype_(x) = 0 then (scale = 0 ∨ scale = 1) ∧ (lambda_ = 0 ∨ lambda_ = 1)
+>>
+Rule 81 (If dtype is not float, the scale should be less than the absolute maximum value of input tensor)
+{x: tensor, scale: float} |= if dtype_(x) ≠ 6 ∧ dtype_(x) ≠ 7 ∧ dtype_(x) ≠ 8 then scale ≤ max(x) ∨ scale ≥ min(x)
+>>
+Rule 87 (If the tensor has more than 3 dimensions and min is greater than 10 and scale and lambda equals to 1 then this can lead to underflow)
+{x : tensor, scale : float, lambda_ : float} |= if (ndim(x) > 3 ∧ min(x) > 10 ∧ scale = 1.0 ∧ lambda_ = 1.0) then false
+>>
+Rule 88 (If the values in the tensors are too big, the values of scale and lambda have to be small)
+{x : tensor, scale : float, lambda_ : float} |= if max(x) > 1000 then scale < 0.1 ∧ lambda_ < 0.1
+>>
+Rule 89 (Scale * lambda cannot be equal to INF or -INF)
+{scale : float, lambda_ : float} |= scale * lambda_ ≠ "inf" ∧ scale * lambda_ ≠ "-inf"
+>>
+Rule 93 (Scale and Lambda should not be close to zero if the maximum absolute value in input is greater than 100)
+{x : tensor, scale : float, lambda_ : float} |= if max(x) > 100 ∨ min(x) < -100 then (scale > 0.01 ∨ scale < -0.01) ∧ (lambda_ > 0.01 ∨ lambda_ < -0.01)
+>>
+Rule 97 (If scale * lambda results in overflow, there is an error.)
+{scale: float, lambda_: float} |= if scale * lambda_ > 1e38 then false
+>>
+Rule 99 (If the input tensor has too small values, then scale * lambda should be 1 to reduce error)
+{x: tensor, scale: float, lambda_: float} |= if min(x) > -0.001 ∧ max(x) < 0.001 then scale * lambda_ = 1.0
+>>
+Rule 101 (If the minimum element of input is negative infinity the scale and lambda both need to be one.)
+{x: tensor, scale: float, lambda_: float} |= if min(x) = "-inf" then scale = 1.0 ∧ lambda_ = 1.0
+>>
+Rule 102 (If Max value is close to scale or Lambda it can lead to error, then max value should be at least 10 times greater or 10 times smaller)
+{x: tensor, scale: float, lambda_: float} |= if max(x) < scale * 10 ∨ max(x) > scale * 10 ∨ max(x) < lambda_ * 10 ∨ max(x) > lambda_ * 10 then true
+>>
+Rule 104 (combination of constraints for scale and lambda parameters based on datatype of input tensor)
+{x: tensor, scale: float, lambda_: float} |= if dtype_(x) = 7 then (scale > 0 ∧ lambda_ > 0) ∨ (scale = 1 ∧ lambda_ = 1)
+>>
+Rule 107 (Combination of conditions for tensor shape and dtype)
+{x : tensor, scale : float, lambda_ : float} |= if (ndim(x) = 2 ∧ dtype_(x) = 7) then scale > 0 ∧ lambda_ > 0
+>>
+Rule 108 (Scale and Lambda must not be equal to zero if Max value is positive and Min value is negative)
+{x: tensor, scale: float, lambda_: float} |= if max(x) > 0 ∧ min(x) < 0 then scale ≠ 0.0 ∧ lambda_ ≠ 0.0
+>>
+Rule 111 (If ndim of input is zero then dtype of x cannot be String.)
+{x:tensor} |= if ndim(x) = 0 then dtype_(x) ≠ 11
+>>
+Rule 113 (If tensor contains only boolean values, both scale and lambda need to be 1 or 0)
+{x: tensor, scale: float, lambda_: float} |= if dtype_(x) = 0 then (scale = 1.0 ∨ scale = 0.0) ∧ (lambda_ = 1.0 ∨ lambda_ = 0.0)
+>>
+Rule 114 (The scale should be equal to Lambda if ndim of X is 0)
+{x: tensor, scale: float, lambda_: float} |= if ndim(x) = 0 then scale = lambda_
+>>
+Rule 115 (if tensor X is not a scalar, both scale and lambda must be greater than zero)
+{x : tensor, scale : float, lambda_ : float} |= if ndim(x) > 0 then scale > 0 ∧ lambda_ > 0
+>>
+Rule 117 (If maximum of Tensor x is equal to 0, then scale multiplied by lambda have to be smaller than or equal to 0)
+{x: tensor, scale: float, lambda_: float} |= if max(x) = 0 then scale * lambda_ ≤ 0
+>>
+Rule 118 (If Scale and Lambda both are positive or negative, then minimum of x have to be greater or equal to zero.)
+{x : tensor, scale : float, lambda_ : float} |= if (scale > 0 ∧ lambda_ > 0) ∨ (scale < 0 ∧ lambda_ < 0) then min(x) ≥ 0
+>>
+Rule 119 (If number of dimensions of tensor is 1, value of lambda and scale can be different)
+{x : tensor, scale : float, lambda_ : float} |= if ndim(x) = 1 then scale ≠ lambda_
+>>
+Rule 121 (If both min and max value of input are 0.0, then the Scale and Lambda parameters should be set to their default values or both to zero)
+{x: tensor, scale: float, lambda_: float} |= if min(x) = 0.0 ∧ max(x) = 0.0 then (scale = 1.0 ∧ lambda_ = 1.0) ∨ (scale = 0.0 ∧ lambda_ = 0.0)
+>>
+Rule 123 (Combination of different conditions.)
+{x: tensor, scale: float, lambda_: float} |= if (ndim(x) > 1) ∧ (dtype_(x) = 7 ∨ dtype_(x) = 8) then scale > 0 ∧ lambda_ > 0

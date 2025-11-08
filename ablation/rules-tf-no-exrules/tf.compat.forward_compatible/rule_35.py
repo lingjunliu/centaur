@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# year should be greater than or equal to 1970 (Rule 35)
+# Year should be greater than or equal to 2015 (Rule 35)
 
 rule_35 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] >= 1970) if n else
-          v["arg1_value"] >= 1970)
+    s.add(Not(v["arg1_value"] >= 2015) if n else
+          v["arg1_value"] >= 2015)
 )
 
 def rule_35_func(arg1, solver=None, neg=False):

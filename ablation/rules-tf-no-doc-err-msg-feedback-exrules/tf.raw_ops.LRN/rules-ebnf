@@ -1,0 +1,129 @@
+>>
+Rule 1 (depth_radius must be a non-negative integer)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 2 (bias must be a non-negative float)
+{v_1 : float} |= v_1 ≥ 0.0
+>>
+Rule 5 (The input tensor must have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 7 (input tensor's dtype should be float16, float32, or float64)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6
+>>
+Rule 10 (Bias should be small enough to prevent overflow in the exponentiation)
+{v_1 : float} |= v_1 < 1000.0
+>>
+Rule 11 (Check depth_radius is an integer within a reasonable range, e.g., less than 1000)
+{v_1 : int} |= v_1 < 1000
+>>
+Rule 12 (alpha divided by depth_radius should be less than a maximum limit)
+{v_1 : float, v_2 : int} |= if v_2 > 0 then v_1 / v_2 < 10.0
+>>
+Rule 13 (beta should be within a reasonable range)
+{v_1 : float} |= v_1 < 10.0 ∧ v_1 > -10.0
+>>
+Rule 16 (If input tensor's rank is greater than 4, ensure it's less than or equal to 6 to prevent performance issues)
+{v_1 : tensor} |= if ndim(v_1) > 4 then ndim(v_1) ≤ 6
+>>
+Rule 18 (Check beta is not excessively large to avoid numerical instability)
+{v_1 : float} |= v_1 < 100
+>>
+Rule 21 (Limit the product of alpha, beta, and depth_radius to prevent potential overflow)
+{v_1 : float, v_2 : float, v_3 : int} |= (v_1 * v_2 * v_3) < 10000.0
+>>
+Rule 22 (bias must be within reasonable range, avoid extremely small bias that could lead to division by zero)
+{v_1 : float} |= v_1 > 0.000001
+>>
+Rule 23 (depth_radius cannot be larger than the maximum allowed value based on the chosen dtype to avoid exceeding its range)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 6 then v_2 < 100 else if dtype_(v_1) = 7 then v_2 < 1000 else v_2 < 10000
+>>
+Rule 24 (Bias cannot be so large that, even with small alpha and beta, the final result overflows the float type.)
+{v_1 : float} |= v_1 < 1e9
+>>
+Rule 25 (If beta is zero, the output is just a scaled version of the input, which might not be intended, so beta should be greater than a small value)
+{v_1 : float} |= v_1 > 1e-6
+>>
+Rule 28 (Input tensor's dtype cannot be bool or int)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5
+>>
+Rule 30 (Alpha should be significantly smaller than the maximum value that the chosen data type can represent)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 then v_2 < 1e4 else if dtype_(v_1) = 7 then v_2 < 1e15 else v_2 < 1e30
+>>
+Rule 31 (Bias should be greater than zero)
+{v_1 : float} |= v_1 > 0.0
+>>
+Rule 32 (Depth radius should not be zero when alpha and beta are zero, otherwise, no effect is applied)
+{v_1 : int, v_2 : float, v_3 : float} |= if (v_2 = 0.0 ∧ v_3 = 0.0) then v_1 ≠ 0
+>>
+Rule 34 (If depth_radius is one, it's equivalent to subtracting the mean and dividing by the standard deviation; bias, alpha and beta needs to chosen carefully)
+{v_1 : int, v_2 : float, v_3 : float, v_4 : float} |= if v_1 = 1 then (v_2 > 0.0) ∧ (v_3 > 0.0) ∧ (v_4 > 0.0)
+>>
+Rule 35 (For large depth_radius, alpha must be very small to prevent large values in the intermediate calculations, potentially leading to overflow)
+{v_1 : int, v_2 : float} |= if v_1 > 100 then v_2 < 0.001
+>>
+Rule 36 (If beta is close to zero, the output will be very close to the input divided by (bias^alpha); hence, prevent bias close to 1)
+{v_1 : float, v_2 : float} |= if v_1 < 0.0001 then v_2 < 0.99 ∨ v_2 > 1.01
+>>
+Rule 39 (If alpha is extremely high, even a small beta can cause overflows, so limit the product.)
+{v_1 : float, v_2 : float} |= v_1 * v_2 < 1e10
+>>
+Rule 40 (If beta is excessively small while alpha is non-zero, the result may be dominated by bias, so ensure beta isn't *too* small.)
+{v_1 : float, v_2 : float} |= if v_2 > 0.0 then v_1 > 1e-8
+>>
+Rule 41 (When depth_radius is greater than zero, the input values shouldn't be excessively small, which can amplify noise.)
+{v_1 : tensor, v_2 : int} |= if v_2 > 0 then min(v_1) > -1e5
+>>
+Rule 43 (If bias is less than one, the exponentiation results in a fraction that could be problematic if alpha is large and beta is small.)
+{v_1 : float, v_2 : float} |= if v_1 < 1.0 then v_2 < 100.0
+>>
+Rule 45 (It's generally advisable to keep all parameters (alpha, beta, bias, depth_radius) within reasonable ranges to avoid unexpected behavior; set an upper bound for the absolute value.)
+{v_1 : int, v_2 : float, v_3 : float, v_4 : float} |= (v_1 < 1000) ∧ (v_2 < 1000) ∧ (v_3 < 1000) ∧ (v_4 < 1000)
+>>
+Rule 46 (If the input tensor consists only of zeros, LRN will output only zeros, and the parameters only matters for avoiding errors)
+{v_1 : tensor} |= if ∃ i ∈ [0, ndim(v_1) - 1] : min(v_1) = 0 ∧ max(v_1) = 0 then true
+>>
+Rule 49 (The product of alpha and the square of the maximum input value must not overflow when added to the bias.)
+{v_1 : tensor, v_2 : float, v_3 : float} |= v_2 * (max(v_1) * max(v_1)) + v_3 < 1e38
+>>
+Rule 52 (For complex data types, make sure that alpha is sufficiently small.)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_2 < 100
+>>
+Rule 53 (if beta is greater than 1, the output will be very sensitive to changes in bias.)
+{v_1 : float} |= v_1 < 10
+>>
+Rule 54 (if all input values are the same and equal to one, the output is one too)
+{v_1: tensor} |= if min(v_1) = 1 ∧ max(v_1) = 1 then true
+>>
+Rule 55 (alpha must be greater than zero when beta is different than 1)
+{v_1 : float, v_2 : float} |= if v_2 ≠ 1.0 then v_1 > 0
+>>
+Rule 56 (depth_radius should be smaller than the square root of the maximum memory that a system can provide for computation)
+{v_1 : int} |= v_1 < 2048
+>>
+Rule 57 (If the input is close to the maximum value of the datatype, beta should be sufficiently high in order to avoid overflow.)
+{v_1 : tensor, v_2 : float} |= if max(v_1) > 1e30 then v_2 > 0.1
+>>
+Rule 59 (if alpha is very small the results may underflow)
+{v_1 : float} |= v_1 > 1e-12
+>>
+Rule 60 (the bias and alpha are within a valid range depending on the exponent)
+{v_1: float, v_2: float} |= if v_1 < 1 then v_2 > 0 else v_2 < 2
+>>
+Rule 61 (the data type can't be complex if bias is 0)
+{v_1: tensor, v_2: float} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_2 ≠ 0
+>>
+Rule 62 (Beta can not be negative)
+{v_1: float} |= v_1 >= 0
+>>
+Rule 64 (alpha can be close to zero only if beta is 1)
+{v_1 : float, v_2 : float} |= if v_1 < 1e-5 then v_2 = 1
+>>
+Rule 65 (To avoid divergence, make sure beta is not a large negative number)
+{v_1: float} |= v_1 > -100
+>>
+Rule 66 (alpha should be selected such that it can scale up different channels within a reasonable range for feature extraction purposes)
+{v_1 : float} |= v_1 < 1000000
+>>
+Rule 67 (Depth radius must be less than the square root of the maximum value the data type supports, divided by the maximum value.)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 6 then v_2 < 10000 else if dtype_(v_1) = 7 then v_2 < 1e10 else if dtype_(v_1) = 8 then v_2 < 1e20

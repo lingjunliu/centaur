@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If one of the list is having more than one element then check on the other list. (Rule 43)
+# Length of nest1 and nest2 must be non-negative (Rule 43)
 
 rule_43 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_length"] > 1, v["arg1_length"] == v["arg2_length"], True)) if n else
-          If(v["arg1_length"] > 1, v["arg1_length"] == v["arg2_length"], True))
+    s.add(Not(And(v["arg1_length"] >= 0, v["arg2_length"] >= 0)) if n else
+          And(v["arg1_length"] >= 0, v["arg2_length"] >= 0))
 )
 
 def rule_43_func(arg1, arg2, solver=None, neg=False):

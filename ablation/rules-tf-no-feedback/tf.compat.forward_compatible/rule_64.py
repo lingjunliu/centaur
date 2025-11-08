@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The month value should be greater than or equal to 1 and smaller than or equal to 12 (Rule 64)
+# A valid year has to have at least 3 digits (Rule 64)
 
 rule_64 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] >= 1, v["arg1_value"] <= 12)) if n else
-          And(v["arg1_value"] >= 1, v["arg1_value"] <= 12))
+    s.add(Not(v["arg1_value"] > 99) if n else
+          v["arg1_value"] > 99)
 )
 
 def rule_64_func(arg1, solver=None, neg=False):

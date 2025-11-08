@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The number of dimensions of the condition tensor should be less than or equal to a defined maximum, say 6. (Rule 26)
+# condition tensor can not have negative values for unsigned integers (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] <= 6) if n else
-          v["arg1_ndim"] <= 6)
+    s.add(Not(If((Or(Or(Or(v["arg1_dtype"] == 5, v["arg1_dtype"] == 6), v["arg1_dtype"] == 16), v["arg1_dtype"] == 20)), Select(v["arg1_range"], 0) >= 0, True)) if n else
+          If((Or(Or(Or(v["arg1_dtype"] == 5, v["arg1_dtype"] == 6), v["arg1_dtype"] == 16), v["arg1_dtype"] == 20)), Select(v["arg1_range"], 0) >= 0, True))
 )
 
 def rule_26_func(arg1, solver=None, neg=False):
@@ -22,15 +22,18 @@ def rule_26_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 26
-        rule_26(solver, {'arg1_ndim': arg1_ndim})
+        rule_26(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_26(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_26(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)

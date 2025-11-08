@@ -1,0 +1,141 @@
+>>
+Rule 1 (logits tensor must be 2-dimensional)
+{logits : tensor} |= ndim(logits) = 2
+>>
+Rule 2 (logits tensor dtype must be float16, float32, float64, or bfloat16)
+{logits : tensor} |= dtype_(logits) = 6 ∨ dtype_(logits) = 7 ∨ dtype_(logits) = 8
+>>
+Rule 4 (logits tensor shape must have positive dimensions)
+{logits : tensor} |= shape(logits, 0) > 0 ∧ shape(logits, 1) > 0
+>>
+Rule 5 (check name parameter is provided if logits tensor has a specific shape)
+{logits : tensor, name : str} |= if shape(logits, 0) = 1 then name = "name"
+>>
+Rule 6 (logits tensor has at least one element)
+{logits : tensor} |= shape(logits,0) * shape(logits,1) > 0
+>>
+Rule 9 (if logits tensor has a certain shape, the name parameter's length must be greater than 3)
+{logits : tensor, name : str} |= if shape(logits, 0) = 2 then name.len > 3
+>>
+Rule 10 (logits tensor can not have complex dtype)
+{logits : tensor} |= dtype_(logits) ≠ 9 ∧ dtype_(logits) ≠ 10
+>>
+Rule 11 (If logits shape[0] is greater than 100, then name must be different from 'default_name')
+{logits : tensor, name : str} |= if shape(logits, 0) > 100 then name ≠ "default_name"
+>>
+Rule 12 (If name is not 'None' then logits needs to have a specific dtype)
+{logits : tensor, name : str} |= if name ≠ "None" then dtype_(logits) = 7 ∨ dtype_(logits) = 8
+>>
+Rule 13 (If logits.shape[1] is 1, then the name is optional. Otherwise name must have a len > 0.)
+{logits : tensor, name : str} |= if shape(logits, 1) = 1 then true else name.len > 0
+>>
+Rule 14 (The name string should not contain special characters)
+{name : str} |= ∀i ∈ [0, name.len - 1] : (name[i] ≥ "a" ∧ name[i] ≤ "z") ∨ (name[i] ≥ "A" ∧ name[i] ≤ "Z") ∨ (name[i] ≥ "0" ∧ name[i] ≤ "9")
+>>
+Rule 15 (The name string should only contain letters, numbers, and underscores)
+{name : str} |= ∀i ∈ [0, name.len - 1] : (name[i] ≥ "a" ∧ name[i] ≤ "z") ∨ (name[i] ≥ "A" ∧ name[i] ≤ "Z") ∨ (name[i] ≥ "0" ∧ name[i] ≤ "9") ∨ name[i] = "_"
+>>
+Rule 16 (If the logits tensor's first dimension is 1, the name can either be 'None' or have a length of 0)
+{logits : tensor, name : str} |= if shape(logits, 0) = 1 then name = "None" ∨ name.len = 0
+>>
+Rule 17 (if the logits tensor's shape[0] * shape[1] is less than 10, then the name should be a short string.)
+{logits : tensor, name : str} |= if shape(logits, 0) * shape(logits, 1) < 10 then name.len < 5
+>>
+Rule 18 (Name should not be too long)
+{name : str} |= name.len < 255
+>>
+Rule 19 (The name can be null only when logits dimensions are small)
+{logits : tensor, name : str} |= if shape(logits, 0) < 5 ∧ shape(logits, 1) < 5 then true else name ≠ ""
+>>
+Rule 20 (If logits is float16, the name must be present)
+{logits : tensor, name : str} |= if dtype_(logits) = 6 then name.len > 0
+>>
+Rule 22 (If name is "LogSoftmax", then the shape of logits should be greater than (1,1))
+{logits : tensor, name : str} |= if name = "LogSoftmax" then shape(logits, 0) > 1 ∧ shape(logits, 1) > 1
+>>
+Rule 23 (if name is not an empty string, then it can only consist of lowercase letters)
+{name : str} |= if name ≠ "" then ∀i ∈ [0, name.len - 1] : name[i] ≥ "a" ∧ name[i] ≤ "z"
+>>
+Rule 24 (The name must not start with a number)
+{name : str} |= if name.len > 0 then (name[0] ≥ "a" ∧ name[0] ≤ "z") ∨ (name[0] ≥ "A" ∧ name[0] ≤ "Z")
+>>
+Rule 25 (The name parameter must be a valid tensorflow name, containing only alphanumeric characters and underscores, and not starting with a digit.)
+{name : str} |= if name.len > 0 then ((name[0] ≥ "a" ∧ name[0] ≤ "z") ∨ (name[0] ≥ "A" ∧ name[0] ≤ "Z")) ∧ (∀i ∈ [1, name.len - 1] : (name[i] ≥ "a" ∧ name[i] ≤ "z") ∨ (name[i] ≥ "A" ∧ name[i] ≤ "Z") ∨ (name[i] ≥ "0" ∧ name[i] ≤ "9") ∨ (name[i] = "_"))
+>>
+Rule 26 (If the logits tensor has a bfloat16 dtype, then the name must contain the string "bfloat16")
+{logits : tensor, name : str} |= if dtype_(logits) = 6 then ∃i ∈ [0, name.len - 7] : name[i] = "b" ∧ name[i+1] = "f" ∧ name[i+2] = "l" ∧ name[i+3] = "o" ∧ name[i+4] = "a" ∧ name[i+5] = "t" ∧ name[i+6] = "1" ∧ name[i+7] = "6"
+>>
+Rule 27 (The logits tensor must have at least two classes)
+{logits : tensor} |= shape(logits, 1) ≥ 2
+>>
+Rule 28 (The name should not be a reserved keyword like "input" or "output")
+{name : str} |= name ≠ "input" ∧ name ≠ "output" ∧ name ≠ "logits"
+>>
+Rule 29 (The name should not end with an underscore)
+{name : str} |= if name.len > 0 then name[name.len - 1] ≠ "_"
+>>
+Rule 30 (If the shape of logits tensor is small, then name can be "default")
+{logits : tensor, name : str} |= if shape(logits, 0) < 5 ∧ shape(logits, 1) < 5 then name = "default"
+>>
+Rule 31 (The name cannot be an empty string if logits has a large number of elements.)
+{logits : tensor, name : str} |= if shape(logits, 0) * shape(logits, 1) > 1000 then name ≠ ""
+>>
+Rule 33 (If logits has less than 5 elements, the name should describe it, e.g. 'small_logits')
+{logits : tensor, name : str} |= if shape(logits, 0) * shape(logits, 1) < 5 then ∃i ∈ [0, name.len - 4] : name[i] = "s" ∧ name[i+1] = "m" ∧ name[i+2] = "a" ∧ name[i+3] = "l" ∧ name[i+4] = "l"
+>>
+Rule 34 (If shape(logits, 0) equals shape(logits, 1), the name should contain 'square')
+{logits : tensor, name : str} |= if shape(logits, 0) = shape(logits, 1) then ∃i ∈ [0, name.len - 6] : name[i] = "s" ∧ name[i+1] = "q" ∧ name[i+2] = "u" ∧ name[i+3] = "a" ∧ name[i+4] = "r" ∧ name[i+5] = "e"
+>>
+Rule 35 (If logits.shape[0] and logits.shape[1] are both 1, then the name must be "singleton_logits")
+{logits : tensor, name : str} |= if shape(logits, 0) = 1 ∧ shape(logits, 1) = 1 then name = "singleton_logits"
+>>
+Rule 36 (if logits has dtype float16, then name must end with "_fp16")
+{logits : tensor, name : str} |= if dtype_(logits) = 6 then ∃i ∈ [0, name.len - 5] : name[i] = "_" ∧ name[i+1] = "f" ∧ name[i+2] = "p" ∧ name[i+3] = "1" ∧ name[i+4] = "6"
+>>
+Rule 38 (If the logits tensor has at least 100 classes, then the name parameter must be at least 8 characters long.)
+{logits : tensor, name : str} |= if shape(logits, 1) ≥ 100 then name.len ≥ 8
+>>
+Rule 39 (if name contains "softmax", the logits tensor must have more than 1000 elements)
+{logits : tensor, name : str} |= if ∃i ∈ [0, name.len - 6] : name[i] = "s" ∧ name[i+1] = "o" ∧ name[i+2] = "f" ∧ name[i+3] = "t" ∧ name[i+4] = "m" ∧ name[i+5] = "ax" then shape(logits, 0) * shape(logits, 1) > 1000
+>>
+Rule 40 (If logits has more than 10 classes, name should include at least one number)
+{logits : tensor, name : str} |= if shape(logits, 1) > 10 then ∃i ∈ [0, name.len - 1] : name[i] ≥ "0" ∧ name[i] ≤ "9"
+>>
+Rule 41 (If name contains "large", the size of logits.shape[0] * logits.shape[1] should be more than 1024)
+{logits : tensor, name : str} |= if ∃i ∈ [0, name.len - 5] : name[i] = "l" ∧ name[i+1] = "a" ∧ name[i+2] = "r" ∧ name[i+3] = "g" ∧ name[i+4] = "e" then shape(logits, 0) * shape(logits, 1) > 1024
+>>
+Rule 42 (if logits is bfloat16, then name must include "bfloat")
+{logits : tensor, name : str} |= if dtype_(logits) = 6 then ∃i ∈ [0, name.len - 6] : name[i] = "b" ∧ name[i+1] = "f" ∧ name[i+2] = "l" ∧ name[i+3] = "o" ∧ name[i+4] = "a" ∧ name[i+5] = "t"
+>>
+Rule 43 (The name cannot contain two consecutive underscores)
+{name : str} |= ∀i ∈ [0, name.len - 2] : name[i] ≠ "_" ∨ name[i+1] ≠ "_"
+>>
+Rule 44 (if name exists, then it must have at least one alphabet)
+{name : str} |= if name.len > 0 then ∃i ∈ [0, name.len - 1] : (name[i] ≥ "a" ∧ name[i] ≤ "z") ∨ (name[i] ≥ "A" ∧ name[i] ≤ "Z")
+>>
+Rule 45 (name should not be "LogSoftmax" if logits tensor has more than 1000 elements)
+{logits : tensor, name : str} |= if shape(logits, 0) * shape(logits, 1) > 1000 then name ≠ "LogSoftmax"
+>>
+Rule 46 (If logits shape[1] (num_classes) is greater than 50, then name length should be greater than 5)
+{logits : tensor, name : str} |= if shape(logits, 1) > 50 then name.len > 5
+>>
+Rule 48 (if logits has a large number of rows but few columns, then name must contain "rows")
+{logits : tensor, name : str} |= if shape(logits, 0) > 100 ∧ shape(logits, 1) < 10 then ∃i ∈ [0, name.len - 4] : name[i] = "r" ∧ name[i+1] = "o" ∧ name[i+2] = "w" ∧ name[i+3] = "s"
+>>
+Rule 49 (if the logits tensor is of type half, then the name string must contain "half")
+{logits : tensor, name : str} |= if dtype_(logits) = 6 then ∃i ∈ [0, name.len - 4] : name[i] = "h" ∧ name[i+1] = "a" ∧ name[i+2] = "l" ∧ name[i+3] = "f"
+>>
+Rule 50 (The name should not start with "tf".)
+{name : str} |= if name.len > 1 then name[0] ≠ "t" ∨ name[1] ≠ "f"
+>>
+Rule 51 (if the name is provided, logits tensor must have more than 5 elements)
+{logits : tensor, name : str} |= if name ≠ "" then shape(logits, 0) * shape(logits, 1) > 5
+>>
+Rule 52 (If logits tensor has more than 100 elements, then name length must be less than 50)
+{logits : tensor, name : str} |= if shape(logits, 0) * shape(logits, 1) > 100 then name.len < 50
+>>
+Rule 53 (The name should not consist entirely of numbers)
+{name : str} |= if name.len > 0 then ∃i ∈ [0, name.len - 1] : (name[i] ≥ "a" ∧ name[i] ≤ "z") ∨ (name[i] ≥ "A" ∧ name[i] ≤ "Z") ∨ (name[i] = "_")
+>>
+Rule 54 (If the logits tensor is of type float32, then the name must end with "_fp32")
+{logits : tensor, name : str} |= if dtype_(logits) = 7 then ∃i ∈ [0, name.len - 5] : name[i] = "_" ∧ name[i+1] = "f" ∧ name[i+2] = "p" ∧ name[i+3] = "3" ∧ name[i+4] = "2"

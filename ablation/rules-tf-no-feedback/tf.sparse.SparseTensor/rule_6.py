@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# values tensor's shape must match the number of rows in indices tensor to avoid ambiguity in truth value (Rule 6)
+# second dimension of indices must be equal to the dimension of dense_shape (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0)) if n else
-          Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0))
+    s.add(Not(Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 0)) if n else
+          Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 0))
 )
 
 def rule_6_func(arg1, arg2, solver=None, neg=False):

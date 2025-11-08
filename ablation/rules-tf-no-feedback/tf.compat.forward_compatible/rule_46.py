@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Year must be reasonable. Month between 1-12 (Rule 46)
+# If month is not February, April, June, September, or November, the day can be up to 31. (Rule 46)
 
 rule_46 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(v["arg1_value"] > 0, v["arg1_value"] < 2100), v["arg2_value"] > 0), v["arg2_value"] < 13)) if n else
-          And(And(And(v["arg1_value"] > 0, v["arg1_value"] < 2100), v["arg2_value"] > 0), v["arg2_value"] < 13))
+    s.add(Not(If(And(And(And(And(v["arg1_value"] != 2, v["arg1_value"] != 4), v["arg1_value"] != 6), v["arg1_value"] != 9), v["arg1_value"] != 11), v["arg2_value"] <= 31, True)) if n else
+          If(And(And(And(And(v["arg1_value"] != 2, v["arg1_value"] != 4), v["arg1_value"] != 6), v["arg1_value"] != 9), v["arg1_value"] != 11), v["arg2_value"] <= 31, True))
 )
 
 def rule_46_func(arg1, arg2, solver=None, neg=False):

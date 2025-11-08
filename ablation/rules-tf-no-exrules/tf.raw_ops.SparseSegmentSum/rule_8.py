@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# sparse_gradient is a boolean value (Rule 8)
+# sparse_gradient is false by default (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_value"] == True, v["arg1_value"] == False)) if n else
-          Or(v["arg1_value"] == True, v["arg1_value"] == False))
+    s.add(Not(If(v["arg1_value"] == True, True, If(v["arg1_value"] == False, True, False))) if n else
+          If(v["arg1_value"] == True, True, If(v["arg1_value"] == False, True, False)))
 )
 
 def rule_8_func(arg1, solver=None, neg=False):

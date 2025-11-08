@@ -2,152 +2,206 @@
 Rule 1 (x and y tensors should have the same dtype)
 {x : tensor, y : tensor} |= dtype_(x) = dtype_(y)
 >>
-Rule 2 (shape of x and y tensors must be the same)
-{x : tensor, y : tensor} |= shape(x) = shape(y)
+Rule 3 (If x and y are both scalars, the result should be true)
+{x : tensor, y : tensor} |= if ndim(x) = 0 ∧ ndim(y) = 0 then true
 >>
-Rule 3 (If x and y are tensors, at least one dimension must be greater than 1.)
-{x : tensor, y : tensor} |= (ndim(x) > 0) ∨ (ndim(y) > 0)
+Rule 4 (The dtype of x tensor must be either float or int)
+{x : tensor} |= dtype_(x) = 1 ∨ dtype_(x) = 2 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8
 >>
-Rule 4 (If x and y are scalars (rank 0 tensors), they must be within a certain range.)
-{x : tensor, y : tensor} |= if ndim(x) = 0 ∧ ndim(y) = 0 then (min(x) ≥ -100 ∧ max(x) ≤ 100) ∧ (min(y) ≥ -100 ∧ max(y) ≤ 100)
+Rule 5 (y tensor's dimension should be less than or equal to 5)
+{y : tensor} |= ndim(y) ≤ 5
 >>
-Rule 5 (The element type of x and y tensors should be a float or int.)
-{x : tensor, y : tensor} |= (dtype_(x) = 2) ∨ (dtype_(x) = 3) ∨ (dtype_(x) = 4) ∨ (dtype_(x) = 7) ∨ (dtype_(x) = 8) ∧ ((dtype_(y) = 2) ∨ (dtype_(y) = 3) ∨ (dtype_(y) = 4) ∨ (dtype_(y) = 7) ∨ (dtype_(y) = 8))
+Rule 6 (If the dimension of x is not equal to the dimension of y, it should be true)
+{x : tensor, y : tensor} |= if ndim(x) ≠ ndim(y) then true
 >>
-Rule 9 (The number of dimensions of x should not be greater than 5.)
-{x : tensor} |= ndim(x) ≤ 5
+Rule 7 (Check if the dimension of tensor y is greater than or equal to 1)
+{y : tensor} |= ndim(y) ≥ 1
 >>
-Rule 11 (x and y tensors should have compatible shapes for element-wise maximum)
-{x : tensor, y : tensor} |= (ndim(x) = ndim(y)) ∨ (ndim(x) < ndim(y)) ∨ (ndim(x) > ndim(y))
+Rule 9 (If y is float, then its max value must be greater than its min value)
+{y : tensor} |= if dtype_(y) = 7 ∨ dtype_(y) = 8 then max(y) > min(y)
 >>
-Rule 13 (The dtypes of x and y must be either both integer types or both floating-point types, not mixed)
-{x : tensor, y : tensor} |= ((dtype_(x) = 1 ∨ dtype_(x) = 2 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 5) ∧ (dtype_(y) = 1 ∨ dtype_(y) = 2 ∨ dtype_(y) = 3 ∨ dtype_(y) = 4 ∨ dtype_(y) = 5)) ∨ ((dtype_(x) = 7 ∨ dtype_(x) = 8) ∧ (dtype_(y) = 7 ∨ dtype_(y) = 8))
+Rule 10 (If x and y tensors have the same shape, the dimensions are equal)
+{x : tensor, y : tensor} |= if shape(x) = shape(y) then ndim(x) = ndim(y)
 >>
-Rule 14 (If one of the inputs is boolean, the other one must also be boolean.)
-{x : tensor, y : tensor} |= if dtype_(x) = 0 then dtype_(y) = 0 else if dtype_(y) = 0 then dtype_(x) = 0
+Rule 13 (The number of dimensions of x and y should be equal if their shapes are not equal)
+{x : tensor, y : tensor} |= if shape(x) ≠ shape(y) then ndim(x) = ndim(y)
 >>
-Rule 18 (If x and y are complex numbers, their data types must match)
-{x : tensor, y : tensor} |= if (dtype_(x) = 9 ∨ dtype_(x) = 10) then dtype_(x) = dtype_(y)
+Rule 16 (The dimension of x multiplied by the dimension of y should be less than 10)
+{x : tensor, y : tensor} |= ndim(x) * ndim(y) < 10
 >>
-Rule 19 (Enforce tensor x dtype is not string, because you cannot perform maximum operations.)
-{x : tensor} |= dtype_(x) ≠ 11
+Rule 17 (If the data type of x is int32 (index 3), then the data type of y must be either int32, float32, or float64)
+{x : tensor, y : tensor} |= if dtype_(x) = 3 then dtype_(y) = 3 ∨ dtype_(y) = 7 ∨ dtype_(y) = 8
 >>
-Rule 23 (If x and y shapes are equal and the ndim is less than 4, then the minimum value of x must be less than the maximum value of y)
-{x : tensor, y : tensor} |= if (shape(x) = shape(y)) ∧ (ndim(x) < 4) then min(x) < max(y)
+Rule 20 (If x is an int and is equal to 1, and y is an int and is equal to 2, then the rule is true.)
+{x : int, y : int} |= if x = 1 ∧ y = 2 then true
 >>
-Rule 26 (If the dtype of x is bool, then the minimum and maximum value of x must be either 0 or 1)
-{x : tensor} |= if dtype_(x) = 0 then (min(x) = 0 ∨ min(x) = 1) ∧ (max(x) = 0 ∨ max(x) = 1)
+Rule 22 (If the datatype of x is complex64 or complex128, then the datatype of y should be the same.)
+{x : tensor, y : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then dtype_(x) = dtype_(y)
 >>
-Rule 30 (If x's dtype is float32 and y's dtype is float64, then the max value in tensor x must be less than the min value in tensor y.)
-{x : tensor, y : tensor} |= if (dtype_(x) = 7) ∧ (dtype_(y) = 8) then max(x) < min(y)
+Rule 29 (If x is a tensor with dtype float32 and y is a tensor with dtype float64, then the minimum value of x should be less than the maximum value of y)
+{x: tensor, y: tensor} |= if dtype_(x) = 7 ∧ dtype_(y) = 8 then min(x) < max(y)
 >>
-Rule 33 (If x's dtype is int32, then the max value in x should be a positive number.)
-{x : tensor} |= if dtype_(x) = 3 then max(x) > 0
+Rule 32 (If x is int and is equal to -1, and y is a float and is equal to -2.0, then the result is true.)
+{x: int, y: float} |= if x = -1 ∧ y = -2.0 then true
 >>
-Rule 35 (If x's and y's dtypes are the same and are either int8 or uint8 then the shapes of x and y must be the same)
-{x : tensor, y : tensor} |= if ((dtype_(x) = 1) ∨ (dtype_(x) = 5)) ∧ (dtype_(x) = dtype_(y)) then shape(x) = shape(y)
+Rule 35 (If x and y are tensors and their data types are integers, then the maximum value of x must be less than the maximum value of y)
+{x: tensor, y: tensor} |= if (dtype_(x) = 1 ∨ dtype_(x) = 2 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 5 ∨ dtype_(x) = 6) ∧ (dtype_(y) = 1 ∨ dtype_(y) = 2 ∨ dtype_(y) = 3 ∨ dtype_(y) = 4 ∨ dtype_(y) = 5 ∨ dtype_(y) = 6) then max(x) < max(y)
 >>
-Rule 36 (If the ndim of tensor x is 0, then tensor x should be between the values -1.0 and 1.0)
-{x : tensor} |= if ndim(x) = 0 then min(x) ≥ -1.0 ∧ max(x) ≤ 1.0
+Rule 37 (If x is an int and y is a float, then the sum of x and y must be positive.)
+{x : int, y : float} |= x + y > 0
 >>
-Rule 37 (At least one of the tensors needs to have a non-boolean dtype.)
-{x : tensor, y : tensor} |= (dtype_(x) ≠ 0) ∨ (dtype_(y) ≠ 0)
+Rule 38 (If x is a float and its value is 0.0, then the rule should be true.)
+{x : float} |= if x = 0.0 then true
 >>
-Rule 39 (Check if x is scalar and y is a vector. If so, the maximum of x must be less than maximum of y.)
-{x : tensor, y : tensor} |= if (ndim(x) = 0) ∧ (ndim(y) = 1) then max(x) < max(y)
+Rule 39 (x and y tensors should have a dimension greater than zero)
+{x : tensor, y : tensor} |= ndim(x) > 0 ∧ ndim(y) > 0
 >>
-Rule 41 (If the dtypes of x and y are float16, then the maximum value of both should be less than 65500, the maximum representable value.)
-{x : tensor, y : tensor} |= if (dtype_(x) = 6) ∧ (dtype_(y) = 6) then (max(x) < 65500) ∧ (max(y) < 65500)
+Rule 40 (If the dimension of x is equal to the dimension of y then x[0] must not be zero)
+{x : tensor, y : tensor} |= if ndim(x) = ndim(y) then x[0] ≠ 0
 >>
-Rule 43 (If x is a 2D tensor, then the difference between max(x) and min(x) must be greater than 0.)
-{x : tensor} |= if ndim(x) = 2 then max(x) - min(x) > 0
+Rule 42 (If x and y are tensors of the same dimension, then the difference between their max values must be less than 10.)
+{x: tensor, y: tensor} |= if ndim(x) = ndim(y) then max(x) - max(y) < 10
 >>
-Rule 45 (If the dtype of x and y is complex64 or complex128, then the imaginary part of x and y should be equal to 0. (This is a simplification, but keeps it within the grammar))
-{x : tensor, y : tensor} |= if (dtype_(x) = 9 ∨ dtype_(x) = 10) ∧ (dtype_(y) = 9 ∨ dtype_(y) = 10) then true
+Rule 43 (If x and y are tensors and the dimensions of both are greater than 0, then the minimum of x must be greater than the negative of the maximum of y.)
+{x : tensor, y : tensor} |= if ndim(x) > 0 ∧ ndim(y) > 0 then min(x) > (0 - max(y))
 >>
-Rule 47 (If the minimum element of x is greater than 10, then the minimum element of y also should be greater than 10)
-{x : tensor, y : tensor} |= if min(x) > 10 then min(y) > 10
+Rule 44 (If the dtype of x is int32, and the dtype of y is float32, then the minimum of x must be less than 10.)
+{x : tensor, y : tensor} |= if dtype_(x) = 3 ∧ dtype_(y) = 7 then min(x) < 10
 >>
-Rule 48 (If the maximum element of tensor x is less than 0, then ensure that the maximum element of tensor y is also less than 0)
-{x : tensor, y : tensor} |= if max(x) < 0 then max(y) < 0
+Rule 46 (If x is a tensor and its dimension is 2, then the rule is true)
+{x: tensor} |= if ndim(x) = 2 then true
 >>
-Rule 52 (If the tensor x is a vector (ndim=1) of integers, then the maximum value within the vector x must be less than 2147483647.)
-{x : tensor} |= if (ndim(x) = 1) ∧ (dtype_(x) = 1 ∨ dtype_(x) = 2 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 5) then max(x) < 2147483647
+Rule 47 (If x is a tensor, its datatype is in the range between np.int8 and np.float32)
+{x: tensor} |= dtype_(x) ≥ 1 ∧ dtype_(x) ≤ 7
 >>
-Rule 55 (If the dtype of x and y are both bool, make sure at least one of the values is true)
-{x : tensor, y : tensor} |= if (dtype_(x) = 0) ∧ (dtype_(y) = 0) then (max(x) = true) ∨ (max(y) = true)
+Rule 49 (If x and y are tensors, and their dimension > 0, then ndim(x) must equal ndim(y).)
+{x: tensor, y: tensor} |= if ndim(x) > 0 ∧ ndim(y) > 0 then ndim(x) = ndim(y)
 >>
-Rule 56 (If tensor x is rank 1 and is uint8, then the maximum value in it can't exceed 255)
-{x : tensor} |= if (ndim(x) = 1) ∧ (dtype_(x) = 5) then max(x) ≤ 255
+Rule 51 (If x is a tensor and y is a tensor, then if the maximum value of x is greater than 5, the minimum value of y should be less than 5)
+{x : tensor, y : tensor} |= if max(x) > 5 then min(y) < 5
 >>
-Rule 58 (If both tensors are scalar, then their values can't be the same)
-{x : tensor, y : tensor} |= if (ndim(x) = 0) ∧ (ndim(y) = 0) then max(x) ≠ max(y)
+Rule 53 (If x is of type float and y is a tensor, then the max of tensor y should be greater than x )
+{x : float, y : tensor} |= max(y) > x
 >>
-Rule 60 (If the tensors have float dtypes, make sure max(x) is not equal to min(x), otherwise we might get nan outputs.)
-{x : tensor} |= if (dtype_(x) = 7) ∨ (dtype_(x) = 8) then max(x) ≠ min(x)
+Rule 55 (if x and y are of type tensor, their dimensions should be smaller than 4)
+{x: tensor, y: tensor} |= ndim(x) < 4 ∧ ndim(y) < 4
 >>
-Rule 62 (If x is a tensor of type float32 and y is a tensor of type float64, then the range of values in x [min(x), max(x)] should be within the range of values in y [min(y), max(y)])
-{x : tensor, y : tensor} |= if (dtype_(x) = 7) ∧ (dtype_(y) = 8) then (min(x) ≥ min(y)) ∧ (max(x) ≤ max(y))
+Rule 57 (If x is a tensor with float32 and y is an int, then x min is bigger than y)
+{x:tensor, y:int} |= if dtype_(x) = 7 then min(x) > y
 >>
-Rule 64 (If both the input tensors are scalar, and x > 0, then y should be greater than -10.)
-{x : tensor, y : tensor} |= if (ndim(x) = 0) ∧ (ndim(y) = 0) ∧ (max(x) > 0) then max(y) > -10
+Rule 59 (If the dimension of x is not equal to zero and the dimension of y is not equal to zero then the shape of x must be equal to the shape of y.)
+{x : tensor, y : tensor} |= if ndim(x) ≠ 0 ∧ ndim(y) ≠ 0 then shape(x) = shape(y)
 >>
-Rule 67 (If x is int32 and y is float32 and their shape matches, then minimum of X must be less than maximum of Y)
-{x : tensor, y : tensor} |= if (dtype_(x) = 3) ∧ (dtype_(y) = 7) ∧ (shape(x) = shape(y)) then min(x) < max(y)
+Rule 65 (If x and y are tensors and x's datatype is np.int8, y must be of type np.int8, np.int16, np.int32 or np.int64)
+{x: tensor, y: tensor} |= if dtype_(x) = 1 then dtype_(y) = 1 ∨ dtype_(y) = 2 ∨ dtype_(y) = 3 ∨ dtype_(y) = 4
 >>
-Rule 72 (If the dtypes of x and y are both float32, then the absolute difference between their maximum values must be less than 1000.)
-{x : tensor, y : tensor} |= if (dtype_(x) = 7) ∧ (dtype_(y) = 7) then (max(x) - max(y) ≤ 1000) ∧ (max(y) - max(x) ≤ 1000)
+Rule 66 (If x is an int, its value should be in range [1,10])
+{x:int} |= x ≥ 1 ∧ x ≤ 10
 >>
-Rule 74 (If both tensors are scalars and of type int, ensure that abs(x-y) is less than 100)
-{x : tensor, y : tensor} |= if (ndim(x) = 0) ∧ (ndim(y) = 0) ∧ (dtype_(x) = 3) ∧ (dtype_(y) = 3) then (max(x) - max(y) < 100) ∧ (max(y) - max(x) < 100)
+Rule 68 (If x is a tensor and y is a tensor, if x and y's dtype are floats, the minimum of x must be less than maximum of y)
+{x:tensor, y:tensor} |= if (dtype_(x) = 7 ∨ dtype_(x) = 8) ∧ (dtype_(y) = 7 ∨ dtype_(y) = 8) then min(x) < max(y)
 >>
-Rule 77 (Check that max of both x and y are non-negative. Assume float32.)
-{x : tensor, y : tensor} |= if (dtype_(x) = 7) ∧ (dtype_(y) = 7) then (max(x) ≥ 0) ∧ (max(y) ≥ 0)
+Rule 69 (If x is an int and y is a float, then x must be less than y)
+{x: int, y: float} |= x < y
 >>
-Rule 79 (The tensors must have at least the same number of dimensions.)
-{x : tensor, y : tensor} |= ndim(x) ≥ 0 ∧ ndim(y) ≥ 0
+Rule 73 (If x is a float, then its square root must be greater than 0)
+{x: float} |= x > 0
 >>
-Rule 80 (if x and y are both tensors of rank 1 and of dtype int32, the maximum value of tensor x must be lesser than 10 times the minimum value of y)
-{x : tensor, y : tensor} |= if (ndim(x) = 1) ∧ (ndim(y) = 1) ∧ (dtype_(x) = 3) ∧ (dtype_(y) = 3) then max(x) < 10 * min(y)
+Rule 74 (If x and y are tensors, then if their shapes are equal, their minimum values must be equal as well.)
+{x: tensor, y: tensor} |= if shape(x) = shape(y) then min(x) = min(y)
 >>
-Rule 83 (If x and y are of type float and shape of x and y is same then minimum of y has to be less than maximum of x.)
-{x : tensor, y : tensor} |= if (dtype_(x) = 7 ∨ dtype_(x) = 8) ∧ (dtype_(y) = 7 ∨ dtype_(y) = 8) ∧ (shape(x) = shape(y)) then min(y) < max(x)
+Rule 75 (If x and y are tensors and the dimension of x and y are 1, then their first element must not be equal)
+{x:tensor, y:tensor} |= if ndim(x) = 1 ∧ ndim(y) = 1 then x[0] ≠ y[0]
 >>
-Rule 86 (If x and y have integer types and the same shape, then x[0] and y[0] must not have the same sign.)
-{x : tensor, y : tensor} |= if (dtype_(x) = 1 ∨ dtype_(x) = 2 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 5) ∧ (dtype_(y) = 1 ∨ dtype_(y) = 2 ∨ dtype_(y) = 3 ∨ dtype_(y) = 4 ∨ dtype_(y) = 5) ∧ (shape(x) = shape(y)) then (x[0] * y[0] < 0)
+Rule 76 (If x is of type tensor and y is of type int, then if the dimension of x is zero, the value of y should be greater than zero.)
+{x:tensor, y:int} |= if ndim(x) = 0 then y > 0
 >>
-Rule 89 (If any of x or y tensor is a bool then the other tensor has to be bool as well.)
-{x : tensor, y : tensor} |= if (dtype_(x) = 0) then (dtype_(y) = 0) else if (dtype_(y) = 0) then (dtype_(x) = 0)
+Rule 77 (If x and y are tensors, if x dtype is a float, the minimum of x should be greater than 0, else the minimum of x must be less than 0)
+{x: tensor, y: tensor} |= if dtype_(x) = 7 ∨ dtype_(x) = 8 then min(x) > 0 else min(x) < 0
 >>
-Rule 90 (If both x and y are vectors, and their first elements are less than 10, make sure their max is not same )
-{x : tensor, y : tensor} |= if (ndim(x) = 1) ∧ (ndim(y) = 1) ∧ (x[0] < 10) ∧ (y[0] < 10) then (max(x) ≠ max(y))
+Rule 78 (If x is a tensor and has dimension equal to zero, then it must be true)
+{x: tensor} |= if ndim(x) = 0 then true
 >>
-Rule 92 (If the two input tensors have the same shape, and are floating-point, then the minimum element of one must be greater than the negative of the maximum element of the other.)
-{x : tensor, y : tensor} |= if (dtype_(x) = 7 ∨ dtype_(x) = 8) ∧ (dtype_(y) = 7 ∨ dtype_(y) = 8) ∧ (shape(x) = shape(y)) then min(x) > (0 - max(y))
+Rule 79 (if x is an int and is equal to -10 and y is a float and is equal to 5.5, the result must be false)
+{x: int, y: float} |= if x = -10 ∧ y = 5.5 then false
 >>
-Rule 94 (If tensor x is a scalar, tensor y has more than one dimension, and the dtype is float, then the max element of y must be greater than zero.)
-{x : tensor, y : tensor} |= if (ndim(x) = 0) ∧ (ndim(y) > 0) ∧ (dtype_(y) = 7 ∨ dtype_(y) = 8) then max(y) > 0
+Rule 80 (if x is of type float and greater than 0, then the rule is true)
+{x: float} |= if x > 0 then true
 >>
-Rule 95 (If x is float and y is int, and x's minimum value is greater than 50 then y's maximum must be greater than 50.)
-{x : tensor, y : tensor} |= if (dtype_(x) = 7 ∨ dtype_(x) = 8) ∧ (dtype_(y) = 1 ∨ dtype_(y) = 2 ∨ dtype_(y) = 3 ∨ dtype_(y) = 4 ∨ dtype_(y) = 5) ∧ (min(x) > 50) then max(y) > 50
+Rule 81 (If x is a tensor and y is a tensor, then if the minimum value of x is greater than the maximum value of y, the dimension of x must be equal to the dimension of y.)
+{x: tensor, y: tensor} |= if min(x) > max(y) then ndim(x) = ndim(y)
 >>
-Rule 98 (If tensor x is int32 and has dimension 0, then its value must be within the range [-1000, 1000])
-{x : tensor} |= if (dtype_(x) = 3) ∧ (ndim(x) = 0) then (x[0] ≥ -1000) ∧ (x[0] ≤ 1000)
+Rule 82 (If x is tensor and has more than 1 dimension, its dtype should be one of the first 6 datatypes: bool, int8, int16, int32, int64, uint8.)
+{x: tensor} |= if ndim(x) > 1 then dtype_(x) = 0 ∨ dtype_(x) = 1 ∨ dtype_(x) = 2 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 5
 >>
-Rule 102 (If x and y are both tensors, and are integers, and have shape (1,1), the result should be a number which does not exceed 1000, which translates to requiring that both x and y cannot exceed a value so that max(x) + max(y) < 1000.)
-{x : tensor, y : tensor} |= if (ndim(x) = 0) ∧ (ndim(y) = 0) ∧ (dtype_(x) = 1 ∨ dtype_(x) = 2 ∨ dtype_(x) = 3 ∨ dtype_(x) = 4 ∨ dtype_(x) = 5) ∧ (dtype_(y) = 1 ∨ dtype_(y) = 2 ∨ dtype_(y) = 3 ∨ dtype_(y) = 4 ∨ dtype_(y) = 5) then (max(x) + max(y) < 1000)
+Rule 86 (If x is an int and y is a float, then the absolute value of x should be less than y.)
+{x: int, y: float} |= if x < 0 then (0 - x) < y else x < y
 >>
-Rule 103 (If both input tensors are of the same shape and of type float32 or float64, ensure their element-wise absolute difference is less than a predefined value. Checking on the first element.)
-{x : tensor, y : tensor} |= if (dtype_(x) = 7 ∨ dtype_(x) = 8) ∧ (dtype_(y) = 7 ∨ dtype_(y) = 8) ∧ (shape(x) = shape(y)) then (x[0] - y[0] < 100) ∧ (y[0] - x[0] < 100)
+Rule 90 (if x is a tensor and y is a float, then x and y should not be equal)
+{x: tensor, y: float} |= x ≠ y
 >>
-Rule 104 (If both tensors are int32 and have different number of dimensions and max(x) is greater than max(y), then the 0th element of x should be greater than 0 )
-{x : tensor, y : tensor} |= if (dtype_(x) = 3) ∧ (dtype_(y) = 3) ∧ (ndim(x) ≠ ndim(y)) ∧ (max(x) > max(y)) then x[0] > 0
+Rule 92 (If x is a tensor and y is a tensor, the product of their minimum values should be less than the product of their maximum values.)
+{x: tensor, y: tensor} |= min(x) * min(y) < max(x) * max(y)
 >>
-Rule 107 (At least one of the input tensors has to have more than 2 dimensions or equal)
-{x : tensor, y : tensor} |= (ndim(x) ≥ 2) ∨ (ndim(y) ≥ 2)
+Rule 94 (If x is of type tensor, then its dimension should be less than 10 or greater than or equal to 1.)
+{x: tensor} |= ndim(x) < 10 ∨ ndim(x) ≥ 1
 >>
-Rule 108 (If both input tensors are 1D, then the maximum value in the first tensor should not be equal to the minimum value in the second.)
-{x : tensor, y : tensor} |= if (ndim(x) = 1) ∧ (ndim(y) = 1) then max(x) ≠ min(y)
+Rule 96 (If x is a tensor and its number of dimensions is equal to 0, then it must be true.)
+{x : tensor} |= if ndim(x) = 0 then true
 >>
-Rule 109 (If the type of tensor x and tensor y are float32 or float64, then the difference between min and max of tensor X must be positive)
-{x : tensor, y : tensor} |= if (dtype_(x) = 7) ∨ (dtype_(x) = 8) ∧ (dtype_(y) = 7) ∨ (dtype_(y) = 8) then (max(x) - min(x)) > 0
+Rule 97 (If x is of type tensor, then if its datatype is bool, then its dimension must be smaller than or equal to 3)
+{x: tensor} |= if dtype_(x) = 0 then ndim(x) ≤ 3
+>>
+Rule 99 (If x is a tensor, then its maximum value must be less than or equal to 1000)
+{x: tensor} |= max(x) ≤ 1000
+>>
+Rule 100 (If x is of type float and y is of type float, x should be less or equal than y)
+{x: float, y: float} |= x ≤ y
+>>
+Rule 104 (If x and y are tensors, and both have dimension of 1, then the absolute difference of their elements at index 0 should be smaller or equal to 10)
+{x: tensor, y: tensor} |= if ndim(x) = 1 ∧ ndim(y) = 1 then if x[0] - y[0] < 0 then (0 - (x[0] - y[0])) ≤ 10 else (x[0] - y[0]) ≤ 10
+>>
+Rule 105 (If x and y are tensors and dimension of x is equal to 0 and dimension of y is greater than 0, then the minimum value of y should be larger than 5)
+{x: tensor, y: tensor} |= if ndim(x) = 0 ∧ ndim(y) > 0 then min(y) > 5
+>>
+Rule 106 (If x is a tensor and y is an int, then the max value in x must be less than y or y must be greater than 100)
+{x: tensor, y: int} |= max(x) < y ∨ y > 100
+>>
+Rule 109 (If x is an int and is not equal to 0, the result must be true)
+{x: int} |= if x ≠ 0 then true
+>>
+Rule 110 (if x is a tensor and y is a tensor and their dimensions are equal, the rule is true)
+{x: tensor, y: tensor} |= if ndim(x) = ndim(y) then true
+>>
+Rule 111 (If x is a tensor and y is a tensor, and dimension of x is zero and dimension of y is zero, then x should be smaller than y)
+{x: tensor, y: tensor} |= if ndim(x) = 0 ∧ ndim(y) = 0 then x < y
+>>
+Rule 114 (if x and y are int, x must be greater than y)
+{x: int, y: int} |= x > y
+>>
+Rule 115 (If x is of type tensor and its dimension is equal to 1, then min(x) should not be equal to max(x))
+{x: tensor} |= if ndim(x) = 1 then min(x) ≠ max(x)
+>>
+Rule 118 (If x and y are tensors and x's dimension is 2, y must have the same dimensions)
+{x: tensor, y : tensor} |= if ndim(x) = 2 then ndim(y) = ndim(x)
+>>
+Rule 119 (If x and y are integers, then the sum of x and y should not be equal to 0)
+{x: int, y: int} |= x + y ≠ 0
+>>
+Rule 120 (If x is of type float and equals 5.0, it is false.)
+{x : float} |= if x = 5.0 then false
+>>
+Rule 122 (If x is a tensor and y is a tensor, if min of x is 0, then min of y should not be 0)
+{x: tensor, y: tensor} |= if min(x) = 0 then min(y) ≠ 0
+>>
+Rule 124 (If x is a float, its value should be greater or equal than -100 and less or equal than 100.)
+{x: float} |= x ≥ -100 ∧ x ≤ 100
+>>
+Rule 127 (if x is of type float, y is of type int, and x is not equal to 0, then y must be smaller than 10)
+{x: float, y: int} |= if x ≠ 0 then y < 10
+>>
+Rule 129 (If x and y are tensors, and the value of minimum of x equals maximum of y, the rule is false.)
+{x : tensor, y : tensor} |= if min(x) = max(y) then false
+>>
+Rule 130 (if x is a tensor and its data type is boolean, the result is true.)
+{x: tensor} |= if dtype_(x) = 0 then true

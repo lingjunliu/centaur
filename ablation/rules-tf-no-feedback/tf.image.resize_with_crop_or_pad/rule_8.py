@@ -5,35 +5,43 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# Image dimensions must be non-zero to avoid errors during processing (Rule 8)
+# Image shape and target size need to be within a reasonable bound to avoid OOM, ResourceExhaustedError (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(Or((And(And(And(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) != 0), Select(v["arg1_shape"], 1) != 0), Select(v["arg1_shape"], 2) != 0)), (And(And(And(v["arg1_ndim"] == 4, Select(v["arg1_shape"], 1) != 0), Select(v["arg1_shape"], 2) != 0), Select(v["arg1_shape"], 3) != 0)))) if n else
-          Or((And(And(And(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) != 0), Select(v["arg1_shape"], 1) != 0), Select(v["arg1_shape"], 2) != 0)), (And(And(And(v["arg1_ndim"] == 4, Select(v["arg1_shape"], 1) != 0), Select(v["arg1_shape"], 2) != 0), Select(v["arg1_shape"], 3) != 0))))
+    s.add(Not(And(And(And(Select(v["arg1_shape"], 1) < 2048, Select(v["arg1_shape"], 2) < 2048), v["arg2_value"] < 2048), v["arg3_value"] < 2048)) if n else
+          And(And(And(Select(v["arg1_shape"], 1) < 2048, Select(v["arg1_shape"], 2) < 2048), v["arg2_value"] < 2048), v["arg3_value"] < 2048))
 )
 
-def rule_8_func(arg1, solver=None, neg=False):
+def rule_8_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+            return False
+        if not (isinstance(arg3, (int, np.integer)) and not isinstance(arg3, bool)):
+            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_value = Int('arg2_value')
+        arg3_value = Int('arg3_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg2_value == int(arg2))
+        solver.add(arg3_value == int(arg3))
 
         # Constraints for rule 8
-        rule_8(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
+        rule_8(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_8(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_8(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)

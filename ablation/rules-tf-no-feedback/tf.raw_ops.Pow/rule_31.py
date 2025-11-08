@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If y is an integer tensor, then elements of y must be in the range [-128, 127] for int8, [-32768, 32767] for int16, and so on. (Rule 31)
+# If x has zero dimensions, y must also have zero dimensions to be a scalar. (Rule 31)
 
 rule_31 = lambda s, v, n=False: (
-    s.add(Not(If(((v["arg2_dtype"] == 1)), And(Select(v["arg2_range"], 0) >= -128, Select(v["arg2_range"], 1) <= 127), If(((v["arg2_dtype"] == 2)), And(Select(v["arg2_range"], 0) >= -32768, Select(v["arg2_range"], 1) <= 32767), If(((v["arg2_dtype"] == 3)), And(Select(v["arg2_range"], 0) >= -2147483648, Select(v["arg2_range"], 1) <= 2147483647), If(((v["arg2_dtype"] == 4)), True, True))))) if n else
-          If(((v["arg2_dtype"] == 1)), And(Select(v["arg2_range"], 0) >= -128, Select(v["arg2_range"], 1) <= 127), If(((v["arg2_dtype"] == 2)), And(Select(v["arg2_range"], 0) >= -32768, Select(v["arg2_range"], 1) <= 32767), If(((v["arg2_dtype"] == 3)), And(Select(v["arg2_range"], 0) >= -2147483648, Select(v["arg2_range"], 1) <= 2147483647), If(((v["arg2_dtype"] == 4)), True, True)))))
+    s.add(Not(If(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0, True)) if n else
+          If(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0, True))
 )
 
 def rule_31_func(arg1, arg2, solver=None, neg=False):
@@ -25,18 +25,17 @@ def rule_31_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg2_dtype = Int('arg2_dtype')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg2_ndim = Int('arg2_ndim')
 
         # Value assignments
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
 
         # Constraints for rule 31
-        rule_31(solver, {'arg2_dtype': arg2_dtype, 'arg2_range': arg2_range})
+        rule_31(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_31(solver, {'arg2_dtype': arg2['dtype'], 'arg2_range': arg2['range']}, neg)
+        rule_31(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)

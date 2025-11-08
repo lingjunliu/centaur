@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If v_1 is a bool and v_2 is an integer, if v_1 is true then v_2 must be a positive number (Rule 74)
+# The sum of the length of two lists must be less than 10. (Rule 74)
 
 rule_74 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, v["arg2_value"] > 0, True)) if n else
-          If(v["arg1_value"] == True, v["arg2_value"] > 0, True))
+    s.add(Not(v["arg1_length"] + v["arg2_length"] < 10) if n else
+          v["arg1_length"] + v["arg2_length"] < 10)
 )
 
 def rule_74_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,24 @@ def rule_74_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_value = Int('arg2_value')
+        arg1_length = Int('arg1_length')
+        arg2_length = Int('arg2_length')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg1_length == len(arg1))
+        solver.add(arg2_length == len(arg2))
 
         # Constraints for rule 74
-        rule_74(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_74(solver, {'arg1_length': arg1_length, 'arg2_length': arg2_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_74(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_74(solver, {'arg1_length': arg1['length'], 'arg2_length': arg2['length']}, neg)

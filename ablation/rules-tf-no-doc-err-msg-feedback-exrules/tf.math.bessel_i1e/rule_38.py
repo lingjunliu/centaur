@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The dtype of x must be either float32 or float64. (Rule 38)
+# The maximum value in the tensor should be less than 1000 (Rule 38)
 
 rule_38 = lambda s, v, n=False: (
-    s.add(Not(Or((v["arg1_dtype"] == 8), (v["arg1_dtype"] == 7))) if n else
-          Or((v["arg1_dtype"] == 8), (v["arg1_dtype"] == 7)))
+    s.add(Not(Select(v["arg1_range"], 1) < 1000) if n else
+          Select(v["arg1_range"], 1) < 1000)
 )
 
 def rule_38_func(arg1, solver=None, neg=False):
@@ -22,15 +22,16 @@ def rule_38_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 38
-        rule_38(solver, {'arg1_dtype': arg1_dtype})
+        rule_38(solver, {'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_38(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_38(solver, {'arg1_range': arg1['range']}, neg)

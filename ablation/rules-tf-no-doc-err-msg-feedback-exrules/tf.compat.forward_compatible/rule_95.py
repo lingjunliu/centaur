@@ -5,42 +5,35 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If v_1 is a boolean and true, then argument v_2 of type string must be equal to argument v_3 of type string (Rule 95)
+# The product of the elements in a tuple should be less than a certain value. (Rule 95)
 
 rule_95 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, v["arg2_value"] == v["arg3_value"], True)) if n else
-          If(v["arg1_value"] == True, v["arg2_value"] == v["arg3_value"], True))
+    s.add(Not(Or([And(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) < 100) for i in range(6)])) if n else
+          Or([And(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) < 100) for i in range(6)]))
 )
 
-def rule_95_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_95_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
-            return False
-        if not isinstance(arg2, str):
-            return False
-        if not isinstance(arg3, str):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_value = String('arg2_value')
-        arg3_value = String('arg3_value')
+        arg1_length = Int('arg1_length')
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_value == list_of_string_values_tf.index(arg2))
-        solver.add(arg3_value == list_of_string_values_tf.index(arg3))
+        solver.add(arg1_length == len(arg1))
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 95
-        rule_95(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
+        rule_95(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_95(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)
+        rule_95(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values']}, neg)

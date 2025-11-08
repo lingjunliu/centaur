@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If x2's dtype is int8, then x1 should not be complex (Rule 91)
+# If dtype of x1 is complex64 then dtype of x2 must be complex64 or complex128 (Rule 91)
 
 rule_91 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_dtype"] == 1, And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10), True)) if n else
-          If(v["arg2_dtype"] == 1, And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10), True))
+    s.add(Not(If((v["arg1_dtype"] == 9), (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), True)) if n else
+          If((v["arg1_dtype"] == 9), (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)), True))
 )
 
 def rule_91_func(arg1, arg2, solver=None, neg=False):

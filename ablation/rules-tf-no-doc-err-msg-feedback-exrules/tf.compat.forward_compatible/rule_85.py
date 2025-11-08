@@ -5,32 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If v_1 is a dtype then it should be either float32, float64, int32 or int64 (Rule 85)
+# Tensor's ndim must be smaller than or equal to the tuple's len. (Rule 85)
 
 rule_85 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(v["arg1_value"] == 7, v["arg1_value"] == 8), v["arg1_value"] == 3), v["arg1_value"] == 4)) if n else
-          Or(Or(Or(v["arg1_value"] == 7, v["arg1_value"] == 8), v["arg1_value"] == 3), v["arg1_value"] == 4))
+    s.add(Not(v["arg1_ndim"] <= v["arg2_length"]) if n else
+          v["arg1_ndim"] <= v["arg2_length"])
 )
 
-def rule_85_func(arg1, solver=None, neg=False):
+def rule_85_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
+        if not isinstance(arg1, np.ndarray):
+            return False
+        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_length = Int('arg2_length')
 
         # Value assignments
-        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_length == len(arg2))
 
         # Constraints for rule 85
-        rule_85(solver, {'arg1_value': arg1_value})
+        rule_85(solver, {'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_85(solver, {'arg1_value': arg1['value']}, neg)
+        rule_85(solver, {'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length']}, neg)

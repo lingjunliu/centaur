@@ -5,37 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If v_1 is bool and is true, then argument v_2 of type string must be present in allowed string list (Rule 54)
+# The length of the list must be a power of 2. (Rule 54)
 
 rule_54 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg2_value"] == 0, v["arg2_value"] == 1), v["arg2_value"] == 2), v["arg2_value"] == 3), v["arg2_value"] == 4), v["arg2_value"] == 5), v["arg2_value"] == 6), v["arg2_value"] == 7), v["arg2_value"] == 8), v["arg2_value"] == 9), v["arg2_value"] == 10), v["arg2_value"] == 11), v["arg2_value"] == 12), v["arg2_value"] == 13), v["arg2_value"] == 14), v["arg2_value"] == 15), v["arg2_value"] == 16), v["arg2_value"] == 17), v["arg2_value"] == 18), v["arg2_value"] == 19), v["arg2_value"] == 20), v["arg2_value"] == 21), v["arg2_value"] == 22), v["arg2_value"] == 23), v["arg2_value"] == 24), v["arg2_value"] == 25), True)) if n else
-          If(v["arg1_value"] == True, Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg2_value"] == 0, v["arg2_value"] == 1), v["arg2_value"] == 2), v["arg2_value"] == 3), v["arg2_value"] == 4), v["arg2_value"] == 5), v["arg2_value"] == 6), v["arg2_value"] == 7), v["arg2_value"] == 8), v["arg2_value"] == 9), v["arg2_value"] == 10), v["arg2_value"] == 11), v["arg2_value"] == 12), v["arg2_value"] == 13), v["arg2_value"] == 14), v["arg2_value"] == 15), v["arg2_value"] == 16), v["arg2_value"] == 17), v["arg2_value"] == 18), v["arg2_value"] == 19), v["arg2_value"] == 20), v["arg2_value"] == 21), v["arg2_value"] == 22), v["arg2_value"] == 23), v["arg2_value"] == 24), v["arg2_value"] == 25), True))
+    s.add(Not(Or([And(i < (5 + 1), v["arg1_length"] == 2 * i) for i in range(6)])) if n else
+          Or([And(i < (5 + 1), v["arg1_length"] == 2 * i) for i in range(6)]))
 )
 
-def rule_54_func(arg1, arg2, solver=None, neg=False):
+def rule_54_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
-            return False
-        if not isinstance(arg2, str):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_value = String('arg2_value')
+        arg1_length = Int('arg1_length')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_value == list_of_string_values_tf.index(arg2))
+        solver.add(arg1_length == len(arg1))
 
         # Constraints for rule 54
-        rule_54(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_54(solver, {'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_54(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_54(solver, {'arg1_length': arg1['length']}, neg)
