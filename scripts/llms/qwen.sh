@@ -25,4 +25,4 @@
 # cmake --build llama.cpp/build -j
 
 
-./llama.cpp/llama-server   -hf unsloth/gemma-3-27b-it-GGUF:Q4_K_XL   -t 32   -c 80000   -ngl 99   --seed 3407   --prio 2   --temp 1.0   --repeat-penalty 1.0   --min-p 0.01   --top-k 64   --top-p 0.95
+./llama.cpp/llama-server     -hf unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q4_K_XL     --jinja -ngl 99 --threads -1 --ctx-size 80000     --temp 0.7 --min-p 0.0 --top-p 0.80 --top-k 20 --repeat-penalty 1.05
