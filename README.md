@@ -38,6 +38,14 @@ Folders generated during execution:
  - **python**: The tool uses `python 3.12`
  - **venv**: `sudo apt install python3.12-venv`
  - **libopenmp**: `sudo apt-get install libomp-dev`
+ - **libopenblas**: `sudo apt-get install libopenblas-dev`
+ - **clang-15**:
+ ```bash
+ wget https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.0/clang+llvm-15.0.0-x86_64-linux-gnu-rhel-8.4.tar.xz
+ tar xf clang*
+ cd clang*
+ sudo cp -R * /usr/local/
+ ```
 
 <h1>Steps to run</h1>
 
