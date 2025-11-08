@@ -1,0 +1,1440 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.non_max_suppression_with_scores API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Greedily selects a subset of bounding boxes in descending order of score.
+
+  Prunes away boxes that have high intersection-over-union (IOU) overlap
+  with previously selected boxes.  Bounding boxes are supplied as
+  `[y1, x1, y2, x2]`, where `(y1, x1)` and `(y2, x2)` are the coordinates of any
+  diagonal pair of box corners and the coordinates can be provided as normalized
+  (i.e., lying in the interval `[0, 1]`) or absolute.  Note that this algorithm
+  is agnostic to where the origin is in the coordinate system.  Note that this
+  algorithm is invariant to orthogonal transformations and translations
+  of the coordinate system; thus translating or reflections of the coordinate
+  system result in the same boxes being selected by the algorithm.
+  The output of this operation is a set of integers indexing into the input
+  collection of bounding boxes representing the selected boxes.  The bounding
+  box coordinates corresponding to the selected indices can then be obtained
+  using the `tf.gather` operation.  For example:
+    ```python
+    selected_indices, selected_scores = tf.image.non_max_suppression_padded(
+        boxes, scores, max_output_size, iou_threshold=1.0, score_threshold=0.1,
+        soft_nms_sigma=0.5)
+    selected_boxes = tf.gather(boxes, selected_indices)
+    ```
+
+  This function generalizes the `tf.image.non_max_suppression` op by also
+  supporting a Soft-NMS (with Gaussian weighting) mode (c.f.
+  Bodla et al, https://arxiv.org/abs/1704.04503) where boxes reduce the score
+  of other overlapping boxes instead of directly causing them to be pruned.
+  Consequently, in contrast to `tf.image.non_max_suppression`,
+  `tf.image.non_max_suppression_with_scores` returns the new scores of each
+  input box in the second output, `selected_scores`.
+
+  To enable this Soft-NMS mode, set the `soft_nms_sigma` parameter to be
+  larger than 0.  When `soft_nms_sigma` equals 0, the behavior of
+  `tf.image.non_max_suppression_with_scores` is identical to that of
+  `tf.image.non_max_suppression` (except for the extra output) both in function
+  and in running time.
+
+  Note that when `soft_nms_sigma` > 0, Soft-NMS is performed and `iou_threshold`
+  is ignored. `iou_threshold` is only used for standard NMS.
+
+  Args:
+    boxes: A 2-D float `Tensor` of shape `[num_boxes, 4]`.
+    scores: A 1-D float `Tensor` of shape `[num_boxes]` representing a single
+      score corresponding to each box (each row of boxes).
+    max_output_size: A scalar integer `Tensor` representing the maximum number
+      of boxes to be selected by non-max suppression.
+    iou_threshold: A 0-D float tensor representing the threshold for deciding
+      whether boxes overlap too much with respect to IOU.
+    score_threshold: A 0-D float tensor representing the threshold for deciding
+      when to remove boxes based on score.
+    soft_nms_sigma: A 0-D float tensor representing the sigma parameter for Soft
+      NMS; see Bodla et al (c.f. https://arxiv.org/abs/1704.04503).  When
+      `soft_nms_sigma=0.0` (which is default), we fall back to standard (hard)
+      NMS.
+    name: A name for the operation (optional).
+
+  Returns:
+    selected_indices: A 1-D integer `Tensor` of shape `[M]` representing the
+      selected indices from the boxes tensor, where `M <= max_output_size`.
+    selected_scores: A 1-D float tensor of shape `[M]` representing the
+      corresponding scores for each selected box, where `M <= max_output_size`.
+      Scores only differ from corresponding input scores when using Soft NMS
+      (i.e. when `soft_nms_sigma>0`)
+
+[API Signature] boxes: tensor, scores: tensor, max_output_size: integer, iou_threshold: float, score_threshold: float, soft_nms_sigma: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of double is not in the list of allowed values: half, float 	; NodeDef: {{node NonMaxSuppressionV5}}; Op<name=NonMaxSuppressionV5; signature=boxes:T, scores:T, max_output_size:int32, iou_threshold:T, score_threshold:T, soft_nms_sigma:T -> selected_indices:int32, selected_scores:T, valid_outputs:int32; attr=T:type,default=DT_FLOAT,allowed=[DT_HALF, DT_FLOAT]; attr=pad_to_max_output_size:bool,default=false> [Op:NonMaxSuppressionV5]
+InvalidArgumentError: {{function_node __wrapped__NonMaxSuppressionV5_device_/job:localhost/replica:0/task:0/device:CPU:0}} iou_threshold must be in [0, 1] [Op:NonMaxSuppressionV5]
+ValueError: Tensor conversion requested dtype float16 for Tensor with dtype float32: <tf.Tensor: shape=(), dtype=float32, numpy=-1.176143465063383e+18>
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (boxes and scores must be float16/float32 and match)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7) ∧ dtype_(v_2) = dtype_(v_1)
+Token usage: input=2619, output=6099, total=8718
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.non_max_suppression_with_scores API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Greedily selects a subset of bounding boxes in descending order of score.
+
+  Prunes away boxes that have high intersection-over-union (IOU) overlap
+  with previously selected boxes.  Bounding boxes are supplied as
+  `[y1, x1, y2, x2]`, where `(y1, x1)` and `(y2, x2)` are the coordinates of any
+  diagonal pair of box corners and the coordinates can be provided as normalized
+  (i.e., lying in the interval `[0, 1]`) or absolute.  Note that this algorithm
+  is agnostic to where the origin is in the coordinate system.  Note that this
+  algorithm is invariant to orthogonal transformations and translations
+  of the coordinate system; thus translating or reflections of the coordinate
+  system result in the same boxes being selected by the algorithm.
+  The output of this operation is a set of integers indexing into the input
+  collection of bounding boxes representing the selected boxes.  The bounding
+  box coordinates corresponding to the selected indices can then be obtained
+  using the `tf.gather` operation.  For example:
+    ```python
+    selected_indices, selected_scores = tf.image.non_max_suppression_padded(
+        boxes, scores, max_output_size, iou_threshold=1.0, score_threshold=0.1,
+        soft_nms_sigma=0.5)
+    selected_boxes = tf.gather(boxes, selected_indices)
+    ```
+
+  This function generalizes the `tf.image.non_max_suppression` op by also
+  supporting a Soft-NMS (with Gaussian weighting) mode (c.f.
+  Bodla et al, https://arxiv.org/abs/1704.04503) where boxes reduce the score
+  of other overlapping boxes instead of directly causing them to be pruned.
+  Consequently, in contrast to `tf.image.non_max_suppression`,
+  `tf.image.non_max_suppression_with_scores` returns the new scores of each
+  input box in the second output, `selected_scores`.
+
+  To enable this Soft-NMS mode, set the `soft_nms_sigma` parameter to be
+  larger than 0.  When `soft_nms_sigma` equals 0, the behavior of
+  `tf.image.non_max_suppression_with_scores` is identical to that of
+  `tf.image.non_max_suppression` (except for the extra output) both in function
+  and in running time.
+
+  Note that when `soft_nms_sigma` > 0, Soft-NMS is performed and `iou_threshold`
+  is ignored. `iou_threshold` is only used for standard NMS.
+
+  Args:
+    boxes: A 2-D float `Tensor` of shape `[num_boxes, 4]`.
+    scores: A 1-D float `Tensor` of shape `[num_boxes]` representing a single
+      score corresponding to each box (each row of boxes).
+    max_output_size: A scalar integer `Tensor` representing the maximum number
+      of boxes to be selected by non-max suppression.
+    iou_threshold: A 0-D float tensor representing the threshold for deciding
+      whether boxes overlap too much with respect to IOU.
+    score_threshold: A 0-D float tensor representing the threshold for deciding
+      when to remove boxes based on score.
+    soft_nms_sigma: A 0-D float tensor representing the sigma parameter for Soft
+      NMS; see Bodla et al (c.f. https://arxiv.org/abs/1704.04503).  When
+      `soft_nms_sigma=0.0` (which is default), we fall back to standard (hard)
+      NMS.
+    name: A name for the operation (optional).
+
+  Returns:
+    selected_indices: A 1-D integer `Tensor` of shape `[M]` representing the
+      selected indices from the boxes tensor, where `M <= max_output_size`.
+    selected_scores: A 1-D float tensor of shape `[M]` representing the
+      corresponding scores for each selected box, where `M <= max_output_size`.
+      Scores only differ from corresponding input scores when using Soft NMS
+      (i.e. when `soft_nms_sigma>0`)
+
+[API Signature] boxes: tensor, scores: tensor, max_output_size: integer, iou_threshold: float, score_threshold: float, soft_nms_sigma: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of double is not in the list of allowed values: half, float 	; NodeDef: {{node NonMaxSuppressionV5}}; Op<name=NonMaxSuppressionV5; signature=boxes:T, scores:T, max_output_size:int32, iou_threshold:T, score_threshold:T, soft_nms_sigma:T -> selected_indices:int32, selected_scores:T, valid_outputs:int32; attr=T:type,default=DT_FLOAT,allowed=[DT_HALF, DT_FLOAT]; attr=pad_to_max_output_size:bool,default=false> [Op:NonMaxSuppressionV5]
+InvalidArgumentError: {{function_node __wrapped__NonMaxSuppressionV5_device_/job:localhost/replica:0/task:0/device:CPU:0}} iou_threshold must be in [0, 1] [Op:NonMaxSuppressionV5]
+ValueError: Tensor conversion requested dtype float16 for Tensor with dtype float32: <tf.Tensor: shape=(), dtype=float32, numpy=-1.176143465063383e+18>
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (boxes shape must be [num_boxes, 4])
+{v_1 : tensor} |= ndim(v_1) = 2 ∧ shape(v_1, 1) = 4 ∧ shape(v_1, 0) ≥ 0
+Token usage: input=2619, output=6099, total=8718
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.non_max_suppression_with_scores API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Greedily selects a subset of bounding boxes in descending order of score.
+
+  Prunes away boxes that have high intersection-over-union (IOU) overlap
+  with previously selected boxes.  Bounding boxes are supplied as
+  `[y1, x1, y2, x2]`, where `(y1, x1)` and `(y2, x2)` are the coordinates of any
+  diagonal pair of box corners and the coordinates can be provided as normalized
+  (i.e., lying in the interval `[0, 1]`) or absolute.  Note that this algorithm
+  is agnostic to where the origin is in the coordinate system.  Note that this
+  algorithm is invariant to orthogonal transformations and translations
+  of the coordinate system; thus translating or reflections of the coordinate
+  system result in the same boxes being selected by the algorithm.
+  The output of this operation is a set of integers indexing into the input
+  collection of bounding boxes representing the selected boxes.  The bounding
+  box coordinates corresponding to the selected indices can then be obtained
+  using the `tf.gather` operation.  For example:
+    ```python
+    selected_indices, selected_scores = tf.image.non_max_suppression_padded(
+        boxes, scores, max_output_size, iou_threshold=1.0, score_threshold=0.1,
+        soft_nms_sigma=0.5)
+    selected_boxes = tf.gather(boxes, selected_indices)
+    ```
+
+  This function generalizes the `tf.image.non_max_suppression` op by also
+  supporting a Soft-NMS (with Gaussian weighting) mode (c.f.
+  Bodla et al, https://arxiv.org/abs/1704.04503) where boxes reduce the score
+  of other overlapping boxes instead of directly causing them to be pruned.
+  Consequently, in contrast to `tf.image.non_max_suppression`,
+  `tf.image.non_max_suppression_with_scores` returns the new scores of each
+  input box in the second output, `selected_scores`.
+
+  To enable this Soft-NMS mode, set the `soft_nms_sigma` parameter to be
+  larger than 0.  When `soft_nms_sigma` equals 0, the behavior of
+  `tf.image.non_max_suppression_with_scores` is identical to that of
+  `tf.image.non_max_suppression` (except for the extra output) both in function
+  and in running time.
+
+  Note that when `soft_nms_sigma` > 0, Soft-NMS is performed and `iou_threshold`
+  is ignored. `iou_threshold` is only used for standard NMS.
+
+  Args:
+    boxes: A 2-D float `Tensor` of shape `[num_boxes, 4]`.
+    scores: A 1-D float `Tensor` of shape `[num_boxes]` representing a single
+      score corresponding to each box (each row of boxes).
+    max_output_size: A scalar integer `Tensor` representing the maximum number
+      of boxes to be selected by non-max suppression.
+    iou_threshold: A 0-D float tensor representing the threshold for deciding
+      whether boxes overlap too much with respect to IOU.
+    score_threshold: A 0-D float tensor representing the threshold for deciding
+      when to remove boxes based on score.
+    soft_nms_sigma: A 0-D float tensor representing the sigma parameter for Soft
+      NMS; see Bodla et al (c.f. https://arxiv.org/abs/1704.04503).  When
+      `soft_nms_sigma=0.0` (which is default), we fall back to standard (hard)
+      NMS.
+    name: A name for the operation (optional).
+
+  Returns:
+    selected_indices: A 1-D integer `Tensor` of shape `[M]` representing the
+      selected indices from the boxes tensor, where `M <= max_output_size`.
+    selected_scores: A 1-D float tensor of shape `[M]` representing the
+      corresponding scores for each selected box, where `M <= max_output_size`.
+      Scores only differ from corresponding input scores when using Soft NMS
+      (i.e. when `soft_nms_sigma>0`)
+
+[API Signature] boxes: tensor, scores: tensor, max_output_size: integer, iou_threshold: float, score_threshold: float, soft_nms_sigma: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of double is not in the list of allowed values: half, float 	; NodeDef: {{node NonMaxSuppressionV5}}; Op<name=NonMaxSuppressionV5; signature=boxes:T, scores:T, max_output_size:int32, iou_threshold:T, score_threshold:T, soft_nms_sigma:T -> selected_indices:int32, selected_scores:T, valid_outputs:int32; attr=T:type,default=DT_FLOAT,allowed=[DT_HALF, DT_FLOAT]; attr=pad_to_max_output_size:bool,default=false> [Op:NonMaxSuppressionV5]
+InvalidArgumentError: {{function_node __wrapped__NonMaxSuppressionV5_device_/job:localhost/replica:0/task:0/device:CPU:0}} iou_threshold must be in [0, 1] [Op:NonMaxSuppressionV5]
+ValueError: Tensor conversion requested dtype float16 for Tensor with dtype float32: <tf.Tensor: shape=(), dtype=float32, numpy=-1.176143465063383e+18>
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (scores shape matches number of boxes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_1, 0)
+Token usage: input=2619, output=6099, total=8718
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.non_max_suppression_with_scores API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Greedily selects a subset of bounding boxes in descending order of score.
+
+  Prunes away boxes that have high intersection-over-union (IOU) overlap
+  with previously selected boxes.  Bounding boxes are supplied as
+  `[y1, x1, y2, x2]`, where `(y1, x1)` and `(y2, x2)` are the coordinates of any
+  diagonal pair of box corners and the coordinates can be provided as normalized
+  (i.e., lying in the interval `[0, 1]`) or absolute.  Note that this algorithm
+  is agnostic to where the origin is in the coordinate system.  Note that this
+  algorithm is invariant to orthogonal transformations and translations
+  of the coordinate system; thus translating or reflections of the coordinate
+  system result in the same boxes being selected by the algorithm.
+  The output of this operation is a set of integers indexing into the input
+  collection of bounding boxes representing the selected boxes.  The bounding
+  box coordinates corresponding to the selected indices can then be obtained
+  using the `tf.gather` operation.  For example:
+    ```python
+    selected_indices, selected_scores = tf.image.non_max_suppression_padded(
+        boxes, scores, max_output_size, iou_threshold=1.0, score_threshold=0.1,
+        soft_nms_sigma=0.5)
+    selected_boxes = tf.gather(boxes, selected_indices)
+    ```
+
+  This function generalizes the `tf.image.non_max_suppression` op by also
+  supporting a Soft-NMS (with Gaussian weighting) mode (c.f.
+  Bodla et al, https://arxiv.org/abs/1704.04503) where boxes reduce the score
+  of other overlapping boxes instead of directly causing them to be pruned.
+  Consequently, in contrast to `tf.image.non_max_suppression`,
+  `tf.image.non_max_suppression_with_scores` returns the new scores of each
+  input box in the second output, `selected_scores`.
+
+  To enable this Soft-NMS mode, set the `soft_nms_sigma` parameter to be
+  larger than 0.  When `soft_nms_sigma` equals 0, the behavior of
+  `tf.image.non_max_suppression_with_scores` is identical to that of
+  `tf.image.non_max_suppression` (except for the extra output) both in function
+  and in running time.
+
+  Note that when `soft_nms_sigma` > 0, Soft-NMS is performed and `iou_threshold`
+  is ignored. `iou_threshold` is only used for standard NMS.
+
+  Args:
+    boxes: A 2-D float `Tensor` of shape `[num_boxes, 4]`.
+    scores: A 1-D float `Tensor` of shape `[num_boxes]` representing a single
+      score corresponding to each box (each row of boxes).
+    max_output_size: A scalar integer `Tensor` representing the maximum number
+      of boxes to be selected by non-max suppression.
+    iou_threshold: A 0-D float tensor representing the threshold for deciding
+      whether boxes overlap too much with respect to IOU.
+    score_threshold: A 0-D float tensor representing the threshold for deciding
+      when to remove boxes based on score.
+    soft_nms_sigma: A 0-D float tensor representing the sigma parameter for Soft
+      NMS; see Bodla et al (c.f. https://arxiv.org/abs/1704.04503).  When
+      `soft_nms_sigma=0.0` (which is default), we fall back to standard (hard)
+      NMS.
+    name: A name for the operation (optional).
+
+  Returns:
+    selected_indices: A 1-D integer `Tensor` of shape `[M]` representing the
+      selected indices from the boxes tensor, where `M <= max_output_size`.
+    selected_scores: A 1-D float tensor of shape `[M]` representing the
+      corresponding scores for each selected box, where `M <= max_output_size`.
+      Scores only differ from corresponding input scores when using Soft NMS
+      (i.e. when `soft_nms_sigma>0`)
+
+[API Signature] boxes: tensor, scores: tensor, max_output_size: integer, iou_threshold: float, score_threshold: float, soft_nms_sigma: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of double is not in the list of allowed values: half, float 	; NodeDef: {{node NonMaxSuppressionV5}}; Op<name=NonMaxSuppressionV5; signature=boxes:T, scores:T, max_output_size:int32, iou_threshold:T, score_threshold:T, soft_nms_sigma:T -> selected_indices:int32, selected_scores:T, valid_outputs:int32; attr=T:type,default=DT_FLOAT,allowed=[DT_HALF, DT_FLOAT]; attr=pad_to_max_output_size:bool,default=false> [Op:NonMaxSuppressionV5]
+InvalidArgumentError: {{function_node __wrapped__NonMaxSuppressionV5_device_/job:localhost/replica:0/task:0/device:CPU:0}} iou_threshold must be in [0, 1] [Op:NonMaxSuppressionV5]
+ValueError: Tensor conversion requested dtype float16 for Tensor with dtype float32: <tf.Tensor: shape=(), dtype=float32, numpy=-1.176143465063383e+18>
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (max_output_size is within valid range)
+{v_1 : tensor, v_3 : int} |= v_3 ≥ 0 ∧ v_3 ≤ shape(v_1, 0)
+Token usage: input=2619, output=6099, total=8718
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.non_max_suppression_with_scores API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Greedily selects a subset of bounding boxes in descending order of score.
+
+  Prunes away boxes that have high intersection-over-union (IOU) overlap
+  with previously selected boxes.  Bounding boxes are supplied as
+  `[y1, x1, y2, x2]`, where `(y1, x1)` and `(y2, x2)` are the coordinates of any
+  diagonal pair of box corners and the coordinates can be provided as normalized
+  (i.e., lying in the interval `[0, 1]`) or absolute.  Note that this algorithm
+  is agnostic to where the origin is in the coordinate system.  Note that this
+  algorithm is invariant to orthogonal transformations and translations
+  of the coordinate system; thus translating or reflections of the coordinate
+  system result in the same boxes being selected by the algorithm.
+  The output of this operation is a set of integers indexing into the input
+  collection of bounding boxes representing the selected boxes.  The bounding
+  box coordinates corresponding to the selected indices can then be obtained
+  using the `tf.gather` operation.  For example:
+    ```python
+    selected_indices, selected_scores = tf.image.non_max_suppression_padded(
+        boxes, scores, max_output_size, iou_threshold=1.0, score_threshold=0.1,
+        soft_nms_sigma=0.5)
+    selected_boxes = tf.gather(boxes, selected_indices)
+    ```
+
+  This function generalizes the `tf.image.non_max_suppression` op by also
+  supporting a Soft-NMS (with Gaussian weighting) mode (c.f.
+  Bodla et al, https://arxiv.org/abs/1704.04503) where boxes reduce the score
+  of other overlapping boxes instead of directly causing them to be pruned.
+  Consequently, in contrast to `tf.image.non_max_suppression`,
+  `tf.image.non_max_suppression_with_scores` returns the new scores of each
+  input box in the second output, `selected_scores`.
+
+  To enable this Soft-NMS mode, set the `soft_nms_sigma` parameter to be
+  larger than 0.  When `soft_nms_sigma` equals 0, the behavior of
+  `tf.image.non_max_suppression_with_scores` is identical to that of
+  `tf.image.non_max_suppression` (except for the extra output) both in function
+  and in running time.
+
+  Note that when `soft_nms_sigma` > 0, Soft-NMS is performed and `iou_threshold`
+  is ignored. `iou_threshold` is only used for standard NMS.
+
+  Args:
+    boxes: A 2-D float `Tensor` of shape `[num_boxes, 4]`.
+    scores: A 1-D float `Tensor` of shape `[num_boxes]` representing a single
+      score corresponding to each box (each row of boxes).
+    max_output_size: A scalar integer `Tensor` representing the maximum number
+      of boxes to be selected by non-max suppression.
+    iou_threshold: A 0-D float tensor representing the threshold for deciding
+      whether boxes overlap too much with respect to IOU.
+    score_threshold: A 0-D float tensor representing the threshold for deciding
+      when to remove boxes based on score.
+    soft_nms_sigma: A 0-D float tensor representing the sigma parameter for Soft
+      NMS; see Bodla et al (c.f. https://arxiv.org/abs/1704.04503).  When
+      `soft_nms_sigma=0.0` (which is default), we fall back to standard (hard)
+      NMS.
+    name: A name for the operation (optional).
+
+  Returns:
+    selected_indices: A 1-D integer `Tensor` of shape `[M]` representing the
+      selected indices from the boxes tensor, where `M <= max_output_size`.
+    selected_scores: A 1-D float tensor of shape `[M]` representing the
+      corresponding scores for each selected box, where `M <= max_output_size`.
+      Scores only differ from corresponding input scores when using Soft NMS
+      (i.e. when `soft_nms_sigma>0`)
+
+[API Signature] boxes: tensor, scores: tensor, max_output_size: integer, iou_threshold: float, score_threshold: float, soft_nms_sigma: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of double is not in the list of allowed values: half, float 	; NodeDef: {{node NonMaxSuppressionV5}}; Op<name=NonMaxSuppressionV5; signature=boxes:T, scores:T, max_output_size:int32, iou_threshold:T, score_threshold:T, soft_nms_sigma:T -> selected_indices:int32, selected_scores:T, valid_outputs:int32; attr=T:type,default=DT_FLOAT,allowed=[DT_HALF, DT_FLOAT]; attr=pad_to_max_output_size:bool,default=false> [Op:NonMaxSuppressionV5]
+InvalidArgumentError: {{function_node __wrapped__NonMaxSuppressionV5_device_/job:localhost/replica:0/task:0/device:CPU:0}} iou_threshold must be in [0, 1] [Op:NonMaxSuppressionV5]
+ValueError: Tensor conversion requested dtype float16 for Tensor with dtype float32: <tf.Tensor: shape=(), dtype=float32, numpy=-1.176143465063383e+18>
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (iou_threshold must be in [0, 1])
+{v_4 : float} |= v_4 ≥ 0 ∧ v_4 ≤ 1
+Token usage: input=2619, output=6099, total=8718
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.non_max_suppression_with_scores API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Greedily selects a subset of bounding boxes in descending order of score.
+
+  Prunes away boxes that have high intersection-over-union (IOU) overlap
+  with previously selected boxes.  Bounding boxes are supplied as
+  `[y1, x1, y2, x2]`, where `(y1, x1)` and `(y2, x2)` are the coordinates of any
+  diagonal pair of box corners and the coordinates can be provided as normalized
+  (i.e., lying in the interval `[0, 1]`) or absolute.  Note that this algorithm
+  is agnostic to where the origin is in the coordinate system.  Note that this
+  algorithm is invariant to orthogonal transformations and translations
+  of the coordinate system; thus translating or reflections of the coordinate
+  system result in the same boxes being selected by the algorithm.
+  The output of this operation is a set of integers indexing into the input
+  collection of bounding boxes representing the selected boxes.  The bounding
+  box coordinates corresponding to the selected indices can then be obtained
+  using the `tf.gather` operation.  For example:
+    ```python
+    selected_indices, selected_scores = tf.image.non_max_suppression_padded(
+        boxes, scores, max_output_size, iou_threshold=1.0, score_threshold=0.1,
+        soft_nms_sigma=0.5)
+    selected_boxes = tf.gather(boxes, selected_indices)
+    ```
+
+  This function generalizes the `tf.image.non_max_suppression` op by also
+  supporting a Soft-NMS (with Gaussian weighting) mode (c.f.
+  Bodla et al, https://arxiv.org/abs/1704.04503) where boxes reduce the score
+  of other overlapping boxes instead of directly causing them to be pruned.
+  Consequently, in contrast to `tf.image.non_max_suppression`,
+  `tf.image.non_max_suppression_with_scores` returns the new scores of each
+  input box in the second output, `selected_scores`.
+
+  To enable this Soft-NMS mode, set the `soft_nms_sigma` parameter to be
+  larger than 0.  When `soft_nms_sigma` equals 0, the behavior of
+  `tf.image.non_max_suppression_with_scores` is identical to that of
+  `tf.image.non_max_suppression` (except for the extra output) both in function
+  and in running time.
+
+  Note that when `soft_nms_sigma` > 0, Soft-NMS is performed and `iou_threshold`
+  is ignored. `iou_threshold` is only used for standard NMS.
+
+  Args:
+    boxes: A 2-D float `Tensor` of shape `[num_boxes, 4]`.
+    scores: A 1-D float `Tensor` of shape `[num_boxes]` representing a single
+      score corresponding to each box (each row of boxes).
+    max_output_size: A scalar integer `Tensor` representing the maximum number
+      of boxes to be selected by non-max suppression.
+    iou_threshold: A 0-D float tensor representing the threshold for deciding
+      whether boxes overlap too much with respect to IOU.
+    score_threshold: A 0-D float tensor representing the threshold for deciding
+      when to remove boxes based on score.
+    soft_nms_sigma: A 0-D float tensor representing the sigma parameter for Soft
+      NMS; see Bodla et al (c.f. https://arxiv.org/abs/1704.04503).  When
+      `soft_nms_sigma=0.0` (which is default), we fall back to standard (hard)
+      NMS.
+    name: A name for the operation (optional).
+
+  Returns:
+    selected_indices: A 1-D integer `Tensor` of shape `[M]` representing the
+      selected indices from the boxes tensor, where `M <= max_output_size`.
+    selected_scores: A 1-D float tensor of shape `[M]` representing the
+      corresponding scores for each selected box, where `M <= max_output_size`.
+      Scores only differ from corresponding input scores when using Soft NMS
+      (i.e. when `soft_nms_sigma>0`)
+
+[API Signature] boxes: tensor, scores: tensor, max_output_size: integer, iou_threshold: float, score_threshold: float, soft_nms_sigma: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of double is not in the list of allowed values: half, float 	; NodeDef: {{node NonMaxSuppressionV5}}; Op<name=NonMaxSuppressionV5; signature=boxes:T, scores:T, max_output_size:int32, iou_threshold:T, score_threshold:T, soft_nms_sigma:T -> selected_indices:int32, selected_scores:T, valid_outputs:int32; attr=T:type,default=DT_FLOAT,allowed=[DT_HALF, DT_FLOAT]; attr=pad_to_max_output_size:bool,default=false> [Op:NonMaxSuppressionV5]
+InvalidArgumentError: {{function_node __wrapped__NonMaxSuppressionV5_device_/job:localhost/replica:0/task:0/device:CPU:0}} iou_threshold must be in [0, 1] [Op:NonMaxSuppressionV5]
+ValueError: Tensor conversion requested dtype float16 for Tensor with dtype float32: <tf.Tensor: shape=(), dtype=float32, numpy=-1.176143465063383e+18>
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (soft_nms_sigma must be non-negative)
+{v_6 : float} |= v_6 ≥ 0
+Token usage: input=2619, output=6099, total=8718
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.non_max_suppression_with_scores API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Greedily selects a subset of bounding boxes in descending order of score.
+
+  Prunes away boxes that have high intersection-over-union (IOU) overlap
+  with previously selected boxes.  Bounding boxes are supplied as
+  `[y1, x1, y2, x2]`, where `(y1, x1)` and `(y2, x2)` are the coordinates of any
+  diagonal pair of box corners and the coordinates can be provided as normalized
+  (i.e., lying in the interval `[0, 1]`) or absolute.  Note that this algorithm
+  is agnostic to where the origin is in the coordinate system.  Note that this
+  algorithm is invariant to orthogonal transformations and translations
+  of the coordinate system; thus translating or reflections of the coordinate
+  system result in the same boxes being selected by the algorithm.
+  The output of this operation is a set of integers indexing into the input
+  collection of bounding boxes representing the selected boxes.  The bounding
+  box coordinates corresponding to the selected indices can then be obtained
+  using the `tf.gather` operation.  For example:
+    ```python
+    selected_indices, selected_scores = tf.image.non_max_suppression_padded(
+        boxes, scores, max_output_size, iou_threshold=1.0, score_threshold=0.1,
+        soft_nms_sigma=0.5)
+    selected_boxes = tf.gather(boxes, selected_indices)
+    ```
+
+  This function generalizes the `tf.image.non_max_suppression` op by also
+  supporting a Soft-NMS (with Gaussian weighting) mode (c.f.
+  Bodla et al, https://arxiv.org/abs/1704.04503) where boxes reduce the score
+  of other overlapping boxes instead of directly causing them to be pruned.
+  Consequently, in contrast to `tf.image.non_max_suppression`,
+  `tf.image.non_max_suppression_with_scores` returns the new scores of each
+  input box in the second output, `selected_scores`.
+
+  To enable this Soft-NMS mode, set the `soft_nms_sigma` parameter to be
+  larger than 0.  When `soft_nms_sigma` equals 0, the behavior of
+  `tf.image.non_max_suppression_with_scores` is identical to that of
+  `tf.image.non_max_suppression` (except for the extra output) both in function
+  and in running time.
+
+  Note that when `soft_nms_sigma` > 0, Soft-NMS is performed and `iou_threshold`
+  is ignored. `iou_threshold` is only used for standard NMS.
+
+  Args:
+    boxes: A 2-D float `Tensor` of shape `[num_boxes, 4]`.
+    scores: A 1-D float `Tensor` of shape `[num_boxes]` representing a single
+      score corresponding to each box (each row of boxes).
+    max_output_size: A scalar integer `Tensor` representing the maximum number
+      of boxes to be selected by non-max suppression.
+    iou_threshold: A 0-D float tensor representing the threshold for deciding
+      whether boxes overlap too much with respect to IOU.
+    score_threshold: A 0-D float tensor representing the threshold for deciding
+      when to remove boxes based on score.
+    soft_nms_sigma: A 0-D float tensor representing the sigma parameter for Soft
+      NMS; see Bodla et al (c.f. https://arxiv.org/abs/1704.04503).  When
+      `soft_nms_sigma=0.0` (which is default), we fall back to standard (hard)
+      NMS.
+    name: A name for the operation (optional).
+
+  Returns:
+    selected_indices: A 1-D integer `Tensor` of shape `[M]` representing the
+      selected indices from the boxes tensor, where `M <= max_output_size`.
+    selected_scores: A 1-D float tensor of shape `[M]` representing the
+      corresponding scores for each selected box, where `M <= max_output_size`.
+      Scores only differ from corresponding input scores when using Soft NMS
+      (i.e. when `soft_nms_sigma>0`)
+
+[API Signature] boxes: tensor, scores: tensor, max_output_size: integer, iou_threshold: float, score_threshold: float, soft_nms_sigma: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of double is not in the list of allowed values: half, float 	; NodeDef: {{node NonMaxSuppressionV5}}; Op<name=NonMaxSuppressionV5; signature=boxes:T, scores:T, max_output_size:int32, iou_threshold:T, score_threshold:T, soft_nms_sigma:T -> selected_indices:int32, selected_scores:T, valid_outputs:int32; attr=T:type,default=DT_FLOAT,allowed=[DT_HALF, DT_FLOAT]; attr=pad_to_max_output_size:bool,default=false> [Op:NonMaxSuppressionV5]
+InvalidArgumentError: {{function_node __wrapped__NonMaxSuppressionV5_device_/job:localhost/replica:0/task:0/device:CPU:0}} iou_threshold must be in [0, 1] [Op:NonMaxSuppressionV5]
+ValueError: Tensor conversion requested dtype float16 for Tensor with dtype float32: <tf.Tensor: shape=(), dtype=float32, numpy=-1.176143465063383e+18>
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (score_threshold should not exceed the maximum score)
+{v_2 : tensor, v_5 : float} |= v_5 ≤ max(v_2)
+Token usage: input=2619, output=6099, total=8718
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.non_max_suppression_with_scores API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Greedily selects a subset of bounding boxes in descending order of score.
+
+  Prunes away boxes that have high intersection-over-union (IOU) overlap
+  with previously selected boxes.  Bounding boxes are supplied as
+  `[y1, x1, y2, x2]`, where `(y1, x1)` and `(y2, x2)` are the coordinates of any
+  diagonal pair of box corners and the coordinates can be provided as normalized
+  (i.e., lying in the interval `[0, 1]`) or absolute.  Note that this algorithm
+  is agnostic to where the origin is in the coordinate system.  Note that this
+  algorithm is invariant to orthogonal transformations and translations
+  of the coordinate system; thus translating or reflections of the coordinate
+  system result in the same boxes being selected by the algorithm.
+  The output of this operation is a set of integers indexing into the input
+  collection of bounding boxes representing the selected boxes.  The bounding
+  box coordinates corresponding to the selected indices can then be obtained
+  using the `tf.gather` operation.  For example:
+    ```python
+    selected_indices, selected_scores = tf.image.non_max_suppression_padded(
+        boxes, scores, max_output_size, iou_threshold=1.0, score_threshold=0.1,
+        soft_nms_sigma=0.5)
+    selected_boxes = tf.gather(boxes, selected_indices)
+    ```
+
+  This function generalizes the `tf.image.non_max_suppression` op by also
+  supporting a Soft-NMS (with Gaussian weighting) mode (c.f.
+  Bodla et al, https://arxiv.org/abs/1704.04503) where boxes reduce the score
+  of other overlapping boxes instead of directly causing them to be pruned.
+  Consequently, in contrast to `tf.image.non_max_suppression`,
+  `tf.image.non_max_suppression_with_scores` returns the new scores of each
+  input box in the second output, `selected_scores`.
+
+  To enable this Soft-NMS mode, set the `soft_nms_sigma` parameter to be
+  larger than 0.  When `soft_nms_sigma` equals 0, the behavior of
+  `tf.image.non_max_suppression_with_scores` is identical to that of
+  `tf.image.non_max_suppression` (except for the extra output) both in function
+  and in running time.
+
+  Note that when `soft_nms_sigma` > 0, Soft-NMS is performed and `iou_threshold`
+  is ignored. `iou_threshold` is only used for standard NMS.
+
+  Args:
+    boxes: A 2-D float `Tensor` of shape `[num_boxes, 4]`.
+    scores: A 1-D float `Tensor` of shape `[num_boxes]` representing a single
+      score corresponding to each box (each row of boxes).
+    max_output_size: A scalar integer `Tensor` representing the maximum number
+      of boxes to be selected by non-max suppression.
+    iou_threshold: A 0-D float tensor representing the threshold for deciding
+      whether boxes overlap too much with respect to IOU.
+    score_threshold: A 0-D float tensor representing the threshold for deciding
+      when to remove boxes based on score.
+    soft_nms_sigma: A 0-D float tensor representing the sigma parameter for Soft
+      NMS; see Bodla et al (c.f. https://arxiv.org/abs/1704.04503).  When
+      `soft_nms_sigma=0.0` (which is default), we fall back to standard (hard)
+      NMS.
+    name: A name for the operation (optional).
+
+  Returns:
+    selected_indices: A 1-D integer `Tensor` of shape `[M]` representing the
+      selected indices from the boxes tensor, where `M <= max_output_size`.
+    selected_scores: A 1-D float tensor of shape `[M]` representing the
+      corresponding scores for each selected box, where `M <= max_output_size`.
+      Scores only differ from corresponding input scores when using Soft NMS
+      (i.e. when `soft_nms_sigma>0`)
+
+[API Signature] boxes: tensor, scores: tensor, max_output_size: integer, iou_threshold: float, score_threshold: float, soft_nms_sigma: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of double is not in the list of allowed values: half, float 	; NodeDef: {{node NonMaxSuppressionV5}}; Op<name=NonMaxSuppressionV5; signature=boxes:T, scores:T, max_output_size:int32, iou_threshold:T, score_threshold:T, soft_nms_sigma:T -> selected_indices:int32, selected_scores:T, valid_outputs:int32; attr=T:type,default=DT_FLOAT,allowed=[DT_HALF, DT_FLOAT]; attr=pad_to_max_output_size:bool,default=false> [Op:NonMaxSuppressionV5]
+InvalidArgumentError: {{function_node __wrapped__NonMaxSuppressionV5_device_/job:localhost/replica:0/task:0/device:CPU:0}} iou_threshold must be in [0, 1] [Op:NonMaxSuppressionV5]
+ValueError: Tensor conversion requested dtype float16 for Tensor with dtype float32: <tf.Tensor: shape=(), dtype=float32, numpy=-1.176143465063383e+18>
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (use float32 for boxes/scores to avoid dtype-conversion errors)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∧ dtype_(v_2) = 7
+Token usage: input=2619, output=6099, total=8718
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.non_max_suppression_with_scores API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Greedily selects a subset of bounding boxes in descending order of score.
+
+  Prunes away boxes that have high intersection-over-union (IOU) overlap
+  with previously selected boxes.  Bounding boxes are supplied as
+  `[y1, x1, y2, x2]`, where `(y1, x1)` and `(y2, x2)` are the coordinates of any
+  diagonal pair of box corners and the coordinates can be provided as normalized
+  (i.e., lying in the interval `[0, 1]`) or absolute.  Note that this algorithm
+  is agnostic to where the origin is in the coordinate system.  Note that this
+  algorithm is invariant to orthogonal transformations and translations
+  of the coordinate system; thus translating or reflections of the coordinate
+  system result in the same boxes being selected by the algorithm.
+  The output of this operation is a set of integers indexing into the input
+  collection of bounding boxes representing the selected boxes.  The bounding
+  box coordinates corresponding to the selected indices can then be obtained
+  using the `tf.gather` operation.  For example:
+    ```python
+    selected_indices, selected_scores = tf.image.non_max_suppression_padded(
+        boxes, scores, max_output_size, iou_threshold=1.0, score_threshold=0.1,
+        soft_nms_sigma=0.5)
+    selected_boxes = tf.gather(boxes, selected_indices)
+    ```
+
+  This function generalizes the `tf.image.non_max_suppression` op by also
+  supporting a Soft-NMS (with Gaussian weighting) mode (c.f.
+  Bodla et al, https://arxiv.org/abs/1704.04503) where boxes reduce the score
+  of other overlapping boxes instead of directly causing them to be pruned.
+  Consequently, in contrast to `tf.image.non_max_suppression`,
+  `tf.image.non_max_suppression_with_scores` returns the new scores of each
+  input box in the second output, `selected_scores`.
+
+  To enable this Soft-NMS mode, set the `soft_nms_sigma` parameter to be
+  larger than 0.  When `soft_nms_sigma` equals 0, the behavior of
+  `tf.image.non_max_suppression_with_scores` is identical to that of
+  `tf.image.non_max_suppression` (except for the extra output) both in function
+  and in running time.
+
+  Note that when `soft_nms_sigma` > 0, Soft-NMS is performed and `iou_threshold`
+  is ignored. `iou_threshold` is only used for standard NMS.
+
+  Args:
+    boxes: A 2-D float `Tensor` of shape `[num_boxes, 4]`.
+    scores: A 1-D float `Tensor` of shape `[num_boxes]` representing a single
+      score corresponding to each box (each row of boxes).
+    max_output_size: A scalar integer `Tensor` representing the maximum number
+      of boxes to be selected by non-max suppression.
+    iou_threshold: A 0-D float tensor representing the threshold for deciding
+      whether boxes overlap too much with respect to IOU.
+    score_threshold: A 0-D float tensor representing the threshold for deciding
+      when to remove boxes based on score.
+    soft_nms_sigma: A 0-D float tensor representing the sigma parameter for Soft
+      NMS; see Bodla et al (c.f. https://arxiv.org/abs/1704.04503).  When
+      `soft_nms_sigma=0.0` (which is default), we fall back to standard (hard)
+      NMS.
+    name: A name for the operation (optional).
+
+  Returns:
+    selected_indices: A 1-D integer `Tensor` of shape `[M]` representing the
+      selected indices from the boxes tensor, where `M <= max_output_size`.
+    selected_scores: A 1-D float tensor of shape `[M]` representing the
+      corresponding scores for each selected box, where `M <= max_output_size`.
+      Scores only differ from corresponding input scores when using Soft NMS
+      (i.e. when `soft_nms_sigma>0`)
+
+[API Signature] boxes: tensor, scores: tensor, max_output_size: integer, iou_threshold: float, score_threshold: float, soft_nms_sigma: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of double is not in the list of allowed values: half, float 	; NodeDef: {{node NonMaxSuppressionV5}}; Op<name=NonMaxSuppressionV5; signature=boxes:T, scores:T, max_output_size:int32, iou_threshold:T, score_threshold:T, soft_nms_sigma:T -> selected_indices:int32, selected_scores:T, valid_outputs:int32; attr=T:type,default=DT_FLOAT,allowed=[DT_HALF, DT_FLOAT]; attr=pad_to_max_output_size:bool,default=false> [Op:NonMaxSuppressionV5]
+InvalidArgumentError: {{function_node __wrapped__NonMaxSuppressionV5_device_/job:localhost/replica:0/task:0/device:CPU:0}} iou_threshold must be in [0, 1] [Op:NonMaxSuppressionV5]
+ValueError: Tensor conversion requested dtype float16 for Tensor with dtype float32: <tf.Tensor: shape=(), dtype=float32, numpy=-1.176143465063383e+18>
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (name must be one of the allowed string tokens)
+{v_7 : str} |= v_7 = "none" ∨ v_7 = "sum" ∨ v_7 = "max" ∨ v_7 = "min" ∨ v_7 = "prod" ∨ v_7 = "relu" ∨ v_7 = "tanh" ∨ v_7 = "sigmoid" ∨ v_7 = "softmax" ∨ v_7 = "elu" ∨ v_7 = "selu" ∨ v_7 = "gelu" ∨ v_7 = "swish" ∨ v_7 = "softplus" ∨ v_7 = "linear" ∨ v_7 = "valid" ∨ v_7 = "same" ∨ v_7 = "causal" ∨ v_7 = "channels_last" ∨ v_7 = "channels_first"
+Token usage: input=2619, output=6099, total=8718
+** SUCCESS **
+

@@ -1,0 +1,780 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.cholesky_solve API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Solves systems of linear eqns `A X = RHS`, given Cholesky factorizations.
+
+  Specifically, returns `X` from `A X = RHS`, where `A = L L^T`, `L` is the
+  `chol` arg and `RHS` is the `rhs` arg.
+
+  ```python
+  # Solve 10 separate 2x2 linear systems:
+  A = ... # shape 10 x 2 x 2
+  RHS = ... # shape 10 x 2 x 1
+  chol = tf.linalg.cholesky(A)  # shape 10 x 2 x 2
+  X = tf.linalg.cholesky_solve(chol, RHS)  # shape 10 x 2 x 1
+  # tf.matmul(A, X) ~ RHS
+  X[3, :, 0]  # Solution to the linear system A[3, :, :] x = RHS[3, :, 0]
+
+  # Solve five linear systems (K = 5) for every member of the length 10 batch.
+  A = ... # shape 10 x 2 x 2
+  RHS = ... # shape 10 x 2 x 5
+  ...
+  X[3, :, 2]  # Solution to the linear system A[3, :, :] x = RHS[3, :, 2]
+  ```
+
+  Args:
+    chol:  A `Tensor`.  Must be `float32` or `float64`, shape is `[..., M, M]`.
+      Cholesky factorization of `A`, e.g. `chol = tf.linalg.cholesky(A)`.
+      For that reason, only the lower triangular parts (including the diagonal)
+      of the last two dimensions of `chol` are used.  The strictly upper part is
+      assumed to be zero and not accessed.
+    rhs:  A `Tensor`, same type as `chol`, shape is `[..., M, K]`.
+    name:  A name to give this `Op`.  Defaults to `cholesky_solve`.
+
+  Returns:
+    Solution to `A x = rhs`, shape `[..., M, K]`.
+
+[API Signature] chol: tensor, rhs: tensor, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, double, float, half, complex64, complex128 	; NodeDef: {{node MatrixTriangularSolve}}; Op<name=MatrixTriangularSolve; signature=matrix:T, rhs:T -> output:T; attr=lower:bool,default=true; attr=adjoint:bool,default=false; attr=T:type,allowed=[DT_BFLOAT16, DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]> [Op:MatrixTriangularSolve]
+InvalidArgumentError: {{function_node __wrapped__MatrixTriangularSolve_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] matrices in the last dimensions must be square (0 =/= 86) [Op:MatrixTriangularSolve]
+NotFoundError: Could not find device for node: {{node MatrixTriangularSolve}} = MatrixTriangularSolve[T=DT_HALF, adjoint=false, lower=true] All kernels registered for op MatrixTriangularSolve:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]  [Op:MatrixTriangularSolve]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (dtype must be float32 or float64 and match between chol and rhs)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+Token usage: input=2266, output=4491, total=6757
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.cholesky_solve API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Solves systems of linear eqns `A X = RHS`, given Cholesky factorizations.
+
+  Specifically, returns `X` from `A X = RHS`, where `A = L L^T`, `L` is the
+  `chol` arg and `RHS` is the `rhs` arg.
+
+  ```python
+  # Solve 10 separate 2x2 linear systems:
+  A = ... # shape 10 x 2 x 2
+  RHS = ... # shape 10 x 2 x 1
+  chol = tf.linalg.cholesky(A)  # shape 10 x 2 x 2
+  X = tf.linalg.cholesky_solve(chol, RHS)  # shape 10 x 2 x 1
+  # tf.matmul(A, X) ~ RHS
+  X[3, :, 0]  # Solution to the linear system A[3, :, :] x = RHS[3, :, 0]
+
+  # Solve five linear systems (K = 5) for every member of the length 10 batch.
+  A = ... # shape 10 x 2 x 2
+  RHS = ... # shape 10 x 2 x 5
+  ...
+  X[3, :, 2]  # Solution to the linear system A[3, :, :] x = RHS[3, :, 2]
+  ```
+
+  Args:
+    chol:  A `Tensor`.  Must be `float32` or `float64`, shape is `[..., M, M]`.
+      Cholesky factorization of `A`, e.g. `chol = tf.linalg.cholesky(A)`.
+      For that reason, only the lower triangular parts (including the diagonal)
+      of the last two dimensions of `chol` are used.  The strictly upper part is
+      assumed to be zero and not accessed.
+    rhs:  A `Tensor`, same type as `chol`, shape is `[..., M, K]`.
+    name:  A name to give this `Op`.  Defaults to `cholesky_solve`.
+
+  Returns:
+    Solution to `A x = rhs`, shape `[..., M, K]`.
+
+[API Signature] chol: tensor, rhs: tensor, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, double, float, half, complex64, complex128 	; NodeDef: {{node MatrixTriangularSolve}}; Op<name=MatrixTriangularSolve; signature=matrix:T, rhs:T -> output:T; attr=lower:bool,default=true; attr=adjoint:bool,default=false; attr=T:type,allowed=[DT_BFLOAT16, DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]> [Op:MatrixTriangularSolve]
+InvalidArgumentError: {{function_node __wrapped__MatrixTriangularSolve_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] matrices in the last dimensions must be square (0 =/= 86) [Op:MatrixTriangularSolve]
+NotFoundError: Could not find device for node: {{node MatrixTriangularSolve}} = MatrixTriangularSolve[T=DT_HALF, adjoint=false, lower=true] All kernels registered for op MatrixTriangularSolve:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]  [Op:MatrixTriangularSolve]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (chol must be square with positive sizes in its last two dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2) ∧ shape(v_1, ndim(v_1) - 1) > 0
+Token usage: input=2266, output=4491, total=6757
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.cholesky_solve API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Solves systems of linear eqns `A X = RHS`, given Cholesky factorizations.
+
+  Specifically, returns `X` from `A X = RHS`, where `A = L L^T`, `L` is the
+  `chol` arg and `RHS` is the `rhs` arg.
+
+  ```python
+  # Solve 10 separate 2x2 linear systems:
+  A = ... # shape 10 x 2 x 2
+  RHS = ... # shape 10 x 2 x 1
+  chol = tf.linalg.cholesky(A)  # shape 10 x 2 x 2
+  X = tf.linalg.cholesky_solve(chol, RHS)  # shape 10 x 2 x 1
+  # tf.matmul(A, X) ~ RHS
+  X[3, :, 0]  # Solution to the linear system A[3, :, :] x = RHS[3, :, 0]
+
+  # Solve five linear systems (K = 5) for every member of the length 10 batch.
+  A = ... # shape 10 x 2 x 2
+  RHS = ... # shape 10 x 2 x 5
+  ...
+  X[3, :, 2]  # Solution to the linear system A[3, :, :] x = RHS[3, :, 2]
+  ```
+
+  Args:
+    chol:  A `Tensor`.  Must be `float32` or `float64`, shape is `[..., M, M]`.
+      Cholesky factorization of `A`, e.g. `chol = tf.linalg.cholesky(A)`.
+      For that reason, only the lower triangular parts (including the diagonal)
+      of the last two dimensions of `chol` are used.  The strictly upper part is
+      assumed to be zero and not accessed.
+    rhs:  A `Tensor`, same type as `chol`, shape is `[..., M, K]`.
+    name:  A name to give this `Op`.  Defaults to `cholesky_solve`.
+
+  Returns:
+    Solution to `A x = rhs`, shape `[..., M, K]`.
+
+[API Signature] chol: tensor, rhs: tensor, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, double, float, half, complex64, complex128 	; NodeDef: {{node MatrixTriangularSolve}}; Op<name=MatrixTriangularSolve; signature=matrix:T, rhs:T -> output:T; attr=lower:bool,default=true; attr=adjoint:bool,default=false; attr=T:type,allowed=[DT_BFLOAT16, DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]> [Op:MatrixTriangularSolve]
+InvalidArgumentError: {{function_node __wrapped__MatrixTriangularSolve_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] matrices in the last dimensions must be square (0 =/= 86) [Op:MatrixTriangularSolve]
+NotFoundError: Could not find device for node: {{node MatrixTriangularSolve}} = MatrixTriangularSolve[T=DT_HALF, adjoint=false, lower=true] All kernels registered for op MatrixTriangularSolve:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]  [Op:MatrixTriangularSolve]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (rhs must have its M dimension match chol’s M)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≥ 2 ∧ shape(v_2, ndim(v_2) - 2) = shape(v_1, ndim(v_1) - 1)
+Token usage: input=2266, output=4491, total=6757
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.cholesky_solve API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Solves systems of linear eqns `A X = RHS`, given Cholesky factorizations.
+
+  Specifically, returns `X` from `A X = RHS`, where `A = L L^T`, `L` is the
+  `chol` arg and `RHS` is the `rhs` arg.
+
+  ```python
+  # Solve 10 separate 2x2 linear systems:
+  A = ... # shape 10 x 2 x 2
+  RHS = ... # shape 10 x 2 x 1
+  chol = tf.linalg.cholesky(A)  # shape 10 x 2 x 2
+  X = tf.linalg.cholesky_solve(chol, RHS)  # shape 10 x 2 x 1
+  # tf.matmul(A, X) ~ RHS
+  X[3, :, 0]  # Solution to the linear system A[3, :, :] x = RHS[3, :, 0]
+
+  # Solve five linear systems (K = 5) for every member of the length 10 batch.
+  A = ... # shape 10 x 2 x 2
+  RHS = ... # shape 10 x 2 x 5
+  ...
+  X[3, :, 2]  # Solution to the linear system A[3, :, :] x = RHS[3, :, 2]
+  ```
+
+  Args:
+    chol:  A `Tensor`.  Must be `float32` or `float64`, shape is `[..., M, M]`.
+      Cholesky factorization of `A`, e.g. `chol = tf.linalg.cholesky(A)`.
+      For that reason, only the lower triangular parts (including the diagonal)
+      of the last two dimensions of `chol` are used.  The strictly upper part is
+      assumed to be zero and not accessed.
+    rhs:  A `Tensor`, same type as `chol`, shape is `[..., M, K]`.
+    name:  A name to give this `Op`.  Defaults to `cholesky_solve`.
+
+  Returns:
+    Solution to `A x = rhs`, shape `[..., M, K]`.
+
+[API Signature] chol: tensor, rhs: tensor, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, double, float, half, complex64, complex128 	; NodeDef: {{node MatrixTriangularSolve}}; Op<name=MatrixTriangularSolve; signature=matrix:T, rhs:T -> output:T; attr=lower:bool,default=true; attr=adjoint:bool,default=false; attr=T:type,allowed=[DT_BFLOAT16, DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]> [Op:MatrixTriangularSolve]
+InvalidArgumentError: {{function_node __wrapped__MatrixTriangularSolve_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] matrices in the last dimensions must be square (0 =/= 86) [Op:MatrixTriangularSolve]
+NotFoundError: Could not find device for node: {{node MatrixTriangularSolve}} = MatrixTriangularSolve[T=DT_HALF, adjoint=false, lower=true] All kernels registered for op MatrixTriangularSolve:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]  [Op:MatrixTriangularSolve]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (batch dimensions of chol and rhs must match when present)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ (if ndim(v_1) ≥ 3 then ∀i ∈ [0, ndim(v_1) - 3] : shape(v_1, i) = shape(v_2, i))
+Token usage: input=2266, output=4491, total=6757
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.cholesky_solve API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Solves systems of linear eqns `A X = RHS`, given Cholesky factorizations.
+
+  Specifically, returns `X` from `A X = RHS`, where `A = L L^T`, `L` is the
+  `chol` arg and `RHS` is the `rhs` arg.
+
+  ```python
+  # Solve 10 separate 2x2 linear systems:
+  A = ... # shape 10 x 2 x 2
+  RHS = ... # shape 10 x 2 x 1
+  chol = tf.linalg.cholesky(A)  # shape 10 x 2 x 2
+  X = tf.linalg.cholesky_solve(chol, RHS)  # shape 10 x 2 x 1
+  # tf.matmul(A, X) ~ RHS
+  X[3, :, 0]  # Solution to the linear system A[3, :, :] x = RHS[3, :, 0]
+
+  # Solve five linear systems (K = 5) for every member of the length 10 batch.
+  A = ... # shape 10 x 2 x 2
+  RHS = ... # shape 10 x 2 x 5
+  ...
+  X[3, :, 2]  # Solution to the linear system A[3, :, :] x = RHS[3, :, 2]
+  ```
+
+  Args:
+    chol:  A `Tensor`.  Must be `float32` or `float64`, shape is `[..., M, M]`.
+      Cholesky factorization of `A`, e.g. `chol = tf.linalg.cholesky(A)`.
+      For that reason, only the lower triangular parts (including the diagonal)
+      of the last two dimensions of `chol` are used.  The strictly upper part is
+      assumed to be zero and not accessed.
+    rhs:  A `Tensor`, same type as `chol`, shape is `[..., M, K]`.
+    name:  A name to give this `Op`.  Defaults to `cholesky_solve`.
+
+  Returns:
+    Solution to `A x = rhs`, shape `[..., M, K]`.
+
+[API Signature] chol: tensor, rhs: tensor, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, double, float, half, complex64, complex128 	; NodeDef: {{node MatrixTriangularSolve}}; Op<name=MatrixTriangularSolve; signature=matrix:T, rhs:T -> output:T; attr=lower:bool,default=true; attr=adjoint:bool,default=false; attr=T:type,allowed=[DT_BFLOAT16, DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]> [Op:MatrixTriangularSolve]
+InvalidArgumentError: {{function_node __wrapped__MatrixTriangularSolve_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] matrices in the last dimensions must be square (0 =/= 86) [Op:MatrixTriangularSolve]
+NotFoundError: Could not find device for node: {{node MatrixTriangularSolve}} = MatrixTriangularSolve[T=DT_HALF, adjoint=false, lower=true] All kernels registered for op MatrixTriangularSolve:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]  [Op:MatrixTriangularSolve]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (rhs must have a positive K dimension)
+{v_2 : tensor} |= ndim(v_2) ≥ 2 ∧ shape(v_2, ndim(v_2) - 1) > 0
+Token usage: input=2266, output=4491, total=6757
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.cholesky_solve API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Solves systems of linear eqns `A X = RHS`, given Cholesky factorizations.
+
+  Specifically, returns `X` from `A X = RHS`, where `A = L L^T`, `L` is the
+  `chol` arg and `RHS` is the `rhs` arg.
+
+  ```python
+  # Solve 10 separate 2x2 linear systems:
+  A = ... # shape 10 x 2 x 2
+  RHS = ... # shape 10 x 2 x 1
+  chol = tf.linalg.cholesky(A)  # shape 10 x 2 x 2
+  X = tf.linalg.cholesky_solve(chol, RHS)  # shape 10 x 2 x 1
+  # tf.matmul(A, X) ~ RHS
+  X[3, :, 0]  # Solution to the linear system A[3, :, :] x = RHS[3, :, 0]
+
+  # Solve five linear systems (K = 5) for every member of the length 10 batch.
+  A = ... # shape 10 x 2 x 2
+  RHS = ... # shape 10 x 2 x 5
+  ...
+  X[3, :, 2]  # Solution to the linear system A[3, :, :] x = RHS[3, :, 2]
+  ```
+
+  Args:
+    chol:  A `Tensor`.  Must be `float32` or `float64`, shape is `[..., M, M]`.
+      Cholesky factorization of `A`, e.g. `chol = tf.linalg.cholesky(A)`.
+      For that reason, only the lower triangular parts (including the diagonal)
+      of the last two dimensions of `chol` are used.  The strictly upper part is
+      assumed to be zero and not accessed.
+    rhs:  A `Tensor`, same type as `chol`, shape is `[..., M, K]`.
+    name:  A name to give this `Op`.  Defaults to `cholesky_solve`.
+
+  Returns:
+    Solution to `A x = rhs`, shape `[..., M, K]`.
+
+[API Signature] chol: tensor, rhs: tensor, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, double, float, half, complex64, complex128 	; NodeDef: {{node MatrixTriangularSolve}}; Op<name=MatrixTriangularSolve; signature=matrix:T, rhs:T -> output:T; attr=lower:bool,default=true; attr=adjoint:bool,default=false; attr=T:type,allowed=[DT_BFLOAT16, DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]> [Op:MatrixTriangularSolve]
+InvalidArgumentError: {{function_node __wrapped__MatrixTriangularSolve_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] matrices in the last dimensions must be square (0 =/= 86) [Op:MatrixTriangularSolve]
+NotFoundError: Could not find device for node: {{node MatrixTriangularSolve}} = MatrixTriangularSolve[T=DT_HALF, adjoint=false, lower=true] All kernels registered for op MatrixTriangularSolve:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]  [Op:MatrixTriangularSolve]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (name is a string parameter; any string is acceptable)
+{v_3 : str} |= v_3 = v_3
+Token usage: input=2266, output=4491, total=6757
+** SUCCESS **
+

@@ -1,0 +1,1989 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.make_tensor_proto API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Create a TensorProto.
+
+  In TensorFlow 2.0, representing tensors as protos should no longer be a
+  common workflow. That said, this utility function is still useful for
+  generating TF Serving request protos:
+
+  ```python
+    request = tensorflow_serving.apis.predict_pb2.PredictRequest()
+    request.model_spec.name = "my_model"
+    request.model_spec.signature_name = "serving_default"
+    request.inputs["images"].CopyFrom(tf.make_tensor_proto(X_new))
+  ```
+
+  `make_tensor_proto` accepts "values" of a python scalar, a python list, a
+  numpy ndarray, or a numpy scalar.
+
+  If "values" is a python scalar or a python list, make_tensor_proto
+  first convert it to numpy ndarray. If dtype is None, the
+  conversion tries its best to infer the right numpy data
+  type. Otherwise, the resulting numpy array has a compatible data
+  type with the given dtype.
+
+  In either case above, the numpy ndarray (either the caller provided
+  or the auto-converted) must have the compatible type with dtype.
+
+  `make_tensor_proto` then converts the numpy array to a tensor proto.
+
+  If "shape" is None, the resulting tensor proto represents the numpy
+  array precisely.
+
+  Otherwise, "shape" specifies the tensor's shape and the numpy array
+  can not have more elements than what "shape" specifies.
+
+  Args:
+    values:         Values to put in the TensorProto.
+    dtype:          Optional tensor_pb2 DataType value.
+    shape:          List of integers representing the dimensions of tensor.
+    verify_shape:   Boolean that enables verification of a shape of values.
+    allow_broadcast:  Boolean that enables allowing scalars and 1 length vector
+        broadcasting. Cannot be true when verify_shape is true.
+
+  Returns:
+    A `TensorProto`. Depending on the type, it may contain data in the
+    "tensor_content" attribute, which is not directly useful to Python programs.
+    To access the values you should convert the proto back to a numpy ndarray
+    with `tf.make_ndarray(proto)`.
+
+    If `values` is a `TensorProto`, it is immediately returned; `dtype` and
+    `shape` are ignored.
+
+  Raises:
+    TypeError:  if unsupported types are provided.
+    ValueError: if arguments have inappropriate values or if verify_shape is
+     True and shape of values is not equals to a shape from the argument.
+
+[Possible API Signatures]
+ - values: tensor, dtype: dtype, shape: list, verify_shape: boolean, allow_broadcast: boolean
+ - values: list, dtype: dtype, shape: list, verify_shape: boolean, allow_broadcast: boolean
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+ValueError: allow_broadcast and verify_shape are not both allowed.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (dtype must be a valid TensorFlow dtype index)
+{v_2 : dtype} |= 0 ≤ v_2 ∧ v_2 ≤ 12
+Token usage: input=1971, output=8301, total=10272
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.make_tensor_proto API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Create a TensorProto.
+
+  In TensorFlow 2.0, representing tensors as protos should no longer be a
+  common workflow. That said, this utility function is still useful for
+  generating TF Serving request protos:
+
+  ```python
+    request = tensorflow_serving.apis.predict_pb2.PredictRequest()
+    request.model_spec.name = "my_model"
+    request.model_spec.signature_name = "serving_default"
+    request.inputs["images"].CopyFrom(tf.make_tensor_proto(X_new))
+  ```
+
+  `make_tensor_proto` accepts "values" of a python scalar, a python list, a
+  numpy ndarray, or a numpy scalar.
+
+  If "values" is a python scalar or a python list, make_tensor_proto
+  first convert it to numpy ndarray. If dtype is None, the
+  conversion tries its best to infer the right numpy data
+  type. Otherwise, the resulting numpy array has a compatible data
+  type with the given dtype.
+
+  In either case above, the numpy ndarray (either the caller provided
+  or the auto-converted) must have the compatible type with dtype.
+
+  `make_tensor_proto` then converts the numpy array to a tensor proto.
+
+  If "shape" is None, the resulting tensor proto represents the numpy
+  array precisely.
+
+  Otherwise, "shape" specifies the tensor's shape and the numpy array
+  can not have more elements than what "shape" specifies.
+
+  Args:
+    values:         Values to put in the TensorProto.
+    dtype:          Optional tensor_pb2 DataType value.
+    shape:          List of integers representing the dimensions of tensor.
+    verify_shape:   Boolean that enables verification of a shape of values.
+    allow_broadcast:  Boolean that enables allowing scalars and 1 length vector
+        broadcasting. Cannot be true when verify_shape is true.
+
+  Returns:
+    A `TensorProto`. Depending on the type, it may contain data in the
+    "tensor_content" attribute, which is not directly useful to Python programs.
+    To access the values you should convert the proto back to a numpy ndarray
+    with `tf.make_ndarray(proto)`.
+
+    If `values` is a `TensorProto`, it is immediately returned; `dtype` and
+    `shape` are ignored.
+
+  Raises:
+    TypeError:  if unsupported types are provided.
+    ValueError: if arguments have inappropriate values or if verify_shape is
+     True and shape of values is not equals to a shape from the argument.
+
+[Possible API Signatures]
+ - values: tensor, dtype: dtype, shape: list, verify_shape: boolean, allow_broadcast: boolean
+ - values: list, dtype: dtype, shape: list, verify_shape: boolean, allow_broadcast: boolean
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+ValueError: allow_broadcast and verify_shape are not both allowed.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (allow_broadcast and verify_shape cannot both be true)
+{v_4 : bool, v_5 : bool} |= if v_4 then v_5 = false
+Token usage: input=1971, output=8301, total=10272
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.make_tensor_proto API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Create a TensorProto.
+
+  In TensorFlow 2.0, representing tensors as protos should no longer be a
+  common workflow. That said, this utility function is still useful for
+  generating TF Serving request protos:
+
+  ```python
+    request = tensorflow_serving.apis.predict_pb2.PredictRequest()
+    request.model_spec.name = "my_model"
+    request.model_spec.signature_name = "serving_default"
+    request.inputs["images"].CopyFrom(tf.make_tensor_proto(X_new))
+  ```
+
+  `make_tensor_proto` accepts "values" of a python scalar, a python list, a
+  numpy ndarray, or a numpy scalar.
+
+  If "values" is a python scalar or a python list, make_tensor_proto
+  first convert it to numpy ndarray. If dtype is None, the
+  conversion tries its best to infer the right numpy data
+  type. Otherwise, the resulting numpy array has a compatible data
+  type with the given dtype.
+
+  In either case above, the numpy ndarray (either the caller provided
+  or the auto-converted) must have the compatible type with dtype.
+
+  `make_tensor_proto` then converts the numpy array to a tensor proto.
+
+  If "shape" is None, the resulting tensor proto represents the numpy
+  array precisely.
+
+  Otherwise, "shape" specifies the tensor's shape and the numpy array
+  can not have more elements than what "shape" specifies.
+
+  Args:
+    values:         Values to put in the TensorProto.
+    dtype:          Optional tensor_pb2 DataType value.
+    shape:          List of integers representing the dimensions of tensor.
+    verify_shape:   Boolean that enables verification of a shape of values.
+    allow_broadcast:  Boolean that enables allowing scalars and 1 length vector
+        broadcasting. Cannot be true when verify_shape is true.
+
+  Returns:
+    A `TensorProto`. Depending on the type, it may contain data in the
+    "tensor_content" attribute, which is not directly useful to Python programs.
+    To access the values you should convert the proto back to a numpy ndarray
+    with `tf.make_ndarray(proto)`.
+
+    If `values` is a `TensorProto`, it is immediately returned; `dtype` and
+    `shape` are ignored.
+
+  Raises:
+    TypeError:  if unsupported types are provided.
+    ValueError: if arguments have inappropriate values or if verify_shape is
+     True and shape of values is not equals to a shape from the argument.
+
+[Possible API Signatures]
+ - values: tensor, dtype: dtype, shape: list, verify_shape: boolean, allow_broadcast: boolean
+ - values: list, dtype: dtype, shape: list, verify_shape: boolean, allow_broadcast: boolean
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+ValueError: allow_broadcast and verify_shape are not both allowed.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (tensor dtype must match the requested dtype)
+{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) = v_2
+Token usage: input=1971, output=8301, total=10272
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.make_tensor_proto API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Create a TensorProto.
+
+  In TensorFlow 2.0, representing tensors as protos should no longer be a
+  common workflow. That said, this utility function is still useful for
+  generating TF Serving request protos:
+
+  ```python
+    request = tensorflow_serving.apis.predict_pb2.PredictRequest()
+    request.model_spec.name = "my_model"
+    request.model_spec.signature_name = "serving_default"
+    request.inputs["images"].CopyFrom(tf.make_tensor_proto(X_new))
+  ```
+
+  `make_tensor_proto` accepts "values" of a python scalar, a python list, a
+  numpy ndarray, or a numpy scalar.
+
+  If "values" is a python scalar or a python list, make_tensor_proto
+  first convert it to numpy ndarray. If dtype is None, the
+  conversion tries its best to infer the right numpy data
+  type. Otherwise, the resulting numpy array has a compatible data
+  type with the given dtype.
+
+  In either case above, the numpy ndarray (either the caller provided
+  or the auto-converted) must have the compatible type with dtype.
+
+  `make_tensor_proto` then converts the numpy array to a tensor proto.
+
+  If "shape" is None, the resulting tensor proto represents the numpy
+  array precisely.
+
+  Otherwise, "shape" specifies the tensor's shape and the numpy array
+  can not have more elements than what "shape" specifies.
+
+  Args:
+    values:         Values to put in the TensorProto.
+    dtype:          Optional tensor_pb2 DataType value.
+    shape:          List of integers representing the dimensions of tensor.
+    verify_shape:   Boolean that enables verification of a shape of values.
+    allow_broadcast:  Boolean that enables allowing scalars and 1 length vector
+        broadcasting. Cannot be true when verify_shape is true.
+
+  Returns:
+    A `TensorProto`. Depending on the type, it may contain data in the
+    "tensor_content" attribute, which is not directly useful to Python programs.
+    To access the values you should convert the proto back to a numpy ndarray
+    with `tf.make_ndarray(proto)`.
+
+    If `values` is a `TensorProto`, it is immediately returned; `dtype` and
+    `shape` are ignored.
+
+  Raises:
+    TypeError:  if unsupported types are provided.
+    ValueError: if arguments have inappropriate values or if verify_shape is
+     True and shape of values is not equals to a shape from the argument.
+
+[Possible API Signatures]
+ - values: tensor, dtype: dtype, shape: list, verify_shape: boolean, allow_broadcast: boolean
+ - values: list, dtype: dtype, shape: list, verify_shape: boolean, allow_broadcast: boolean
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+ValueError: allow_broadcast and verify_shape are not both allowed.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (when verify_shape is true, shape must exactly match tensor shape)
+{v_1 : tensor, v_3 : list(int), v_4 : bool} |= if v_4 then (v_3.len = ndim(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1] : v_3[i] = shape(v_1, i))
+Token usage: input=1971, output=8301, total=10272
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.make_tensor_proto API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Create a TensorProto.
+
+  In TensorFlow 2.0, representing tensors as protos should no longer be a
+  common workflow. That said, this utility function is still useful for
+  generating TF Serving request protos:
+
+  ```python
+    request = tensorflow_serving.apis.predict_pb2.PredictRequest()
+    request.model_spec.name = "my_model"
+    request.model_spec.signature_name = "serving_default"
+    request.inputs["images"].CopyFrom(tf.make_tensor_proto(X_new))
+  ```
+
+  `make_tensor_proto` accepts "values" of a python scalar, a python list, a
+  numpy ndarray, or a numpy scalar.
+
+  If "values" is a python scalar or a python list, make_tensor_proto
+  first convert it to numpy ndarray. If dtype is None, the
+  conversion tries its best to infer the right numpy data
+  type. Otherwise, the resulting numpy array has a compatible data
+  type with the given dtype.
+
+  In either case above, the numpy ndarray (either the caller provided
+  or the auto-converted) must have the compatible type with dtype.
+
+  `make_tensor_proto` then converts the numpy array to a tensor proto.
+
+  If "shape" is None, the resulting tensor proto represents the numpy
+  array precisely.
+
+  Otherwise, "shape" specifies the tensor's shape and the numpy array
+  can not have more elements than what "shape" specifies.
+
+  Args:
+    values:         Values to put in the TensorProto.
+    dtype:          Optional tensor_pb2 DataType value.
+    shape:          List of integers representing the dimensions of tensor.
+    verify_shape:   Boolean that enables verification of a shape of values.
+    allow_broadcast:  Boolean that enables allowing scalars and 1 length vector
+        broadcasting. Cannot be true when verify_shape is true.
+
+  Returns:
+    A `TensorProto`. Depending on the type, it may contain data in the
+    "tensor_content" attribute, which is not directly useful to Python programs.
+    To access the values you should convert the proto back to a numpy ndarray
+    with `tf.make_ndarray(proto)`.
+
+    If `values` is a `TensorProto`, it is immediately returned; `dtype` and
+    `shape` are ignored.
+
+  Raises:
+    TypeError:  if unsupported types are provided.
+    ValueError: if arguments have inappropriate values or if verify_shape is
+     True and shape of values is not equals to a shape from the argument.
+
+[Possible API Signatures]
+ - values: tensor, dtype: dtype, shape: list, verify_shape: boolean, allow_broadcast: boolean
+ - values: list, dtype: dtype, shape: list, verify_shape: boolean, allow_broadcast: boolean
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+ValueError: allow_broadcast and verify_shape are not both allowed.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (shape dimensions must be non-negative)
+{v_3 : list(int)} |= ∀i ∈ [0, v_3.len - 1] : v_3[i] ≥ 0
+Token usage: input=1971, output=8301, total=10272
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.make_tensor_proto API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Create a TensorProto.
+
+  In TensorFlow 2.0, representing tensors as protos should no longer be a
+  common workflow. That said, this utility function is still useful for
+  generating TF Serving request protos:
+
+  ```python
+    request = tensorflow_serving.apis.predict_pb2.PredictRequest()
+    request.model_spec.name = "my_model"
+    request.model_spec.signature_name = "serving_default"
+    request.inputs["images"].CopyFrom(tf.make_tensor_proto(X_new))
+  ```
+
+  `make_tensor_proto` accepts "values" of a python scalar, a python list, a
+  numpy ndarray, or a numpy scalar.
+
+  If "values" is a python scalar or a python list, make_tensor_proto
+  first convert it to numpy ndarray. If dtype is None, the
+  conversion tries its best to infer the right numpy data
+  type. Otherwise, the resulting numpy array has a compatible data
+  type with the given dtype.
+
+  In either case above, the numpy ndarray (either the caller provided
+  or the auto-converted) must have the compatible type with dtype.
+
+  `make_tensor_proto` then converts the numpy array to a tensor proto.
+
+  If "shape" is None, the resulting tensor proto represents the numpy
+  array precisely.
+
+  Otherwise, "shape" specifies the tensor's shape and the numpy array
+  can not have more elements than what "shape" specifies.
+
+  Args:
+    values:         Values to put in the TensorProto.
+    dtype:          Optional tensor_pb2 DataType value.
+    shape:          List of integers representing the dimensions of tensor.
+    verify_shape:   Boolean that enables verification of a shape of values.
+    allow_broadcast:  Boolean that enables allowing scalars and 1 length vector
+        broadcasting. Cannot be true when verify_shape is true.
+
+  Returns:
+    A `TensorProto`. Depending on the type, it may contain data in the
+    "tensor_content" attribute, which is not directly useful to Python programs.
+    To access the values you should convert the proto back to a numpy ndarray
+    with `tf.make_ndarray(proto)`.
+
+    If `values` is a `TensorProto`, it is immediately returned; `dtype` and
+    `shape` are ignored.
+
+  Raises:
+    TypeError:  if unsupported types are provided.
+    ValueError: if arguments have inappropriate values or if verify_shape is
+     True and shape of values is not equals to a shape from the argument.
+
+[Possible API Signatures]
+ - values: tensor, dtype: dtype, shape: list, verify_shape: boolean, allow_broadcast: boolean
+ - values: list, dtype: dtype, shape: list, verify_shape: boolean, allow_broadcast: boolean
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+ValueError: allow_broadcast and verify_shape are not both allowed.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (broadcasting allowed only for scalar or length-1 vector values)
+{v_1 : tensor, v_5 : bool} |= if v_5 then ((ndim(v_1) = 0) ∨ (ndim(v_1) = 1 ∧ shape(v_1, 0) = 1))
+Token usage: input=1971, output=8301, total=10272
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.make_tensor_proto API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Create a TensorProto.
+
+  In TensorFlow 2.0, representing tensors as protos should no longer be a
+  common workflow. That said, this utility function is still useful for
+  generating TF Serving request protos:
+
+  ```python
+    request = tensorflow_serving.apis.predict_pb2.PredictRequest()
+    request.model_spec.name = "my_model"
+    request.model_spec.signature_name = "serving_default"
+    request.inputs["images"].CopyFrom(tf.make_tensor_proto(X_new))
+  ```
+
+  `make_tensor_proto` accepts "values" of a python scalar, a python list, a
+  numpy ndarray, or a numpy scalar.
+
+  If "values" is a python scalar or a python list, make_tensor_proto
+  first convert it to numpy ndarray. If dtype is None, the
+  conversion tries its best to infer the right numpy data
+  type. Otherwise, the resulting numpy array has a compatible data
+  type with the given dtype.
+
+  In either case above, the numpy ndarray (either the caller provided
+  or the auto-converted) must have the compatible type with dtype.
+
+  `make_tensor_proto` then converts the numpy array to a tensor proto.
+
+  If "shape" is None, the resulting tensor proto represents the numpy
+  array precisely.
+
+  Otherwise, "shape" specifies the tensor's shape and the numpy array
+  can not have more elements than what "shape" specifies.
+
+  Args:
+    values:         Values to put in the TensorProto.
+    dtype:          Optional tensor_pb2 DataType value.
+    shape:          List of integers representing the dimensions of tensor.
+    verify_shape:   Boolean that enables verification of a shape of values.
+    allow_broadcast:  Boolean that enables allowing scalars and 1 length vector
+        broadcasting. Cannot be true when verify_shape is true.
+
+  Returns:
+    A `TensorProto`. Depending on the type, it may contain data in the
+    "tensor_content" attribute, which is not directly useful to Python programs.
+    To access the values you should convert the proto back to a numpy ndarray
+    with `tf.make_ndarray(proto)`.
+
+    If `values` is a `TensorProto`, it is immediately returned; `dtype` and
+    `shape` are ignored.
+
+  Raises:
+    TypeError:  if unsupported types are provided.
+    ValueError: if arguments have inappropriate values or if verify_shape is
+     True and shape of values is not equals to a shape from the argument.
+
+[Possible API Signatures]
+ - values: tensor, dtype: dtype, shape: list, verify_shape: boolean, allow_broadcast: boolean
+ - values: list, dtype: dtype, shape: list, verify_shape: boolean, allow_broadcast: boolean
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+ValueError: allow_broadcast and verify_shape are not both allowed.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (boolean lists require bool dtype)
+{v_1 : list(bool), v_2 : dtype} |= v_2 = 0
+Token usage: input=1971, output=8301, total=10272
+** REDUNDANT VARIABLES ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.make_tensor_proto API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Create a TensorProto.
+
+  In TensorFlow 2.0, representing tensors as protos should no longer be a
+  common workflow. That said, this utility function is still useful for
+  generating TF Serving request protos:
+
+  ```python
+    request = tensorflow_serving.apis.predict_pb2.PredictRequest()
+    request.model_spec.name = "my_model"
+    request.model_spec.signature_name = "serving_default"
+    request.inputs["images"].CopyFrom(tf.make_tensor_proto(X_new))
+  ```
+
+  `make_tensor_proto` accepts "values" of a python scalar, a python list, a
+  numpy ndarray, or a numpy scalar.
+
+  If "values" is a python scalar or a python list, make_tensor_proto
+  first convert it to numpy ndarray. If dtype is None, the
+  conversion tries its best to infer the right numpy data
+  type. Otherwise, the resulting numpy array has a compatible data
+  type with the given dtype.
+
+  In either case above, the numpy ndarray (either the caller provided
+  or the auto-converted) must have the compatible type with dtype.
+
+  `make_tensor_proto` then converts the numpy array to a tensor proto.
+
+  If "shape" is None, the resulting tensor proto represents the numpy
+  array precisely.
+
+  Otherwise, "shape" specifies the tensor's shape and the numpy array
+  can not have more elements than what "shape" specifies.
+
+  Args:
+    values:         Values to put in the TensorProto.
+    dtype:          Optional tensor_pb2 DataType value.
+    shape:          List of integers representing the dimensions of tensor.
+    verify_shape:   Boolean that enables verification of a shape of values.
+    allow_broadcast:  Boolean that enables allowing scalars and 1 length vector
+        broadcasting. Cannot be true when verify_shape is true.
+
+  Returns:
+    A `TensorProto`. Depending on the type, it may contain data in the
+    "tensor_content" attribute, which is not directly useful to Python programs.
+    To access the values you should convert the proto back to a numpy ndarray
+    with `tf.make_ndarray(proto)`.
+
+    If `values` is a `TensorProto`, it is immediately returned; `dtype` and
+    `shape` are ignored.
+
+  Raises:
+    TypeError:  if unsupported types are provided.
+    ValueError: if arguments have inappropriate values or if verify_shape is
+     True and shape of values is not equals to a shape from the argument.
+
+[Possible API Signatures]
+ - values: tensor, dtype: dtype, shape: list, verify_shape: boolean, allow_broadcast: boolean
+ - values: list, dtype: dtype, shape: list, verify_shape: boolean, allow_broadcast: boolean
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+ValueError: allow_broadcast and verify_shape are not both allowed.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (string lists require str dtype and must use allowed vocabulary)
+{v_1 : list(str), v_2 : dtype} |= if v_2 = 11 then ∀i ∈ [0, v_1.len - 1] : (v_1[i] = "ii" ∨ v_1[i] = "ii->i" ∨ v_1[i] = "i,j->ij" ∨ v_1[i] = "bij,bjk->bik" ∨ v_1[i] = "...ij->...ji" ∨ v_1[i] = "bn,anm,bm->ba" ∨ v_1[i] = "none" ∨ v_1[i] = "sum" ∨ v_1[i] = "max" ∨ v_1[i] = "min" ∨ v_1[i] = "prod" ∨ v_1[i] = "relu" ∨ v_1[i] = "tanh" ∨ v_1[i] = "sigmoid" ∨ v_1[i] = "softmax" ∨ v_1[i] = "elu" ∨ v_1[i] = "selu" ∨ v_1[i] = "gelu" ∨ v_1[i] = "swish" ∨ v_1[i] = "softplus" ∨ v_1[i] = "linear" ∨ v_1[i] = "valid" ∨ v_1[i] = "same" ∨ v_1[i] = "causal" ∨ v_1[i] = "channels_last" ∨ v_1[i] = "channels_first")
+Token usage: input=1971, output=8301, total=10272
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.make_tensor_proto API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Create a TensorProto.
+
+  In TensorFlow 2.0, representing tensors as protos should no longer be a
+  common workflow. That said, this utility function is still useful for
+  generating TF Serving request protos:
+
+  ```python
+    request = tensorflow_serving.apis.predict_pb2.PredictRequest()
+    request.model_spec.name = "my_model"
+    request.model_spec.signature_name = "serving_default"
+    request.inputs["images"].CopyFrom(tf.make_tensor_proto(X_new))
+  ```
+
+  `make_tensor_proto` accepts "values" of a python scalar, a python list, a
+  numpy ndarray, or a numpy scalar.
+
+  If "values" is a python scalar or a python list, make_tensor_proto
+  first convert it to numpy ndarray. If dtype is None, the
+  conversion tries its best to infer the right numpy data
+  type. Otherwise, the resulting numpy array has a compatible data
+  type with the given dtype.
+
+  In either case above, the numpy ndarray (either the caller provided
+  or the auto-converted) must have the compatible type with dtype.
+
+  `make_tensor_proto` then converts the numpy array to a tensor proto.
+
+  If "shape" is None, the resulting tensor proto represents the numpy
+  array precisely.
+
+  Otherwise, "shape" specifies the tensor's shape and the numpy array
+  can not have more elements than what "shape" specifies.
+
+  Args:
+    values:         Values to put in the TensorProto.
+    dtype:          Optional tensor_pb2 DataType value.
+    shape:          List of integers representing the dimensions of tensor.
+    verify_shape:   Boolean that enables verification of a shape of values.
+    allow_broadcast:  Boolean that enables allowing scalars and 1 length vector
+        broadcasting. Cannot be true when verify_shape is true.
+
+  Returns:
+    A `TensorProto`. Depending on the type, it may contain data in the
+    "tensor_content" attribute, which is not directly useful to Python programs.
+    To access the values you should convert the proto back to a numpy ndarray
+    with `tf.make_ndarray(proto)`.
+
+    If `values` is a `TensorProto`, it is immediately returned; `dtype` and
+    `shape` are ignored.
+
+  Raises:
+    TypeError:  if unsupported types are provided.
+    ValueError: if arguments have inappropriate values or if verify_shape is
+     True and shape of values is not equals to a shape from the argument.
+
+[Possible API Signatures]
+ - values: tensor, dtype: dtype, shape: list, verify_shape: boolean, allow_broadcast: boolean
+ - values: list, dtype: dtype, shape: list, verify_shape: boolean, allow_broadcast: boolean
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+ValueError: allow_broadcast and verify_shape are not both allowed.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (integer lists require integer or real dtype)
+{v_1 : list(int), v_2 : dtype} |= (v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5 ∨ v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8)
+Token usage: input=1971, output=8301, total=10272
+** REDUNDANT VARIABLES ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.make_tensor_proto API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Create a TensorProto.
+
+  In TensorFlow 2.0, representing tensors as protos should no longer be a
+  common workflow. That said, this utility function is still useful for
+  generating TF Serving request protos:
+
+  ```python
+    request = tensorflow_serving.apis.predict_pb2.PredictRequest()
+    request.model_spec.name = "my_model"
+    request.model_spec.signature_name = "serving_default"
+    request.inputs["images"].CopyFrom(tf.make_tensor_proto(X_new))
+  ```
+
+  `make_tensor_proto` accepts "values" of a python scalar, a python list, a
+  numpy ndarray, or a numpy scalar.
+
+  If "values" is a python scalar or a python list, make_tensor_proto
+  first convert it to numpy ndarray. If dtype is None, the
+  conversion tries its best to infer the right numpy data
+  type. Otherwise, the resulting numpy array has a compatible data
+  type with the given dtype.
+
+  In either case above, the numpy ndarray (either the caller provided
+  or the auto-converted) must have the compatible type with dtype.
+
+  `make_tensor_proto` then converts the numpy array to a tensor proto.
+
+  If "shape" is None, the resulting tensor proto represents the numpy
+  array precisely.
+
+  Otherwise, "shape" specifies the tensor's shape and the numpy array
+  can not have more elements than what "shape" specifies.
+
+  Args:
+    values:         Values to put in the TensorProto.
+    dtype:          Optional tensor_pb2 DataType value.
+    shape:          List of integers representing the dimensions of tensor.
+    verify_shape:   Boolean that enables verification of a shape of values.
+    allow_broadcast:  Boolean that enables allowing scalars and 1 length vector
+        broadcasting. Cannot be true when verify_shape is true.
+
+  Returns:
+    A `TensorProto`. Depending on the type, it may contain data in the
+    "tensor_content" attribute, which is not directly useful to Python programs.
+    To access the values you should convert the proto back to a numpy ndarray
+    with `tf.make_ndarray(proto)`.
+
+    If `values` is a `TensorProto`, it is immediately returned; `dtype` and
+    `shape` are ignored.
+
+  Raises:
+    TypeError:  if unsupported types are provided.
+    ValueError: if arguments have inappropriate values or if verify_shape is
+     True and shape of values is not equals to a shape from the argument.
+
+[Possible API Signatures]
+ - values: tensor, dtype: dtype, shape: list, verify_shape: boolean, allow_broadcast: boolean
+ - values: list, dtype: dtype, shape: list, verify_shape: boolean, allow_broadcast: boolean
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+ValueError: allow_broadcast and verify_shape are not both allowed.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (float lists require floating-point or complex dtype)
+{v_1 : list(float), v_2 : dtype} |= (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10)
+Token usage: input=1971, output=8301, total=10272
+** REDUNDANT VARIABLES ** (num_failures: 3)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.make_tensor_proto API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Create a TensorProto.
+
+  In TensorFlow 2.0, representing tensors as protos should no longer be a
+  common workflow. That said, this utility function is still useful for
+  generating TF Serving request protos:
+
+  ```python
+    request = tensorflow_serving.apis.predict_pb2.PredictRequest()
+    request.model_spec.name = "my_model"
+    request.model_spec.signature_name = "serving_default"
+    request.inputs["images"].CopyFrom(tf.make_tensor_proto(X_new))
+  ```
+
+  `make_tensor_proto` accepts "values" of a python scalar, a python list, a
+  numpy ndarray, or a numpy scalar.
+
+  If "values" is a python scalar or a python list, make_tensor_proto
+  first convert it to numpy ndarray. If dtype is None, the
+  conversion tries its best to infer the right numpy data
+  type. Otherwise, the resulting numpy array has a compatible data
+  type with the given dtype.
+
+  In either case above, the numpy ndarray (either the caller provided
+  or the auto-converted) must have the compatible type with dtype.
+
+  `make_tensor_proto` then converts the numpy array to a tensor proto.
+
+  If "shape" is None, the resulting tensor proto represents the numpy
+  array precisely.
+
+  Otherwise, "shape" specifies the tensor's shape and the numpy array
+  can not have more elements than what "shape" specifies.
+
+  Args:
+    values:         Values to put in the TensorProto.
+    dtype:          Optional tensor_pb2 DataType value.
+    shape:          List of integers representing the dimensions of tensor.
+    verify_shape:   Boolean that enables verification of a shape of values.
+    allow_broadcast:  Boolean that enables allowing scalars and 1 length vector
+        broadcasting. Cannot be true when verify_shape is true.
+
+  Returns:
+    A `TensorProto`. Depending on the type, it may contain data in the
+    "tensor_content" attribute, which is not directly useful to Python programs.
+    To access the values you should convert the proto back to a numpy ndarray
+    with `tf.make_ndarray(proto)`.
+
+    If `values` is a `TensorProto`, it is immediately returned; `dtype` and
+    `shape` are ignored.
+
+  Raises:
+    TypeError:  if unsupported types are provided.
+    ValueError: if arguments have inappropriate values or if verify_shape is
+     True and shape of values is not equals to a shape from the argument.
+
+[Possible API Signatures]
+ - values: tensor, dtype: dtype, shape: list, verify_shape: boolean, allow_broadcast: boolean
+ - values: list, dtype: dtype, shape: list, verify_shape: boolean, allow_broadcast: boolean
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+ValueError: allow_broadcast and verify_shape are not both allowed.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (when not broadcasting, provided shape rank must match tensor rank)
+{v_1 : tensor, v_3 : list(int), v_5 : bool} |= if v_5 then true else (v_3.len = ndim(v_1))
+Token usage: input=1971, output=8301, total=10272
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.make_tensor_proto API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Create a TensorProto.
+
+  In TensorFlow 2.0, representing tensors as protos should no longer be a
+  common workflow. That said, this utility function is still useful for
+  generating TF Serving request protos:
+
+  ```python
+    request = tensorflow_serving.apis.predict_pb2.PredictRequest()
+    request.model_spec.name = "my_model"
+    request.model_spec.signature_name = "serving_default"
+    request.inputs["images"].CopyFrom(tf.make_tensor_proto(X_new))
+  ```
+
+  `make_tensor_proto` accepts "values" of a python scalar, a python list, a
+  numpy ndarray, or a numpy scalar.
+
+  If "values" is a python scalar or a python list, make_tensor_proto
+  first convert it to numpy ndarray. If dtype is None, the
+  conversion tries its best to infer the right numpy data
+  type. Otherwise, the resulting numpy array has a compatible data
+  type with the given dtype.
+
+  In either case above, the numpy ndarray (either the caller provided
+  or the auto-converted) must have the compatible type with dtype.
+
+  `make_tensor_proto` then converts the numpy array to a tensor proto.
+
+  If "shape" is None, the resulting tensor proto represents the numpy
+  array precisely.
+
+  Otherwise, "shape" specifies the tensor's shape and the numpy array
+  can not have more elements than what "shape" specifies.
+
+  Args:
+    values:         Values to put in the TensorProto.
+    dtype:          Optional tensor_pb2 DataType value.
+    shape:          List of integers representing the dimensions of tensor.
+    verify_shape:   Boolean that enables verification of a shape of values.
+    allow_broadcast:  Boolean that enables allowing scalars and 1 length vector
+        broadcasting. Cannot be true when verify_shape is true.
+
+  Returns:
+    A `TensorProto`. Depending on the type, it may contain data in the
+    "tensor_content" attribute, which is not directly useful to Python programs.
+    To access the values you should convert the proto back to a numpy ndarray
+    with `tf.make_ndarray(proto)`.
+
+    If `values` is a `TensorProto`, it is immediately returned; `dtype` and
+    `shape` are ignored.
+
+  Raises:
+    TypeError:  if unsupported types are provided.
+    ValueError: if arguments have inappropriate values or if verify_shape is
+     True and shape of values is not equals to a shape from the argument.
+
+[Possible API Signatures]
+ - values: tensor, dtype: dtype, shape: list, verify_shape: boolean, allow_broadcast: boolean
+ - values: list, dtype: dtype, shape: list, verify_shape: boolean, allow_broadcast: boolean
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+ValueError: allow_broadcast and verify_shape are not both allowed.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (with broadcasting, provided shape rank must not be smaller than tensor rank)
+{v_1 : tensor, v_3 : list(int), v_5 : bool} |= if v_5 then v_3.len ≥ ndim(v_1)
+Token usage: input=1971, output=8301, total=10272
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.make_tensor_proto API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Create a TensorProto.
+
+  In TensorFlow 2.0, representing tensors as protos should no longer be a
+  common workflow. That said, this utility function is still useful for
+  generating TF Serving request protos:
+
+  ```python
+    request = tensorflow_serving.apis.predict_pb2.PredictRequest()
+    request.model_spec.name = "my_model"
+    request.model_spec.signature_name = "serving_default"
+    request.inputs["images"].CopyFrom(tf.make_tensor_proto(X_new))
+  ```
+
+  `make_tensor_proto` accepts "values" of a python scalar, a python list, a
+  numpy ndarray, or a numpy scalar.
+
+  If "values" is a python scalar or a python list, make_tensor_proto
+  first convert it to numpy ndarray. If dtype is None, the
+  conversion tries its best to infer the right numpy data
+  type. Otherwise, the resulting numpy array has a compatible data
+  type with the given dtype.
+
+  In either case above, the numpy ndarray (either the caller provided
+  or the auto-converted) must have the compatible type with dtype.
+
+  `make_tensor_proto` then converts the numpy array to a tensor proto.
+
+  If "shape" is None, the resulting tensor proto represents the numpy
+  array precisely.
+
+  Otherwise, "shape" specifies the tensor's shape and the numpy array
+  can not have more elements than what "shape" specifies.
+
+  Args:
+    values:         Values to put in the TensorProto.
+    dtype:          Optional tensor_pb2 DataType value.
+    shape:          List of integers representing the dimensions of tensor.
+    verify_shape:   Boolean that enables verification of a shape of values.
+    allow_broadcast:  Boolean that enables allowing scalars and 1 length vector
+        broadcasting. Cannot be true when verify_shape is true.
+
+  Returns:
+    A `TensorProto`. Depending on the type, it may contain data in the
+    "tensor_content" attribute, which is not directly useful to Python programs.
+    To access the values you should convert the proto back to a numpy ndarray
+    with `tf.make_ndarray(proto)`.
+
+    If `values` is a `TensorProto`, it is immediately returned; `dtype` and
+    `shape` are ignored.
+
+  Raises:
+    TypeError:  if unsupported types are provided.
+    ValueError: if arguments have inappropriate values or if verify_shape is
+     True and shape of values is not equals to a shape from the argument.
+
+[Possible API Signatures]
+ - values: tensor, dtype: dtype, shape: list, verify_shape: boolean, allow_broadcast: boolean
+ - values: list, dtype: dtype, shape: list, verify_shape: boolean, allow_broadcast: boolean
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+ValueError: allow_broadcast and verify_shape are not both allowed.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (numeric Python lists (ints or floats) require a numeric dtype)
+{v_1 : list(int ⊎ float), v_2 : dtype} |= (1 ≤ v_2 ∧ v_2 ≤ 10 ∧ v_2 ≠ 11)
+Token usage: input=1971, output=8301, total=10272
+** REDUNDANT VARIABLES ** (num_failures: 4)
+

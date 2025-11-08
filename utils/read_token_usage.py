@@ -9,27 +9,31 @@ def read_token_usage(log_file):
     else:
         csv_file = log_file + '.csv'
     with open(csv_file, 'w') as f:
-        f.write("input_tokens,output_tokens,total_tokens\n")
+        f.write("api,input_tokens,output_tokens,total_tokens\n")
 
     with open(log_file, 'r') as f:
-        lines = f.readlines()        
+        lines = f.readlines()
+        cur_api = None
         for line in lines:
+            if line.strip().startswith("This is the documentation for the function"):
+                cur_api = line.strip().split()[-1][:-1]
+
             # Match lines like this: Token usage: input=1476, output=5128, total=6604
-            if line.strip().startswith("Token usage:"):
+            elif line.strip().startswith("Token usage:"):
                 parts = line.strip().split(',')
                 input_tokens = int(parts[0].split('=')[1].strip())
                 output_tokens = int(parts[1].split('=')[1].strip())
                 total_tokens = int(parts[2].split('=')[1].strip())
 
                 with open(csv_file, 'a') as csv_f:
-                    csv_f.write(f"{input_tokens},{output_tokens},{total_tokens}\n")
+                    csv_f.write(f"{cur_api},{input_tokens},{output_tokens},{total_tokens}\n")
         
                 total_input_tokens += input_tokens
                 total_output_tokens += output_tokens
                 tokens_sum += total_tokens
 
         with open(csv_file, 'a') as csv_f:
-            csv_f.write(f"{total_input_tokens},{total_output_tokens},{tokens_sum}\n")
+            csv_f.write(f"Total,{total_input_tokens},{total_output_tokens},{tokens_sum}\n")
 
     print(f"Token usage data has been written to {csv_file}")
     return total_input_tokens, total_output_tokens, tokens_sum

@@ -1,0 +1,36 @@
+>>
+Rule 1 (filename must not be a sentinel or placeholder string)
+{v_1 : str} |= v_1 ≠ "none" ∧ v_1 ≠ "relu" ∧ v_1 ≠ "tanh" ∧ v_1 ≠ "sigmoid"
+>>
+Rule 2 (compression_type must be a recognized option)
+{v_2 : str} |= v_2 = "none" ∨ v_2 = "valid" ∨ v_2 = "same"
+>>
+Rule 3 (filename and compression_type should not be identical)
+{v_1 : str, v_2 : str} |= v_1 ≠ v_2
+>>
+Rule 4 (if no compression, filename must remain a non-placeholder; otherwise still not mirror compression_type)
+{v_1 : str, v_2 : str} |= if v_2 = "none" then v_1 ≠ "softmax" else v_1 ≠ v_2
+>>
+Rule 5 (compression_type must indicate no compression or a supported placeholder)
+{v_2 : str} |= v_2 = "none" ∨ v_2 = "causal"
+>>
+Rule 6 (filename should not be an einsum pattern or data layout token)
+{v_1 : str} |= v_1 ≠ "ii" ∧ v_1 ≠ "ii->i" ∧ v_1 ≠ "i,j->ij" ∧ v_1 ≠ "channels_last" ∧ v_1 ≠ "channels_first"
+>>
+Rule 7 (filename should not be a convolution padding keyword)
+{v_1 : str} |= v_1 ≠ "valid" ∧ v_1 ≠ "same"
+>>
+Rule 8 (compression_type should not be an activation or reduction keyword)
+{v_2 : str} |= v_2 ≠ "relu" ∧ v_2 ≠ "tanh" ∧ v_2 ≠ "sigmoid" ∧ v_2 ≠ "softmax" ∧ v_2 ≠ "sum" ∧ v_2 ≠ "max" ∧ v_2 ≠ "min" ∧ v_2 ≠ "prod"
+>>
+Rule 9 (if no compression is used, filename must not be “none”; otherwise avoid “causal” as a filename)
+{v_1 : str, v_2 : str} |= if v_2 = "none" then v_1 ≠ "none" else v_1 ≠ "causal"
+>>
+Rule 10 (if compression is “causal”, filename must not be a padding keyword; otherwise avoid an activation name)
+{v_1 : str, v_2 : str} |= if v_2 = "causal" then (v_1 ≠ "valid" ∧ v_1 ≠ "same") else v_1 ≠ "softplus"
+>>
+Rule 11 (compression_type should not be a data layout token)
+{v_2 : str} |= v_2 ≠ "channels_last" ∧ v_2 ≠ "channels_first"
+>>
+Rule 12 (if filename resembles a padding/compression token, it must differ from compression_type)
+{v_1 : str, v_2 : str} |= if (v_1 = "valid" ∨ v_1 = "same" ∨ v_1 = "causal" ∨ v_1 = "none") then v_1 ≠ v_2
