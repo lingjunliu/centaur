@@ -1,0 +1,1197 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.linalg.householder_product API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+householder_product(A, tau, *, out=None) -> Tensor
+
+Computes the first `n` columns of a product of Householder matrices.
+
+Let :math:`\mathbb{K}` be :math:`\mathbb{R}` or :math:`\mathbb{C}`, and
+let :math:`A \in \mathbb{K}^{m \times n}` be a matrix with columns :math:`a_i \in \mathbb{K}^m`
+for :math:`i=1,\ldots,m` with :math:`m \geq n`. Denote by :math:`b_i` the vector resulting from
+zeroing out the first :math:`i-1` components of :math:`a_i` and setting to `1` the :math:`i`-th.
+For a vector :math:`\tau \in \mathbb{K}^k` with :math:`k \leq n`, this function computes the
+first :math:`n` columns of the matrix
+
+.. math::
+
+    H_1H_2 ... H_k \qquad\text{with}\qquad H_i = \mathrm{I}_m - \tau_i b_i b_i^{\text{H}}
+
+where :math:`\mathrm{I}_m` is the `m`-dimensional identity matrix and :math:`b^{\text{H}}` is the
+conjugate transpose when :math:`b` is complex, and the transpose when :math:`b` is real-valued.
+The output matrix is the same size as the input matrix :attr:`A`.
+
+See `Representation of Orthogonal or Unitary Matrices`_ for further details.
+
+Supports inputs of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if the inputs are batches of matrices then
+the output has the same batch dimensions.
+
+.. seealso::
+
+        :func:`torch.geqrf` can be used together with this function to form the `Q` from the
+        :func:`~qr` decomposition.
+
+        :func:`torch.ormqr` is a related function that computes the matrix multiplication
+        of a product of Householder matrices with another matrix.
+        However, that function is not supported by autograd.
+
+.. warning::
+    Gradient computations are only well-defined if :math:`\tau_i \neq \frac{1}{||a_i||^2}`.
+    If this condition is not met, no error will be thrown, but the gradient produced may contain `NaN`.
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tau (Tensor): tensor of shape `(*, k)` where `*` is zero or more batch dimensions.
+
+Keyword args:
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Raises:
+    RuntimeError: if :attr:`A` doesn't satisfy the requirement `m >= n`,
+                  or :attr:`tau` doesn't satisfy the requirement `n >= k`.
+
+Examples::
+
+    >>> A = torch.randn(2, 2)
+    >>> h, tau = torch.geqrf(A)
+    >>> Q = torch.linalg.householder_product(h, tau)
+    >>> torch.dist(Q, torch.linalg.qr(A).Q)
+    tensor(0.)
+
+    >>> h = torch.randn(3, 2, 2, dtype=torch.complex128)
+    >>> tau = torch.randn(3, 1, dtype=torch.complex128)
+    >>> Q = torch.linalg.householder_product(h, tau)
+    >>> Q
+    tensor([[[ 1.8034+0.4184j,  0.2588-1.0174j],
+            [-0.6853+0.7953j,  2.0790+0.5620j]],
+
+            [[ 1.4581+1.6989j, -1.5360+0.1193j],
+            [ 1.3877-0.6691j,  1.3512+1.3024j]],
+
+            [[ 1.4766+0.5783j,  0.0361+0.6587j],
+            [ 0.6396+0.1612j,  1.3693+0.4481j]]], dtype=torch.complex128)
+
+.. _Representation of Orthogonal or Unitary Matrices:
+    https://www.netlib.org/lapack/lug/node128.html
+
+[API Signature] A: tensor, tau: tensor, out: tensor
+
+[Error Messages]
+RuntimeError: torch.linalg.householder_product: Expected batch dimensions of tau to be equal to input.shape[:-2], but got [42, 28]
+RuntimeError: torch.linalg.householder_product: Expected tau to have one dimension less than input, but got tau.ndim equal to 1 and input.ndim is equal to 3
+RuntimeError: torch.linalg.householder_product: input must have at least 2 dimensions.
+RuntimeError: torch.linalg.householder_product: input.shape[-1] must be greater than or equal to tau.shape[-1]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (A must be at least 2D)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
+Token usage: input=2388, output=4485, total=6873
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.linalg.householder_product API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+householder_product(A, tau, *, out=None) -> Tensor
+
+Computes the first `n` columns of a product of Householder matrices.
+
+Let :math:`\mathbb{K}` be :math:`\mathbb{R}` or :math:`\mathbb{C}`, and
+let :math:`A \in \mathbb{K}^{m \times n}` be a matrix with columns :math:`a_i \in \mathbb{K}^m`
+for :math:`i=1,\ldots,m` with :math:`m \geq n`. Denote by :math:`b_i` the vector resulting from
+zeroing out the first :math:`i-1` components of :math:`a_i` and setting to `1` the :math:`i`-th.
+For a vector :math:`\tau \in \mathbb{K}^k` with :math:`k \leq n`, this function computes the
+first :math:`n` columns of the matrix
+
+.. math::
+
+    H_1H_2 ... H_k \qquad\text{with}\qquad H_i = \mathrm{I}_m - \tau_i b_i b_i^{\text{H}}
+
+where :math:`\mathrm{I}_m` is the `m`-dimensional identity matrix and :math:`b^{\text{H}}` is the
+conjugate transpose when :math:`b` is complex, and the transpose when :math:`b` is real-valued.
+The output matrix is the same size as the input matrix :attr:`A`.
+
+See `Representation of Orthogonal or Unitary Matrices`_ for further details.
+
+Supports inputs of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if the inputs are batches of matrices then
+the output has the same batch dimensions.
+
+.. seealso::
+
+        :func:`torch.geqrf` can be used together with this function to form the `Q` from the
+        :func:`~qr` decomposition.
+
+        :func:`torch.ormqr` is a related function that computes the matrix multiplication
+        of a product of Householder matrices with another matrix.
+        However, that function is not supported by autograd.
+
+.. warning::
+    Gradient computations are only well-defined if :math:`\tau_i \neq \frac{1}{||a_i||^2}`.
+    If this condition is not met, no error will be thrown, but the gradient produced may contain `NaN`.
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tau (Tensor): tensor of shape `(*, k)` where `*` is zero or more batch dimensions.
+
+Keyword args:
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Raises:
+    RuntimeError: if :attr:`A` doesn't satisfy the requirement `m >= n`,
+                  or :attr:`tau` doesn't satisfy the requirement `n >= k`.
+
+Examples::
+
+    >>> A = torch.randn(2, 2)
+    >>> h, tau = torch.geqrf(A)
+    >>> Q = torch.linalg.householder_product(h, tau)
+    >>> torch.dist(Q, torch.linalg.qr(A).Q)
+    tensor(0.)
+
+    >>> h = torch.randn(3, 2, 2, dtype=torch.complex128)
+    >>> tau = torch.randn(3, 1, dtype=torch.complex128)
+    >>> Q = torch.linalg.householder_product(h, tau)
+    >>> Q
+    tensor([[[ 1.8034+0.4184j,  0.2588-1.0174j],
+            [-0.6853+0.7953j,  2.0790+0.5620j]],
+
+            [[ 1.4581+1.6989j, -1.5360+0.1193j],
+            [ 1.3877-0.6691j,  1.3512+1.3024j]],
+
+            [[ 1.4766+0.5783j,  0.0361+0.6587j],
+            [ 0.6396+0.1612j,  1.3693+0.4481j]]], dtype=torch.complex128)
+
+.. _Representation of Orthogonal or Unitary Matrices:
+    https://www.netlib.org/lapack/lug/node128.html
+
+[API Signature] A: tensor, tau: tensor, out: tensor
+
+[Error Messages]
+RuntimeError: torch.linalg.householder_product: Expected batch dimensions of tau to be equal to input.shape[:-2], but got [42, 28]
+RuntimeError: torch.linalg.householder_product: Expected tau to have one dimension less than input, but got tau.ndim equal to 1 and input.ndim is equal to 3
+RuntimeError: torch.linalg.householder_product: input must have at least 2 dimensions.
+RuntimeError: torch.linalg.householder_product: input.shape[-1] must be greater than or equal to tau.shape[-1]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (A must satisfy m ≥ n)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 2) ≥ shape(v_1, ndim(v_1) - 1)
+Token usage: input=2388, output=4485, total=6873
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.linalg.householder_product API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+householder_product(A, tau, *, out=None) -> Tensor
+
+Computes the first `n` columns of a product of Householder matrices.
+
+Let :math:`\mathbb{K}` be :math:`\mathbb{R}` or :math:`\mathbb{C}`, and
+let :math:`A \in \mathbb{K}^{m \times n}` be a matrix with columns :math:`a_i \in \mathbb{K}^m`
+for :math:`i=1,\ldots,m` with :math:`m \geq n`. Denote by :math:`b_i` the vector resulting from
+zeroing out the first :math:`i-1` components of :math:`a_i` and setting to `1` the :math:`i`-th.
+For a vector :math:`\tau \in \mathbb{K}^k` with :math:`k \leq n`, this function computes the
+first :math:`n` columns of the matrix
+
+.. math::
+
+    H_1H_2 ... H_k \qquad\text{with}\qquad H_i = \mathrm{I}_m - \tau_i b_i b_i^{\text{H}}
+
+where :math:`\mathrm{I}_m` is the `m`-dimensional identity matrix and :math:`b^{\text{H}}` is the
+conjugate transpose when :math:`b` is complex, and the transpose when :math:`b` is real-valued.
+The output matrix is the same size as the input matrix :attr:`A`.
+
+See `Representation of Orthogonal or Unitary Matrices`_ for further details.
+
+Supports inputs of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if the inputs are batches of matrices then
+the output has the same batch dimensions.
+
+.. seealso::
+
+        :func:`torch.geqrf` can be used together with this function to form the `Q` from the
+        :func:`~qr` decomposition.
+
+        :func:`torch.ormqr` is a related function that computes the matrix multiplication
+        of a product of Householder matrices with another matrix.
+        However, that function is not supported by autograd.
+
+.. warning::
+    Gradient computations are only well-defined if :math:`\tau_i \neq \frac{1}{||a_i||^2}`.
+    If this condition is not met, no error will be thrown, but the gradient produced may contain `NaN`.
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tau (Tensor): tensor of shape `(*, k)` where `*` is zero or more batch dimensions.
+
+Keyword args:
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Raises:
+    RuntimeError: if :attr:`A` doesn't satisfy the requirement `m >= n`,
+                  or :attr:`tau` doesn't satisfy the requirement `n >= k`.
+
+Examples::
+
+    >>> A = torch.randn(2, 2)
+    >>> h, tau = torch.geqrf(A)
+    >>> Q = torch.linalg.householder_product(h, tau)
+    >>> torch.dist(Q, torch.linalg.qr(A).Q)
+    tensor(0.)
+
+    >>> h = torch.randn(3, 2, 2, dtype=torch.complex128)
+    >>> tau = torch.randn(3, 1, dtype=torch.complex128)
+    >>> Q = torch.linalg.householder_product(h, tau)
+    >>> Q
+    tensor([[[ 1.8034+0.4184j,  0.2588-1.0174j],
+            [-0.6853+0.7953j,  2.0790+0.5620j]],
+
+            [[ 1.4581+1.6989j, -1.5360+0.1193j],
+            [ 1.3877-0.6691j,  1.3512+1.3024j]],
+
+            [[ 1.4766+0.5783j,  0.0361+0.6587j],
+            [ 0.6396+0.1612j,  1.3693+0.4481j]]], dtype=torch.complex128)
+
+.. _Representation of Orthogonal or Unitary Matrices:
+    https://www.netlib.org/lapack/lug/node128.html
+
+[API Signature] A: tensor, tau: tensor, out: tensor
+
+[Error Messages]
+RuntimeError: torch.linalg.householder_product: Expected batch dimensions of tau to be equal to input.shape[:-2], but got [42, 28]
+RuntimeError: torch.linalg.householder_product: Expected tau to have one dimension less than input, but got tau.ndim equal to 1 and input.ndim is equal to 3
+RuntimeError: torch.linalg.householder_product: input must have at least 2 dimensions.
+RuntimeError: torch.linalg.householder_product: input.shape[-1] must be greater than or equal to tau.shape[-1]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (tau must have one fewer dimension than A)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = ndim(v_1) - 1
+Token usage: input=2388, output=4485, total=6873
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.linalg.householder_product API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+householder_product(A, tau, *, out=None) -> Tensor
+
+Computes the first `n` columns of a product of Householder matrices.
+
+Let :math:`\mathbb{K}` be :math:`\mathbb{R}` or :math:`\mathbb{C}`, and
+let :math:`A \in \mathbb{K}^{m \times n}` be a matrix with columns :math:`a_i \in \mathbb{K}^m`
+for :math:`i=1,\ldots,m` with :math:`m \geq n`. Denote by :math:`b_i` the vector resulting from
+zeroing out the first :math:`i-1` components of :math:`a_i` and setting to `1` the :math:`i`-th.
+For a vector :math:`\tau \in \mathbb{K}^k` with :math:`k \leq n`, this function computes the
+first :math:`n` columns of the matrix
+
+.. math::
+
+    H_1H_2 ... H_k \qquad\text{with}\qquad H_i = \mathrm{I}_m - \tau_i b_i b_i^{\text{H}}
+
+where :math:`\mathrm{I}_m` is the `m`-dimensional identity matrix and :math:`b^{\text{H}}` is the
+conjugate transpose when :math:`b` is complex, and the transpose when :math:`b` is real-valued.
+The output matrix is the same size as the input matrix :attr:`A`.
+
+See `Representation of Orthogonal or Unitary Matrices`_ for further details.
+
+Supports inputs of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if the inputs are batches of matrices then
+the output has the same batch dimensions.
+
+.. seealso::
+
+        :func:`torch.geqrf` can be used together with this function to form the `Q` from the
+        :func:`~qr` decomposition.
+
+        :func:`torch.ormqr` is a related function that computes the matrix multiplication
+        of a product of Householder matrices with another matrix.
+        However, that function is not supported by autograd.
+
+.. warning::
+    Gradient computations are only well-defined if :math:`\tau_i \neq \frac{1}{||a_i||^2}`.
+    If this condition is not met, no error will be thrown, but the gradient produced may contain `NaN`.
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tau (Tensor): tensor of shape `(*, k)` where `*` is zero or more batch dimensions.
+
+Keyword args:
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Raises:
+    RuntimeError: if :attr:`A` doesn't satisfy the requirement `m >= n`,
+                  or :attr:`tau` doesn't satisfy the requirement `n >= k`.
+
+Examples::
+
+    >>> A = torch.randn(2, 2)
+    >>> h, tau = torch.geqrf(A)
+    >>> Q = torch.linalg.householder_product(h, tau)
+    >>> torch.dist(Q, torch.linalg.qr(A).Q)
+    tensor(0.)
+
+    >>> h = torch.randn(3, 2, 2, dtype=torch.complex128)
+    >>> tau = torch.randn(3, 1, dtype=torch.complex128)
+    >>> Q = torch.linalg.householder_product(h, tau)
+    >>> Q
+    tensor([[[ 1.8034+0.4184j,  0.2588-1.0174j],
+            [-0.6853+0.7953j,  2.0790+0.5620j]],
+
+            [[ 1.4581+1.6989j, -1.5360+0.1193j],
+            [ 1.3877-0.6691j,  1.3512+1.3024j]],
+
+            [[ 1.4766+0.5783j,  0.0361+0.6587j],
+            [ 0.6396+0.1612j,  1.3693+0.4481j]]], dtype=torch.complex128)
+
+.. _Representation of Orthogonal or Unitary Matrices:
+    https://www.netlib.org/lapack/lug/node128.html
+
+[API Signature] A: tensor, tau: tensor, out: tensor
+
+[Error Messages]
+RuntimeError: torch.linalg.householder_product: Expected batch dimensions of tau to be equal to input.shape[:-2], but got [42, 28]
+RuntimeError: torch.linalg.householder_product: Expected tau to have one dimension less than input, but got tau.ndim equal to 1 and input.ndim is equal to 3
+RuntimeError: torch.linalg.householder_product: input must have at least 2 dimensions.
+RuntimeError: torch.linalg.householder_product: input.shape[-1] must be greater than or equal to tau.shape[-1]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (Batch dimensions of tau match A)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≥ 3 then ∀i ∈ [0, ndim(v_1) - 3] : shape(v_2, i) = shape(v_1, i)
+Token usage: input=2388, output=4485, total=6873
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.linalg.householder_product API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+householder_product(A, tau, *, out=None) -> Tensor
+
+Computes the first `n` columns of a product of Householder matrices.
+
+Let :math:`\mathbb{K}` be :math:`\mathbb{R}` or :math:`\mathbb{C}`, and
+let :math:`A \in \mathbb{K}^{m \times n}` be a matrix with columns :math:`a_i \in \mathbb{K}^m`
+for :math:`i=1,\ldots,m` with :math:`m \geq n`. Denote by :math:`b_i` the vector resulting from
+zeroing out the first :math:`i-1` components of :math:`a_i` and setting to `1` the :math:`i`-th.
+For a vector :math:`\tau \in \mathbb{K}^k` with :math:`k \leq n`, this function computes the
+first :math:`n` columns of the matrix
+
+.. math::
+
+    H_1H_2 ... H_k \qquad\text{with}\qquad H_i = \mathrm{I}_m - \tau_i b_i b_i^{\text{H}}
+
+where :math:`\mathrm{I}_m` is the `m`-dimensional identity matrix and :math:`b^{\text{H}}` is the
+conjugate transpose when :math:`b` is complex, and the transpose when :math:`b` is real-valued.
+The output matrix is the same size as the input matrix :attr:`A`.
+
+See `Representation of Orthogonal or Unitary Matrices`_ for further details.
+
+Supports inputs of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if the inputs are batches of matrices then
+the output has the same batch dimensions.
+
+.. seealso::
+
+        :func:`torch.geqrf` can be used together with this function to form the `Q` from the
+        :func:`~qr` decomposition.
+
+        :func:`torch.ormqr` is a related function that computes the matrix multiplication
+        of a product of Householder matrices with another matrix.
+        However, that function is not supported by autograd.
+
+.. warning::
+    Gradient computations are only well-defined if :math:`\tau_i \neq \frac{1}{||a_i||^2}`.
+    If this condition is not met, no error will be thrown, but the gradient produced may contain `NaN`.
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tau (Tensor): tensor of shape `(*, k)` where `*` is zero or more batch dimensions.
+
+Keyword args:
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Raises:
+    RuntimeError: if :attr:`A` doesn't satisfy the requirement `m >= n`,
+                  or :attr:`tau` doesn't satisfy the requirement `n >= k`.
+
+Examples::
+
+    >>> A = torch.randn(2, 2)
+    >>> h, tau = torch.geqrf(A)
+    >>> Q = torch.linalg.householder_product(h, tau)
+    >>> torch.dist(Q, torch.linalg.qr(A).Q)
+    tensor(0.)
+
+    >>> h = torch.randn(3, 2, 2, dtype=torch.complex128)
+    >>> tau = torch.randn(3, 1, dtype=torch.complex128)
+    >>> Q = torch.linalg.householder_product(h, tau)
+    >>> Q
+    tensor([[[ 1.8034+0.4184j,  0.2588-1.0174j],
+            [-0.6853+0.7953j,  2.0790+0.5620j]],
+
+            [[ 1.4581+1.6989j, -1.5360+0.1193j],
+            [ 1.3877-0.6691j,  1.3512+1.3024j]],
+
+            [[ 1.4766+0.5783j,  0.0361+0.6587j],
+            [ 0.6396+0.1612j,  1.3693+0.4481j]]], dtype=torch.complex128)
+
+.. _Representation of Orthogonal or Unitary Matrices:
+    https://www.netlib.org/lapack/lug/node128.html
+
+[API Signature] A: tensor, tau: tensor, out: tensor
+
+[Error Messages]
+RuntimeError: torch.linalg.householder_product: Expected batch dimensions of tau to be equal to input.shape[:-2], but got [42, 28]
+RuntimeError: torch.linalg.householder_product: Expected tau to have one dimension less than input, but got tau.ndim equal to 1 and input.ndim is equal to 3
+RuntimeError: torch.linalg.householder_product: input must have at least 2 dimensions.
+RuntimeError: torch.linalg.householder_product: input.shape[-1] must be greater than or equal to tau.shape[-1]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (Number of columns n of A must be ≥ length k of tau)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1) - 1) ≥ shape(v_2, ndim(v_2) - 1)
+Token usage: input=2388, output=4485, total=6873
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.linalg.householder_product API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+householder_product(A, tau, *, out=None) -> Tensor
+
+Computes the first `n` columns of a product of Householder matrices.
+
+Let :math:`\mathbb{K}` be :math:`\mathbb{R}` or :math:`\mathbb{C}`, and
+let :math:`A \in \mathbb{K}^{m \times n}` be a matrix with columns :math:`a_i \in \mathbb{K}^m`
+for :math:`i=1,\ldots,m` with :math:`m \geq n`. Denote by :math:`b_i` the vector resulting from
+zeroing out the first :math:`i-1` components of :math:`a_i` and setting to `1` the :math:`i`-th.
+For a vector :math:`\tau \in \mathbb{K}^k` with :math:`k \leq n`, this function computes the
+first :math:`n` columns of the matrix
+
+.. math::
+
+    H_1H_2 ... H_k \qquad\text{with}\qquad H_i = \mathrm{I}_m - \tau_i b_i b_i^{\text{H}}
+
+where :math:`\mathrm{I}_m` is the `m`-dimensional identity matrix and :math:`b^{\text{H}}` is the
+conjugate transpose when :math:`b` is complex, and the transpose when :math:`b` is real-valued.
+The output matrix is the same size as the input matrix :attr:`A`.
+
+See `Representation of Orthogonal or Unitary Matrices`_ for further details.
+
+Supports inputs of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if the inputs are batches of matrices then
+the output has the same batch dimensions.
+
+.. seealso::
+
+        :func:`torch.geqrf` can be used together with this function to form the `Q` from the
+        :func:`~qr` decomposition.
+
+        :func:`torch.ormqr` is a related function that computes the matrix multiplication
+        of a product of Householder matrices with another matrix.
+        However, that function is not supported by autograd.
+
+.. warning::
+    Gradient computations are only well-defined if :math:`\tau_i \neq \frac{1}{||a_i||^2}`.
+    If this condition is not met, no error will be thrown, but the gradient produced may contain `NaN`.
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tau (Tensor): tensor of shape `(*, k)` where `*` is zero or more batch dimensions.
+
+Keyword args:
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Raises:
+    RuntimeError: if :attr:`A` doesn't satisfy the requirement `m >= n`,
+                  or :attr:`tau` doesn't satisfy the requirement `n >= k`.
+
+Examples::
+
+    >>> A = torch.randn(2, 2)
+    >>> h, tau = torch.geqrf(A)
+    >>> Q = torch.linalg.householder_product(h, tau)
+    >>> torch.dist(Q, torch.linalg.qr(A).Q)
+    tensor(0.)
+
+    >>> h = torch.randn(3, 2, 2, dtype=torch.complex128)
+    >>> tau = torch.randn(3, 1, dtype=torch.complex128)
+    >>> Q = torch.linalg.householder_product(h, tau)
+    >>> Q
+    tensor([[[ 1.8034+0.4184j,  0.2588-1.0174j],
+            [-0.6853+0.7953j,  2.0790+0.5620j]],
+
+            [[ 1.4581+1.6989j, -1.5360+0.1193j],
+            [ 1.3877-0.6691j,  1.3512+1.3024j]],
+
+            [[ 1.4766+0.5783j,  0.0361+0.6587j],
+            [ 0.6396+0.1612j,  1.3693+0.4481j]]], dtype=torch.complex128)
+
+.. _Representation of Orthogonal or Unitary Matrices:
+    https://www.netlib.org/lapack/lug/node128.html
+
+[API Signature] A: tensor, tau: tensor, out: tensor
+
+[Error Messages]
+RuntimeError: torch.linalg.householder_product: Expected batch dimensions of tau to be equal to input.shape[:-2], but got [42, 28]
+RuntimeError: torch.linalg.householder_product: Expected tau to have one dimension less than input, but got tau.ndim equal to 1 and input.ndim is equal to 3
+RuntimeError: torch.linalg.householder_product: input must have at least 2 dimensions.
+RuntimeError: torch.linalg.householder_product: input.shape[-1] must be greater than or equal to tau.shape[-1]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (A and tau must have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Token usage: input=2388, output=4485, total=6873
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.linalg.householder_product API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+householder_product(A, tau, *, out=None) -> Tensor
+
+Computes the first `n` columns of a product of Householder matrices.
+
+Let :math:`\mathbb{K}` be :math:`\mathbb{R}` or :math:`\mathbb{C}`, and
+let :math:`A \in \mathbb{K}^{m \times n}` be a matrix with columns :math:`a_i \in \mathbb{K}^m`
+for :math:`i=1,\ldots,m` with :math:`m \geq n`. Denote by :math:`b_i` the vector resulting from
+zeroing out the first :math:`i-1` components of :math:`a_i` and setting to `1` the :math:`i`-th.
+For a vector :math:`\tau \in \mathbb{K}^k` with :math:`k \leq n`, this function computes the
+first :math:`n` columns of the matrix
+
+.. math::
+
+    H_1H_2 ... H_k \qquad\text{with}\qquad H_i = \mathrm{I}_m - \tau_i b_i b_i^{\text{H}}
+
+where :math:`\mathrm{I}_m` is the `m`-dimensional identity matrix and :math:`b^{\text{H}}` is the
+conjugate transpose when :math:`b` is complex, and the transpose when :math:`b` is real-valued.
+The output matrix is the same size as the input matrix :attr:`A`.
+
+See `Representation of Orthogonal or Unitary Matrices`_ for further details.
+
+Supports inputs of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if the inputs are batches of matrices then
+the output has the same batch dimensions.
+
+.. seealso::
+
+        :func:`torch.geqrf` can be used together with this function to form the `Q` from the
+        :func:`~qr` decomposition.
+
+        :func:`torch.ormqr` is a related function that computes the matrix multiplication
+        of a product of Householder matrices with another matrix.
+        However, that function is not supported by autograd.
+
+.. warning::
+    Gradient computations are only well-defined if :math:`\tau_i \neq \frac{1}{||a_i||^2}`.
+    If this condition is not met, no error will be thrown, but the gradient produced may contain `NaN`.
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tau (Tensor): tensor of shape `(*, k)` where `*` is zero or more batch dimensions.
+
+Keyword args:
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Raises:
+    RuntimeError: if :attr:`A` doesn't satisfy the requirement `m >= n`,
+                  or :attr:`tau` doesn't satisfy the requirement `n >= k`.
+
+Examples::
+
+    >>> A = torch.randn(2, 2)
+    >>> h, tau = torch.geqrf(A)
+    >>> Q = torch.linalg.householder_product(h, tau)
+    >>> torch.dist(Q, torch.linalg.qr(A).Q)
+    tensor(0.)
+
+    >>> h = torch.randn(3, 2, 2, dtype=torch.complex128)
+    >>> tau = torch.randn(3, 1, dtype=torch.complex128)
+    >>> Q = torch.linalg.householder_product(h, tau)
+    >>> Q
+    tensor([[[ 1.8034+0.4184j,  0.2588-1.0174j],
+            [-0.6853+0.7953j,  2.0790+0.5620j]],
+
+            [[ 1.4581+1.6989j, -1.5360+0.1193j],
+            [ 1.3877-0.6691j,  1.3512+1.3024j]],
+
+            [[ 1.4766+0.5783j,  0.0361+0.6587j],
+            [ 0.6396+0.1612j,  1.3693+0.4481j]]], dtype=torch.complex128)
+
+.. _Representation of Orthogonal or Unitary Matrices:
+    https://www.netlib.org/lapack/lug/node128.html
+
+[API Signature] A: tensor, tau: tensor, out: tensor
+
+[Error Messages]
+RuntimeError: torch.linalg.householder_product: Expected batch dimensions of tau to be equal to input.shape[:-2], but got [42, 28]
+RuntimeError: torch.linalg.householder_product: Expected tau to have one dimension less than input, but got tau.ndim equal to 1 and input.ndim is equal to 3
+RuntimeError: torch.linalg.householder_product: input must have at least 2 dimensions.
+RuntimeError: torch.linalg.householder_product: input.shape[-1] must be greater than or equal to tau.shape[-1]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (If provided, out must match A in shape and dtype)
+{v_1 : tensor, v_3 : tensor} |= ndim(v_3) = ndim(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_3, i) = shape(v_1, i) ∧ dtype_(v_3) = dtype_(v_1)
+Token usage: input=2388, output=4485, total=6873
+** SUCCESS **
+

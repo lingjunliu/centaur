@@ -9,8 +9,8 @@ import torch, copy
 def reflectionpad2d_inputs():
     list_of_inputs = []
     
-    # Input 1, valid
-    input = torch.tensor([[[[0., 1., 2.], [3., 4., 5.], [6., 7., 8.]]]], dtype=torch.float).numpy()
+    # Input 1 - padding of 2, 3D tensor
+    input = torch.arange(9, dtype=torch.float).reshape(1, 1, 3, 3).numpy()
     padding = 2
     
     input_dict = {
@@ -20,8 +20,8 @@ def reflectionpad2d_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 2, valid
-    input = torch.tensor([[[[0., 1., 2.], [3., 4., 5.], [6., 7., 8.]]]], dtype=torch.float).numpy()
+    # Input 2 - different padding values for each side, 3D tensor
+    input = torch.arange(9, dtype=torch.float).reshape(1, 1, 3, 3).numpy()
     padding = (1, 1, 2, 0)
     
     input_dict = {
@@ -31,8 +31,8 @@ def reflectionpad2d_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 3, valid
-    input = torch.tensor([[[[0., 1., 2., 3.], [4., 5., 6., 7.], [8., 9., 10., 11.]]]], dtype=torch.float).numpy()
+    # Input 3 - padding of 1, 4D tensor
+    input = torch.arange(16, dtype=torch.float).reshape(1, 1, 4, 4).numpy()
     padding = 1
     
     input_dict = {
@@ -42,9 +42,9 @@ def reflectionpad2d_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 4, valid
-    input = torch.tensor([[[[0., 1., 2., 3., 4.], [5., 6., 7., 8., 9.], [10., 11., 12., 13., 14.]]]], dtype=torch.float).numpy()
-    padding = (2, 2, 1, 1)
+    # Input 4 - negative padding value, 3D tensor
+    input = torch.arange(9, dtype=torch.float).reshape(1, 1, 3, 3).numpy()
+    padding = -1
     
     input_dict = {
         "input": input,
@@ -53,8 +53,19 @@ def reflectionpad2d_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 5, valid
-    input = torch.tensor([[[[0., 1., 2., 3., 4., 5.], [6., 7., 8., 9., 10., 11.], [12., 13., 14., 15., 16., 17.]]]], dtype=torch.float).numpy()
+    # Input 5 - padding of 0, 2D tensor (no padding)
+    input = torch.arange(4, dtype=torch.float).reshape(1, 1, 2, 2).numpy()
+    padding = 0
+    
+    input_dict = {
+        "input": input,
+        "padding": padding
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6 - padding of 3, 4D tensor
+    input = torch.arange(16, dtype=torch.float).reshape(1, 1, 4, 4).numpy()
     padding = 3
     
     input_dict = {
@@ -64,9 +75,9 @@ def reflectionpad2d_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 6, valid
-    input = torch.tensor([[[[0., 1., 2., 3., 4., 5., 6.], [7., 8., 9., 10., 11., 12., 13.], [14., 15., 16., 17., 18., 19., 20.]]]], dtype=torch.float).numpy()
-    padding = (0, 0, 2, 2)
+    # Input 7 - different padding values for each side, 2D tensor
+    input = torch.arange(4, dtype=torch.float).reshape(1, 1, 2, 2).numpy()
+    padding = (0, 2, 1, 1)
     
     input_dict = {
         "input": input,
@@ -75,9 +86,9 @@ def reflectionpad2d_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 7, valid
-    input = torch.tensor([[[[0., 1., 2., 3., 4., 5., 6., 7.], [8., 9., 10., 11., 12., 13., 14., 15.]]]], dtype=torch.float).numpy()
-    padding = (1, 2, 3, 4)
+    # Input 8 - padding of 4, 3D tensor
+    input = torch.arange(9, dtype=torch.float).reshape(1, 1, 3, 3).numpy()
+    padding = 4
     
     input_dict = {
         "input": input,
@@ -86,9 +97,9 @@ def reflectionpad2d_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 8, valid
-    input = torch.tensor([[[[0., 1., 2., 3., 4., 5., 6., 7., 8.], [9., 10., 11., 12., 13., 14., 15., 16., 17.]]]], dtype=torch.float).numpy()
-    padding = (2, 2, 2, 2)
+    # Input 9 - padding of 5, 4D tensor
+    input = torch.arange(25, dtype=torch.float).reshape(1, 1, 5, 5).numpy()
+    padding = 5
     
     input_dict = {
         "input": input,
@@ -97,20 +108,9 @@ def reflectionpad2d_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 9, valid
-    input = torch.tensor([[[[0., 1., 2., 3., 4., 5., 6., 7., 8., 9.], [10., 11., 12., 13., 14., 15., 16., 17., 18., 19.]]]], dtype=torch.float).numpy()
-    padding = (0, 1, 2, 3)
-    
-    input_dict = {
-        "input": input,
-        "padding": padding
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10, valid
-    input = torch.tensor([[[[0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10.], [11., 12., 13., 14., 15., 16., 17., 18., 19., 20., 21.]]]], dtype=torch.float).numpy()
-    padding = (3, 3, 3, 3)
+    # Input 10 - padding of 6, 3D tensor
+    input = torch.arange(9, dtype=torch.float).reshape(1, 1, 3, 3).numpy()
+    padding = 6
     
     input_dict = {
         "input": input,

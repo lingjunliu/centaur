@@ -6,18 +6,15 @@ generated_inputs = dict()
 
 import torch, copy
 
-def amin_inputs():
+def ammin_inputs():
     list_of_inputs = []
     
     # Input 1, valid
-    input = torch.tensor([[0.6451, -0.4866, 0.2987, -1.3312],
-                        [-0.5744, 1.2980, 1.8397, -0.2713],
-                        [0.9128, 0.9214, -1.7268, -0.2995],
-                        [0.9023, 0.4853, 0.9075, -1.6165]]).numpy()
-    dim = (1,) # tuple
-    keepdim = False # boolean
-    out = torch.empty(4).numpy() # tensor
-    
+    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]).numpy()
+    dim = (0,)
+    keepdim = False
+    out = torch.zeros(3).numpy()
+
     input_dict = {
         "input": input,
         "dim": dim,
@@ -28,13 +25,11 @@ def amin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.tensor([[-0.5744, 1.2980, 1.8397, -0.2713],
-                        [0.9128, 0.9214, -1.7268, -0.2995],
-                        [0.9023, 0.4853, 0.9075, -1.6165]]).numpy()
-    dim = (0,) # tuple
-    keepdim = True # boolean
-    out = torch.empty(3).numpy() # tensor
-    
+    input = torch.tensor([[-1.0, 2.0], [-3.0, 4.0]]).numpy()
+    dim = (1,)
+    keepdim = True
+    out = torch.zeros(1).numpy()
+
     input_dict = {
         "input": input,
         "dim": dim,
@@ -45,13 +40,11 @@ def amin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.tensor([[-0.5744, 1.2980, 1.8397, -0.2713],
-                        [0.9128, 0.9214, -1.7268, -0.2995],
-                        [0.9023, 0.4853, 0.9075, -1.6165]]).numpy()
-    dim = (0, 1) # tuple
-    keepdim = False # boolean
-    out = torch.empty(3).numpy() # tensor
-    
+    input = torch.randn((2, 3, 4)).numpy()
+    dim = (0, 1)
+    keepdim = False
+    out = torch.zeros(4).numpy()
+
     input_dict = {
         "input": input,
         "dim": dim,
@@ -62,13 +55,11 @@ def amin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.tensor([[-0.5744, 1.2980, 1.8397, -0.2713],
-                        [0.9128, 0.9214, -1.7268, -0.2995],
-                        [0.9023, 0.4853, 0.9075, -1.6165]]).numpy()
-    dim = (0, 1) # tuple
-    keepdim = True # boolean
-    out = torch.empty(3).numpy() # tensor
-    
+    input = torch.tensor([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]).numpy()
+    dim = (0, 2)
+    keepdim = True
+    out = torch.zeros(2).numpy()
+
     input_dict = {
         "input": input,
         "dim": dim,
@@ -79,13 +70,11 @@ def amin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([[0.6451, -0.4866, 0.2987],
-                        [-0.5744, 1.2980, 1.8397],
-                        [0.9128, 0.9214, -1.7268]]).numpy()
-    dim = (2,) # tuple
-    keepdim = False # boolean
-    out = torch.empty(3).numpy() # tensor
-    
+    input = torch.randn((1, 2, 3, 4)).numpy()
+    dim = (1, 2, 3)
+    keepdim = False
+    out = torch.zeros(1).numpy()
+
     input_dict = {
         "input": input,
         "dim": dim,
@@ -96,13 +85,11 @@ def amin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.tensor([[0.6451, -0.4866, 0.2987],
-                        [-0.5744, 1.2980, 1.8397],
-                        [0.9128, 0.9214, -1.7268]]).numpy()
-    dim = (2,) # tuple
-    keepdim = True # boolean
-    out = torch.empty(3).numpy() # tensor
-    
+    input = torch.tensor([[1.0, -2.0, 3.0], [4.0, 5.0, -6.0]]).numpy()
+    dim = (0,)
+    keepdim = False
+    out = torch.zeros(3).numpy()
+
     input_dict = {
         "input": input,
         "dim": dim,
@@ -113,13 +100,11 @@ def amin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.tensor([[-0.5744, 1.2980, 1.8397],
-                        [0.9128, 0.9214, -1.7268],
-                        [0.9023, 0.4853, 0.9075]]).numpy()
-    dim = (0, 1) # tuple
-    keepdim = False # boolean
-    out = torch.empty(3).numpy() # tensor
-    
+    input = torch.randn((2, 2)).numpy()
+    dim = (0,)
+    keepdim = True
+    out = torch.zeros(1).numpy()
+
     input_dict = {
         "input": input,
         "dim": dim,
@@ -130,13 +115,11 @@ def amin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([[-0.5744, 1.2980, 1.8397],
-                        [0.9128, 0.9214, -1.7268],
-                        [0.9023, 0.4853, 0.9075]]).numpy()
-    dim = (0, 1) # tuple
-    keepdim = True # boolean
-    out = torch.empty(3).numpy() # tensor
-    
+    input = torch.tensor([[-1.0, 2.0], [3.0, -4.0]]).numpy()
+    dim = (1,)
+    keepdim = False
+    out = torch.zeros(2).numpy()
+
     input_dict = {
         "input": input,
         "dim": dim,
@@ -147,13 +130,11 @@ def amin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.tensor([[-0.5744, 1.2980, 1.8397],
-                        [0.9128, 0.9214, -1.7268],
-                        [0.9023, 0.4853, 0.9075]]).numpy()
-    dim = (0,) # tuple
-    keepdim = False # boolean
-    out = torch.empty(3).numpy() # tensor
-    
+    input = torch.randn((3, 2)).numpy()
+    dim = (0, 1)
+    keepdim = True
+    out = torch.zeros(1).numpy()
+
     input_dict = {
         "input": input,
         "dim": dim,
@@ -164,13 +145,11 @@ def amin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([[-0.5744, 1.2980, 1.8397],
-                        [0.9128, 0.9214, -1.7268],
-                        [0.9023, 0.4853, 0.9075]]).numpy()
-    dim = (1,) # tuple
-    keepdim = False # boolean
-    out = torch.empty(3).numpy() # tensor
-    
+    input = torch.tensor([[1.0, -2.0], [3.0, -4.0]]).numpy()
+    dim = (0,)
+    keepdim = True
+    out = torch.zeros(1).numpy()
+
     input_dict = {
         "input": input,
         "dim": dim,
@@ -182,7 +161,7 @@ def amin_inputs():
     
     return list_of_inputs
 
-generated_inputs["torch.amin_2"] = amin_inputs()
+generated_inputs["torch.amin"] = ammin_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

@@ -10,8 +10,8 @@ def any_inputs():
     list_of_inputs = []
     
     # Input 1, valid
-    input = torch.tensor([0, 1, 2]).numpy()
-    out = torch.tensor([], dtype=torch.bool).numpy()
+    input = torch.tensor([0, 1, 2], dtype=torch.int32).numpy()
+    out = torch.empty(()).numpy()
 
     input_dict = {
         "input": input,
@@ -21,8 +21,8 @@ def any_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.tensor([[False, True], [True, False]]).numpy()
-    out = torch.tensor([], dtype=torch.bool).numpy()
+    input = torch.tensor([[False, True], [True, False]], dtype=torch.bool).numpy()
+    out = torch.empty(()).numpy()
 
     input_dict = {
         "input": input,
@@ -32,8 +32,8 @@ def any_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.tensor([0, 0, 0]).numpy()
-    out = torch.tensor([], dtype=torch.bool).numpy()
+    input = torch.tensor([0, 0, 0], dtype=torch.int32).numpy()
+    out = torch.empty(()).numpy()
 
     input_dict = {
         "input": input,
@@ -43,8 +43,8 @@ def any_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.tensor([1, 0, 0]).numpy()
-    out = torch.tensor([], dtype=torch.bool).numpy()
+    input = torch.tensor([[1, 2], [3, 4]], dtype=torch.int32).numpy()
+    out = torch.empty(()).numpy()
 
     input_dict = {
         "input": input,
@@ -54,8 +54,8 @@ def any_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([[True, True], [False, False]]).numpy()
-    out = torch.tensor([], dtype=torch.bool).numpy()
+    input = torch.tensor([[-1, 0, 1], [2, 3, 4]], dtype=torch.int32).numpy()
+    out = torch.empty(()).numpy()
 
     input_dict = {
         "input": input,
@@ -65,8 +65,8 @@ def any_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.tensor([-1, 0, 1]).numpy()
-    out = torch.tensor([], dtype=torch.bool).numpy()
+    input = torch.tensor([True, False, True], dtype=torch.bool).numpy()
+    out = torch.empty(()).numpy()
 
     input_dict = {
         "input": input,
@@ -76,8 +76,8 @@ def any_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.tensor([-1, -2, -3]).numpy()
-    out = torch.tensor([], dtype=torch.bool).numpy()
+    input = torch.tensor([0, 1, 2], dtype=torch.int32).numpy()
+    out = torch.empty(()).numpy()
 
     input_dict = {
         "input": input,
@@ -87,8 +87,8 @@ def any_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([[0, 1], [2, 3]]).numpy()
-    out = torch.tensor([], dtype=torch.bool).numpy()
+    input = torch.tensor([[True, False], [False, True]], dtype=torch.bool).numpy()
+    out = torch.empty(()).numpy()
 
     input_dict = {
         "input": input,
@@ -98,8 +98,8 @@ def any_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.tensor([[[0, 1], [2, 3]], [[4, 5], [6, 7]]]).numpy()
-    out = torch.tensor([], dtype=torch.bool).numpy()
+    input = torch.tensor([0, 0, 0], dtype=torch.int32).numpy()
+    out = torch.empty(()).numpy()
 
     input_dict = {
         "input": input,
@@ -109,8 +109,8 @@ def any_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([[[False, True], [True, False]], [[True, False], [False, True]]]).numpy()
-    out = torch.tensor([], dtype=torch.bool).numpy()
+    input = torch.tensor([1, 2, 3], dtype=torch.int32).numpy()
+    out = torch.empty(()).numpy()
 
     input_dict = {
         "input": input,
@@ -118,7 +118,7 @@ def any_inputs():
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     return list_of_inputs
 
 generated_inputs["torch.any_1"] = any_inputs()

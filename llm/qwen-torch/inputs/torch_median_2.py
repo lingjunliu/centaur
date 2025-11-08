@@ -13,7 +13,7 @@ def median_inputs():
     input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]).numpy()
     dim = 1
     keepdim = False
-    out = (torch.tensor([0.0]).numpy(), torch.tensor([0]).numpy())
+    out = (torch.zeros(2).numpy(), torch.zeros(2).numpy().astype('int64'))
     
     input_dict = {
         "input": input,
@@ -28,7 +28,7 @@ def median_inputs():
     input = torch.tensor([[-1.0, 0.0, 1.0, 2.0], [3.0, 4.0, 5.0, 6.0]]).numpy()
     dim = 0
     keepdim = True
-    out = (torch.tensor([0.0]).numpy(), torch.tensor([0]).numpy())
+    out = (torch.zeros(2).numpy(), torch.zeros(2).numpy().astype('int64'))
     
     input_dict = {
         "input": input,
@@ -40,10 +40,10 @@ def median_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    input = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()
     dim = -1
     keepdim = False
-    out = (torch.tensor([0.0]).numpy(), torch.tensor([0]).numpy())
+    out = (torch.zeros(1).numpy(), torch.zeros(1).numpy().astype('int64'))
     
     input_dict = {
         "input": input,
@@ -55,10 +55,10 @@ def median_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.tensor([[0.0, -1.0], [1.0, 2.0], [-2.0, 3.0]]).numpy()
+    input = torch.tensor([[1.0, -2.0], [3.0, -4.0], [-5.0, 6.0]]).numpy()
     dim = 1
     keepdim = True
-    out = (torch.tensor([0.0]).numpy(), torch.tensor([0]).numpy())
+    out = (torch.zeros(3).numpy(), torch.zeros(3).numpy().astype('int64'))
     
     input_dict = {
         "input": input,
@@ -70,10 +70,10 @@ def median_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([[-1.0, 0.0], [1.0, 2.0], [-2.0, 3.0]]).numpy()
-    dim = -1
-    keepdim = True
-    out = (torch.tensor([0.0]).numpy(), torch.tensor([0]).numpy())
+    input = torch.tensor([[-1.0, 0.0], [1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]).numpy()
+    dim = 0
+    keepdim = False
+    out = (torch.zeros(4).numpy(), torch.zeros(4).numpy().astype('int64'))
     
     input_dict = {
         "input": input,
@@ -85,10 +85,10 @@ def median_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()
-    dim = 0
-    keepdim = False
-    out = (torch.tensor([0.0]).numpy(), torch.tensor([0]).numpy())
+    input = torch.tensor([[0.0, 1.0], [2.0, 3.0], [4.0, 5.0]]).numpy()
+    dim = -1
+    keepdim = True
+    out = (torch.zeros(3).numpy(), torch.zeros(3).numpy().astype('int64'))
     
     input_dict = {
         "input": input,
@@ -100,10 +100,10 @@ def median_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]).numpy()
+    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]).numpy()
     dim = 0
     keepdim = False
-    out = (torch.tensor([0.0]).numpy(), torch.tensor([0]).numpy())
+    out = (torch.zeros(3).numpy(), torch.zeros(3).numpy().astype('int64'))
     
     input_dict = {
         "input": input,
@@ -115,10 +115,10 @@ def median_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]).numpy()
-    dim = 1
+    input = torch.tensor([[-1.0, 0.0, 1.0], [2.0, 3.0, 4.0], [5.0, 6.0, 7.0]]).numpy()
+    dim = -1
     keepdim = True
-    out = (torch.tensor([0.0]).numpy(), torch.tensor([0]).numpy())
+    out = (torch.zeros(3).numpy(), torch.zeros(3).numpy().astype('int64'))
     
     input_dict = {
         "input": input,
@@ -130,10 +130,10 @@ def median_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.tensor([[-1.0, 0.0, 1.0], [2.0, 3.0, 4.0], [-5.0, -6.0, -7.0]]).numpy()
-    dim = 0
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]]).numpy()
+    dim = 1
     keepdim = False
-    out = (torch.tensor([0.0]).numpy(), torch.tensor([0]).numpy())
+    out = (torch.zeros(4).numpy(), torch.zeros(4).numpy().astype('int64'))
     
     input_dict = {
         "input": input,
@@ -145,10 +145,10 @@ def median_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([[0.0, 1.0], [2.0, 3.0]]).numpy()
-    dim = -1
-    keepdim = False
-    out = (torch.tensor([0.0]).numpy(), torch.tensor([0]).numpy())
+    input = torch.tensor([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]).numpy()
+    dim = 0
+    keepdim = True
+    out = (torch.zeros(2).numpy(), torch.zeros(2).numpy().astype('int64'))
     
     input_dict = {
         "input": input,
@@ -158,7 +158,7 @@ def median_inputs():
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     return list_of_inputs
 
 generated_inputs["torch.median_2"] = median_inputs()

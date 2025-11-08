@@ -14,7 +14,7 @@ def cumprod_inputs():
     dim = 0   # integer
     dtype = None   # dtype
     out = torch.empty(3).numpy()    # tensor
-
+    
     input_dict = {
         "input": input,
         "dim": dim,
@@ -25,11 +25,11 @@ def cumprod_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.ones((2, 3)).numpy()
-    dim = 1   # integer
+    input = torch.tensor([1.0, -2.0, 3.0]).numpy()   # tensor
+    dim = 0   # integer
     dtype = None   # dtype
-    out = torch.empty(2, 3).numpy()    # tensor
-
+    out = torch.empty(3).numpy()    # tensor
+    
     input_dict = {
         "input": input,
         "dim": dim,
@@ -40,11 +40,11 @@ def cumprod_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.randn(5).numpy()
-    dim = 0   # integer
+    input = torch.ones((2, 3)).numpy()   # tensor
+    dim = 1   # integer
     dtype = None   # dtype
-    out = torch.empty(5).numpy()    # tensor
-
+    out = torch.empty(6).numpy()    # tensor
+    
     input_dict = {
         "input": input,
         "dim": dim,
@@ -55,11 +55,11 @@ def cumprod_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.randn(3, 4).numpy()
+    input = torch.ones((3, 2)).numpy()   # tensor
     dim = 0   # integer
     dtype = None   # dtype
-    out = torch.empty(3, 4).numpy()    # tensor
-
+    out = torch.empty(6).numpy()    # tensor
+    
     input_dict = {
         "input": input,
         "dim": dim,
@@ -70,11 +70,11 @@ def cumprod_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([1.0, -2.0, 3.0]).numpy()
+    input = torch.randn(5).numpy()   # tensor
     dim = 0   # integer
     dtype = None   # dtype
-    out = torch.empty(3).numpy()    # tensor
-
+    out = torch.empty(5).numpy()    # tensor
+    
     input_dict = {
         "input": input,
         "dim": dim,
@@ -85,11 +85,11 @@ def cumprod_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.ones((3, 4, 5)).numpy()
-    dim = 2   # integer
-    dtype = None   # dtype
-    out = torch.empty(3, 4, 5).numpy()    # tensor
-
+    input = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()   # tensor
+    dim = 0   # integer
+    dtype = torch.float32   # dtype
+    out = torch.empty(4).numpy()    # tensor
+    
     input_dict = {
         "input": input,
         "dim": dim,
@@ -100,11 +100,11 @@ def cumprod_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.randn(2, 3, 4).numpy()
-    dim = 1   # integer
-    dtype = None   # dtype
-    out = torch.empty(2, 3, 4).numpy()    # tensor
-
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()   # tensor
+    dim = 0   # integer
+    dtype = torch.float64   # dtype
+    out = torch.empty(3).numpy()    # tensor
+    
     input_dict = {
         "input": input,
         "dim": dim,
@@ -115,11 +115,11 @@ def cumprod_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([0.5, 0.2, 0.1]).numpy()
+    input = torch.tensor([1.0, -2.0, 3.0]).numpy()   # tensor
     dim = 0   # integer
     dtype = None   # dtype
     out = torch.empty(3).numpy()    # tensor
-
+    
     input_dict = {
         "input": input,
         "dim": dim,
@@ -130,11 +130,11 @@ def cumprod_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.randn(10).numpy()
-    dim = 0   # integer
+    input = torch.ones((3, 2)).numpy()   # tensor
+    dim = 1   # integer
     dtype = None   # dtype
-    out = torch.empty(10).numpy()    # tensor
-
+    out = torch.empty(6).numpy()    # tensor
+    
     input_dict = {
         "input": input,
         "dim": dim,
@@ -145,11 +145,11 @@ def cumprod_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()
+    input = torch.randn(4).numpy()   # tensor
     dim = 0   # integer
     dtype = None   # dtype
     out = torch.empty(4).numpy()    # tensor
-
+    
     input_dict = {
         "input": input,
         "dim": dim,
@@ -158,7 +158,7 @@ def cumprod_inputs():
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     return list_of_inputs
 
 generated_inputs["torch.cumprod"] = cumprod_inputs()

@@ -1,0 +1,114 @@
+
+from utils.new_api_utils import run_api, get_signature
+from generator.input_generators import get_abstract_input
+
+generated_inputs = dict()
+
+import torch, copy
+
+def torch_any_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_arr = (torch.rand(3, 4) > 0.7).numpy()
+    dim = (1,)
+    keepdim = False
+    out = torch.empty(3, dtype=torch.bool).numpy()
+    list_of_inputs.append(copy.deepcopy({"input": input_arr, "dim": dim, "keepdim": keepdim, "out": out}))
+
+    # Input 2
+    input_arr = torch.randint(-3, 4, (2, 5), dtype=torch.long).numpy()
+    dim = (0,)
+    keepdim = True
+    out = torch.empty(1, 5, dtype=torch.bool).numpy()
+    list_of_inputs.append(copy.deepcopy({"input": input_arr, "dim": dim, "keepdim": keepdim, "out": out}))
+
+    # Input 3
+    input_arr = torch.randn(2, 3, 4, dtype=torch.float32).numpy()
+    dim = (1, 2)
+    keepdim = False
+    out = torch.empty(2, dtype=torch.bool).numpy()
+    list_of_inputs.append(copy.deepcopy({"input": input_arr, "dim": dim, "keepdim": keepdim, "out": out}))
+
+    # Input 4
+    input_arr = torch.randn(2, 3, 1, dtype=torch.float16).numpy()
+    dim = (-1,)
+    keepdim = True
+    out = torch.empty(2, 3, 1, dtype=torch.bool).numpy()
+    list_of_inputs.append(copy.deepcopy({"input": input_arr, "dim": dim, "keepdim": keepdim, "out": out}))
+
+    # Input 5 (uint8 -> out dtype uint8)
+    input_arr = torch.randint(0, 2, (6,), dtype=torch.uint8).numpy()
+    dim = (0,)
+    keepdim = False
+    out = torch.empty((), dtype=torch.uint8).numpy()
+    list_of_inputs.append(copy.deepcopy({"input": input_arr, "dim": dim, "keepdim": keepdim, "out": out}))
+
+    # Input 6
+    input_arr = torch.randint(-1, 2, (2, 2, 2, 2), dtype=torch.int8).numpy()
+    dim = (0, 2)
+    keepdim = True
+    out = torch.empty(1, 2, 1, 2, dtype=torch.bool).numpy()
+    list_of_inputs.append(copy.deepcopy({"input": input_arr, "dim": dim, "keepdim": keepdim, "out": out}))
+
+    # Input 7
+    input_arr = (torch.rand(3, 1, 4, 5) < 0.4).numpy()
+    dim = (1, 3)
+    keepdim = False
+    out = torch.empty(3, 4, dtype=torch.bool).numpy()
+    list_of_inputs.append(copy.deepcopy({"input": input_arr, "dim": dim, "keepdim": keepdim, "out": out}))
+
+    # Input 8 (complex)
+    input_arr = (torch.randn(4, 4, dtype=torch.float32) + 1j * torch.randn(4, 4, dtype=torch.float32)).numpy()
+    dim = (-2, -1)
+    keepdim = False
+    out = torch.empty((), dtype=torch.bool).numpy()
+    list_of_inputs.append(copy.deepcopy({"input": input_arr, "dim": dim, "keepdim": keepdim, "out": out}))
+
+    # Input 9
+    input_arr = torch.randint(-5, 6, (1, 2, 3, 4, 5), dtype=torch.int32).numpy()
+    dim = (2,)
+    keepdim = True
+    out = torch.empty(1, 2, 1, 4, 5, dtype=torch.bool).numpy()
+    list_of_inputs.append(copy.deepcopy({"input": input_arr, "dim": dim, "keepdim": keepdim, "out": out}))
+
+    # Input 10 (empty dimension)
+    input_arr = torch.empty(0, 3, dtype=torch.float64).numpy()
+    dim = (0,)
+    keepdim = False
+    out = torch.empty(3, dtype=torch.bool).numpy()
+    list_of_inputs.append(copy.deepcopy({"input": input_arr, "dim": dim, "keepdim": keepdim, "out": out}))
+
+    # Input 11 (uint8 with empty middle dimension)
+    input_arr = torch.empty(2, 0, 3, dtype=torch.uint8).numpy()
+    dim = (1,)
+    keepdim = True
+    out = torch.empty(2, 1, 3, dtype=torch.uint8).numpy()
+    list_of_inputs.append(copy.deepcopy({"input": input_arr, "dim": dim, "keepdim": keepdim, "out": out}))
+
+    # Input 12
+    input_arr = torch.randint(-100, 100, (3, 2), dtype=torch.int16).numpy()
+    dim = (0,)
+    keepdim = False
+    out = torch.empty(2, dtype=torch.bool).numpy()
+    list_of_inputs.append(copy.deepcopy({"input": input_arr, "dim": dim, "keepdim": keepdim, "out": out}))
+
+    return list_of_inputs
+
+generated_inputs["torch.any_3"] = torch_any_inputs()
+
+def check_valid(api, list_of_inputs, lib="torch", suffix=0):
+    for idx, input_dict in enumerate(list_of_inputs):
+        _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
+        output = run_api(api, input_dict, cpu=True, lib=lib)
+    
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
+    print("Valid")
+
+if 'torch.any_3' not in generated_inputs:
+    raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'torch.any_3'.")
+
+
+check_valid('torch.any', generated_inputs['torch.any_3'], lib="torch", suffix=3)

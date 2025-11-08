@@ -1,0 +1,1494 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.TripletMarginLoss API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+Creates a criterion that measures the triplet loss given an input
+    tensors :math:`x1`, :math:`x2`, :math:`x3` and a margin with a value greater than :math:`0`.
+    This is used for measuring a relative similarity between samples. A triplet
+    is composed by `a`, `p` and `n` (i.e., `anchor`, `positive examples` and `negative
+    examples` respectively). The shapes of all input tensors should be
+    :math:`(N, D)`.
+
+    The distance swap is described in detail in the paper `Learning shallow
+    convolutional feature descriptors with triplet losses`_ by
+    V. Balntas, E. Riba et al.
+
+    The loss function for each sample in the mini-batch is:
+
+    .. math::
+        L(a, p, n) = \max \{d(a_i, p_i) - d(a_i, n_i) + {\rm margin}, 0\}
+
+
+    where
+
+    .. math::
+        d(x_i, y_i) = \left\lVert {\bf x}_i - {\bf y}_i \right\rVert_p
+
+    The norm is calculated using the specified p value and a small constant :math:`\varepsilon` is
+    added for numerical stability.
+
+    See also :class:`~torch.nn.TripletMarginWithDistanceLoss`, which computes the
+    triplet margin loss for input tensors using a custom distance function.
+
+    Args:
+        margin (float, optional): Default: :math:`1`.
+        p (int, optional): The norm degree for pairwise distance. Default: :math:`2`.
+        eps (float, optional): Small constant for numerical stability. Default: :math:`1e-6`.
+        swap (bool, optional): The distance swap is described in detail in the paper
+            `Learning shallow convolutional feature descriptors with triplet losses` by
+            V. Balntas, E. Riba et al. Default: ``False``.
+        size_average (bool, optional): Deprecated (see :attr:`reduction`). By default,
+            the losses are averaged over each loss element in the batch. Note that for
+            some losses, there are multiple elements per sample. If the field :attr:`size_average`
+            is set to ``False``, the losses are instead summed for each minibatch. Ignored
+            when :attr:`reduce` is ``False``. Default: ``True``
+        reduce (bool, optional): Deprecated (see :attr:`reduction`). By default, the
+            losses are averaged or summed over observations for each minibatch depending
+            on :attr:`size_average`. When :attr:`reduce` is ``False``, returns a loss per
+            batch element instead and ignores :attr:`size_average`. Default: ``True``
+        reduction (str, optional): Specifies the reduction to apply to the output:
+            ``'none'`` | ``'mean'`` | ``'sum'``. ``'none'``: no reduction will be applied,
+            ``'mean'``: the sum of the output will be divided by the number of
+            elements in the output, ``'sum'``: the output will be summed. Note: :attr:`size_average`
+            and :attr:`reduce` are in the process of being deprecated, and in the meantime,
+            specifying either of those two args will override :attr:`reduction`. Default: ``'mean'``
+
+    Shape:
+        - Input: :math:`(N, D)` or :math:`(D)` where :math:`D` is the vector dimension.
+        - Output: A Tensor of shape :math:`(N)` if :attr:`reduction` is ``'none'`` and
+          input shape is :math:`(N, D)`; a scalar otherwise.
+
+    Examples::
+
+    >>> triplet_loss = nn.TripletMarginLoss(margin=1.0, p=2, eps=1e-7)
+    >>> anchor = torch.randn(100, 128, requires_grad=True)
+    >>> positive = torch.randn(100, 128, requires_grad=True)
+    >>> negative = torch.randn(100, 128, requires_grad=True)
+    >>> output = triplet_loss(anchor, positive, negative)
+    >>> output.backward()
+
+    .. _Learning shallow convolutional feature descriptors with triplet losses:
+        https://bmva-archive.org.uk/bmvc/2016/papers/paper119/index.html
+
+[API Signature] margin: float, p: integer, eps: float, swap: boolean, size_average: boolean, reduce: boolean, reduction: string, anchor: tensor, positive: tensor, negative: tensor
+
+[Error Messages]
+RuntimeError: The anchor, positive, and negative tensors are expected to have the same number of dimensions, but got: anchor 1D, positive 2D, and negative 2D inputs
+ValueError: TripletMarginLoss: expected margin to be greater than 0, got -1.0 instead
+RuntimeError: Subtraction, the `-` operator, with a bool tensor is not supported. If you are trying to invert a mask, use the `~` or `logical_not()` operator instead.
+RuntimeError: The size of tensor a (39) must match the size of tensor b (81) at non-singleton dimension 2
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (margin must be strictly positive)
+{margin : float} |= margin > 0
+Token usage: input=2508, output=5149, total=7657
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.TripletMarginLoss API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+Creates a criterion that measures the triplet loss given an input
+    tensors :math:`x1`, :math:`x2`, :math:`x3` and a margin with a value greater than :math:`0`.
+    This is used for measuring a relative similarity between samples. A triplet
+    is composed by `a`, `p` and `n` (i.e., `anchor`, `positive examples` and `negative
+    examples` respectively). The shapes of all input tensors should be
+    :math:`(N, D)`.
+
+    The distance swap is described in detail in the paper `Learning shallow
+    convolutional feature descriptors with triplet losses`_ by
+    V. Balntas, E. Riba et al.
+
+    The loss function for each sample in the mini-batch is:
+
+    .. math::
+        L(a, p, n) = \max \{d(a_i, p_i) - d(a_i, n_i) + {\rm margin}, 0\}
+
+
+    where
+
+    .. math::
+        d(x_i, y_i) = \left\lVert {\bf x}_i - {\bf y}_i \right\rVert_p
+
+    The norm is calculated using the specified p value and a small constant :math:`\varepsilon` is
+    added for numerical stability.
+
+    See also :class:`~torch.nn.TripletMarginWithDistanceLoss`, which computes the
+    triplet margin loss for input tensors using a custom distance function.
+
+    Args:
+        margin (float, optional): Default: :math:`1`.
+        p (int, optional): The norm degree for pairwise distance. Default: :math:`2`.
+        eps (float, optional): Small constant for numerical stability. Default: :math:`1e-6`.
+        swap (bool, optional): The distance swap is described in detail in the paper
+            `Learning shallow convolutional feature descriptors with triplet losses` by
+            V. Balntas, E. Riba et al. Default: ``False``.
+        size_average (bool, optional): Deprecated (see :attr:`reduction`). By default,
+            the losses are averaged over each loss element in the batch. Note that for
+            some losses, there are multiple elements per sample. If the field :attr:`size_average`
+            is set to ``False``, the losses are instead summed for each minibatch. Ignored
+            when :attr:`reduce` is ``False``. Default: ``True``
+        reduce (bool, optional): Deprecated (see :attr:`reduction`). By default, the
+            losses are averaged or summed over observations for each minibatch depending
+            on :attr:`size_average`. When :attr:`reduce` is ``False``, returns a loss per
+            batch element instead and ignores :attr:`size_average`. Default: ``True``
+        reduction (str, optional): Specifies the reduction to apply to the output:
+            ``'none'`` | ``'mean'`` | ``'sum'``. ``'none'``: no reduction will be applied,
+            ``'mean'``: the sum of the output will be divided by the number of
+            elements in the output, ``'sum'``: the output will be summed. Note: :attr:`size_average`
+            and :attr:`reduce` are in the process of being deprecated, and in the meantime,
+            specifying either of those two args will override :attr:`reduction`. Default: ``'mean'``
+
+    Shape:
+        - Input: :math:`(N, D)` or :math:`(D)` where :math:`D` is the vector dimension.
+        - Output: A Tensor of shape :math:`(N)` if :attr:`reduction` is ``'none'`` and
+          input shape is :math:`(N, D)`; a scalar otherwise.
+
+    Examples::
+
+    >>> triplet_loss = nn.TripletMarginLoss(margin=1.0, p=2, eps=1e-7)
+    >>> anchor = torch.randn(100, 128, requires_grad=True)
+    >>> positive = torch.randn(100, 128, requires_grad=True)
+    >>> negative = torch.randn(100, 128, requires_grad=True)
+    >>> output = triplet_loss(anchor, positive, negative)
+    >>> output.backward()
+
+    .. _Learning shallow convolutional feature descriptors with triplet losses:
+        https://bmva-archive.org.uk/bmvc/2016/papers/paper119/index.html
+
+[API Signature] margin: float, p: integer, eps: float, swap: boolean, size_average: boolean, reduce: boolean, reduction: string, anchor: tensor, positive: tensor, negative: tensor
+
+[Error Messages]
+RuntimeError: The anchor, positive, and negative tensors are expected to have the same number of dimensions, but got: anchor 1D, positive 2D, and negative 2D inputs
+ValueError: TripletMarginLoss: expected margin to be greater than 0, got -1.0 instead
+RuntimeError: Subtraction, the `-` operator, with a bool tensor is not supported. If you are trying to invert a mask, use the `~` or `logical_not()` operator instead.
+RuntimeError: The size of tensor a (39) must match the size of tensor b (81) at non-singleton dimension 2
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (norm degree p must be at least 1)
+{p : int} |= p ≥ 1
+Token usage: input=2508, output=5149, total=7657
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.TripletMarginLoss API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+Creates a criterion that measures the triplet loss given an input
+    tensors :math:`x1`, :math:`x2`, :math:`x3` and a margin with a value greater than :math:`0`.
+    This is used for measuring a relative similarity between samples. A triplet
+    is composed by `a`, `p` and `n` (i.e., `anchor`, `positive examples` and `negative
+    examples` respectively). The shapes of all input tensors should be
+    :math:`(N, D)`.
+
+    The distance swap is described in detail in the paper `Learning shallow
+    convolutional feature descriptors with triplet losses`_ by
+    V. Balntas, E. Riba et al.
+
+    The loss function for each sample in the mini-batch is:
+
+    .. math::
+        L(a, p, n) = \max \{d(a_i, p_i) - d(a_i, n_i) + {\rm margin}, 0\}
+
+
+    where
+
+    .. math::
+        d(x_i, y_i) = \left\lVert {\bf x}_i - {\bf y}_i \right\rVert_p
+
+    The norm is calculated using the specified p value and a small constant :math:`\varepsilon` is
+    added for numerical stability.
+
+    See also :class:`~torch.nn.TripletMarginWithDistanceLoss`, which computes the
+    triplet margin loss for input tensors using a custom distance function.
+
+    Args:
+        margin (float, optional): Default: :math:`1`.
+        p (int, optional): The norm degree for pairwise distance. Default: :math:`2`.
+        eps (float, optional): Small constant for numerical stability. Default: :math:`1e-6`.
+        swap (bool, optional): The distance swap is described in detail in the paper
+            `Learning shallow convolutional feature descriptors with triplet losses` by
+            V. Balntas, E. Riba et al. Default: ``False``.
+        size_average (bool, optional): Deprecated (see :attr:`reduction`). By default,
+            the losses are averaged over each loss element in the batch. Note that for
+            some losses, there are multiple elements per sample. If the field :attr:`size_average`
+            is set to ``False``, the losses are instead summed for each minibatch. Ignored
+            when :attr:`reduce` is ``False``. Default: ``True``
+        reduce (bool, optional): Deprecated (see :attr:`reduction`). By default, the
+            losses are averaged or summed over observations for each minibatch depending
+            on :attr:`size_average`. When :attr:`reduce` is ``False``, returns a loss per
+            batch element instead and ignores :attr:`size_average`. Default: ``True``
+        reduction (str, optional): Specifies the reduction to apply to the output:
+            ``'none'`` | ``'mean'`` | ``'sum'``. ``'none'``: no reduction will be applied,
+            ``'mean'``: the sum of the output will be divided by the number of
+            elements in the output, ``'sum'``: the output will be summed. Note: :attr:`size_average`
+            and :attr:`reduce` are in the process of being deprecated, and in the meantime,
+            specifying either of those two args will override :attr:`reduction`. Default: ``'mean'``
+
+    Shape:
+        - Input: :math:`(N, D)` or :math:`(D)` where :math:`D` is the vector dimension.
+        - Output: A Tensor of shape :math:`(N)` if :attr:`reduction` is ``'none'`` and
+          input shape is :math:`(N, D)`; a scalar otherwise.
+
+    Examples::
+
+    >>> triplet_loss = nn.TripletMarginLoss(margin=1.0, p=2, eps=1e-7)
+    >>> anchor = torch.randn(100, 128, requires_grad=True)
+    >>> positive = torch.randn(100, 128, requires_grad=True)
+    >>> negative = torch.randn(100, 128, requires_grad=True)
+    >>> output = triplet_loss(anchor, positive, negative)
+    >>> output.backward()
+
+    .. _Learning shallow convolutional feature descriptors with triplet losses:
+        https://bmva-archive.org.uk/bmvc/2016/papers/paper119/index.html
+
+[API Signature] margin: float, p: integer, eps: float, swap: boolean, size_average: boolean, reduce: boolean, reduction: string, anchor: tensor, positive: tensor, negative: tensor
+
+[Error Messages]
+RuntimeError: The anchor, positive, and negative tensors are expected to have the same number of dimensions, but got: anchor 1D, positive 2D, and negative 2D inputs
+ValueError: TripletMarginLoss: expected margin to be greater than 0, got -1.0 instead
+RuntimeError: Subtraction, the `-` operator, with a bool tensor is not supported. If you are trying to invert a mask, use the `~` or `logical_not()` operator instead.
+RuntimeError: The size of tensor a (39) must match the size of tensor b (81) at non-singleton dimension 2
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (epsilon must be positive)
+{eps : float} |= eps > 0
+Token usage: input=2508, output=5149, total=7657
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.TripletMarginLoss API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+Creates a criterion that measures the triplet loss given an input
+    tensors :math:`x1`, :math:`x2`, :math:`x3` and a margin with a value greater than :math:`0`.
+    This is used for measuring a relative similarity between samples. A triplet
+    is composed by `a`, `p` and `n` (i.e., `anchor`, `positive examples` and `negative
+    examples` respectively). The shapes of all input tensors should be
+    :math:`(N, D)`.
+
+    The distance swap is described in detail in the paper `Learning shallow
+    convolutional feature descriptors with triplet losses`_ by
+    V. Balntas, E. Riba et al.
+
+    The loss function for each sample in the mini-batch is:
+
+    .. math::
+        L(a, p, n) = \max \{d(a_i, p_i) - d(a_i, n_i) + {\rm margin}, 0\}
+
+
+    where
+
+    .. math::
+        d(x_i, y_i) = \left\lVert {\bf x}_i - {\bf y}_i \right\rVert_p
+
+    The norm is calculated using the specified p value and a small constant :math:`\varepsilon` is
+    added for numerical stability.
+
+    See also :class:`~torch.nn.TripletMarginWithDistanceLoss`, which computes the
+    triplet margin loss for input tensors using a custom distance function.
+
+    Args:
+        margin (float, optional): Default: :math:`1`.
+        p (int, optional): The norm degree for pairwise distance. Default: :math:`2`.
+        eps (float, optional): Small constant for numerical stability. Default: :math:`1e-6`.
+        swap (bool, optional): The distance swap is described in detail in the paper
+            `Learning shallow convolutional feature descriptors with triplet losses` by
+            V. Balntas, E. Riba et al. Default: ``False``.
+        size_average (bool, optional): Deprecated (see :attr:`reduction`). By default,
+            the losses are averaged over each loss element in the batch. Note that for
+            some losses, there are multiple elements per sample. If the field :attr:`size_average`
+            is set to ``False``, the losses are instead summed for each minibatch. Ignored
+            when :attr:`reduce` is ``False``. Default: ``True``
+        reduce (bool, optional): Deprecated (see :attr:`reduction`). By default, the
+            losses are averaged or summed over observations for each minibatch depending
+            on :attr:`size_average`. When :attr:`reduce` is ``False``, returns a loss per
+            batch element instead and ignores :attr:`size_average`. Default: ``True``
+        reduction (str, optional): Specifies the reduction to apply to the output:
+            ``'none'`` | ``'mean'`` | ``'sum'``. ``'none'``: no reduction will be applied,
+            ``'mean'``: the sum of the output will be divided by the number of
+            elements in the output, ``'sum'``: the output will be summed. Note: :attr:`size_average`
+            and :attr:`reduce` are in the process of being deprecated, and in the meantime,
+            specifying either of those two args will override :attr:`reduction`. Default: ``'mean'``
+
+    Shape:
+        - Input: :math:`(N, D)` or :math:`(D)` where :math:`D` is the vector dimension.
+        - Output: A Tensor of shape :math:`(N)` if :attr:`reduction` is ``'none'`` and
+          input shape is :math:`(N, D)`; a scalar otherwise.
+
+    Examples::
+
+    >>> triplet_loss = nn.TripletMarginLoss(margin=1.0, p=2, eps=1e-7)
+    >>> anchor = torch.randn(100, 128, requires_grad=True)
+    >>> positive = torch.randn(100, 128, requires_grad=True)
+    >>> negative = torch.randn(100, 128, requires_grad=True)
+    >>> output = triplet_loss(anchor, positive, negative)
+    >>> output.backward()
+
+    .. _Learning shallow convolutional feature descriptors with triplet losses:
+        https://bmva-archive.org.uk/bmvc/2016/papers/paper119/index.html
+
+[API Signature] margin: float, p: integer, eps: float, swap: boolean, size_average: boolean, reduce: boolean, reduction: string, anchor: tensor, positive: tensor, negative: tensor
+
+[Error Messages]
+RuntimeError: The anchor, positive, and negative tensors are expected to have the same number of dimensions, but got: anchor 1D, positive 2D, and negative 2D inputs
+ValueError: TripletMarginLoss: expected margin to be greater than 0, got -1.0 instead
+RuntimeError: Subtraction, the `-` operator, with a bool tensor is not supported. If you are trying to invert a mask, use the `~` or `logical_not()` operator instead.
+RuntimeError: The size of tensor a (39) must match the size of tensor b (81) at non-singleton dimension 2
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (inputs must share the same floating-point dtype)
+{anchor : tensor, positive : tensor, negative : tensor} |= dtype_(anchor) = dtype_(positive) ∧ dtype_(anchor) = dtype_(negative) ∧ (dtype_(anchor) = 6 ∨ dtype_(anchor) = 7 ∨ dtype_(anchor) = 8)
+Token usage: input=2508, output=5149, total=7657
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.TripletMarginLoss API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+Creates a criterion that measures the triplet loss given an input
+    tensors :math:`x1`, :math:`x2`, :math:`x3` and a margin with a value greater than :math:`0`.
+    This is used for measuring a relative similarity between samples. A triplet
+    is composed by `a`, `p` and `n` (i.e., `anchor`, `positive examples` and `negative
+    examples` respectively). The shapes of all input tensors should be
+    :math:`(N, D)`.
+
+    The distance swap is described in detail in the paper `Learning shallow
+    convolutional feature descriptors with triplet losses`_ by
+    V. Balntas, E. Riba et al.
+
+    The loss function for each sample in the mini-batch is:
+
+    .. math::
+        L(a, p, n) = \max \{d(a_i, p_i) - d(a_i, n_i) + {\rm margin}, 0\}
+
+
+    where
+
+    .. math::
+        d(x_i, y_i) = \left\lVert {\bf x}_i - {\bf y}_i \right\rVert_p
+
+    The norm is calculated using the specified p value and a small constant :math:`\varepsilon` is
+    added for numerical stability.
+
+    See also :class:`~torch.nn.TripletMarginWithDistanceLoss`, which computes the
+    triplet margin loss for input tensors using a custom distance function.
+
+    Args:
+        margin (float, optional): Default: :math:`1`.
+        p (int, optional): The norm degree for pairwise distance. Default: :math:`2`.
+        eps (float, optional): Small constant for numerical stability. Default: :math:`1e-6`.
+        swap (bool, optional): The distance swap is described in detail in the paper
+            `Learning shallow convolutional feature descriptors with triplet losses` by
+            V. Balntas, E. Riba et al. Default: ``False``.
+        size_average (bool, optional): Deprecated (see :attr:`reduction`). By default,
+            the losses are averaged over each loss element in the batch. Note that for
+            some losses, there are multiple elements per sample. If the field :attr:`size_average`
+            is set to ``False``, the losses are instead summed for each minibatch. Ignored
+            when :attr:`reduce` is ``False``. Default: ``True``
+        reduce (bool, optional): Deprecated (see :attr:`reduction`). By default, the
+            losses are averaged or summed over observations for each minibatch depending
+            on :attr:`size_average`. When :attr:`reduce` is ``False``, returns a loss per
+            batch element instead and ignores :attr:`size_average`. Default: ``True``
+        reduction (str, optional): Specifies the reduction to apply to the output:
+            ``'none'`` | ``'mean'`` | ``'sum'``. ``'none'``: no reduction will be applied,
+            ``'mean'``: the sum of the output will be divided by the number of
+            elements in the output, ``'sum'``: the output will be summed. Note: :attr:`size_average`
+            and :attr:`reduce` are in the process of being deprecated, and in the meantime,
+            specifying either of those two args will override :attr:`reduction`. Default: ``'mean'``
+
+    Shape:
+        - Input: :math:`(N, D)` or :math:`(D)` where :math:`D` is the vector dimension.
+        - Output: A Tensor of shape :math:`(N)` if :attr:`reduction` is ``'none'`` and
+          input shape is :math:`(N, D)`; a scalar otherwise.
+
+    Examples::
+
+    >>> triplet_loss = nn.TripletMarginLoss(margin=1.0, p=2, eps=1e-7)
+    >>> anchor = torch.randn(100, 128, requires_grad=True)
+    >>> positive = torch.randn(100, 128, requires_grad=True)
+    >>> negative = torch.randn(100, 128, requires_grad=True)
+    >>> output = triplet_loss(anchor, positive, negative)
+    >>> output.backward()
+
+    .. _Learning shallow convolutional feature descriptors with triplet losses:
+        https://bmva-archive.org.uk/bmvc/2016/papers/paper119/index.html
+
+[API Signature] margin: float, p: integer, eps: float, swap: boolean, size_average: boolean, reduce: boolean, reduction: string, anchor: tensor, positive: tensor, negative: tensor
+
+[Error Messages]
+RuntimeError: The anchor, positive, and negative tensors are expected to have the same number of dimensions, but got: anchor 1D, positive 2D, and negative 2D inputs
+ValueError: TripletMarginLoss: expected margin to be greater than 0, got -1.0 instead
+RuntimeError: Subtraction, the `-` operator, with a bool tensor is not supported. If you are trying to invert a mask, use the `~` or `logical_not()` operator instead.
+RuntimeError: The size of tensor a (39) must match the size of tensor b (81) at non-singleton dimension 2
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (inputs must have the same number of dimensions and be 1D or 2D)
+{anchor : tensor, positive : tensor, negative : tensor} |= ndim(anchor) = ndim(positive) ∧ ndim(positive) = ndim(negative) ∧ (ndim(anchor) = 1 ∨ ndim(anchor) = 2)
+Token usage: input=2508, output=5149, total=7657
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.TripletMarginLoss API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+Creates a criterion that measures the triplet loss given an input
+    tensors :math:`x1`, :math:`x2`, :math:`x3` and a margin with a value greater than :math:`0`.
+    This is used for measuring a relative similarity between samples. A triplet
+    is composed by `a`, `p` and `n` (i.e., `anchor`, `positive examples` and `negative
+    examples` respectively). The shapes of all input tensors should be
+    :math:`(N, D)`.
+
+    The distance swap is described in detail in the paper `Learning shallow
+    convolutional feature descriptors with triplet losses`_ by
+    V. Balntas, E. Riba et al.
+
+    The loss function for each sample in the mini-batch is:
+
+    .. math::
+        L(a, p, n) = \max \{d(a_i, p_i) - d(a_i, n_i) + {\rm margin}, 0\}
+
+
+    where
+
+    .. math::
+        d(x_i, y_i) = \left\lVert {\bf x}_i - {\bf y}_i \right\rVert_p
+
+    The norm is calculated using the specified p value and a small constant :math:`\varepsilon` is
+    added for numerical stability.
+
+    See also :class:`~torch.nn.TripletMarginWithDistanceLoss`, which computes the
+    triplet margin loss for input tensors using a custom distance function.
+
+    Args:
+        margin (float, optional): Default: :math:`1`.
+        p (int, optional): The norm degree for pairwise distance. Default: :math:`2`.
+        eps (float, optional): Small constant for numerical stability. Default: :math:`1e-6`.
+        swap (bool, optional): The distance swap is described in detail in the paper
+            `Learning shallow convolutional feature descriptors with triplet losses` by
+            V. Balntas, E. Riba et al. Default: ``False``.
+        size_average (bool, optional): Deprecated (see :attr:`reduction`). By default,
+            the losses are averaged over each loss element in the batch. Note that for
+            some losses, there are multiple elements per sample. If the field :attr:`size_average`
+            is set to ``False``, the losses are instead summed for each minibatch. Ignored
+            when :attr:`reduce` is ``False``. Default: ``True``
+        reduce (bool, optional): Deprecated (see :attr:`reduction`). By default, the
+            losses are averaged or summed over observations for each minibatch depending
+            on :attr:`size_average`. When :attr:`reduce` is ``False``, returns a loss per
+            batch element instead and ignores :attr:`size_average`. Default: ``True``
+        reduction (str, optional): Specifies the reduction to apply to the output:
+            ``'none'`` | ``'mean'`` | ``'sum'``. ``'none'``: no reduction will be applied,
+            ``'mean'``: the sum of the output will be divided by the number of
+            elements in the output, ``'sum'``: the output will be summed. Note: :attr:`size_average`
+            and :attr:`reduce` are in the process of being deprecated, and in the meantime,
+            specifying either of those two args will override :attr:`reduction`. Default: ``'mean'``
+
+    Shape:
+        - Input: :math:`(N, D)` or :math:`(D)` where :math:`D` is the vector dimension.
+        - Output: A Tensor of shape :math:`(N)` if :attr:`reduction` is ``'none'`` and
+          input shape is :math:`(N, D)`; a scalar otherwise.
+
+    Examples::
+
+    >>> triplet_loss = nn.TripletMarginLoss(margin=1.0, p=2, eps=1e-7)
+    >>> anchor = torch.randn(100, 128, requires_grad=True)
+    >>> positive = torch.randn(100, 128, requires_grad=True)
+    >>> negative = torch.randn(100, 128, requires_grad=True)
+    >>> output = triplet_loss(anchor, positive, negative)
+    >>> output.backward()
+
+    .. _Learning shallow convolutional feature descriptors with triplet losses:
+        https://bmva-archive.org.uk/bmvc/2016/papers/paper119/index.html
+
+[API Signature] margin: float, p: integer, eps: float, swap: boolean, size_average: boolean, reduce: boolean, reduction: string, anchor: tensor, positive: tensor, negative: tensor
+
+[Error Messages]
+RuntimeError: The anchor, positive, and negative tensors are expected to have the same number of dimensions, but got: anchor 1D, positive 2D, and negative 2D inputs
+ValueError: TripletMarginLoss: expected margin to be greater than 0, got -1.0 instead
+RuntimeError: Subtraction, the `-` operator, with a bool tensor is not supported. If you are trying to invert a mask, use the `~` or `logical_not()` operator instead.
+RuntimeError: The size of tensor a (39) must match the size of tensor b (81) at non-singleton dimension 2
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (all shape dimensions must match across anchor, positive, and negative)
+{anchor : tensor, positive : tensor, negative : tensor} |= ∀i ∈ [0, ndim(anchor) - 1] : shape(anchor, i) = shape(positive, i) ∧ shape(anchor, i) = shape(negative, i)
+Token usage: input=2508, output=5149, total=7657
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.TripletMarginLoss API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+Creates a criterion that measures the triplet loss given an input
+    tensors :math:`x1`, :math:`x2`, :math:`x3` and a margin with a value greater than :math:`0`.
+    This is used for measuring a relative similarity between samples. A triplet
+    is composed by `a`, `p` and `n` (i.e., `anchor`, `positive examples` and `negative
+    examples` respectively). The shapes of all input tensors should be
+    :math:`(N, D)`.
+
+    The distance swap is described in detail in the paper `Learning shallow
+    convolutional feature descriptors with triplet losses`_ by
+    V. Balntas, E. Riba et al.
+
+    The loss function for each sample in the mini-batch is:
+
+    .. math::
+        L(a, p, n) = \max \{d(a_i, p_i) - d(a_i, n_i) + {\rm margin}, 0\}
+
+
+    where
+
+    .. math::
+        d(x_i, y_i) = \left\lVert {\bf x}_i - {\bf y}_i \right\rVert_p
+
+    The norm is calculated using the specified p value and a small constant :math:`\varepsilon` is
+    added for numerical stability.
+
+    See also :class:`~torch.nn.TripletMarginWithDistanceLoss`, which computes the
+    triplet margin loss for input tensors using a custom distance function.
+
+    Args:
+        margin (float, optional): Default: :math:`1`.
+        p (int, optional): The norm degree for pairwise distance. Default: :math:`2`.
+        eps (float, optional): Small constant for numerical stability. Default: :math:`1e-6`.
+        swap (bool, optional): The distance swap is described in detail in the paper
+            `Learning shallow convolutional feature descriptors with triplet losses` by
+            V. Balntas, E. Riba et al. Default: ``False``.
+        size_average (bool, optional): Deprecated (see :attr:`reduction`). By default,
+            the losses are averaged over each loss element in the batch. Note that for
+            some losses, there are multiple elements per sample. If the field :attr:`size_average`
+            is set to ``False``, the losses are instead summed for each minibatch. Ignored
+            when :attr:`reduce` is ``False``. Default: ``True``
+        reduce (bool, optional): Deprecated (see :attr:`reduction`). By default, the
+            losses are averaged or summed over observations for each minibatch depending
+            on :attr:`size_average`. When :attr:`reduce` is ``False``, returns a loss per
+            batch element instead and ignores :attr:`size_average`. Default: ``True``
+        reduction (str, optional): Specifies the reduction to apply to the output:
+            ``'none'`` | ``'mean'`` | ``'sum'``. ``'none'``: no reduction will be applied,
+            ``'mean'``: the sum of the output will be divided by the number of
+            elements in the output, ``'sum'``: the output will be summed. Note: :attr:`size_average`
+            and :attr:`reduce` are in the process of being deprecated, and in the meantime,
+            specifying either of those two args will override :attr:`reduction`. Default: ``'mean'``
+
+    Shape:
+        - Input: :math:`(N, D)` or :math:`(D)` where :math:`D` is the vector dimension.
+        - Output: A Tensor of shape :math:`(N)` if :attr:`reduction` is ``'none'`` and
+          input shape is :math:`(N, D)`; a scalar otherwise.
+
+    Examples::
+
+    >>> triplet_loss = nn.TripletMarginLoss(margin=1.0, p=2, eps=1e-7)
+    >>> anchor = torch.randn(100, 128, requires_grad=True)
+    >>> positive = torch.randn(100, 128, requires_grad=True)
+    >>> negative = torch.randn(100, 128, requires_grad=True)
+    >>> output = triplet_loss(anchor, positive, negative)
+    >>> output.backward()
+
+    .. _Learning shallow convolutional feature descriptors with triplet losses:
+        https://bmva-archive.org.uk/bmvc/2016/papers/paper119/index.html
+
+[API Signature] margin: float, p: integer, eps: float, swap: boolean, size_average: boolean, reduce: boolean, reduction: string, anchor: tensor, positive: tensor, negative: tensor
+
+[Error Messages]
+RuntimeError: The anchor, positive, and negative tensors are expected to have the same number of dimensions, but got: anchor 1D, positive 2D, and negative 2D inputs
+ValueError: TripletMarginLoss: expected margin to be greater than 0, got -1.0 instead
+RuntimeError: Subtraction, the `-` operator, with a bool tensor is not supported. If you are trying to invert a mask, use the `~` or `logical_not()` operator instead.
+RuntimeError: The size of tensor a (39) must match the size of tensor b (81) at non-singleton dimension 2
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (reduction must be a valid option)
+{reduction : str} |= reduction = "none" ∨ reduction = "mean" ∨ reduction = "sum"
+Token usage: input=2508, output=5149, total=7657
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.TripletMarginLoss API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+Creates a criterion that measures the triplet loss given an input
+    tensors :math:`x1`, :math:`x2`, :math:`x3` and a margin with a value greater than :math:`0`.
+    This is used for measuring a relative similarity between samples. A triplet
+    is composed by `a`, `p` and `n` (i.e., `anchor`, `positive examples` and `negative
+    examples` respectively). The shapes of all input tensors should be
+    :math:`(N, D)`.
+
+    The distance swap is described in detail in the paper `Learning shallow
+    convolutional feature descriptors with triplet losses`_ by
+    V. Balntas, E. Riba et al.
+
+    The loss function for each sample in the mini-batch is:
+
+    .. math::
+        L(a, p, n) = \max \{d(a_i, p_i) - d(a_i, n_i) + {\rm margin}, 0\}
+
+
+    where
+
+    .. math::
+        d(x_i, y_i) = \left\lVert {\bf x}_i - {\bf y}_i \right\rVert_p
+
+    The norm is calculated using the specified p value and a small constant :math:`\varepsilon` is
+    added for numerical stability.
+
+    See also :class:`~torch.nn.TripletMarginWithDistanceLoss`, which computes the
+    triplet margin loss for input tensors using a custom distance function.
+
+    Args:
+        margin (float, optional): Default: :math:`1`.
+        p (int, optional): The norm degree for pairwise distance. Default: :math:`2`.
+        eps (float, optional): Small constant for numerical stability. Default: :math:`1e-6`.
+        swap (bool, optional): The distance swap is described in detail in the paper
+            `Learning shallow convolutional feature descriptors with triplet losses` by
+            V. Balntas, E. Riba et al. Default: ``False``.
+        size_average (bool, optional): Deprecated (see :attr:`reduction`). By default,
+            the losses are averaged over each loss element in the batch. Note that for
+            some losses, there are multiple elements per sample. If the field :attr:`size_average`
+            is set to ``False``, the losses are instead summed for each minibatch. Ignored
+            when :attr:`reduce` is ``False``. Default: ``True``
+        reduce (bool, optional): Deprecated (see :attr:`reduction`). By default, the
+            losses are averaged or summed over observations for each minibatch depending
+            on :attr:`size_average`. When :attr:`reduce` is ``False``, returns a loss per
+            batch element instead and ignores :attr:`size_average`. Default: ``True``
+        reduction (str, optional): Specifies the reduction to apply to the output:
+            ``'none'`` | ``'mean'`` | ``'sum'``. ``'none'``: no reduction will be applied,
+            ``'mean'``: the sum of the output will be divided by the number of
+            elements in the output, ``'sum'``: the output will be summed. Note: :attr:`size_average`
+            and :attr:`reduce` are in the process of being deprecated, and in the meantime,
+            specifying either of those two args will override :attr:`reduction`. Default: ``'mean'``
+
+    Shape:
+        - Input: :math:`(N, D)` or :math:`(D)` where :math:`D` is the vector dimension.
+        - Output: A Tensor of shape :math:`(N)` if :attr:`reduction` is ``'none'`` and
+          input shape is :math:`(N, D)`; a scalar otherwise.
+
+    Examples::
+
+    >>> triplet_loss = nn.TripletMarginLoss(margin=1.0, p=2, eps=1e-7)
+    >>> anchor = torch.randn(100, 128, requires_grad=True)
+    >>> positive = torch.randn(100, 128, requires_grad=True)
+    >>> negative = torch.randn(100, 128, requires_grad=True)
+    >>> output = triplet_loss(anchor, positive, negative)
+    >>> output.backward()
+
+    .. _Learning shallow convolutional feature descriptors with triplet losses:
+        https://bmva-archive.org.uk/bmvc/2016/papers/paper119/index.html
+
+[API Signature] margin: float, p: integer, eps: float, swap: boolean, size_average: boolean, reduce: boolean, reduction: string, anchor: tensor, positive: tensor, negative: tensor
+
+[Error Messages]
+RuntimeError: The anchor, positive, and negative tensors are expected to have the same number of dimensions, but got: anchor 1D, positive 2D, and negative 2D inputs
+ValueError: TripletMarginLoss: expected margin to be greater than 0, got -1.0 instead
+RuntimeError: Subtraction, the `-` operator, with a bool tensor is not supported. If you are trying to invert a mask, use the `~` or `logical_not()` operator instead.
+RuntimeError: The size of tensor a (39) must match the size of tensor b (81) at non-singleton dimension 2
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (when reduce is false, reduction must be 'none')
+{reduce : bool, reduction : str} |= if reduce = false then reduction = "none"
+Token usage: input=2508, output=5149, total=7657
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.TripletMarginLoss API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+Creates a criterion that measures the triplet loss given an input
+    tensors :math:`x1`, :math:`x2`, :math:`x3` and a margin with a value greater than :math:`0`.
+    This is used for measuring a relative similarity between samples. A triplet
+    is composed by `a`, `p` and `n` (i.e., `anchor`, `positive examples` and `negative
+    examples` respectively). The shapes of all input tensors should be
+    :math:`(N, D)`.
+
+    The distance swap is described in detail in the paper `Learning shallow
+    convolutional feature descriptors with triplet losses`_ by
+    V. Balntas, E. Riba et al.
+
+    The loss function for each sample in the mini-batch is:
+
+    .. math::
+        L(a, p, n) = \max \{d(a_i, p_i) - d(a_i, n_i) + {\rm margin}, 0\}
+
+
+    where
+
+    .. math::
+        d(x_i, y_i) = \left\lVert {\bf x}_i - {\bf y}_i \right\rVert_p
+
+    The norm is calculated using the specified p value and a small constant :math:`\varepsilon` is
+    added for numerical stability.
+
+    See also :class:`~torch.nn.TripletMarginWithDistanceLoss`, which computes the
+    triplet margin loss for input tensors using a custom distance function.
+
+    Args:
+        margin (float, optional): Default: :math:`1`.
+        p (int, optional): The norm degree for pairwise distance. Default: :math:`2`.
+        eps (float, optional): Small constant for numerical stability. Default: :math:`1e-6`.
+        swap (bool, optional): The distance swap is described in detail in the paper
+            `Learning shallow convolutional feature descriptors with triplet losses` by
+            V. Balntas, E. Riba et al. Default: ``False``.
+        size_average (bool, optional): Deprecated (see :attr:`reduction`). By default,
+            the losses are averaged over each loss element in the batch. Note that for
+            some losses, there are multiple elements per sample. If the field :attr:`size_average`
+            is set to ``False``, the losses are instead summed for each minibatch. Ignored
+            when :attr:`reduce` is ``False``. Default: ``True``
+        reduce (bool, optional): Deprecated (see :attr:`reduction`). By default, the
+            losses are averaged or summed over observations for each minibatch depending
+            on :attr:`size_average`. When :attr:`reduce` is ``False``, returns a loss per
+            batch element instead and ignores :attr:`size_average`. Default: ``True``
+        reduction (str, optional): Specifies the reduction to apply to the output:
+            ``'none'`` | ``'mean'`` | ``'sum'``. ``'none'``: no reduction will be applied,
+            ``'mean'``: the sum of the output will be divided by the number of
+            elements in the output, ``'sum'``: the output will be summed. Note: :attr:`size_average`
+            and :attr:`reduce` are in the process of being deprecated, and in the meantime,
+            specifying either of those two args will override :attr:`reduction`. Default: ``'mean'``
+
+    Shape:
+        - Input: :math:`(N, D)` or :math:`(D)` where :math:`D` is the vector dimension.
+        - Output: A Tensor of shape :math:`(N)` if :attr:`reduction` is ``'none'`` and
+          input shape is :math:`(N, D)`; a scalar otherwise.
+
+    Examples::
+
+    >>> triplet_loss = nn.TripletMarginLoss(margin=1.0, p=2, eps=1e-7)
+    >>> anchor = torch.randn(100, 128, requires_grad=True)
+    >>> positive = torch.randn(100, 128, requires_grad=True)
+    >>> negative = torch.randn(100, 128, requires_grad=True)
+    >>> output = triplet_loss(anchor, positive, negative)
+    >>> output.backward()
+
+    .. _Learning shallow convolutional feature descriptors with triplet losses:
+        https://bmva-archive.org.uk/bmvc/2016/papers/paper119/index.html
+
+[API Signature] margin: float, p: integer, eps: float, swap: boolean, size_average: boolean, reduce: boolean, reduction: string, anchor: tensor, positive: tensor, negative: tensor
+
+[Error Messages]
+RuntimeError: The anchor, positive, and negative tensors are expected to have the same number of dimensions, but got: anchor 1D, positive 2D, and negative 2D inputs
+ValueError: TripletMarginLoss: expected margin to be greater than 0, got -1.0 instead
+RuntimeError: Subtraction, the `-` operator, with a bool tensor is not supported. If you are trying to invert a mask, use the `~` or `logical_not()` operator instead.
+RuntimeError: The size of tensor a (39) must match the size of tensor b (81) at non-singleton dimension 2
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (all input tensor dimensions must be positive)
+{anchor : tensor, positive : tensor, negative : tensor} |= ∀i ∈ [0, ndim(anchor) - 1] : shape(anchor, i) > 0 ∧ ∀j ∈ [0, ndim(positive) - 1] : shape(positive, j) > 0 ∧ ∀k ∈ [0, ndim(negative) - 1] : shape(negative, k) > 0
+Token usage: input=2508, output=5149, total=7657
+** SUCCESS **
+

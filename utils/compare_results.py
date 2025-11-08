@@ -9,6 +9,10 @@ def main():
     lib = sys.argv[5] if len(sys.argv) > 5 else "torch"
     output_dir = sys.argv[6] if len(sys.argv) > 6 else ".tmp"
 
+    target_apis_file = f"{lib}_apis.txt"
+    with open(target_apis_file, 'r') as f:
+        target_apis = set([line.strip() for line in f.readlines()])
+
     os.makedirs(output_dir, exist_ok=True)
 
     cov_filename = f"coverage_{lib}.csv"
@@ -55,6 +59,10 @@ def main():
     apis_only_in_1 = set(cov_1['api']) - set(cov_2['api'])
     apis_only_in_2 = set(cov_2['api']) - set(cov_1['api'])
 
+    apis_only_in_1 = apis_only_in_1.intersection(target_apis)
+    apis_only_in_2 = apis_only_in_2.intersection(target_apis)
+    missing_either = target_apis - (set(cov_1['api']).union(set(cov_2['api'])))
+
     # Save results
     merged_cov.to_csv(os.path.join(output_dir, f"{suffix_1}_vs_{suffix_2}_cov_{lib}.csv"), index=False)
     merged_fuzz.to_csv(os.path.join(output_dir, f"{suffix_1}_vs_{suffix_2}_val_{lib}.csv"), index=False)
@@ -74,6 +82,11 @@ def main():
         if len(apis_only_in_2) > 0:
             f.write("\nOnly in " + suffix_2 + ":\n")
             for api in apis_only_in_2:
+                f.write(api + "\n")
+
+        if len(missing_either) > 0:
+            f.write("\nMissing in both:\n")
+            for api in missing_either:
                 f.write(api + "\n")
 
 if __name__ == "__main__":

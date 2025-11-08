@@ -21,8 +21,8 @@ def replication_pad3d_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.ones((1, 2, 4, 8, 16)).numpy()
-    padding = (1, 1, 2, 2, 3, 3)
+    input = torch.ones((1, 1, 2, 3, 4)).numpy()
+    padding = (1, 1, 1, 1, 1, 1)
     
     input_dict = {
         "input": input,
@@ -32,8 +32,8 @@ def replication_pad3d_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.zeros((2, 3, 5, 10, 15)).numpy()
-    padding = (2, 2, 2, 2, 2, 2)
+    input = torch.zeros((2, 3, 5, 6, 7)).numpy()
+    padding = (0, 0, 0, 0, 0, 0)
     
     input_dict = {
         "input": input,
@@ -43,8 +43,8 @@ def replication_pad3d_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.randn(1, 1, 3, 6, 9).numpy()
-    padding = (0, 0, 0, 0, 0, 0)
+    input = torch.randn(1, 2, 3, 4, 5).numpy()
+    padding = (2, 3, 4, 5, 6, 7)
     
     input_dict = {
         "input": input,
@@ -54,18 +54,7 @@ def replication_pad3d_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.ones((4, 2, 7, 14, 28)).numpy()
-    padding = (3, 3, 3, 3, 3, 3)
-    
-    input_dict = {
-        "input": input,
-        "padding": padding
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6, valid
-    input = torch.randn(8, 4, 10, 20, 30).numpy()
+    input = torch.ones((10, 2, 3, 4, 5)).numpy()
     padding = (1, 2, 3, 4, 5, 6)
     
     input_dict = {
@@ -75,9 +64,20 @@ def replication_pad3d_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
+    # Input 6, valid
+    input = torch.randn(2, 1, 2, 3, 4).numpy()
+    padding = (0, 1, 2, 3, 4, 5)
+    
+    input_dict = {
+        "input": input,
+        "padding": padding
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     # Input 7, valid
-    input = torch.zeros((1, 1, 2, 4, 8)).numpy()
-    padding = (0, 0, 0, 0, 0, 0)
+    input = torch.zeros((1, 1, 1, 2, 3)).numpy()
+    padding = (5, 4, 3, 2, 1, 0)
     
     input_dict = {
         "input": input,
@@ -87,8 +87,8 @@ def replication_pad3d_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.ones((3, 5, 6, 12, 24)).numpy()
-    padding = (2, 2, 2, 2, 2, 2)
+    input = torch.ones((3, 4, 5, 6, 7)).numpy()
+    padding = (1, 2, 3, 4, 5, 6)
     
     input_dict = {
         "input": input,
@@ -98,8 +98,8 @@ def replication_pad3d_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.randn(5, 3, 10, 20, 40).numpy()
-    padding = (4, 4, 4, 4, 4, 4)
+    input = torch.randn(5, 3, 2, 1, 0).numpy()
+    padding = (7, 8, 9, 10, 11, 12)
     
     input_dict = {
         "input": input,
@@ -109,8 +109,8 @@ def replication_pad3d_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.zeros((2, 2, 5, 10, 15)).numpy()
-    padding = (1, 1, 1, 1, 1, 1)
+    input = torch.zeros((4, 2, 3, 4, 5)).numpy()
+    padding = (0, 0, 0, 0, 0, 0)
     
     input_dict = {
         "input": input,

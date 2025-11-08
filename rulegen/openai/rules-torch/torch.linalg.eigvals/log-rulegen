@@ -1,0 +1,900 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.linalg.eigvals API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+linalg.eigvals(A, *, out=None) -> Tensor
+
+Computes the eigenvalues of a square matrix.
+
+Letting :math:`\mathbb{K}` be :math:`\mathbb{R}` or :math:`\mathbb{C}`,
+the **eigenvalues** of a square matrix :math:`A \in \mathbb{K}^{n \times n}` are defined
+as the roots (counted with multiplicity) of the polynomial `p` of degree `n` given by
+
+.. math::
+
+    p(\lambda) = \operatorname{det}(A - \lambda \mathrm{I}_n)\mathrlap{\qquad \lambda \in \mathbb{C}}
+
+where :math:`\mathrm{I}_n` is the `n`-dimensional identity matrix.
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+The returned eigenvalues are not guaranteed to be in any specific order.
+
+.. note:: The eigenvalues of a real matrix may be complex, as the roots of a real polynomial may be complex.
+
+          The eigenvalues of a matrix are always well-defined, even when the matrix is not diagonalizable.
+
+
+.. note:: When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+.. seealso::
+
+        :func:`torch.linalg.eig` computes the full eigenvalue decomposition.
+
+Args:
+    A (Tensor): tensor of shape `(*, n, n)` where `*` is zero or more batch dimensions.
+
+Keyword args:
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Returns:
+    A complex-valued tensor containing the eigenvalues even when :attr:`A` is real.
+
+Examples::
+
+    >>> A = torch.randn(2, 2, dtype=torch.complex128)
+    >>> L = torch.linalg.eigvals(A)
+    >>> L
+    tensor([ 1.1226+0.5738j, -0.7537-0.1286j], dtype=torch.complex128)
+
+    >>> torch.dist(L, torch.linalg.eig(A).eigenvalues)
+    tensor(2.4576e-07)
+
+[API Signature] A: tensor, out: tensor
+
+[Error Messages]
+RuntimeError: linalg.eigvals: The input tensor A must have at least 2 dimensions.
+RuntimeError: torch.linalg.eigvals: Expected eigenvalues to be safely castable from ComplexFloat dtype, but got eigenvalues with dtype Double
+RuntimeError: "linalg_eig_out_cpu" not implemented for 'Half'
+RuntimeError: Unknown Complex ScalarType for Char
+RuntimeError: linalg.eigvals: A must be batches of square matrices, but they are 0 by 86 matrices
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (A must have at least 2 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
+Token usage: input=2102, output=5751, total=7853
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.linalg.eigvals API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+linalg.eigvals(A, *, out=None) -> Tensor
+
+Computes the eigenvalues of a square matrix.
+
+Letting :math:`\mathbb{K}` be :math:`\mathbb{R}` or :math:`\mathbb{C}`,
+the **eigenvalues** of a square matrix :math:`A \in \mathbb{K}^{n \times n}` are defined
+as the roots (counted with multiplicity) of the polynomial `p` of degree `n` given by
+
+.. math::
+
+    p(\lambda) = \operatorname{det}(A - \lambda \mathrm{I}_n)\mathrlap{\qquad \lambda \in \mathbb{C}}
+
+where :math:`\mathrm{I}_n` is the `n`-dimensional identity matrix.
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+The returned eigenvalues are not guaranteed to be in any specific order.
+
+.. note:: The eigenvalues of a real matrix may be complex, as the roots of a real polynomial may be complex.
+
+          The eigenvalues of a matrix are always well-defined, even when the matrix is not diagonalizable.
+
+
+.. note:: When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+.. seealso::
+
+        :func:`torch.linalg.eig` computes the full eigenvalue decomposition.
+
+Args:
+    A (Tensor): tensor of shape `(*, n, n)` where `*` is zero or more batch dimensions.
+
+Keyword args:
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Returns:
+    A complex-valued tensor containing the eigenvalues even when :attr:`A` is real.
+
+Examples::
+
+    >>> A = torch.randn(2, 2, dtype=torch.complex128)
+    >>> L = torch.linalg.eigvals(A)
+    >>> L
+    tensor([ 1.1226+0.5738j, -0.7537-0.1286j], dtype=torch.complex128)
+
+    >>> torch.dist(L, torch.linalg.eig(A).eigenvalues)
+    tensor(2.4576e-07)
+
+[API Signature] A: tensor, out: tensor
+
+[Error Messages]
+RuntimeError: linalg.eigvals: The input tensor A must have at least 2 dimensions.
+RuntimeError: torch.linalg.eigvals: Expected eigenvalues to be safely castable from ComplexFloat dtype, but got eigenvalues with dtype Double
+RuntimeError: "linalg_eig_out_cpu" not implemented for 'Half'
+RuntimeError: Unknown Complex ScalarType for Char
+RuntimeError: linalg.eigvals: A must be batches of square matrices, but they are 0 by 86 matrices
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (A must be batches of square matrices with positive size)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2) ∧ shape(v_1, ndim(v_1) - 1) > 0
+Token usage: input=2102, output=5751, total=7853
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.linalg.eigvals API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+linalg.eigvals(A, *, out=None) -> Tensor
+
+Computes the eigenvalues of a square matrix.
+
+Letting :math:`\mathbb{K}` be :math:`\mathbb{R}` or :math:`\mathbb{C}`,
+the **eigenvalues** of a square matrix :math:`A \in \mathbb{K}^{n \times n}` are defined
+as the roots (counted with multiplicity) of the polynomial `p` of degree `n` given by
+
+.. math::
+
+    p(\lambda) = \operatorname{det}(A - \lambda \mathrm{I}_n)\mathrlap{\qquad \lambda \in \mathbb{C}}
+
+where :math:`\mathrm{I}_n` is the `n`-dimensional identity matrix.
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+The returned eigenvalues are not guaranteed to be in any specific order.
+
+.. note:: The eigenvalues of a real matrix may be complex, as the roots of a real polynomial may be complex.
+
+          The eigenvalues of a matrix are always well-defined, even when the matrix is not diagonalizable.
+
+
+.. note:: When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+.. seealso::
+
+        :func:`torch.linalg.eig` computes the full eigenvalue decomposition.
+
+Args:
+    A (Tensor): tensor of shape `(*, n, n)` where `*` is zero or more batch dimensions.
+
+Keyword args:
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Returns:
+    A complex-valued tensor containing the eigenvalues even when :attr:`A` is real.
+
+Examples::
+
+    >>> A = torch.randn(2, 2, dtype=torch.complex128)
+    >>> L = torch.linalg.eigvals(A)
+    >>> L
+    tensor([ 1.1226+0.5738j, -0.7537-0.1286j], dtype=torch.complex128)
+
+    >>> torch.dist(L, torch.linalg.eig(A).eigenvalues)
+    tensor(2.4576e-07)
+
+[API Signature] A: tensor, out: tensor
+
+[Error Messages]
+RuntimeError: linalg.eigvals: The input tensor A must have at least 2 dimensions.
+RuntimeError: torch.linalg.eigvals: Expected eigenvalues to be safely castable from ComplexFloat dtype, but got eigenvalues with dtype Double
+RuntimeError: "linalg_eig_out_cpu" not implemented for 'Half'
+RuntimeError: Unknown Complex ScalarType for Char
+RuntimeError: linalg.eigvals: A must be batches of square matrices, but they are 0 by 86 matrices
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (A must have a supported dtype: float32, float64, complex64, or complex128)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Token usage: input=2102, output=5751, total=7853
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.linalg.eigvals API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+linalg.eigvals(A, *, out=None) -> Tensor
+
+Computes the eigenvalues of a square matrix.
+
+Letting :math:`\mathbb{K}` be :math:`\mathbb{R}` or :math:`\mathbb{C}`,
+the **eigenvalues** of a square matrix :math:`A \in \mathbb{K}^{n \times n}` are defined
+as the roots (counted with multiplicity) of the polynomial `p` of degree `n` given by
+
+.. math::
+
+    p(\lambda) = \operatorname{det}(A - \lambda \mathrm{I}_n)\mathrlap{\qquad \lambda \in \mathbb{C}}
+
+where :math:`\mathrm{I}_n` is the `n`-dimensional identity matrix.
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+The returned eigenvalues are not guaranteed to be in any specific order.
+
+.. note:: The eigenvalues of a real matrix may be complex, as the roots of a real polynomial may be complex.
+
+          The eigenvalues of a matrix are always well-defined, even when the matrix is not diagonalizable.
+
+
+.. note:: When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+.. seealso::
+
+        :func:`torch.linalg.eig` computes the full eigenvalue decomposition.
+
+Args:
+    A (Tensor): tensor of shape `(*, n, n)` where `*` is zero or more batch dimensions.
+
+Keyword args:
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Returns:
+    A complex-valued tensor containing the eigenvalues even when :attr:`A` is real.
+
+Examples::
+
+    >>> A = torch.randn(2, 2, dtype=torch.complex128)
+    >>> L = torch.linalg.eigvals(A)
+    >>> L
+    tensor([ 1.1226+0.5738j, -0.7537-0.1286j], dtype=torch.complex128)
+
+    >>> torch.dist(L, torch.linalg.eig(A).eigenvalues)
+    tensor(2.4576e-07)
+
+[API Signature] A: tensor, out: tensor
+
+[Error Messages]
+RuntimeError: linalg.eigvals: The input tensor A must have at least 2 dimensions.
+RuntimeError: torch.linalg.eigvals: Expected eigenvalues to be safely castable from ComplexFloat dtype, but got eigenvalues with dtype Double
+RuntimeError: "linalg_eig_out_cpu" not implemented for 'Half'
+RuntimeError: Unknown Complex ScalarType for Char
+RuntimeError: linalg.eigvals: A must be batches of square matrices, but they are 0 by 86 matrices
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (out, if provided, must be a complex tensor)
+{v_2 : tensor} |= dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+Token usage: input=2102, output=5751, total=7853
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.linalg.eigvals API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+linalg.eigvals(A, *, out=None) -> Tensor
+
+Computes the eigenvalues of a square matrix.
+
+Letting :math:`\mathbb{K}` be :math:`\mathbb{R}` or :math:`\mathbb{C}`,
+the **eigenvalues** of a square matrix :math:`A \in \mathbb{K}^{n \times n}` are defined
+as the roots (counted with multiplicity) of the polynomial `p` of degree `n` given by
+
+.. math::
+
+    p(\lambda) = \operatorname{det}(A - \lambda \mathrm{I}_n)\mathrlap{\qquad \lambda \in \mathbb{C}}
+
+where :math:`\mathrm{I}_n` is the `n`-dimensional identity matrix.
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+The returned eigenvalues are not guaranteed to be in any specific order.
+
+.. note:: The eigenvalues of a real matrix may be complex, as the roots of a real polynomial may be complex.
+
+          The eigenvalues of a matrix are always well-defined, even when the matrix is not diagonalizable.
+
+
+.. note:: When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+.. seealso::
+
+        :func:`torch.linalg.eig` computes the full eigenvalue decomposition.
+
+Args:
+    A (Tensor): tensor of shape `(*, n, n)` where `*` is zero or more batch dimensions.
+
+Keyword args:
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Returns:
+    A complex-valued tensor containing the eigenvalues even when :attr:`A` is real.
+
+Examples::
+
+    >>> A = torch.randn(2, 2, dtype=torch.complex128)
+    >>> L = torch.linalg.eigvals(A)
+    >>> L
+    tensor([ 1.1226+0.5738j, -0.7537-0.1286j], dtype=torch.complex128)
+
+    >>> torch.dist(L, torch.linalg.eig(A).eigenvalues)
+    tensor(2.4576e-07)
+
+[API Signature] A: tensor, out: tensor
+
+[Error Messages]
+RuntimeError: linalg.eigvals: The input tensor A must have at least 2 dimensions.
+RuntimeError: torch.linalg.eigvals: Expected eigenvalues to be safely castable from ComplexFloat dtype, but got eigenvalues with dtype Double
+RuntimeError: "linalg_eig_out_cpu" not implemented for 'Half'
+RuntimeError: Unknown Complex ScalarType for Char
+RuntimeError: linalg.eigvals: A must be batches of square matrices, but they are 0 by 86 matrices
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (out shape must match the eigenvalues shape implied by A)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 2 ∧ ndim(v_2) = ndim(v_1) - 1 ∧ (if ndim(v_1) ≥ 3 then ∀i ∈ [0, ndim(v_1) - 3] : shape(v_2, i) = shape(v_1, i)) ∧ shape(v_2, ndim(v_2) - 1) = shape(v_1, ndim(v_1) - 1)
+Token usage: input=2102, output=5751, total=7853
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.linalg.eigvals API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+linalg.eigvals(A, *, out=None) -> Tensor
+
+Computes the eigenvalues of a square matrix.
+
+Letting :math:`\mathbb{K}` be :math:`\mathbb{R}` or :math:`\mathbb{C}`,
+the **eigenvalues** of a square matrix :math:`A \in \mathbb{K}^{n \times n}` are defined
+as the roots (counted with multiplicity) of the polynomial `p` of degree `n` given by
+
+.. math::
+
+    p(\lambda) = \operatorname{det}(A - \lambda \mathrm{I}_n)\mathrlap{\qquad \lambda \in \mathbb{C}}
+
+where :math:`\mathrm{I}_n` is the `n`-dimensional identity matrix.
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+The returned eigenvalues are not guaranteed to be in any specific order.
+
+.. note:: The eigenvalues of a real matrix may be complex, as the roots of a real polynomial may be complex.
+
+          The eigenvalues of a matrix are always well-defined, even when the matrix is not diagonalizable.
+
+
+.. note:: When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+.. seealso::
+
+        :func:`torch.linalg.eig` computes the full eigenvalue decomposition.
+
+Args:
+    A (Tensor): tensor of shape `(*, n, n)` where `*` is zero or more batch dimensions.
+
+Keyword args:
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Returns:
+    A complex-valued tensor containing the eigenvalues even when :attr:`A` is real.
+
+Examples::
+
+    >>> A = torch.randn(2, 2, dtype=torch.complex128)
+    >>> L = torch.linalg.eigvals(A)
+    >>> L
+    tensor([ 1.1226+0.5738j, -0.7537-0.1286j], dtype=torch.complex128)
+
+    >>> torch.dist(L, torch.linalg.eig(A).eigenvalues)
+    tensor(2.4576e-07)
+
+[API Signature] A: tensor, out: tensor
+
+[Error Messages]
+RuntimeError: linalg.eigvals: The input tensor A must have at least 2 dimensions.
+RuntimeError: torch.linalg.eigvals: Expected eigenvalues to be safely castable from ComplexFloat dtype, but got eigenvalues with dtype Double
+RuntimeError: "linalg_eig_out_cpu" not implemented for 'Half'
+RuntimeError: Unknown Complex ScalarType for Char
+RuntimeError: linalg.eigvals: A must be batches of square matrices, but they are 0 by 86 matrices
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (out dtype must match the eigenvalue dtype implied by A)
+{v_1 : tensor, v_2 : tensor} |= (if dtype_(v_1) = 7 then dtype_(v_2) = 9) ∧ (if dtype_(v_1) = 8 then dtype_(v_2) = 10) ∧ (if dtype_(v_1) = 9 then dtype_(v_2) = 9) ∧ (if dtype_(v_1) = 10 then dtype_(v_2) = 10)
+Token usage: input=2102, output=5751, total=7853
+** SUCCESS **
+

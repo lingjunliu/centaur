@@ -10,70 +10,70 @@ def is_grad_enabled_inputs():
     list_of_inputs = []
     
     # Input 1, valid
-    input = torch.tensor([1.0, 2.0, 3.0], requires_grad=True).detach().numpy()
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
     input_dict = {
         "input": input
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.tensor([1.0, 2.0, 3.0], requires_grad=False).numpy()
+    input = torch.ones((2, 3)).numpy()
     input_dict = {
         "input": input
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.ones((2, 3), requires_grad=True).detach().numpy()
+    input = torch.zeros((1, 2, 3)).numpy()
     input_dict = {
         "input": input
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.ones((2, 3), requires_grad=False).numpy()
+    input = torch.tensor([[[1.0, 2.0], [3.0, 4.0]]]).numpy()
     input_dict = {
         "input": input
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.zeros((1, 2, 3), requires_grad=True).detach().numpy()
+    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]).numpy()
     input_dict = {
         "input": input
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.zeros((1, 2, 3), requires_grad=False).numpy()
+    input = torch.tensor([1.0]).numpy()
     input_dict = {
         "input": input
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 7, valid - negative values
-    input = torch.tensor([-1.0, -2.0, -3.0], requires_grad=True).detach().numpy()
+    # Input 7, valid
+    input = torch.tensor([-1.0, -2.0, -3.0]).numpy()
     input_dict = {
         "input": input
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 8, valid - negative values
-    input = torch.tensor([-1.0, -2.0, -3.0], requires_grad=False).numpy()
+    # Input 8, valid
+    input = torch.tensor([-1.0]).numpy()
     input_dict = {
         "input": input
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 9, valid - mixed dimensions
-    input = torch.tensor([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], requires_grad=True).detach().numpy()
+    # Input 9, valid
+    input = torch.tensor([0.0]).numpy()
     input_dict = {
         "input": input
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 10, valid - mixed dimensions
-    input = torch.tensor([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], requires_grad=False).numpy()
+    # Input 10, valid
+    input = torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0]).numpy()
     input_dict = {
         "input": input
     }

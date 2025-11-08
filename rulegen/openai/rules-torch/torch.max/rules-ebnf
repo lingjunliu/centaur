@@ -1,0 +1,30 @@
+>>
+Rule 1 (global reduction requires non-empty input to omit dim; suppresses: "Expected reduction dim to be specified for input.numel() == 0")
+{v_1 : tensor} |= if ndim(v_1) = 0 then true else ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 3 (reduction axis must have non-zero size; suppresses: "Expected reduction dim 0 to have non-zero size.")
+{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then shape(v_1, v_2) > 0 else shape(v_1, v_2 + ndim(v_1)) > 0
+>>
+Rule 5 (dim-reduction out must be a tuple of tensors; suppresses: "expected Tensor as element 0 in argument 3, but got int" and "invalid combination ... out=int")
+{v_4 : tuple(tensor)} |= v_4.len = 2
+>>
+Rule 6 (global reduction out tensor must be 0-D and same dtype; suppresses: "invalid combination ... got (Tensor, int, out=int, keepdim=bool)" when misusing out with global form)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ ndim(v_2) = 0
+>>
+Rule 7 (no complex dtypes for global max; suppresses: '"max_all" not implemented for ComplexDouble')
+{v_1 : tensor} |= (dtype_(v_1) ≠ 9) ∧ (dtype_(v_1) ≠ 10)
+>>
+Rule 8 (no complex dtypes for elementwise max; suppresses: "maximum not implemented for complex tensors.")
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ 9) ∧ (dtype_(v_1) ≠ 10) ∧ (dtype_(v_2) ≠ 9) ∧ (dtype_(v_2) ≠ 10)
+>>
+Rule 9 (elementwise max requires broadcastable shapes; suppresses: "The size of tensor a (0) must match the size of tensor b (4) at non-singleton dimension 1")
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
+>>
+Rule 10 (elementwise max output shape must match broadcasted shape; suppresses shape-mismatch errors on out)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_3) = ndim(v_1) ∧ ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : ((shape(v_1, i) = shape(v_2, i) ∧ shape(v_3, i) = shape(v_1, i)) ∨ (shape(v_1, i) = 1 ∧ shape(v_3, i) = shape(v_2, i)) ∨ (shape(v_2, i) = 1 ∧ shape(v_3, i) = shape(v_1, i)))
+>>
+Rule 11 (dtype consistency for elementwise max with out; suppresses: "invalid combination ... got (Tensor, Tensor, out=float)")
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_3) = dtype_(v_1)
+>>
+Rule 12 (keepdim must be a boolean; helps avoid invalid argument combinations)
+{v_3 : bool} |= (v_3 = true ∨ v_3 = false)

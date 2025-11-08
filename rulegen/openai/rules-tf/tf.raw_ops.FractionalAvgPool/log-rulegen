@@ -1,0 +1,1144 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.FractionalAvgPool API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Performs fractional average pooling on the input.
+
+  Fractional average pooling is similar to Fractional max pooling in the pooling
+  region generation step. The only difference is that after pooling regions are
+  generated, a mean operation is performed instead of a max operation in each
+  pooling region.
+
+  Args:
+    value: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `int64`.
+      4-D with shape `[batch, height, width, channels]`.
+    pooling_ratio: A list of `floats` that has length `>= 4`.
+      Pooling ratio for each dimension of `value`, currently only
+      supports row and col dimension and should be >= 1.0. For example, a valid
+      pooling ratio looks like [1.0, 1.44, 1.73, 1.0]. The first and last elements
+      must be 1.0 because we don't allow pooling on batch and channels
+      dimensions. 1.44 and 1.73 are pooling ratio on height and width dimensions
+      respectively.
+    pseudo_random: An optional `bool`. Defaults to `False`.
+      When set to True, generates the pooling sequence in a
+      pseudorandom fashion, otherwise, in a random fashion. Check paper [Benjamin
+      Graham, Fractional Max-Pooling](http://arxiv.org/abs/1412.6071) for
+      difference between pseudorandom and random.
+    overlapping: An optional `bool`. Defaults to `False`.
+      When set to True, it means when pooling, the values at the boundary
+      of adjacent pooling cells are used by both cells. For example:
+
+      `index  0  1  2  3  4`
+
+      `value  20 5  16 3  7`
+
+      If the pooling sequence is [0, 2, 4], then 16, at index 2 will be used twice.
+      The result would be [41/3, 26/3] for fractional avg pooling.
+    deterministic: An optional `bool`. Defaults to `False`.
+      When set to True, a fixed pooling region will be used when
+      iterating over a FractionalAvgPool node in the computation graph. Mainly used
+      in unit test to make FractionalAvgPool deterministic.
+    seed: An optional `int`. Defaults to `0`.
+      If either seed or seed2 are set to be non-zero, the random number
+      generator is seeded by the given seed.  Otherwise, it is seeded by a
+      random seed.
+    seed2: An optional `int`. Defaults to `0`.
+      An second seed to avoid seed collision.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tuple of `Tensor` objects (output, row_pooling_sequence, col_pooling_sequence).
+
+    output: A `Tensor`. Has the same type as `value`.
+    row_pooling_sequence: A `Tensor` of type `int64`.
+    col_pooling_sequence: A `Tensor` of type `int64`.
+
+[API Signature] pseudo_random: boolean, overlapping: boolean, deterministic: boolean, seed: integer, seed2: integer, name: string, value: tensor, pooling_ratio: list
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (input must be 4-D NHWC with positive sizes)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ shape(v_1, 0) ≥ 1 ∧ shape(v_1, 1) ≥ 1 ∧ shape(v_1, 2) ≥ 1 ∧ shape(v_1, 3) ≥ 1
+Token usage: input=2104, output=8503, total=10607
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.FractionalAvgPool API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Performs fractional average pooling on the input.
+
+  Fractional average pooling is similar to Fractional max pooling in the pooling
+  region generation step. The only difference is that after pooling regions are
+  generated, a mean operation is performed instead of a max operation in each
+  pooling region.
+
+  Args:
+    value: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `int64`.
+      4-D with shape `[batch, height, width, channels]`.
+    pooling_ratio: A list of `floats` that has length `>= 4`.
+      Pooling ratio for each dimension of `value`, currently only
+      supports row and col dimension and should be >= 1.0. For example, a valid
+      pooling ratio looks like [1.0, 1.44, 1.73, 1.0]. The first and last elements
+      must be 1.0 because we don't allow pooling on batch and channels
+      dimensions. 1.44 and 1.73 are pooling ratio on height and width dimensions
+      respectively.
+    pseudo_random: An optional `bool`. Defaults to `False`.
+      When set to True, generates the pooling sequence in a
+      pseudorandom fashion, otherwise, in a random fashion. Check paper [Benjamin
+      Graham, Fractional Max-Pooling](http://arxiv.org/abs/1412.6071) for
+      difference between pseudorandom and random.
+    overlapping: An optional `bool`. Defaults to `False`.
+      When set to True, it means when pooling, the values at the boundary
+      of adjacent pooling cells are used by both cells. For example:
+
+      `index  0  1  2  3  4`
+
+      `value  20 5  16 3  7`
+
+      If the pooling sequence is [0, 2, 4], then 16, at index 2 will be used twice.
+      The result would be [41/3, 26/3] for fractional avg pooling.
+    deterministic: An optional `bool`. Defaults to `False`.
+      When set to True, a fixed pooling region will be used when
+      iterating over a FractionalAvgPool node in the computation graph. Mainly used
+      in unit test to make FractionalAvgPool deterministic.
+    seed: An optional `int`. Defaults to `0`.
+      If either seed or seed2 are set to be non-zero, the random number
+      generator is seeded by the given seed.  Otherwise, it is seeded by a
+      random seed.
+    seed2: An optional `int`. Defaults to `0`.
+      An second seed to avoid seed collision.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tuple of `Tensor` objects (output, row_pooling_sequence, col_pooling_sequence).
+
+    output: A `Tensor`. Has the same type as `value`.
+    row_pooling_sequence: A `Tensor` of type `int64`.
+    col_pooling_sequence: A `Tensor` of type `int64`.
+
+[API Signature] pseudo_random: boolean, overlapping: boolean, deterministic: boolean, seed: integer, seed2: integer, name: string, value: tensor, pooling_ratio: list
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (pooling_ratio list has length at least 4)
+{v_2 : list(float)} |= v_2.len ≥ 4
+Token usage: input=2104, output=8503, total=10607
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.FractionalAvgPool API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Performs fractional average pooling on the input.
+
+  Fractional average pooling is similar to Fractional max pooling in the pooling
+  region generation step. The only difference is that after pooling regions are
+  generated, a mean operation is performed instead of a max operation in each
+  pooling region.
+
+  Args:
+    value: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `int64`.
+      4-D with shape `[batch, height, width, channels]`.
+    pooling_ratio: A list of `floats` that has length `>= 4`.
+      Pooling ratio for each dimension of `value`, currently only
+      supports row and col dimension and should be >= 1.0. For example, a valid
+      pooling ratio looks like [1.0, 1.44, 1.73, 1.0]. The first and last elements
+      must be 1.0 because we don't allow pooling on batch and channels
+      dimensions. 1.44 and 1.73 are pooling ratio on height and width dimensions
+      respectively.
+    pseudo_random: An optional `bool`. Defaults to `False`.
+      When set to True, generates the pooling sequence in a
+      pseudorandom fashion, otherwise, in a random fashion. Check paper [Benjamin
+      Graham, Fractional Max-Pooling](http://arxiv.org/abs/1412.6071) for
+      difference between pseudorandom and random.
+    overlapping: An optional `bool`. Defaults to `False`.
+      When set to True, it means when pooling, the values at the boundary
+      of adjacent pooling cells are used by both cells. For example:
+
+      `index  0  1  2  3  4`
+
+      `value  20 5  16 3  7`
+
+      If the pooling sequence is [0, 2, 4], then 16, at index 2 will be used twice.
+      The result would be [41/3, 26/3] for fractional avg pooling.
+    deterministic: An optional `bool`. Defaults to `False`.
+      When set to True, a fixed pooling region will be used when
+      iterating over a FractionalAvgPool node in the computation graph. Mainly used
+      in unit test to make FractionalAvgPool deterministic.
+    seed: An optional `int`. Defaults to `0`.
+      If either seed or seed2 are set to be non-zero, the random number
+      generator is seeded by the given seed.  Otherwise, it is seeded by a
+      random seed.
+    seed2: An optional `int`. Defaults to `0`.
+      An second seed to avoid seed collision.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tuple of `Tensor` objects (output, row_pooling_sequence, col_pooling_sequence).
+
+    output: A `Tensor`. Has the same type as `value`.
+    row_pooling_sequence: A `Tensor` of type `int64`.
+    col_pooling_sequence: A `Tensor` of type `int64`.
+
+[API Signature] pseudo_random: boolean, overlapping: boolean, deterministic: boolean, seed: integer, seed2: integer, name: string, value: tensor, pooling_ratio: list
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (pooling_ratio length matches 4-D input)
+{v_1 : tensor, v_2 : list(float)} |= ndim(v_1) = 4 ∧ v_2.len = ndim(v_1)
+Token usage: input=2104, output=8503, total=10607
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.FractionalAvgPool API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Performs fractional average pooling on the input.
+
+  Fractional average pooling is similar to Fractional max pooling in the pooling
+  region generation step. The only difference is that after pooling regions are
+  generated, a mean operation is performed instead of a max operation in each
+  pooling region.
+
+  Args:
+    value: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `int64`.
+      4-D with shape `[batch, height, width, channels]`.
+    pooling_ratio: A list of `floats` that has length `>= 4`.
+      Pooling ratio for each dimension of `value`, currently only
+      supports row and col dimension and should be >= 1.0. For example, a valid
+      pooling ratio looks like [1.0, 1.44, 1.73, 1.0]. The first and last elements
+      must be 1.0 because we don't allow pooling on batch and channels
+      dimensions. 1.44 and 1.73 are pooling ratio on height and width dimensions
+      respectively.
+    pseudo_random: An optional `bool`. Defaults to `False`.
+      When set to True, generates the pooling sequence in a
+      pseudorandom fashion, otherwise, in a random fashion. Check paper [Benjamin
+      Graham, Fractional Max-Pooling](http://arxiv.org/abs/1412.6071) for
+      difference between pseudorandom and random.
+    overlapping: An optional `bool`. Defaults to `False`.
+      When set to True, it means when pooling, the values at the boundary
+      of adjacent pooling cells are used by both cells. For example:
+
+      `index  0  1  2  3  4`
+
+      `value  20 5  16 3  7`
+
+      If the pooling sequence is [0, 2, 4], then 16, at index 2 will be used twice.
+      The result would be [41/3, 26/3] for fractional avg pooling.
+    deterministic: An optional `bool`. Defaults to `False`.
+      When set to True, a fixed pooling region will be used when
+      iterating over a FractionalAvgPool node in the computation graph. Mainly used
+      in unit test to make FractionalAvgPool deterministic.
+    seed: An optional `int`. Defaults to `0`.
+      If either seed or seed2 are set to be non-zero, the random number
+      generator is seeded by the given seed.  Otherwise, it is seeded by a
+      random seed.
+    seed2: An optional `int`. Defaults to `0`.
+      An second seed to avoid seed collision.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tuple of `Tensor` objects (output, row_pooling_sequence, col_pooling_sequence).
+
+    output: A `Tensor`. Has the same type as `value`.
+    row_pooling_sequence: A `Tensor` of type `int64`.
+    col_pooling_sequence: A `Tensor` of type `int64`.
+
+[API Signature] pseudo_random: boolean, overlapping: boolean, deterministic: boolean, seed: integer, seed2: integer, name: string, value: tensor, pooling_ratio: list
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (no pooling on batch and channel dimensions)
+{v_2 : list(float)} |= v_2.len ≥ 4 ∧ v_2[0] = 1.0 ∧ v_2[v_2.len - 1] = 1.0
+Token usage: input=2104, output=8503, total=10607
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.FractionalAvgPool API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Performs fractional average pooling on the input.
+
+  Fractional average pooling is similar to Fractional max pooling in the pooling
+  region generation step. The only difference is that after pooling regions are
+  generated, a mean operation is performed instead of a max operation in each
+  pooling region.
+
+  Args:
+    value: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `int64`.
+      4-D with shape `[batch, height, width, channels]`.
+    pooling_ratio: A list of `floats` that has length `>= 4`.
+      Pooling ratio for each dimension of `value`, currently only
+      supports row and col dimension and should be >= 1.0. For example, a valid
+      pooling ratio looks like [1.0, 1.44, 1.73, 1.0]. The first and last elements
+      must be 1.0 because we don't allow pooling on batch and channels
+      dimensions. 1.44 and 1.73 are pooling ratio on height and width dimensions
+      respectively.
+    pseudo_random: An optional `bool`. Defaults to `False`.
+      When set to True, generates the pooling sequence in a
+      pseudorandom fashion, otherwise, in a random fashion. Check paper [Benjamin
+      Graham, Fractional Max-Pooling](http://arxiv.org/abs/1412.6071) for
+      difference between pseudorandom and random.
+    overlapping: An optional `bool`. Defaults to `False`.
+      When set to True, it means when pooling, the values at the boundary
+      of adjacent pooling cells are used by both cells. For example:
+
+      `index  0  1  2  3  4`
+
+      `value  20 5  16 3  7`
+
+      If the pooling sequence is [0, 2, 4], then 16, at index 2 will be used twice.
+      The result would be [41/3, 26/3] for fractional avg pooling.
+    deterministic: An optional `bool`. Defaults to `False`.
+      When set to True, a fixed pooling region will be used when
+      iterating over a FractionalAvgPool node in the computation graph. Mainly used
+      in unit test to make FractionalAvgPool deterministic.
+    seed: An optional `int`. Defaults to `0`.
+      If either seed or seed2 are set to be non-zero, the random number
+      generator is seeded by the given seed.  Otherwise, it is seeded by a
+      random seed.
+    seed2: An optional `int`. Defaults to `0`.
+      An second seed to avoid seed collision.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tuple of `Tensor` objects (output, row_pooling_sequence, col_pooling_sequence).
+
+    output: A `Tensor`. Has the same type as `value`.
+    row_pooling_sequence: A `Tensor` of type `int64`.
+    col_pooling_sequence: A `Tensor` of type `int64`.
+
+[API Signature] pseudo_random: boolean, overlapping: boolean, deterministic: boolean, seed: integer, seed2: integer, name: string, value: tensor, pooling_ratio: list
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (only height and width ratios may differ from 1.0)
+{v_2 : list(float)} |= v_2.len ≥ 4 ∧ ∀i ∈ [0, v_2.len - 1] : (i = 1 ∨ i = 2) ∨ v_2[i] = 1.0
+Token usage: input=2104, output=8503, total=10607
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.FractionalAvgPool API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Performs fractional average pooling on the input.
+
+  Fractional average pooling is similar to Fractional max pooling in the pooling
+  region generation step. The only difference is that after pooling regions are
+  generated, a mean operation is performed instead of a max operation in each
+  pooling region.
+
+  Args:
+    value: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `int64`.
+      4-D with shape `[batch, height, width, channels]`.
+    pooling_ratio: A list of `floats` that has length `>= 4`.
+      Pooling ratio for each dimension of `value`, currently only
+      supports row and col dimension and should be >= 1.0. For example, a valid
+      pooling ratio looks like [1.0, 1.44, 1.73, 1.0]. The first and last elements
+      must be 1.0 because we don't allow pooling on batch and channels
+      dimensions. 1.44 and 1.73 are pooling ratio on height and width dimensions
+      respectively.
+    pseudo_random: An optional `bool`. Defaults to `False`.
+      When set to True, generates the pooling sequence in a
+      pseudorandom fashion, otherwise, in a random fashion. Check paper [Benjamin
+      Graham, Fractional Max-Pooling](http://arxiv.org/abs/1412.6071) for
+      difference between pseudorandom and random.
+    overlapping: An optional `bool`. Defaults to `False`.
+      When set to True, it means when pooling, the values at the boundary
+      of adjacent pooling cells are used by both cells. For example:
+
+      `index  0  1  2  3  4`
+
+      `value  20 5  16 3  7`
+
+      If the pooling sequence is [0, 2, 4], then 16, at index 2 will be used twice.
+      The result would be [41/3, 26/3] for fractional avg pooling.
+    deterministic: An optional `bool`. Defaults to `False`.
+      When set to True, a fixed pooling region will be used when
+      iterating over a FractionalAvgPool node in the computation graph. Mainly used
+      in unit test to make FractionalAvgPool deterministic.
+    seed: An optional `int`. Defaults to `0`.
+      If either seed or seed2 are set to be non-zero, the random number
+      generator is seeded by the given seed.  Otherwise, it is seeded by a
+      random seed.
+    seed2: An optional `int`. Defaults to `0`.
+      An second seed to avoid seed collision.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tuple of `Tensor` objects (output, row_pooling_sequence, col_pooling_sequence).
+
+    output: A `Tensor`. Has the same type as `value`.
+    row_pooling_sequence: A `Tensor` of type `int64`.
+    col_pooling_sequence: A `Tensor` of type `int64`.
+
+[API Signature] pseudo_random: boolean, overlapping: boolean, deterministic: boolean, seed: integer, seed2: integer, name: string, value: tensor, pooling_ratio: list
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (height and width pooling ratios must be ≥ 1.0)
+{v_2 : list(float)} |= v_2.len ≥ 4 ∧ v_2[1] ≥ 1.0 ∧ v_2[2] ≥ 1.0
+Token usage: input=2104, output=8503, total=10607
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.FractionalAvgPool API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Performs fractional average pooling on the input.
+
+  Fractional average pooling is similar to Fractional max pooling in the pooling
+  region generation step. The only difference is that after pooling regions are
+  generated, a mean operation is performed instead of a max operation in each
+  pooling region.
+
+  Args:
+    value: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `int64`.
+      4-D with shape `[batch, height, width, channels]`.
+    pooling_ratio: A list of `floats` that has length `>= 4`.
+      Pooling ratio for each dimension of `value`, currently only
+      supports row and col dimension and should be >= 1.0. For example, a valid
+      pooling ratio looks like [1.0, 1.44, 1.73, 1.0]. The first and last elements
+      must be 1.0 because we don't allow pooling on batch and channels
+      dimensions. 1.44 and 1.73 are pooling ratio on height and width dimensions
+      respectively.
+    pseudo_random: An optional `bool`. Defaults to `False`.
+      When set to True, generates the pooling sequence in a
+      pseudorandom fashion, otherwise, in a random fashion. Check paper [Benjamin
+      Graham, Fractional Max-Pooling](http://arxiv.org/abs/1412.6071) for
+      difference between pseudorandom and random.
+    overlapping: An optional `bool`. Defaults to `False`.
+      When set to True, it means when pooling, the values at the boundary
+      of adjacent pooling cells are used by both cells. For example:
+
+      `index  0  1  2  3  4`
+
+      `value  20 5  16 3  7`
+
+      If the pooling sequence is [0, 2, 4], then 16, at index 2 will be used twice.
+      The result would be [41/3, 26/3] for fractional avg pooling.
+    deterministic: An optional `bool`. Defaults to `False`.
+      When set to True, a fixed pooling region will be used when
+      iterating over a FractionalAvgPool node in the computation graph. Mainly used
+      in unit test to make FractionalAvgPool deterministic.
+    seed: An optional `int`. Defaults to `0`.
+      If either seed or seed2 are set to be non-zero, the random number
+      generator is seeded by the given seed.  Otherwise, it is seeded by a
+      random seed.
+    seed2: An optional `int`. Defaults to `0`.
+      An second seed to avoid seed collision.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tuple of `Tensor` objects (output, row_pooling_sequence, col_pooling_sequence).
+
+    output: A `Tensor`. Has the same type as `value`.
+    row_pooling_sequence: A `Tensor` of type `int64`.
+    col_pooling_sequence: A `Tensor` of type `int64`.
+
+[API Signature] pseudo_random: boolean, overlapping: boolean, deterministic: boolean, seed: integer, seed2: integer, name: string, value: tensor, pooling_ratio: list
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (overlapping requires actual spatial pooling)
+{v_2 : list(float), v_4 : bool} |= v_2.len ≥ 4 ∧ (v_4 = false ∨ v_2[1] > 1.0 ∨ v_2[2] > 1.0)
+Token usage: input=2104, output=8503, total=10607
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.FractionalAvgPool API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Performs fractional average pooling on the input.
+
+  Fractional average pooling is similar to Fractional max pooling in the pooling
+  region generation step. The only difference is that after pooling regions are
+  generated, a mean operation is performed instead of a max operation in each
+  pooling region.
+
+  Args:
+    value: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `int64`.
+      4-D with shape `[batch, height, width, channels]`.
+    pooling_ratio: A list of `floats` that has length `>= 4`.
+      Pooling ratio for each dimension of `value`, currently only
+      supports row and col dimension and should be >= 1.0. For example, a valid
+      pooling ratio looks like [1.0, 1.44, 1.73, 1.0]. The first and last elements
+      must be 1.0 because we don't allow pooling on batch and channels
+      dimensions. 1.44 and 1.73 are pooling ratio on height and width dimensions
+      respectively.
+    pseudo_random: An optional `bool`. Defaults to `False`.
+      When set to True, generates the pooling sequence in a
+      pseudorandom fashion, otherwise, in a random fashion. Check paper [Benjamin
+      Graham, Fractional Max-Pooling](http://arxiv.org/abs/1412.6071) for
+      difference between pseudorandom and random.
+    overlapping: An optional `bool`. Defaults to `False`.
+      When set to True, it means when pooling, the values at the boundary
+      of adjacent pooling cells are used by both cells. For example:
+
+      `index  0  1  2  3  4`
+
+      `value  20 5  16 3  7`
+
+      If the pooling sequence is [0, 2, 4], then 16, at index 2 will be used twice.
+      The result would be [41/3, 26/3] for fractional avg pooling.
+    deterministic: An optional `bool`. Defaults to `False`.
+      When set to True, a fixed pooling region will be used when
+      iterating over a FractionalAvgPool node in the computation graph. Mainly used
+      in unit test to make FractionalAvgPool deterministic.
+    seed: An optional `int`. Defaults to `0`.
+      If either seed or seed2 are set to be non-zero, the random number
+      generator is seeded by the given seed.  Otherwise, it is seeded by a
+      random seed.
+    seed2: An optional `int`. Defaults to `0`.
+      An second seed to avoid seed collision.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tuple of `Tensor` objects (output, row_pooling_sequence, col_pooling_sequence).
+
+    output: A `Tensor`. Has the same type as `value`.
+    row_pooling_sequence: A `Tensor` of type `int64`.
+    col_pooling_sequence: A `Tensor` of type `int64`.
+
+[API Signature] pseudo_random: boolean, overlapping: boolean, deterministic: boolean, seed: integer, seed2: integer, name: string, value: tensor, pooling_ratio: list
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (conditional length rule for pooling_ratio)
+{v_2 : list(float)} |= if v_2.len > 4 then v_2[0] = 1.0 ∧ v_2[v_2.len - 1] = 1.0 else v_2.len = 4
+Token usage: input=2104, output=8503, total=10607
+** SUCCESS **
+

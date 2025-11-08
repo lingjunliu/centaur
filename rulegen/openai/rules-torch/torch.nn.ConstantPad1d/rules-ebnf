@@ -1,0 +1,33 @@
+>>
+Rule 1 (input must be 2D or 3D for ConstantPad1d)
+{v_3 : tensor} |= ndim(v_3) = 2 ∨ ndim(v_3) = 3
+>>
+Rule 2 (tuple padding must have exactly two elements)
+{v_1 : tuple(int)} |= v_1.len = 2
+>>
+Rule 3 (tuple padding length must be even)
+{v_1 : tuple(int)} |= (v_1.len % 2) = 0
+>>
+Rule 4 (integer padding must be non-negative)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 5 (tuple padding sides must be non-negative)
+{v_1 : tuple(int)} |= v_1[0] ≥ 0 ∧ v_1[1] ≥ 0
+>>
+Rule 6 (non-negative output width with integer padding)
+{v_1 : int, v_3 : tensor} |= if ndim(v_3) = 2 then shape(v_3, 1) + 2 * v_1 ≥ 0 else shape(v_3, 2) + 2 * v_1 ≥ 0
+>>
+Rule 7 (non-negative output width with tuple padding)
+{v_1 : tuple(int), v_3 : tensor} |= if ndim(v_3) = 2 then shape(v_3, 1) + v_1[0] + v_1[1] ≥ 0 else shape(v_3, 2) + v_1[0] + v_1[1] ≥ 0
+>>
+Rule 8 (bound total output elements to avoid overflow/huge allocation with integer padding)
+{v_1 : int, v_3 : tensor} |= if ndim(v_3) = 2 then shape(v_3, 0) * (shape(v_3, 1) + 2 * v_1) ≤ 1000000000 else shape(v_3, 0) * shape(v_3, 1) * (shape(v_3, 2) + 2 * v_1) ≤ 1000000000
+>>
+Rule 9 (bound total output elements to avoid overflow/huge allocation with tuple padding)
+{v_1 : tuple(int), v_3 : tensor} |= if ndim(v_3) = 2 then shape(v_3, 0) * (shape(v_3, 1) + v_1[0] + v_1[1]) ≤ 1000000000 else shape(v_3, 0) * shape(v_3, 1) * (shape(v_3, 2) + v_1[0] + v_1[1]) ≤ 1000000000
+>>
+Rule 10 (fill value must be representable in float16 when input dtype is float16)
+{v_2 : float, v_3 : tensor} |= if dtype_(v_3) = 6 then (-65504 ≤ v_2 ∧ v_2 ≤ 65504)
+>>
+Rule 11 (tuple padding length must not exceed twice the number of padded dimensions)
+{v_1 : tuple(int), v_3 : tensor} |= v_1.len ≤ 2 * (ndim(v_3) - 1)

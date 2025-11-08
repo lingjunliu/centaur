@@ -1,0 +1,1152 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.diagflat API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+diagflat(input, offset=0) -> Tensor
+
+- If :attr:`input` is a vector (1-D tensor), then returns a 2-D square tensor
+  with the elements of :attr:`input` as the diagonal.
+- If :attr:`input` is a tensor with more than one dimension, then returns a
+  2-D tensor with diagonal elements equal to a flattened :attr:`input`.
+
+The argument :attr:`offset` controls which diagonal to consider:
+
+- If :attr:`offset` = 0, it is the main diagonal.
+- If :attr:`offset` > 0, it is above the main diagonal.
+- If :attr:`offset` < 0, it is below the main diagonal.
+
+Args:
+    input (Tensor): the input tensor.
+    offset (int, optional): the diagonal to consider. Default: 0 (main
+        diagonal).
+
+Examples::
+
+    >>> a = torch.randn(3)
+    >>> a
+    tensor([-0.2956, -0.9068,  0.1695])
+    >>> torch.diagflat(a)
+    tensor([[-0.2956,  0.0000,  0.0000],
+            [ 0.0000, -0.9068,  0.0000],
+            [ 0.0000,  0.0000,  0.1695]])
+    >>> torch.diagflat(a, 1)
+    tensor([[ 0.0000, -0.2956,  0.0000,  0.0000],
+            [ 0.0000,  0.0000, -0.9068,  0.0000],
+            [ 0.0000,  0.0000,  0.0000,  0.1695],
+            [ 0.0000,  0.0000,  0.0000,  0.0000]])
+
+    >>> a = torch.randn(2, 2)
+    >>> a
+    tensor([[ 0.2094, -0.3018],
+            [-0.1516,  1.9342]])
+    >>> torch.diagflat(a)
+    tensor([[ 0.2094,  0.0000,  0.0000,  0.0000],
+            [ 0.0000, -0.3018,  0.0000,  0.0000],
+            [ 0.0000,  0.0000, -0.1516,  0.0000],
+            [ 0.0000,  0.0000,  0.0000,  1.9342]])
+
+[API Signature] input: tensor, offset: integer
+
+[Error Messages]
+RuntimeError: [enforce fail at alloc_cpu.cpp:118] err == 0. DefaultCPUAllocator: can't allocate memory: you tried to allocate 104018683092025 bytes. Error code 12 (Cannot allocate memory)
+RuntimeError: Storage size calculation overflowed with sizes=[1232790199121076323, 1232790199121076323]
+RuntimeError: Storage size calculation overflowed with sizes=[1576101659, 1576101659]
+RuntimeError: Storage size calculation overflowed with sizes=[1958070927348930140, 1958070927348930140]
+RuntimeError: Storage size calculation overflowed with sizes=[4911626977790598267, 4911626977790598267]
+RuntimeError: Storage size calculation overflowed with sizes=[5072224337026884962, 5072224337026884962]
+RuntimeError: Storage size calculation overflowed with sizes=[8718711351443333412, 8718711351443333412]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (prevent int64 overflow for 1-D input: bound final square side)
+{v_1: tensor, v_2: int} |= ndim(v_1) = 1 ∧ (if v_2 ≥ 0 then shape(v_1, 0) + v_2 ≤ 3037000499 else shape(v_1, 0) - v_2 ≤ 3037000499)
+Token usage: input=2118, output=7536, total=9654
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.diagflat API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+diagflat(input, offset=0) -> Tensor
+
+- If :attr:`input` is a vector (1-D tensor), then returns a 2-D square tensor
+  with the elements of :attr:`input` as the diagonal.
+- If :attr:`input` is a tensor with more than one dimension, then returns a
+  2-D tensor with diagonal elements equal to a flattened :attr:`input`.
+
+The argument :attr:`offset` controls which diagonal to consider:
+
+- If :attr:`offset` = 0, it is the main diagonal.
+- If :attr:`offset` > 0, it is above the main diagonal.
+- If :attr:`offset` < 0, it is below the main diagonal.
+
+Args:
+    input (Tensor): the input tensor.
+    offset (int, optional): the diagonal to consider. Default: 0 (main
+        diagonal).
+
+Examples::
+
+    >>> a = torch.randn(3)
+    >>> a
+    tensor([-0.2956, -0.9068,  0.1695])
+    >>> torch.diagflat(a)
+    tensor([[-0.2956,  0.0000,  0.0000],
+            [ 0.0000, -0.9068,  0.0000],
+            [ 0.0000,  0.0000,  0.1695]])
+    >>> torch.diagflat(a, 1)
+    tensor([[ 0.0000, -0.2956,  0.0000,  0.0000],
+            [ 0.0000,  0.0000, -0.9068,  0.0000],
+            [ 0.0000,  0.0000,  0.0000,  0.1695],
+            [ 0.0000,  0.0000,  0.0000,  0.0000]])
+
+    >>> a = torch.randn(2, 2)
+    >>> a
+    tensor([[ 0.2094, -0.3018],
+            [-0.1516,  1.9342]])
+    >>> torch.diagflat(a)
+    tensor([[ 0.2094,  0.0000,  0.0000,  0.0000],
+            [ 0.0000, -0.3018,  0.0000,  0.0000],
+            [ 0.0000,  0.0000, -0.1516,  0.0000],
+            [ 0.0000,  0.0000,  0.0000,  1.9342]])
+
+[API Signature] input: tensor, offset: integer
+
+[Error Messages]
+RuntimeError: [enforce fail at alloc_cpu.cpp:118] err == 0. DefaultCPUAllocator: can't allocate memory: you tried to allocate 104018683092025 bytes. Error code 12 (Cannot allocate memory)
+RuntimeError: Storage size calculation overflowed with sizes=[1232790199121076323, 1232790199121076323]
+RuntimeError: Storage size calculation overflowed with sizes=[1576101659, 1576101659]
+RuntimeError: Storage size calculation overflowed with sizes=[1958070927348930140, 1958070927348930140]
+RuntimeError: Storage size calculation overflowed with sizes=[4911626977790598267, 4911626977790598267]
+RuntimeError: Storage size calculation overflowed with sizes=[5072224337026884962, 5072224337026884962]
+RuntimeError: Storage size calculation overflowed with sizes=[8718711351443333412, 8718711351443333412]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (prevent int64 overflow for 2-D input: bound final square side)
+{v_1: tensor, v_2: int} |= ndim(v_1) = 2 ∧ (if v_2 ≥ 0 then shape(v_1, 0) * shape(v_1, 1) + v_2 ≤ 3037000499 else shape(v_1, 0) * shape(v_1, 1) - v_2 ≤ 3037000499)
+Token usage: input=2118, output=7536, total=9654
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.diagflat API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+diagflat(input, offset=0) -> Tensor
+
+- If :attr:`input` is a vector (1-D tensor), then returns a 2-D square tensor
+  with the elements of :attr:`input` as the diagonal.
+- If :attr:`input` is a tensor with more than one dimension, then returns a
+  2-D tensor with diagonal elements equal to a flattened :attr:`input`.
+
+The argument :attr:`offset` controls which diagonal to consider:
+
+- If :attr:`offset` = 0, it is the main diagonal.
+- If :attr:`offset` > 0, it is above the main diagonal.
+- If :attr:`offset` < 0, it is below the main diagonal.
+
+Args:
+    input (Tensor): the input tensor.
+    offset (int, optional): the diagonal to consider. Default: 0 (main
+        diagonal).
+
+Examples::
+
+    >>> a = torch.randn(3)
+    >>> a
+    tensor([-0.2956, -0.9068,  0.1695])
+    >>> torch.diagflat(a)
+    tensor([[-0.2956,  0.0000,  0.0000],
+            [ 0.0000, -0.9068,  0.0000],
+            [ 0.0000,  0.0000,  0.1695]])
+    >>> torch.diagflat(a, 1)
+    tensor([[ 0.0000, -0.2956,  0.0000,  0.0000],
+            [ 0.0000,  0.0000, -0.9068,  0.0000],
+            [ 0.0000,  0.0000,  0.0000,  0.1695],
+            [ 0.0000,  0.0000,  0.0000,  0.0000]])
+
+    >>> a = torch.randn(2, 2)
+    >>> a
+    tensor([[ 0.2094, -0.3018],
+            [-0.1516,  1.9342]])
+    >>> torch.diagflat(a)
+    tensor([[ 0.2094,  0.0000,  0.0000,  0.0000],
+            [ 0.0000, -0.3018,  0.0000,  0.0000],
+            [ 0.0000,  0.0000, -0.1516,  0.0000],
+            [ 0.0000,  0.0000,  0.0000,  1.9342]])
+
+[API Signature] input: tensor, offset: integer
+
+[Error Messages]
+RuntimeError: [enforce fail at alloc_cpu.cpp:118] err == 0. DefaultCPUAllocator: can't allocate memory: you tried to allocate 104018683092025 bytes. Error code 12 (Cannot allocate memory)
+RuntimeError: Storage size calculation overflowed with sizes=[1232790199121076323, 1232790199121076323]
+RuntimeError: Storage size calculation overflowed with sizes=[1576101659, 1576101659]
+RuntimeError: Storage size calculation overflowed with sizes=[1958070927348930140, 1958070927348930140]
+RuntimeError: Storage size calculation overflowed with sizes=[4911626977790598267, 4911626977790598267]
+RuntimeError: Storage size calculation overflowed with sizes=[5072224337026884962, 5072224337026884962]
+RuntimeError: Storage size calculation overflowed with sizes=[8718711351443333412, 8718711351443333412]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (prevent int64 overflow for 0-D input: bound final square side)
+{v_1: tensor, v_2: int} |= ndim(v_1) = 0 ∧ (if v_2 ≥ 0 then 1 + v_2 ≤ 3037000499 else 1 - v_2 ≤ 3037000499)
+Token usage: input=2118, output=7536, total=9654
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.diagflat API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+diagflat(input, offset=0) -> Tensor
+
+- If :attr:`input` is a vector (1-D tensor), then returns a 2-D square tensor
+  with the elements of :attr:`input` as the diagonal.
+- If :attr:`input` is a tensor with more than one dimension, then returns a
+  2-D tensor with diagonal elements equal to a flattened :attr:`input`.
+
+The argument :attr:`offset` controls which diagonal to consider:
+
+- If :attr:`offset` = 0, it is the main diagonal.
+- If :attr:`offset` > 0, it is above the main diagonal.
+- If :attr:`offset` < 0, it is below the main diagonal.
+
+Args:
+    input (Tensor): the input tensor.
+    offset (int, optional): the diagonal to consider. Default: 0 (main
+        diagonal).
+
+Examples::
+
+    >>> a = torch.randn(3)
+    >>> a
+    tensor([-0.2956, -0.9068,  0.1695])
+    >>> torch.diagflat(a)
+    tensor([[-0.2956,  0.0000,  0.0000],
+            [ 0.0000, -0.9068,  0.0000],
+            [ 0.0000,  0.0000,  0.1695]])
+    >>> torch.diagflat(a, 1)
+    tensor([[ 0.0000, -0.2956,  0.0000,  0.0000],
+            [ 0.0000,  0.0000, -0.9068,  0.0000],
+            [ 0.0000,  0.0000,  0.0000,  0.1695],
+            [ 0.0000,  0.0000,  0.0000,  0.0000]])
+
+    >>> a = torch.randn(2, 2)
+    >>> a
+    tensor([[ 0.2094, -0.3018],
+            [-0.1516,  1.9342]])
+    >>> torch.diagflat(a)
+    tensor([[ 0.2094,  0.0000,  0.0000,  0.0000],
+            [ 0.0000, -0.3018,  0.0000,  0.0000],
+            [ 0.0000,  0.0000, -0.1516,  0.0000],
+            [ 0.0000,  0.0000,  0.0000,  1.9342]])
+
+[API Signature] input: tensor, offset: integer
+
+[Error Messages]
+RuntimeError: [enforce fail at alloc_cpu.cpp:118] err == 0. DefaultCPUAllocator: can't allocate memory: you tried to allocate 104018683092025 bytes. Error code 12 (Cannot allocate memory)
+RuntimeError: Storage size calculation overflowed with sizes=[1232790199121076323, 1232790199121076323]
+RuntimeError: Storage size calculation overflowed with sizes=[1576101659, 1576101659]
+RuntimeError: Storage size calculation overflowed with sizes=[1958070927348930140, 1958070927348930140]
+RuntimeError: Storage size calculation overflowed with sizes=[4911626977790598267, 4911626977790598267]
+RuntimeError: Storage size calculation overflowed with sizes=[5072224337026884962, 5072224337026884962]
+RuntimeError: Storage size calculation overflowed with sizes=[8718711351443333412, 8718711351443333412]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (prevent OOM for 1-D input: practical memory cap on output side)
+{v_1: tensor, v_2: int} |= ndim(v_1) = 1 ∧ (if v_2 ≥ 0 then shape(v_1, 0) + v_2 ≤ 10000 else shape(v_1, 0) - v_2 ≤ 10000)
+Token usage: input=2118, output=7536, total=9654
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.diagflat API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+diagflat(input, offset=0) -> Tensor
+
+- If :attr:`input` is a vector (1-D tensor), then returns a 2-D square tensor
+  with the elements of :attr:`input` as the diagonal.
+- If :attr:`input` is a tensor with more than one dimension, then returns a
+  2-D tensor with diagonal elements equal to a flattened :attr:`input`.
+
+The argument :attr:`offset` controls which diagonal to consider:
+
+- If :attr:`offset` = 0, it is the main diagonal.
+- If :attr:`offset` > 0, it is above the main diagonal.
+- If :attr:`offset` < 0, it is below the main diagonal.
+
+Args:
+    input (Tensor): the input tensor.
+    offset (int, optional): the diagonal to consider. Default: 0 (main
+        diagonal).
+
+Examples::
+
+    >>> a = torch.randn(3)
+    >>> a
+    tensor([-0.2956, -0.9068,  0.1695])
+    >>> torch.diagflat(a)
+    tensor([[-0.2956,  0.0000,  0.0000],
+            [ 0.0000, -0.9068,  0.0000],
+            [ 0.0000,  0.0000,  0.1695]])
+    >>> torch.diagflat(a, 1)
+    tensor([[ 0.0000, -0.2956,  0.0000,  0.0000],
+            [ 0.0000,  0.0000, -0.9068,  0.0000],
+            [ 0.0000,  0.0000,  0.0000,  0.1695],
+            [ 0.0000,  0.0000,  0.0000,  0.0000]])
+
+    >>> a = torch.randn(2, 2)
+    >>> a
+    tensor([[ 0.2094, -0.3018],
+            [-0.1516,  1.9342]])
+    >>> torch.diagflat(a)
+    tensor([[ 0.2094,  0.0000,  0.0000,  0.0000],
+            [ 0.0000, -0.3018,  0.0000,  0.0000],
+            [ 0.0000,  0.0000, -0.1516,  0.0000],
+            [ 0.0000,  0.0000,  0.0000,  1.9342]])
+
+[API Signature] input: tensor, offset: integer
+
+[Error Messages]
+RuntimeError: [enforce fail at alloc_cpu.cpp:118] err == 0. DefaultCPUAllocator: can't allocate memory: you tried to allocate 104018683092025 bytes. Error code 12 (Cannot allocate memory)
+RuntimeError: Storage size calculation overflowed with sizes=[1232790199121076323, 1232790199121076323]
+RuntimeError: Storage size calculation overflowed with sizes=[1576101659, 1576101659]
+RuntimeError: Storage size calculation overflowed with sizes=[1958070927348930140, 1958070927348930140]
+RuntimeError: Storage size calculation overflowed with sizes=[4911626977790598267, 4911626977790598267]
+RuntimeError: Storage size calculation overflowed with sizes=[5072224337026884962, 5072224337026884962]
+RuntimeError: Storage size calculation overflowed with sizes=[8718711351443333412, 8718711351443333412]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (prevent OOM for 2-D input: practical memory cap on output side)
+{v_1: tensor, v_2: int} |= ndim(v_1) = 2 ∧ (if v_2 ≥ 0 then shape(v_1, 0) * shape(v_1, 1) + v_2 ≤ 10000 else shape(v_1, 0) * shape(v_1, 1) - v_2 ≤ 10000)
+Token usage: input=2118, output=7536, total=9654
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.diagflat API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+diagflat(input, offset=0) -> Tensor
+
+- If :attr:`input` is a vector (1-D tensor), then returns a 2-D square tensor
+  with the elements of :attr:`input` as the diagonal.
+- If :attr:`input` is a tensor with more than one dimension, then returns a
+  2-D tensor with diagonal elements equal to a flattened :attr:`input`.
+
+The argument :attr:`offset` controls which diagonal to consider:
+
+- If :attr:`offset` = 0, it is the main diagonal.
+- If :attr:`offset` > 0, it is above the main diagonal.
+- If :attr:`offset` < 0, it is below the main diagonal.
+
+Args:
+    input (Tensor): the input tensor.
+    offset (int, optional): the diagonal to consider. Default: 0 (main
+        diagonal).
+
+Examples::
+
+    >>> a = torch.randn(3)
+    >>> a
+    tensor([-0.2956, -0.9068,  0.1695])
+    >>> torch.diagflat(a)
+    tensor([[-0.2956,  0.0000,  0.0000],
+            [ 0.0000, -0.9068,  0.0000],
+            [ 0.0000,  0.0000,  0.1695]])
+    >>> torch.diagflat(a, 1)
+    tensor([[ 0.0000, -0.2956,  0.0000,  0.0000],
+            [ 0.0000,  0.0000, -0.9068,  0.0000],
+            [ 0.0000,  0.0000,  0.0000,  0.1695],
+            [ 0.0000,  0.0000,  0.0000,  0.0000]])
+
+    >>> a = torch.randn(2, 2)
+    >>> a
+    tensor([[ 0.2094, -0.3018],
+            [-0.1516,  1.9342]])
+    >>> torch.diagflat(a)
+    tensor([[ 0.2094,  0.0000,  0.0000,  0.0000],
+            [ 0.0000, -0.3018,  0.0000,  0.0000],
+            [ 0.0000,  0.0000, -0.1516,  0.0000],
+            [ 0.0000,  0.0000,  0.0000,  1.9342]])
+
+[API Signature] input: tensor, offset: integer
+
+[Error Messages]
+RuntimeError: [enforce fail at alloc_cpu.cpp:118] err == 0. DefaultCPUAllocator: can't allocate memory: you tried to allocate 104018683092025 bytes. Error code 12 (Cannot allocate memory)
+RuntimeError: Storage size calculation overflowed with sizes=[1232790199121076323, 1232790199121076323]
+RuntimeError: Storage size calculation overflowed with sizes=[1576101659, 1576101659]
+RuntimeError: Storage size calculation overflowed with sizes=[1958070927348930140, 1958070927348930140]
+RuntimeError: Storage size calculation overflowed with sizes=[4911626977790598267, 4911626977790598267]
+RuntimeError: Storage size calculation overflowed with sizes=[5072224337026884962, 5072224337026884962]
+RuntimeError: Storage size calculation overflowed with sizes=[8718711351443333412, 8718711351443333412]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (prevent OOM for 0-D input: practical memory cap on output side)
+{v_1: tensor, v_2: int} |= ndim(v_1) = 0 ∧ (if v_2 ≥ 0 then 1 + v_2 ≤ 10000 else 1 - v_2 ≤ 10000)
+Token usage: input=2118, output=7536, total=9654
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.diagflat API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+diagflat(input, offset=0) -> Tensor
+
+- If :attr:`input` is a vector (1-D tensor), then returns a 2-D square tensor
+  with the elements of :attr:`input` as the diagonal.
+- If :attr:`input` is a tensor with more than one dimension, then returns a
+  2-D tensor with diagonal elements equal to a flattened :attr:`input`.
+
+The argument :attr:`offset` controls which diagonal to consider:
+
+- If :attr:`offset` = 0, it is the main diagonal.
+- If :attr:`offset` > 0, it is above the main diagonal.
+- If :attr:`offset` < 0, it is below the main diagonal.
+
+Args:
+    input (Tensor): the input tensor.
+    offset (int, optional): the diagonal to consider. Default: 0 (main
+        diagonal).
+
+Examples::
+
+    >>> a = torch.randn(3)
+    >>> a
+    tensor([-0.2956, -0.9068,  0.1695])
+    >>> torch.diagflat(a)
+    tensor([[-0.2956,  0.0000,  0.0000],
+            [ 0.0000, -0.9068,  0.0000],
+            [ 0.0000,  0.0000,  0.1695]])
+    >>> torch.diagflat(a, 1)
+    tensor([[ 0.0000, -0.2956,  0.0000,  0.0000],
+            [ 0.0000,  0.0000, -0.9068,  0.0000],
+            [ 0.0000,  0.0000,  0.0000,  0.1695],
+            [ 0.0000,  0.0000,  0.0000,  0.0000]])
+
+    >>> a = torch.randn(2, 2)
+    >>> a
+    tensor([[ 0.2094, -0.3018],
+            [-0.1516,  1.9342]])
+    >>> torch.diagflat(a)
+    tensor([[ 0.2094,  0.0000,  0.0000,  0.0000],
+            [ 0.0000, -0.3018,  0.0000,  0.0000],
+            [ 0.0000,  0.0000, -0.1516,  0.0000],
+            [ 0.0000,  0.0000,  0.0000,  1.9342]])
+
+[API Signature] input: tensor, offset: integer
+
+[Error Messages]
+RuntimeError: [enforce fail at alloc_cpu.cpp:118] err == 0. DefaultCPUAllocator: can't allocate memory: you tried to allocate 104018683092025 bytes. Error code 12 (Cannot allocate memory)
+RuntimeError: Storage size calculation overflowed with sizes=[1232790199121076323, 1232790199121076323]
+RuntimeError: Storage size calculation overflowed with sizes=[1576101659, 1576101659]
+RuntimeError: Storage size calculation overflowed with sizes=[1958070927348930140, 1958070927348930140]
+RuntimeError: Storage size calculation overflowed with sizes=[4911626977790598267, 4911626977790598267]
+RuntimeError: Storage size calculation overflowed with sizes=[5072224337026884962, 5072224337026884962]
+RuntimeError: Storage size calculation overflowed with sizes=[8718711351443333412, 8718711351443333412]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (offset magnitude should be reasonably bounded)
+{v_2: int} |= if v_2 ≥ 0 then v_2 ≤ 100000 else 0 - v_2 ≤ 100000
+Token usage: input=2118, output=7536, total=9654
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.diagflat API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+diagflat(input, offset=0) -> Tensor
+
+- If :attr:`input` is a vector (1-D tensor), then returns a 2-D square tensor
+  with the elements of :attr:`input` as the diagonal.
+- If :attr:`input` is a tensor with more than one dimension, then returns a
+  2-D tensor with diagonal elements equal to a flattened :attr:`input`.
+
+The argument :attr:`offset` controls which diagonal to consider:
+
+- If :attr:`offset` = 0, it is the main diagonal.
+- If :attr:`offset` > 0, it is above the main diagonal.
+- If :attr:`offset` < 0, it is below the main diagonal.
+
+Args:
+    input (Tensor): the input tensor.
+    offset (int, optional): the diagonal to consider. Default: 0 (main
+        diagonal).
+
+Examples::
+
+    >>> a = torch.randn(3)
+    >>> a
+    tensor([-0.2956, -0.9068,  0.1695])
+    >>> torch.diagflat(a)
+    tensor([[-0.2956,  0.0000,  0.0000],
+            [ 0.0000, -0.9068,  0.0000],
+            [ 0.0000,  0.0000,  0.1695]])
+    >>> torch.diagflat(a, 1)
+    tensor([[ 0.0000, -0.2956,  0.0000,  0.0000],
+            [ 0.0000,  0.0000, -0.9068,  0.0000],
+            [ 0.0000,  0.0000,  0.0000,  0.1695],
+            [ 0.0000,  0.0000,  0.0000,  0.0000]])
+
+    >>> a = torch.randn(2, 2)
+    >>> a
+    tensor([[ 0.2094, -0.3018],
+            [-0.1516,  1.9342]])
+    >>> torch.diagflat(a)
+    tensor([[ 0.2094,  0.0000,  0.0000,  0.0000],
+            [ 0.0000, -0.3018,  0.0000,  0.0000],
+            [ 0.0000,  0.0000, -0.1516,  0.0000],
+            [ 0.0000,  0.0000,  0.0000,  1.9342]])
+
+[API Signature] input: tensor, offset: integer
+
+[Error Messages]
+RuntimeError: [enforce fail at alloc_cpu.cpp:118] err == 0. DefaultCPUAllocator: can't allocate memory: you tried to allocate 104018683092025 bytes. Error code 12 (Cannot allocate memory)
+RuntimeError: Storage size calculation overflowed with sizes=[1232790199121076323, 1232790199121076323]
+RuntimeError: Storage size calculation overflowed with sizes=[1576101659, 1576101659]
+RuntimeError: Storage size calculation overflowed with sizes=[1958070927348930140, 1958070927348930140]
+RuntimeError: Storage size calculation overflowed with sizes=[4911626977790598267, 4911626977790598267]
+RuntimeError: Storage size calculation overflowed with sizes=[5072224337026884962, 5072224337026884962]
+RuntimeError: Storage size calculation overflowed with sizes=[8718711351443333412, 8718711351443333412]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (limit rank to avoid excessive flatten size growth)
+{v_1: tensor} |= ndim(v_1) ≤ 2
+Token usage: input=2118, output=7536, total=9654
+** SUCCESS **
+

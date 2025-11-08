@@ -6,8 +6,9 @@ generated_inputs = dict()
 
 import torch, copy
 
-def nansum_inputs():
+def nanssum_inputs():
     list_of_inputs = []
+
     
     # Input 1, valid
     input = torch.tensor([1.0, 2.0, float('nan'), 4.0]).numpy()
@@ -28,7 +29,7 @@ def nansum_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.tensor([[[1.0, float('nan')], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]).numpy()
+    input = torch.tensor([[[1.0, 2.0], [3.0, 4.0]], [[5.0, float('nan')], [7.0, 8.0]]]).numpy()
     dtype = None
     input_dict = {
         "input": input,
@@ -46,7 +47,7 @@ def nansum_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([-1.0, 2.0, float('nan'), -4.0]).numpy()
+    input = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()
     dtype = None
     input_dict = {
         "input": input,
@@ -55,8 +56,8 @@ def nansum_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.tensor([-1.0, float('nan'), float('nan'), 4.0]).numpy()
-    dtype = torch.float32
+    input = torch.tensor([[-1.0, -2.0, float('nan'), -4.0]]).numpy()
+    dtype = None
     input_dict = {
         "input": input,
         "dtype": dtype
@@ -64,8 +65,8 @@ def nansum_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.tensor([[1.0, float('nan')], [float('nan'), 4.0]]).numpy()
-    dtype = torch.float64
+    input = torch.tensor([[-1.0, float('nan'), float('nan'), -4.0]]).numpy()
+    dtype = None
     input_dict = {
         "input": input,
         "dtype": dtype
@@ -73,8 +74,8 @@ def nansum_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([[[1.0, float('nan')], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]).numpy()
-    dtype = torch.float32
+    input = torch.tensor([[[1.0, float('nan')], [3.0, 4.0]], [[5.0, float('nan')], [7.0, 8.0]]]).numpy()
+    dtype = None
     input_dict = {
         "input": input,
         "dtype": dtype
@@ -82,7 +83,7 @@ def nansum_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.tensor([-1.0, -2.0, float('nan'), -4.0]).numpy()
+    input = torch.tensor([1.0, float('nan'), float('nan')]).numpy()
     dtype = None
     input_dict = {
         "input": input,
@@ -91,8 +92,8 @@ def nansum_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([-1.0, float('nan'), float('nan'), -4.0]).numpy()
-    dtype = torch.float64
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    dtype = None
     input_dict = {
         "input": input,
         "dtype": dtype
@@ -101,7 +102,7 @@ def nansum_inputs():
     
     return list_of_inputs
 
-generated_inputs["torch.nansum_1"] = nansum_inputs()
+generated_inputs["torch.nansum_1"] = nanssum_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

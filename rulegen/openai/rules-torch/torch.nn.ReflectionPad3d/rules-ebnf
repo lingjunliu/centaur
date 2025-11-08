@@ -1,0 +1,27 @@
+>>
+Rule 1 (input tensor must be 4D or 5D)
+{v_1 : tensor} |= ndim(v_1) = 4 ∨ ndim(v_1) = 5
+>>
+Rule 2 (all non-batch dimensions must be positive; batch may be zero)
+{v_1 : tensor} |= if ndim(v_1) = 4 then (shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0) else if ndim(v_1) = 5 then (shape(v_1, 0) ≥ 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0 ∧ shape(v_1, 4) > 0) else false
+>>
+Rule 5 (each tuple padding element must be less than the corresponding input dimension)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 4 then (v_2[0] < shape(v_1, 3) ∧ v_2[1] < shape(v_1, 3) ∧ v_2[2] < shape(v_1, 2) ∧ v_2[3] < shape(v_1, 2) ∧ v_2[4] < shape(v_1, 1) ∧ v_2[5] < shape(v_1, 1)) else if ndim(v_1) = 5 then (v_2[0] < shape(v_1, 4) ∧ v_2[1] < shape(v_1, 4) ∧ v_2[2] < shape(v_1, 3) ∧ v_2[3] < shape(v_1, 3) ∧ v_2[4] < shape(v_1, 2) ∧ v_2[5] < shape(v_1, 2)) else false
+>>
+Rule 7 (integer padding must be less than each spatial input dimension)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then (v_2 < shape(v_1, 1) ∧ v_2 < shape(v_1, 2) ∧ v_2 < shape(v_1, 3)) else if ndim(v_1) = 5 then (v_2 < shape(v_1, 2) ∧ v_2 < shape(v_1, 3) ∧ v_2 < shape(v_1, 4)) else false
+>>
+Rule 8 (integer padding must produce positive output spatial sizes)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then ((shape(v_1, 1) + 2*v_2) > 0 ∧ (shape(v_1, 2) + 2*v_2) > 0 ∧ (shape(v_1, 3) + 2*v_2) > 0) else if ndim(v_1) = 5 then ((shape(v_1, 2) + 2*v_2) > 0 ∧ (shape(v_1, 3) + 2*v_2) > 0 ∧ (shape(v_1, 4) + 2*v_2) > 0) else false
+>>
+Rule 9 (tuple padding must produce positive output spatial sizes)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 4 then ((shape(v_1, 1) + v_2[4] + v_2[5]) > 0 ∧ (shape(v_1, 2) + v_2[2] + v_2[3]) > 0 ∧ (shape(v_1, 3) + v_2[0] + v_2[1]) > 0) else if ndim(v_1) = 5 then ((shape(v_1, 2) + v_2[4] + v_2[5]) > 0 ∧ (shape(v_1, 3) + v_2[2] + v_2[3]) > 0 ∧ (shape(v_1, 4) + v_2[0] + v_2[1]) > 0) else false
+>>
+Rule 10 (int64-safe total number of elements for tuple padding)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 4 then (shape(v_1, 0) * (shape(v_1, 1) + v_2[4] + v_2[5]) * (shape(v_1, 2) + v_2[2] + v_2[3]) * (shape(v_1, 3) + v_2[0] + v_2[1]) ≤ 9223372036854775807) else if ndim(v_1) = 5 then (shape(v_1, 0) * shape(v_1, 1) * (shape(v_1, 2) + v_2[4] + v_2[5]) * (shape(v_1, 3) + v_2[2] + v_2[3]) * (shape(v_1, 4) + v_2[0] + v_2[1]) ≤ 9223372036854775807) else false
+>>
+Rule 11 (int64-safe total number of elements for integer padding)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then (shape(v_1, 0) * (shape(v_1, 1) + 2*v_2) * (shape(v_1, 2) + 2*v_2) * (shape(v_1, 3) + 2*v_2) ≤ 9223372036854775807) else if ndim(v_1) = 5 then (shape(v_1, 0) * shape(v_1, 1) * (shape(v_1, 2) + 2*v_2) * (shape(v_1, 3) + 2*v_2) * (shape(v_1, 4) + 2*v_2) ≤ 9223372036854775807) else false
+>>
+Rule 13 (input dtype should be real-valued, not complex)
+{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10

@@ -1,0 +1,1593 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.log_uniform_candidate_sampler API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Samples a set of classes using a log-uniform (Zipfian) base distribution.
+
+  This operation randomly samples a tensor of sampled classes
+  (`sampled_candidates`) from the range of integers `[0, range_max)`.
+
+  See the [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf)
+  for a quick course on Candidate Sampling.
+
+  The elements of `sampled_candidates` are drawn without replacement
+  (if `unique=True`) or with replacement (if `unique=False`) from
+  the base distribution.
+
+  The base distribution for this operation is an approximately log-uniform
+  or Zipfian distribution:
+
+  `P(class) = (log(class + 2) - log(class + 1)) / log(range_max + 1)`
+
+  This sampler is useful when the target classes approximately follow such
+  a distribution - for example, if the classes represent words in a lexicon
+  sorted in decreasing order of frequency. If your classes are not ordered by
+  decreasing frequency, do not use this op.
+
+  In addition, this operation returns tensors `true_expected_count`
+  and `sampled_expected_count` representing the number of times each
+  of the target classes (`true_classes`) and the sampled
+  classes (`sampled_candidates`) is expected to occur in an average
+  tensor of sampled classes.  These values correspond to `Q(y|x)`
+  defined in the [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf).
+  If `unique=True`, then these are post-rejection probabilities and we
+  compute them approximately.
+
+  Note that this function (and also other `*_candidate_sampler`
+  functions) only gives you the ingredients to implement the various
+  Candidate Sampling algorithms listed in the big table in the
+  [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf). You
+  still need to implement the algorithms yourself.
+
+  For example, according to that table, the phrase "negative samples"
+  may mean different things in different algorithms. For instance, in
+  NCE, "negative samples" means `S_i` (which is just the sampled
+  classes) which may overlap with true classes, while in Sampled
+  Logistic, "negative samples" means `S_i - T_i` which excludes the
+  true classes. The return value `sampled_candidates` corresponds to
+  `S_i`, not to any specific definition of "negative samples" in any
+  specific algorithm. It's your responsibility to pick an algorithm
+  and calculate the "negative samples" defined by that algorithm
+  (e.g. `S_i - T_i`).
+
+  As another example, the `true_classes` argument is for calculating
+  the `true_expected_count` output (as a by-product of this function's
+  main calculation), which may be needed by some algorithms (according
+  to that table). It's not for excluding true classes in the return
+  value `sampled_candidates`. Again that step is algorithm-specific
+  and should be carried out by you.
+
+  Args:
+    true_classes: A `Tensor` of type `int64` and shape `[batch_size,
+      num_true]`. The target classes.
+    num_true: An `int`.  The number of target classes per training example.
+    num_sampled: An `int`.  The number of classes to randomly sample.
+    unique: A `bool`. Determines whether all sampled classes in a batch are
+      unique.
+    range_max: An `int`. The number of possible classes.
+    seed: An `int`. An operation-specific seed. Default is 0.
+    name: A name for the operation (optional).
+
+  Returns:
+    sampled_candidates: A tensor of type `int64` and shape
+      `[num_sampled]`. The sampled classes. As noted above,
+      `sampled_candidates` may overlap with true classes.
+    true_expected_count: A tensor of type `float`.  Same shape as
+      `true_classes`. The expected counts under the sampling distribution
+      of each of `true_classes`.
+    sampled_expected_count: A tensor of type `float`. Same shape as
+      `sampled_candidates`. The expected counts under the sampling distribution
+      of each of `sampled_candidates`.
+
+[API Signature] true_classes: tensor, num_true: integer, num_sampled: integer, unique: boolean, range_max: integer, seed: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'num_sampled' of -1014033396 must be at least minimum 1 	; NodeDef: {{node LogUniformCandidateSampler}}; Op<name=LogUniformCandidateSampler; signature=true_classes:int64 -> sampled_candidates:int64, true_expected_count:float, sampled_expected_count:float; attr=num_true:int,min=1; attr=num_sampled:int,min=1; attr=unique:bool; attr=range_max:int,min=1; attr=seed:int,default=0; attr=seed2:int,default=0; is_stateful=true> [Op:LogUniformCandidateSampler]
+InvalidArgumentError: {{function_node __wrapped__LogUniformCandidateSampler_device_/job:localhost/replica:0/task:0/device:CPU:0}} Attr num_sampled has value 1103564561426015446 out of range for an int32 [Op:LogUniformCandidateSampler]
+InvalidArgumentError: {{function_node __wrapped__LogUniformCandidateSampler_device_/job:localhost/replica:0/task:0/device:CPU:0}} true_classes must have num_true columns, expected: 48 was: 1197956750 [Op:LogUniformCandidateSampler]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (num_sampled must be positive and fit in int32)
+{v_1 : int} |= 1 ≤ v_1 ∧ v_1 ≤ 2147483647
+Token usage: input=2493, output=5750, total=8243
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.log_uniform_candidate_sampler API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Samples a set of classes using a log-uniform (Zipfian) base distribution.
+
+  This operation randomly samples a tensor of sampled classes
+  (`sampled_candidates`) from the range of integers `[0, range_max)`.
+
+  See the [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf)
+  for a quick course on Candidate Sampling.
+
+  The elements of `sampled_candidates` are drawn without replacement
+  (if `unique=True`) or with replacement (if `unique=False`) from
+  the base distribution.
+
+  The base distribution for this operation is an approximately log-uniform
+  or Zipfian distribution:
+
+  `P(class) = (log(class + 2) - log(class + 1)) / log(range_max + 1)`
+
+  This sampler is useful when the target classes approximately follow such
+  a distribution - for example, if the classes represent words in a lexicon
+  sorted in decreasing order of frequency. If your classes are not ordered by
+  decreasing frequency, do not use this op.
+
+  In addition, this operation returns tensors `true_expected_count`
+  and `sampled_expected_count` representing the number of times each
+  of the target classes (`true_classes`) and the sampled
+  classes (`sampled_candidates`) is expected to occur in an average
+  tensor of sampled classes.  These values correspond to `Q(y|x)`
+  defined in the [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf).
+  If `unique=True`, then these are post-rejection probabilities and we
+  compute them approximately.
+
+  Note that this function (and also other `*_candidate_sampler`
+  functions) only gives you the ingredients to implement the various
+  Candidate Sampling algorithms listed in the big table in the
+  [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf). You
+  still need to implement the algorithms yourself.
+
+  For example, according to that table, the phrase "negative samples"
+  may mean different things in different algorithms. For instance, in
+  NCE, "negative samples" means `S_i` (which is just the sampled
+  classes) which may overlap with true classes, while in Sampled
+  Logistic, "negative samples" means `S_i - T_i` which excludes the
+  true classes. The return value `sampled_candidates` corresponds to
+  `S_i`, not to any specific definition of "negative samples" in any
+  specific algorithm. It's your responsibility to pick an algorithm
+  and calculate the "negative samples" defined by that algorithm
+  (e.g. `S_i - T_i`).
+
+  As another example, the `true_classes` argument is for calculating
+  the `true_expected_count` output (as a by-product of this function's
+  main calculation), which may be needed by some algorithms (according
+  to that table). It's not for excluding true classes in the return
+  value `sampled_candidates`. Again that step is algorithm-specific
+  and should be carried out by you.
+
+  Args:
+    true_classes: A `Tensor` of type `int64` and shape `[batch_size,
+      num_true]`. The target classes.
+    num_true: An `int`.  The number of target classes per training example.
+    num_sampled: An `int`.  The number of classes to randomly sample.
+    unique: A `bool`. Determines whether all sampled classes in a batch are
+      unique.
+    range_max: An `int`. The number of possible classes.
+    seed: An `int`. An operation-specific seed. Default is 0.
+    name: A name for the operation (optional).
+
+  Returns:
+    sampled_candidates: A tensor of type `int64` and shape
+      `[num_sampled]`. The sampled classes. As noted above,
+      `sampled_candidates` may overlap with true classes.
+    true_expected_count: A tensor of type `float`.  Same shape as
+      `true_classes`. The expected counts under the sampling distribution
+      of each of `true_classes`.
+    sampled_expected_count: A tensor of type `float`. Same shape as
+      `sampled_candidates`. The expected counts under the sampling distribution
+      of each of `sampled_candidates`.
+
+[API Signature] true_classes: tensor, num_true: integer, num_sampled: integer, unique: boolean, range_max: integer, seed: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'num_sampled' of -1014033396 must be at least minimum 1 	; NodeDef: {{node LogUniformCandidateSampler}}; Op<name=LogUniformCandidateSampler; signature=true_classes:int64 -> sampled_candidates:int64, true_expected_count:float, sampled_expected_count:float; attr=num_true:int,min=1; attr=num_sampled:int,min=1; attr=unique:bool; attr=range_max:int,min=1; attr=seed:int,default=0; attr=seed2:int,default=0; is_stateful=true> [Op:LogUniformCandidateSampler]
+InvalidArgumentError: {{function_node __wrapped__LogUniformCandidateSampler_device_/job:localhost/replica:0/task:0/device:CPU:0}} Attr num_sampled has value 1103564561426015446 out of range for an int32 [Op:LogUniformCandidateSampler]
+InvalidArgumentError: {{function_node __wrapped__LogUniformCandidateSampler_device_/job:localhost/replica:0/task:0/device:CPU:0}} true_classes must have num_true columns, expected: 48 was: 1197956750 [Op:LogUniformCandidateSampler]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (true_classes must be 2-D with num_true columns and nonempty batch)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) = 2 ∧ v_2 ≥ 1 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) = v_2
+Token usage: input=2493, output=5750, total=8243
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.log_uniform_candidate_sampler API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Samples a set of classes using a log-uniform (Zipfian) base distribution.
+
+  This operation randomly samples a tensor of sampled classes
+  (`sampled_candidates`) from the range of integers `[0, range_max)`.
+
+  See the [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf)
+  for a quick course on Candidate Sampling.
+
+  The elements of `sampled_candidates` are drawn without replacement
+  (if `unique=True`) or with replacement (if `unique=False`) from
+  the base distribution.
+
+  The base distribution for this operation is an approximately log-uniform
+  or Zipfian distribution:
+
+  `P(class) = (log(class + 2) - log(class + 1)) / log(range_max + 1)`
+
+  This sampler is useful when the target classes approximately follow such
+  a distribution - for example, if the classes represent words in a lexicon
+  sorted in decreasing order of frequency. If your classes are not ordered by
+  decreasing frequency, do not use this op.
+
+  In addition, this operation returns tensors `true_expected_count`
+  and `sampled_expected_count` representing the number of times each
+  of the target classes (`true_classes`) and the sampled
+  classes (`sampled_candidates`) is expected to occur in an average
+  tensor of sampled classes.  These values correspond to `Q(y|x)`
+  defined in the [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf).
+  If `unique=True`, then these are post-rejection probabilities and we
+  compute them approximately.
+
+  Note that this function (and also other `*_candidate_sampler`
+  functions) only gives you the ingredients to implement the various
+  Candidate Sampling algorithms listed in the big table in the
+  [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf). You
+  still need to implement the algorithms yourself.
+
+  For example, according to that table, the phrase "negative samples"
+  may mean different things in different algorithms. For instance, in
+  NCE, "negative samples" means `S_i` (which is just the sampled
+  classes) which may overlap with true classes, while in Sampled
+  Logistic, "negative samples" means `S_i - T_i` which excludes the
+  true classes. The return value `sampled_candidates` corresponds to
+  `S_i`, not to any specific definition of "negative samples" in any
+  specific algorithm. It's your responsibility to pick an algorithm
+  and calculate the "negative samples" defined by that algorithm
+  (e.g. `S_i - T_i`).
+
+  As another example, the `true_classes` argument is for calculating
+  the `true_expected_count` output (as a by-product of this function's
+  main calculation), which may be needed by some algorithms (according
+  to that table). It's not for excluding true classes in the return
+  value `sampled_candidates`. Again that step is algorithm-specific
+  and should be carried out by you.
+
+  Args:
+    true_classes: A `Tensor` of type `int64` and shape `[batch_size,
+      num_true]`. The target classes.
+    num_true: An `int`.  The number of target classes per training example.
+    num_sampled: An `int`.  The number of classes to randomly sample.
+    unique: A `bool`. Determines whether all sampled classes in a batch are
+      unique.
+    range_max: An `int`. The number of possible classes.
+    seed: An `int`. An operation-specific seed. Default is 0.
+    name: A name for the operation (optional).
+
+  Returns:
+    sampled_candidates: A tensor of type `int64` and shape
+      `[num_sampled]`. The sampled classes. As noted above,
+      `sampled_candidates` may overlap with true classes.
+    true_expected_count: A tensor of type `float`.  Same shape as
+      `true_classes`. The expected counts under the sampling distribution
+      of each of `true_classes`.
+    sampled_expected_count: A tensor of type `float`. Same shape as
+      `sampled_candidates`. The expected counts under the sampling distribution
+      of each of `sampled_candidates`.
+
+[API Signature] true_classes: tensor, num_true: integer, num_sampled: integer, unique: boolean, range_max: integer, seed: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'num_sampled' of -1014033396 must be at least minimum 1 	; NodeDef: {{node LogUniformCandidateSampler}}; Op<name=LogUniformCandidateSampler; signature=true_classes:int64 -> sampled_candidates:int64, true_expected_count:float, sampled_expected_count:float; attr=num_true:int,min=1; attr=num_sampled:int,min=1; attr=unique:bool; attr=range_max:int,min=1; attr=seed:int,default=0; attr=seed2:int,default=0; is_stateful=true> [Op:LogUniformCandidateSampler]
+InvalidArgumentError: {{function_node __wrapped__LogUniformCandidateSampler_device_/job:localhost/replica:0/task:0/device:CPU:0}} Attr num_sampled has value 1103564561426015446 out of range for an int32 [Op:LogUniformCandidateSampler]
+InvalidArgumentError: {{function_node __wrapped__LogUniformCandidateSampler_device_/job:localhost/replica:0/task:0/device:CPU:0}} true_classes must have num_true columns, expected: 48 was: 1197956750 [Op:LogUniformCandidateSampler]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (true_classes must have dtype int64)
+{v_1 : tensor} |= dtype_(v_1) = 4
+Token usage: input=2493, output=5750, total=8243
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.log_uniform_candidate_sampler API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Samples a set of classes using a log-uniform (Zipfian) base distribution.
+
+  This operation randomly samples a tensor of sampled classes
+  (`sampled_candidates`) from the range of integers `[0, range_max)`.
+
+  See the [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf)
+  for a quick course on Candidate Sampling.
+
+  The elements of `sampled_candidates` are drawn without replacement
+  (if `unique=True`) or with replacement (if `unique=False`) from
+  the base distribution.
+
+  The base distribution for this operation is an approximately log-uniform
+  or Zipfian distribution:
+
+  `P(class) = (log(class + 2) - log(class + 1)) / log(range_max + 1)`
+
+  This sampler is useful when the target classes approximately follow such
+  a distribution - for example, if the classes represent words in a lexicon
+  sorted in decreasing order of frequency. If your classes are not ordered by
+  decreasing frequency, do not use this op.
+
+  In addition, this operation returns tensors `true_expected_count`
+  and `sampled_expected_count` representing the number of times each
+  of the target classes (`true_classes`) and the sampled
+  classes (`sampled_candidates`) is expected to occur in an average
+  tensor of sampled classes.  These values correspond to `Q(y|x)`
+  defined in the [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf).
+  If `unique=True`, then these are post-rejection probabilities and we
+  compute them approximately.
+
+  Note that this function (and also other `*_candidate_sampler`
+  functions) only gives you the ingredients to implement the various
+  Candidate Sampling algorithms listed in the big table in the
+  [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf). You
+  still need to implement the algorithms yourself.
+
+  For example, according to that table, the phrase "negative samples"
+  may mean different things in different algorithms. For instance, in
+  NCE, "negative samples" means `S_i` (which is just the sampled
+  classes) which may overlap with true classes, while in Sampled
+  Logistic, "negative samples" means `S_i - T_i` which excludes the
+  true classes. The return value `sampled_candidates` corresponds to
+  `S_i`, not to any specific definition of "negative samples" in any
+  specific algorithm. It's your responsibility to pick an algorithm
+  and calculate the "negative samples" defined by that algorithm
+  (e.g. `S_i - T_i`).
+
+  As another example, the `true_classes` argument is for calculating
+  the `true_expected_count` output (as a by-product of this function's
+  main calculation), which may be needed by some algorithms (according
+  to that table). It's not for excluding true classes in the return
+  value `sampled_candidates`. Again that step is algorithm-specific
+  and should be carried out by you.
+
+  Args:
+    true_classes: A `Tensor` of type `int64` and shape `[batch_size,
+      num_true]`. The target classes.
+    num_true: An `int`.  The number of target classes per training example.
+    num_sampled: An `int`.  The number of classes to randomly sample.
+    unique: A `bool`. Determines whether all sampled classes in a batch are
+      unique.
+    range_max: An `int`. The number of possible classes.
+    seed: An `int`. An operation-specific seed. Default is 0.
+    name: A name for the operation (optional).
+
+  Returns:
+    sampled_candidates: A tensor of type `int64` and shape
+      `[num_sampled]`. The sampled classes. As noted above,
+      `sampled_candidates` may overlap with true classes.
+    true_expected_count: A tensor of type `float`.  Same shape as
+      `true_classes`. The expected counts under the sampling distribution
+      of each of `true_classes`.
+    sampled_expected_count: A tensor of type `float`. Same shape as
+      `sampled_candidates`. The expected counts under the sampling distribution
+      of each of `sampled_candidates`.
+
+[API Signature] true_classes: tensor, num_true: integer, num_sampled: integer, unique: boolean, range_max: integer, seed: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'num_sampled' of -1014033396 must be at least minimum 1 	; NodeDef: {{node LogUniformCandidateSampler}}; Op<name=LogUniformCandidateSampler; signature=true_classes:int64 -> sampled_candidates:int64, true_expected_count:float, sampled_expected_count:float; attr=num_true:int,min=1; attr=num_sampled:int,min=1; attr=unique:bool; attr=range_max:int,min=1; attr=seed:int,default=0; attr=seed2:int,default=0; is_stateful=true> [Op:LogUniformCandidateSampler]
+InvalidArgumentError: {{function_node __wrapped__LogUniformCandidateSampler_device_/job:localhost/replica:0/task:0/device:CPU:0}} Attr num_sampled has value 1103564561426015446 out of range for an int32 [Op:LogUniformCandidateSampler]
+InvalidArgumentError: {{function_node __wrapped__LogUniformCandidateSampler_device_/job:localhost/replica:0/task:0/device:CPU:0}} true_classes must have num_true columns, expected: 48 was: 1197956750 [Op:LogUniformCandidateSampler]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (range_max must be positive and fit in int32)
+{v_1 : int} |= 1 ≤ v_1 ∧ v_1 ≤ 2147483647
+Token usage: input=2493, output=5750, total=8243
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.log_uniform_candidate_sampler API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Samples a set of classes using a log-uniform (Zipfian) base distribution.
+
+  This operation randomly samples a tensor of sampled classes
+  (`sampled_candidates`) from the range of integers `[0, range_max)`.
+
+  See the [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf)
+  for a quick course on Candidate Sampling.
+
+  The elements of `sampled_candidates` are drawn without replacement
+  (if `unique=True`) or with replacement (if `unique=False`) from
+  the base distribution.
+
+  The base distribution for this operation is an approximately log-uniform
+  or Zipfian distribution:
+
+  `P(class) = (log(class + 2) - log(class + 1)) / log(range_max + 1)`
+
+  This sampler is useful when the target classes approximately follow such
+  a distribution - for example, if the classes represent words in a lexicon
+  sorted in decreasing order of frequency. If your classes are not ordered by
+  decreasing frequency, do not use this op.
+
+  In addition, this operation returns tensors `true_expected_count`
+  and `sampled_expected_count` representing the number of times each
+  of the target classes (`true_classes`) and the sampled
+  classes (`sampled_candidates`) is expected to occur in an average
+  tensor of sampled classes.  These values correspond to `Q(y|x)`
+  defined in the [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf).
+  If `unique=True`, then these are post-rejection probabilities and we
+  compute them approximately.
+
+  Note that this function (and also other `*_candidate_sampler`
+  functions) only gives you the ingredients to implement the various
+  Candidate Sampling algorithms listed in the big table in the
+  [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf). You
+  still need to implement the algorithms yourself.
+
+  For example, according to that table, the phrase "negative samples"
+  may mean different things in different algorithms. For instance, in
+  NCE, "negative samples" means `S_i` (which is just the sampled
+  classes) which may overlap with true classes, while in Sampled
+  Logistic, "negative samples" means `S_i - T_i` which excludes the
+  true classes. The return value `sampled_candidates` corresponds to
+  `S_i`, not to any specific definition of "negative samples" in any
+  specific algorithm. It's your responsibility to pick an algorithm
+  and calculate the "negative samples" defined by that algorithm
+  (e.g. `S_i - T_i`).
+
+  As another example, the `true_classes` argument is for calculating
+  the `true_expected_count` output (as a by-product of this function's
+  main calculation), which may be needed by some algorithms (according
+  to that table). It's not for excluding true classes in the return
+  value `sampled_candidates`. Again that step is algorithm-specific
+  and should be carried out by you.
+
+  Args:
+    true_classes: A `Tensor` of type `int64` and shape `[batch_size,
+      num_true]`. The target classes.
+    num_true: An `int`.  The number of target classes per training example.
+    num_sampled: An `int`.  The number of classes to randomly sample.
+    unique: A `bool`. Determines whether all sampled classes in a batch are
+      unique.
+    range_max: An `int`. The number of possible classes.
+    seed: An `int`. An operation-specific seed. Default is 0.
+    name: A name for the operation (optional).
+
+  Returns:
+    sampled_candidates: A tensor of type `int64` and shape
+      `[num_sampled]`. The sampled classes. As noted above,
+      `sampled_candidates` may overlap with true classes.
+    true_expected_count: A tensor of type `float`.  Same shape as
+      `true_classes`. The expected counts under the sampling distribution
+      of each of `true_classes`.
+    sampled_expected_count: A tensor of type `float`. Same shape as
+      `sampled_candidates`. The expected counts under the sampling distribution
+      of each of `sampled_candidates`.
+
+[API Signature] true_classes: tensor, num_true: integer, num_sampled: integer, unique: boolean, range_max: integer, seed: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'num_sampled' of -1014033396 must be at least minimum 1 	; NodeDef: {{node LogUniformCandidateSampler}}; Op<name=LogUniformCandidateSampler; signature=true_classes:int64 -> sampled_candidates:int64, true_expected_count:float, sampled_expected_count:float; attr=num_true:int,min=1; attr=num_sampled:int,min=1; attr=unique:bool; attr=range_max:int,min=1; attr=seed:int,default=0; attr=seed2:int,default=0; is_stateful=true> [Op:LogUniformCandidateSampler]
+InvalidArgumentError: {{function_node __wrapped__LogUniformCandidateSampler_device_/job:localhost/replica:0/task:0/device:CPU:0}} Attr num_sampled has value 1103564561426015446 out of range for an int32 [Op:LogUniformCandidateSampler]
+InvalidArgumentError: {{function_node __wrapped__LogUniformCandidateSampler_device_/job:localhost/replica:0/task:0/device:CPU:0}} true_classes must have num_true columns, expected: 48 was: 1197956750 [Op:LogUniformCandidateSampler]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (if unique sampling, cannot sample more classes than range_max)
+{v_1 : bool, v_2 : int, v_3 : int} |= if v_1 then v_2 ≤ v_3
+Token usage: input=2493, output=5750, total=8243
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.log_uniform_candidate_sampler API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Samples a set of classes using a log-uniform (Zipfian) base distribution.
+
+  This operation randomly samples a tensor of sampled classes
+  (`sampled_candidates`) from the range of integers `[0, range_max)`.
+
+  See the [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf)
+  for a quick course on Candidate Sampling.
+
+  The elements of `sampled_candidates` are drawn without replacement
+  (if `unique=True`) or with replacement (if `unique=False`) from
+  the base distribution.
+
+  The base distribution for this operation is an approximately log-uniform
+  or Zipfian distribution:
+
+  `P(class) = (log(class + 2) - log(class + 1)) / log(range_max + 1)`
+
+  This sampler is useful when the target classes approximately follow such
+  a distribution - for example, if the classes represent words in a lexicon
+  sorted in decreasing order of frequency. If your classes are not ordered by
+  decreasing frequency, do not use this op.
+
+  In addition, this operation returns tensors `true_expected_count`
+  and `sampled_expected_count` representing the number of times each
+  of the target classes (`true_classes`) and the sampled
+  classes (`sampled_candidates`) is expected to occur in an average
+  tensor of sampled classes.  These values correspond to `Q(y|x)`
+  defined in the [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf).
+  If `unique=True`, then these are post-rejection probabilities and we
+  compute them approximately.
+
+  Note that this function (and also other `*_candidate_sampler`
+  functions) only gives you the ingredients to implement the various
+  Candidate Sampling algorithms listed in the big table in the
+  [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf). You
+  still need to implement the algorithms yourself.
+
+  For example, according to that table, the phrase "negative samples"
+  may mean different things in different algorithms. For instance, in
+  NCE, "negative samples" means `S_i` (which is just the sampled
+  classes) which may overlap with true classes, while in Sampled
+  Logistic, "negative samples" means `S_i - T_i` which excludes the
+  true classes. The return value `sampled_candidates` corresponds to
+  `S_i`, not to any specific definition of "negative samples" in any
+  specific algorithm. It's your responsibility to pick an algorithm
+  and calculate the "negative samples" defined by that algorithm
+  (e.g. `S_i - T_i`).
+
+  As another example, the `true_classes` argument is for calculating
+  the `true_expected_count` output (as a by-product of this function's
+  main calculation), which may be needed by some algorithms (according
+  to that table). It's not for excluding true classes in the return
+  value `sampled_candidates`. Again that step is algorithm-specific
+  and should be carried out by you.
+
+  Args:
+    true_classes: A `Tensor` of type `int64` and shape `[batch_size,
+      num_true]`. The target classes.
+    num_true: An `int`.  The number of target classes per training example.
+    num_sampled: An `int`.  The number of classes to randomly sample.
+    unique: A `bool`. Determines whether all sampled classes in a batch are
+      unique.
+    range_max: An `int`. The number of possible classes.
+    seed: An `int`. An operation-specific seed. Default is 0.
+    name: A name for the operation (optional).
+
+  Returns:
+    sampled_candidates: A tensor of type `int64` and shape
+      `[num_sampled]`. The sampled classes. As noted above,
+      `sampled_candidates` may overlap with true classes.
+    true_expected_count: A tensor of type `float`.  Same shape as
+      `true_classes`. The expected counts under the sampling distribution
+      of each of `true_classes`.
+    sampled_expected_count: A tensor of type `float`. Same shape as
+      `sampled_candidates`. The expected counts under the sampling distribution
+      of each of `sampled_candidates`.
+
+[API Signature] true_classes: tensor, num_true: integer, num_sampled: integer, unique: boolean, range_max: integer, seed: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'num_sampled' of -1014033396 must be at least minimum 1 	; NodeDef: {{node LogUniformCandidateSampler}}; Op<name=LogUniformCandidateSampler; signature=true_classes:int64 -> sampled_candidates:int64, true_expected_count:float, sampled_expected_count:float; attr=num_true:int,min=1; attr=num_sampled:int,min=1; attr=unique:bool; attr=range_max:int,min=1; attr=seed:int,default=0; attr=seed2:int,default=0; is_stateful=true> [Op:LogUniformCandidateSampler]
+InvalidArgumentError: {{function_node __wrapped__LogUniformCandidateSampler_device_/job:localhost/replica:0/task:0/device:CPU:0}} Attr num_sampled has value 1103564561426015446 out of range for an int32 [Op:LogUniformCandidateSampler]
+InvalidArgumentError: {{function_node __wrapped__LogUniformCandidateSampler_device_/job:localhost/replica:0/task:0/device:CPU:0}} true_classes must have num_true columns, expected: 48 was: 1197956750 [Op:LogUniformCandidateSampler]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (seed should fit in int32)
+{v_1 : int} |= -2147483648 ≤ v_1 ∧ v_1 ≤ 2147483647
+Token usage: input=2493, output=5750, total=8243
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.log_uniform_candidate_sampler API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Samples a set of classes using a log-uniform (Zipfian) base distribution.
+
+  This operation randomly samples a tensor of sampled classes
+  (`sampled_candidates`) from the range of integers `[0, range_max)`.
+
+  See the [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf)
+  for a quick course on Candidate Sampling.
+
+  The elements of `sampled_candidates` are drawn without replacement
+  (if `unique=True`) or with replacement (if `unique=False`) from
+  the base distribution.
+
+  The base distribution for this operation is an approximately log-uniform
+  or Zipfian distribution:
+
+  `P(class) = (log(class + 2) - log(class + 1)) / log(range_max + 1)`
+
+  This sampler is useful when the target classes approximately follow such
+  a distribution - for example, if the classes represent words in a lexicon
+  sorted in decreasing order of frequency. If your classes are not ordered by
+  decreasing frequency, do not use this op.
+
+  In addition, this operation returns tensors `true_expected_count`
+  and `sampled_expected_count` representing the number of times each
+  of the target classes (`true_classes`) and the sampled
+  classes (`sampled_candidates`) is expected to occur in an average
+  tensor of sampled classes.  These values correspond to `Q(y|x)`
+  defined in the [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf).
+  If `unique=True`, then these are post-rejection probabilities and we
+  compute them approximately.
+
+  Note that this function (and also other `*_candidate_sampler`
+  functions) only gives you the ingredients to implement the various
+  Candidate Sampling algorithms listed in the big table in the
+  [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf). You
+  still need to implement the algorithms yourself.
+
+  For example, according to that table, the phrase "negative samples"
+  may mean different things in different algorithms. For instance, in
+  NCE, "negative samples" means `S_i` (which is just the sampled
+  classes) which may overlap with true classes, while in Sampled
+  Logistic, "negative samples" means `S_i - T_i` which excludes the
+  true classes. The return value `sampled_candidates` corresponds to
+  `S_i`, not to any specific definition of "negative samples" in any
+  specific algorithm. It's your responsibility to pick an algorithm
+  and calculate the "negative samples" defined by that algorithm
+  (e.g. `S_i - T_i`).
+
+  As another example, the `true_classes` argument is for calculating
+  the `true_expected_count` output (as a by-product of this function's
+  main calculation), which may be needed by some algorithms (according
+  to that table). It's not for excluding true classes in the return
+  value `sampled_candidates`. Again that step is algorithm-specific
+  and should be carried out by you.
+
+  Args:
+    true_classes: A `Tensor` of type `int64` and shape `[batch_size,
+      num_true]`. The target classes.
+    num_true: An `int`.  The number of target classes per training example.
+    num_sampled: An `int`.  The number of classes to randomly sample.
+    unique: A `bool`. Determines whether all sampled classes in a batch are
+      unique.
+    range_max: An `int`. The number of possible classes.
+    seed: An `int`. An operation-specific seed. Default is 0.
+    name: A name for the operation (optional).
+
+  Returns:
+    sampled_candidates: A tensor of type `int64` and shape
+      `[num_sampled]`. The sampled classes. As noted above,
+      `sampled_candidates` may overlap with true classes.
+    true_expected_count: A tensor of type `float`.  Same shape as
+      `true_classes`. The expected counts under the sampling distribution
+      of each of `true_classes`.
+    sampled_expected_count: A tensor of type `float`. Same shape as
+      `sampled_candidates`. The expected counts under the sampling distribution
+      of each of `sampled_candidates`.
+
+[API Signature] true_classes: tensor, num_true: integer, num_sampled: integer, unique: boolean, range_max: integer, seed: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'num_sampled' of -1014033396 must be at least minimum 1 	; NodeDef: {{node LogUniformCandidateSampler}}; Op<name=LogUniformCandidateSampler; signature=true_classes:int64 -> sampled_candidates:int64, true_expected_count:float, sampled_expected_count:float; attr=num_true:int,min=1; attr=num_sampled:int,min=1; attr=unique:bool; attr=range_max:int,min=1; attr=seed:int,default=0; attr=seed2:int,default=0; is_stateful=true> [Op:LogUniformCandidateSampler]
+InvalidArgumentError: {{function_node __wrapped__LogUniformCandidateSampler_device_/job:localhost/replica:0/task:0/device:CPU:0}} Attr num_sampled has value 1103564561426015446 out of range for an int32 [Op:LogUniformCandidateSampler]
+InvalidArgumentError: {{function_node __wrapped__LogUniformCandidateSampler_device_/job:localhost/replica:0/task:0/device:CPU:0}} true_classes must have num_true columns, expected: 48 was: 1197956750 [Op:LogUniformCandidateSampler]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (true_classes values must be valid class IDs in [0, range_max))
+{v_1 : tensor, v_2 : int} |= ndim(v_1) = 2 ∧ 0 ≤ min(v_1) ∧ max(v_1) < v_2
+Token usage: input=2493, output=5750, total=8243
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.log_uniform_candidate_sampler API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Samples a set of classes using a log-uniform (Zipfian) base distribution.
+
+  This operation randomly samples a tensor of sampled classes
+  (`sampled_candidates`) from the range of integers `[0, range_max)`.
+
+  See the [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf)
+  for a quick course on Candidate Sampling.
+
+  The elements of `sampled_candidates` are drawn without replacement
+  (if `unique=True`) or with replacement (if `unique=False`) from
+  the base distribution.
+
+  The base distribution for this operation is an approximately log-uniform
+  or Zipfian distribution:
+
+  `P(class) = (log(class + 2) - log(class + 1)) / log(range_max + 1)`
+
+  This sampler is useful when the target classes approximately follow such
+  a distribution - for example, if the classes represent words in a lexicon
+  sorted in decreasing order of frequency. If your classes are not ordered by
+  decreasing frequency, do not use this op.
+
+  In addition, this operation returns tensors `true_expected_count`
+  and `sampled_expected_count` representing the number of times each
+  of the target classes (`true_classes`) and the sampled
+  classes (`sampled_candidates`) is expected to occur in an average
+  tensor of sampled classes.  These values correspond to `Q(y|x)`
+  defined in the [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf).
+  If `unique=True`, then these are post-rejection probabilities and we
+  compute them approximately.
+
+  Note that this function (and also other `*_candidate_sampler`
+  functions) only gives you the ingredients to implement the various
+  Candidate Sampling algorithms listed in the big table in the
+  [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf). You
+  still need to implement the algorithms yourself.
+
+  For example, according to that table, the phrase "negative samples"
+  may mean different things in different algorithms. For instance, in
+  NCE, "negative samples" means `S_i` (which is just the sampled
+  classes) which may overlap with true classes, while in Sampled
+  Logistic, "negative samples" means `S_i - T_i` which excludes the
+  true classes. The return value `sampled_candidates` corresponds to
+  `S_i`, not to any specific definition of "negative samples" in any
+  specific algorithm. It's your responsibility to pick an algorithm
+  and calculate the "negative samples" defined by that algorithm
+  (e.g. `S_i - T_i`).
+
+  As another example, the `true_classes` argument is for calculating
+  the `true_expected_count` output (as a by-product of this function's
+  main calculation), which may be needed by some algorithms (according
+  to that table). It's not for excluding true classes in the return
+  value `sampled_candidates`. Again that step is algorithm-specific
+  and should be carried out by you.
+
+  Args:
+    true_classes: A `Tensor` of type `int64` and shape `[batch_size,
+      num_true]`. The target classes.
+    num_true: An `int`.  The number of target classes per training example.
+    num_sampled: An `int`.  The number of classes to randomly sample.
+    unique: A `bool`. Determines whether all sampled classes in a batch are
+      unique.
+    range_max: An `int`. The number of possible classes.
+    seed: An `int`. An operation-specific seed. Default is 0.
+    name: A name for the operation (optional).
+
+  Returns:
+    sampled_candidates: A tensor of type `int64` and shape
+      `[num_sampled]`. The sampled classes. As noted above,
+      `sampled_candidates` may overlap with true classes.
+    true_expected_count: A tensor of type `float`.  Same shape as
+      `true_classes`. The expected counts under the sampling distribution
+      of each of `true_classes`.
+    sampled_expected_count: A tensor of type `float`. Same shape as
+      `sampled_candidates`. The expected counts under the sampling distribution
+      of each of `sampled_candidates`.
+
+[API Signature] true_classes: tensor, num_true: integer, num_sampled: integer, unique: boolean, range_max: integer, seed: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'num_sampled' of -1014033396 must be at least minimum 1 	; NodeDef: {{node LogUniformCandidateSampler}}; Op<name=LogUniformCandidateSampler; signature=true_classes:int64 -> sampled_candidates:int64, true_expected_count:float, sampled_expected_count:float; attr=num_true:int,min=1; attr=num_sampled:int,min=1; attr=unique:bool; attr=range_max:int,min=1; attr=seed:int,default=0; attr=seed2:int,default=0; is_stateful=true> [Op:LogUniformCandidateSampler]
+InvalidArgumentError: {{function_node __wrapped__LogUniformCandidateSampler_device_/job:localhost/replica:0/task:0/device:CPU:0}} Attr num_sampled has value 1103564561426015446 out of range for an int32 [Op:LogUniformCandidateSampler]
+InvalidArgumentError: {{function_node __wrapped__LogUniformCandidateSampler_device_/job:localhost/replica:0/task:0/device:CPU:0}} true_classes must have num_true columns, expected: 48 was: 1197956750 [Op:LogUniformCandidateSampler]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (all true_classes dimensions must be positive)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Token usage: input=2493, output=5750, total=8243
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.log_uniform_candidate_sampler API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Samples a set of classes using a log-uniform (Zipfian) base distribution.
+
+  This operation randomly samples a tensor of sampled classes
+  (`sampled_candidates`) from the range of integers `[0, range_max)`.
+
+  See the [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf)
+  for a quick course on Candidate Sampling.
+
+  The elements of `sampled_candidates` are drawn without replacement
+  (if `unique=True`) or with replacement (if `unique=False`) from
+  the base distribution.
+
+  The base distribution for this operation is an approximately log-uniform
+  or Zipfian distribution:
+
+  `P(class) = (log(class + 2) - log(class + 1)) / log(range_max + 1)`
+
+  This sampler is useful when the target classes approximately follow such
+  a distribution - for example, if the classes represent words in a lexicon
+  sorted in decreasing order of frequency. If your classes are not ordered by
+  decreasing frequency, do not use this op.
+
+  In addition, this operation returns tensors `true_expected_count`
+  and `sampled_expected_count` representing the number of times each
+  of the target classes (`true_classes`) and the sampled
+  classes (`sampled_candidates`) is expected to occur in an average
+  tensor of sampled classes.  These values correspond to `Q(y|x)`
+  defined in the [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf).
+  If `unique=True`, then these are post-rejection probabilities and we
+  compute them approximately.
+
+  Note that this function (and also other `*_candidate_sampler`
+  functions) only gives you the ingredients to implement the various
+  Candidate Sampling algorithms listed in the big table in the
+  [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf). You
+  still need to implement the algorithms yourself.
+
+  For example, according to that table, the phrase "negative samples"
+  may mean different things in different algorithms. For instance, in
+  NCE, "negative samples" means `S_i` (which is just the sampled
+  classes) which may overlap with true classes, while in Sampled
+  Logistic, "negative samples" means `S_i - T_i` which excludes the
+  true classes. The return value `sampled_candidates` corresponds to
+  `S_i`, not to any specific definition of "negative samples" in any
+  specific algorithm. It's your responsibility to pick an algorithm
+  and calculate the "negative samples" defined by that algorithm
+  (e.g. `S_i - T_i`).
+
+  As another example, the `true_classes` argument is for calculating
+  the `true_expected_count` output (as a by-product of this function's
+  main calculation), which may be needed by some algorithms (according
+  to that table). It's not for excluding true classes in the return
+  value `sampled_candidates`. Again that step is algorithm-specific
+  and should be carried out by you.
+
+  Args:
+    true_classes: A `Tensor` of type `int64` and shape `[batch_size,
+      num_true]`. The target classes.
+    num_true: An `int`.  The number of target classes per training example.
+    num_sampled: An `int`.  The number of classes to randomly sample.
+    unique: A `bool`. Determines whether all sampled classes in a batch are
+      unique.
+    range_max: An `int`. The number of possible classes.
+    seed: An `int`. An operation-specific seed. Default is 0.
+    name: A name for the operation (optional).
+
+  Returns:
+    sampled_candidates: A tensor of type `int64` and shape
+      `[num_sampled]`. The sampled classes. As noted above,
+      `sampled_candidates` may overlap with true classes.
+    true_expected_count: A tensor of type `float`.  Same shape as
+      `true_classes`. The expected counts under the sampling distribution
+      of each of `true_classes`.
+    sampled_expected_count: A tensor of type `float`. Same shape as
+      `sampled_candidates`. The expected counts under the sampling distribution
+      of each of `sampled_candidates`.
+
+[API Signature] true_classes: tensor, num_true: integer, num_sampled: integer, unique: boolean, range_max: integer, seed: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'num_sampled' of -1014033396 must be at least minimum 1 	; NodeDef: {{node LogUniformCandidateSampler}}; Op<name=LogUniformCandidateSampler; signature=true_classes:int64 -> sampled_candidates:int64, true_expected_count:float, sampled_expected_count:float; attr=num_true:int,min=1; attr=num_sampled:int,min=1; attr=unique:bool; attr=range_max:int,min=1; attr=seed:int,default=0; attr=seed2:int,default=0; is_stateful=true> [Op:LogUniformCandidateSampler]
+InvalidArgumentError: {{function_node __wrapped__LogUniformCandidateSampler_device_/job:localhost/replica:0/task:0/device:CPU:0}} Attr num_sampled has value 1103564561426015446 out of range for an int32 [Op:LogUniformCandidateSampler]
+InvalidArgumentError: {{function_node __wrapped__LogUniformCandidateSampler_device_/job:localhost/replica:0/task:0/device:CPU:0}} true_classes must have num_true columns, expected: 48 was: 1197956750 [Op:LogUniformCandidateSampler]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (name is a valid string from the allowed set)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "linear"
+Token usage: input=2493, output=5750, total=8243
+** SUCCESS **
+

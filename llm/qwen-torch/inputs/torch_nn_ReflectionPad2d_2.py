@@ -9,94 +9,114 @@ import torch, copy
 def reflectionpad2d_inputs():
     list_of_inputs = []
     
-    # Input 1 - Basic case with padding tuple
-    input = torch.arange(9, dtype=torch.float).reshape(1, 1, 3, 3).numpy()
-    padding = (1, 1, 1, 1)
-    input_dict = {
-        "input": input,
-        "padding": padding
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 2 - Different padding values for each side
-    input = torch.arange(9, dtype=torch.float).reshape(1, 1, 3, 3).numpy()
-    padding = (2, 1, 0, 3)
-    input_dict = {
-        "input": input,
-        "padding": padding
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 3 - Single value padding (same padding on all sides)
+    # Input 1: padding as int, input tensor 3D
     input = torch.arange(9, dtype=torch.float).reshape(1, 1, 3, 3).numpy()
     padding = (2, 2, 2, 2)
+    
     input_dict = {
-        "input": input,
-        "padding": padding
+        "padding": padding,
+        "input": input
     }
+    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 4 - Single value padding with zero padding
+    # Input 2: padding as tuple, input tensor 4D
     input = torch.arange(9, dtype=torch.float).reshape(1, 1, 3, 3).numpy()
-    padding = (0, 0, 0, 0)
+    padding = (1, 1, 2, 0)
+    
     input_dict = {
-        "input": input,
-        "padding": padding
+        "padding": padding,
+        "input": input
     }
+    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 5 - Multi-dimensional tensor with padding
+    # Input 3: padding as int, input tensor 2D
+    input = torch.arange(4, dtype=torch.float).reshape(1, 1, 2, 2).numpy()
+    padding = (1, 1, 1, 1)
+    
+    input_dict = {
+        "padding": padding,
+        "input": input
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4: padding as tuple, input tensor 3D with negative values
+    input = torch.arange(9, dtype=torch.float).reshape(1, 1, 3, 3).numpy()
+    padding = (0, 0, -1, -1)
+    
+    input_dict = {
+        "padding": padding,
+        "input": input
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5: padding as int, input tensor 4D with different sizes
     input = torch.arange(16, dtype=torch.float).reshape(1, 1, 4, 4).numpy()
+    padding = (3, 3, 3, 3)
+    
+    input_dict = {
+        "padding": padding,
+        "input": input
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6: padding as tuple, input tensor 3D with different padding values
+    input = torch.arange(9, dtype=torch.float).reshape(1, 1, 3, 3).numpy()
     padding = (2, 1, 0, 3)
+    
     input_dict = {
-        "input": input,
-        "padding": padding
+        "padding": padding,
+        "input": input
     }
+    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 6 - Tensor with different shape
+    # Input 7: padding as int, input tensor 1D
+    input = torch.arange(3, dtype=torch.float).reshape(1, 1, 3).numpy()
+    padding = (2,)
+    
+    input_dict = {
+        "padding": padding,
+        "input": input
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8: padding as tuple, input tensor 4D with large padding values
     input = torch.arange(16, dtype=torch.float).reshape(1, 1, 4, 4).numpy()
-    padding = (3, 2, 1, 0)
+    padding = (2, 3, 4, 5)
+    
     input_dict = {
-        "input": input,
-        "padding": padding
+        "padding": padding,
+        "input": input
     }
+    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 7 - Large padding values with negative input values
-    input = torch.arange(9, dtype=torch.float).reshape(1, 1, 3, 3).numpy()
-    padding = (3, 2, 1, 0)
-    input_dict = {
-        "input": input,
-        "padding": padding
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8 - Padding values less than input dimensions
-    input = torch.arange(9, dtype=torch.float).reshape(1, 1, 3, 3).numpy()
-    padding = (0, 1, 2, 3)
-    input_dict = {
-        "input": input,
-        "padding": padding
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9 - Padding values with negative numbers
-    input = torch.arange(9, dtype=torch.float).reshape(1, 1, 3, 3).numpy()
-    padding = (-1, -2, -3, -4)
-    input_dict = {
-        "input": input,
-        "padding": padding
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10 - Padding values with zero values
+    # Input 9: padding as int, input tensor 3D with zero padding
     input = torch.arange(9, dtype=torch.float).reshape(1, 1, 3, 3).numpy()
     padding = (0, 0, 0, 0)
+    
     input_dict = {
-        "input": input,
-        "padding": padding
+        "padding": padding,
+        "input": input
     }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10: padding as tuple, input tensor 4D with float values in input
+    input = torch.arange(9, dtype=torch.float).reshape(1, 1, 3, 3).numpy()
+    padding = (2, 2, 1, 1)
+    
+    input_dict = {
+        "padding": padding,
+        "input": input
+    }
+    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs

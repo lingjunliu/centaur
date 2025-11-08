@@ -10,9 +10,9 @@ def bitwise_left_shift_inputs():
     list_of_inputs = []
     
     # Input 1, valid
-    input = torch.tensor([1, 2, 3], dtype=torch.int32).numpy()         # tensor
-    other = torch.tensor([0, 1, 2], dtype=torch.int32).numpy()        # tensor
-    out = torch.zeros((3,), dtype=torch.int32).numpy()               # tensor
+    input = torch.tensor([1, 2, 3]).numpy()
+    other = torch.tensor([0, 1, 2]).numpy()
+    out = torch.tensor([0, 0, 0], dtype=torch.int64).numpy()
     
     input_dict = {
         "input": input,
@@ -23,9 +23,9 @@ def bitwise_left_shift_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.tensor([10, 20, 30], dtype=torch.int32).numpy()      # tensor
-    other = torch.tensor([1, 2, 3], dtype=torch.int32).numpy()        # tensor
-    out = torch.zeros((3,), dtype=torch.int32).numpy()               # tensor
+    input = torch.ones((2, 3), dtype=torch.int64).numpy()
+    other = torch.zeros((2, 3), dtype=torch.int64).numpy()
+    out = torch.tensor([0, 0, 0], dtype=torch.int64).numpy()
     
     input_dict = {
         "input": input,
@@ -36,9 +36,9 @@ def bitwise_left_shift_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.ones((2, 3), dtype=torch.int32).numpy()              # tensor
-    other = torch.zeros((2, 3), dtype=torch.int32).numpy()            # tensor
-    out = torch.zeros((2, 3), dtype=torch.int32).numpy()              # tensor
+    input = torch.tensor([10, 20, 30], dtype=torch.int64).numpy()
+    other = torch.tensor([1, 2, 3], dtype=torch.int64).numpy()
+    out = torch.tensor([0, 0, 0], dtype=torch.int64).numpy()
     
     input_dict = {
         "input": input,
@@ -49,9 +49,9 @@ def bitwise_left_shift_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.tensor([100, 200], dtype=torch.int32).numpy()        # tensor
-    other = torch.tensor([2, 3], dtype=torch.int32).numpy()          # tensor
-    out = torch.zeros((2,), dtype=torch.int32).numpy()               # tensor
+    input = torch.tensor([1, 2, 3, 4], dtype=torch.int64).numpy()
+    other = torch.tensor([1, 2, 3, 4], dtype=torch.int64).numpy()
+    out = torch.tensor([0, 0, 0, 0], dtype=torch.int64).numpy()
     
     input_dict = {
         "input": input,
@@ -62,9 +62,9 @@ def bitwise_left_shift_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([0, 1, 2, 3], dtype=torch.int32).numpy()      # tensor
-    other = torch.tensor([1, 2, 3, 4], dtype=torch.int32).numpy()     # tensor
-    out = torch.zeros((4,), dtype=torch.int32).numpy()               # tensor
+    input = torch.tensor([1, 2], dtype=torch.int64).numpy()
+    other = torch.tensor([0, 1], dtype=torch.int64).numpy()
+    out = torch.tensor([0, 0], dtype=torch.int64).numpy()
     
     input_dict = {
         "input": input,
@@ -75,9 +75,9 @@ def bitwise_left_shift_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.tensor([-1, -2, -3], dtype=torch.int32).numpy()     # tensor
-    other = torch.tensor([1, 2, 3], dtype=torch.int32).numpy()        # tensor
-    out = torch.zeros((3,), dtype=torch.int32).numpy()               # tensor
+    input = torch.tensor([-1, -2, -3], dtype=torch.int64).numpy()
+    other = torch.tensor([1, 2, 3], dtype=torch.int64).numpy()
+    out = torch.tensor([0, 0, 0], dtype=torch.int64).numpy()
     
     input_dict = {
         "input": input,
@@ -88,9 +88,9 @@ def bitwise_left_shift_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.tensor([1, 2], dtype=torch.int32).numpy()           # tensor
-    other = torch.tensor([0, 1], dtype=torch.int32).numpy()          # tensor
-    out = torch.zeros((2,), dtype=torch.int32).numpy()               # tensor
+    input = torch.tensor([1, 2, 3, 4, 5], dtype=torch.int64).numpy()
+    other = torch.tensor([0, 1, 2, 3, 4], dtype=torch.int64).numpy()
+    out = torch.tensor([0, 0, 0, 0, 0], dtype=torch.int64).numpy()
     
     input_dict = {
         "input": input,
@@ -101,9 +101,9 @@ def bitwise_left_shift_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([10, 20], dtype=torch.int32).numpy()          # tensor
-    other = torch.tensor([3, 4], dtype=torch.int32).numpy()          # tensor
-    out = torch.zeros((2,), dtype=torch.int32).numpy()               # tensor
+    input = torch.tensor([100, 200, 300], dtype=torch.int64).numpy()
+    other = torch.tensor([1, 2, 3], dtype=torch.int64).numpy()
+    out = torch.tensor([0, 0, 0], dtype=torch.int64).numpy()
     
     input_dict = {
         "input": input,
@@ -114,9 +114,9 @@ def bitwise_left_shift_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.zeros((3, 4), dtype=torch.int32).numpy()             # tensor
-    other = torch.ones((3, 4), dtype=torch.int32).numpy()             # tensor
-    out = torch.zeros((3, 4), dtype=torch.int32).numpy()              # tensor
+    input = torch.tensor([1, 2, 3], dtype=torch.int64).numpy()
+    other = torch.tensor([0, 1, 2], dtype=torch.int64).numpy()
+    out = torch.tensor([0, 0, 0], dtype=torch.int64).numpy()
     
     input_dict = {
         "input": input,
@@ -127,9 +127,9 @@ def bitwise_left_shift_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([5, 6, 7], dtype=torch.int32).numpy()         # tensor
-    other = torch.tensor([2, 3, 4], dtype=torch.int32).numpy()        # tensor
-    out = torch.zeros((3,), dtype=torch.int32).numpy()               # tensor
+    input = torch.tensor([1, 2, 3, 4, 5, 6], dtype=torch.int64).numpy()
+    other = torch.tensor([0, 1, 2, 3, 4, 5], dtype=torch.int64).numpy()
+    out = torch.tensor([0, 0, 0, 0, 0, 0], dtype=torch.int64).numpy()
     
     input_dict = {
         "input": input,
