@@ -1,0 +1,121 @@
+
+from utils.new_api_utils import run_api, get_signature
+from generator.input_generators import get_abstract_input
+
+generated_inputs = dict()
+
+import torch
+import numpy as np
+import copy
+
+def matrix_power_inputs():
+    list_of_inputs = []
+    
+    input = np.eye(2)
+    n = 2
+    input_dict = {
+        "input": input,
+        "n": n
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    input = np.array([[1.0, 2.0, 0.0],
+                      [0.0, 1.0, 1.0],
+                      [0.0, 0.0, 1.0]])
+    n = 3
+    input_dict = {
+        "input": input,
+        "n": n
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    input = np.array([[2.0, 3.0],
+                      [1.0, 4.0]])
+    n = 0
+    input_dict = {
+        "input": input,
+        "n": n
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    input = np.array([[5.0, -2.0],
+                      [1.0, 3.0]])
+    n = 1
+    input_dict = {
+        "input": input,
+        "n": n
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    input = np.eye(4)
+    n = 2
+    input_dict = {
+        "input": input,
+        "n": n
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    input = np.array([[-1.0, 2.0],
+                      [3.0, -4.0]])
+    n = 3
+    input_dict = {
+        "input": input,
+        "n": n
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    input = np.array([[1.0, 0.0, 0.0],
+                      [0.0, 2.0, 0.0],
+                      [0.0, 0.0, 3.0]])
+    n = 4
+    input_dict = {
+        "input": input,
+        "n": n
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    input = np.array([[4.0, 2.0],
+                      [1.0, 3.0]])
+    n = -1
+    input_dict = {
+        "input": input,
+        "n": n
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    input = np.array([[2.0, 0.0],
+                      [0.0, 3.0]])
+    n = -2
+    input_dict = {
+        "input": input,
+        "n": n
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    input = np.eye(5) * 2.0
+    n = 2
+    input_dict = {
+        "input": input,
+        "n": n
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+generated_inputs["torch.matrix_power"] = matrix_power_inputs()
+
+def check_valid(api, list_of_inputs, lib="torch", suffix=0):
+    for idx, input_dict in enumerate(list_of_inputs):
+        _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
+        output = run_api(api, input_dict, cpu=True, lib=lib)
+    
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
+    print("Valid")
+
+if 'torch.matrix_power' not in generated_inputs:
+    raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'torch.matrix_power'.")
+
+
+check_valid('torch.matrix_power', generated_inputs['torch.matrix_power'], lib="torch", suffix=0)
