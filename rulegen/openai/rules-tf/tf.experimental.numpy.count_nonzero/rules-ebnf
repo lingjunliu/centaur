@@ -10,3 +10,36 @@ Rule 3 (tuple axis: non-empty, size bounded by rank, and each index in range)
 >>
 Rule 5 (list axis: non-empty, size bounded by rank, and each index in range)
 {v_1 : tensor, v_2 : list(int)} |= v_2.len ≥ 1 ∧ v_2.len ≤ ndim(v_1) ∧ ∀i ∈ [0, v_2.len - 1] : (v_2[i] ≥ 0 - ndim(v_1) ∧ v_2[i] ≤ ndim(v_1) - 1)
+>>
+Rule 6 (valid single-axis reduction index)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) ≥ 1 ∧ -1 * ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) - 1
+>>
+Rule 7 (tuple of axes are valid and pairwise distinct)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≥ 1 ∧ v_2.len ≤ ndim(v_1) ∧ ∀i ∈ [0, v_2.len - 1] : (0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1) ∧ ∀j ∈ [0, v_2.len - 1] : (i = j) ∨ (v_2[i] ≠ v_2[j]))
+>>
+Rule 8 (list of axes within valid (negative or nonnegative) range and distinct)
+{v_1 : tensor, v_2 : list(int)} |= v_2.len ≥ 1 ∧ v_2.len ≤ ndim(v_1) ∧ ∀i ∈ [0, v_2.len - 1] : (-1 * ndim(v_1) ≤ v_2[i] ∧ v_2[i] ≤ ndim(v_1) - 1 ∧ ∀j ∈ [0, v_2.len - 1] : (i = j) ∨ (v_2[i] ≠ v_2[j]))
+>>
+Rule 9 (axes as tuple or list must be nonnegative, in range, and strictly increasing)
+{v_1 : tensor, v_2 : tuple(int) ⊎ list(int)} |= v_2.len ≥ 1 ∧ v_2.len ≤ ndim(v_1) ∧ ∀i ∈ [0, v_2.len - 1] : (0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)) ∧ ∀k ∈ [1, v_2.len - 1] : v_2[k - 1] < v_2[k]
+>>
+Rule 10 (last-axis shorthand with -1 for integer axis is allowed only if rank ≥ 1)
+{v_1 : tensor, v_2 : int} |= if v_2 = -1 then ndim(v_1) ≥ 1
+>>
+Rule 12 (tuple of axes: nonnegative, in range, strictly increasing)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) ≥ 1 ∧ v_2.len ≥ 1 ∧ v_2.len ≤ ndim(v_1) ∧ ∀i ∈ [0, v_2.len - 1] : (0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)) ∧ ∀k ∈ [1, v_2.len - 1] : v_2[k - 1] < v_2[k]
+>>
+Rule 13 (list of axes: within negative/positive range and pairwise distinct)
+{v_1 : tensor, v_2 : list(int)} |= ndim(v_1) ≥ 1 ∧ v_2.len ≥ 1 ∧ v_2.len ≤ ndim(v_1) ∧ ∀i ∈ [0, v_2.len - 1] : (-1 * ndim(v_1) ≤ v_2[i] ∧ v_2[i] ≤ ndim(v_1) - 1 ∧ ∀j ∈ [0, v_2.len - 1] : (i = j) ∨ (v_2[i] ≠ v_2[j]))
+>>
+Rule 14 (axes as tuple or list: sorted, in range, contiguous when covering all dims)
+{v_1 : tensor, v_2 : tuple(int) ⊎ list(int)} |= v_2.len ≥ 1 ∧ v_2.len ≤ ndim(v_1) ∧ ∀i ∈ [0, v_2.len - 1] : (0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)) ∧ ∀k ∈ [1, v_2.len - 1] : v_2[k - 1] < v_2[k] ∧ (if v_2.len = ndim(v_1) then (v_2[0] = 0 ∧ v_2[v_2.len - 1] = ndim(v_1) - 1))
+>>
+Rule 15 (input tensor dtype must not be string)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 17 (tuple axes all nonnegative or all negative, and within bounds)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≥ 1 ∧ v_2.len ≤ ndim(v_1) ∧ ∀i ∈ [0, v_2.len - 1] : (-1 * ndim(v_1) ≤ v_2[i] ∧ v_2[i] ≤ ndim(v_1) - 1) ∧ ((∀p ∈ [0, v_2.len - 1] : v_2[p] ≥ 0) ∨ (∀q ∈ [0, v_2.len - 1] : v_2[q] < 0))
+>>
+Rule 18 (list axes: do not mix -1 with explicit last axis)
+{v_1 : tensor, v_2 : list(int)} |= v_2.len ≥ 1 ∧ v_2.len ≤ ndim(v_1) ∧ ∀i ∈ [0, v_2.len - 1] : (-1 * ndim(v_1) ≤ v_2[i] ∧ v_2[i] ≤ ndim(v_1) - 1) ∧ (if ∃k ∈ [0, v_2.len - 1] : v_2[k] = -1 then ∀j ∈ [0, v_2.len - 1] : v_2[j] ≠ ndim(v_1) - 1)

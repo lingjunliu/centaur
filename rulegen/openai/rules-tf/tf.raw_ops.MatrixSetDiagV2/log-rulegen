@@ -1828,3 +1828,2199 @@ Rule 10 (general rank relation for either scalar or tuple k)
 Token usage: input=2639, output=7752, total=10391
 ** REDUNDANT VARIABLES ** (num_failures: 5)
 
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.MatrixSetDiagV2 API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a batched matrix tensor with new batched diagonal values.
+
+  Given `input` and `diagonal`, this operation returns a tensor with the
+  same shape and values as `input`, except for the specified diagonals of the
+  innermost matrices. These will be overwritten by the values in `diagonal`.
+
+  `input` has `r+1` dimensions `[I, J, ..., L, M, N]`. When `k` is scalar or
+  `k[0] == k[1]`, `diagonal` has `r` dimensions `[I, J, ..., L, max_diag_len]`.
+  Otherwise, it has `r+1` dimensions `[I, J, ..., L, num_diags, max_diag_len]`.
+  `num_diags` is the number of diagonals, `num_diags = k[1] - k[0] + 1`.
+  `max_diag_len` is the longest diagonal in the range `[k[0], k[1]]`,
+  `max_diag_len = min(M + min(k[1], 0), N + min(-k[0], 0))`
+
+  The output is a tensor of rank `k+1` with dimensions `[I, J, ..., L, M, N]`.
+  If `k` is scalar or `k[0] == k[1]`:
+
+  ```
+  output[i, j, ..., l, m, n]
+    = diagonal[i, j, ..., l, n-max(k[1], 0)] ; if n - m == k[1]
+      input[i, j, ..., l, m, n]              ; otherwise
+  ```
+
+  Otherwise,
+
+  ```
+  output[i, j, ..., l, m, n]
+    = diagonal[i, j, ..., l, diag_index, index_in_diag] ; if k[0] <= d <= k[1]
+      input[i, j, ..., l, m, n]                         ; otherwise
+  ```
+  where `d = n - m`, `diag_index = k[1] - d`, and `index_in_diag = n - max(d, 0)`.
+
+  For example:
+
+  ```
+  # The main diagonal.
+  input = np.array([[[7, 7, 7, 7],              # Input shape: (2, 3, 4)
+                     [7, 7, 7, 7],
+                     [7, 7, 7, 7]],
+                    [[7, 7, 7, 7],
+                     [7, 7, 7, 7],
+                     [7, 7, 7, 7]]])
+  diagonal = np.array([[1, 2, 3],               # Diagonal shape: (2, 3)
+                       [4, 5, 6]])
+  tf.matrix_set_diag(diagonal) ==> [[[1, 7, 7, 7],  # Output shape: (2, 3, 4)
+                                     [7, 2, 7, 7],
+                                     [7, 7, 3, 7]],
+                                    [[4, 7, 7, 7],
+                                     [7, 5, 7, 7],
+                                     [7, 7, 6, 7]]]
+
+  # A superdiagonal (per batch).
+  tf.matrix_set_diag(diagonal, k = 1)
+    ==> [[[7, 1, 7, 7],  # Output shape: (2, 3, 4)
+          [7, 7, 2, 7],
+          [7, 7, 7, 3]],
+         [[7, 4, 7, 7],
+          [7, 7, 5, 7],
+          [7, 7, 7, 6]]]
+
+  # A band of diagonals.
+  diagonals = np.array([[[1, 2, 3],  # Diagonal shape: (2, 2, 3)
+                         [4, 5, 0]],
+                        [[6, 1, 2],
+                         [3, 4, 0]]])
+  tf.matrix_set_diag(diagonals, k = (-1, 0))
+    ==> [[[1, 7, 7, 7],  # Output shape: (2, 3, 4)
+          [4, 2, 7, 7],
+          [0, 5, 3, 7]],
+         [[6, 7, 7, 7],
+          [3, 1, 7, 7],
+          [7, 4, 2, 7]]]
+
+  ```
+
+  Args:
+    input: A `Tensor`. Rank `r+1`, where `r >= 1`.
+    diagonal: A `Tensor`. Must have the same type as `input`.
+      Rank `r` when `k` is an integer or `k[0] == k[1]`. Otherwise, it has rank `r+1`.
+      `k >= 1`.
+    k: A `Tensor` of type `int32`.
+      Diagonal offset(s). Positive value means superdiagonal, 0 refers to the main
+      diagonal, and negative value means subdiagonals. `k` can be a single integer
+      (for a single diagonal) or a pair of integers specifying the low and high ends
+      of a matrix band. `k[0]` must not be larger than `k[1]`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[Possible API Signatures]
+ - name: string, input: tensor, diagonal: tensor, k: integer
+ - name: string, input: tensor, diagonal: tensor, k: tuple
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (input must be at least a matrix)
+{v_2 : tensor} |= ndim(v_2) ≥ 2
+Token usage: input=2540, output=10981, total=13521
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.MatrixSetDiagV2 API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a batched matrix tensor with new batched diagonal values.
+
+  Given `input` and `diagonal`, this operation returns a tensor with the
+  same shape and values as `input`, except for the specified diagonals of the
+  innermost matrices. These will be overwritten by the values in `diagonal`.
+
+  `input` has `r+1` dimensions `[I, J, ..., L, M, N]`. When `k` is scalar or
+  `k[0] == k[1]`, `diagonal` has `r` dimensions `[I, J, ..., L, max_diag_len]`.
+  Otherwise, it has `r+1` dimensions `[I, J, ..., L, num_diags, max_diag_len]`.
+  `num_diags` is the number of diagonals, `num_diags = k[1] - k[0] + 1`.
+  `max_diag_len` is the longest diagonal in the range `[k[0], k[1]]`,
+  `max_diag_len = min(M + min(k[1], 0), N + min(-k[0], 0))`
+
+  The output is a tensor of rank `k+1` with dimensions `[I, J, ..., L, M, N]`.
+  If `k` is scalar or `k[0] == k[1]`:
+
+  ```
+  output[i, j, ..., l, m, n]
+    = diagonal[i, j, ..., l, n-max(k[1], 0)] ; if n - m == k[1]
+      input[i, j, ..., l, m, n]              ; otherwise
+  ```
+
+  Otherwise,
+
+  ```
+  output[i, j, ..., l, m, n]
+    = diagonal[i, j, ..., l, diag_index, index_in_diag] ; if k[0] <= d <= k[1]
+      input[i, j, ..., l, m, n]                         ; otherwise
+  ```
+  where `d = n - m`, `diag_index = k[1] - d`, and `index_in_diag = n - max(d, 0)`.
+
+  For example:
+
+  ```
+  # The main diagonal.
+  input = np.array([[[7, 7, 7, 7],              # Input shape: (2, 3, 4)
+                     [7, 7, 7, 7],
+                     [7, 7, 7, 7]],
+                    [[7, 7, 7, 7],
+                     [7, 7, 7, 7],
+                     [7, 7, 7, 7]]])
+  diagonal = np.array([[1, 2, 3],               # Diagonal shape: (2, 3)
+                       [4, 5, 6]])
+  tf.matrix_set_diag(diagonal) ==> [[[1, 7, 7, 7],  # Output shape: (2, 3, 4)
+                                     [7, 2, 7, 7],
+                                     [7, 7, 3, 7]],
+                                    [[4, 7, 7, 7],
+                                     [7, 5, 7, 7],
+                                     [7, 7, 6, 7]]]
+
+  # A superdiagonal (per batch).
+  tf.matrix_set_diag(diagonal, k = 1)
+    ==> [[[7, 1, 7, 7],  # Output shape: (2, 3, 4)
+          [7, 7, 2, 7],
+          [7, 7, 7, 3]],
+         [[7, 4, 7, 7],
+          [7, 7, 5, 7],
+          [7, 7, 7, 6]]]
+
+  # A band of diagonals.
+  diagonals = np.array([[[1, 2, 3],  # Diagonal shape: (2, 2, 3)
+                         [4, 5, 0]],
+                        [[6, 1, 2],
+                         [3, 4, 0]]])
+  tf.matrix_set_diag(diagonals, k = (-1, 0))
+    ==> [[[1, 7, 7, 7],  # Output shape: (2, 3, 4)
+          [4, 2, 7, 7],
+          [0, 5, 3, 7]],
+         [[6, 7, 7, 7],
+          [3, 1, 7, 7],
+          [7, 4, 2, 7]]]
+
+  ```
+
+  Args:
+    input: A `Tensor`. Rank `r+1`, where `r >= 1`.
+    diagonal: A `Tensor`. Must have the same type as `input`.
+      Rank `r` when `k` is an integer or `k[0] == k[1]`. Otherwise, it has rank `r+1`.
+      `k >= 1`.
+    k: A `Tensor` of type `int32`.
+      Diagonal offset(s). Positive value means superdiagonal, 0 refers to the main
+      diagonal, and negative value means subdiagonals. `k` can be a single integer
+      (for a single diagonal) or a pair of integers specifying the low and high ends
+      of a matrix band. `k[0]` must not be larger than `k[1]`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[Possible API Signatures]
+ - name: string, input: tensor, diagonal: tensor, k: integer
+ - name: string, input: tensor, diagonal: tensor, k: tuple
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (diagonal and input must have the same dtype)
+{v_2 : tensor, v_3 : tensor} |= dtype_(v_2) = dtype_(v_3)
+Token usage: input=2540, output=10981, total=13521
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.MatrixSetDiagV2 API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a batched matrix tensor with new batched diagonal values.
+
+  Given `input` and `diagonal`, this operation returns a tensor with the
+  same shape and values as `input`, except for the specified diagonals of the
+  innermost matrices. These will be overwritten by the values in `diagonal`.
+
+  `input` has `r+1` dimensions `[I, J, ..., L, M, N]`. When `k` is scalar or
+  `k[0] == k[1]`, `diagonal` has `r` dimensions `[I, J, ..., L, max_diag_len]`.
+  Otherwise, it has `r+1` dimensions `[I, J, ..., L, num_diags, max_diag_len]`.
+  `num_diags` is the number of diagonals, `num_diags = k[1] - k[0] + 1`.
+  `max_diag_len` is the longest diagonal in the range `[k[0], k[1]]`,
+  `max_diag_len = min(M + min(k[1], 0), N + min(-k[0], 0))`
+
+  The output is a tensor of rank `k+1` with dimensions `[I, J, ..., L, M, N]`.
+  If `k` is scalar or `k[0] == k[1]`:
+
+  ```
+  output[i, j, ..., l, m, n]
+    = diagonal[i, j, ..., l, n-max(k[1], 0)] ; if n - m == k[1]
+      input[i, j, ..., l, m, n]              ; otherwise
+  ```
+
+  Otherwise,
+
+  ```
+  output[i, j, ..., l, m, n]
+    = diagonal[i, j, ..., l, diag_index, index_in_diag] ; if k[0] <= d <= k[1]
+      input[i, j, ..., l, m, n]                         ; otherwise
+  ```
+  where `d = n - m`, `diag_index = k[1] - d`, and `index_in_diag = n - max(d, 0)`.
+
+  For example:
+
+  ```
+  # The main diagonal.
+  input = np.array([[[7, 7, 7, 7],              # Input shape: (2, 3, 4)
+                     [7, 7, 7, 7],
+                     [7, 7, 7, 7]],
+                    [[7, 7, 7, 7],
+                     [7, 7, 7, 7],
+                     [7, 7, 7, 7]]])
+  diagonal = np.array([[1, 2, 3],               # Diagonal shape: (2, 3)
+                       [4, 5, 6]])
+  tf.matrix_set_diag(diagonal) ==> [[[1, 7, 7, 7],  # Output shape: (2, 3, 4)
+                                     [7, 2, 7, 7],
+                                     [7, 7, 3, 7]],
+                                    [[4, 7, 7, 7],
+                                     [7, 5, 7, 7],
+                                     [7, 7, 6, 7]]]
+
+  # A superdiagonal (per batch).
+  tf.matrix_set_diag(diagonal, k = 1)
+    ==> [[[7, 1, 7, 7],  # Output shape: (2, 3, 4)
+          [7, 7, 2, 7],
+          [7, 7, 7, 3]],
+         [[7, 4, 7, 7],
+          [7, 7, 5, 7],
+          [7, 7, 7, 6]]]
+
+  # A band of diagonals.
+  diagonals = np.array([[[1, 2, 3],  # Diagonal shape: (2, 2, 3)
+                         [4, 5, 0]],
+                        [[6, 1, 2],
+                         [3, 4, 0]]])
+  tf.matrix_set_diag(diagonals, k = (-1, 0))
+    ==> [[[1, 7, 7, 7],  # Output shape: (2, 3, 4)
+          [4, 2, 7, 7],
+          [0, 5, 3, 7]],
+         [[6, 7, 7, 7],
+          [3, 1, 7, 7],
+          [7, 4, 2, 7]]]
+
+  ```
+
+  Args:
+    input: A `Tensor`. Rank `r+1`, where `r >= 1`.
+    diagonal: A `Tensor`. Must have the same type as `input`.
+      Rank `r` when `k` is an integer or `k[0] == k[1]`. Otherwise, it has rank `r+1`.
+      `k >= 1`.
+    k: A `Tensor` of type `int32`.
+      Diagonal offset(s). Positive value means superdiagonal, 0 refers to the main
+      diagonal, and negative value means subdiagonals. `k` can be a single integer
+      (for a single diagonal) or a pair of integers specifying the low and high ends
+      of a matrix band. `k[0]` must not be larger than `k[1]`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[Possible API Signatures]
+ - name: string, input: tensor, diagonal: tensor, k: integer
+ - name: string, input: tensor, diagonal: tensor, k: tuple
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (scalar k must fit in int32 range)
+{v_4 : int} |= -2147483648 ≤ v_4 ∧ v_4 ≤ 2147483647
+Token usage: input=2540, output=10981, total=13521
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.MatrixSetDiagV2 API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a batched matrix tensor with new batched diagonal values.
+
+  Given `input` and `diagonal`, this operation returns a tensor with the
+  same shape and values as `input`, except for the specified diagonals of the
+  innermost matrices. These will be overwritten by the values in `diagonal`.
+
+  `input` has `r+1` dimensions `[I, J, ..., L, M, N]`. When `k` is scalar or
+  `k[0] == k[1]`, `diagonal` has `r` dimensions `[I, J, ..., L, max_diag_len]`.
+  Otherwise, it has `r+1` dimensions `[I, J, ..., L, num_diags, max_diag_len]`.
+  `num_diags` is the number of diagonals, `num_diags = k[1] - k[0] + 1`.
+  `max_diag_len` is the longest diagonal in the range `[k[0], k[1]]`,
+  `max_diag_len = min(M + min(k[1], 0), N + min(-k[0], 0))`
+
+  The output is a tensor of rank `k+1` with dimensions `[I, J, ..., L, M, N]`.
+  If `k` is scalar or `k[0] == k[1]`:
+
+  ```
+  output[i, j, ..., l, m, n]
+    = diagonal[i, j, ..., l, n-max(k[1], 0)] ; if n - m == k[1]
+      input[i, j, ..., l, m, n]              ; otherwise
+  ```
+
+  Otherwise,
+
+  ```
+  output[i, j, ..., l, m, n]
+    = diagonal[i, j, ..., l, diag_index, index_in_diag] ; if k[0] <= d <= k[1]
+      input[i, j, ..., l, m, n]                         ; otherwise
+  ```
+  where `d = n - m`, `diag_index = k[1] - d`, and `index_in_diag = n - max(d, 0)`.
+
+  For example:
+
+  ```
+  # The main diagonal.
+  input = np.array([[[7, 7, 7, 7],              # Input shape: (2, 3, 4)
+                     [7, 7, 7, 7],
+                     [7, 7, 7, 7]],
+                    [[7, 7, 7, 7],
+                     [7, 7, 7, 7],
+                     [7, 7, 7, 7]]])
+  diagonal = np.array([[1, 2, 3],               # Diagonal shape: (2, 3)
+                       [4, 5, 6]])
+  tf.matrix_set_diag(diagonal) ==> [[[1, 7, 7, 7],  # Output shape: (2, 3, 4)
+                                     [7, 2, 7, 7],
+                                     [7, 7, 3, 7]],
+                                    [[4, 7, 7, 7],
+                                     [7, 5, 7, 7],
+                                     [7, 7, 6, 7]]]
+
+  # A superdiagonal (per batch).
+  tf.matrix_set_diag(diagonal, k = 1)
+    ==> [[[7, 1, 7, 7],  # Output shape: (2, 3, 4)
+          [7, 7, 2, 7],
+          [7, 7, 7, 3]],
+         [[7, 4, 7, 7],
+          [7, 7, 5, 7],
+          [7, 7, 7, 6]]]
+
+  # A band of diagonals.
+  diagonals = np.array([[[1, 2, 3],  # Diagonal shape: (2, 2, 3)
+                         [4, 5, 0]],
+                        [[6, 1, 2],
+                         [3, 4, 0]]])
+  tf.matrix_set_diag(diagonals, k = (-1, 0))
+    ==> [[[1, 7, 7, 7],  # Output shape: (2, 3, 4)
+          [4, 2, 7, 7],
+          [0, 5, 3, 7]],
+         [[6, 7, 7, 7],
+          [3, 1, 7, 7],
+          [7, 4, 2, 7]]]
+
+  ```
+
+  Args:
+    input: A `Tensor`. Rank `r+1`, where `r >= 1`.
+    diagonal: A `Tensor`. Must have the same type as `input`.
+      Rank `r` when `k` is an integer or `k[0] == k[1]`. Otherwise, it has rank `r+1`.
+      `k >= 1`.
+    k: A `Tensor` of type `int32`.
+      Diagonal offset(s). Positive value means superdiagonal, 0 refers to the main
+      diagonal, and negative value means subdiagonals. `k` can be a single integer
+      (for a single diagonal) or a pair of integers specifying the low and high ends
+      of a matrix band. `k[0]` must not be larger than `k[1]`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[Possible API Signatures]
+ - name: string, input: tensor, diagonal: tensor, k: integer
+ - name: string, input: tensor, diagonal: tensor, k: tuple
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (tuple k must have length 2)
+{v_4 : tuple(int)} |= v_4.len = 2
+Token usage: input=2540, output=10981, total=13521
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.MatrixSetDiagV2 API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a batched matrix tensor with new batched diagonal values.
+
+  Given `input` and `diagonal`, this operation returns a tensor with the
+  same shape and values as `input`, except for the specified diagonals of the
+  innermost matrices. These will be overwritten by the values in `diagonal`.
+
+  `input` has `r+1` dimensions `[I, J, ..., L, M, N]`. When `k` is scalar or
+  `k[0] == k[1]`, `diagonal` has `r` dimensions `[I, J, ..., L, max_diag_len]`.
+  Otherwise, it has `r+1` dimensions `[I, J, ..., L, num_diags, max_diag_len]`.
+  `num_diags` is the number of diagonals, `num_diags = k[1] - k[0] + 1`.
+  `max_diag_len` is the longest diagonal in the range `[k[0], k[1]]`,
+  `max_diag_len = min(M + min(k[1], 0), N + min(-k[0], 0))`
+
+  The output is a tensor of rank `k+1` with dimensions `[I, J, ..., L, M, N]`.
+  If `k` is scalar or `k[0] == k[1]`:
+
+  ```
+  output[i, j, ..., l, m, n]
+    = diagonal[i, j, ..., l, n-max(k[1], 0)] ; if n - m == k[1]
+      input[i, j, ..., l, m, n]              ; otherwise
+  ```
+
+  Otherwise,
+
+  ```
+  output[i, j, ..., l, m, n]
+    = diagonal[i, j, ..., l, diag_index, index_in_diag] ; if k[0] <= d <= k[1]
+      input[i, j, ..., l, m, n]                         ; otherwise
+  ```
+  where `d = n - m`, `diag_index = k[1] - d`, and `index_in_diag = n - max(d, 0)`.
+
+  For example:
+
+  ```
+  # The main diagonal.
+  input = np.array([[[7, 7, 7, 7],              # Input shape: (2, 3, 4)
+                     [7, 7, 7, 7],
+                     [7, 7, 7, 7]],
+                    [[7, 7, 7, 7],
+                     [7, 7, 7, 7],
+                     [7, 7, 7, 7]]])
+  diagonal = np.array([[1, 2, 3],               # Diagonal shape: (2, 3)
+                       [4, 5, 6]])
+  tf.matrix_set_diag(diagonal) ==> [[[1, 7, 7, 7],  # Output shape: (2, 3, 4)
+                                     [7, 2, 7, 7],
+                                     [7, 7, 3, 7]],
+                                    [[4, 7, 7, 7],
+                                     [7, 5, 7, 7],
+                                     [7, 7, 6, 7]]]
+
+  # A superdiagonal (per batch).
+  tf.matrix_set_diag(diagonal, k = 1)
+    ==> [[[7, 1, 7, 7],  # Output shape: (2, 3, 4)
+          [7, 7, 2, 7],
+          [7, 7, 7, 3]],
+         [[7, 4, 7, 7],
+          [7, 7, 5, 7],
+          [7, 7, 7, 6]]]
+
+  # A band of diagonals.
+  diagonals = np.array([[[1, 2, 3],  # Diagonal shape: (2, 2, 3)
+                         [4, 5, 0]],
+                        [[6, 1, 2],
+                         [3, 4, 0]]])
+  tf.matrix_set_diag(diagonals, k = (-1, 0))
+    ==> [[[1, 7, 7, 7],  # Output shape: (2, 3, 4)
+          [4, 2, 7, 7],
+          [0, 5, 3, 7]],
+         [[6, 7, 7, 7],
+          [3, 1, 7, 7],
+          [7, 4, 2, 7]]]
+
+  ```
+
+  Args:
+    input: A `Tensor`. Rank `r+1`, where `r >= 1`.
+    diagonal: A `Tensor`. Must have the same type as `input`.
+      Rank `r` when `k` is an integer or `k[0] == k[1]`. Otherwise, it has rank `r+1`.
+      `k >= 1`.
+    k: A `Tensor` of type `int32`.
+      Diagonal offset(s). Positive value means superdiagonal, 0 refers to the main
+      diagonal, and negative value means subdiagonals. `k` can be a single integer
+      (for a single diagonal) or a pair of integers specifying the low and high ends
+      of a matrix band. `k[0]` must not be larger than `k[1]`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[Possible API Signatures]
+ - name: string, input: tensor, diagonal: tensor, k: integer
+ - name: string, input: tensor, diagonal: tensor, k: tuple
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 14 (tuple k low index must not exceed high index)
+{v_4 : tuple(int)} |= v_4[0] ≤ v_4[1]
+Token usage: input=2540, output=10981, total=13521
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.MatrixSetDiagV2 API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a batched matrix tensor with new batched diagonal values.
+
+  Given `input` and `diagonal`, this operation returns a tensor with the
+  same shape and values as `input`, except for the specified diagonals of the
+  innermost matrices. These will be overwritten by the values in `diagonal`.
+
+  `input` has `r+1` dimensions `[I, J, ..., L, M, N]`. When `k` is scalar or
+  `k[0] == k[1]`, `diagonal` has `r` dimensions `[I, J, ..., L, max_diag_len]`.
+  Otherwise, it has `r+1` dimensions `[I, J, ..., L, num_diags, max_diag_len]`.
+  `num_diags` is the number of diagonals, `num_diags = k[1] - k[0] + 1`.
+  `max_diag_len` is the longest diagonal in the range `[k[0], k[1]]`,
+  `max_diag_len = min(M + min(k[1], 0), N + min(-k[0], 0))`
+
+  The output is a tensor of rank `k+1` with dimensions `[I, J, ..., L, M, N]`.
+  If `k` is scalar or `k[0] == k[1]`:
+
+  ```
+  output[i, j, ..., l, m, n]
+    = diagonal[i, j, ..., l, n-max(k[1], 0)] ; if n - m == k[1]
+      input[i, j, ..., l, m, n]              ; otherwise
+  ```
+
+  Otherwise,
+
+  ```
+  output[i, j, ..., l, m, n]
+    = diagonal[i, j, ..., l, diag_index, index_in_diag] ; if k[0] <= d <= k[1]
+      input[i, j, ..., l, m, n]                         ; otherwise
+  ```
+  where `d = n - m`, `diag_index = k[1] - d`, and `index_in_diag = n - max(d, 0)`.
+
+  For example:
+
+  ```
+  # The main diagonal.
+  input = np.array([[[7, 7, 7, 7],              # Input shape: (2, 3, 4)
+                     [7, 7, 7, 7],
+                     [7, 7, 7, 7]],
+                    [[7, 7, 7, 7],
+                     [7, 7, 7, 7],
+                     [7, 7, 7, 7]]])
+  diagonal = np.array([[1, 2, 3],               # Diagonal shape: (2, 3)
+                       [4, 5, 6]])
+  tf.matrix_set_diag(diagonal) ==> [[[1, 7, 7, 7],  # Output shape: (2, 3, 4)
+                                     [7, 2, 7, 7],
+                                     [7, 7, 3, 7]],
+                                    [[4, 7, 7, 7],
+                                     [7, 5, 7, 7],
+                                     [7, 7, 6, 7]]]
+
+  # A superdiagonal (per batch).
+  tf.matrix_set_diag(diagonal, k = 1)
+    ==> [[[7, 1, 7, 7],  # Output shape: (2, 3, 4)
+          [7, 7, 2, 7],
+          [7, 7, 7, 3]],
+         [[7, 4, 7, 7],
+          [7, 7, 5, 7],
+          [7, 7, 7, 6]]]
+
+  # A band of diagonals.
+  diagonals = np.array([[[1, 2, 3],  # Diagonal shape: (2, 2, 3)
+                         [4, 5, 0]],
+                        [[6, 1, 2],
+                         [3, 4, 0]]])
+  tf.matrix_set_diag(diagonals, k = (-1, 0))
+    ==> [[[1, 7, 7, 7],  # Output shape: (2, 3, 4)
+          [4, 2, 7, 7],
+          [0, 5, 3, 7]],
+         [[6, 7, 7, 7],
+          [3, 1, 7, 7],
+          [7, 4, 2, 7]]]
+
+  ```
+
+  Args:
+    input: A `Tensor`. Rank `r+1`, where `r >= 1`.
+    diagonal: A `Tensor`. Must have the same type as `input`.
+      Rank `r` when `k` is an integer or `k[0] == k[1]`. Otherwise, it has rank `r+1`.
+      `k >= 1`.
+    k: A `Tensor` of type `int32`.
+      Diagonal offset(s). Positive value means superdiagonal, 0 refers to the main
+      diagonal, and negative value means subdiagonals. `k` can be a single integer
+      (for a single diagonal) or a pair of integers specifying the low and high ends
+      of a matrix band. `k[0]` must not be larger than `k[1]`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[Possible API Signatures]
+ - name: string, input: tensor, diagonal: tensor, k: integer
+ - name: string, input: tensor, diagonal: tensor, k: tuple
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 15 (scalar k: diagonal rank, batch dims, and diagonal length match input)
+{v_2 : tensor, v_3 : tensor, v_4 : int} |= ndim(v_2) ≥ 2 ∧ ndim(v_3) = ndim(v_2) - 1 ∧ ∀i ∈ [0, ndim(v_2) - 3] : shape(v_3, i) = shape(v_2, i) ∧ shape(v_3, ndim(v_3) - 1) = if ((if v_4 ≤ 0 then shape(v_2, ndim(v_2) - 2) + v_4 else shape(v_2, ndim(v_2) - 2)) ≤ (if v_4 ≥ 0 then shape(v_2, ndim(v_2) - 1) - v_4 else shape(v_2, ndim(v_2) - 1))) then (if ((if v_4 ≤ 0 then shape(v_2, ndim(v_2) - 2) + v_4 else shape(v_2, ndim(v_2) - 2)) ≤ (if v_4 ≥ 0 then shape(v_2, ndim(v_2) - 1) - v_4 else shape(v_2, ndim(v_2) - 1))) then (if v_4 ≤ 0 then shape(v_2, ndim(v_2) - 2) + v_4 else shape(v_2, ndim(v_2) - 2)) else (if v_4 ≥ 0 then shape(v_2, ndim(v_2) - 1) - v_4 else shape(v_2, ndim(v_2) - 1)) ≥ 0 then (if (if v_4 ≤ 0 then shape(v_2, ndim(v_2) - 2) + v_4 else shape(v_2, ndim(v_2) - 2)) ≤ (if v_4 ≥ 0 then shape(v_2, ndim(v_2) - 1) - v_4 else shape(v_2, ndim(v_2) - 1)) then (if v_4 ≤ 0 then shape(v_2, ndim(v_2) - 2) + v_4 else shape(v_2, ndim(v_2) - 2)) else (if v_4 ≥ 0 then shape(v_2, ndim(v_2) - 1) - v_4 else shape(v_2, ndim(v_2) - 1)) else 0
+Token usage: input=2540, output=10981, total=13521
+** PARSING ERROR ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.MatrixSetDiagV2 API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a batched matrix tensor with new batched diagonal values.
+
+  Given `input` and `diagonal`, this operation returns a tensor with the
+  same shape and values as `input`, except for the specified diagonals of the
+  innermost matrices. These will be overwritten by the values in `diagonal`.
+
+  `input` has `r+1` dimensions `[I, J, ..., L, M, N]`. When `k` is scalar or
+  `k[0] == k[1]`, `diagonal` has `r` dimensions `[I, J, ..., L, max_diag_len]`.
+  Otherwise, it has `r+1` dimensions `[I, J, ..., L, num_diags, max_diag_len]`.
+  `num_diags` is the number of diagonals, `num_diags = k[1] - k[0] + 1`.
+  `max_diag_len` is the longest diagonal in the range `[k[0], k[1]]`,
+  `max_diag_len = min(M + min(k[1], 0), N + min(-k[0], 0))`
+
+  The output is a tensor of rank `k+1` with dimensions `[I, J, ..., L, M, N]`.
+  If `k` is scalar or `k[0] == k[1]`:
+
+  ```
+  output[i, j, ..., l, m, n]
+    = diagonal[i, j, ..., l, n-max(k[1], 0)] ; if n - m == k[1]
+      input[i, j, ..., l, m, n]              ; otherwise
+  ```
+
+  Otherwise,
+
+  ```
+  output[i, j, ..., l, m, n]
+    = diagonal[i, j, ..., l, diag_index, index_in_diag] ; if k[0] <= d <= k[1]
+      input[i, j, ..., l, m, n]                         ; otherwise
+  ```
+  where `d = n - m`, `diag_index = k[1] - d`, and `index_in_diag = n - max(d, 0)`.
+
+  For example:
+
+  ```
+  # The main diagonal.
+  input = np.array([[[7, 7, 7, 7],              # Input shape: (2, 3, 4)
+                     [7, 7, 7, 7],
+                     [7, 7, 7, 7]],
+                    [[7, 7, 7, 7],
+                     [7, 7, 7, 7],
+                     [7, 7, 7, 7]]])
+  diagonal = np.array([[1, 2, 3],               # Diagonal shape: (2, 3)
+                       [4, 5, 6]])
+  tf.matrix_set_diag(diagonal) ==> [[[1, 7, 7, 7],  # Output shape: (2, 3, 4)
+                                     [7, 2, 7, 7],
+                                     [7, 7, 3, 7]],
+                                    [[4, 7, 7, 7],
+                                     [7, 5, 7, 7],
+                                     [7, 7, 6, 7]]]
+
+  # A superdiagonal (per batch).
+  tf.matrix_set_diag(diagonal, k = 1)
+    ==> [[[7, 1, 7, 7],  # Output shape: (2, 3, 4)
+          [7, 7, 2, 7],
+          [7, 7, 7, 3]],
+         [[7, 4, 7, 7],
+          [7, 7, 5, 7],
+          [7, 7, 7, 6]]]
+
+  # A band of diagonals.
+  diagonals = np.array([[[1, 2, 3],  # Diagonal shape: (2, 2, 3)
+                         [4, 5, 0]],
+                        [[6, 1, 2],
+                         [3, 4, 0]]])
+  tf.matrix_set_diag(diagonals, k = (-1, 0))
+    ==> [[[1, 7, 7, 7],  # Output shape: (2, 3, 4)
+          [4, 2, 7, 7],
+          [0, 5, 3, 7]],
+         [[6, 7, 7, 7],
+          [3, 1, 7, 7],
+          [7, 4, 2, 7]]]
+
+  ```
+
+  Args:
+    input: A `Tensor`. Rank `r+1`, where `r >= 1`.
+    diagonal: A `Tensor`. Must have the same type as `input`.
+      Rank `r` when `k` is an integer or `k[0] == k[1]`. Otherwise, it has rank `r+1`.
+      `k >= 1`.
+    k: A `Tensor` of type `int32`.
+      Diagonal offset(s). Positive value means superdiagonal, 0 refers to the main
+      diagonal, and negative value means subdiagonals. `k` can be a single integer
+      (for a single diagonal) or a pair of integers specifying the low and high ends
+      of a matrix band. `k[0]` must not be larger than `k[1]`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[Possible API Signatures]
+ - name: string, input: tensor, diagonal: tensor, k: integer
+ - name: string, input: tensor, diagonal: tensor, k: tuple
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 16 (tuple k: batch dims must match input; when band, num_diags dimension matches k range)
+{v_2 : tensor, v_3 : tensor, v_4 : tuple(int)} |= ndim(v_2) ≥ 2 ∧ ∀i ∈ [0, ndim(v_2) - 3] : shape(v_3, i) = shape(v_2, i) ∧ if v_4[0] ≠ v_4[1] then shape(v_3, ndim(v_2) - 2) = v_4[1] - v_4[0] + 1
+Token usage: input=2540, output=10981, total=13521
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.MatrixSetDiagV2 API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a batched matrix tensor with new batched diagonal values.
+
+  Given `input` and `diagonal`, this operation returns a tensor with the
+  same shape and values as `input`, except for the specified diagonals of the
+  innermost matrices. These will be overwritten by the values in `diagonal`.
+
+  `input` has `r+1` dimensions `[I, J, ..., L, M, N]`. When `k` is scalar or
+  `k[0] == k[1]`, `diagonal` has `r` dimensions `[I, J, ..., L, max_diag_len]`.
+  Otherwise, it has `r+1` dimensions `[I, J, ..., L, num_diags, max_diag_len]`.
+  `num_diags` is the number of diagonals, `num_diags = k[1] - k[0] + 1`.
+  `max_diag_len` is the longest diagonal in the range `[k[0], k[1]]`,
+  `max_diag_len = min(M + min(k[1], 0), N + min(-k[0], 0))`
+
+  The output is a tensor of rank `k+1` with dimensions `[I, J, ..., L, M, N]`.
+  If `k` is scalar or `k[0] == k[1]`:
+
+  ```
+  output[i, j, ..., l, m, n]
+    = diagonal[i, j, ..., l, n-max(k[1], 0)] ; if n - m == k[1]
+      input[i, j, ..., l, m, n]              ; otherwise
+  ```
+
+  Otherwise,
+
+  ```
+  output[i, j, ..., l, m, n]
+    = diagonal[i, j, ..., l, diag_index, index_in_diag] ; if k[0] <= d <= k[1]
+      input[i, j, ..., l, m, n]                         ; otherwise
+  ```
+  where `d = n - m`, `diag_index = k[1] - d`, and `index_in_diag = n - max(d, 0)`.
+
+  For example:
+
+  ```
+  # The main diagonal.
+  input = np.array([[[7, 7, 7, 7],              # Input shape: (2, 3, 4)
+                     [7, 7, 7, 7],
+                     [7, 7, 7, 7]],
+                    [[7, 7, 7, 7],
+                     [7, 7, 7, 7],
+                     [7, 7, 7, 7]]])
+  diagonal = np.array([[1, 2, 3],               # Diagonal shape: (2, 3)
+                       [4, 5, 6]])
+  tf.matrix_set_diag(diagonal) ==> [[[1, 7, 7, 7],  # Output shape: (2, 3, 4)
+                                     [7, 2, 7, 7],
+                                     [7, 7, 3, 7]],
+                                    [[4, 7, 7, 7],
+                                     [7, 5, 7, 7],
+                                     [7, 7, 6, 7]]]
+
+  # A superdiagonal (per batch).
+  tf.matrix_set_diag(diagonal, k = 1)
+    ==> [[[7, 1, 7, 7],  # Output shape: (2, 3, 4)
+          [7, 7, 2, 7],
+          [7, 7, 7, 3]],
+         [[7, 4, 7, 7],
+          [7, 7, 5, 7],
+          [7, 7, 7, 6]]]
+
+  # A band of diagonals.
+  diagonals = np.array([[[1, 2, 3],  # Diagonal shape: (2, 2, 3)
+                         [4, 5, 0]],
+                        [[6, 1, 2],
+                         [3, 4, 0]]])
+  tf.matrix_set_diag(diagonals, k = (-1, 0))
+    ==> [[[1, 7, 7, 7],  # Output shape: (2, 3, 4)
+          [4, 2, 7, 7],
+          [0, 5, 3, 7]],
+         [[6, 7, 7, 7],
+          [3, 1, 7, 7],
+          [7, 4, 2, 7]]]
+
+  ```
+
+  Args:
+    input: A `Tensor`. Rank `r+1`, where `r >= 1`.
+    diagonal: A `Tensor`. Must have the same type as `input`.
+      Rank `r` when `k` is an integer or `k[0] == k[1]`. Otherwise, it has rank `r+1`.
+      `k >= 1`.
+    k: A `Tensor` of type `int32`.
+      Diagonal offset(s). Positive value means superdiagonal, 0 refers to the main
+      diagonal, and negative value means subdiagonals. `k` can be a single integer
+      (for a single diagonal) or a pair of integers specifying the low and high ends
+      of a matrix band. `k[0]` must not be larger than `k[1]`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[Possible API Signatures]
+ - name: string, input: tensor, diagonal: tensor, k: integer
+ - name: string, input: tensor, diagonal: tensor, k: tuple
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 17 (tuple k: diagonal last dimension equals clamped max_diag_len)
+{v_2 : tensor, v_3 : tensor, v_4 : tuple(int)} |= ndim(v_2) ≥ 2 ∧ shape(v_3, ndim(v_3) - 1) = if ((if v_4[1] ≤ 0 then shape(v_2, ndim(v_2) - 2) + v_4[1] else shape(v_2, ndim(v_2) - 2)) ≤ (if v_4[0] ≥ 0 then shape(v_2, ndim(v_2) - 1) - v_4[0] else shape(v_2, ndim(v_2) - 1))) then (if ((if v_4[1] ≤ 0 then shape(v_2, ndim(v_2) - 2) + v_4[1] else shape(v_2, ndim(v_2) - 2)) ≤ (if v_4[0] ≥ 0 then shape(v_2, ndim(v_2) - 1) - v_4[0] else shape(v_2, ndim(v_2) - 1))) then (if v_4[1] ≤ 0 then shape(v_2, ndim(v_2) - 2) + v_4[1] else shape(v_2, ndim(v_2) - 2)) else (if v_4[0] ≥ 0 then shape(v_2, ndim(v_2) - 1) - v_4[0] else shape(v_2, ndim(v_2) - 1)) ≥ 0 then (if (if v_4[1] ≤ 0 then shape(v_2, ndim(v_2) - 2) + v_4[1] else shape(v_2, ndim(v_2) - 2)) ≤ (if v_4[0] ≥ 0 then shape(v_2, ndim(v_2) - 1) - v_4[0] else shape(v_2, ndim(v_2) - 1)) then (if v_4[1] ≤ 0 then shape(v_2, ndim(v_2) - 2) + v_4[1] else shape(v_2, ndim(v_2) - 2)) else (if v_4[0] ≥ 0 then shape(v_2, ndim(v_2) - 1) - v_4[0] else shape(v_2, ndim(v_2) - 1)) else 0
+Token usage: input=2540, output=10981, total=13521
+** PARSING ERROR ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.MatrixSetDiagV2 API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a batched matrix tensor with new batched diagonal values.
+
+  Given `input` and `diagonal`, this operation returns a tensor with the
+  same shape and values as `input`, except for the specified diagonals of the
+  innermost matrices. These will be overwritten by the values in `diagonal`.
+
+  `input` has `r+1` dimensions `[I, J, ..., L, M, N]`. When `k` is scalar or
+  `k[0] == k[1]`, `diagonal` has `r` dimensions `[I, J, ..., L, max_diag_len]`.
+  Otherwise, it has `r+1` dimensions `[I, J, ..., L, num_diags, max_diag_len]`.
+  `num_diags` is the number of diagonals, `num_diags = k[1] - k[0] + 1`.
+  `max_diag_len` is the longest diagonal in the range `[k[0], k[1]]`,
+  `max_diag_len = min(M + min(k[1], 0), N + min(-k[0], 0))`
+
+  The output is a tensor of rank `k+1` with dimensions `[I, J, ..., L, M, N]`.
+  If `k` is scalar or `k[0] == k[1]`:
+
+  ```
+  output[i, j, ..., l, m, n]
+    = diagonal[i, j, ..., l, n-max(k[1], 0)] ; if n - m == k[1]
+      input[i, j, ..., l, m, n]              ; otherwise
+  ```
+
+  Otherwise,
+
+  ```
+  output[i, j, ..., l, m, n]
+    = diagonal[i, j, ..., l, diag_index, index_in_diag] ; if k[0] <= d <= k[1]
+      input[i, j, ..., l, m, n]                         ; otherwise
+  ```
+  where `d = n - m`, `diag_index = k[1] - d`, and `index_in_diag = n - max(d, 0)`.
+
+  For example:
+
+  ```
+  # The main diagonal.
+  input = np.array([[[7, 7, 7, 7],              # Input shape: (2, 3, 4)
+                     [7, 7, 7, 7],
+                     [7, 7, 7, 7]],
+                    [[7, 7, 7, 7],
+                     [7, 7, 7, 7],
+                     [7, 7, 7, 7]]])
+  diagonal = np.array([[1, 2, 3],               # Diagonal shape: (2, 3)
+                       [4, 5, 6]])
+  tf.matrix_set_diag(diagonal) ==> [[[1, 7, 7, 7],  # Output shape: (2, 3, 4)
+                                     [7, 2, 7, 7],
+                                     [7, 7, 3, 7]],
+                                    [[4, 7, 7, 7],
+                                     [7, 5, 7, 7],
+                                     [7, 7, 6, 7]]]
+
+  # A superdiagonal (per batch).
+  tf.matrix_set_diag(diagonal, k = 1)
+    ==> [[[7, 1, 7, 7],  # Output shape: (2, 3, 4)
+          [7, 7, 2, 7],
+          [7, 7, 7, 3]],
+         [[7, 4, 7, 7],
+          [7, 7, 5, 7],
+          [7, 7, 7, 6]]]
+
+  # A band of diagonals.
+  diagonals = np.array([[[1, 2, 3],  # Diagonal shape: (2, 2, 3)
+                         [4, 5, 0]],
+                        [[6, 1, 2],
+                         [3, 4, 0]]])
+  tf.matrix_set_diag(diagonals, k = (-1, 0))
+    ==> [[[1, 7, 7, 7],  # Output shape: (2, 3, 4)
+          [4, 2, 7, 7],
+          [0, 5, 3, 7]],
+         [[6, 7, 7, 7],
+          [3, 1, 7, 7],
+          [7, 4, 2, 7]]]
+
+  ```
+
+  Args:
+    input: A `Tensor`. Rank `r+1`, where `r >= 1`.
+    diagonal: A `Tensor`. Must have the same type as `input`.
+      Rank `r` when `k` is an integer or `k[0] == k[1]`. Otherwise, it has rank `r+1`.
+      `k >= 1`.
+    k: A `Tensor` of type `int32`.
+      Diagonal offset(s). Positive value means superdiagonal, 0 refers to the main
+      diagonal, and negative value means subdiagonals. `k` can be a single integer
+      (for a single diagonal) or a pair of integers specifying the low and high ends
+      of a matrix band. `k[0]` must not be larger than `k[1]`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[Possible API Signatures]
+ - name: string, input: tensor, diagonal: tensor, k: integer
+ - name: string, input: tensor, diagonal: tensor, k: tuple
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 18 (tuple k: diagonal rank depends on whether it is a single diagonal or a band)
+{v_2 : tensor, v_3 : tensor, v_4 : tuple(int)} |= if v_4[0] = v_4[1] then ndim(v_3) = ndim(v_2) - 1 else ndim(v_3) = ndim(v_2)
+Token usage: input=2540, output=10981, total=13521
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.MatrixSetDiagV2 API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a batched matrix tensor with new batched diagonal values.
+
+  Given `input` and `diagonal`, this operation returns a tensor with the
+  same shape and values as `input`, except for the specified diagonals of the
+  innermost matrices. These will be overwritten by the values in `diagonal`.
+
+  `input` has `r+1` dimensions `[I, J, ..., L, M, N]`. When `k` is scalar or
+  `k[0] == k[1]`, `diagonal` has `r` dimensions `[I, J, ..., L, max_diag_len]`.
+  Otherwise, it has `r+1` dimensions `[I, J, ..., L, num_diags, max_diag_len]`.
+  `num_diags` is the number of diagonals, `num_diags = k[1] - k[0] + 1`.
+  `max_diag_len` is the longest diagonal in the range `[k[0], k[1]]`,
+  `max_diag_len = min(M + min(k[1], 0), N + min(-k[0], 0))`
+
+  The output is a tensor of rank `k+1` with dimensions `[I, J, ..., L, M, N]`.
+  If `k` is scalar or `k[0] == k[1]`:
+
+  ```
+  output[i, j, ..., l, m, n]
+    = diagonal[i, j, ..., l, n-max(k[1], 0)] ; if n - m == k[1]
+      input[i, j, ..., l, m, n]              ; otherwise
+  ```
+
+  Otherwise,
+
+  ```
+  output[i, j, ..., l, m, n]
+    = diagonal[i, j, ..., l, diag_index, index_in_diag] ; if k[0] <= d <= k[1]
+      input[i, j, ..., l, m, n]                         ; otherwise
+  ```
+  where `d = n - m`, `diag_index = k[1] - d`, and `index_in_diag = n - max(d, 0)`.
+
+  For example:
+
+  ```
+  # The main diagonal.
+  input = np.array([[[7, 7, 7, 7],              # Input shape: (2, 3, 4)
+                     [7, 7, 7, 7],
+                     [7, 7, 7, 7]],
+                    [[7, 7, 7, 7],
+                     [7, 7, 7, 7],
+                     [7, 7, 7, 7]]])
+  diagonal = np.array([[1, 2, 3],               # Diagonal shape: (2, 3)
+                       [4, 5, 6]])
+  tf.matrix_set_diag(diagonal) ==> [[[1, 7, 7, 7],  # Output shape: (2, 3, 4)
+                                     [7, 2, 7, 7],
+                                     [7, 7, 3, 7]],
+                                    [[4, 7, 7, 7],
+                                     [7, 5, 7, 7],
+                                     [7, 7, 6, 7]]]
+
+  # A superdiagonal (per batch).
+  tf.matrix_set_diag(diagonal, k = 1)
+    ==> [[[7, 1, 7, 7],  # Output shape: (2, 3, 4)
+          [7, 7, 2, 7],
+          [7, 7, 7, 3]],
+         [[7, 4, 7, 7],
+          [7, 7, 5, 7],
+          [7, 7, 7, 6]]]
+
+  # A band of diagonals.
+  diagonals = np.array([[[1, 2, 3],  # Diagonal shape: (2, 2, 3)
+                         [4, 5, 0]],
+                        [[6, 1, 2],
+                         [3, 4, 0]]])
+  tf.matrix_set_diag(diagonals, k = (-1, 0))
+    ==> [[[1, 7, 7, 7],  # Output shape: (2, 3, 4)
+          [4, 2, 7, 7],
+          [0, 5, 3, 7]],
+         [[6, 7, 7, 7],
+          [3, 1, 7, 7],
+          [7, 4, 2, 7]]]
+
+  ```
+
+  Args:
+    input: A `Tensor`. Rank `r+1`, where `r >= 1`.
+    diagonal: A `Tensor`. Must have the same type as `input`.
+      Rank `r` when `k` is an integer or `k[0] == k[1]`. Otherwise, it has rank `r+1`.
+      `k >= 1`.
+    k: A `Tensor` of type `int32`.
+      Diagonal offset(s). Positive value means superdiagonal, 0 refers to the main
+      diagonal, and negative value means subdiagonals. `k` can be a single integer
+      (for a single diagonal) or a pair of integers specifying the low and high ends
+      of a matrix band. `k[0]` must not be larger than `k[1]`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[Possible API Signatures]
+ - name: string, input: tensor, diagonal: tensor, k: integer
+ - name: string, input: tensor, diagonal: tensor, k: tuple
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 19 (name is one of the allowed strings)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "linear"
+Token usage: input=2540, output=10981, total=13521
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.MatrixSetDiagV2 API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a batched matrix tensor with new batched diagonal values.
+
+  Given `input` and `diagonal`, this operation returns a tensor with the
+  same shape and values as `input`, except for the specified diagonals of the
+  innermost matrices. These will be overwritten by the values in `diagonal`.
+
+  `input` has `r+1` dimensions `[I, J, ..., L, M, N]`. When `k` is scalar or
+  `k[0] == k[1]`, `diagonal` has `r` dimensions `[I, J, ..., L, max_diag_len]`.
+  Otherwise, it has `r+1` dimensions `[I, J, ..., L, num_diags, max_diag_len]`.
+  `num_diags` is the number of diagonals, `num_diags = k[1] - k[0] + 1`.
+  `max_diag_len` is the longest diagonal in the range `[k[0], k[1]]`,
+  `max_diag_len = min(M + min(k[1], 0), N + min(-k[0], 0))`
+
+  The output is a tensor of rank `k+1` with dimensions `[I, J, ..., L, M, N]`.
+  If `k` is scalar or `k[0] == k[1]`:
+
+  ```
+  output[i, j, ..., l, m, n]
+    = diagonal[i, j, ..., l, n-max(k[1], 0)] ; if n - m == k[1]
+      input[i, j, ..., l, m, n]              ; otherwise
+  ```
+
+  Otherwise,
+
+  ```
+  output[i, j, ..., l, m, n]
+    = diagonal[i, j, ..., l, diag_index, index_in_diag] ; if k[0] <= d <= k[1]
+      input[i, j, ..., l, m, n]                         ; otherwise
+  ```
+  where `d = n - m`, `diag_index = k[1] - d`, and `index_in_diag = n - max(d, 0)`.
+
+  For example:
+
+  ```
+  # The main diagonal.
+  input = np.array([[[7, 7, 7, 7],              # Input shape: (2, 3, 4)
+                     [7, 7, 7, 7],
+                     [7, 7, 7, 7]],
+                    [[7, 7, 7, 7],
+                     [7, 7, 7, 7],
+                     [7, 7, 7, 7]]])
+  diagonal = np.array([[1, 2, 3],               # Diagonal shape: (2, 3)
+                       [4, 5, 6]])
+  tf.matrix_set_diag(diagonal) ==> [[[1, 7, 7, 7],  # Output shape: (2, 3, 4)
+                                     [7, 2, 7, 7],
+                                     [7, 7, 3, 7]],
+                                    [[4, 7, 7, 7],
+                                     [7, 5, 7, 7],
+                                     [7, 7, 6, 7]]]
+
+  # A superdiagonal (per batch).
+  tf.matrix_set_diag(diagonal, k = 1)
+    ==> [[[7, 1, 7, 7],  # Output shape: (2, 3, 4)
+          [7, 7, 2, 7],
+          [7, 7, 7, 3]],
+         [[7, 4, 7, 7],
+          [7, 7, 5, 7],
+          [7, 7, 7, 6]]]
+
+  # A band of diagonals.
+  diagonals = np.array([[[1, 2, 3],  # Diagonal shape: (2, 2, 3)
+                         [4, 5, 0]],
+                        [[6, 1, 2],
+                         [3, 4, 0]]])
+  tf.matrix_set_diag(diagonals, k = (-1, 0))
+    ==> [[[1, 7, 7, 7],  # Output shape: (2, 3, 4)
+          [4, 2, 7, 7],
+          [0, 5, 3, 7]],
+         [[6, 7, 7, 7],
+          [3, 1, 7, 7],
+          [7, 4, 2, 7]]]
+
+  ```
+
+  Args:
+    input: A `Tensor`. Rank `r+1`, where `r >= 1`.
+    diagonal: A `Tensor`. Must have the same type as `input`.
+      Rank `r` when `k` is an integer or `k[0] == k[1]`. Otherwise, it has rank `r+1`.
+      `k >= 1`.
+    k: A `Tensor` of type `int32`.
+      Diagonal offset(s). Positive value means superdiagonal, 0 refers to the main
+      diagonal, and negative value means subdiagonals. `k` can be a single integer
+      (for a single diagonal) or a pair of integers specifying the low and high ends
+      of a matrix band. `k[0]` must not be larger than `k[1]`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[Possible API Signatures]
+ - name: string, input: tensor, diagonal: tensor, k: integer
+ - name: string, input: tensor, diagonal: tensor, k: tuple
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 20 (each element of tuple k must fit in int32 range)
+{v_4 : tuple(int)} |= ∀i ∈ [0, v_4.len - 1] : -2147483648 ≤ v_4[i] ∧ v_4[i] ≤ 2147483647
+Token usage: input=2540, output=10981, total=13521
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.MatrixSetDiagV2 API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a batched matrix tensor with new batched diagonal values.
+
+  Given `input` and `diagonal`, this operation returns a tensor with the
+  same shape and values as `input`, except for the specified diagonals of the
+  innermost matrices. These will be overwritten by the values in `diagonal`.
+
+  `input` has `r+1` dimensions `[I, J, ..., L, M, N]`. When `k` is scalar or
+  `k[0] == k[1]`, `diagonal` has `r` dimensions `[I, J, ..., L, max_diag_len]`.
+  Otherwise, it has `r+1` dimensions `[I, J, ..., L, num_diags, max_diag_len]`.
+  `num_diags` is the number of diagonals, `num_diags = k[1] - k[0] + 1`.
+  `max_diag_len` is the longest diagonal in the range `[k[0], k[1]]`,
+  `max_diag_len = min(M + min(k[1], 0), N + min(-k[0], 0))`
+
+  The output is a tensor of rank `k+1` with dimensions `[I, J, ..., L, M, N]`.
+  If `k` is scalar or `k[0] == k[1]`:
+
+  ```
+  output[i, j, ..., l, m, n]
+    = diagonal[i, j, ..., l, n-max(k[1], 0)] ; if n - m == k[1]
+      input[i, j, ..., l, m, n]              ; otherwise
+  ```
+
+  Otherwise,
+
+  ```
+  output[i, j, ..., l, m, n]
+    = diagonal[i, j, ..., l, diag_index, index_in_diag] ; if k[0] <= d <= k[1]
+      input[i, j, ..., l, m, n]                         ; otherwise
+  ```
+  where `d = n - m`, `diag_index = k[1] - d`, and `index_in_diag = n - max(d, 0)`.
+
+  For example:
+
+  ```
+  # The main diagonal.
+  input = np.array([[[7, 7, 7, 7],              # Input shape: (2, 3, 4)
+                     [7, 7, 7, 7],
+                     [7, 7, 7, 7]],
+                    [[7, 7, 7, 7],
+                     [7, 7, 7, 7],
+                     [7, 7, 7, 7]]])
+  diagonal = np.array([[1, 2, 3],               # Diagonal shape: (2, 3)
+                       [4, 5, 6]])
+  tf.matrix_set_diag(diagonal) ==> [[[1, 7, 7, 7],  # Output shape: (2, 3, 4)
+                                     [7, 2, 7, 7],
+                                     [7, 7, 3, 7]],
+                                    [[4, 7, 7, 7],
+                                     [7, 5, 7, 7],
+                                     [7, 7, 6, 7]]]
+
+  # A superdiagonal (per batch).
+  tf.matrix_set_diag(diagonal, k = 1)
+    ==> [[[7, 1, 7, 7],  # Output shape: (2, 3, 4)
+          [7, 7, 2, 7],
+          [7, 7, 7, 3]],
+         [[7, 4, 7, 7],
+          [7, 7, 5, 7],
+          [7, 7, 7, 6]]]
+
+  # A band of diagonals.
+  diagonals = np.array([[[1, 2, 3],  # Diagonal shape: (2, 2, 3)
+                         [4, 5, 0]],
+                        [[6, 1, 2],
+                         [3, 4, 0]]])
+  tf.matrix_set_diag(diagonals, k = (-1, 0))
+    ==> [[[1, 7, 7, 7],  # Output shape: (2, 3, 4)
+          [4, 2, 7, 7],
+          [0, 5, 3, 7]],
+         [[6, 7, 7, 7],
+          [3, 1, 7, 7],
+          [7, 4, 2, 7]]]
+
+  ```
+
+  Args:
+    input: A `Tensor`. Rank `r+1`, where `r >= 1`.
+    diagonal: A `Tensor`. Must have the same type as `input`.
+      Rank `r` when `k` is an integer or `k[0] == k[1]`. Otherwise, it has rank `r+1`.
+      `k >= 1`.
+    k: A `Tensor` of type `int32`.
+      Diagonal offset(s). Positive value means superdiagonal, 0 refers to the main
+      diagonal, and negative value means subdiagonals. `k` can be a single integer
+      (for a single diagonal) or a pair of integers specifying the low and high ends
+      of a matrix band. `k[0]` must not be larger than `k[1]`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[Possible API Signatures]
+ - name: string, input: tensor, diagonal: tensor, k: integer
+ - name: string, input: tensor, diagonal: tensor, k: tuple
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 21 (scalar or tuple k cases both require batch compatibility with input’s last two dims M, N being intact)
+{v_2 : tensor, v_3 : tensor} |= ∀i ∈ [0, ndim(v_2) - 3] : shape(v_2, i) = shape(v_3, i)
+Token usage: input=2540, output=10981, total=13521
+** SUCCESS **
+

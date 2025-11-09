@@ -934,3 +934,1734 @@ Rule 6 (operation name limited to known strings)
 Token usage: input=2445, output=4513, total=6958
 ** SUCCESS **
 
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.svd API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the singular value decompositions of one or more matrices.
+
+  Computes the SVD of each inner matrix in `tensor` such that
+  `tensor[..., :, :] = u[..., :, :] * diag(s[..., :, :]) *
+   transpose(conj(v[..., :, :]))`
+
+  ```python
+  # a is a tensor.
+  # s is a tensor of singular values.
+  # u is a tensor of left singular vectors.
+  # v is a tensor of right singular vectors.
+  s, u, v = svd(a)
+  s = svd(a, compute_uv=False)
+  ```
+
+  Args:
+    tensor: `Tensor` of shape `[..., M, N]`. Let `P` be the minimum of `M` and
+      `N`.
+    full_matrices: If true, compute full-sized `u` and `v`. If false
+      (the default), compute only the leading `P` singular vectors.
+      Ignored if `compute_uv` is `False`.
+    compute_uv: If `True` then left and right singular vectors will be
+      computed and returned in `u` and `v`, respectively. Otherwise, only the
+      singular values will be computed, which can be significantly faster.
+    name: string, optional name of the operation.
+
+  Returns:
+    s: Singular values. Shape is `[..., P]`. The values are sorted in reverse
+      order of magnitude, so s[..., 0] is the largest value, s[..., 1] is the
+      second largest, etc.
+    u: Left singular vectors. If `full_matrices` is `False` (default) then
+      shape is `[..., M, P]`; if `full_matrices` is `True` then shape is
+      `[..., M, M]`. Not returned if `compute_uv` is `False`.
+    v: Right singular vectors. If `full_matrices` is `False` (default) then
+      shape is `[..., N, P]`. If `full_matrices` is `True` then shape is
+      `[..., N, N]`. Not returned if `compute_uv` is `False`.
+
+  @compatibility(numpy)
+  Mostly equivalent to numpy.linalg.svd, except that
+    * The order of output  arguments here is `s`, `u`, `v` when `compute_uv` is
+      `True`, as opposed to `u`, `s`, `v` for numpy.linalg.svd.
+    * full_matrices is `False` by default as opposed to `True` for
+       numpy.linalg.svd.
+    * tf.linalg.svd uses the standard definition of the SVD
+      \\(A = U \Sigma V^H\\), such that the left singular vectors of `a` are
+      the columns of `u`, while the right singular vectors of `a` are the
+      columns of `v`. On the other hand, numpy.linalg.svd returns the adjoint
+      \\(V^H\\) as the third output argument.
+  ```python
+  import tensorflow as tf
+  import numpy as np
+  s, u, v = tf.linalg.svd(a)
+  tf_a_approx = tf.matmul(u, tf.matmul(tf.linalg.diag(s), v, adjoint_b=True))
+  u, s, v_adj = np.linalg.svd(a, full_matrices=False)
+  np_a_approx = np.dot(u, np.dot(np.diag(s), v_adj))
+  # tf_a_approx and np_a_approx should be numerically close.
+  ```
+  @end_compatibility
+
+[API Signature] tensor: tensor, full_matrices: boolean, compute_uv: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: double, float, half, complex64, complex128 	; NodeDef: {{node Svd}}; Op<name=Svd; signature=input:T -> s:T, u:T, v:T; attr=compute_uv:bool,default=true; attr=full_matrices:bool,default=false; attr=T:type,allowed=[DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]> [Op:Svd]
+InvalidArgumentError: {{function_node __wrapped__Svd_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input tensor 0 must have rank >= 2, got 1 [Op:Svd]
+NotFoundError: Could not find device for node: {{node Svd}} = Svd[T=DT_HALF, compute_uv=false, full_matrices=false] All kernels registered for op Svd:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_HALF]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]  [Op:Svd]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (input tensor dtype must be one of the SVD-supported types)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Token usage: input=2482, output=4716, total=7198
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.svd API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the singular value decompositions of one or more matrices.
+
+  Computes the SVD of each inner matrix in `tensor` such that
+  `tensor[..., :, :] = u[..., :, :] * diag(s[..., :, :]) *
+   transpose(conj(v[..., :, :]))`
+
+  ```python
+  # a is a tensor.
+  # s is a tensor of singular values.
+  # u is a tensor of left singular vectors.
+  # v is a tensor of right singular vectors.
+  s, u, v = svd(a)
+  s = svd(a, compute_uv=False)
+  ```
+
+  Args:
+    tensor: `Tensor` of shape `[..., M, N]`. Let `P` be the minimum of `M` and
+      `N`.
+    full_matrices: If true, compute full-sized `u` and `v`. If false
+      (the default), compute only the leading `P` singular vectors.
+      Ignored if `compute_uv` is `False`.
+    compute_uv: If `True` then left and right singular vectors will be
+      computed and returned in `u` and `v`, respectively. Otherwise, only the
+      singular values will be computed, which can be significantly faster.
+    name: string, optional name of the operation.
+
+  Returns:
+    s: Singular values. Shape is `[..., P]`. The values are sorted in reverse
+      order of magnitude, so s[..., 0] is the largest value, s[..., 1] is the
+      second largest, etc.
+    u: Left singular vectors. If `full_matrices` is `False` (default) then
+      shape is `[..., M, P]`; if `full_matrices` is `True` then shape is
+      `[..., M, M]`. Not returned if `compute_uv` is `False`.
+    v: Right singular vectors. If `full_matrices` is `False` (default) then
+      shape is `[..., N, P]`. If `full_matrices` is `True` then shape is
+      `[..., N, N]`. Not returned if `compute_uv` is `False`.
+
+  @compatibility(numpy)
+  Mostly equivalent to numpy.linalg.svd, except that
+    * The order of output  arguments here is `s`, `u`, `v` when `compute_uv` is
+      `True`, as opposed to `u`, `s`, `v` for numpy.linalg.svd.
+    * full_matrices is `False` by default as opposed to `True` for
+       numpy.linalg.svd.
+    * tf.linalg.svd uses the standard definition of the SVD
+      \\(A = U \Sigma V^H\\), such that the left singular vectors of `a` are
+      the columns of `u`, while the right singular vectors of `a` are the
+      columns of `v`. On the other hand, numpy.linalg.svd returns the adjoint
+      \\(V^H\\) as the third output argument.
+  ```python
+  import tensorflow as tf
+  import numpy as np
+  s, u, v = tf.linalg.svd(a)
+  tf_a_approx = tf.matmul(u, tf.matmul(tf.linalg.diag(s), v, adjoint_b=True))
+  u, s, v_adj = np.linalg.svd(a, full_matrices=False)
+  np_a_approx = np.dot(u, np.dot(np.diag(s), v_adj))
+  # tf_a_approx and np_a_approx should be numerically close.
+  ```
+  @end_compatibility
+
+[API Signature] tensor: tensor, full_matrices: boolean, compute_uv: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: double, float, half, complex64, complex128 	; NodeDef: {{node Svd}}; Op<name=Svd; signature=input:T -> s:T, u:T, v:T; attr=compute_uv:bool,default=true; attr=full_matrices:bool,default=false; attr=T:type,allowed=[DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]> [Op:Svd]
+InvalidArgumentError: {{function_node __wrapped__Svd_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input tensor 0 must have rank >= 2, got 1 [Op:Svd]
+NotFoundError: Could not find device for node: {{node Svd}} = Svd[T=DT_HALF, compute_uv=false, full_matrices=false] All kernels registered for op Svd:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_HALF]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]  [Op:Svd]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (input must be at least a matrix)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
+Token usage: input=2482, output=4716, total=7198
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.svd API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the singular value decompositions of one or more matrices.
+
+  Computes the SVD of each inner matrix in `tensor` such that
+  `tensor[..., :, :] = u[..., :, :] * diag(s[..., :, :]) *
+   transpose(conj(v[..., :, :]))`
+
+  ```python
+  # a is a tensor.
+  # s is a tensor of singular values.
+  # u is a tensor of left singular vectors.
+  # v is a tensor of right singular vectors.
+  s, u, v = svd(a)
+  s = svd(a, compute_uv=False)
+  ```
+
+  Args:
+    tensor: `Tensor` of shape `[..., M, N]`. Let `P` be the minimum of `M` and
+      `N`.
+    full_matrices: If true, compute full-sized `u` and `v`. If false
+      (the default), compute only the leading `P` singular vectors.
+      Ignored if `compute_uv` is `False`.
+    compute_uv: If `True` then left and right singular vectors will be
+      computed and returned in `u` and `v`, respectively. Otherwise, only the
+      singular values will be computed, which can be significantly faster.
+    name: string, optional name of the operation.
+
+  Returns:
+    s: Singular values. Shape is `[..., P]`. The values are sorted in reverse
+      order of magnitude, so s[..., 0] is the largest value, s[..., 1] is the
+      second largest, etc.
+    u: Left singular vectors. If `full_matrices` is `False` (default) then
+      shape is `[..., M, P]`; if `full_matrices` is `True` then shape is
+      `[..., M, M]`. Not returned if `compute_uv` is `False`.
+    v: Right singular vectors. If `full_matrices` is `False` (default) then
+      shape is `[..., N, P]`. If `full_matrices` is `True` then shape is
+      `[..., N, N]`. Not returned if `compute_uv` is `False`.
+
+  @compatibility(numpy)
+  Mostly equivalent to numpy.linalg.svd, except that
+    * The order of output  arguments here is `s`, `u`, `v` when `compute_uv` is
+      `True`, as opposed to `u`, `s`, `v` for numpy.linalg.svd.
+    * full_matrices is `False` by default as opposed to `True` for
+       numpy.linalg.svd.
+    * tf.linalg.svd uses the standard definition of the SVD
+      \\(A = U \Sigma V^H\\), such that the left singular vectors of `a` are
+      the columns of `u`, while the right singular vectors of `a` are the
+      columns of `v`. On the other hand, numpy.linalg.svd returns the adjoint
+      \\(V^H\\) as the third output argument.
+  ```python
+  import tensorflow as tf
+  import numpy as np
+  s, u, v = tf.linalg.svd(a)
+  tf_a_approx = tf.matmul(u, tf.matmul(tf.linalg.diag(s), v, adjoint_b=True))
+  u, s, v_adj = np.linalg.svd(a, full_matrices=False)
+  np_a_approx = np.dot(u, np.dot(np.diag(s), v_adj))
+  # tf_a_approx and np_a_approx should be numerically close.
+  ```
+  @end_compatibility
+
+[API Signature] tensor: tensor, full_matrices: boolean, compute_uv: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: double, float, half, complex64, complex128 	; NodeDef: {{node Svd}}; Op<name=Svd; signature=input:T -> s:T, u:T, v:T; attr=compute_uv:bool,default=true; attr=full_matrices:bool,default=false; attr=T:type,allowed=[DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]> [Op:Svd]
+InvalidArgumentError: {{function_node __wrapped__Svd_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input tensor 0 must have rank >= 2, got 1 [Op:Svd]
+NotFoundError: Could not find device for node: {{node Svd}} = Svd[T=DT_HALF, compute_uv=false, full_matrices=false] All kernels registered for op Svd:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_HALF]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]  [Op:Svd]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (avoid float16 on typical CPU paths when compute_uv is False)
+{v_1 : tensor, v_3 : bool} |= if v_3 then true else dtype_(v_1) ≠ 6
+Token usage: input=2482, output=4716, total=7198
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.svd API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the singular value decompositions of one or more matrices.
+
+  Computes the SVD of each inner matrix in `tensor` such that
+  `tensor[..., :, :] = u[..., :, :] * diag(s[..., :, :]) *
+   transpose(conj(v[..., :, :]))`
+
+  ```python
+  # a is a tensor.
+  # s is a tensor of singular values.
+  # u is a tensor of left singular vectors.
+  # v is a tensor of right singular vectors.
+  s, u, v = svd(a)
+  s = svd(a, compute_uv=False)
+  ```
+
+  Args:
+    tensor: `Tensor` of shape `[..., M, N]`. Let `P` be the minimum of `M` and
+      `N`.
+    full_matrices: If true, compute full-sized `u` and `v`. If false
+      (the default), compute only the leading `P` singular vectors.
+      Ignored if `compute_uv` is `False`.
+    compute_uv: If `True` then left and right singular vectors will be
+      computed and returned in `u` and `v`, respectively. Otherwise, only the
+      singular values will be computed, which can be significantly faster.
+    name: string, optional name of the operation.
+
+  Returns:
+    s: Singular values. Shape is `[..., P]`. The values are sorted in reverse
+      order of magnitude, so s[..., 0] is the largest value, s[..., 1] is the
+      second largest, etc.
+    u: Left singular vectors. If `full_matrices` is `False` (default) then
+      shape is `[..., M, P]`; if `full_matrices` is `True` then shape is
+      `[..., M, M]`. Not returned if `compute_uv` is `False`.
+    v: Right singular vectors. If `full_matrices` is `False` (default) then
+      shape is `[..., N, P]`. If `full_matrices` is `True` then shape is
+      `[..., N, N]`. Not returned if `compute_uv` is `False`.
+
+  @compatibility(numpy)
+  Mostly equivalent to numpy.linalg.svd, except that
+    * The order of output  arguments here is `s`, `u`, `v` when `compute_uv` is
+      `True`, as opposed to `u`, `s`, `v` for numpy.linalg.svd.
+    * full_matrices is `False` by default as opposed to `True` for
+       numpy.linalg.svd.
+    * tf.linalg.svd uses the standard definition of the SVD
+      \\(A = U \Sigma V^H\\), such that the left singular vectors of `a` are
+      the columns of `u`, while the right singular vectors of `a` are the
+      columns of `v`. On the other hand, numpy.linalg.svd returns the adjoint
+      \\(V^H\\) as the third output argument.
+  ```python
+  import tensorflow as tf
+  import numpy as np
+  s, u, v = tf.linalg.svd(a)
+  tf_a_approx = tf.matmul(u, tf.matmul(tf.linalg.diag(s), v, adjoint_b=True))
+  u, s, v_adj = np.linalg.svd(a, full_matrices=False)
+  np_a_approx = np.dot(u, np.dot(np.diag(s), v_adj))
+  # tf_a_approx and np_a_approx should be numerically close.
+  ```
+  @end_compatibility
+
+[API Signature] tensor: tensor, full_matrices: boolean, compute_uv: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: double, float, half, complex64, complex128 	; NodeDef: {{node Svd}}; Op<name=Svd; signature=input:T -> s:T, u:T, v:T; attr=compute_uv:bool,default=true; attr=full_matrices:bool,default=false; attr=T:type,allowed=[DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]> [Op:Svd]
+InvalidArgumentError: {{function_node __wrapped__Svd_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input tensor 0 must have rank >= 2, got 1 [Op:Svd]
+NotFoundError: Could not find device for node: {{node Svd}} = Svd[T=DT_HALF, compute_uv=false, full_matrices=false] All kernels registered for op Svd:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_HALF]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]  [Op:Svd]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (full_matrices is only relevant if compute_uv is True)
+{v_2 : bool, v_3 : bool} |= (v_3 = true) ∨ (v_2 = false)
+Token usage: input=2482, output=4716, total=7198
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.svd API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the singular value decompositions of one or more matrices.
+
+  Computes the SVD of each inner matrix in `tensor` such that
+  `tensor[..., :, :] = u[..., :, :] * diag(s[..., :, :]) *
+   transpose(conj(v[..., :, :]))`
+
+  ```python
+  # a is a tensor.
+  # s is a tensor of singular values.
+  # u is a tensor of left singular vectors.
+  # v is a tensor of right singular vectors.
+  s, u, v = svd(a)
+  s = svd(a, compute_uv=False)
+  ```
+
+  Args:
+    tensor: `Tensor` of shape `[..., M, N]`. Let `P` be the minimum of `M` and
+      `N`.
+    full_matrices: If true, compute full-sized `u` and `v`. If false
+      (the default), compute only the leading `P` singular vectors.
+      Ignored if `compute_uv` is `False`.
+    compute_uv: If `True` then left and right singular vectors will be
+      computed and returned in `u` and `v`, respectively. Otherwise, only the
+      singular values will be computed, which can be significantly faster.
+    name: string, optional name of the operation.
+
+  Returns:
+    s: Singular values. Shape is `[..., P]`. The values are sorted in reverse
+      order of magnitude, so s[..., 0] is the largest value, s[..., 1] is the
+      second largest, etc.
+    u: Left singular vectors. If `full_matrices` is `False` (default) then
+      shape is `[..., M, P]`; if `full_matrices` is `True` then shape is
+      `[..., M, M]`. Not returned if `compute_uv` is `False`.
+    v: Right singular vectors. If `full_matrices` is `False` (default) then
+      shape is `[..., N, P]`. If `full_matrices` is `True` then shape is
+      `[..., N, N]`. Not returned if `compute_uv` is `False`.
+
+  @compatibility(numpy)
+  Mostly equivalent to numpy.linalg.svd, except that
+    * The order of output  arguments here is `s`, `u`, `v` when `compute_uv` is
+      `True`, as opposed to `u`, `s`, `v` for numpy.linalg.svd.
+    * full_matrices is `False` by default as opposed to `True` for
+       numpy.linalg.svd.
+    * tf.linalg.svd uses the standard definition of the SVD
+      \\(A = U \Sigma V^H\\), such that the left singular vectors of `a` are
+      the columns of `u`, while the right singular vectors of `a` are the
+      columns of `v`. On the other hand, numpy.linalg.svd returns the adjoint
+      \\(V^H\\) as the third output argument.
+  ```python
+  import tensorflow as tf
+  import numpy as np
+  s, u, v = tf.linalg.svd(a)
+  tf_a_approx = tf.matmul(u, tf.matmul(tf.linalg.diag(s), v, adjoint_b=True))
+  u, s, v_adj = np.linalg.svd(a, full_matrices=False)
+  np_a_approx = np.dot(u, np.dot(np.diag(s), v_adj))
+  # tf_a_approx and np_a_approx should be numerically close.
+  ```
+  @end_compatibility
+
+[API Signature] tensor: tensor, full_matrices: boolean, compute_uv: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: double, float, half, complex64, complex128 	; NodeDef: {{node Svd}}; Op<name=Svd; signature=input:T -> s:T, u:T, v:T; attr=compute_uv:bool,default=true; attr=full_matrices:bool,default=false; attr=T:type,allowed=[DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]> [Op:Svd]
+InvalidArgumentError: {{function_node __wrapped__Svd_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input tensor 0 must have rank >= 2, got 1 [Op:Svd]
+NotFoundError: Could not find device for node: {{node Svd}} = Svd[T=DT_HALF, compute_uv=false, full_matrices=false] All kernels registered for op Svd:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_HALF]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]  [Op:Svd]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (last two dimensions must be positive)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ ∀i ∈ [ndim(v_1) - 2, ndim(v_1) - 1] : shape(v_1, i) > 0
+Token usage: input=2482, output=4716, total=7198
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.svd API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the singular value decompositions of one or more matrices.
+
+  Computes the SVD of each inner matrix in `tensor` such that
+  `tensor[..., :, :] = u[..., :, :] * diag(s[..., :, :]) *
+   transpose(conj(v[..., :, :]))`
+
+  ```python
+  # a is a tensor.
+  # s is a tensor of singular values.
+  # u is a tensor of left singular vectors.
+  # v is a tensor of right singular vectors.
+  s, u, v = svd(a)
+  s = svd(a, compute_uv=False)
+  ```
+
+  Args:
+    tensor: `Tensor` of shape `[..., M, N]`. Let `P` be the minimum of `M` and
+      `N`.
+    full_matrices: If true, compute full-sized `u` and `v`. If false
+      (the default), compute only the leading `P` singular vectors.
+      Ignored if `compute_uv` is `False`.
+    compute_uv: If `True` then left and right singular vectors will be
+      computed and returned in `u` and `v`, respectively. Otherwise, only the
+      singular values will be computed, which can be significantly faster.
+    name: string, optional name of the operation.
+
+  Returns:
+    s: Singular values. Shape is `[..., P]`. The values are sorted in reverse
+      order of magnitude, so s[..., 0] is the largest value, s[..., 1] is the
+      second largest, etc.
+    u: Left singular vectors. If `full_matrices` is `False` (default) then
+      shape is `[..., M, P]`; if `full_matrices` is `True` then shape is
+      `[..., M, M]`. Not returned if `compute_uv` is `False`.
+    v: Right singular vectors. If `full_matrices` is `False` (default) then
+      shape is `[..., N, P]`. If `full_matrices` is `True` then shape is
+      `[..., N, N]`. Not returned if `compute_uv` is `False`.
+
+  @compatibility(numpy)
+  Mostly equivalent to numpy.linalg.svd, except that
+    * The order of output  arguments here is `s`, `u`, `v` when `compute_uv` is
+      `True`, as opposed to `u`, `s`, `v` for numpy.linalg.svd.
+    * full_matrices is `False` by default as opposed to `True` for
+       numpy.linalg.svd.
+    * tf.linalg.svd uses the standard definition of the SVD
+      \\(A = U \Sigma V^H\\), such that the left singular vectors of `a` are
+      the columns of `u`, while the right singular vectors of `a` are the
+      columns of `v`. On the other hand, numpy.linalg.svd returns the adjoint
+      \\(V^H\\) as the third output argument.
+  ```python
+  import tensorflow as tf
+  import numpy as np
+  s, u, v = tf.linalg.svd(a)
+  tf_a_approx = tf.matmul(u, tf.matmul(tf.linalg.diag(s), v, adjoint_b=True))
+  u, s, v_adj = np.linalg.svd(a, full_matrices=False)
+  np_a_approx = np.dot(u, np.dot(np.diag(s), v_adj))
+  # tf_a_approx and np_a_approx should be numerically close.
+  ```
+  @end_compatibility
+
+[API Signature] tensor: tensor, full_matrices: boolean, compute_uv: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: double, float, half, complex64, complex128 	; NodeDef: {{node Svd}}; Op<name=Svd; signature=input:T -> s:T, u:T, v:T; attr=compute_uv:bool,default=true; attr=full_matrices:bool,default=false; attr=T:type,allowed=[DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]> [Op:Svd]
+InvalidArgumentError: {{function_node __wrapped__Svd_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input tensor 0 must have rank >= 2, got 1 [Op:Svd]
+NotFoundError: Could not find device for node: {{node Svd}} = Svd[T=DT_HALF, compute_uv=false, full_matrices=false] All kernels registered for op Svd:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_HALF]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]  [Op:Svd]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (name is a string parameter)
+{v_4 : str} |= v_4 = v_4
+Token usage: input=2482, output=4716, total=7198
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 2
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.svd API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the singular value decompositions of one or more matrices.
+
+  Computes the SVD of each inner matrix in `tensor` such that
+  `tensor[..., :, :] = u[..., :, :] * diag(s[..., :, :]) *
+   transpose(conj(v[..., :, :]))`
+
+  ```python
+  # a is a tensor.
+  # s is a tensor of singular values.
+  # u is a tensor of left singular vectors.
+  # v is a tensor of right singular vectors.
+  s, u, v = svd(a)
+  s = svd(a, compute_uv=False)
+  ```
+
+  Args:
+    tensor: `Tensor` of shape `[..., M, N]`. Let `P` be the minimum of `M` and
+      `N`.
+    full_matrices: If true, compute full-sized `u` and `v`. If false
+      (the default), compute only the leading `P` singular vectors.
+      Ignored if `compute_uv` is `False`.
+    compute_uv: If `True` then left and right singular vectors will be
+      computed and returned in `u` and `v`, respectively. Otherwise, only the
+      singular values will be computed, which can be significantly faster.
+    name: string, optional name of the operation.
+
+  Returns:
+    s: Singular values. Shape is `[..., P]`. The values are sorted in reverse
+      order of magnitude, so s[..., 0] is the largest value, s[..., 1] is the
+      second largest, etc.
+    u: Left singular vectors. If `full_matrices` is `False` (default) then
+      shape is `[..., M, P]`; if `full_matrices` is `True` then shape is
+      `[..., M, M]`. Not returned if `compute_uv` is `False`.
+    v: Right singular vectors. If `full_matrices` is `False` (default) then
+      shape is `[..., N, P]`. If `full_matrices` is `True` then shape is
+      `[..., N, N]`. Not returned if `compute_uv` is `False`.
+
+  @compatibility(numpy)
+  Mostly equivalent to numpy.linalg.svd, except that
+    * The order of output  arguments here is `s`, `u`, `v` when `compute_uv` is
+      `True`, as opposed to `u`, `s`, `v` for numpy.linalg.svd.
+    * full_matrices is `False` by default as opposed to `True` for
+       numpy.linalg.svd.
+    * tf.linalg.svd uses the standard definition of the SVD
+      \\(A = U \Sigma V^H\\), such that the left singular vectors of `a` are
+      the columns of `u`, while the right singular vectors of `a` are the
+      columns of `v`. On the other hand, numpy.linalg.svd returns the adjoint
+      \\(V^H\\) as the third output argument.
+  ```python
+  import tensorflow as tf
+  import numpy as np
+  s, u, v = tf.linalg.svd(a)
+  tf_a_approx = tf.matmul(u, tf.matmul(tf.linalg.diag(s), v, adjoint_b=True))
+  u, s, v_adj = np.linalg.svd(a, full_matrices=False)
+  np_a_approx = np.dot(u, np.dot(np.diag(s), v_adj))
+  # tf_a_approx and np_a_approx should be numerically close.
+  ```
+  @end_compatibility
+
+[API Signature] tensor: tensor, full_matrices: boolean, compute_uv: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: double, float, half, complex64, complex128 	; NodeDef: {{node Svd}}; Op<name=Svd; signature=input:T -> s:T, u:T, v:T; attr=compute_uv:bool,default=true; attr=full_matrices:bool,default=false; attr=T:type,allowed=[DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]> [Op:Svd]
+InvalidArgumentError: {{function_node __wrapped__Svd_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input tensor 0 must have rank >= 2, got 1 [Op:Svd]
+NotFoundError: Could not find device for node: {{node Svd}} = Svd[T=DT_HALF, compute_uv=false, full_matrices=false] All kernels registered for op Svd:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_HALF]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]  [Op:Svd]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (SVD input dtype must be floating or complex)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Token usage: input=5228, output=4165, total=9393
+** DUPLICATED RULE ** (num_failures: 2)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 2
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.svd API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the singular value decompositions of one or more matrices.
+
+  Computes the SVD of each inner matrix in `tensor` such that
+  `tensor[..., :, :] = u[..., :, :] * diag(s[..., :, :]) *
+   transpose(conj(v[..., :, :]))`
+
+  ```python
+  # a is a tensor.
+  # s is a tensor of singular values.
+  # u is a tensor of left singular vectors.
+  # v is a tensor of right singular vectors.
+  s, u, v = svd(a)
+  s = svd(a, compute_uv=False)
+  ```
+
+  Args:
+    tensor: `Tensor` of shape `[..., M, N]`. Let `P` be the minimum of `M` and
+      `N`.
+    full_matrices: If true, compute full-sized `u` and `v`. If false
+      (the default), compute only the leading `P` singular vectors.
+      Ignored if `compute_uv` is `False`.
+    compute_uv: If `True` then left and right singular vectors will be
+      computed and returned in `u` and `v`, respectively. Otherwise, only the
+      singular values will be computed, which can be significantly faster.
+    name: string, optional name of the operation.
+
+  Returns:
+    s: Singular values. Shape is `[..., P]`. The values are sorted in reverse
+      order of magnitude, so s[..., 0] is the largest value, s[..., 1] is the
+      second largest, etc.
+    u: Left singular vectors. If `full_matrices` is `False` (default) then
+      shape is `[..., M, P]`; if `full_matrices` is `True` then shape is
+      `[..., M, M]`. Not returned if `compute_uv` is `False`.
+    v: Right singular vectors. If `full_matrices` is `False` (default) then
+      shape is `[..., N, P]`. If `full_matrices` is `True` then shape is
+      `[..., N, N]`. Not returned if `compute_uv` is `False`.
+
+  @compatibility(numpy)
+  Mostly equivalent to numpy.linalg.svd, except that
+    * The order of output  arguments here is `s`, `u`, `v` when `compute_uv` is
+      `True`, as opposed to `u`, `s`, `v` for numpy.linalg.svd.
+    * full_matrices is `False` by default as opposed to `True` for
+       numpy.linalg.svd.
+    * tf.linalg.svd uses the standard definition of the SVD
+      \\(A = U \Sigma V^H\\), such that the left singular vectors of `a` are
+      the columns of `u`, while the right singular vectors of `a` are the
+      columns of `v`. On the other hand, numpy.linalg.svd returns the adjoint
+      \\(V^H\\) as the third output argument.
+  ```python
+  import tensorflow as tf
+  import numpy as np
+  s, u, v = tf.linalg.svd(a)
+  tf_a_approx = tf.matmul(u, tf.matmul(tf.linalg.diag(s), v, adjoint_b=True))
+  u, s, v_adj = np.linalg.svd(a, full_matrices=False)
+  np_a_approx = np.dot(u, np.dot(np.diag(s), v_adj))
+  # tf_a_approx and np_a_approx should be numerically close.
+  ```
+  @end_compatibility
+
+[API Signature] tensor: tensor, full_matrices: boolean, compute_uv: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: double, float, half, complex64, complex128 	; NodeDef: {{node Svd}}; Op<name=Svd; signature=input:T -> s:T, u:T, v:T; attr=compute_uv:bool,default=true; attr=full_matrices:bool,default=false; attr=T:type,allowed=[DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]> [Op:Svd]
+InvalidArgumentError: {{function_node __wrapped__Svd_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input tensor 0 must have rank >= 2, got 1 [Op:Svd]
+NotFoundError: Could not find device for node: {{node Svd}} = Svd[T=DT_HALF, compute_uv=false, full_matrices=false] All kernels registered for op Svd:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_HALF]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]  [Op:Svd]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 14 (avoid float16 to prevent missing kernel on common CPU backends)
+{v_1 : tensor} |= dtype_(v_1) ≠ 6
+Token usage: input=5228, output=4165, total=9393
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 2
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.svd API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the singular value decompositions of one or more matrices.
+
+  Computes the SVD of each inner matrix in `tensor` such that
+  `tensor[..., :, :] = u[..., :, :] * diag(s[..., :, :]) *
+   transpose(conj(v[..., :, :]))`
+
+  ```python
+  # a is a tensor.
+  # s is a tensor of singular values.
+  # u is a tensor of left singular vectors.
+  # v is a tensor of right singular vectors.
+  s, u, v = svd(a)
+  s = svd(a, compute_uv=False)
+  ```
+
+  Args:
+    tensor: `Tensor` of shape `[..., M, N]`. Let `P` be the minimum of `M` and
+      `N`.
+    full_matrices: If true, compute full-sized `u` and `v`. If false
+      (the default), compute only the leading `P` singular vectors.
+      Ignored if `compute_uv` is `False`.
+    compute_uv: If `True` then left and right singular vectors will be
+      computed and returned in `u` and `v`, respectively. Otherwise, only the
+      singular values will be computed, which can be significantly faster.
+    name: string, optional name of the operation.
+
+  Returns:
+    s: Singular values. Shape is `[..., P]`. The values are sorted in reverse
+      order of magnitude, so s[..., 0] is the largest value, s[..., 1] is the
+      second largest, etc.
+    u: Left singular vectors. If `full_matrices` is `False` (default) then
+      shape is `[..., M, P]`; if `full_matrices` is `True` then shape is
+      `[..., M, M]`. Not returned if `compute_uv` is `False`.
+    v: Right singular vectors. If `full_matrices` is `False` (default) then
+      shape is `[..., N, P]`. If `full_matrices` is `True` then shape is
+      `[..., N, N]`. Not returned if `compute_uv` is `False`.
+
+  @compatibility(numpy)
+  Mostly equivalent to numpy.linalg.svd, except that
+    * The order of output  arguments here is `s`, `u`, `v` when `compute_uv` is
+      `True`, as opposed to `u`, `s`, `v` for numpy.linalg.svd.
+    * full_matrices is `False` by default as opposed to `True` for
+       numpy.linalg.svd.
+    * tf.linalg.svd uses the standard definition of the SVD
+      \\(A = U \Sigma V^H\\), such that the left singular vectors of `a` are
+      the columns of `u`, while the right singular vectors of `a` are the
+      columns of `v`. On the other hand, numpy.linalg.svd returns the adjoint
+      \\(V^H\\) as the third output argument.
+  ```python
+  import tensorflow as tf
+  import numpy as np
+  s, u, v = tf.linalg.svd(a)
+  tf_a_approx = tf.matmul(u, tf.matmul(tf.linalg.diag(s), v, adjoint_b=True))
+  u, s, v_adj = np.linalg.svd(a, full_matrices=False)
+  np_a_approx = np.dot(u, np.dot(np.diag(s), v_adj))
+  # tf_a_approx and np_a_approx should be numerically close.
+  ```
+  @end_compatibility
+
+[API Signature] tensor: tensor, full_matrices: boolean, compute_uv: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: double, float, half, complex64, complex128 	; NodeDef: {{node Svd}}; Op<name=Svd; signature=input:T -> s:T, u:T, v:T; attr=compute_uv:bool,default=true; attr=full_matrices:bool,default=false; attr=T:type,allowed=[DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]> [Op:Svd]
+InvalidArgumentError: {{function_node __wrapped__Svd_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input tensor 0 must have rank >= 2, got 1 [Op:Svd]
+NotFoundError: Could not find device for node: {{node Svd}} = Svd[T=DT_HALF, compute_uv=false, full_matrices=false] All kernels registered for op Svd:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_HALF]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]  [Op:Svd]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 15 (input must be at least a matrix with positive matrix dimensions)
+{v_1 : tensor} |= (ndim(v_1) > 1) ∧ ∀i ∈ [ndim(v_1) - 2, ndim(v_1) - 1] : shape(v_1, i) > 0
+Token usage: input=5228, output=4165, total=9393
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 2
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.svd API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the singular value decompositions of one or more matrices.
+
+  Computes the SVD of each inner matrix in `tensor` such that
+  `tensor[..., :, :] = u[..., :, :] * diag(s[..., :, :]) *
+   transpose(conj(v[..., :, :]))`
+
+  ```python
+  # a is a tensor.
+  # s is a tensor of singular values.
+  # u is a tensor of left singular vectors.
+  # v is a tensor of right singular vectors.
+  s, u, v = svd(a)
+  s = svd(a, compute_uv=False)
+  ```
+
+  Args:
+    tensor: `Tensor` of shape `[..., M, N]`. Let `P` be the minimum of `M` and
+      `N`.
+    full_matrices: If true, compute full-sized `u` and `v`. If false
+      (the default), compute only the leading `P` singular vectors.
+      Ignored if `compute_uv` is `False`.
+    compute_uv: If `True` then left and right singular vectors will be
+      computed and returned in `u` and `v`, respectively. Otherwise, only the
+      singular values will be computed, which can be significantly faster.
+    name: string, optional name of the operation.
+
+  Returns:
+    s: Singular values. Shape is `[..., P]`. The values are sorted in reverse
+      order of magnitude, so s[..., 0] is the largest value, s[..., 1] is the
+      second largest, etc.
+    u: Left singular vectors. If `full_matrices` is `False` (default) then
+      shape is `[..., M, P]`; if `full_matrices` is `True` then shape is
+      `[..., M, M]`. Not returned if `compute_uv` is `False`.
+    v: Right singular vectors. If `full_matrices` is `False` (default) then
+      shape is `[..., N, P]`. If `full_matrices` is `True` then shape is
+      `[..., N, N]`. Not returned if `compute_uv` is `False`.
+
+  @compatibility(numpy)
+  Mostly equivalent to numpy.linalg.svd, except that
+    * The order of output  arguments here is `s`, `u`, `v` when `compute_uv` is
+      `True`, as opposed to `u`, `s`, `v` for numpy.linalg.svd.
+    * full_matrices is `False` by default as opposed to `True` for
+       numpy.linalg.svd.
+    * tf.linalg.svd uses the standard definition of the SVD
+      \\(A = U \Sigma V^H\\), such that the left singular vectors of `a` are
+      the columns of `u`, while the right singular vectors of `a` are the
+      columns of `v`. On the other hand, numpy.linalg.svd returns the adjoint
+      \\(V^H\\) as the third output argument.
+  ```python
+  import tensorflow as tf
+  import numpy as np
+  s, u, v = tf.linalg.svd(a)
+  tf_a_approx = tf.matmul(u, tf.matmul(tf.linalg.diag(s), v, adjoint_b=True))
+  u, s, v_adj = np.linalg.svd(a, full_matrices=False)
+  np_a_approx = np.dot(u, np.dot(np.diag(s), v_adj))
+  # tf_a_approx and np_a_approx should be numerically close.
+  ```
+  @end_compatibility
+
+[API Signature] tensor: tensor, full_matrices: boolean, compute_uv: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: double, float, half, complex64, complex128 	; NodeDef: {{node Svd}}; Op<name=Svd; signature=input:T -> s:T, u:T, v:T; attr=compute_uv:bool,default=true; attr=full_matrices:bool,default=false; attr=T:type,allowed=[DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]> [Op:Svd]
+InvalidArgumentError: {{function_node __wrapped__Svd_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input tensor 0 must have rank >= 2, got 1 [Op:Svd]
+NotFoundError: Could not find device for node: {{node Svd}} = Svd[T=DT_HALF, compute_uv=false, full_matrices=false] All kernels registered for op Svd:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_HALF]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]  [Op:Svd]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 16 (full_matrices has effect only when compute_uv is True)
+{v_2 : bool, v_3 : bool} |= if v_3 then true else v_2 = false
+Token usage: input=5228, output=4165, total=9393
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= ndim(v_1) ≥ 2
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.svd API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the singular value decompositions of one or more matrices.
+
+  Computes the SVD of each inner matrix in `tensor` such that
+  `tensor[..., :, :] = u[..., :, :] * diag(s[..., :, :]) *
+   transpose(conj(v[..., :, :]))`
+
+  ```python
+  # a is a tensor.
+  # s is a tensor of singular values.
+  # u is a tensor of left singular vectors.
+  # v is a tensor of right singular vectors.
+  s, u, v = svd(a)
+  s = svd(a, compute_uv=False)
+  ```
+
+  Args:
+    tensor: `Tensor` of shape `[..., M, N]`. Let `P` be the minimum of `M` and
+      `N`.
+    full_matrices: If true, compute full-sized `u` and `v`. If false
+      (the default), compute only the leading `P` singular vectors.
+      Ignored if `compute_uv` is `False`.
+    compute_uv: If `True` then left and right singular vectors will be
+      computed and returned in `u` and `v`, respectively. Otherwise, only the
+      singular values will be computed, which can be significantly faster.
+    name: string, optional name of the operation.
+
+  Returns:
+    s: Singular values. Shape is `[..., P]`. The values are sorted in reverse
+      order of magnitude, so s[..., 0] is the largest value, s[..., 1] is the
+      second largest, etc.
+    u: Left singular vectors. If `full_matrices` is `False` (default) then
+      shape is `[..., M, P]`; if `full_matrices` is `True` then shape is
+      `[..., M, M]`. Not returned if `compute_uv` is `False`.
+    v: Right singular vectors. If `full_matrices` is `False` (default) then
+      shape is `[..., N, P]`. If `full_matrices` is `True` then shape is
+      `[..., N, N]`. Not returned if `compute_uv` is `False`.
+
+  @compatibility(numpy)
+  Mostly equivalent to numpy.linalg.svd, except that
+    * The order of output  arguments here is `s`, `u`, `v` when `compute_uv` is
+      `True`, as opposed to `u`, `s`, `v` for numpy.linalg.svd.
+    * full_matrices is `False` by default as opposed to `True` for
+       numpy.linalg.svd.
+    * tf.linalg.svd uses the standard definition of the SVD
+      \\(A = U \Sigma V^H\\), such that the left singular vectors of `a` are
+      the columns of `u`, while the right singular vectors of `a` are the
+      columns of `v`. On the other hand, numpy.linalg.svd returns the adjoint
+      \\(V^H\\) as the third output argument.
+  ```python
+  import tensorflow as tf
+  import numpy as np
+  s, u, v = tf.linalg.svd(a)
+  tf_a_approx = tf.matmul(u, tf.matmul(tf.linalg.diag(s), v, adjoint_b=True))
+  u, s, v_adj = np.linalg.svd(a, full_matrices=False)
+  np_a_approx = np.dot(u, np.dot(np.diag(s), v_adj))
+  # tf_a_approx and np_a_approx should be numerically close.
+  ```
+  @end_compatibility
+
+[API Signature] tensor: tensor, full_matrices: boolean, compute_uv: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: double, float, half, complex64, complex128 	; NodeDef: {{node Svd}}; Op<name=Svd; signature=input:T -> s:T, u:T, v:T; attr=compute_uv:bool,default=true; attr=full_matrices:bool,default=false; attr=T:type,allowed=[DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]> [Op:Svd]
+InvalidArgumentError: {{function_node __wrapped__Svd_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input tensor 0 must have rank >= 2, got 1 [Op:Svd]
+NotFoundError: Could not find device for node: {{node Svd}} = Svd[T=DT_HALF, compute_uv=false, full_matrices=false] All kernels registered for op Svd:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_HALF]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]  [Op:Svd]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 17 (name is a free-form string)
+{v_4 : str} |= v_4 = v_4
+Token usage: input=5228, output=4165, total=9393
+** DUPLICATED RULE ** (num_failures: 4)
+

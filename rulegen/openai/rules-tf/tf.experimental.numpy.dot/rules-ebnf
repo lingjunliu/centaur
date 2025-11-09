@@ -34,3 +34,27 @@ Rule 11 (complex input implies complex output)
 >>
 Rule 12 (general output rank when both operands have rank ≥ 1)
 {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1 then ndim(v_3) = (ndim(v_1) - 1) + (ndim(v_2) - 1)
+>>
+Rule 14 (contraction dimensions must align when both inputs have at least 1-D)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1 then if ndim(v_2) ≥ 2 then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 2) else shape(v_1, ndim(v_1) - 1) = shape(v_2, 0)
+>>
+Rule 16 (vector-vector dot yields a scalar)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) = 1 then ndim(v_3) = 0
+>>
+Rule 17 (matrix-matrix dot produces a matrix with expected shape)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 then ndim(v_3) = 2 ∧ shape(v_1, 1) = shape(v_2, 0) ∧ shape(v_3, 0) = shape(v_1, 0) ∧ shape(v_3, 1) = shape(v_2, 1)
+>>
+Rule 18 (N-D by vector: output copies all but the last axis of the left operand)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 then ndim(v_3) = ndim(v_1) - 1 ∧ ∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) = shape(v_1, i)
+>>
+Rule 19 (vector by N-D: output copies all but the first axis of the right operand)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) ≥ 2 then ndim(v_3) = ndim(v_2) - 1 ∧ ∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) = shape(v_2, i + 1)
+>>
+Rule 20 (general N-D by M-D: assemble the output shape)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 then ndim(v_3) = ndim(v_1) + ndim(v_2) - 2 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 2) ∧ ∀i ∈ [0, ndim(v_1) - 2] : shape(v_3, i) = shape(v_1, i) ∧ if ndim(v_2) ≥ 3 then ∀j ∈ [0, ndim(v_2) - 3] : shape(v_3, (ndim(v_1) - 1) + j) = shape(v_2, j) ∧ shape(v_3, ndim(v_3) - 1) = shape(v_2, ndim(v_2) - 1)
+>>
+Rule 21 (scalar times array: left scalar preserves the right operand’s shape)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then ndim(v_3) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_3, i) = shape(v_2, i)
+>>
+Rule 22 (array times scalar: right scalar preserves the left operand’s shape)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 0 then ndim(v_3) = ndim(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_3, i) = shape(v_1, i)

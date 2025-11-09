@@ -25,3 +25,15 @@ Rule 10 (keepdims must be a boolean value)
 >>
 Rule 11 (name is a string parameter; no semantic restriction by API)
 {v_4 : str} |= v_4 = v_4
+>>
+Rule 12 (input_tensor must be numeric; bool not allowed — suppresses 'attr T of bool' error)
+{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10
+>>
+Rule 13 (integer axis must be within valid range [-rank, rank))
+{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
+>>
+Rule 14 (list/tuple axis: each index in range and no duplicates modulo rank; empty means reduce all)
+{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= if v_2.len = 0 then true else (∀i ∈ [0, v_2.len - 1] : (0 - ndim(v_1)) ≤ v_2[i] ∧ v_2[i] < ndim(v_1)) ∧ (∀i ∈ [0, v_2.len - 1] : ∀j ∈ [0, v_2.len - 1] : if i < j then (v_2[i] ≠ v_2[j] ∧ v_2[i] + ndim(v_1) ≠ v_2[j] ∧ v_2[i] ≠ v_2[j] + ndim(v_1) ∧ v_2[i] - ndim(v_1) ≠ v_2[j] ∧ v_2[i] ≠ v_2[j] - ndim(v_1)))
+>>
+Rule 16 (when axis is a list/tuple and keepdims is false, do not reduce more axes than the tensor rank)
+{v_1 : tensor, v_2 : list(int) ⊎ tuple(int), v_3 : bool} |= if v_3 = false then v_2.len ≤ ndim(v_1)

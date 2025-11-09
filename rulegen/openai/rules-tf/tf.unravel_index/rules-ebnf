@@ -25,3 +25,24 @@ Rule 8 (optional name is a valid string)
 >>
 Rule 9 (union signature coverage: indices/dims can be tensor or tuple; name provided)
 {v_1 : tensor ⊎ tuple(int), v_2 : tensor ⊎ tuple(int), v_3 : str} |= (v_1 = v_1) ∧ (v_2 = v_2) ∧ v_3 = "none"
+>>
+Rule 10 (tensor inputs must be int32/int64 and have matching dtypes)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ dtype_(v_2) = dtype_(v_1)
+>>
+Rule 11 (dims tensor is 1-D, non-empty, and has no negative entries)
+{v_2 : tensor} |= ndim(v_2) = 1 ∧ shape(v_2, 0) > 0 ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ 0
+>>
+Rule 12 (indices tensor must be scalar or vector)
+{v_1 : tensor} |= ndim(v_1) = 0 ∨ ndim(v_1) = 1
+>>
+Rule 13 (prevent integer overflow from dims product for tensor inputs by conservative bounds)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 1 ∧ ((dtype_(v_1) = 3 ∧ shape(v_2, 0) ≤ 31 ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≤ 2) ∨ (dtype_(v_1) = 4 ∧ shape(v_2, 0) ≤ 63 ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≤ 2))
+>>
+Rule 15 (prevent integer overflow from dims product for list dims by conservative bounds)
+{v_2 : list(int)} |= v_2.len ≤ 63 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≤ 2
+>>
+Rule 17 (tensor → list signature: dims list consistent with indices dtype and non-negative)
+{v_1 : tensor, v_2 : list(int)} |= (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ (if dtype_(v_1) = 3 then v_2[i] ≤ 2147483647 else v_2[i] ≤ 9223372036854775807)
+>>
+Rule 18 (optional op name is a valid string token)
+{v_3 : str} |= v_3 = "none" ∨ v_3 = "linear" ∨ v_3 = "valid" ∨ v_3 = "same"

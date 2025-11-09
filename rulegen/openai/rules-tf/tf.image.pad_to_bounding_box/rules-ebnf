@@ -28,3 +28,42 @@ Rule 9 (targets must be at least as large as offsets)
 >>
 Rule 10 (image dtype must not be string)
 {v_1 : tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 12 (inner 3 dimensions of image must be > 0)
+{v_1 : tensor} |= if ndim(v_1) = 3 then (shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0) else (if ndim(v_1) = 4 then (shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0) else false)
+>>
+Rule 16 (height must fit within target_height minus offset_height)
+{v_1 : tensor, v_2 : int, v_4 : int} |= if ndim(v_1) = 4 then shape(v_1, 1) ≤ v_4 - v_2 else shape(v_1, 0) ≤ v_4 - v_2
+>>
+Rule 17 (width must fit within target_width minus offset_width)
+{v_1 : tensor, v_3 : int, v_5 : int} |= if ndim(v_1) = 4 then shape(v_1, 2) ≤ v_5 - v_3 else shape(v_1, 1) ≤ v_5 - v_3
+>>
+Rule 18 (prevent overflow by bounding offsets and targets)
+{v_2 : int, v_3 : int, v_4 : int, v_5 : int} |= v_2 ≤ 1000000 ∧ v_3 ≤ 1000000 ∧ v_4 ≤ 1000000 ∧ v_5 ≤ 1000000
+>>
+Rule 19 (prevent overflow by bounding total output element count)
+{v_1 : tensor, v_4 : int, v_5 : int} |= if ndim(v_1) = 4 then (shape(v_1, 0) * v_4 * v_5 * shape(v_1, 3)) ≤ 1000000000 else (v_4 * v_5 * shape(v_1, 2)) ≤ 1000000000
+>>
+Rule 20 (image must have rank 3 or 4)
+{v_1 : tensor} |= 3 ≤ ndim(v_1) ∧ ndim(v_1) ≤ 4
+>>
+Rule 21 (inner 3 dimensions of image must be strictly positive)
+{v_1 : tensor} |= if ndim(v_1) = 3 then (∀i ∈ [0, 2] : shape(v_1, i) > 0) else (if ndim(v_1) = 4 then (∀i ∈ [1, 3] : shape(v_1, i) > 0) else false)
+>>
+Rule 22 (height fits: top offset + input height do not exceed target height)
+{v_1 : tensor, v_2 : int, v_4 : int} |= if ndim(v_1) = 4 then v_2 + shape(v_1, 1) ≤ v_4 else v_2 + shape(v_1, 0) ≤ v_4
+>>
+Rule 23 (width fits: left offset + input width do not exceed target width)
+{v_1 : tensor, v_3 : int, v_5 : int} |= if ndim(v_1) = 4 then v_3 + shape(v_1, 2) ≤ v_5 else v_3 + shape(v_1, 1) ≤ v_5
+>>
+Rule 24 (offset_height is non-negative implied by shape)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then v_2 + shape(v_1, 1) ≥ shape(v_1, 1) else v_2 + shape(v_1, 0) ≥ shape(v_1, 0)
+>>
+Rule 25 (offset_width is non-negative implied by shape)
+{v_1 : tensor, v_3 : int} |= if ndim(v_1) = 4 then v_3 + shape(v_1, 2) ≥ shape(v_1, 2) else v_3 + shape(v_1, 1) ≥ shape(v_1, 1)
+>>
+Rule 26 (bound total output elements to avoid overflow in Pad)
+{v_1 : tensor, v_4 : int, v_5 : int} |= if ndim(v_1) = 4 then (shape(v_1, 0) * v_4 * v_5 * shape(v_1, 3) ≤ 2000000000) else (v_4 * v_5 * shape(v_1, 2) ≤ 2000000000)
+>>
+Rule 27 (cap intermediate sums and targets within 32-bit range to avoid negative sizes due to overflow)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int, v_5 : int} |= if ndim(v_1) = 4 then (v_2 + shape(v_1, 1) ≤ 2147483647 ∧ v_3 + shape(v_1, 2) ≤ 2147483647 ∧ v_4 ≤ 2147483647 ∧ v_5 ≤ 2147483647) else (v_2 + shape(v_1, 0) ≤ 2147483647 ∧ v_3 + shape(v_1, 1) ≤ 2147483647 ∧ v_4 ≤ 2147483647 ∧ v_5 ≤ 2147483647)

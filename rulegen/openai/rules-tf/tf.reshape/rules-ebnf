@@ -7,3 +7,39 @@ Rule 4 (shape as list/tuple: scalar target shape [] only for single-element inpu
 >>
 Rule 6 (shape as list/tuple: 1D reshape preserves length or uses -1)
 {v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= if ndim(v_1) = 1 ∧ v_2.len = 1 then (v_2[0] = -1 ∨ v_2[0] = shape(v_1, 0))
+>>
+Rule 7 (shape tensor must be 1-D int32/int64 and entries ≥ -1)
+{v_2: tensor} |= ndim(v_2) = 1 ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ min(v_2) ≥ -1
+>>
+Rule 8 (shape list/tuple entries must be ≥ -1)
+{v_2: list(int) ⊎ tuple(int)} |= (v_2.len = 0) ∨ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -1)
+>>
+Rule 9 (no zero dimensions in target shape when input has nonzero size)
+{v_1: tensor, v_2: list(int) ⊎ tuple(int)} |= (v_2.len = 0) ∨ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∀j ∈ [0, v_2.len - 1] : v_2[j] ≠ 0)
+>>
+Rule 10 (identity reshape via list/tuple shape)
+{v_1: tensor, v_2: list(int) ⊎ tuple(int)} |= v_2.len = ndim(v_1) ∧ (∀k ∈ [0, v_2.len - 1] : v_2[k] = shape(v_1, k))
+>>
+Rule 11 (flatten using list/tuple shape [-1])
+{v_2: list(int) ⊎ tuple(int)} |= v_2.len = 1 ∧ v_2[0] = -1
+>>
+Rule 12 (flatten using tensor shape [-1])
+{v_2: tensor} |= ndim(v_2) = 1 ∧ shape(v_2, 0) = 1 ∧ min(v_2) = -1 ∧ max(v_2) = -1
+>>
+Rule 13 (one inferred dimension pattern [shape(v1,0), -1])
+{v_1: tensor, v_2: list(int) ⊎ tuple(int)} |= ndim(v_1) ≥ 1 ∧ v_2.len = 2 ∧ v_2[0] = shape(v_1, 0) ∧ v_2[1] = -1
+>>
+Rule 14 (reshape to scalar [] only if input has exactly one element)
+{v_1: tensor, v_2: list(int) ⊎ tuple(int)} |= v_2.len = 0 ∧ ndim(v_1) = 1 ∧ shape(v_1, 0) = 1
+>>
+Rule 15 (1-D input with tensor shape [n] where n equals input length)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_2, 0) = 1 ∧ min(v_2) = max(v_2) ∧ min(v_2) = shape(v_1, 0)
+>>
+Rule 16 (exactly one inferred dimension in a 2-element list/tuple)
+{v_2: list(int) ⊎ tuple(int)} |= v_2.len = 2 ∧ ((v_2[0] = -1 ∧ v_2[1] ≥ 1) ∨ (v_2[1] = -1 ∧ v_2[0] ≥ 1))
+>>
+Rule 17 (2-D input: target 2-D shape product must match)
+{v_1: tensor, v_2: list(int) ⊎ tuple(int)} |= ndim(v_1) = 2 ∧ v_2.len = 2 ∧ v_2[0] ≥ 1 ∧ v_2[1] ≥ 1 ∧ v_2[0] * v_2[1] = shape(v_1, 0) * shape(v_1, 1)
+>>
+Rule 18 (name is an allowed string)
+{v_3: str} |= v_3 = "none" ∨ v_3 = "linear" ∨ v_3 = "sum"

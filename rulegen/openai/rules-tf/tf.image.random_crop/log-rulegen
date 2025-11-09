@@ -943,3 +943,1083 @@ Rule 7 (common image case: if channels dimension exists, do not crop it)
 Token usage: input=3304, output=9247, total=12551
 ** SUCCESS **
 
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.random_crop API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Randomly crops a tensor to a given size.
+
+  Slices a shape `size` portion out of `value` at a uniformly chosen offset.
+  Requires `value.shape >= size`.
+
+  If a dimension should not be cropped, pass the full size of that dimension.
+  For example, RGB images can be cropped with
+  `size = [crop_height, crop_width, 3]`.
+
+  Example usage:
+
+  >>> image = [[1, 2, 3], [4, 5, 6]]
+  >>> result = tf.image.random_crop(value=image, size=(1, 3))
+  >>> result.shape.as_list()
+  [1, 3]
+
+  For producing deterministic results given a `seed` value, use
+  `tf.image.stateless_random_crop`. Unlike using the `seed` param with
+  `tf.image.random_*` ops, `tf.image.stateless_random_*` ops guarantee the same
+  results given the same seed independent of how many times the function is
+  called, and independent of global seed settings (e.g. tf.random.set_seed).
+
+  Args:
+    value: Input tensor to crop.
+    size: 1-D tensor with size the rank of `value`.
+    seed: Python integer. Used to create a random seed. See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for this operation (optional).
+
+  Returns:
+    A cropped tensor of the same rank as `value` and shape `size`.
+
+[Possible API Signatures]
+ - value: tensor, size: tensor, seed: integer, name: string
+ - value: tensor, size: list, seed: integer, name: string
+ - value: tensor, size: tuple, seed: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: Expected 'tf.Tensor(False, shape=(), dtype=bool)' to be true. Summarized data: b'Need value.shape >= size, got ' 68 1670374912, 1880028160, -603859968, -1295939584, -1542522880, -1070793728, 1382679552, -1897255936, 21446144, -187205632, 1526003712, -446995456, 1938496512, 1762775040, -1091487744, 28107776, -1372057600, -2033171456, -655953920, 208819200, -1522884096, -1235870720, -1015913472, 287315968, -126870528, -1668019200, 1066636800, 475339776, 506224640, 223880192, 1017179136, 2118310912, -1082384384, -910104576, 1495813120, 1821221888, -2078580736, 1832944640, -907168768, -833077248, 1312256000, -1899140096, -187400192, 2010601472, 445773824, -648756224, -379149312, 912143360, -843976704, 1711096832, 1441713152
+InvalidArgumentError: Expected 'tf.Tensor(False, shape=(), dtype=bool)' to be true. Summarized data: b'Need value.shape >= size, got ' 96 -1777295360, -1892417536, -291799040, -857701888, -1127875072, 1727566336, 1938074624, 1421358080, 967220224, -1888899072, -1421651968, -1889525760, 485208064, 1501453824, -1130796544, -657055744, 1285832704, 706690048, -1143737344, 807017984, -161570816, -16472064, -1061357568, 1753801728, 397959168, 281712640, 870791168, -984034816, -1176875008, 1131795456, 120545280, -240598016, 1024285696, 1044382720, -998569984, 1521986560, -1872804864, 1971466240, -314040320, 1822687232, 552771584, -1099980800, 1634180608, 8485888, 449744896, 1018247168, -504836096, -43708928, -1837299712, -1756347392, -1188989952, 128964608, -23285760, 1764489216, -581349376, 20135936, -1356128256, 1171547136, -1929965568, -1818499072, -52813824, -2045345792, -41496576, 1980603392, -1836945408, 1333566464, 349633536, 1171468288, -1665914880, -2139964928, 1844230144, 610437120, -2056615936, 97132032, -321011200, -34074112, -497089024, 756676608, 1752976384, -1212659712, -459460608, -1135324672, -1284448768, 669607936, 1043621888, -796641792, 573926400, 136994816, -1024416768, -468932608, -439785472, 1385519104, 1218887680, -1397359616, 1923769344, -963227648, -1343551488, -2028926976, -683532288, -1846407168, -654064640, -120232960, -390379520, 262631424, -1697529856, -488698880, -789092352, 36315648, -1395773440, -343848960, -524206080, -1724958720, -1301450752, 1158424576, 165468160, 1858941440, -760139264, -1921860608, 712912896, 2063230976, -1634181120, 826269696, -1373632512, -1975331840, 1715310592, -1581072384, -1672765440, 1886904320, -1468248064, 1847216128, -917538816, -955754496, 1659511808, -1622325248, 1559117824, -1600258048, 1277052928, -507686912, 631079936, 1091107840, 1909468672, 597497344, 501801984, 1771574272, -1596595712, 1695213568, -1779201536, 866890752, 1439553536, -538634240, 1245731328, 1028198400, 1462654976, 56846336, -632188928, -664889344, -215326720, -6301696, -1748582400, -1825830912, -507676672, -718024704, 1983991808, 213014528, -456359936, 15687680, 167269376, 570025984, -609382400, 90109952, 1610380288, -1299929088, -116480000, -1888133120, 1012481024, 1339948032, 285756416, 69881856, 1632206848, -1274687488, -1481873920, -1398512640, 502663168, 1512119296, 958674944, -141530112, -2075714560, -551603200, 1240585216, -666422784, -643043328, 1659171840, -1451506688, -179258368, -1232228352, -1813128192, -19296808 (omitted)
+InvalidArgumentError: {{function_node __wrapped__GreaterEqual_device_/job:localhost/replica:0/task:0/device:CPU:0}} Incompatible shapes: [2] vs. [0,93,82,65,5,81] [Op:GreaterEqual] name:
+InvalidArgumentError: {{function_node __wrapped__Slice_device_/job:localhost/replica:0/task:0/device:CPU:0}} Expected begin and size arguments to be 1-D tensors of size 1, but got shapes [0] and [0] instead. [Op:Slice] name:
+InvalidArgumentError: {{function_node __wrapped__Slice_device_/job:localhost/replica:0/task:0/device:CPU:0}} Expected begin[0] in [0, 50], but got -1170256 [Op:Slice] name:
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (size tensor must be 1-D integer, match rank, and fit within value’s shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 1 ∧ shape(v_2, 0) = ndim(v_1) ∧ 1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5 ∧ min(v_2) ≥ 0 ∧ (∀ i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ max(v_2))
+Token usage: input=3397, output=8572, total=11969
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.random_crop API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Randomly crops a tensor to a given size.
+
+  Slices a shape `size` portion out of `value` at a uniformly chosen offset.
+  Requires `value.shape >= size`.
+
+  If a dimension should not be cropped, pass the full size of that dimension.
+  For example, RGB images can be cropped with
+  `size = [crop_height, crop_width, 3]`.
+
+  Example usage:
+
+  >>> image = [[1, 2, 3], [4, 5, 6]]
+  >>> result = tf.image.random_crop(value=image, size=(1, 3))
+  >>> result.shape.as_list()
+  [1, 3]
+
+  For producing deterministic results given a `seed` value, use
+  `tf.image.stateless_random_crop`. Unlike using the `seed` param with
+  `tf.image.random_*` ops, `tf.image.stateless_random_*` ops guarantee the same
+  results given the same seed independent of how many times the function is
+  called, and independent of global seed settings (e.g. tf.random.set_seed).
+
+  Args:
+    value: Input tensor to crop.
+    size: 1-D tensor with size the rank of `value`.
+    seed: Python integer. Used to create a random seed. See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for this operation (optional).
+
+  Returns:
+    A cropped tensor of the same rank as `value` and shape `size`.
+
+[Possible API Signatures]
+ - value: tensor, size: tensor, seed: integer, name: string
+ - value: tensor, size: list, seed: integer, name: string
+ - value: tensor, size: tuple, seed: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: Expected 'tf.Tensor(False, shape=(), dtype=bool)' to be true. Summarized data: b'Need value.shape >= size, got ' 68 1670374912, 1880028160, -603859968, -1295939584, -1542522880, -1070793728, 1382679552, -1897255936, 21446144, -187205632, 1526003712, -446995456, 1938496512, 1762775040, -1091487744, 28107776, -1372057600, -2033171456, -655953920, 208819200, -1522884096, -1235870720, -1015913472, 287315968, -126870528, -1668019200, 1066636800, 475339776, 506224640, 223880192, 1017179136, 2118310912, -1082384384, -910104576, 1495813120, 1821221888, -2078580736, 1832944640, -907168768, -833077248, 1312256000, -1899140096, -187400192, 2010601472, 445773824, -648756224, -379149312, 912143360, -843976704, 1711096832, 1441713152
+InvalidArgumentError: Expected 'tf.Tensor(False, shape=(), dtype=bool)' to be true. Summarized data: b'Need value.shape >= size, got ' 96 -1777295360, -1892417536, -291799040, -857701888, -1127875072, 1727566336, 1938074624, 1421358080, 967220224, -1888899072, -1421651968, -1889525760, 485208064, 1501453824, -1130796544, -657055744, 1285832704, 706690048, -1143737344, 807017984, -161570816, -16472064, -1061357568, 1753801728, 397959168, 281712640, 870791168, -984034816, -1176875008, 1131795456, 120545280, -240598016, 1024285696, 1044382720, -998569984, 1521986560, -1872804864, 1971466240, -314040320, 1822687232, 552771584, -1099980800, 1634180608, 8485888, 449744896, 1018247168, -504836096, -43708928, -1837299712, -1756347392, -1188989952, 128964608, -23285760, 1764489216, -581349376, 20135936, -1356128256, 1171547136, -1929965568, -1818499072, -52813824, -2045345792, -41496576, 1980603392, -1836945408, 1333566464, 349633536, 1171468288, -1665914880, -2139964928, 1844230144, 610437120, -2056615936, 97132032, -321011200, -34074112, -497089024, 756676608, 1752976384, -1212659712, -459460608, -1135324672, -1284448768, 669607936, 1043621888, -796641792, 573926400, 136994816, -1024416768, -468932608, -439785472, 1385519104, 1218887680, -1397359616, 1923769344, -963227648, -1343551488, -2028926976, -683532288, -1846407168, -654064640, -120232960, -390379520, 262631424, -1697529856, -488698880, -789092352, 36315648, -1395773440, -343848960, -524206080, -1724958720, -1301450752, 1158424576, 165468160, 1858941440, -760139264, -1921860608, 712912896, 2063230976, -1634181120, 826269696, -1373632512, -1975331840, 1715310592, -1581072384, -1672765440, 1886904320, -1468248064, 1847216128, -917538816, -955754496, 1659511808, -1622325248, 1559117824, -1600258048, 1277052928, -507686912, 631079936, 1091107840, 1909468672, 597497344, 501801984, 1771574272, -1596595712, 1695213568, -1779201536, 866890752, 1439553536, -538634240, 1245731328, 1028198400, 1462654976, 56846336, -632188928, -664889344, -215326720, -6301696, -1748582400, -1825830912, -507676672, -718024704, 1983991808, 213014528, -456359936, 15687680, 167269376, 570025984, -609382400, 90109952, 1610380288, -1299929088, -116480000, -1888133120, 1012481024, 1339948032, 285756416, 69881856, 1632206848, -1274687488, -1481873920, -1398512640, 502663168, 1512119296, 958674944, -141530112, -2075714560, -551603200, 1240585216, -666422784, -643043328, 1659171840, -1451506688, -179258368, -1232228352, -1813128192, -19296808 (omitted)
+InvalidArgumentError: {{function_node __wrapped__GreaterEqual_device_/job:localhost/replica:0/task:0/device:CPU:0}} Incompatible shapes: [2] vs. [0,93,82,65,5,81] [Op:GreaterEqual] name:
+InvalidArgumentError: {{function_node __wrapped__Slice_device_/job:localhost/replica:0/task:0/device:CPU:0}} Expected begin and size arguments to be 1-D tensors of size 1, but got shapes [0] and [0] instead. [Op:Slice] name:
+InvalidArgumentError: {{function_node __wrapped__Slice_device_/job:localhost/replica:0/task:0/device:CPU:0}} Expected begin[0] in [0, 50], but got -1170256 [Op:Slice] name:
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (tuple size matches rank and per-dimension is non-negative and ≤ shape)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len = ndim(v_1) ∧ (∀ i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] ≤ shape(v_1, i))
+Token usage: input=3397, output=8572, total=11969
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.random_crop API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Randomly crops a tensor to a given size.
+
+  Slices a shape `size` portion out of `value` at a uniformly chosen offset.
+  Requires `value.shape >= size`.
+
+  If a dimension should not be cropped, pass the full size of that dimension.
+  For example, RGB images can be cropped with
+  `size = [crop_height, crop_width, 3]`.
+
+  Example usage:
+
+  >>> image = [[1, 2, 3], [4, 5, 6]]
+  >>> result = tf.image.random_crop(value=image, size=(1, 3))
+  >>> result.shape.as_list()
+  [1, 3]
+
+  For producing deterministic results given a `seed` value, use
+  `tf.image.stateless_random_crop`. Unlike using the `seed` param with
+  `tf.image.random_*` ops, `tf.image.stateless_random_*` ops guarantee the same
+  results given the same seed independent of how many times the function is
+  called, and independent of global seed settings (e.g. tf.random.set_seed).
+
+  Args:
+    value: Input tensor to crop.
+    size: 1-D tensor with size the rank of `value`.
+    seed: Python integer. Used to create a random seed. See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for this operation (optional).
+
+  Returns:
+    A cropped tensor of the same rank as `value` and shape `size`.
+
+[Possible API Signatures]
+ - value: tensor, size: tensor, seed: integer, name: string
+ - value: tensor, size: list, seed: integer, name: string
+ - value: tensor, size: tuple, seed: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: Expected 'tf.Tensor(False, shape=(), dtype=bool)' to be true. Summarized data: b'Need value.shape >= size, got ' 68 1670374912, 1880028160, -603859968, -1295939584, -1542522880, -1070793728, 1382679552, -1897255936, 21446144, -187205632, 1526003712, -446995456, 1938496512, 1762775040, -1091487744, 28107776, -1372057600, -2033171456, -655953920, 208819200, -1522884096, -1235870720, -1015913472, 287315968, -126870528, -1668019200, 1066636800, 475339776, 506224640, 223880192, 1017179136, 2118310912, -1082384384, -910104576, 1495813120, 1821221888, -2078580736, 1832944640, -907168768, -833077248, 1312256000, -1899140096, -187400192, 2010601472, 445773824, -648756224, -379149312, 912143360, -843976704, 1711096832, 1441713152
+InvalidArgumentError: Expected 'tf.Tensor(False, shape=(), dtype=bool)' to be true. Summarized data: b'Need value.shape >= size, got ' 96 -1777295360, -1892417536, -291799040, -857701888, -1127875072, 1727566336, 1938074624, 1421358080, 967220224, -1888899072, -1421651968, -1889525760, 485208064, 1501453824, -1130796544, -657055744, 1285832704, 706690048, -1143737344, 807017984, -161570816, -16472064, -1061357568, 1753801728, 397959168, 281712640, 870791168, -984034816, -1176875008, 1131795456, 120545280, -240598016, 1024285696, 1044382720, -998569984, 1521986560, -1872804864, 1971466240, -314040320, 1822687232, 552771584, -1099980800, 1634180608, 8485888, 449744896, 1018247168, -504836096, -43708928, -1837299712, -1756347392, -1188989952, 128964608, -23285760, 1764489216, -581349376, 20135936, -1356128256, 1171547136, -1929965568, -1818499072, -52813824, -2045345792, -41496576, 1980603392, -1836945408, 1333566464, 349633536, 1171468288, -1665914880, -2139964928, 1844230144, 610437120, -2056615936, 97132032, -321011200, -34074112, -497089024, 756676608, 1752976384, -1212659712, -459460608, -1135324672, -1284448768, 669607936, 1043621888, -796641792, 573926400, 136994816, -1024416768, -468932608, -439785472, 1385519104, 1218887680, -1397359616, 1923769344, -963227648, -1343551488, -2028926976, -683532288, -1846407168, -654064640, -120232960, -390379520, 262631424, -1697529856, -488698880, -789092352, 36315648, -1395773440, -343848960, -524206080, -1724958720, -1301450752, 1158424576, 165468160, 1858941440, -760139264, -1921860608, 712912896, 2063230976, -1634181120, 826269696, -1373632512, -1975331840, 1715310592, -1581072384, -1672765440, 1886904320, -1468248064, 1847216128, -917538816, -955754496, 1659511808, -1622325248, 1559117824, -1600258048, 1277052928, -507686912, 631079936, 1091107840, 1909468672, 597497344, 501801984, 1771574272, -1596595712, 1695213568, -1779201536, 866890752, 1439553536, -538634240, 1245731328, 1028198400, 1462654976, 56846336, -632188928, -664889344, -215326720, -6301696, -1748582400, -1825830912, -507676672, -718024704, 1983991808, 213014528, -456359936, 15687680, 167269376, 570025984, -609382400, 90109952, 1610380288, -1299929088, -116480000, -1888133120, 1012481024, 1339948032, 285756416, 69881856, 1632206848, -1274687488, -1481873920, -1398512640, 502663168, 1512119296, 958674944, -141530112, -2075714560, -551603200, 1240585216, -666422784, -643043328, 1659171840, -1451506688, -179258368, -1232228352, -1813128192, -19296808 (omitted)
+InvalidArgumentError: {{function_node __wrapped__GreaterEqual_device_/job:localhost/replica:0/task:0/device:CPU:0}} Incompatible shapes: [2] vs. [0,93,82,65,5,81] [Op:GreaterEqual] name:
+InvalidArgumentError: {{function_node __wrapped__Slice_device_/job:localhost/replica:0/task:0/device:CPU:0}} Expected begin and size arguments to be 1-D tensors of size 1, but got shapes [0] and [0] instead. [Op:Slice] name:
+InvalidArgumentError: {{function_node __wrapped__Slice_device_/job:localhost/replica:0/task:0/device:CPU:0}} Expected begin[0] in [0, 50], but got -1170256 [Op:Slice] name:
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (no empty size vector for rank ≥ 1 tensors)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≥ 1 then (ndim(v_2) = 1 ∧ shape(v_2, 0) ≥ 1)
+Token usage: input=3397, output=8572, total=11969
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.random_crop API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Randomly crops a tensor to a given size.
+
+  Slices a shape `size` portion out of `value` at a uniformly chosen offset.
+  Requires `value.shape >= size`.
+
+  If a dimension should not be cropped, pass the full size of that dimension.
+  For example, RGB images can be cropped with
+  `size = [crop_height, crop_width, 3]`.
+
+  Example usage:
+
+  >>> image = [[1, 2, 3], [4, 5, 6]]
+  >>> result = tf.image.random_crop(value=image, size=(1, 3))
+  >>> result.shape.as_list()
+  [1, 3]
+
+  For producing deterministic results given a `seed` value, use
+  `tf.image.stateless_random_crop`. Unlike using the `seed` param with
+  `tf.image.random_*` ops, `tf.image.stateless_random_*` ops guarantee the same
+  results given the same seed independent of how many times the function is
+  called, and independent of global seed settings (e.g. tf.random.set_seed).
+
+  Args:
+    value: Input tensor to crop.
+    size: 1-D tensor with size the rank of `value`.
+    seed: Python integer. Used to create a random seed. See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for this operation (optional).
+
+  Returns:
+    A cropped tensor of the same rank as `value` and shape `size`.
+
+[Possible API Signatures]
+ - value: tensor, size: tensor, seed: integer, name: string
+ - value: tensor, size: list, seed: integer, name: string
+ - value: tensor, size: tuple, seed: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: Expected 'tf.Tensor(False, shape=(), dtype=bool)' to be true. Summarized data: b'Need value.shape >= size, got ' 68 1670374912, 1880028160, -603859968, -1295939584, -1542522880, -1070793728, 1382679552, -1897255936, 21446144, -187205632, 1526003712, -446995456, 1938496512, 1762775040, -1091487744, 28107776, -1372057600, -2033171456, -655953920, 208819200, -1522884096, -1235870720, -1015913472, 287315968, -126870528, -1668019200, 1066636800, 475339776, 506224640, 223880192, 1017179136, 2118310912, -1082384384, -910104576, 1495813120, 1821221888, -2078580736, 1832944640, -907168768, -833077248, 1312256000, -1899140096, -187400192, 2010601472, 445773824, -648756224, -379149312, 912143360, -843976704, 1711096832, 1441713152
+InvalidArgumentError: Expected 'tf.Tensor(False, shape=(), dtype=bool)' to be true. Summarized data: b'Need value.shape >= size, got ' 96 -1777295360, -1892417536, -291799040, -857701888, -1127875072, 1727566336, 1938074624, 1421358080, 967220224, -1888899072, -1421651968, -1889525760, 485208064, 1501453824, -1130796544, -657055744, 1285832704, 706690048, -1143737344, 807017984, -161570816, -16472064, -1061357568, 1753801728, 397959168, 281712640, 870791168, -984034816, -1176875008, 1131795456, 120545280, -240598016, 1024285696, 1044382720, -998569984, 1521986560, -1872804864, 1971466240, -314040320, 1822687232, 552771584, -1099980800, 1634180608, 8485888, 449744896, 1018247168, -504836096, -43708928, -1837299712, -1756347392, -1188989952, 128964608, -23285760, 1764489216, -581349376, 20135936, -1356128256, 1171547136, -1929965568, -1818499072, -52813824, -2045345792, -41496576, 1980603392, -1836945408, 1333566464, 349633536, 1171468288, -1665914880, -2139964928, 1844230144, 610437120, -2056615936, 97132032, -321011200, -34074112, -497089024, 756676608, 1752976384, -1212659712, -459460608, -1135324672, -1284448768, 669607936, 1043621888, -796641792, 573926400, 136994816, -1024416768, -468932608, -439785472, 1385519104, 1218887680, -1397359616, 1923769344, -963227648, -1343551488, -2028926976, -683532288, -1846407168, -654064640, -120232960, -390379520, 262631424, -1697529856, -488698880, -789092352, 36315648, -1395773440, -343848960, -524206080, -1724958720, -1301450752, 1158424576, 165468160, 1858941440, -760139264, -1921860608, 712912896, 2063230976, -1634181120, 826269696, -1373632512, -1975331840, 1715310592, -1581072384, -1672765440, 1886904320, -1468248064, 1847216128, -917538816, -955754496, 1659511808, -1622325248, 1559117824, -1600258048, 1277052928, -507686912, 631079936, 1091107840, 1909468672, 597497344, 501801984, 1771574272, -1596595712, 1695213568, -1779201536, 866890752, 1439553536, -538634240, 1245731328, 1028198400, 1462654976, 56846336, -632188928, -664889344, -215326720, -6301696, -1748582400, -1825830912, -507676672, -718024704, 1983991808, 213014528, -456359936, 15687680, 167269376, 570025984, -609382400, 90109952, 1610380288, -1299929088, -116480000, -1888133120, 1012481024, 1339948032, 285756416, 69881856, 1632206848, -1274687488, -1481873920, -1398512640, 502663168, 1512119296, 958674944, -141530112, -2075714560, -551603200, 1240585216, -666422784, -643043328, 1659171840, -1451506688, -179258368, -1232228352, -1813128192, -19296808 (omitted)
+InvalidArgumentError: {{function_node __wrapped__GreaterEqual_device_/job:localhost/replica:0/task:0/device:CPU:0}} Incompatible shapes: [2] vs. [0,93,82,65,5,81] [Op:GreaterEqual] name:
+InvalidArgumentError: {{function_node __wrapped__Slice_device_/job:localhost/replica:0/task:0/device:CPU:0}} Expected begin and size arguments to be 1-D tensors of size 1, but got shapes [0] and [0] instead. [Op:Slice] name:
+InvalidArgumentError: {{function_node __wrapped__Slice_device_/job:localhost/replica:0/task:0/device:CPU:0}} Expected begin[0] in [0, 50], but got -1170256 [Op:Slice] name:
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (preserve channels when cropping RGB tensors with tuple size)
+{v_1 : tensor, v_2 : tuple(int)} |= if shape(v_1, ndim(v_1) - 1) = 3 then v_2[v_2.len - 1] = 3
+Token usage: input=3397, output=8572, total=11969
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.random_crop API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Randomly crops a tensor to a given size.
+
+  Slices a shape `size` portion out of `value` at a uniformly chosen offset.
+  Requires `value.shape >= size`.
+
+  If a dimension should not be cropped, pass the full size of that dimension.
+  For example, RGB images can be cropped with
+  `size = [crop_height, crop_width, 3]`.
+
+  Example usage:
+
+  >>> image = [[1, 2, 3], [4, 5, 6]]
+  >>> result = tf.image.random_crop(value=image, size=(1, 3))
+  >>> result.shape.as_list()
+  [1, 3]
+
+  For producing deterministic results given a `seed` value, use
+  `tf.image.stateless_random_crop`. Unlike using the `seed` param with
+  `tf.image.random_*` ops, `tf.image.stateless_random_*` ops guarantee the same
+  results given the same seed independent of how many times the function is
+  called, and independent of global seed settings (e.g. tf.random.set_seed).
+
+  Args:
+    value: Input tensor to crop.
+    size: 1-D tensor with size the rank of `value`.
+    seed: Python integer. Used to create a random seed. See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for this operation (optional).
+
+  Returns:
+    A cropped tensor of the same rank as `value` and shape `size`.
+
+[Possible API Signatures]
+ - value: tensor, size: tensor, seed: integer, name: string
+ - value: tensor, size: list, seed: integer, name: string
+ - value: tensor, size: tuple, seed: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: Expected 'tf.Tensor(False, shape=(), dtype=bool)' to be true. Summarized data: b'Need value.shape >= size, got ' 68 1670374912, 1880028160, -603859968, -1295939584, -1542522880, -1070793728, 1382679552, -1897255936, 21446144, -187205632, 1526003712, -446995456, 1938496512, 1762775040, -1091487744, 28107776, -1372057600, -2033171456, -655953920, 208819200, -1522884096, -1235870720, -1015913472, 287315968, -126870528, -1668019200, 1066636800, 475339776, 506224640, 223880192, 1017179136, 2118310912, -1082384384, -910104576, 1495813120, 1821221888, -2078580736, 1832944640, -907168768, -833077248, 1312256000, -1899140096, -187400192, 2010601472, 445773824, -648756224, -379149312, 912143360, -843976704, 1711096832, 1441713152
+InvalidArgumentError: Expected 'tf.Tensor(False, shape=(), dtype=bool)' to be true. Summarized data: b'Need value.shape >= size, got ' 96 -1777295360, -1892417536, -291799040, -857701888, -1127875072, 1727566336, 1938074624, 1421358080, 967220224, -1888899072, -1421651968, -1889525760, 485208064, 1501453824, -1130796544, -657055744, 1285832704, 706690048, -1143737344, 807017984, -161570816, -16472064, -1061357568, 1753801728, 397959168, 281712640, 870791168, -984034816, -1176875008, 1131795456, 120545280, -240598016, 1024285696, 1044382720, -998569984, 1521986560, -1872804864, 1971466240, -314040320, 1822687232, 552771584, -1099980800, 1634180608, 8485888, 449744896, 1018247168, -504836096, -43708928, -1837299712, -1756347392, -1188989952, 128964608, -23285760, 1764489216, -581349376, 20135936, -1356128256, 1171547136, -1929965568, -1818499072, -52813824, -2045345792, -41496576, 1980603392, -1836945408, 1333566464, 349633536, 1171468288, -1665914880, -2139964928, 1844230144, 610437120, -2056615936, 97132032, -321011200, -34074112, -497089024, 756676608, 1752976384, -1212659712, -459460608, -1135324672, -1284448768, 669607936, 1043621888, -796641792, 573926400, 136994816, -1024416768, -468932608, -439785472, 1385519104, 1218887680, -1397359616, 1923769344, -963227648, -1343551488, -2028926976, -683532288, -1846407168, -654064640, -120232960, -390379520, 262631424, -1697529856, -488698880, -789092352, 36315648, -1395773440, -343848960, -524206080, -1724958720, -1301450752, 1158424576, 165468160, 1858941440, -760139264, -1921860608, 712912896, 2063230976, -1634181120, 826269696, -1373632512, -1975331840, 1715310592, -1581072384, -1672765440, 1886904320, -1468248064, 1847216128, -917538816, -955754496, 1659511808, -1622325248, 1559117824, -1600258048, 1277052928, -507686912, 631079936, 1091107840, 1909468672, 597497344, 501801984, 1771574272, -1596595712, 1695213568, -1779201536, 866890752, 1439553536, -538634240, 1245731328, 1028198400, 1462654976, 56846336, -632188928, -664889344, -215326720, -6301696, -1748582400, -1825830912, -507676672, -718024704, 1983991808, 213014528, -456359936, 15687680, 167269376, 570025984, -609382400, 90109952, 1610380288, -1299929088, -116480000, -1888133120, 1012481024, 1339948032, 285756416, 69881856, 1632206848, -1274687488, -1481873920, -1398512640, 502663168, 1512119296, 958674944, -141530112, -2075714560, -551603200, 1240585216, -666422784, -643043328, 1659171840, -1451506688, -179258368, -1232228352, -1813128192, -19296808 (omitted)
+InvalidArgumentError: {{function_node __wrapped__GreaterEqual_device_/job:localhost/replica:0/task:0/device:CPU:0}} Incompatible shapes: [2] vs. [0,93,82,65,5,81] [Op:GreaterEqual] name:
+InvalidArgumentError: {{function_node __wrapped__Slice_device_/job:localhost/replica:0/task:0/device:CPU:0}} Expected begin and size arguments to be 1-D tensors of size 1, but got shapes [0] and [0] instead. [Op:Slice] name:
+InvalidArgumentError: {{function_node __wrapped__Slice_device_/job:localhost/replica:0/task:0/device:CPU:0}} Expected begin[0] in [0, 50], but got -1170256 [Op:Slice] name:
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (seed is a non-negative integer)
+{v_3 : int} |= v_3 ≥ 0
+Token usage: input=3397, output=8572, total=11969
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.random_crop API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Randomly crops a tensor to a given size.
+
+  Slices a shape `size` portion out of `value` at a uniformly chosen offset.
+  Requires `value.shape >= size`.
+
+  If a dimension should not be cropped, pass the full size of that dimension.
+  For example, RGB images can be cropped with
+  `size = [crop_height, crop_width, 3]`.
+
+  Example usage:
+
+  >>> image = [[1, 2, 3], [4, 5, 6]]
+  >>> result = tf.image.random_crop(value=image, size=(1, 3))
+  >>> result.shape.as_list()
+  [1, 3]
+
+  For producing deterministic results given a `seed` value, use
+  `tf.image.stateless_random_crop`. Unlike using the `seed` param with
+  `tf.image.random_*` ops, `tf.image.stateless_random_*` ops guarantee the same
+  results given the same seed independent of how many times the function is
+  called, and independent of global seed settings (e.g. tf.random.set_seed).
+
+  Args:
+    value: Input tensor to crop.
+    size: 1-D tensor with size the rank of `value`.
+    seed: Python integer. Used to create a random seed. See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for this operation (optional).
+
+  Returns:
+    A cropped tensor of the same rank as `value` and shape `size`.
+
+[Possible API Signatures]
+ - value: tensor, size: tensor, seed: integer, name: string
+ - value: tensor, size: list, seed: integer, name: string
+ - value: tensor, size: tuple, seed: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: Expected 'tf.Tensor(False, shape=(), dtype=bool)' to be true. Summarized data: b'Need value.shape >= size, got ' 68 1670374912, 1880028160, -603859968, -1295939584, -1542522880, -1070793728, 1382679552, -1897255936, 21446144, -187205632, 1526003712, -446995456, 1938496512, 1762775040, -1091487744, 28107776, -1372057600, -2033171456, -655953920, 208819200, -1522884096, -1235870720, -1015913472, 287315968, -126870528, -1668019200, 1066636800, 475339776, 506224640, 223880192, 1017179136, 2118310912, -1082384384, -910104576, 1495813120, 1821221888, -2078580736, 1832944640, -907168768, -833077248, 1312256000, -1899140096, -187400192, 2010601472, 445773824, -648756224, -379149312, 912143360, -843976704, 1711096832, 1441713152
+InvalidArgumentError: Expected 'tf.Tensor(False, shape=(), dtype=bool)' to be true. Summarized data: b'Need value.shape >= size, got ' 96 -1777295360, -1892417536, -291799040, -857701888, -1127875072, 1727566336, 1938074624, 1421358080, 967220224, -1888899072, -1421651968, -1889525760, 485208064, 1501453824, -1130796544, -657055744, 1285832704, 706690048, -1143737344, 807017984, -161570816, -16472064, -1061357568, 1753801728, 397959168, 281712640, 870791168, -984034816, -1176875008, 1131795456, 120545280, -240598016, 1024285696, 1044382720, -998569984, 1521986560, -1872804864, 1971466240, -314040320, 1822687232, 552771584, -1099980800, 1634180608, 8485888, 449744896, 1018247168, -504836096, -43708928, -1837299712, -1756347392, -1188989952, 128964608, -23285760, 1764489216, -581349376, 20135936, -1356128256, 1171547136, -1929965568, -1818499072, -52813824, -2045345792, -41496576, 1980603392, -1836945408, 1333566464, 349633536, 1171468288, -1665914880, -2139964928, 1844230144, 610437120, -2056615936, 97132032, -321011200, -34074112, -497089024, 756676608, 1752976384, -1212659712, -459460608, -1135324672, -1284448768, 669607936, 1043621888, -796641792, 573926400, 136994816, -1024416768, -468932608, -439785472, 1385519104, 1218887680, -1397359616, 1923769344, -963227648, -1343551488, -2028926976, -683532288, -1846407168, -654064640, -120232960, -390379520, 262631424, -1697529856, -488698880, -789092352, 36315648, -1395773440, -343848960, -524206080, -1724958720, -1301450752, 1158424576, 165468160, 1858941440, -760139264, -1921860608, 712912896, 2063230976, -1634181120, 826269696, -1373632512, -1975331840, 1715310592, -1581072384, -1672765440, 1886904320, -1468248064, 1847216128, -917538816, -955754496, 1659511808, -1622325248, 1559117824, -1600258048, 1277052928, -507686912, 631079936, 1091107840, 1909468672, 597497344, 501801984, 1771574272, -1596595712, 1695213568, -1779201536, 866890752, 1439553536, -538634240, 1245731328, 1028198400, 1462654976, 56846336, -632188928, -664889344, -215326720, -6301696, -1748582400, -1825830912, -507676672, -718024704, 1983991808, 213014528, -456359936, 15687680, 167269376, 570025984, -609382400, 90109952, 1610380288, -1299929088, -116480000, -1888133120, 1012481024, 1339948032, 285756416, 69881856, 1632206848, -1274687488, -1481873920, -1398512640, 502663168, 1512119296, 958674944, -141530112, -2075714560, -551603200, 1240585216, -666422784, -643043328, 1659171840, -1451506688, -179258368, -1232228352, -1813128192, -19296808 (omitted)
+InvalidArgumentError: {{function_node __wrapped__GreaterEqual_device_/job:localhost/replica:0/task:0/device:CPU:0}} Incompatible shapes: [2] vs. [0,93,82,65,5,81] [Op:GreaterEqual] name:
+InvalidArgumentError: {{function_node __wrapped__Slice_device_/job:localhost/replica:0/task:0/device:CPU:0}} Expected begin and size arguments to be 1-D tensors of size 1, but got shapes [0] and [0] instead. [Op:Slice] name:
+InvalidArgumentError: {{function_node __wrapped__Slice_device_/job:localhost/replica:0/task:0/device:CPU:0}} Expected begin[0] in [0, 50], but got -1170256 [Op:Slice] name:
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (name is one of the allowed string identifiers)
+{v_4 : str} |= v_4 = "linear" ∨ v_4 = "valid" ∨ v_4 = "same" ∨ v_4 = "channels_last" ∨ v_4 = "channels_first"
+Token usage: input=3397, output=8572, total=11969
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.random_crop API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Randomly crops a tensor to a given size.
+
+  Slices a shape `size` portion out of `value` at a uniformly chosen offset.
+  Requires `value.shape >= size`.
+
+  If a dimension should not be cropped, pass the full size of that dimension.
+  For example, RGB images can be cropped with
+  `size = [crop_height, crop_width, 3]`.
+
+  Example usage:
+
+  >>> image = [[1, 2, 3], [4, 5, 6]]
+  >>> result = tf.image.random_crop(value=image, size=(1, 3))
+  >>> result.shape.as_list()
+  [1, 3]
+
+  For producing deterministic results given a `seed` value, use
+  `tf.image.stateless_random_crop`. Unlike using the `seed` param with
+  `tf.image.random_*` ops, `tf.image.stateless_random_*` ops guarantee the same
+  results given the same seed independent of how many times the function is
+  called, and independent of global seed settings (e.g. tf.random.set_seed).
+
+  Args:
+    value: Input tensor to crop.
+    size: 1-D tensor with size the rank of `value`.
+    seed: Python integer. Used to create a random seed. See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for this operation (optional).
+
+  Returns:
+    A cropped tensor of the same rank as `value` and shape `size`.
+
+[Possible API Signatures]
+ - value: tensor, size: tensor, seed: integer, name: string
+ - value: tensor, size: list, seed: integer, name: string
+ - value: tensor, size: tuple, seed: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: Expected 'tf.Tensor(False, shape=(), dtype=bool)' to be true. Summarized data: b'Need value.shape >= size, got ' 68 1670374912, 1880028160, -603859968, -1295939584, -1542522880, -1070793728, 1382679552, -1897255936, 21446144, -187205632, 1526003712, -446995456, 1938496512, 1762775040, -1091487744, 28107776, -1372057600, -2033171456, -655953920, 208819200, -1522884096, -1235870720, -1015913472, 287315968, -126870528, -1668019200, 1066636800, 475339776, 506224640, 223880192, 1017179136, 2118310912, -1082384384, -910104576, 1495813120, 1821221888, -2078580736, 1832944640, -907168768, -833077248, 1312256000, -1899140096, -187400192, 2010601472, 445773824, -648756224, -379149312, 912143360, -843976704, 1711096832, 1441713152
+InvalidArgumentError: Expected 'tf.Tensor(False, shape=(), dtype=bool)' to be true. Summarized data: b'Need value.shape >= size, got ' 96 -1777295360, -1892417536, -291799040, -857701888, -1127875072, 1727566336, 1938074624, 1421358080, 967220224, -1888899072, -1421651968, -1889525760, 485208064, 1501453824, -1130796544, -657055744, 1285832704, 706690048, -1143737344, 807017984, -161570816, -16472064, -1061357568, 1753801728, 397959168, 281712640, 870791168, -984034816, -1176875008, 1131795456, 120545280, -240598016, 1024285696, 1044382720, -998569984, 1521986560, -1872804864, 1971466240, -314040320, 1822687232, 552771584, -1099980800, 1634180608, 8485888, 449744896, 1018247168, -504836096, -43708928, -1837299712, -1756347392, -1188989952, 128964608, -23285760, 1764489216, -581349376, 20135936, -1356128256, 1171547136, -1929965568, -1818499072, -52813824, -2045345792, -41496576, 1980603392, -1836945408, 1333566464, 349633536, 1171468288, -1665914880, -2139964928, 1844230144, 610437120, -2056615936, 97132032, -321011200, -34074112, -497089024, 756676608, 1752976384, -1212659712, -459460608, -1135324672, -1284448768, 669607936, 1043621888, -796641792, 573926400, 136994816, -1024416768, -468932608, -439785472, 1385519104, 1218887680, -1397359616, 1923769344, -963227648, -1343551488, -2028926976, -683532288, -1846407168, -654064640, -120232960, -390379520, 262631424, -1697529856, -488698880, -789092352, 36315648, -1395773440, -343848960, -524206080, -1724958720, -1301450752, 1158424576, 165468160, 1858941440, -760139264, -1921860608, 712912896, 2063230976, -1634181120, 826269696, -1373632512, -1975331840, 1715310592, -1581072384, -1672765440, 1886904320, -1468248064, 1847216128, -917538816, -955754496, 1659511808, -1622325248, 1559117824, -1600258048, 1277052928, -507686912, 631079936, 1091107840, 1909468672, 597497344, 501801984, 1771574272, -1596595712, 1695213568, -1779201536, 866890752, 1439553536, -538634240, 1245731328, 1028198400, 1462654976, 56846336, -632188928, -664889344, -215326720, -6301696, -1748582400, -1825830912, -507676672, -718024704, 1983991808, 213014528, -456359936, 15687680, 167269376, 570025984, -609382400, 90109952, 1610380288, -1299929088, -116480000, -1888133120, 1012481024, 1339948032, 285756416, 69881856, 1632206848, -1274687488, -1481873920, -1398512640, 502663168, 1512119296, 958674944, -141530112, -2075714560, -551603200, 1240585216, -666422784, -643043328, 1659171840, -1451506688, -179258368, -1232228352, -1813128192, -19296808 (omitted)
+InvalidArgumentError: {{function_node __wrapped__GreaterEqual_device_/job:localhost/replica:0/task:0/device:CPU:0}} Incompatible shapes: [2] vs. [0,93,82,65,5,81] [Op:GreaterEqual] name:
+InvalidArgumentError: {{function_node __wrapped__Slice_device_/job:localhost/replica:0/task:0/device:CPU:0}} Expected begin and size arguments to be 1-D tensors of size 1, but got shapes [0] and [0] instead. [Op:Slice] name:
+InvalidArgumentError: {{function_node __wrapped__Slice_device_/job:localhost/replica:0/task:0/device:CPU:0}} Expected begin[0] in [0, 50], but got -1170256 [Op:Slice] name:
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 14 (cover list/tuple size signature; benign constraint using the parameter)
+{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= ndim(v_1) ≥ 0 ∧ v_2 = v_2
+Token usage: input=3397, output=8572, total=11969
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.random_crop API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Randomly crops a tensor to a given size.
+
+  Slices a shape `size` portion out of `value` at a uniformly chosen offset.
+  Requires `value.shape >= size`.
+
+  If a dimension should not be cropped, pass the full size of that dimension.
+  For example, RGB images can be cropped with
+  `size = [crop_height, crop_width, 3]`.
+
+  Example usage:
+
+  >>> image = [[1, 2, 3], [4, 5, 6]]
+  >>> result = tf.image.random_crop(value=image, size=(1, 3))
+  >>> result.shape.as_list()
+  [1, 3]
+
+  For producing deterministic results given a `seed` value, use
+  `tf.image.stateless_random_crop`. Unlike using the `seed` param with
+  `tf.image.random_*` ops, `tf.image.stateless_random_*` ops guarantee the same
+  results given the same seed independent of how many times the function is
+  called, and independent of global seed settings (e.g. tf.random.set_seed).
+
+  Args:
+    value: Input tensor to crop.
+    size: 1-D tensor with size the rank of `value`.
+    seed: Python integer. Used to create a random seed. See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for this operation (optional).
+
+  Returns:
+    A cropped tensor of the same rank as `value` and shape `size`.
+
+[Possible API Signatures]
+ - value: tensor, size: tensor, seed: integer, name: string
+ - value: tensor, size: list, seed: integer, name: string
+ - value: tensor, size: tuple, seed: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: Expected 'tf.Tensor(False, shape=(), dtype=bool)' to be true. Summarized data: b'Need value.shape >= size, got ' 68 1670374912, 1880028160, -603859968, -1295939584, -1542522880, -1070793728, 1382679552, -1897255936, 21446144, -187205632, 1526003712, -446995456, 1938496512, 1762775040, -1091487744, 28107776, -1372057600, -2033171456, -655953920, 208819200, -1522884096, -1235870720, -1015913472, 287315968, -126870528, -1668019200, 1066636800, 475339776, 506224640, 223880192, 1017179136, 2118310912, -1082384384, -910104576, 1495813120, 1821221888, -2078580736, 1832944640, -907168768, -833077248, 1312256000, -1899140096, -187400192, 2010601472, 445773824, -648756224, -379149312, 912143360, -843976704, 1711096832, 1441713152
+InvalidArgumentError: Expected 'tf.Tensor(False, shape=(), dtype=bool)' to be true. Summarized data: b'Need value.shape >= size, got ' 96 -1777295360, -1892417536, -291799040, -857701888, -1127875072, 1727566336, 1938074624, 1421358080, 967220224, -1888899072, -1421651968, -1889525760, 485208064, 1501453824, -1130796544, -657055744, 1285832704, 706690048, -1143737344, 807017984, -161570816, -16472064, -1061357568, 1753801728, 397959168, 281712640, 870791168, -984034816, -1176875008, 1131795456, 120545280, -240598016, 1024285696, 1044382720, -998569984, 1521986560, -1872804864, 1971466240, -314040320, 1822687232, 552771584, -1099980800, 1634180608, 8485888, 449744896, 1018247168, -504836096, -43708928, -1837299712, -1756347392, -1188989952, 128964608, -23285760, 1764489216, -581349376, 20135936, -1356128256, 1171547136, -1929965568, -1818499072, -52813824, -2045345792, -41496576, 1980603392, -1836945408, 1333566464, 349633536, 1171468288, -1665914880, -2139964928, 1844230144, 610437120, -2056615936, 97132032, -321011200, -34074112, -497089024, 756676608, 1752976384, -1212659712, -459460608, -1135324672, -1284448768, 669607936, 1043621888, -796641792, 573926400, 136994816, -1024416768, -468932608, -439785472, 1385519104, 1218887680, -1397359616, 1923769344, -963227648, -1343551488, -2028926976, -683532288, -1846407168, -654064640, -120232960, -390379520, 262631424, -1697529856, -488698880, -789092352, 36315648, -1395773440, -343848960, -524206080, -1724958720, -1301450752, 1158424576, 165468160, 1858941440, -760139264, -1921860608, 712912896, 2063230976, -1634181120, 826269696, -1373632512, -1975331840, 1715310592, -1581072384, -1672765440, 1886904320, -1468248064, 1847216128, -917538816, -955754496, 1659511808, -1622325248, 1559117824, -1600258048, 1277052928, -507686912, 631079936, 1091107840, 1909468672, 597497344, 501801984, 1771574272, -1596595712, 1695213568, -1779201536, 866890752, 1439553536, -538634240, 1245731328, 1028198400, 1462654976, 56846336, -632188928, -664889344, -215326720, -6301696, -1748582400, -1825830912, -507676672, -718024704, 1983991808, 213014528, -456359936, 15687680, 167269376, 570025984, -609382400, 90109952, 1610380288, -1299929088, -116480000, -1888133120, 1012481024, 1339948032, 285756416, 69881856, 1632206848, -1274687488, -1481873920, -1398512640, 502663168, 1512119296, 958674944, -141530112, -2075714560, -551603200, 1240585216, -666422784, -643043328, 1659171840, -1451506688, -179258368, -1232228352, -1813128192, -19296808 (omitted)
+InvalidArgumentError: {{function_node __wrapped__GreaterEqual_device_/job:localhost/replica:0/task:0/device:CPU:0}} Incompatible shapes: [2] vs. [0,93,82,65,5,81] [Op:GreaterEqual] name:
+InvalidArgumentError: {{function_node __wrapped__Slice_device_/job:localhost/replica:0/task:0/device:CPU:0}} Expected begin and size arguments to be 1-D tensors of size 1, but got shapes [0] and [0] instead. [Op:Slice] name:
+InvalidArgumentError: {{function_node __wrapped__Slice_device_/job:localhost/replica:0/task:0/device:CPU:0}} Expected begin[0] in [0, 50], but got -1170256 [Op:Slice] name:
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 15 (positive crop request implies all value dimensions are non-empty; tensor-size form)
+{v_1 : tensor, v_2 : tensor} |= if max(v_2) > 0 then (∀ i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+Token usage: input=3397, output=8572, total=11969
+** SUCCESS **
+

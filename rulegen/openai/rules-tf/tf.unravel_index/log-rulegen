@@ -1222,3 +1222,1227 @@ Rule 9 (union signature coverage: indices/dims can be tensor or tuple; name prov
 Token usage: input=2231, output=7699, total=9930
 ** SUCCESS **
 
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.unravel_index API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Converts an array of flat indices into a tuple of coordinate arrays.
+
+  
+  Example:
+
+  ```
+  y = tf.unravel_index(indices=[2, 5, 7], dims=[3, 3])
+  # 'dims' represent a hypothetical (3, 3) tensor of indices:
+  # [[0, 1, *2*],
+  #  [3, 4, *5*],
+  #  [6, *7*, 8]]
+  # For each entry from 'indices', this operation returns
+  # its coordinates (marked with '*'), such as
+  # 2 ==> (0, 2)
+  # 5 ==> (1, 2)
+  # 7 ==> (2, 1)
+  y ==> [[0, 1, 2], [2, 2, 1]]
+  ```
+
+  @compatibility(numpy)
+  Equivalent to np.unravel_index
+  @end_compatibility
+
+  Args:
+    indices: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      An 0-D or 1-D `int` Tensor whose elements are indices into the
+      flattened version of an array of dimensions dims.
+    dims: A `Tensor`. Must have the same type as `indices`.
+      An 1-D `int` Tensor. The shape of the array to use for unraveling
+      indices.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `indices`.
+
+[Possible API Signatures]
+ - indices: tensor, dims: tensor, name: string
+ - indices: tensor, dims: list, name: string
+ - indices: list, dims: tensor, name: string
+ - indices: list, dims: list, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input dims cannot be negative. Got dim = -2147483648 at index 0 [Op:UnravelIndex]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input dims product is causing integer overflow: ( 1670374912  1880028160  -603859968 -1295939584 -1542522880 -1070793728  1382679552 -1897255936    21446144  -187205632  1526003712  -446995456  1938496512  1762775040 -1091487744    28107776 -1372057600 -2033171456  -655953920   208819200 -1522884096 -1235870720 -1015913472   287315968  -126870528 -1668019200  1066636800   475339776   506224640   223880192  1017179136  2118310912 -1082384384  -910104576  1495813120  1821221888 -2078580736  1832944640  -907168768  -833077248  1312256000 -1899140096  -187400192  2010601472   445773824  -648756224  -379149312   912143360  -843976704  1711096832  1441713152) [Op:UnravelIndex]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} The indices can only be scalar or vector, got "[0,58,94,19]" [Op:UnravelIndex]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (tensor inputs must be int32/int64 and have matching dtypes)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ dtype_(v_2) = dtype_(v_1)
+Token usage: input=2338, output=8809, total=11147
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.unravel_index API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Converts an array of flat indices into a tuple of coordinate arrays.
+
+  
+  Example:
+
+  ```
+  y = tf.unravel_index(indices=[2, 5, 7], dims=[3, 3])
+  # 'dims' represent a hypothetical (3, 3) tensor of indices:
+  # [[0, 1, *2*],
+  #  [3, 4, *5*],
+  #  [6, *7*, 8]]
+  # For each entry from 'indices', this operation returns
+  # its coordinates (marked with '*'), such as
+  # 2 ==> (0, 2)
+  # 5 ==> (1, 2)
+  # 7 ==> (2, 1)
+  y ==> [[0, 1, 2], [2, 2, 1]]
+  ```
+
+  @compatibility(numpy)
+  Equivalent to np.unravel_index
+  @end_compatibility
+
+  Args:
+    indices: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      An 0-D or 1-D `int` Tensor whose elements are indices into the
+      flattened version of an array of dimensions dims.
+    dims: A `Tensor`. Must have the same type as `indices`.
+      An 1-D `int` Tensor. The shape of the array to use for unraveling
+      indices.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `indices`.
+
+[Possible API Signatures]
+ - indices: tensor, dims: tensor, name: string
+ - indices: tensor, dims: list, name: string
+ - indices: list, dims: tensor, name: string
+ - indices: list, dims: list, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input dims cannot be negative. Got dim = -2147483648 at index 0 [Op:UnravelIndex]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input dims product is causing integer overflow: ( 1670374912  1880028160  -603859968 -1295939584 -1542522880 -1070793728  1382679552 -1897255936    21446144  -187205632  1526003712  -446995456  1938496512  1762775040 -1091487744    28107776 -1372057600 -2033171456  -655953920   208819200 -1522884096 -1235870720 -1015913472   287315968  -126870528 -1668019200  1066636800   475339776   506224640   223880192  1017179136  2118310912 -1082384384  -910104576  1495813120  1821221888 -2078580736  1832944640  -907168768  -833077248  1312256000 -1899140096  -187400192  2010601472   445773824  -648756224  -379149312   912143360  -843976704  1711096832  1441713152) [Op:UnravelIndex]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} The indices can only be scalar or vector, got "[0,58,94,19]" [Op:UnravelIndex]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (dims tensor is 1-D, non-empty, and has no negative entries)
+{v_2 : tensor} |= ndim(v_2) = 1 ∧ shape(v_2, 0) > 0 ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ 0
+Token usage: input=2338, output=8809, total=11147
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.unravel_index API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Converts an array of flat indices into a tuple of coordinate arrays.
+
+  
+  Example:
+
+  ```
+  y = tf.unravel_index(indices=[2, 5, 7], dims=[3, 3])
+  # 'dims' represent a hypothetical (3, 3) tensor of indices:
+  # [[0, 1, *2*],
+  #  [3, 4, *5*],
+  #  [6, *7*, 8]]
+  # For each entry from 'indices', this operation returns
+  # its coordinates (marked with '*'), such as
+  # 2 ==> (0, 2)
+  # 5 ==> (1, 2)
+  # 7 ==> (2, 1)
+  y ==> [[0, 1, 2], [2, 2, 1]]
+  ```
+
+  @compatibility(numpy)
+  Equivalent to np.unravel_index
+  @end_compatibility
+
+  Args:
+    indices: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      An 0-D or 1-D `int` Tensor whose elements are indices into the
+      flattened version of an array of dimensions dims.
+    dims: A `Tensor`. Must have the same type as `indices`.
+      An 1-D `int` Tensor. The shape of the array to use for unraveling
+      indices.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `indices`.
+
+[Possible API Signatures]
+ - indices: tensor, dims: tensor, name: string
+ - indices: tensor, dims: list, name: string
+ - indices: list, dims: tensor, name: string
+ - indices: list, dims: list, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input dims cannot be negative. Got dim = -2147483648 at index 0 [Op:UnravelIndex]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input dims product is causing integer overflow: ( 1670374912  1880028160  -603859968 -1295939584 -1542522880 -1070793728  1382679552 -1897255936    21446144  -187205632  1526003712  -446995456  1938496512  1762775040 -1091487744    28107776 -1372057600 -2033171456  -655953920   208819200 -1522884096 -1235870720 -1015913472   287315968  -126870528 -1668019200  1066636800   475339776   506224640   223880192  1017179136  2118310912 -1082384384  -910104576  1495813120  1821221888 -2078580736  1832944640  -907168768  -833077248  1312256000 -1899140096  -187400192  2010601472   445773824  -648756224  -379149312   912143360  -843976704  1711096832  1441713152) [Op:UnravelIndex]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} The indices can only be scalar or vector, got "[0,58,94,19]" [Op:UnravelIndex]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (indices tensor must be scalar or vector)
+{v_1 : tensor} |= ndim(v_1) = 0 ∨ ndim(v_1) = 1
+Token usage: input=2338, output=8809, total=11147
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.unravel_index API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Converts an array of flat indices into a tuple of coordinate arrays.
+
+  
+  Example:
+
+  ```
+  y = tf.unravel_index(indices=[2, 5, 7], dims=[3, 3])
+  # 'dims' represent a hypothetical (3, 3) tensor of indices:
+  # [[0, 1, *2*],
+  #  [3, 4, *5*],
+  #  [6, *7*, 8]]
+  # For each entry from 'indices', this operation returns
+  # its coordinates (marked with '*'), such as
+  # 2 ==> (0, 2)
+  # 5 ==> (1, 2)
+  # 7 ==> (2, 1)
+  y ==> [[0, 1, 2], [2, 2, 1]]
+  ```
+
+  @compatibility(numpy)
+  Equivalent to np.unravel_index
+  @end_compatibility
+
+  Args:
+    indices: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      An 0-D or 1-D `int` Tensor whose elements are indices into the
+      flattened version of an array of dimensions dims.
+    dims: A `Tensor`. Must have the same type as `indices`.
+      An 1-D `int` Tensor. The shape of the array to use for unraveling
+      indices.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `indices`.
+
+[Possible API Signatures]
+ - indices: tensor, dims: tensor, name: string
+ - indices: tensor, dims: list, name: string
+ - indices: list, dims: tensor, name: string
+ - indices: list, dims: list, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input dims cannot be negative. Got dim = -2147483648 at index 0 [Op:UnravelIndex]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input dims product is causing integer overflow: ( 1670374912  1880028160  -603859968 -1295939584 -1542522880 -1070793728  1382679552 -1897255936    21446144  -187205632  1526003712  -446995456  1938496512  1762775040 -1091487744    28107776 -1372057600 -2033171456  -655953920   208819200 -1522884096 -1235870720 -1015913472   287315968  -126870528 -1668019200  1066636800   475339776   506224640   223880192  1017179136  2118310912 -1082384384  -910104576  1495813120  1821221888 -2078580736  1832944640  -907168768  -833077248  1312256000 -1899140096  -187400192  2010601472   445773824  -648756224  -379149312   912143360  -843976704  1711096832  1441713152) [Op:UnravelIndex]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} The indices can only be scalar or vector, got "[0,58,94,19]" [Op:UnravelIndex]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (prevent integer overflow from dims product for tensor inputs by conservative bounds)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 1 ∧ ((dtype_(v_1) = 3 ∧ shape(v_2, 0) ≤ 31 ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≤ 2) ∨ (dtype_(v_1) = 4 ∧ shape(v_2, 0) ≤ 63 ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≤ 2))
+Token usage: input=2338, output=8809, total=11147
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.unravel_index API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Converts an array of flat indices into a tuple of coordinate arrays.
+
+  
+  Example:
+
+  ```
+  y = tf.unravel_index(indices=[2, 5, 7], dims=[3, 3])
+  # 'dims' represent a hypothetical (3, 3) tensor of indices:
+  # [[0, 1, *2*],
+  #  [3, 4, *5*],
+  #  [6, *7*, 8]]
+  # For each entry from 'indices', this operation returns
+  # its coordinates (marked with '*'), such as
+  # 2 ==> (0, 2)
+  # 5 ==> (1, 2)
+  # 7 ==> (2, 1)
+  y ==> [[0, 1, 2], [2, 2, 1]]
+  ```
+
+  @compatibility(numpy)
+  Equivalent to np.unravel_index
+  @end_compatibility
+
+  Args:
+    indices: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      An 0-D or 1-D `int` Tensor whose elements are indices into the
+      flattened version of an array of dimensions dims.
+    dims: A `Tensor`. Must have the same type as `indices`.
+      An 1-D `int` Tensor. The shape of the array to use for unraveling
+      indices.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `indices`.
+
+[Possible API Signatures]
+ - indices: tensor, dims: tensor, name: string
+ - indices: tensor, dims: list, name: string
+ - indices: list, dims: tensor, name: string
+ - indices: list, dims: list, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input dims cannot be negative. Got dim = -2147483648 at index 0 [Op:UnravelIndex]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input dims product is causing integer overflow: ( 1670374912  1880028160  -603859968 -1295939584 -1542522880 -1070793728  1382679552 -1897255936    21446144  -187205632  1526003712  -446995456  1938496512  1762775040 -1091487744    28107776 -1372057600 -2033171456  -655953920   208819200 -1522884096 -1235870720 -1015913472   287315968  -126870528 -1668019200  1066636800   475339776   506224640   223880192  1017179136  2118310912 -1082384384  -910104576  1495813120  1821221888 -2078580736  1832944640  -907168768  -833077248  1312256000 -1899140096  -187400192  2010601472   445773824  -648756224  -379149312   912143360  -843976704  1711096832  1441713152) [Op:UnravelIndex]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} The indices can only be scalar or vector, got "[0,58,94,19]" [Op:UnravelIndex]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 14 (list-based dims are non-empty and non-negative)
+{v_1 : list(int), v_2 : list(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+Token usage: input=2338, output=8809, total=11147
+** REDUNDANT VARIABLES ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.unravel_index API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Converts an array of flat indices into a tuple of coordinate arrays.
+
+  
+  Example:
+
+  ```
+  y = tf.unravel_index(indices=[2, 5, 7], dims=[3, 3])
+  # 'dims' represent a hypothetical (3, 3) tensor of indices:
+  # [[0, 1, *2*],
+  #  [3, 4, *5*],
+  #  [6, *7*, 8]]
+  # For each entry from 'indices', this operation returns
+  # its coordinates (marked with '*'), such as
+  # 2 ==> (0, 2)
+  # 5 ==> (1, 2)
+  # 7 ==> (2, 1)
+  y ==> [[0, 1, 2], [2, 2, 1]]
+  ```
+
+  @compatibility(numpy)
+  Equivalent to np.unravel_index
+  @end_compatibility
+
+  Args:
+    indices: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      An 0-D or 1-D `int` Tensor whose elements are indices into the
+      flattened version of an array of dimensions dims.
+    dims: A `Tensor`. Must have the same type as `indices`.
+      An 1-D `int` Tensor. The shape of the array to use for unraveling
+      indices.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `indices`.
+
+[Possible API Signatures]
+ - indices: tensor, dims: tensor, name: string
+ - indices: tensor, dims: list, name: string
+ - indices: list, dims: tensor, name: string
+ - indices: list, dims: list, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input dims cannot be negative. Got dim = -2147483648 at index 0 [Op:UnravelIndex]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input dims product is causing integer overflow: ( 1670374912  1880028160  -603859968 -1295939584 -1542522880 -1070793728  1382679552 -1897255936    21446144  -187205632  1526003712  -446995456  1938496512  1762775040 -1091487744    28107776 -1372057600 -2033171456  -655953920   208819200 -1522884096 -1235870720 -1015913472   287315968  -126870528 -1668019200  1066636800   475339776   506224640   223880192  1017179136  2118310912 -1082384384  -910104576  1495813120  1821221888 -2078580736  1832944640  -907168768  -833077248  1312256000 -1899140096  -187400192  2010601472   445773824  -648756224  -379149312   912143360  -843976704  1711096832  1441713152) [Op:UnravelIndex]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} The indices can only be scalar or vector, got "[0,58,94,19]" [Op:UnravelIndex]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 15 (prevent integer overflow from dims product for list dims by conservative bounds)
+{v_2 : list(int)} |= v_2.len ≤ 63 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≤ 2
+Token usage: input=2338, output=8809, total=11147
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.unravel_index API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Converts an array of flat indices into a tuple of coordinate arrays.
+
+  
+  Example:
+
+  ```
+  y = tf.unravel_index(indices=[2, 5, 7], dims=[3, 3])
+  # 'dims' represent a hypothetical (3, 3) tensor of indices:
+  # [[0, 1, *2*],
+  #  [3, 4, *5*],
+  #  [6, *7*, 8]]
+  # For each entry from 'indices', this operation returns
+  # its coordinates (marked with '*'), such as
+  # 2 ==> (0, 2)
+  # 5 ==> (1, 2)
+  # 7 ==> (2, 1)
+  y ==> [[0, 1, 2], [2, 2, 1]]
+  ```
+
+  @compatibility(numpy)
+  Equivalent to np.unravel_index
+  @end_compatibility
+
+  Args:
+    indices: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      An 0-D or 1-D `int` Tensor whose elements are indices into the
+      flattened version of an array of dimensions dims.
+    dims: A `Tensor`. Must have the same type as `indices`.
+      An 1-D `int` Tensor. The shape of the array to use for unraveling
+      indices.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `indices`.
+
+[Possible API Signatures]
+ - indices: tensor, dims: tensor, name: string
+ - indices: tensor, dims: list, name: string
+ - indices: list, dims: tensor, name: string
+ - indices: list, dims: list, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input dims cannot be negative. Got dim = -2147483648 at index 0 [Op:UnravelIndex]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input dims product is causing integer overflow: ( 1670374912  1880028160  -603859968 -1295939584 -1542522880 -1070793728  1382679552 -1897255936    21446144  -187205632  1526003712  -446995456  1938496512  1762775040 -1091487744    28107776 -1372057600 -2033171456  -655953920   208819200 -1522884096 -1235870720 -1015913472   287315968  -126870528 -1668019200  1066636800   475339776   506224640   223880192  1017179136  2118310912 -1082384384  -910104576  1495813120  1821221888 -2078580736  1832944640  -907168768  -833077248  1312256000 -1899140096  -187400192  2010601472   445773824  -648756224  -379149312   912143360  -843976704  1711096832  1441713152) [Op:UnravelIndex]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} The indices can only be scalar or vector, got "[0,58,94,19]" [Op:UnravelIndex]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 16 (list → tensor signature: dims tensor must be int32/int64 and 1-D)
+{v_1 : list(int), v_2 : tensor} |= (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ ndim(v_2) = 1 ∧ shape(v_2, 0) > 0
+Token usage: input=2338, output=8809, total=11147
+** REDUNDANT VARIABLES ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.unravel_index API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Converts an array of flat indices into a tuple of coordinate arrays.
+
+  
+  Example:
+
+  ```
+  y = tf.unravel_index(indices=[2, 5, 7], dims=[3, 3])
+  # 'dims' represent a hypothetical (3, 3) tensor of indices:
+  # [[0, 1, *2*],
+  #  [3, 4, *5*],
+  #  [6, *7*, 8]]
+  # For each entry from 'indices', this operation returns
+  # its coordinates (marked with '*'), such as
+  # 2 ==> (0, 2)
+  # 5 ==> (1, 2)
+  # 7 ==> (2, 1)
+  y ==> [[0, 1, 2], [2, 2, 1]]
+  ```
+
+  @compatibility(numpy)
+  Equivalent to np.unravel_index
+  @end_compatibility
+
+  Args:
+    indices: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      An 0-D or 1-D `int` Tensor whose elements are indices into the
+      flattened version of an array of dimensions dims.
+    dims: A `Tensor`. Must have the same type as `indices`.
+      An 1-D `int` Tensor. The shape of the array to use for unraveling
+      indices.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `indices`.
+
+[Possible API Signatures]
+ - indices: tensor, dims: tensor, name: string
+ - indices: tensor, dims: list, name: string
+ - indices: list, dims: tensor, name: string
+ - indices: list, dims: list, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input dims cannot be negative. Got dim = -2147483648 at index 0 [Op:UnravelIndex]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input dims product is causing integer overflow: ( 1670374912  1880028160  -603859968 -1295939584 -1542522880 -1070793728  1382679552 -1897255936    21446144  -187205632  1526003712  -446995456  1938496512  1762775040 -1091487744    28107776 -1372057600 -2033171456  -655953920   208819200 -1522884096 -1235870720 -1015913472   287315968  -126870528 -1668019200  1066636800   475339776   506224640   223880192  1017179136  2118310912 -1082384384  -910104576  1495813120  1821221888 -2078580736  1832944640  -907168768  -833077248  1312256000 -1899140096  -187400192  2010601472   445773824  -648756224  -379149312   912143360  -843976704  1711096832  1441713152) [Op:UnravelIndex]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} The indices can only be scalar or vector, got "[0,58,94,19]" [Op:UnravelIndex]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 17 (tensor → list signature: dims list consistent with indices dtype and non-negative)
+{v_1 : tensor, v_2 : list(int)} |= (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ (if dtype_(v_1) = 3 then v_2[i] ≤ 2147483647 else v_2[i] ≤ 9223372036854775807)
+Token usage: input=2338, output=8809, total=11147
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.unravel_index API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Converts an array of flat indices into a tuple of coordinate arrays.
+
+  
+  Example:
+
+  ```
+  y = tf.unravel_index(indices=[2, 5, 7], dims=[3, 3])
+  # 'dims' represent a hypothetical (3, 3) tensor of indices:
+  # [[0, 1, *2*],
+  #  [3, 4, *5*],
+  #  [6, *7*, 8]]
+  # For each entry from 'indices', this operation returns
+  # its coordinates (marked with '*'), such as
+  # 2 ==> (0, 2)
+  # 5 ==> (1, 2)
+  # 7 ==> (2, 1)
+  y ==> [[0, 1, 2], [2, 2, 1]]
+  ```
+
+  @compatibility(numpy)
+  Equivalent to np.unravel_index
+  @end_compatibility
+
+  Args:
+    indices: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      An 0-D or 1-D `int` Tensor whose elements are indices into the
+      flattened version of an array of dimensions dims.
+    dims: A `Tensor`. Must have the same type as `indices`.
+      An 1-D `int` Tensor. The shape of the array to use for unraveling
+      indices.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `indices`.
+
+[Possible API Signatures]
+ - indices: tensor, dims: tensor, name: string
+ - indices: tensor, dims: list, name: string
+ - indices: list, dims: tensor, name: string
+ - indices: list, dims: list, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input dims cannot be negative. Got dim = -2147483648 at index 0 [Op:UnravelIndex]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} Input dims product is causing integer overflow: ( 1670374912  1880028160  -603859968 -1295939584 -1542522880 -1070793728  1382679552 -1897255936    21446144  -187205632  1526003712  -446995456  1938496512  1762775040 -1091487744    28107776 -1372057600 -2033171456  -655953920   208819200 -1522884096 -1235870720 -1015913472   287315968  -126870528 -1668019200  1066636800   475339776   506224640   223880192  1017179136  2118310912 -1082384384  -910104576  1495813120  1821221888 -2078580736  1832944640  -907168768  -833077248  1312256000 -1899140096  -187400192  2010601472   445773824  -648756224  -379149312   912143360  -843976704  1711096832  1441713152) [Op:UnravelIndex]
+InvalidArgumentError: {{function_node __wrapped__UnravelIndex_device_/job:localhost/replica:0/task:0/device:CPU:0}} The indices can only be scalar or vector, got "[0,58,94,19]" [Op:UnravelIndex]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 18 (optional op name is a valid string token)
+{v_3 : str} |= v_3 = "none" ∨ v_3 = "linear" ∨ v_3 = "valid" ∨ v_3 = "same"
+Token usage: input=2338, output=8809, total=11147
+** SUCCESS **
+

@@ -25,3 +25,30 @@ Rule 9 (fast is a boolean flag)
 >>
 Rule 10 (name is a string)
 {v_5 : str} |= v_5 = v_5
+>>
+Rule 12 (outer/batch dimensions of matrix and rhs must match)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ (if ndim(v_1) = 2 then true else ∀i ∈ [0, ndim(v_1) - 3] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 14 (dtype compatibility and numerics for MatrixSolveLs; no bool)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 15 (prevent BatchMatMul/MatMul on non-supported integer types)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 16 (fast path disallows float16 to avoid missing Cholesky kernels)
+{v_1 : tensor, v_4 : bool} |= if v_4 = true then dtype_(v_1) ≠ 6
+>>
+Rule 17 (slow path requires CPU-supported types for MatrixSolveLs)
+{v_1 : tensor, v_4 : bool} |= if v_4 = false then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 19 (l2_regularizer float must be non-negative)
+{v_3 : float} |= v_3 ≥ 0
+>>
+Rule 20 (complex128 requires zero regularization for float signature)
+{v_1 : tensor, v_3 : float} |= if dtype_(v_1) = 10 then v_3 = 0
+>>
+Rule 21 (ranks of matrix and rhs must be equal to avoid size-incompatible matmuls)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+>>
+Rule 22 (name is a valid string identifier)
+{v_5 : str} |= v_5 = "none" ∨ v_5 = "linear" ∨ v_5 = "sum" ∨ v_5 = "max" ∨ v_5 = "min"

@@ -7330,3 +7330,122 @@ signatures["tf.train.checkpoints_iterator"] = {
     },
     "inner": {}
 }
+signatures["tf.raw_ops.RealDiv"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.math.in_top_k"] = {
+    "args": {
+        "targets": "tensor",
+        "predictions": "tensor",
+        "k": "integer"  # may also accept scalar int tensor
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.nn.ctc_loss"] = {
+    "args": {
+        "labels": "tensor",  # Could be SparseTensor or dense Tensor
+        "logits": "tensor",
+        "label_length": "tensor",  # Can be None if labels is SparseTensor
+        "logit_length": "tensor"
+    },
+    "kwargs": {
+        "logits_time_major": "boolean",
+        "unique": "tuple",  # Output of ctc_unique_labels(labels)
+        "blank_index": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SquaredDifference"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.nn.compute_accidental_hits"] = {
+    "args": {
+        "true_classes": "tensor",
+        "sampled_candidates": "tensor",
+        "num_true": "integer"
+    },
+    "kwargs": {
+        "seed": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.image.stateless_random_contrast_1"] = {
+    "args": {
+        "image": "tensor",
+        "lower": "float",  # Likely also accepts Tensor convertible to float
+        "upper": "float",  # Likely also accepts Tensor convertible to float
+        "seed": "tensor"
+    },
+    "kwargs": {},
+    "inner": {}
+}
+
+signatures["tf.image.stateless_random_contrast_2"] = {
+    "args": {
+        "image": "tensor",
+        "lower": "float",  # Likely also accepts Tensor convertible to float
+        "upper": "float",  # Likely also accepts Tensor convertible to float
+        "seed": "tuple"  # e.g., (int, int)
+    },
+    "kwargs": {},
+    "inner": {}
+}
+signatures["tf.strided_slice"] = {
+    "args": {
+        "input_": "tensor",
+        "begin": "tensor",
+        "end": "tensor"
+    },
+    "kwargs": {
+        "strides": "tensor",
+        "begin_mask": "integer",
+        "end_mask": "integer",
+        "ellipsis_mask": "integer",
+        "new_axis_mask": "integer",
+        "shrink_axis_mask": "integer",
+        "var": "tensor",  # ideally a tf.Variable; using "tensor" as closest match
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.experimental.numpy.logaddexp"] = {
+    "args": {
+        "x1": "tensor",
+        "x2": "tensor"
+    },
+    "kwargs": {},
+    "inner": {}
+}
+signatures["tf.quantization.fake_quant_with_min_max_vars_per_channel_gradient"] = {
+    "args": {
+        "gradients": "tensor",
+        "inputs": "tensor",
+        "min": "tensor",
+        "max": "tensor"
+    },
+    "kwargs": {
+        "num_bits": "integer",
+        "narrow_range": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}

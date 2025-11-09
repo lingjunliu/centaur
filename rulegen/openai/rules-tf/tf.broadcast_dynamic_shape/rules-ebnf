@@ -10,3 +10,18 @@ Rule 3 (list shapes contain non-negative dimensions)
 >>
 Rule 4 (tuple shapes contain non-negative dimensions)
 {v_1 : tuple(int), v_2 : tuple(int)} |= (v_1.len = 0 ∨ ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0) ∧ (v_2.len = 0 ∨ ∀j ∈ [0, v_2.len - 1] : v_2[j] ≥ 0)
+>>
+Rule 5 (rank-1 integer tensors for dynamic shapes; suppresses “In[0] must be a vector”)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4)
+>>
+Rule 6 (tuple inputs: non-negative dims and right-aligned broadcast compatibility; suppresses “Incompatible shapes”)
+{v_1 : tuple(int), v_2 : tuple(int)} |= ∀k ∈ [0, v_1.len + v_2.len] : if k ≤ v_1.len - 1 then if k ≤ v_2.len - 1 then ((v_1[v_1.len - 1 - k] = v_2[v_2.len - 1 - k] ∨ v_1[v_1.len - 1 - k] = 1 ∨ v_2[v_2.len - 1 - k] = 1) ∧ v_1[v_1.len - 1 - k] ≥ 0 ∧ v_2[v_2.len - 1 - k] ≥ 0) else v_1[v_1.len - 1 - k] ≥ 0 else if k ≤ v_2.len - 1 then v_2[v_2.len - 1 - k] ≥ 0
+>>
+Rule 7 (list inputs: same length, non-negative dims, and pairwise broadcast compatibility; suppresses “Incompatible shapes”)
+{v_1 : list(int), v_2 : list(int)} |= v_1.len = v_2.len ∧ ∀i ∈ [0, v_1.len + v_2.len] : if i ≤ v_1.len - 1 then (v_1[i] ≥ 0 ∧ v_2[i] ≥ 0 ∧ (v_1[i] = v_2[i] ∨ v_1[i] = 1 ∨ v_2[i] = 1))
+>>
+Rule 8 (tensor inputs: vector-lengths must be broadcast-aligned)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ (shape(v_1, 0) = shape(v_2, 0) ∨ shape(v_1, 0) = 1 ∨ shape(v_2, 0) = 1)
+>>
+Rule 9 (sequence shapes as tuple or list: lengths must match)
+{v_1 : tuple(int) ⊎ list(int), v_2 : tuple(int) ⊎ list(int)} |= v_1.len = v_2.len ∧ v_1.len ≥ 0 ∧ v_2.len ≥ 0

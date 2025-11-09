@@ -13,3 +13,27 @@ Rule 5 (replicas count is a multiple of devices per worker)
 >>
 Rule 6 (basic sanity based on device count: if more than one device, replicas are at least two; otherwise at least one)
 {v_1 : int, v_2 : int} |= if v_1 > 1 then v_2 ≥ 2 else v_2 ≥ 1
+>>
+Rule 7 (auto_shard_policy must be a valid enum index: OFF(0), AUTO(1), FILE(2), DATA(3), HINT(4))
+{v_1 : int} |= 0 ≤ v_1 ∧ v_1 ≤ 4
+>>
+Rule 8 (num_devices is optional; when set it must be a positive integer)
+{v_1 : int ⊎ str} |= (v_1 = "none") ∨ (v_1 ≥ 1)
+>>
+Rule 9 (if num_devices is set, auto_shard_policy should not be OFF)
+{v_1 : int, v_2 : int ⊎ str} |= (v_2 = "none") ∨ (v_1 ≠ 0 ∧ v_2 ≥ 1)
+>>
+Rule 11 (num_devices is optional; when set it must be a positive integer)
+{v_1 : int ⊎ str} |= if v_1 = "none" then true else v_1 ≥ 1
+>>
+Rule 12 (if num_devices ≥ 2, auto_shard_policy should not be OFF)
+{v_1 : int, v_2 : int ⊎ str} |= if v_2 = "none" then true else if v_2 ≥ 2 then v_1 ≠ 0
+>>
+Rule 13 (if auto_shard_policy is HINT, num_devices must be explicitly set to a multi-device value)
+{v_1 : int, v_2 : int ⊎ str} |= if v_1 = 4 then (v_2 ≠ "none" ∧ v_2 ≥ 2)
+>>
+Rule 14 (rebatch should be enabled when using multiple devices)
+{v_1 : int ⊎ str, v_2 : bool} |= if v_1 = "none" then true else if v_1 ≥ 2 then v_2 = true
+>>
+Rule 15 (if rebatch is disabled, do not perform multi-device sharding)
+{v_1 : int, v_2 : int ⊎ str, v_3 : bool} |= if v_3 = false then if v_2 = "none" then true else (v_2 ≤ 1 ∨ v_1 = 0)

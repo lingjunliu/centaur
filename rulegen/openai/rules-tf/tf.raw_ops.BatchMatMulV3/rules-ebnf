@@ -16,3 +16,21 @@ Rule 5 (batch dimensions of x and y are broadcast-compatible from the back)
 >>
 Rule 6 (name, if provided, should be a valid string from the allowed set)
 {v_1 : str} |= v_1 = "none" ∨ v_1 = "linear" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "valid" ∨ v_1 = "same" ∨ v_1 = "channels_last" ∨ v_1 = "channels_first" ∨ v_1 = "causal"
+>>
+Rule 7 (inputs must be matrices (ndim ≥ 2))
+{x: tensor, y: tensor} |= ndim(x) ≥ 2 ∧ ndim(y) ≥ 2
+>>
+Rule 10 (allowed Tout dtypes: indices 2–4 and 6–10)
+{Tout: dtype} |= (2 ≤ Tout ∧ Tout ≤ 4) ∨ (6 ≤ Tout ∧ Tout ≤ 10)
+>>
+Rule 12 (inner-dimension compatibility with adjoint flags)
+{x: tensor, y: tensor, adj_x: bool, adj_y: bool} |= (if adj_x then shape(x, ndim(x) - 2) else shape(x, ndim(x) - 1)) = (if adj_y then shape(y, ndim(y) - 1) else shape(y, ndim(y) - 2))
+>>
+Rule 13 (broadcasting compatibility across batch dimensions, excluding the last two)
+{x: tensor, y: tensor} |= ndim(x) ≥ 2 ∧ ndim(y) ≥ 2 ∧ ∀i ∈ [0, if ndim(x) - 2 ≥ ndim(y) - 2 then (ndim(x) - 2) - 1 else (ndim(y) - 2) - 1] : ( (ndim(x) - 2) - i - 1 < 0 ∨ (ndim(y) - 2) - i - 1 < 0 ∨ shape(x, (ndim(x) - 2) - i - 1) = 1 ∨ shape(y, (ndim(y) - 2) - i - 1) = 1 ∨ shape(x, (ndim(x) - 2) - i - 1) = shape(y, (ndim(y) - 2) - i - 1) )
+>>
+Rule 14 (matrix dimensions must be positive)
+{x: tensor, y: tensor} |= ∀i ∈ [0, 1] : shape(x, ndim(x) - i - 1) > 0 ∧ shape(y, ndim(y) - i - 1) > 0
+>>
+Rule 16 (name is an arbitrary string)
+{name: str} |= name = name
