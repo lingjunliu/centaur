@@ -12,6 +12,7 @@ fi
 lib=$1        # Library (torch or tf)
 retry=${2:-0} # Retry flag (0 means no retry, 1 means retry cancelled jobs)
 reduce=${3:-1} # 1 means reduce ruleset, 0 means do not reduce ruleset
+save_to=${4:-default} # Output directory for saving results
 seed=200      # Seed for random number generation
 
 # Set environment variables for Slurm
@@ -57,9 +58,16 @@ fi
 
 # Save the results
 timestamp=$(date +"%Y%m%d_%H%M%S")
+if [ "$save_to" = "default" ]; then
+  save_to="results_${lib}_$timestamp"
+fi
+
 mv logs .tmp/
 cp -r corpus_${lib} .tmp/
 cp -r invariants_${lib} .tmp/
-zip -r results_${lib}_$timestamp.zip .tmp
+zip -r $save_to.zip .tmp
 
-echo "Pipeline completed. Results saved to results_${lib}_$timestamp.zip (size: $(du -h results_${lib}_$timestamp.zip | cut -f1))"
+mkdir -p ../centaur_results
+mv .tmp ../centaur_results/$save_to
+
+echo "Pipeline completed. Results saved to $save_to.zip (size: $(du -h $save_to.zip | cut -f1)) and ../centaur_results/$save_to"
