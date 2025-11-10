@@ -1,0 +1,112 @@
+
+from utils.new_api_utils import run_api, get_signature
+from generator.input_generators import get_abstract_input
+
+generated_inputs = dict()
+
+import torch
+import numpy as np
+import copy
+
+def replicationpad3d_inputs():
+    list_of_inputs = []
+    
+    padding = 3
+    input_tensor = np.random.randn(16, 3, 8, 320, 480).astype(np.float32)
+    input_dict = {
+        "padding": padding,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    padding = 1
+    input_tensor = np.random.randn(3, 10, 20, 30).astype(np.float32)
+    input_dict = {
+        "padding": padding,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    padding = 0
+    input_tensor = np.random.randn(2, 5, 4, 6, 8).astype(np.float32)
+    input_dict = {
+        "padding": padding,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    padding = 10
+    input_tensor = np.random.randn(1, 1, 5, 5, 5).astype(np.float32)
+    input_dict = {
+        "padding": padding,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    padding = 2
+    input_tensor = np.random.randn(8, 16, 12, 24, 36).astype(np.float32)
+    input_dict = {
+        "padding": padding,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    padding = 5
+    input_tensor = np.random.randn(1, 15, 15, 15).astype(np.float32)
+    input_dict = {
+        "padding": padding,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    padding = 1
+    input_tensor = np.random.randn(4, 32, 3, 3, 3).astype(np.float32)
+    input_dict = {
+        "padding": padding,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    padding = 2
+    input_tensor = np.random.randn(32, 8, 16, 32, 64).astype(np.float32)
+    input_dict = {
+        "padding": padding,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    padding = 4
+    input_tensor = np.random.randn(64, 7, 14, 14).astype(np.float32)
+    input_dict = {
+        "padding": padding,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    padding = 3
+    input_tensor = np.random.randn(2, 3, 5, 10, 15).astype(np.float32)
+    input_dict = {
+        "padding": padding,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+generated_inputs["torch.nn.ReplicationPad3d_1"] = replicationpad3d_inputs()
+
+def check_valid(api, list_of_inputs, lib="torch", suffix=0):
+    for idx, input_dict in enumerate(list_of_inputs):
+        _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
+        output = run_api(api, input_dict, cpu=True, lib=lib)
+    
+    if len(list_of_inputs) == 0:
+        raise Exception("No inputs were generated for the API. Please check the input generation code.")
+
+    print("Valid")
+
+if 'torch.nn.ReplicationPad3d_1' not in generated_inputs:
+    raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'torch.nn.ReplicationPad3d_1'.")
+
+
+check_valid('torch.nn.ReplicationPad3d', generated_inputs['torch.nn.ReplicationPad3d_1'], lib="torch", suffix=1)
