@@ -6,15 +6,15 @@ cp tf_variations.txt tf_variations.txt.bak
 
 # No rule refinement ###################################
 
-source venv/bin/activate
-cp tf_ablation_apis.txt tf_apis.txt
-python -m utils.sync_apis_and_variations tf
-rm -r corpus_tf/*
+# source venv/bin/activate
+# cp tf_ablation_apis.txt tf_apis.txt
+# python -m utils.sync_apis_and_variations tf
+# rm -r corpus_tf/*
 
-echo "--------------------------------"
-echo "Running pipeline without rule refinement..."
-echo "--------------------------------"
-bash pipeline.sh tf 1 0 tf_ablation_no_rule_refinement $regen $num_p
+# echo "--------------------------------"
+# echo "Running pipeline without rule refinement..."
+# echo "--------------------------------"
+# bash pipeline.sh tf 1 0 tf_ablation_no_rule_refinement $regen $num_p
 
 #########################################################
 
@@ -102,6 +102,6 @@ fi
 echo "--------------------------------"
 echo "Running pipeline without all features..."
 echo "--------------------------------"
-bash pipeline.sh tf 1 0 tf_ablation_no_all_features $regen $num_p
+bash pipeline.sh tf 1 1 tf_ablation_no_all_features $regen $num_p
 
 #########################################################
