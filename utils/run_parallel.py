@@ -6,14 +6,18 @@ import sys
 from utils.misc import get_dir_in_root, read_file_in_root
 
 class ProcRunner:
-    def __init__(self, cmd, args, job_name):
+    def __init__(self, cmd, args, job_name, timeout, total_cp):
         self.cmd = cmd
         self.args = args
         self.job_name = job_name
+        self.timeout = timeout
+        self.cpu = 0
+        self.total_cpus = total_cp
 
     def run_proc(self, element):
-        cmd = f"{self.cmd} {element} {self.args}"
-        return_object = subprocess.run(cmd.split(), capture_output=True)
+        cmd = f"taskset -c {self.cpu} {self.cmd} {element} {self.args}"
+        self.cpu = (self.cpu + 1) % self.total_cpus
+        return_object = subprocess.run(cmd.split(), capture_output=True, timeout=self.timeout)
         log_dir = get_dir_in_root("logs")
         with open(os.path.join(log_dir, f"{element}_{self.job_name}.out"), "w") as f:
             f.write(return_object.stdout.decode())
@@ -43,6 +47,7 @@ def main():
     result_file = sys.argv[4]
     job_name = sys.argv[5]
     num_processes = int(sys.argv[6]) if len(sys.argv) > 6 else 64
+    timeout = int(sys.argv[7]) if len(sys.argv) > 7 else 7200
     
     if os.environ.get("elements_file"):
         elements_file = os.environ.get("elements_file")
@@ -56,7 +61,7 @@ def main():
     else:
         print(f"Found {len(elements)} elementss to process.")
         print(f"Starting parallel processing with {num_processes} workers...")
-        runner = ProcRunner(cmd, args, job_name)
+        runner = ProcRunner(cmd, args, job_name, timeout, num_processes)
 
         count = 0
         with Pool(processes=num_processes) as pool:

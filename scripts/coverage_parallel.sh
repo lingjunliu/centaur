@@ -13,6 +13,14 @@ export elements_file=${lib}_apis.txt
 export TF_FORCE_GPU_ALLOW_GROWTH=true
 export TF_CPP_MIN_LOG_LEVEL=2
 export OMP_NUM_THREADS=1    # To prevent issues with coverage collection due to multithreading
+export OMP_THREAD_LIMIT=1
+export MKL_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+export NUMEXPR_NUM_THREADS=1
+export BLIS_NUM_THREADS=1
+export VECLIB_MAXIMUM_THREADS=1
+export TF_NUM_INTRAOP_THREADS=1
+export TF_NUM_INTEROP_THREADS=1
 
 # alias
 if [ "$lib" = "pytorch" ]; then
