@@ -9,6 +9,11 @@ native=${5:-False}    # Limit the coverage to the native folder only (only appli
 export max_parallel=${n_proc}     # Fix number of jobs to run at a time
 export elements_file=${lib}_apis.txt
 
+# Tensorflow envrironment variables
+export TF_FORCE_GPU_ALLOW_GROWTH=true
+export TF_CPP_MIN_LOG_LEVEL=2
+export OMP_NUM_THREADS=1    # To prevent issues with coverage collection due to multithreading
+
 # alias
 if [ "$lib" = "pytorch" ]; then
     lib=torch
