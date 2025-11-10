@@ -14,7 +14,7 @@ rm -r corpus_tf/*
 echo "--------------------------------"
 echo "Running pipeline without rule refinement..."
 echo "--------------------------------"
-bash pipeline.sh tf 1 0 tf_ablation_no_rule_refinement
+bash pipeline.sh tf 1 0 tf_ablation_no_rule_refinement $regen $num_p
 
 #########################################################
 
@@ -36,7 +36,7 @@ fi
 echo "--------------------------------"
 echo "Running pipeline without DocErr..."
 echo "--------------------------------"
-bash pipeline.sh tf 1 1 tf_ablation_no_doc_err
+bash pipeline.sh tf 1 1 tf_ablation_no_doc_err $regen $num_p
 
 #########################################################
 
@@ -58,7 +58,7 @@ fi
 echo "--------------------------------"
 echo "Running pipeline without Feedback..."
 echo "--------------------------------"
-bash pipeline.sh tf 1 1 tf_ablation_no_feedback
+bash pipeline.sh tf 1 1 tf_ablation_no_feedback $regen $num_p
 
 #########################################################
 
@@ -80,7 +80,7 @@ fi
 echo "--------------------------------"
 echo "Running pipeline without Example Rules..."
 echo "--------------------------------"
-bash pipeline.sh tf 1 1 tf_ablation_no_example_rules
+bash pipeline.sh tf 1 1 tf_ablation_no_example_rules $regen $num_p
 
 #########################################################
 
@@ -102,6 +102,6 @@ fi
 echo "--------------------------------"
 echo "Running pipeline without all features..."
 echo "--------------------------------"
-bash pipeline.sh tf 1 0 tf_ablation_no_all_features
+bash pipeline.sh tf 1 0 tf_ablation_no_all_features $regen $num_p
 
 #########################################################
