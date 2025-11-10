@@ -5,29 +5,30 @@ run_llm() {
     llm=$2
     regen=1
     # APIS
-    cp llm/$llm-$lib/$lib_finalized_apis.txt $lib_apis.txt
-    cp llm/$llm-$lib/$lib_variations.txt .
+    cp llm/${llm}-${lib}/${lib}_finalized_apis.txt ${lib}_apis.txt
+    cp llm/${llm}-${lib}/${lib}_variations.txt .
     # Set num_p to the number of lines in the variations file
-    num_p=$(wc -l < $lib_variations.txt)
+    num_p=$(wc -l < ${lib}_variations.txt)
     echo "--------------------------------"
-    echo "$llm: Number of parallel jobs for Slurm: $num_p"
+    echo "${llm}: Number of parallel jobs for Slurm: ${num_p}"
     echo "--------------------------------"
 
     # Inputs and signatures
-    cp llm/$llm-$lib/valid_inputs_$lib.py llm/
-    cp llm/$llm-$lib/signatures.json .
+    cp llm/${llm}-${lib}/valid_inputs_${lib}.py llm/
+    cp llm/${llm}-${lib}/signatures.json .
 
     # Rules
-    rm -r rules-$lib
-    cp -r rulegen/$llm-$lib/rules-$lib .
+    rm -r rules-${lib}
+    cp -r rulegen/${llm}-${lib}/rules-${lib} .
 
     # Clear corpus
-    rm -r corpus_$lib/*
+    rm -r corpus_${lib}/*
 
     echo "--------------------------------"
-    echo "Running pipeline for $llm on $lib..."
+    echo "Running pipeline for ${llm} on ${lib}..."
     echo "--------------------------------"
-    bash pipeline.sh $lib 1 1 ${lib}_$llm $regen $num_p
+    # bash pipeline.sh ${lib} 1 1 ${lib}_${llm} $regen $num_p
+    echo "bash pipeline.sh ${lib} 1 1 ${lib}_${llm} $regen $num_p"
 }
 
 # Torch, Claude
