@@ -26,9 +26,9 @@ run_llm() {
 
     echo "--------------------------------"
     echo "Running pipeline for ${llm} on ${lib}..."
-    echo "--------------------------------"
-    # bash pipeline.sh ${lib} 1 1 ${lib}_${llm} $regen $num_p
+    echo "--------------------------------"    
     echo "bash pipeline.sh ${lib} 1 1 ${lib}_${llm} $regen $num_p"
+    bash pipeline.sh ${lib} 1 1 ${lib}_${llm} $regen $num_p
 }
 
 # Torch, Claude
