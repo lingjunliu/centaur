@@ -47,6 +47,8 @@ if [ "$lib" = "torch" ]; then
   bash scripts/coverage_with_slurm.sh 0 $lib html False
 elif [ "$lib" = "tf" ]; then
   # Step 4: Collect coverage using Docker (Put resource limits here)
+  # To monitor the progress, on a separate terminal, run:
+  # watch -n10 "docker exec tf_216_instr /workspace/repo/scripts/monitor_cov.sh"
   docker build -t tf_216_instr_im . -f instrumented_tf/Dockerfile
   docker run --memory=${max_memory_docker} --cpus=${max_parallel} --cpuset-cpus="0-$((${max_parallel}-1))" --name tf_216_instr tf_216_instr_im bash -c "cd /workspace/repo && bash scripts/coverage_parallel.sh 0 tf ${max_parallel} html False"
   docker cp tf_216_instr:/workspace/repo/.tmp/coverage_tf.csv .tmp/coverage_tf.csv
