@@ -4,18 +4,20 @@ run_llm() {
     lib=$1
     llm=$2
     regen=1
-    # APIS
-    cp llm/${llm}-${lib}/${lib}_finalized_apis.txt ${lib}_apis.txt
-    cp llm/${llm}-${lib}/${lib}_variations.txt .
-    # Set num_p to the number of lines in the variations file
-    num_p=$(wc -l < ${lib}_variations.txt)
-    echo "--------------------------------"
-    echo "${llm}: Number of parallel jobs for Slurm: ${num_p}"
-    echo "--------------------------------"
 
     # Inputs and signatures
     cp llm/${llm}-${lib}/valid_inputs_${lib}.py llm/
     cp llm/${llm}-${lib}/signatures.json .
+
+    # APIS
+    cp ${lib}_ablation_apis.txt ${lib}_apis.txt
+    source venv/bin/activate
+    python -m utils.sync_apis_and_variations ${lib}
+    # Set num_p to the number of lines in the variations file
+    num_p=$(wc -l < ${lib}_variations.txt)
+    echo "--------------------------------"
+    echo "${llm}: Number of parallel jobs for Slurm: ${num_p}"
+    echo "--------------------------------"    
 
     # Rules
     rm -r rules-${lib}
