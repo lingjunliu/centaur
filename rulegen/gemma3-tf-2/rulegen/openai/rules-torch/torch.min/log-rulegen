@@ -1,0 +1,1892 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.min API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+min(input) -> Tensor
+
+Returns the minimum value of all elements in the :attr:`input` tensor.
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 0.6750,  1.0857,  1.7197]])
+    >>> torch.min(a)
+    tensor(0.6750)
+
+.. function:: min(input, dim, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` is the minimum
+value of each row of the :attr:`input` tensor in the given dimension
+:attr:`dim`. And ``indices`` is the index location of each minimum value found
+(argmin).
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size as
+:attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the output tensors having 1 fewer dimension than :attr:`input`.
+
+.. note:: If there are multiple minimal values in a reduced row then
+          the indices of the first minimal value are returned.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out (tuple, optional): the tuple of two output tensors (min, min_indices)
+
+Example::
+
+    >>> a = torch.randn(4, 4)
+    >>> a
+    tensor([[-0.6248,  1.1334, -1.1899, -0.2803],
+            [-1.4644, -0.2635, -0.3651,  0.6134],
+            [ 0.2457,  0.0384,  1.0128,  0.7015],
+            [-0.1153,  2.9849,  2.1458,  0.5788]])
+    >>> torch.min(a, 1)
+    torch.return_types.min(values=tensor([-1.1899, -1.4644,  0.0384, -0.1153]), indices=tensor([2, 0, 1, 0]))
+
+.. function:: min(input, other, *, out=None) -> Tensor
+   :noindex:
+
+See :func:`torch.minimum`.
+
+[Possible API Signatures]
+ - input: tensor, out: tensor
+ - input: tensor, dim: integer, keepdim: boolean, out: tuple
+ - input: tensor, other: tensor, out: tensor
+
+[Error Messages]
+RuntimeError: min(): Expected reduction dim to be specified for input.numel() == 0. Specify the reduction dim with the 'dim' argument.
+IndexError: min(): Expected reduction dim 0 to have non-zero size.
+TypeError: min() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+ * (Tensor input, Tensor other, *, Tensor out = None)
+      didn't match because some of the keywords were incorrect: out, keepdim
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: The size of tensor a (0) must match the size of tensor b (4) at non-singleton dimension 1
+TypeError: min() received an invalid combination of arguments - got (Tensor, Tensor, out=float), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+      didn't match because some of the keywords were incorrect: out
+ * (Tensor input, Tensor other, *, Tensor out = None)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+RuntimeError: "min_all" not implemented for 'ComplexDouble'
+RuntimeError: minimum not implemented for complex tensors.
+TypeError: expected tuple of 2 elements but got 1
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (all-elements min requires non-empty input tensor)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Token usage: input=2319, output=10509, total=12828
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.min API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+min(input) -> Tensor
+
+Returns the minimum value of all elements in the :attr:`input` tensor.
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 0.6750,  1.0857,  1.7197]])
+    >>> torch.min(a)
+    tensor(0.6750)
+
+.. function:: min(input, dim, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` is the minimum
+value of each row of the :attr:`input` tensor in the given dimension
+:attr:`dim`. And ``indices`` is the index location of each minimum value found
+(argmin).
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size as
+:attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the output tensors having 1 fewer dimension than :attr:`input`.
+
+.. note:: If there are multiple minimal values in a reduced row then
+          the indices of the first minimal value are returned.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out (tuple, optional): the tuple of two output tensors (min, min_indices)
+
+Example::
+
+    >>> a = torch.randn(4, 4)
+    >>> a
+    tensor([[-0.6248,  1.1334, -1.1899, -0.2803],
+            [-1.4644, -0.2635, -0.3651,  0.6134],
+            [ 0.2457,  0.0384,  1.0128,  0.7015],
+            [-0.1153,  2.9849,  2.1458,  0.5788]])
+    >>> torch.min(a, 1)
+    torch.return_types.min(values=tensor([-1.1899, -1.4644,  0.0384, -0.1153]), indices=tensor([2, 0, 1, 0]))
+
+.. function:: min(input, other, *, out=None) -> Tensor
+   :noindex:
+
+See :func:`torch.minimum`.
+
+[Possible API Signatures]
+ - input: tensor, out: tensor
+ - input: tensor, dim: integer, keepdim: boolean, out: tuple
+ - input: tensor, other: tensor, out: tensor
+
+[Error Messages]
+RuntimeError: min(): Expected reduction dim to be specified for input.numel() == 0. Specify the reduction dim with the 'dim' argument.
+IndexError: min(): Expected reduction dim 0 to have non-zero size.
+TypeError: min() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+ * (Tensor input, Tensor other, *, Tensor out = None)
+      didn't match because some of the keywords were incorrect: out, keepdim
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: The size of tensor a (0) must match the size of tensor b (4) at non-singleton dimension 1
+TypeError: min() received an invalid combination of arguments - got (Tensor, Tensor, out=float), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+      didn't match because some of the keywords were incorrect: out
+ * (Tensor input, Tensor other, *, Tensor out = None)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+RuntimeError: "min_all" not implemented for 'ComplexDouble'
+RuntimeError: minimum not implemented for complex tensors.
+TypeError: expected tuple of 2 elements but got 1
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (all-elements min does not support complex dtypes)
+{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+Token usage: input=2319, output=10509, total=12828
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.min API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+min(input) -> Tensor
+
+Returns the minimum value of all elements in the :attr:`input` tensor.
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 0.6750,  1.0857,  1.7197]])
+    >>> torch.min(a)
+    tensor(0.6750)
+
+.. function:: min(input, dim, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` is the minimum
+value of each row of the :attr:`input` tensor in the given dimension
+:attr:`dim`. And ``indices`` is the index location of each minimum value found
+(argmin).
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size as
+:attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the output tensors having 1 fewer dimension than :attr:`input`.
+
+.. note:: If there are multiple minimal values in a reduced row then
+          the indices of the first minimal value are returned.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out (tuple, optional): the tuple of two output tensors (min, min_indices)
+
+Example::
+
+    >>> a = torch.randn(4, 4)
+    >>> a
+    tensor([[-0.6248,  1.1334, -1.1899, -0.2803],
+            [-1.4644, -0.2635, -0.3651,  0.6134],
+            [ 0.2457,  0.0384,  1.0128,  0.7015],
+            [-0.1153,  2.9849,  2.1458,  0.5788]])
+    >>> torch.min(a, 1)
+    torch.return_types.min(values=tensor([-1.1899, -1.4644,  0.0384, -0.1153]), indices=tensor([2, 0, 1, 0]))
+
+.. function:: min(input, other, *, out=None) -> Tensor
+   :noindex:
+
+See :func:`torch.minimum`.
+
+[Possible API Signatures]
+ - input: tensor, out: tensor
+ - input: tensor, dim: integer, keepdim: boolean, out: tuple
+ - input: tensor, other: tensor, out: tensor
+
+[Error Messages]
+RuntimeError: min(): Expected reduction dim to be specified for input.numel() == 0. Specify the reduction dim with the 'dim' argument.
+IndexError: min(): Expected reduction dim 0 to have non-zero size.
+TypeError: min() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+ * (Tensor input, Tensor other, *, Tensor out = None)
+      didn't match because some of the keywords were incorrect: out, keepdim
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: The size of tensor a (0) must match the size of tensor b (4) at non-singleton dimension 1
+TypeError: min() received an invalid combination of arguments - got (Tensor, Tensor, out=float), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+      didn't match because some of the keywords were incorrect: out
+ * (Tensor input, Tensor other, *, Tensor out = None)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+RuntimeError: "min_all" not implemented for 'ComplexDouble'
+RuntimeError: minimum not implemented for complex tensors.
+TypeError: expected tuple of 2 elements but got 1
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (all-elements min with out: out must be a scalar tensor of same dtype)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 0 ∧ dtype_(v_2) = dtype_(v_1)
+Token usage: input=2319, output=10509, total=12828
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.min API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+min(input) -> Tensor
+
+Returns the minimum value of all elements in the :attr:`input` tensor.
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 0.6750,  1.0857,  1.7197]])
+    >>> torch.min(a)
+    tensor(0.6750)
+
+.. function:: min(input, dim, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` is the minimum
+value of each row of the :attr:`input` tensor in the given dimension
+:attr:`dim`. And ``indices`` is the index location of each minimum value found
+(argmin).
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size as
+:attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the output tensors having 1 fewer dimension than :attr:`input`.
+
+.. note:: If there are multiple minimal values in a reduced row then
+          the indices of the first minimal value are returned.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out (tuple, optional): the tuple of two output tensors (min, min_indices)
+
+Example::
+
+    >>> a = torch.randn(4, 4)
+    >>> a
+    tensor([[-0.6248,  1.1334, -1.1899, -0.2803],
+            [-1.4644, -0.2635, -0.3651,  0.6134],
+            [ 0.2457,  0.0384,  1.0128,  0.7015],
+            [-0.1153,  2.9849,  2.1458,  0.5788]])
+    >>> torch.min(a, 1)
+    torch.return_types.min(values=tensor([-1.1899, -1.4644,  0.0384, -0.1153]), indices=tensor([2, 0, 1, 0]))
+
+.. function:: min(input, other, *, out=None) -> Tensor
+   :noindex:
+
+See :func:`torch.minimum`.
+
+[Possible API Signatures]
+ - input: tensor, out: tensor
+ - input: tensor, dim: integer, keepdim: boolean, out: tuple
+ - input: tensor, other: tensor, out: tensor
+
+[Error Messages]
+RuntimeError: min(): Expected reduction dim to be specified for input.numel() == 0. Specify the reduction dim with the 'dim' argument.
+IndexError: min(): Expected reduction dim 0 to have non-zero size.
+TypeError: min() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+ * (Tensor input, Tensor other, *, Tensor out = None)
+      didn't match because some of the keywords were incorrect: out, keepdim
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: The size of tensor a (0) must match the size of tensor b (4) at non-singleton dimension 1
+TypeError: min() received an invalid combination of arguments - got (Tensor, Tensor, out=float), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+      didn't match because some of the keywords were incorrect: out
+ * (Tensor input, Tensor other, *, Tensor out = None)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+RuntimeError: "min_all" not implemented for 'ComplexDouble'
+RuntimeError: minimum not implemented for complex tensors.
+TypeError: expected tuple of 2 elements but got 1
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (pairwise min: inputs and out must have identical shapes and dtype)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_3) = ndim(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_3, i) = shape(v_1, i) ∧ dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_3) = dtype_(v_1)
+Token usage: input=2319, output=10509, total=12828
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.min API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+min(input) -> Tensor
+
+Returns the minimum value of all elements in the :attr:`input` tensor.
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 0.6750,  1.0857,  1.7197]])
+    >>> torch.min(a)
+    tensor(0.6750)
+
+.. function:: min(input, dim, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` is the minimum
+value of each row of the :attr:`input` tensor in the given dimension
+:attr:`dim`. And ``indices`` is the index location of each minimum value found
+(argmin).
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size as
+:attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the output tensors having 1 fewer dimension than :attr:`input`.
+
+.. note:: If there are multiple minimal values in a reduced row then
+          the indices of the first minimal value are returned.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out (tuple, optional): the tuple of two output tensors (min, min_indices)
+
+Example::
+
+    >>> a = torch.randn(4, 4)
+    >>> a
+    tensor([[-0.6248,  1.1334, -1.1899, -0.2803],
+            [-1.4644, -0.2635, -0.3651,  0.6134],
+            [ 0.2457,  0.0384,  1.0128,  0.7015],
+            [-0.1153,  2.9849,  2.1458,  0.5788]])
+    >>> torch.min(a, 1)
+    torch.return_types.min(values=tensor([-1.1899, -1.4644,  0.0384, -0.1153]), indices=tensor([2, 0, 1, 0]))
+
+.. function:: min(input, other, *, out=None) -> Tensor
+   :noindex:
+
+See :func:`torch.minimum`.
+
+[Possible API Signatures]
+ - input: tensor, out: tensor
+ - input: tensor, dim: integer, keepdim: boolean, out: tuple
+ - input: tensor, other: tensor, out: tensor
+
+[Error Messages]
+RuntimeError: min(): Expected reduction dim to be specified for input.numel() == 0. Specify the reduction dim with the 'dim' argument.
+IndexError: min(): Expected reduction dim 0 to have non-zero size.
+TypeError: min() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+ * (Tensor input, Tensor other, *, Tensor out = None)
+      didn't match because some of the keywords were incorrect: out, keepdim
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: The size of tensor a (0) must match the size of tensor b (4) at non-singleton dimension 1
+TypeError: min() received an invalid combination of arguments - got (Tensor, Tensor, out=float), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+      didn't match because some of the keywords were incorrect: out
+ * (Tensor input, Tensor other, *, Tensor out = None)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+RuntimeError: "min_all" not implemented for 'ComplexDouble'
+RuntimeError: minimum not implemented for complex tensors.
+TypeError: expected tuple of 2 elements but got 1
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (pairwise min does not support complex dtypes)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10) ∧ (dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10)
+Token usage: input=2319, output=10509, total=12828
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.min API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+min(input) -> Tensor
+
+Returns the minimum value of all elements in the :attr:`input` tensor.
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 0.6750,  1.0857,  1.7197]])
+    >>> torch.min(a)
+    tensor(0.6750)
+
+.. function:: min(input, dim, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` is the minimum
+value of each row of the :attr:`input` tensor in the given dimension
+:attr:`dim`. And ``indices`` is the index location of each minimum value found
+(argmin).
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size as
+:attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the output tensors having 1 fewer dimension than :attr:`input`.
+
+.. note:: If there are multiple minimal values in a reduced row then
+          the indices of the first minimal value are returned.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out (tuple, optional): the tuple of two output tensors (min, min_indices)
+
+Example::
+
+    >>> a = torch.randn(4, 4)
+    >>> a
+    tensor([[-0.6248,  1.1334, -1.1899, -0.2803],
+            [-1.4644, -0.2635, -0.3651,  0.6134],
+            [ 0.2457,  0.0384,  1.0128,  0.7015],
+            [-0.1153,  2.9849,  2.1458,  0.5788]])
+    >>> torch.min(a, 1)
+    torch.return_types.min(values=tensor([-1.1899, -1.4644,  0.0384, -0.1153]), indices=tensor([2, 0, 1, 0]))
+
+.. function:: min(input, other, *, out=None) -> Tensor
+   :noindex:
+
+See :func:`torch.minimum`.
+
+[Possible API Signatures]
+ - input: tensor, out: tensor
+ - input: tensor, dim: integer, keepdim: boolean, out: tuple
+ - input: tensor, other: tensor, out: tensor
+
+[Error Messages]
+RuntimeError: min(): Expected reduction dim to be specified for input.numel() == 0. Specify the reduction dim with the 'dim' argument.
+IndexError: min(): Expected reduction dim 0 to have non-zero size.
+TypeError: min() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+ * (Tensor input, Tensor other, *, Tensor out = None)
+      didn't match because some of the keywords were incorrect: out, keepdim
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: The size of tensor a (0) must match the size of tensor b (4) at non-singleton dimension 1
+TypeError: min() received an invalid combination of arguments - got (Tensor, Tensor, out=float), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+      didn't match because some of the keywords were incorrect: out
+ * (Tensor input, Tensor other, *, Tensor out = None)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+RuntimeError: "min_all" not implemented for 'ComplexDouble'
+RuntimeError: minimum not implemented for complex tensors.
+TypeError: expected tuple of 2 elements but got 1
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (reduction dim must be within valid range)
+{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
+Token usage: input=2319, output=10509, total=12828
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.min API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+min(input) -> Tensor
+
+Returns the minimum value of all elements in the :attr:`input` tensor.
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 0.6750,  1.0857,  1.7197]])
+    >>> torch.min(a)
+    tensor(0.6750)
+
+.. function:: min(input, dim, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` is the minimum
+value of each row of the :attr:`input` tensor in the given dimension
+:attr:`dim`. And ``indices`` is the index location of each minimum value found
+(argmin).
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size as
+:attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the output tensors having 1 fewer dimension than :attr:`input`.
+
+.. note:: If there are multiple minimal values in a reduced row then
+          the indices of the first minimal value are returned.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out (tuple, optional): the tuple of two output tensors (min, min_indices)
+
+Example::
+
+    >>> a = torch.randn(4, 4)
+    >>> a
+    tensor([[-0.6248,  1.1334, -1.1899, -0.2803],
+            [-1.4644, -0.2635, -0.3651,  0.6134],
+            [ 0.2457,  0.0384,  1.0128,  0.7015],
+            [-0.1153,  2.9849,  2.1458,  0.5788]])
+    >>> torch.min(a, 1)
+    torch.return_types.min(values=tensor([-1.1899, -1.4644,  0.0384, -0.1153]), indices=tensor([2, 0, 1, 0]))
+
+.. function:: min(input, other, *, out=None) -> Tensor
+   :noindex:
+
+See :func:`torch.minimum`.
+
+[Possible API Signatures]
+ - input: tensor, out: tensor
+ - input: tensor, dim: integer, keepdim: boolean, out: tuple
+ - input: tensor, other: tensor, out: tensor
+
+[Error Messages]
+RuntimeError: min(): Expected reduction dim to be specified for input.numel() == 0. Specify the reduction dim with the 'dim' argument.
+IndexError: min(): Expected reduction dim 0 to have non-zero size.
+TypeError: min() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+ * (Tensor input, Tensor other, *, Tensor out = None)
+      didn't match because some of the keywords were incorrect: out, keepdim
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: The size of tensor a (0) must match the size of tensor b (4) at non-singleton dimension 1
+TypeError: min() received an invalid combination of arguments - got (Tensor, Tensor, out=float), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+      didn't match because some of the keywords were incorrect: out
+ * (Tensor input, Tensor other, *, Tensor out = None)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+RuntimeError: "min_all" not implemented for 'ComplexDouble'
+RuntimeError: minimum not implemented for complex tensors.
+TypeError: expected tuple of 2 elements but got 1
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (reduction dim must have non-zero size)
+{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then shape(v_1, v_2) > 0 else shape(v_1, ndim(v_1) + v_2) > 0
+Token usage: input=2319, output=10509, total=12828
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.min API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+min(input) -> Tensor
+
+Returns the minimum value of all elements in the :attr:`input` tensor.
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 0.6750,  1.0857,  1.7197]])
+    >>> torch.min(a)
+    tensor(0.6750)
+
+.. function:: min(input, dim, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` is the minimum
+value of each row of the :attr:`input` tensor in the given dimension
+:attr:`dim`. And ``indices`` is the index location of each minimum value found
+(argmin).
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size as
+:attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the output tensors having 1 fewer dimension than :attr:`input`.
+
+.. note:: If there are multiple minimal values in a reduced row then
+          the indices of the first minimal value are returned.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out (tuple, optional): the tuple of two output tensors (min, min_indices)
+
+Example::
+
+    >>> a = torch.randn(4, 4)
+    >>> a
+    tensor([[-0.6248,  1.1334, -1.1899, -0.2803],
+            [-1.4644, -0.2635, -0.3651,  0.6134],
+            [ 0.2457,  0.0384,  1.0128,  0.7015],
+            [-0.1153,  2.9849,  2.1458,  0.5788]])
+    >>> torch.min(a, 1)
+    torch.return_types.min(values=tensor([-1.1899, -1.4644,  0.0384, -0.1153]), indices=tensor([2, 0, 1, 0]))
+
+.. function:: min(input, other, *, out=None) -> Tensor
+   :noindex:
+
+See :func:`torch.minimum`.
+
+[Possible API Signatures]
+ - input: tensor, out: tensor
+ - input: tensor, dim: integer, keepdim: boolean, out: tuple
+ - input: tensor, other: tensor, out: tensor
+
+[Error Messages]
+RuntimeError: min(): Expected reduction dim to be specified for input.numel() == 0. Specify the reduction dim with the 'dim' argument.
+IndexError: min(): Expected reduction dim 0 to have non-zero size.
+TypeError: min() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+ * (Tensor input, Tensor other, *, Tensor out = None)
+      didn't match because some of the keywords were incorrect: out, keepdim
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: The size of tensor a (0) must match the size of tensor b (4) at non-singleton dimension 1
+TypeError: min() received an invalid combination of arguments - got (Tensor, Tensor, out=float), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+      didn't match because some of the keywords were incorrect: out
+ * (Tensor input, Tensor other, *, Tensor out = None)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+RuntimeError: "min_all" not implemented for 'ComplexDouble'
+RuntimeError: minimum not implemented for complex tensors.
+TypeError: expected tuple of 2 elements but got 1
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (min with dim: out must be a tuple of two tensors)
+{v_1 : tensor, v_2 : int, v_3 : bool, v_4 : tuple(tensor)} |= v_4.len = 2
+Token usage: input=2319, output=10509, total=12828
+** REDUNDANT VARIABLES ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.min API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+min(input) -> Tensor
+
+Returns the minimum value of all elements in the :attr:`input` tensor.
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 0.6750,  1.0857,  1.7197]])
+    >>> torch.min(a)
+    tensor(0.6750)
+
+.. function:: min(input, dim, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` is the minimum
+value of each row of the :attr:`input` tensor in the given dimension
+:attr:`dim`. And ``indices`` is the index location of each minimum value found
+(argmin).
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size as
+:attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the output tensors having 1 fewer dimension than :attr:`input`.
+
+.. note:: If there are multiple minimal values in a reduced row then
+          the indices of the first minimal value are returned.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out (tuple, optional): the tuple of two output tensors (min, min_indices)
+
+Example::
+
+    >>> a = torch.randn(4, 4)
+    >>> a
+    tensor([[-0.6248,  1.1334, -1.1899, -0.2803],
+            [-1.4644, -0.2635, -0.3651,  0.6134],
+            [ 0.2457,  0.0384,  1.0128,  0.7015],
+            [-0.1153,  2.9849,  2.1458,  0.5788]])
+    >>> torch.min(a, 1)
+    torch.return_types.min(values=tensor([-1.1899, -1.4644,  0.0384, -0.1153]), indices=tensor([2, 0, 1, 0]))
+
+.. function:: min(input, other, *, out=None) -> Tensor
+   :noindex:
+
+See :func:`torch.minimum`.
+
+[Possible API Signatures]
+ - input: tensor, out: tensor
+ - input: tensor, dim: integer, keepdim: boolean, out: tuple
+ - input: tensor, other: tensor, out: tensor
+
+[Error Messages]
+RuntimeError: min(): Expected reduction dim to be specified for input.numel() == 0. Specify the reduction dim with the 'dim' argument.
+IndexError: min(): Expected reduction dim 0 to have non-zero size.
+TypeError: min() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+ * (Tensor input, Tensor other, *, Tensor out = None)
+      didn't match because some of the keywords were incorrect: out, keepdim
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: The size of tensor a (0) must match the size of tensor b (4) at non-singleton dimension 1
+TypeError: min() received an invalid combination of arguments - got (Tensor, Tensor, out=float), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+      didn't match because some of the keywords were incorrect: out
+ * (Tensor input, Tensor other, *, Tensor out = None)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+RuntimeError: "min_all" not implemented for 'ComplexDouble'
+RuntimeError: minimum not implemented for complex tensors.
+TypeError: expected tuple of 2 elements but got 1
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (min with dim does not support complex dtypes)
+{v_1 : tensor, v_2 : int} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+Token usage: input=2319, output=10509, total=12828
+** REDUNDANT VARIABLES ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.min API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+min(input) -> Tensor
+
+Returns the minimum value of all elements in the :attr:`input` tensor.
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 0.6750,  1.0857,  1.7197]])
+    >>> torch.min(a)
+    tensor(0.6750)
+
+.. function:: min(input, dim, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` is the minimum
+value of each row of the :attr:`input` tensor in the given dimension
+:attr:`dim`. And ``indices`` is the index location of each minimum value found
+(argmin).
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size as
+:attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the output tensors having 1 fewer dimension than :attr:`input`.
+
+.. note:: If there are multiple minimal values in a reduced row then
+          the indices of the first minimal value are returned.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out (tuple, optional): the tuple of two output tensors (min, min_indices)
+
+Example::
+
+    >>> a = torch.randn(4, 4)
+    >>> a
+    tensor([[-0.6248,  1.1334, -1.1899, -0.2803],
+            [-1.4644, -0.2635, -0.3651,  0.6134],
+            [ 0.2457,  0.0384,  1.0128,  0.7015],
+            [-0.1153,  2.9849,  2.1458,  0.5788]])
+    >>> torch.min(a, 1)
+    torch.return_types.min(values=tensor([-1.1899, -1.4644,  0.0384, -0.1153]), indices=tensor([2, 0, 1, 0]))
+
+.. function:: min(input, other, *, out=None) -> Tensor
+   :noindex:
+
+See :func:`torch.minimum`.
+
+[Possible API Signatures]
+ - input: tensor, out: tensor
+ - input: tensor, dim: integer, keepdim: boolean, out: tuple
+ - input: tensor, other: tensor, out: tensor
+
+[Error Messages]
+RuntimeError: min(): Expected reduction dim to be specified for input.numel() == 0. Specify the reduction dim with the 'dim' argument.
+IndexError: min(): Expected reduction dim 0 to have non-zero size.
+TypeError: min() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+ * (Tensor input, Tensor other, *, Tensor out = None)
+      didn't match because some of the keywords were incorrect: out, keepdim
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: The size of tensor a (0) must match the size of tensor b (4) at non-singleton dimension 1
+TypeError: min() received an invalid combination of arguments - got (Tensor, Tensor, out=float), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+      didn't match because some of the keywords were incorrect: out
+ * (Tensor input, Tensor other, *, Tensor out = None)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+RuntimeError: "min_all" not implemented for 'ComplexDouble'
+RuntimeError: minimum not implemented for complex tensors.
+TypeError: expected tuple of 2 elements but got 1
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (pairwise min: out must be a tensor, not a scalar/float)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_3) = dtype_(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_3, i) = shape(v_1, i)
+Token usage: input=2319, output=10509, total=12828
+** REDUNDANT VARIABLES ** (num_failures: 3)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.min API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+min(input) -> Tensor
+
+Returns the minimum value of all elements in the :attr:`input` tensor.
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 0.6750,  1.0857,  1.7197]])
+    >>> torch.min(a)
+    tensor(0.6750)
+
+.. function:: min(input, dim, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` is the minimum
+value of each row of the :attr:`input` tensor in the given dimension
+:attr:`dim`. And ``indices`` is the index location of each minimum value found
+(argmin).
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size as
+:attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the output tensors having 1 fewer dimension than :attr:`input`.
+
+.. note:: If there are multiple minimal values in a reduced row then
+          the indices of the first minimal value are returned.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out (tuple, optional): the tuple of two output tensors (min, min_indices)
+
+Example::
+
+    >>> a = torch.randn(4, 4)
+    >>> a
+    tensor([[-0.6248,  1.1334, -1.1899, -0.2803],
+            [-1.4644, -0.2635, -0.3651,  0.6134],
+            [ 0.2457,  0.0384,  1.0128,  0.7015],
+            [-0.1153,  2.9849,  2.1458,  0.5788]])
+    >>> torch.min(a, 1)
+    torch.return_types.min(values=tensor([-1.1899, -1.4644,  0.0384, -0.1153]), indices=tensor([2, 0, 1, 0]))
+
+.. function:: min(input, other, *, out=None) -> Tensor
+   :noindex:
+
+See :func:`torch.minimum`.
+
+[Possible API Signatures]
+ - input: tensor, out: tensor
+ - input: tensor, dim: integer, keepdim: boolean, out: tuple
+ - input: tensor, other: tensor, out: tensor
+
+[Error Messages]
+RuntimeError: min(): Expected reduction dim to be specified for input.numel() == 0. Specify the reduction dim with the 'dim' argument.
+IndexError: min(): Expected reduction dim 0 to have non-zero size.
+TypeError: min() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+ * (Tensor input, Tensor other, *, Tensor out = None)
+      didn't match because some of the keywords were incorrect: out, keepdim
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: The size of tensor a (0) must match the size of tensor b (4) at non-singleton dimension 1
+TypeError: min() received an invalid combination of arguments - got (Tensor, Tensor, out=float), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+      didn't match because some of the keywords were incorrect: out
+ * (Tensor input, Tensor other, *, Tensor out = None)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+RuntimeError: "min_all" not implemented for 'ComplexDouble'
+RuntimeError: minimum not implemented for complex tensors.
+TypeError: expected tuple of 2 elements but got 1
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (all-elements min without dim: empty tensors require specifying dim; enforce non-emptiness here)
+{v_1 : tensor} |= (ndim(v_1) = 0) ∨ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+Token usage: input=2319, output=10509, total=12828
+** SUCCESS **
+

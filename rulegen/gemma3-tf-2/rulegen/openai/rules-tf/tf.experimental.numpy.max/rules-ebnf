@@ -1,0 +1,48 @@
+>>
+Rule 1 (integer axis must be valid and tensor must be at least 1-D)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) ≥ 1 ∧ -1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) - 1
+>>
+Rule 2 (integer axis must refer to a non-empty dimension)
+{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then shape(v_1, v_2) ≥ 1 else shape(v_1, v_2 + ndim(v_1)) ≥ 1
+>>
+Rule 3 (tuple axis elements must be within valid range)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : (-1 × ndim(v_1) ≤ v_2[i] ∧ v_2[i] ≤ ndim(v_1) - 1)
+>>
+Rule 4 (tuple axis entries must be unique up to normalization)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : ∀j ∈ [0, v_2.len - 1] : (i = j) ∨ (v_2[i] ≠ v_2[j] ∧ v_2[i] ≠ v_2[j] + ndim(v_1) ∧ v_2[j] ≠ v_2[i] + ndim(v_1))
+>>
+Rule 5 (cannot specify more axes than tensor rank)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≤ ndim(v_1)
+>>
+Rule 6 (tuple axis must refer only to non-empty dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : if v_2[i] ≥ 0 then shape(v_1, v_2[i]) ≥ 1 else shape(v_1, v_2[i] + ndim(v_1)) ≥ 1
+>>
+Rule 7 (0-D tensor can only use an empty tuple axis)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 0 then v_2.len = 0
+>>
+Rule 8 (keepdims is a boolean flag)
+{v_3 : bool} |= v_3 = true ∨ v_3 = false
+>>
+Rule 9 (axis can be an integer or a tuple of integers)
+{v_1 : tensor, v_2 : int ⊎ tuple(int)} |= (ndim(v_1) ≥ 0) ∧ (v_2 = v_2)
+>>
+Rule 10 (axis as integer must be valid and input must be at least 1-D)
+{v_1 : tensor, v_2 : int} |= (ndim(v_1) ≥ 1) ∧ (-1 * ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) - 1)
+>>
+Rule 11 (axis as tuple: non-empty, within bounds, and no duplicate axes after normalization)
+{v_1 : tensor, v_2 : tuple(int)} |= (ndim(v_1) ≥ 1) ∧ (v_2.len ≥ 1 ∧ v_2.len ≤ ndim(v_1)) ∧ (∀i ∈ [0, v_2.len - 1] : (-1 * ndim(v_1) ≤ v_2[i] ∧ v_2[i] ≤ ndim(v_1) - 1)) ∧ (∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i + 1, v_2.len - 1] : ((v_2[i] ≥ 0 ∧ v_2[j] ≥ 0 ∧ v_2[i] ≠ v_2[j]) ∨ (v_2[i] ≥ 0 ∧ v_2[j] < 0 ∧ v_2[i] ≠ ndim(v_1) + v_2[j]) ∨ (v_2[i] < 0 ∧ v_2[j] ≥ 0 ∧ ndim(v_1) + v_2[i] ≠ v_2[j]) ∨ (v_2[i] < 0 ∧ v_2[j] < 0 ∧ ndim(v_1) + v_2[i] ≠ ndim(v_1) + v_2[j])))
+>>
+Rule 12 (reduced dimension must be non-empty for integer axis)
+{v_1 : tensor, v_2 : int} |= (v_2 ≥ 0 ∧ shape(v_1, v_2) ≥ 1) ∨ (v_2 < 0 ∧ shape(v_1, ndim(v_1) + v_2) ≥ 1)
+>>
+Rule 13 (each reduced dimension must be non-empty for tuple axis)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : ((v_2[i] ≥ 0 ∧ shape(v_1, v_2[i]) ≥ 1) ∨ (v_2[i] < 0 ∧ shape(v_1, ndim(v_1) + v_2[i]) ≥ 1))
+>>
+Rule 14 (axis may be an int or a tuple of ints; each form must be structurally valid)
+{v_1 : tensor, v_2 : int ⊎ tuple(int)} |= (ndim(v_1) ≥ 1 ∧ -1 * ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) - 1) ∨ (v_2.len ≥ 1 ∧ v_2.len ≤ ndim(v_1))
+>>
+Rule 15 (when keepdims is true for integer axis, the axis index must be valid)
+{v_1 : tensor, v_2 : int, v_3 : bool} |= if v_3 then (-1 * ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) - 1)
+>>
+Rule 16 (when keepdims is true for tuple axis, the tuple length must be valid)
+{v_1 : tensor, v_2 : tuple(int), v_3 : bool} |= if v_3 then (v_2.len ≥ 1 ∧ v_2.len ≤ ndim(v_1))

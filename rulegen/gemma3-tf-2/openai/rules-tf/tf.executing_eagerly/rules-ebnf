@@ -1,0 +1,63 @@
+>>
+Rule 1 (no boolean parameter is allowed for tf.executing_eagerly)
+{v_1 : bool} |= v_1 = true ∧ v_1 = false
+>>
+Rule 2 (no integer parameter is allowed for tf.executing_eagerly)
+{v_1 : int} |= v_1 ≠ v_1
+>>
+Rule 3 (no float parameter is allowed for tf.executing_eagerly)
+{v_1 : float} |= v_1 < v_1
+>>
+Rule 4 (no dtype parameter is allowed for tf.executing_eagerly)
+{v_1 : dtype} |= v_1 = v_1 ∧ v_1 ≠ v_1
+>>
+Rule 5 (no string parameter is allowed for tf.executing_eagerly, even if "none")
+{v_1 : str} |= v_1 = "none" ∧ v_1 ≠ "none"
+>>
+Rule 6 (no tensor parameter is allowed for tf.executing_eagerly)
+{v_1 : tensor} |= ndim(v_1) < 0
+>>
+Rule 7 (no list parameter is allowed for tf.executing_eagerly)
+{v_1 : list(int)} |= v_1.len = 0 ∧ v_1.len = 1
+>>
+Rule 8 (no tuple parameter is allowed for tf.executing_eagerly)
+{v_1 : tuple(float)} |= v_1.len > v_1.len
+>>
+Rule 9 (no union-typed scalar parameter is allowed for tf.executing_eagerly)
+{v_1 : int ⊎ float} |= v_1 ≠ v_1
+>>
+Rule 10 (executing_eagerly result determined by context flags)
+{v_1 : bool, v_2 : bool, v_3 : bool, v_4 : bool, v_5 : bool, v_6 : bool} |= if v_6 then v_1 = false else if v_5 then v_1 = false else if v_2 then if v_3 ∨ v_4 then v_1 = true else v_1 = false else v_1 = true
+>>
+Rule 11 (inside tf.function under tf.init_scope => eager is True)
+{v_1 : bool, v_2 : bool, v_3 : bool} |= if v_2 ∧ v_3 then v_1 = true
+>>
+Rule 12 (inside tf.function with run_functions_eagerly(True) => eager is True)
+{v_1 : bool, v_2 : bool, v_4 : bool} |= if v_2 ∧ v_4 then v_1 = true
+>>
+Rule 13 (inside a tf.data transformation function => eager is False)
+{v_1 : bool, v_5 : bool} |= if v_5 then v_1 = false
+>>
+Rule 14 (general case outside special contexts => eager is True)
+{v_1 : bool, v_2 : bool, v_5 : bool, v_6 : bool} |= if v_2 ∨ v_5 ∨ v_6 then true else v_1 = true
+>>
+Rule 15 (eager disabled via v1 API => result is False)
+{v_1 : bool, v_6 : bool} |= if v_6 then v_1 = false
+>>
+Rule 17 (in tf.function without init_scope and not running functions eagerly => result is False)
+{v_1 : bool, v_2 : bool, v_3 : bool, v_4 : bool} |= if v_2 ∧ (v_3 = false) ∧ (v_4 = false) then v_1 = false
+>>
+Rule 20 (general case: not in tf.function, not in dataset transform, not disabled => result is True)
+{v_1 : bool, v_2 : bool, v_5 : bool, v_6 : bool} |= if (v_2 = false) ∧ (v_5 = false) ∧ (v_6 = false) then v_1 = true
+>>
+Rule 21 (any active init_scope in the scope stack enables eager inside tf.function)
+{v_1 : bool, v_2 : bool, v_7 : tuple(bool)} |= if v_2 ∧ (v_7.len > 0) ∧ (∃i ∈ [0, v_7.len - 1] : v_7[i] = true) then v_1 = true
+>>
+Rule 22 (string-coded dataset mode: anything but "none" implies not eager)
+{v_1 : bool, v_8 : str} |= if v_8 ≠ "none" then v_1 = false
+>>
+Rule 23 (numeric depth ≤ 0 implies outside tf.function when not disabled and not in dataset => result is True)
+{v_1 : bool, v_5 : bool, v_6 : bool, v_9 : int ⊎ float} |= if (v_9 ≤ 0) ∧ (v_5 = false) ∧ (v_6 = false) then v_1 = true
+>>
+Rule 24 (numeric depth > 0 and no overrides => result is False)
+{v_1 : bool, v_3 : bool, v_4 : bool, v_9 : int ⊎ float} |= if (v_9 > 0) ∧ (v_3 = false) ∧ (v_4 = false) then v_1 = false

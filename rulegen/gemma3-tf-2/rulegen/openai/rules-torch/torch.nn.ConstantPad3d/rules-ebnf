@@ -1,0 +1,30 @@
+>>
+Rule 1 (input must be 4D or 5D to match 3D padding semantics and avoid dimension mismatch errors)
+{v_3 : tensor} |= ndim(v_3) = 4 ∨ ndim(v_3) = 5
+>>
+Rule 2 (tuple padding must have even length of exactly 6)
+{v_1 : tuple(int)} |= v_1.len = 6
+>>
+Rule 3 (tuple padding entries are concrete 32-bit integers)
+{v_1 : tuple(int)} |= v_1.len = 6 ∧ ∀i ∈ [0, v_1.len - 1] : (-2147483648 ≤ v_1[i] ∧ v_1[i] ≤ 2147483647)
+>>
+Rule 4 (int padding is a concrete 32-bit integer)
+{v_1 : int} |= -2147483648 ≤ v_1 ∧ v_1 ≤ 2147483647
+>>
+Rule 5 (non-negative output sizes with tuple padding; prevents negative-length narrows)
+{v_1 : tuple(int), v_3 : tensor} |= v_1.len = 6 ∧ ((ndim(v_3) = 5 ∧ shape(v_3, 2) + v_1[4] + v_1[5] ≥ 0 ∧ shape(v_3, 3) + v_1[2] + v_1[3] ≥ 0 ∧ shape(v_3, 4) + v_1[0] + v_1[1] ≥ 0) ∨ (ndim(v_3) = 4 ∧ shape(v_3, 1) + v_1[4] + v_1[5] ≥ 0 ∧ shape(v_3, 2) + v_1[2] + v_1[3] ≥ 0 ∧ shape(v_3, 3) + v_1[0] + v_1[1] ≥ 0))
+>>
+Rule 6 (non-negative output sizes with uniform int padding; prevents negative-length narrows)
+{v_1 : int, v_3 : tensor} |= (ndim(v_3) = 5 ∧ shape(v_3, 2) + 2 * v_1 ≥ 0 ∧ shape(v_3, 3) + 2 * v_1 ≥ 0 ∧ shape(v_3, 4) + 2 * v_1 ≥ 0) ∨ (ndim(v_3) = 4 ∧ shape(v_3, 1) + 2 * v_1 ≥ 0 ∧ shape(v_3, 2) + 2 * v_1 ≥ 0 ∧ shape(v_3, 3) + 2 * v_1 ≥ 0)
+>>
+Rule 7 (avoid overflow and excessive allocation with tuple padding by bounding output sizes)
+{v_1 : tuple(int), v_3 : tensor} |= v_1.len = 6 ∧ ((ndim(v_3) = 5 ∧ shape(v_3, 0) ≤ 4096 ∧ shape(v_3, 1) ≤ 8192 ∧ shape(v_3, 2) + v_1[4] + v_1[5] ≤ 1048576 ∧ shape(v_3, 3) + v_1[2] + v_1[3] ≤ 1048576 ∧ shape(v_3, 4) + v_1[0] + v_1[1] ≤ 1048576) ∨ (ndim(v_3) = 4 ∧ shape(v_3, 0) ≤ 8192 ∧ shape(v_3, 1) + v_1[4] + v_1[5] ≤ 1048576 ∧ shape(v_3, 2) + v_1[2] + v_1[3] ≤ 1048576 ∧ shape(v_3, 3) + v_1[0] + v_1[1] ≤ 1048576))
+>>
+Rule 8 (avoid overflow and excessive allocation with uniform int padding by bounding output sizes)
+{v_1 : int, v_3 : tensor} |= (ndim(v_3) = 5 ∧ shape(v_3, 0) ≤ 4096 ∧ shape(v_3, 1) ≤ 8192 ∧ shape(v_3, 2) + 2 * v_1 ≤ 1048576 ∧ shape(v_3, 3) + 2 * v_1 ≤ 1048576 ∧ shape(v_3, 4) + 2 * v_1 ≤ 1048576) ∨ (ndim(v_3) = 4 ∧ shape(v_3, 0) ≤ 8192 ∧ shape(v_3, 1) + 2 * v_1 ≤ 1048576 ∧ shape(v_3, 2) + 2 * v_1 ≤ 1048576 ∧ shape(v_3, 3) + 2 * v_1 ≤ 1048576)
+>>
+Rule 9 (fill value must be representable in float16 when input dtype is float16)
+{v_2 : float, v_3 : tensor} |= if dtype_(v_3) = 6 then (-65504 ≤ v_2 ∧ v_2 ≤ 65504)
+>>
+Rule 10 (tuple padding must be consistent with 3D spatial dims; prevents tuple-vs-input mismatch)
+{v_1 : tuple(int), v_3 : tensor} |= v_1.len = 6 ∧ (ndim(v_3) = 4 ∨ ndim(v_3) = 5)

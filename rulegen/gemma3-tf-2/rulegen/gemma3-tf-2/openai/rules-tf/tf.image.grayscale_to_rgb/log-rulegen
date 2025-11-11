@@ -1,0 +1,1610 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.grayscale_to_rgb API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Converts one or more images from Grayscale to RGB.
+
+  Outputs a tensor of the same `DType` and rank as `images`.  The size of the
+  last dimension of the output is 3, containing the RGB value of the pixels.
+  The input images' last dimension must be size 1.
+
+  >>> original = tf.constant([[[1.0], [2.0], [3.0]]])
+  >>> converted = tf.image.grayscale_to_rgb(original)
+  >>> print(converted.numpy())
+  [[[1. 1. 1.]
+    [2. 2. 2.]
+    [3. 3. 3.]]]
+
+  Args:
+    images: The Grayscale tensor to convert. The last dimension must be size 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The converted grayscale image(s).
+
+[API Signature] images: tensor, name: string
+
+[Error Messages]
+AttributeError: 'Tensor' object has no attribute 'get_shape'
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (grayscale input: last dimension size must be 1)
+{v_1 : tensor} |= ndim(v_1) ≥ 1 ∧ shape(v_1, ndim(v_1) - 1) = 1
+Token usage: input=1578, output=5715, total=7293
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.grayscale_to_rgb API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Converts one or more images from Grayscale to RGB.
+
+  Outputs a tensor of the same `DType` and rank as `images`.  The size of the
+  last dimension of the output is 3, containing the RGB value of the pixels.
+  The input images' last dimension must be size 1.
+
+  >>> original = tf.constant([[[1.0], [2.0], [3.0]]])
+  >>> converted = tf.image.grayscale_to_rgb(original)
+  >>> print(converted.numpy())
+  [[[1. 1. 1.]
+    [2. 2. 2.]
+    [3. 3. 3.]]]
+
+  Args:
+    images: The Grayscale tensor to convert. The last dimension must be size 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The converted grayscale image(s).
+
+[API Signature] images: tensor, name: string
+
+[Error Messages]
+AttributeError: 'Tensor' object has no attribute 'get_shape'
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (images dtype must be numeric: disallow bool/complex/str/dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 12
+Token usage: input=1578, output=5715, total=7293
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.grayscale_to_rgb API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Converts one or more images from Grayscale to RGB.
+
+  Outputs a tensor of the same `DType` and rank as `images`.  The size of the
+  last dimension of the output is 3, containing the RGB value of the pixels.
+  The input images' last dimension must be size 1.
+
+  >>> original = tf.constant([[[1.0], [2.0], [3.0]]])
+  >>> converted = tf.image.grayscale_to_rgb(original)
+  >>> print(converted.numpy())
+  [[[1. 1. 1.]
+    [2. 2. 2.]
+    [3. 3. 3.]]]
+
+  Args:
+    images: The Grayscale tensor to convert. The last dimension must be size 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The converted grayscale image(s).
+
+[API Signature] images: tensor, name: string
+
+[Error Messages]
+AttributeError: 'Tensor' object has no attribute 'get_shape'
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (images must be a TensorFlow tensor to avoid AttributeError about get_shape)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+Token usage: input=1578, output=5715, total=7293
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.grayscale_to_rgb API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Converts one or more images from Grayscale to RGB.
+
+  Outputs a tensor of the same `DType` and rank as `images`.  The size of the
+  last dimension of the output is 3, containing the RGB value of the pixels.
+  The input images' last dimension must be size 1.
+
+  >>> original = tf.constant([[[1.0], [2.0], [3.0]]])
+  >>> converted = tf.image.grayscale_to_rgb(original)
+  >>> print(converted.numpy())
+  [[[1. 1. 1.]
+    [2. 2. 2.]
+    [3. 3. 3.]]]
+
+  Args:
+    images: The Grayscale tensor to convert. The last dimension must be size 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The converted grayscale image(s).
+
+[API Signature] images: tensor, name: string
+
+[Error Messages]
+AttributeError: 'Tensor' object has no attribute 'get_shape'
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (non-channel dimensions are positive when rank ≥ 2)
+{v_1 : tensor} |= if ndim(v_1) ≥ 2 then ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) ≥ 1
+Token usage: input=1578, output=5715, total=7293
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.grayscale_to_rgb API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Converts one or more images from Grayscale to RGB.
+
+  Outputs a tensor of the same `DType` and rank as `images`.  The size of the
+  last dimension of the output is 3, containing the RGB value of the pixels.
+  The input images' last dimension must be size 1.
+
+  >>> original = tf.constant([[[1.0], [2.0], [3.0]]])
+  >>> converted = tf.image.grayscale_to_rgb(original)
+  >>> print(converted.numpy())
+  [[[1. 1. 1.]
+    [2. 2. 2.]
+    [3. 3. 3.]]]
+
+  Args:
+    images: The Grayscale tensor to convert. The last dimension must be size 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The converted grayscale image(s).
+
+[API Signature] images: tensor, name: string
+
+[Error Messages]
+AttributeError: 'Tensor' object has no attribute 'get_shape'
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (name is a supported string literal)
+{v_1 : tensor, v_2 : str} |= v_2 = "ii" ∨ v_2 = "ii->i" ∨ v_2 = "i,j->ij" ∨ v_2 = "bij,bjk->bik" ∨ v_2 = "...ij->...ji" ∨ v_2 = "bn,anm,bm->ba" ∨ v_2 = "none" ∨ v_2 = "sum" ∨ v_2 = "max" ∨ v_2 = "min" ∨ v_2 = "prod" ∨ v_2 = "relu" ∨ v_2 = "tanh" ∨ v_2 = "sigmoid" ∨ v_2 = "softmax" ∨ v_2 = "elu" ∨ v_2 = "selu" ∨ v_2 = "gelu" ∨ v_2 = "swish" ∨ v_2 = "softplus" ∨ v_2 = "linear" ∨ v_2 = "valid" ∨ v_2 = "same" ∨ v_2 = "causal" ∨ v_2 = "channels_last" ∨ v_2 = "channels_first"
+Token usage: input=1578, output=5715, total=7293
+** REDUNDANT VARIABLES ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.grayscale_to_rgb API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Converts one or more images from Grayscale to RGB.
+
+  Outputs a tensor of the same `DType` and rank as `images`.  The size of the
+  last dimension of the output is 3, containing the RGB value of the pixels.
+  The input images' last dimension must be size 1.
+
+  >>> original = tf.constant([[[1.0], [2.0], [3.0]]])
+  >>> converted = tf.image.grayscale_to_rgb(original)
+  >>> print(converted.numpy())
+  [[[1. 1. 1.]
+    [2. 2. 2.]
+    [3. 3. 3.]]]
+
+  Args:
+    images: The Grayscale tensor to convert. The last dimension must be size 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The converted grayscale image(s).
+
+[API Signature] images: tensor, name: string
+
+[Error Messages]
+AttributeError: 'Tensor' object has no attribute 'get_shape'
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (images must be grayscale: last dimension size is 1)
+{v_1 : tensor} |= 1 ≤ ndim(v_1) ∧ shape(v_1, ndim(v_1) - 1) = 1
+Token usage: input=1509, output=5607, total=7116
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.grayscale_to_rgb API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Converts one or more images from Grayscale to RGB.
+
+  Outputs a tensor of the same `DType` and rank as `images`.  The size of the
+  last dimension of the output is 3, containing the RGB value of the pixels.
+  The input images' last dimension must be size 1.
+
+  >>> original = tf.constant([[[1.0], [2.0], [3.0]]])
+  >>> converted = tf.image.grayscale_to_rgb(original)
+  >>> print(converted.numpy())
+  [[[1. 1. 1.]
+    [2. 2. 2.]
+    [3. 3. 3.]]]
+
+  Args:
+    images: The Grayscale tensor to convert. The last dimension must be size 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The converted grayscale image(s).
+
+[API Signature] images: tensor, name: string
+
+[Error Messages]
+AttributeError: 'Tensor' object has no attribute 'get_shape'
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (images must have a real numeric dtype)
+{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+Token usage: input=1509, output=5607, total=7116
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.grayscale_to_rgb API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Converts one or more images from Grayscale to RGB.
+
+  Outputs a tensor of the same `DType` and rank as `images`.  The size of the
+  last dimension of the output is 3, containing the RGB value of the pixels.
+  The input images' last dimension must be size 1.
+
+  >>> original = tf.constant([[[1.0], [2.0], [3.0]]])
+  >>> converted = tf.image.grayscale_to_rgb(original)
+  >>> print(converted.numpy())
+  [[[1. 1. 1.]
+    [2. 2. 2.]
+    [3. 3. 3.]]]
+
+  Args:
+    images: The Grayscale tensor to convert. The last dimension must be size 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The converted grayscale image(s).
+
+[API Signature] images: tensor, name: string
+
+[Error Messages]
+AttributeError: 'Tensor' object has no attribute 'get_shape'
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (name, if provided, must be one of the allowed strings)
+{v_2 : str} |= v_2 = "ii" ∨ v_2 = "ii->i" ∨ v_2 = "i,j->ij" ∨ v_2 = "bij,bjk->bik" ∨ v_2 = "...ij->...ji" ∨ v_2 = "bn,anm,bm->ba" ∨ v_2 = "none" ∨ v_2 = "sum" ∨ v_2 = "max" ∨ v_2 = "min" ∨ v_2 = "prod" ∨ v_2 = "relu" ∨ v_2 = "tanh" ∨ v_2 = "sigmoid" ∨ v_2 = "softmax" ∨ v_2 = "elu" ∨ v_2 = "selu" ∨ v_2 = "gelu" ∨ v_2 = "swish" ∨ v_2 = "softplus" ∨ v_2 = "linear" ∨ v_2 = "valid" ∨ v_2 = "same" ∨ v_2 = "causal" ∨ v_2 = "channels_last" ∨ v_2 = "channels_first"
+Token usage: input=1509, output=5607, total=7116
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.grayscale_to_rgb API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Converts one or more images from Grayscale to RGB.
+
+  Outputs a tensor of the same `DType` and rank as `images`.  The size of the
+  last dimension of the output is 3, containing the RGB value of the pixels.
+  The input images' last dimension must be size 1.
+
+  >>> original = tf.constant([[[1.0], [2.0], [3.0]]])
+  >>> converted = tf.image.grayscale_to_rgb(original)
+  >>> print(converted.numpy())
+  [[[1. 1. 1.]
+    [2. 2. 2.]
+    [3. 3. 3.]]]
+
+  Args:
+    images: The Grayscale tensor to convert. The last dimension must be size 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The converted grayscale image(s).
+
+[API Signature] images: tensor, name: string
+
+[Error Messages]
+AttributeError: 'Tensor' object has no attribute 'get_shape'
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (suppress get_shape AttributeError by ensuring tensor rank is defined)
+{v_1 : tensor} |= if ndim(v_1) >= 1 then true else false
+Token usage: input=1509, output=5607, total=7116
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.grayscale_to_rgb API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Converts one or more images from Grayscale to RGB.
+
+  Outputs a tensor of the same `DType` and rank as `images`.  The size of the
+  last dimension of the output is 3, containing the RGB value of the pixels.
+  The input images' last dimension must be size 1.
+
+  >>> original = tf.constant([[[1.0], [2.0], [3.0]]])
+  >>> converted = tf.image.grayscale_to_rgb(original)
+  >>> print(converted.numpy())
+  [[[1. 1. 1.]
+    [2. 2. 2.]
+    [3. 3. 3.]]]
+
+  Args:
+    images: The Grayscale tensor to convert. The last dimension must be size 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The converted grayscale image(s).
+
+[API Signature] images: tensor, name: string
+
+[Error Messages]
+AttributeError: 'Tensor' object has no attribute 'get_shape'
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (images must be grayscale: last dimension size is 1)
+{v_1 : tensor} |= ndim(v_1) ≥ 1 ∧ shape(v_1, ndim(v_1) - 1) = 1
+Token usage: input=3532, output=3546, total=7078
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.grayscale_to_rgb API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Converts one or more images from Grayscale to RGB.
+
+  Outputs a tensor of the same `DType` and rank as `images`.  The size of the
+  last dimension of the output is 3, containing the RGB value of the pixels.
+  The input images' last dimension must be size 1.
+
+  >>> original = tf.constant([[[1.0], [2.0], [3.0]]])
+  >>> converted = tf.image.grayscale_to_rgb(original)
+  >>> print(converted.numpy())
+  [[[1. 1. 1.]
+    [2. 2. 2.]
+    [3. 3. 3.]]]
+
+  Args:
+    images: The Grayscale tensor to convert. The last dimension must be size 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The converted grayscale image(s).
+
+[API Signature] images: tensor, name: string
+
+[Error Messages]
+AttributeError: 'Tensor' object has no attribute 'get_shape'
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (images must have a real numeric dtype: 1–8)
+{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+Token usage: input=3532, output=3546, total=7078
+** DUPLICATED RULE ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.grayscale_to_rgb API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Converts one or more images from Grayscale to RGB.
+
+  Outputs a tensor of the same `DType` and rank as `images`.  The size of the
+  last dimension of the output is 3, containing the RGB value of the pixels.
+  The input images' last dimension must be size 1.
+
+  >>> original = tf.constant([[[1.0], [2.0], [3.0]]])
+  >>> converted = tf.image.grayscale_to_rgb(original)
+  >>> print(converted.numpy())
+  [[[1. 1. 1.]
+    [2. 2. 2.]
+    [3. 3. 3.]]]
+
+  Args:
+    images: The Grayscale tensor to convert. The last dimension must be size 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The converted grayscale image(s).
+
+[API Signature] images: tensor, name: string
+
+[Error Messages]
+AttributeError: 'Tensor' object has no attribute 'get_shape'
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (images tensor should have positive sizes in all dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Token usage: input=3532, output=3546, total=7078
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.grayscale_to_rgb API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Converts one or more images from Grayscale to RGB.
+
+  Outputs a tensor of the same `DType` and rank as `images`.  The size of the
+  last dimension of the output is 3, containing the RGB value of the pixels.
+  The input images' last dimension must be size 1.
+
+  >>> original = tf.constant([[[1.0], [2.0], [3.0]]])
+  >>> converted = tf.image.grayscale_to_rgb(original)
+  >>> print(converted.numpy())
+  [[[1. 1. 1.]
+    [2. 2. 2.]
+    [3. 3. 3.]]]
+
+  Args:
+    images: The Grayscale tensor to convert. The last dimension must be size 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The converted grayscale image(s).
+
+[API Signature] images: tensor, name: string
+
+[Error Messages]
+AttributeError: 'Tensor' object has no attribute 'get_shape'
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (name, if provided, must be one of the allowed strings)
+{v_2 : str} |= v_2 = "ii" ∨ v_2 = "ii->i" ∨ v_2 = "i,j->ij" ∨ v_2 = "bij,bjk->bik" ∨ v_2 = "...ij->...ji" ∨ v_2 = "bn,anm,bm->ba" ∨ v_2 = "none" ∨ v_2 = "sum" ∨ v_2 = "max" ∨ v_2 = "min" ∨ v_2 = "prod" ∨ v_2 = "relu" ∨ v_2 = "tanh" ∨ v_2 = "sigmoid" ∨ v_2 = "softmax" ∨ v_2 = "elu" ∨ v_2 = "selu" ∨ v_2 = "gelu" ∨ v_2 = "swish" ∨ v_2 = "softplus" ∨ v_2 = "linear" ∨ v_2 = "valid" ∨ v_2 = "same" ∨ v_2 = "causal" ∨ v_2 = "channels_last" ∨ v_2 = "channels_first"
+Token usage: input=3532, output=3546, total=7078
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.grayscale_to_rgb API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Converts one or more images from Grayscale to RGB.
+
+  Outputs a tensor of the same `DType` and rank as `images`.  The size of the
+  last dimension of the output is 3, containing the RGB value of the pixels.
+  The input images' last dimension must be size 1.
+
+  >>> original = tf.constant([[[1.0], [2.0], [3.0]]])
+  >>> converted = tf.image.grayscale_to_rgb(original)
+  >>> print(converted.numpy())
+  [[[1. 1. 1.]
+    [2. 2. 2.]
+    [3. 3. 3.]]]
+
+  Args:
+    images: The Grayscale tensor to convert. The last dimension must be size 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The converted grayscale image(s).
+
+[API Signature] images: tensor, name: string
+
+[Error Messages]
+AttributeError: 'Tensor' object has no attribute 'get_shape'
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (suppress AttributeError: ensure rank is defined for shape checks)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
+Token usage: input=3532, output=3546, total=7078
+** SUCCESS **
+

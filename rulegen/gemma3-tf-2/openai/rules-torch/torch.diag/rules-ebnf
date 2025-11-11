@@ -1,0 +1,21 @@
+>>
+Rule 1 (input must be 1D or 2D; prevents “Supports 1D or 2D tensors. Got 3D”)
+{v_1 : tensor} |= ndim(v_1) = 1 ∨ ndim(v_1) = 2
+>>
+Rule 2 (out must be a Tensor; prevents “TypeError: diag(): argument 'out' must be Tensor, not float”)
+{v_3 : tensor} |= ndim(v_3) ≥ 0
+>>
+Rule 3 (out dtype must match result/input dtype; prevents dtype mismatch and unsafe casts)
+{v_1 : tensor, v_3 : tensor} |= dtype_(v_3) = dtype_(v_1)
+>>
+Rule 4 (vector input: enforce out shape equals the square determined by diagonal offset; prevents mis-shape and helps avoid over-allocation)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= if ndim(v_1) = 1 then (ndim(v_3) = 2 ∧ shape(v_3, 0) = shape(v_1, 0) + (if v_2 ≥ 0 then v_2 else 0 - v_2) ∧ shape(v_3, 1) = shape(v_1, 0) + (if v_2 ≥ 0 then v_2 else 0 - v_2))
+>>
+Rule 5 (vector input: cap the constructed square size to avoid storage overflow and OOM)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then ((shape(v_1, 0) + (if v_2 ≥ 0 then v_2 else 0 - v_2)) * (shape(v_1, 0) + (if v_2 ≥ 0 then v_2 else 0 - v_2))) ≤ 2147483647
+>>
+Rule 6 (diagonal magnitude is bounded; further reduces risk of overflow and huge allocations)
+{v_2 : int} |= if v_2 ≥ 0 then v_2 ≤ 1000000 else 0 - v_2 ≤ 1000000
+>>
+Rule 7 (matrix input: out must be 1D and its length bounded by input dimensions and offset; avoids overflow and invalid shapes)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= if ndim(v_1) = 2 then (ndim(v_3) = 1 ∧ shape(v_3, 0) ≤ shape(v_1, 0) ∧ shape(v_3, 0) ≤ shape(v_1, 1) ∧ (if v_2 ≥ 0 then shape(v_3, 0) ≤ shape(v_1, 1) - v_2 else shape(v_3, 0) ≤ shape(v_1, 0) + v_2))

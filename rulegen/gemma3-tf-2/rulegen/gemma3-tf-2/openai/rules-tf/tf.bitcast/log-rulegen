@@ -1,0 +1,2054 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.bitcast API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Bitcasts a tensor from one type to another without copying data.
+
+  Given a tensor `input`, this operation returns a tensor that has the same buffer
+  data as `input` with datatype `type`.
+
+  If the input datatype `T` is larger than the output datatype `type` then the
+  shape changes from [...] to [..., sizeof(`T`)/sizeof(`type`)].
+
+  If `T` is smaller than `type`, the operator requires that the rightmost
+  dimension be equal to sizeof(`type`)/sizeof(`T`). The shape then goes from
+  [..., sizeof(`type`)/sizeof(`T`)] to [...].
+
+  tf.bitcast() and tf.cast() work differently when real dtype is casted as a complex dtype
+  (e.g. tf.complex64 or tf.complex128) as tf.cast() make imaginary part 0 while tf.bitcast()
+  gives module error.
+  For example,
+
+  Example 1:
+
+  >>> a = [1., 2., 3.]
+  >>> equality_bitcast = tf.bitcast(a, tf.complex128)
+  Traceback (most recent call last):
+  ...
+  InvalidArgumentError: Cannot bitcast from 1 to 18 [Op:Bitcast]
+  >>> equality_cast = tf.cast(a, tf.complex128)
+  >>> print(equality_cast)
+  tf.Tensor([1.+0.j 2.+0.j 3.+0.j], shape=(3,), dtype=complex128)
+
+  Example 2:
+
+  >>> tf.bitcast(tf.constant(0xffffffff, dtype=tf.uint32), tf.uint8)
+  <tf.Tensor: shape=(4,), dtype=uint8, numpy=array([255, 255, 255, 255], dtype=uint8)>
+
+  Example 3:
+
+  >>> x = [1., 2., 3.]
+  >>> y = [0., 2., 3.]
+  >>> equality= tf.equal(x,y)
+  >>> equality_cast = tf.cast(equality,tf.float32)
+  >>> equality_bitcast = tf.bitcast(equality_cast,tf.uint8)
+  >>> print(equality)
+  tf.Tensor([False True True], shape=(3,), dtype=bool)
+  >>> print(equality_cast)
+  tf.Tensor([0. 1. 1.], shape=(3,), dtype=float32)
+  >>> print(equality_bitcast)
+  tf.Tensor(
+      [[  0   0   0   0]
+       [  0   0 128  63]
+       [  0   0 128  63]], shape=(3, 4), dtype=uint8)
+
+  *NOTE*: Bitcast is implemented as a low-level cast, so machines with different
+  endian orderings will give different results. A copy from input buffer to output
+  buffer is made on BE machines when types are of different sizes in order to get
+  the same casting results as on LE machines.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `bfloat16`, `half`, `float32`, `float64`, `int64`, `int32`, `uint8`, `uint16`, `uint32`, `uint64`, `int8`, `int16`, `complex64`, `complex128`, `qint8`, `quint8`, `qint16`, `quint16`, `qint32`.
+    type: A `tf.DType` from: `tf.bfloat16, tf.half, tf.float32, tf.float64, tf.int64, tf.int32, tf.uint8, tf.uint16, tf.uint32, tf.uint64, tf.int8, tf.int16, tf.complex64, tf.complex128, tf.qint8, tf.quint8, tf.qint16, tf.quint16, tf.qint32`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `type`.
+
+[API Signature] input: tensor, type: dtype, name: string
+
+[Error Messages]
+TypeError: Expected DataType for argument 'type' not torch.int64.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (type argument must be a TensorFlow dtype)
+{v_2 : dtype} |= true
+Token usage: input=2238, output=5865, total=8103
+** REDUNDANT VARIABLES ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.bitcast API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Bitcasts a tensor from one type to another without copying data.
+
+  Given a tensor `input`, this operation returns a tensor that has the same buffer
+  data as `input` with datatype `type`.
+
+  If the input datatype `T` is larger than the output datatype `type` then the
+  shape changes from [...] to [..., sizeof(`T`)/sizeof(`type`)].
+
+  If `T` is smaller than `type`, the operator requires that the rightmost
+  dimension be equal to sizeof(`type`)/sizeof(`T`). The shape then goes from
+  [..., sizeof(`type`)/sizeof(`T`)] to [...].
+
+  tf.bitcast() and tf.cast() work differently when real dtype is casted as a complex dtype
+  (e.g. tf.complex64 or tf.complex128) as tf.cast() make imaginary part 0 while tf.bitcast()
+  gives module error.
+  For example,
+
+  Example 1:
+
+  >>> a = [1., 2., 3.]
+  >>> equality_bitcast = tf.bitcast(a, tf.complex128)
+  Traceback (most recent call last):
+  ...
+  InvalidArgumentError: Cannot bitcast from 1 to 18 [Op:Bitcast]
+  >>> equality_cast = tf.cast(a, tf.complex128)
+  >>> print(equality_cast)
+  tf.Tensor([1.+0.j 2.+0.j 3.+0.j], shape=(3,), dtype=complex128)
+
+  Example 2:
+
+  >>> tf.bitcast(tf.constant(0xffffffff, dtype=tf.uint32), tf.uint8)
+  <tf.Tensor: shape=(4,), dtype=uint8, numpy=array([255, 255, 255, 255], dtype=uint8)>
+
+  Example 3:
+
+  >>> x = [1., 2., 3.]
+  >>> y = [0., 2., 3.]
+  >>> equality= tf.equal(x,y)
+  >>> equality_cast = tf.cast(equality,tf.float32)
+  >>> equality_bitcast = tf.bitcast(equality_cast,tf.uint8)
+  >>> print(equality)
+  tf.Tensor([False True True], shape=(3,), dtype=bool)
+  >>> print(equality_cast)
+  tf.Tensor([0. 1. 1.], shape=(3,), dtype=float32)
+  >>> print(equality_bitcast)
+  tf.Tensor(
+      [[  0   0   0   0]
+       [  0   0 128  63]
+       [  0   0 128  63]], shape=(3, 4), dtype=uint8)
+
+  *NOTE*: Bitcast is implemented as a low-level cast, so machines with different
+  endian orderings will give different results. A copy from input buffer to output
+  buffer is made on BE machines when types are of different sizes in order to get
+  the same casting results as on LE machines.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `bfloat16`, `half`, `float32`, `float64`, `int64`, `int32`, `uint8`, `uint16`, `uint32`, `uint64`, `int8`, `int16`, `complex64`, `complex128`, `qint8`, `quint8`, `qint16`, `quint16`, `qint32`.
+    type: A `tf.DType` from: `tf.bfloat16, tf.half, tf.float32, tf.float64, tf.int64, tf.int32, tf.uint8, tf.uint16, tf.uint32, tf.uint64, tf.int8, tf.int16, tf.complex64, tf.complex128, tf.qint8, tf.quint8, tf.qint16, tf.quint16, tf.qint32`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `type`.
+
+[API Signature] input: tensor, type: dtype, name: string
+
+[Error Messages]
+TypeError: Expected DataType for argument 'type' not torch.int64.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (scalar input can only be bitcast to the same dtype)
+{v_1 : tensor, v_2 : dtype} |= if ndim(v_1) = 0 then v_2 = dtype_(v_1)
+Token usage: input=2238, output=5865, total=8103
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.bitcast API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Bitcasts a tensor from one type to another without copying data.
+
+  Given a tensor `input`, this operation returns a tensor that has the same buffer
+  data as `input` with datatype `type`.
+
+  If the input datatype `T` is larger than the output datatype `type` then the
+  shape changes from [...] to [..., sizeof(`T`)/sizeof(`type`)].
+
+  If `T` is smaller than `type`, the operator requires that the rightmost
+  dimension be equal to sizeof(`type`)/sizeof(`T`). The shape then goes from
+  [..., sizeof(`type`)/sizeof(`T`)] to [...].
+
+  tf.bitcast() and tf.cast() work differently when real dtype is casted as a complex dtype
+  (e.g. tf.complex64 or tf.complex128) as tf.cast() make imaginary part 0 while tf.bitcast()
+  gives module error.
+  For example,
+
+  Example 1:
+
+  >>> a = [1., 2., 3.]
+  >>> equality_bitcast = tf.bitcast(a, tf.complex128)
+  Traceback (most recent call last):
+  ...
+  InvalidArgumentError: Cannot bitcast from 1 to 18 [Op:Bitcast]
+  >>> equality_cast = tf.cast(a, tf.complex128)
+  >>> print(equality_cast)
+  tf.Tensor([1.+0.j 2.+0.j 3.+0.j], shape=(3,), dtype=complex128)
+
+  Example 2:
+
+  >>> tf.bitcast(tf.constant(0xffffffff, dtype=tf.uint32), tf.uint8)
+  <tf.Tensor: shape=(4,), dtype=uint8, numpy=array([255, 255, 255, 255], dtype=uint8)>
+
+  Example 3:
+
+  >>> x = [1., 2., 3.]
+  >>> y = [0., 2., 3.]
+  >>> equality= tf.equal(x,y)
+  >>> equality_cast = tf.cast(equality,tf.float32)
+  >>> equality_bitcast = tf.bitcast(equality_cast,tf.uint8)
+  >>> print(equality)
+  tf.Tensor([False True True], shape=(3,), dtype=bool)
+  >>> print(equality_cast)
+  tf.Tensor([0. 1. 1.], shape=(3,), dtype=float32)
+  >>> print(equality_bitcast)
+  tf.Tensor(
+      [[  0   0   0   0]
+       [  0   0 128  63]
+       [  0   0 128  63]], shape=(3, 4), dtype=uint8)
+
+  *NOTE*: Bitcast is implemented as a low-level cast, so machines with different
+  endian orderings will give different results. A copy from input buffer to output
+  buffer is made on BE machines when types are of different sizes in order to get
+  the same casting results as on LE machines.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `bfloat16`, `half`, `float32`, `float64`, `int64`, `int32`, `uint8`, `uint16`, `uint32`, `uint64`, `int8`, `int16`, `complex64`, `complex128`, `qint8`, `quint8`, `qint16`, `quint16`, `qint32`.
+    type: A `tf.DType` from: `tf.bfloat16, tf.half, tf.float32, tf.float64, tf.int64, tf.int32, tf.uint8, tf.uint16, tf.uint32, tf.uint64, tf.int8, tf.int16, tf.complex64, tf.complex128, tf.qint8, tf.quint8, tf.qint16, tf.quint16, tf.qint32`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `type`.
+
+[API Signature] input: tensor, type: dtype, name: string
+
+[Error Messages]
+TypeError: Expected DataType for argument 'type' not torch.int64.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (when changing dtype, input must have a rightmost dimension available)
+{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ dtype_(v_1) then ndim(v_1) ≥ 1 ∧ shape(v_1, ndim(v_1) - 1) ≥ 2
+Token usage: input=2238, output=5865, total=8103
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.bitcast API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Bitcasts a tensor from one type to another without copying data.
+
+  Given a tensor `input`, this operation returns a tensor that has the same buffer
+  data as `input` with datatype `type`.
+
+  If the input datatype `T` is larger than the output datatype `type` then the
+  shape changes from [...] to [..., sizeof(`T`)/sizeof(`type`)].
+
+  If `T` is smaller than `type`, the operator requires that the rightmost
+  dimension be equal to sizeof(`type`)/sizeof(`T`). The shape then goes from
+  [..., sizeof(`type`)/sizeof(`T`)] to [...].
+
+  tf.bitcast() and tf.cast() work differently when real dtype is casted as a complex dtype
+  (e.g. tf.complex64 or tf.complex128) as tf.cast() make imaginary part 0 while tf.bitcast()
+  gives module error.
+  For example,
+
+  Example 1:
+
+  >>> a = [1., 2., 3.]
+  >>> equality_bitcast = tf.bitcast(a, tf.complex128)
+  Traceback (most recent call last):
+  ...
+  InvalidArgumentError: Cannot bitcast from 1 to 18 [Op:Bitcast]
+  >>> equality_cast = tf.cast(a, tf.complex128)
+  >>> print(equality_cast)
+  tf.Tensor([1.+0.j 2.+0.j 3.+0.j], shape=(3,), dtype=complex128)
+
+  Example 2:
+
+  >>> tf.bitcast(tf.constant(0xffffffff, dtype=tf.uint32), tf.uint8)
+  <tf.Tensor: shape=(4,), dtype=uint8, numpy=array([255, 255, 255, 255], dtype=uint8)>
+
+  Example 3:
+
+  >>> x = [1., 2., 3.]
+  >>> y = [0., 2., 3.]
+  >>> equality= tf.equal(x,y)
+  >>> equality_cast = tf.cast(equality,tf.float32)
+  >>> equality_bitcast = tf.bitcast(equality_cast,tf.uint8)
+  >>> print(equality)
+  tf.Tensor([False True True], shape=(3,), dtype=bool)
+  >>> print(equality_cast)
+  tf.Tensor([0. 1. 1.], shape=(3,), dtype=float32)
+  >>> print(equality_bitcast)
+  tf.Tensor(
+      [[  0   0   0   0]
+       [  0   0 128  63]
+       [  0   0 128  63]], shape=(3, 4), dtype=uint8)
+
+  *NOTE*: Bitcast is implemented as a low-level cast, so machines with different
+  endian orderings will give different results. A copy from input buffer to output
+  buffer is made on BE machines when types are of different sizes in order to get
+  the same casting results as on LE machines.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `bfloat16`, `half`, `float32`, `float64`, `int64`, `int32`, `uint8`, `uint16`, `uint32`, `uint64`, `int8`, `int16`, `complex64`, `complex128`, `qint8`, `quint8`, `qint16`, `quint16`, `qint32`.
+    type: A `tf.DType` from: `tf.bfloat16, tf.half, tf.float32, tf.float64, tf.int64, tf.int32, tf.uint8, tf.uint16, tf.uint32, tf.uint64, tf.int8, tf.int16, tf.complex64, tf.complex128, tf.qint8, tf.quint8, tf.qint16, tf.quint16, tf.qint32`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `type`.
+
+[API Signature] input: tensor, type: dtype, name: string
+
+[Error Messages]
+TypeError: Expected DataType for argument 'type' not torch.int64.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (identity bitcast is always valid)
+{v_1 : tensor, v_2 : dtype} |= v_2 = dtype_(v_1)
+Token usage: input=2238, output=5865, total=8103
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.bitcast API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Bitcasts a tensor from one type to another without copying data.
+
+  Given a tensor `input`, this operation returns a tensor that has the same buffer
+  data as `input` with datatype `type`.
+
+  If the input datatype `T` is larger than the output datatype `type` then the
+  shape changes from [...] to [..., sizeof(`T`)/sizeof(`type`)].
+
+  If `T` is smaller than `type`, the operator requires that the rightmost
+  dimension be equal to sizeof(`type`)/sizeof(`T`). The shape then goes from
+  [..., sizeof(`type`)/sizeof(`T`)] to [...].
+
+  tf.bitcast() and tf.cast() work differently when real dtype is casted as a complex dtype
+  (e.g. tf.complex64 or tf.complex128) as tf.cast() make imaginary part 0 while tf.bitcast()
+  gives module error.
+  For example,
+
+  Example 1:
+
+  >>> a = [1., 2., 3.]
+  >>> equality_bitcast = tf.bitcast(a, tf.complex128)
+  Traceback (most recent call last):
+  ...
+  InvalidArgumentError: Cannot bitcast from 1 to 18 [Op:Bitcast]
+  >>> equality_cast = tf.cast(a, tf.complex128)
+  >>> print(equality_cast)
+  tf.Tensor([1.+0.j 2.+0.j 3.+0.j], shape=(3,), dtype=complex128)
+
+  Example 2:
+
+  >>> tf.bitcast(tf.constant(0xffffffff, dtype=tf.uint32), tf.uint8)
+  <tf.Tensor: shape=(4,), dtype=uint8, numpy=array([255, 255, 255, 255], dtype=uint8)>
+
+  Example 3:
+
+  >>> x = [1., 2., 3.]
+  >>> y = [0., 2., 3.]
+  >>> equality= tf.equal(x,y)
+  >>> equality_cast = tf.cast(equality,tf.float32)
+  >>> equality_bitcast = tf.bitcast(equality_cast,tf.uint8)
+  >>> print(equality)
+  tf.Tensor([False True True], shape=(3,), dtype=bool)
+  >>> print(equality_cast)
+  tf.Tensor([0. 1. 1.], shape=(3,), dtype=float32)
+  >>> print(equality_bitcast)
+  tf.Tensor(
+      [[  0   0   0   0]
+       [  0   0 128  63]
+       [  0   0 128  63]], shape=(3, 4), dtype=uint8)
+
+  *NOTE*: Bitcast is implemented as a low-level cast, so machines with different
+  endian orderings will give different results. A copy from input buffer to output
+  buffer is made on BE machines when types are of different sizes in order to get
+  the same casting results as on LE machines.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `bfloat16`, `half`, `float32`, `float64`, `int64`, `int32`, `uint8`, `uint16`, `uint32`, `uint64`, `int8`, `int16`, `complex64`, `complex128`, `qint8`, `quint8`, `qint16`, `quint16`, `qint32`.
+    type: A `tf.DType` from: `tf.bfloat16, tf.half, tf.float32, tf.float64, tf.int64, tf.int32, tf.uint8, tf.uint16, tf.uint32, tf.uint64, tf.int8, tf.int16, tf.complex64, tf.complex128, tf.qint8, tf.quint8, tf.qint16, tf.quint16, tf.qint32`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `type`.
+
+[API Signature] input: tensor, type: dtype, name: string
+
+[Error Messages]
+TypeError: Expected DataType for argument 'type' not torch.int64.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (valid optional name strings)
+{v_3 : str} |= v_3 = "none" ∨ v_3 = "linear" ∨ v_3 = "sum"
+Token usage: input=2238, output=5865, total=8103
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.bitcast API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Bitcasts a tensor from one type to another without copying data.
+
+  Given a tensor `input`, this operation returns a tensor that has the same buffer
+  data as `input` with datatype `type`.
+
+  If the input datatype `T` is larger than the output datatype `type` then the
+  shape changes from [...] to [..., sizeof(`T`)/sizeof(`type`)].
+
+  If `T` is smaller than `type`, the operator requires that the rightmost
+  dimension be equal to sizeof(`type`)/sizeof(`T`). The shape then goes from
+  [..., sizeof(`type`)/sizeof(`T`)] to [...].
+
+  tf.bitcast() and tf.cast() work differently when real dtype is casted as a complex dtype
+  (e.g. tf.complex64 or tf.complex128) as tf.cast() make imaginary part 0 while tf.bitcast()
+  gives module error.
+  For example,
+
+  Example 1:
+
+  >>> a = [1., 2., 3.]
+  >>> equality_bitcast = tf.bitcast(a, tf.complex128)
+  Traceback (most recent call last):
+  ...
+  InvalidArgumentError: Cannot bitcast from 1 to 18 [Op:Bitcast]
+  >>> equality_cast = tf.cast(a, tf.complex128)
+  >>> print(equality_cast)
+  tf.Tensor([1.+0.j 2.+0.j 3.+0.j], shape=(3,), dtype=complex128)
+
+  Example 2:
+
+  >>> tf.bitcast(tf.constant(0xffffffff, dtype=tf.uint32), tf.uint8)
+  <tf.Tensor: shape=(4,), dtype=uint8, numpy=array([255, 255, 255, 255], dtype=uint8)>
+
+  Example 3:
+
+  >>> x = [1., 2., 3.]
+  >>> y = [0., 2., 3.]
+  >>> equality= tf.equal(x,y)
+  >>> equality_cast = tf.cast(equality,tf.float32)
+  >>> equality_bitcast = tf.bitcast(equality_cast,tf.uint8)
+  >>> print(equality)
+  tf.Tensor([False True True], shape=(3,), dtype=bool)
+  >>> print(equality_cast)
+  tf.Tensor([0. 1. 1.], shape=(3,), dtype=float32)
+  >>> print(equality_bitcast)
+  tf.Tensor(
+      [[  0   0   0   0]
+       [  0   0 128  63]
+       [  0   0 128  63]], shape=(3, 4), dtype=uint8)
+
+  *NOTE*: Bitcast is implemented as a low-level cast, so machines with different
+  endian orderings will give different results. A copy from input buffer to output
+  buffer is made on BE machines when types are of different sizes in order to get
+  the same casting results as on LE machines.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `bfloat16`, `half`, `float32`, `float64`, `int64`, `int32`, `uint8`, `uint16`, `uint32`, `uint64`, `int8`, `int16`, `complex64`, `complex128`, `qint8`, `quint8`, `qint16`, `quint16`, `qint32`.
+    type: A `tf.DType` from: `tf.bfloat16, tf.half, tf.float32, tf.float64, tf.int64, tf.int32, tf.uint8, tf.uint16, tf.uint32, tf.uint64, tf.int8, tf.int16, tf.complex64, tf.complex128, tf.qint8, tf.quint8, tf.qint16, tf.quint16, tf.qint32`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `type`.
+
+[API Signature] input: tensor, type: dtype, name: string
+
+[Error Messages]
+TypeError: Expected DataType for argument 'type' not torch.int64.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (output dtype (v_2) must be a supported TensorFlow data type id 0–10)
+{v_2 : dtype} |= 0 ≤ v_2 ∧ v_2 ≤ 10
+Token usage: input=2164, output=7466, total=9630
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.bitcast API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Bitcasts a tensor from one type to another without copying data.
+
+  Given a tensor `input`, this operation returns a tensor that has the same buffer
+  data as `input` with datatype `type`.
+
+  If the input datatype `T` is larger than the output datatype `type` then the
+  shape changes from [...] to [..., sizeof(`T`)/sizeof(`type`)].
+
+  If `T` is smaller than `type`, the operator requires that the rightmost
+  dimension be equal to sizeof(`type`)/sizeof(`T`). The shape then goes from
+  [..., sizeof(`type`)/sizeof(`T`)] to [...].
+
+  tf.bitcast() and tf.cast() work differently when real dtype is casted as a complex dtype
+  (e.g. tf.complex64 or tf.complex128) as tf.cast() make imaginary part 0 while tf.bitcast()
+  gives module error.
+  For example,
+
+  Example 1:
+
+  >>> a = [1., 2., 3.]
+  >>> equality_bitcast = tf.bitcast(a, tf.complex128)
+  Traceback (most recent call last):
+  ...
+  InvalidArgumentError: Cannot bitcast from 1 to 18 [Op:Bitcast]
+  >>> equality_cast = tf.cast(a, tf.complex128)
+  >>> print(equality_cast)
+  tf.Tensor([1.+0.j 2.+0.j 3.+0.j], shape=(3,), dtype=complex128)
+
+  Example 2:
+
+  >>> tf.bitcast(tf.constant(0xffffffff, dtype=tf.uint32), tf.uint8)
+  <tf.Tensor: shape=(4,), dtype=uint8, numpy=array([255, 255, 255, 255], dtype=uint8)>
+
+  Example 3:
+
+  >>> x = [1., 2., 3.]
+  >>> y = [0., 2., 3.]
+  >>> equality= tf.equal(x,y)
+  >>> equality_cast = tf.cast(equality,tf.float32)
+  >>> equality_bitcast = tf.bitcast(equality_cast,tf.uint8)
+  >>> print(equality)
+  tf.Tensor([False True True], shape=(3,), dtype=bool)
+  >>> print(equality_cast)
+  tf.Tensor([0. 1. 1.], shape=(3,), dtype=float32)
+  >>> print(equality_bitcast)
+  tf.Tensor(
+      [[  0   0   0   0]
+       [  0   0 128  63]
+       [  0   0 128  63]], shape=(3, 4), dtype=uint8)
+
+  *NOTE*: Bitcast is implemented as a low-level cast, so machines with different
+  endian orderings will give different results. A copy from input buffer to output
+  buffer is made on BE machines when types are of different sizes in order to get
+  the same casting results as on LE machines.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `bfloat16`, `half`, `float32`, `float64`, `int64`, `int32`, `uint8`, `uint16`, `uint32`, `uint64`, `int8`, `int16`, `complex64`, `complex128`, `qint8`, `quint8`, `qint16`, `quint16`, `qint32`.
+    type: A `tf.DType` from: `tf.bfloat16, tf.half, tf.float32, tf.float64, tf.int64, tf.int32, tf.uint8, tf.uint16, tf.uint32, tf.uint64, tf.int8, tf.int16, tf.complex64, tf.complex128, tf.qint8, tf.quint8, tf.qint16, tf.quint16, tf.qint32`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `type`.
+
+[API Signature] input: tensor, type: dtype, name: string
+
+[Error Messages]
+TypeError: Expected DataType for argument 'type' not torch.int64.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (input tensor (v_1) must have a supported TensorFlow data type id 0–10)
+{v_1 : tensor} |= 0 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10
+Token usage: input=2164, output=7466, total=9630
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.bitcast API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Bitcasts a tensor from one type to another without copying data.
+
+  Given a tensor `input`, this operation returns a tensor that has the same buffer
+  data as `input` with datatype `type`.
+
+  If the input datatype `T` is larger than the output datatype `type` then the
+  shape changes from [...] to [..., sizeof(`T`)/sizeof(`type`)].
+
+  If `T` is smaller than `type`, the operator requires that the rightmost
+  dimension be equal to sizeof(`type`)/sizeof(`T`). The shape then goes from
+  [..., sizeof(`type`)/sizeof(`T`)] to [...].
+
+  tf.bitcast() and tf.cast() work differently when real dtype is casted as a complex dtype
+  (e.g. tf.complex64 or tf.complex128) as tf.cast() make imaginary part 0 while tf.bitcast()
+  gives module error.
+  For example,
+
+  Example 1:
+
+  >>> a = [1., 2., 3.]
+  >>> equality_bitcast = tf.bitcast(a, tf.complex128)
+  Traceback (most recent call last):
+  ...
+  InvalidArgumentError: Cannot bitcast from 1 to 18 [Op:Bitcast]
+  >>> equality_cast = tf.cast(a, tf.complex128)
+  >>> print(equality_cast)
+  tf.Tensor([1.+0.j 2.+0.j 3.+0.j], shape=(3,), dtype=complex128)
+
+  Example 2:
+
+  >>> tf.bitcast(tf.constant(0xffffffff, dtype=tf.uint32), tf.uint8)
+  <tf.Tensor: shape=(4,), dtype=uint8, numpy=array([255, 255, 255, 255], dtype=uint8)>
+
+  Example 3:
+
+  >>> x = [1., 2., 3.]
+  >>> y = [0., 2., 3.]
+  >>> equality= tf.equal(x,y)
+  >>> equality_cast = tf.cast(equality,tf.float32)
+  >>> equality_bitcast = tf.bitcast(equality_cast,tf.uint8)
+  >>> print(equality)
+  tf.Tensor([False True True], shape=(3,), dtype=bool)
+  >>> print(equality_cast)
+  tf.Tensor([0. 1. 1.], shape=(3,), dtype=float32)
+  >>> print(equality_bitcast)
+  tf.Tensor(
+      [[  0   0   0   0]
+       [  0   0 128  63]
+       [  0   0 128  63]], shape=(3, 4), dtype=uint8)
+
+  *NOTE*: Bitcast is implemented as a low-level cast, so machines with different
+  endian orderings will give different results. A copy from input buffer to output
+  buffer is made on BE machines when types are of different sizes in order to get
+  the same casting results as on LE machines.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `bfloat16`, `half`, `float32`, `float64`, `int64`, `int32`, `uint8`, `uint16`, `uint32`, `uint64`, `int8`, `int16`, `complex64`, `complex128`, `qint8`, `quint8`, `qint16`, `quint16`, `qint32`.
+    type: A `tf.DType` from: `tf.bfloat16, tf.half, tf.float32, tf.float64, tf.int64, tf.int32, tf.uint8, tf.uint16, tf.uint32, tf.uint64, tf.int8, tf.int16, tf.complex64, tf.complex128, tf.qint8, tf.quint8, tf.qint16, tf.quint16, tf.qint32`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `type`.
+
+[API Signature] input: tensor, type: dtype, name: string
+
+[Error Messages]
+TypeError: Expected DataType for argument 'type' not torch.int64.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (casting to complex64 from any non-complex requires trailing dimension 2)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 9 ∧ (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10) then (ndim(v_1) ≥ 1 ∧ shape(v_1, ndim(v_1) - 1) = 2)
+Token usage: input=2164, output=7466, total=9630
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.bitcast API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Bitcasts a tensor from one type to another without copying data.
+
+  Given a tensor `input`, this operation returns a tensor that has the same buffer
+  data as `input` with datatype `type`.
+
+  If the input datatype `T` is larger than the output datatype `type` then the
+  shape changes from [...] to [..., sizeof(`T`)/sizeof(`type`)].
+
+  If `T` is smaller than `type`, the operator requires that the rightmost
+  dimension be equal to sizeof(`type`)/sizeof(`T`). The shape then goes from
+  [..., sizeof(`type`)/sizeof(`T`)] to [...].
+
+  tf.bitcast() and tf.cast() work differently when real dtype is casted as a complex dtype
+  (e.g. tf.complex64 or tf.complex128) as tf.cast() make imaginary part 0 while tf.bitcast()
+  gives module error.
+  For example,
+
+  Example 1:
+
+  >>> a = [1., 2., 3.]
+  >>> equality_bitcast = tf.bitcast(a, tf.complex128)
+  Traceback (most recent call last):
+  ...
+  InvalidArgumentError: Cannot bitcast from 1 to 18 [Op:Bitcast]
+  >>> equality_cast = tf.cast(a, tf.complex128)
+  >>> print(equality_cast)
+  tf.Tensor([1.+0.j 2.+0.j 3.+0.j], shape=(3,), dtype=complex128)
+
+  Example 2:
+
+  >>> tf.bitcast(tf.constant(0xffffffff, dtype=tf.uint32), tf.uint8)
+  <tf.Tensor: shape=(4,), dtype=uint8, numpy=array([255, 255, 255, 255], dtype=uint8)>
+
+  Example 3:
+
+  >>> x = [1., 2., 3.]
+  >>> y = [0., 2., 3.]
+  >>> equality= tf.equal(x,y)
+  >>> equality_cast = tf.cast(equality,tf.float32)
+  >>> equality_bitcast = tf.bitcast(equality_cast,tf.uint8)
+  >>> print(equality)
+  tf.Tensor([False True True], shape=(3,), dtype=bool)
+  >>> print(equality_cast)
+  tf.Tensor([0. 1. 1.], shape=(3,), dtype=float32)
+  >>> print(equality_bitcast)
+  tf.Tensor(
+      [[  0   0   0   0]
+       [  0   0 128  63]
+       [  0   0 128  63]], shape=(3, 4), dtype=uint8)
+
+  *NOTE*: Bitcast is implemented as a low-level cast, so machines with different
+  endian orderings will give different results. A copy from input buffer to output
+  buffer is made on BE machines when types are of different sizes in order to get
+  the same casting results as on LE machines.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `bfloat16`, `half`, `float32`, `float64`, `int64`, `int32`, `uint8`, `uint16`, `uint32`, `uint64`, `int8`, `int16`, `complex64`, `complex128`, `qint8`, `quint8`, `qint16`, `quint16`, `qint32`.
+    type: A `tf.DType` from: `tf.bfloat16, tf.half, tf.float32, tf.float64, tf.int64, tf.int32, tf.uint8, tf.uint16, tf.uint32, tf.uint64, tf.int8, tf.int16, tf.complex64, tf.complex128, tf.qint8, tf.quint8, tf.qint16, tf.quint16, tf.qint32`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `type`.
+
+[API Signature] input: tensor, type: dtype, name: string
+
+[Error Messages]
+TypeError: Expected DataType for argument 'type' not torch.int64.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (casting to complex128 from any non-complex requires trailing dimension 4)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 10 ∧ (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10) then (ndim(v_1) ≥ 1 ∧ shape(v_1, ndim(v_1) - 1) = 4)
+Token usage: input=2164, output=7466, total=9630
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.bitcast API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Bitcasts a tensor from one type to another without copying data.
+
+  Given a tensor `input`, this operation returns a tensor that has the same buffer
+  data as `input` with datatype `type`.
+
+  If the input datatype `T` is larger than the output datatype `type` then the
+  shape changes from [...] to [..., sizeof(`T`)/sizeof(`type`)].
+
+  If `T` is smaller than `type`, the operator requires that the rightmost
+  dimension be equal to sizeof(`type`)/sizeof(`T`). The shape then goes from
+  [..., sizeof(`type`)/sizeof(`T`)] to [...].
+
+  tf.bitcast() and tf.cast() work differently when real dtype is casted as a complex dtype
+  (e.g. tf.complex64 or tf.complex128) as tf.cast() make imaginary part 0 while tf.bitcast()
+  gives module error.
+  For example,
+
+  Example 1:
+
+  >>> a = [1., 2., 3.]
+  >>> equality_bitcast = tf.bitcast(a, tf.complex128)
+  Traceback (most recent call last):
+  ...
+  InvalidArgumentError: Cannot bitcast from 1 to 18 [Op:Bitcast]
+  >>> equality_cast = tf.cast(a, tf.complex128)
+  >>> print(equality_cast)
+  tf.Tensor([1.+0.j 2.+0.j 3.+0.j], shape=(3,), dtype=complex128)
+
+  Example 2:
+
+  >>> tf.bitcast(tf.constant(0xffffffff, dtype=tf.uint32), tf.uint8)
+  <tf.Tensor: shape=(4,), dtype=uint8, numpy=array([255, 255, 255, 255], dtype=uint8)>
+
+  Example 3:
+
+  >>> x = [1., 2., 3.]
+  >>> y = [0., 2., 3.]
+  >>> equality= tf.equal(x,y)
+  >>> equality_cast = tf.cast(equality,tf.float32)
+  >>> equality_bitcast = tf.bitcast(equality_cast,tf.uint8)
+  >>> print(equality)
+  tf.Tensor([False True True], shape=(3,), dtype=bool)
+  >>> print(equality_cast)
+  tf.Tensor([0. 1. 1.], shape=(3,), dtype=float32)
+  >>> print(equality_bitcast)
+  tf.Tensor(
+      [[  0   0   0   0]
+       [  0   0 128  63]
+       [  0   0 128  63]], shape=(3, 4), dtype=uint8)
+
+  *NOTE*: Bitcast is implemented as a low-level cast, so machines with different
+  endian orderings will give different results. A copy from input buffer to output
+  buffer is made on BE machines when types are of different sizes in order to get
+  the same casting results as on LE machines.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `bfloat16`, `half`, `float32`, `float64`, `int64`, `int32`, `uint8`, `uint16`, `uint32`, `uint64`, `int8`, `int16`, `complex64`, `complex128`, `qint8`, `quint8`, `qint16`, `quint16`, `qint32`.
+    type: A `tf.DType` from: `tf.bfloat16, tf.half, tf.float32, tf.float64, tf.int64, tf.int32, tf.uint8, tf.uint16, tf.uint32, tf.uint64, tf.int8, tf.int16, tf.complex64, tf.complex128, tf.qint8, tf.quint8, tf.qint16, tf.quint16, tf.qint32`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `type`.
+
+[API Signature] input: tensor, type: dtype, name: string
+
+[Error Messages]
+TypeError: Expected DataType for argument 'type' not torch.int64.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (casting from uint8 to float32 requires trailing dimension 4)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 5 ∧ v_2 = 7 then (ndim(v_1) ≥ 1 ∧ shape(v_1, ndim(v_1) - 1) = 4)
+Token usage: input=2164, output=7466, total=9630
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.bitcast API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Bitcasts a tensor from one type to another without copying data.
+
+  Given a tensor `input`, this operation returns a tensor that has the same buffer
+  data as `input` with datatype `type`.
+
+  If the input datatype `T` is larger than the output datatype `type` then the
+  shape changes from [...] to [..., sizeof(`T`)/sizeof(`type`)].
+
+  If `T` is smaller than `type`, the operator requires that the rightmost
+  dimension be equal to sizeof(`type`)/sizeof(`T`). The shape then goes from
+  [..., sizeof(`type`)/sizeof(`T`)] to [...].
+
+  tf.bitcast() and tf.cast() work differently when real dtype is casted as a complex dtype
+  (e.g. tf.complex64 or tf.complex128) as tf.cast() make imaginary part 0 while tf.bitcast()
+  gives module error.
+  For example,
+
+  Example 1:
+
+  >>> a = [1., 2., 3.]
+  >>> equality_bitcast = tf.bitcast(a, tf.complex128)
+  Traceback (most recent call last):
+  ...
+  InvalidArgumentError: Cannot bitcast from 1 to 18 [Op:Bitcast]
+  >>> equality_cast = tf.cast(a, tf.complex128)
+  >>> print(equality_cast)
+  tf.Tensor([1.+0.j 2.+0.j 3.+0.j], shape=(3,), dtype=complex128)
+
+  Example 2:
+
+  >>> tf.bitcast(tf.constant(0xffffffff, dtype=tf.uint32), tf.uint8)
+  <tf.Tensor: shape=(4,), dtype=uint8, numpy=array([255, 255, 255, 255], dtype=uint8)>
+
+  Example 3:
+
+  >>> x = [1., 2., 3.]
+  >>> y = [0., 2., 3.]
+  >>> equality= tf.equal(x,y)
+  >>> equality_cast = tf.cast(equality,tf.float32)
+  >>> equality_bitcast = tf.bitcast(equality_cast,tf.uint8)
+  >>> print(equality)
+  tf.Tensor([False True True], shape=(3,), dtype=bool)
+  >>> print(equality_cast)
+  tf.Tensor([0. 1. 1.], shape=(3,), dtype=float32)
+  >>> print(equality_bitcast)
+  tf.Tensor(
+      [[  0   0   0   0]
+       [  0   0 128  63]
+       [  0   0 128  63]], shape=(3, 4), dtype=uint8)
+
+  *NOTE*: Bitcast is implemented as a low-level cast, so machines with different
+  endian orderings will give different results. A copy from input buffer to output
+  buffer is made on BE machines when types are of different sizes in order to get
+  the same casting results as on LE machines.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `bfloat16`, `half`, `float32`, `float64`, `int64`, `int32`, `uint8`, `uint16`, `uint32`, `uint64`, `int8`, `int16`, `complex64`, `complex128`, `qint8`, `quint8`, `qint16`, `quint16`, `qint32`.
+    type: A `tf.DType` from: `tf.bfloat16, tf.half, tf.float32, tf.float64, tf.int64, tf.int32, tf.uint8, tf.uint16, tf.uint32, tf.uint64, tf.int8, tf.int16, tf.complex64, tf.complex128, tf.qint8, tf.quint8, tf.qint16, tf.quint16, tf.qint32`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `type`.
+
+[API Signature] input: tensor, type: dtype, name: string
+
+[Error Messages]
+TypeError: Expected DataType for argument 'type' not torch.int64.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (casting from float32 to float64 requires trailing dimension 2)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 7 ∧ v_2 = 8 then (ndim(v_1) ≥ 1 ∧ shape(v_1, ndim(v_1) - 1) = 2)
+Token usage: input=2164, output=7466, total=9630
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.bitcast API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Bitcasts a tensor from one type to another without copying data.
+
+  Given a tensor `input`, this operation returns a tensor that has the same buffer
+  data as `input` with datatype `type`.
+
+  If the input datatype `T` is larger than the output datatype `type` then the
+  shape changes from [...] to [..., sizeof(`T`)/sizeof(`type`)].
+
+  If `T` is smaller than `type`, the operator requires that the rightmost
+  dimension be equal to sizeof(`type`)/sizeof(`T`). The shape then goes from
+  [..., sizeof(`type`)/sizeof(`T`)] to [...].
+
+  tf.bitcast() and tf.cast() work differently when real dtype is casted as a complex dtype
+  (e.g. tf.complex64 or tf.complex128) as tf.cast() make imaginary part 0 while tf.bitcast()
+  gives module error.
+  For example,
+
+  Example 1:
+
+  >>> a = [1., 2., 3.]
+  >>> equality_bitcast = tf.bitcast(a, tf.complex128)
+  Traceback (most recent call last):
+  ...
+  InvalidArgumentError: Cannot bitcast from 1 to 18 [Op:Bitcast]
+  >>> equality_cast = tf.cast(a, tf.complex128)
+  >>> print(equality_cast)
+  tf.Tensor([1.+0.j 2.+0.j 3.+0.j], shape=(3,), dtype=complex128)
+
+  Example 2:
+
+  >>> tf.bitcast(tf.constant(0xffffffff, dtype=tf.uint32), tf.uint8)
+  <tf.Tensor: shape=(4,), dtype=uint8, numpy=array([255, 255, 255, 255], dtype=uint8)>
+
+  Example 3:
+
+  >>> x = [1., 2., 3.]
+  >>> y = [0., 2., 3.]
+  >>> equality= tf.equal(x,y)
+  >>> equality_cast = tf.cast(equality,tf.float32)
+  >>> equality_bitcast = tf.bitcast(equality_cast,tf.uint8)
+  >>> print(equality)
+  tf.Tensor([False True True], shape=(3,), dtype=bool)
+  >>> print(equality_cast)
+  tf.Tensor([0. 1. 1.], shape=(3,), dtype=float32)
+  >>> print(equality_bitcast)
+  tf.Tensor(
+      [[  0   0   0   0]
+       [  0   0 128  63]
+       [  0   0 128  63]], shape=(3, 4), dtype=uint8)
+
+  *NOTE*: Bitcast is implemented as a low-level cast, so machines with different
+  endian orderings will give different results. A copy from input buffer to output
+  buffer is made on BE machines when types are of different sizes in order to get
+  the same casting results as on LE machines.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `bfloat16`, `half`, `float32`, `float64`, `int64`, `int32`, `uint8`, `uint16`, `uint32`, `uint64`, `int8`, `int16`, `complex64`, `complex128`, `qint8`, `quint8`, `qint16`, `quint16`, `qint32`.
+    type: A `tf.DType` from: `tf.bfloat16, tf.half, tf.float32, tf.float64, tf.int64, tf.int32, tf.uint8, tf.uint16, tf.uint32, tf.uint64, tf.int8, tf.int16, tf.complex64, tf.complex128, tf.qint8, tf.quint8, tf.qint16, tf.quint16, tf.qint32`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `type`.
+
+[API Signature] input: tensor, type: dtype, name: string
+
+[Error Messages]
+TypeError: Expected DataType for argument 'type' not torch.int64.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (all input tensor dimensions must be non-negative)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Token usage: input=2164, output=7466, total=9630
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.bitcast API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Bitcasts a tensor from one type to another without copying data.
+
+  Given a tensor `input`, this operation returns a tensor that has the same buffer
+  data as `input` with datatype `type`.
+
+  If the input datatype `T` is larger than the output datatype `type` then the
+  shape changes from [...] to [..., sizeof(`T`)/sizeof(`type`)].
+
+  If `T` is smaller than `type`, the operator requires that the rightmost
+  dimension be equal to sizeof(`type`)/sizeof(`T`). The shape then goes from
+  [..., sizeof(`type`)/sizeof(`T`)] to [...].
+
+  tf.bitcast() and tf.cast() work differently when real dtype is casted as a complex dtype
+  (e.g. tf.complex64 or tf.complex128) as tf.cast() make imaginary part 0 while tf.bitcast()
+  gives module error.
+  For example,
+
+  Example 1:
+
+  >>> a = [1., 2., 3.]
+  >>> equality_bitcast = tf.bitcast(a, tf.complex128)
+  Traceback (most recent call last):
+  ...
+  InvalidArgumentError: Cannot bitcast from 1 to 18 [Op:Bitcast]
+  >>> equality_cast = tf.cast(a, tf.complex128)
+  >>> print(equality_cast)
+  tf.Tensor([1.+0.j 2.+0.j 3.+0.j], shape=(3,), dtype=complex128)
+
+  Example 2:
+
+  >>> tf.bitcast(tf.constant(0xffffffff, dtype=tf.uint32), tf.uint8)
+  <tf.Tensor: shape=(4,), dtype=uint8, numpy=array([255, 255, 255, 255], dtype=uint8)>
+
+  Example 3:
+
+  >>> x = [1., 2., 3.]
+  >>> y = [0., 2., 3.]
+  >>> equality= tf.equal(x,y)
+  >>> equality_cast = tf.cast(equality,tf.float32)
+  >>> equality_bitcast = tf.bitcast(equality_cast,tf.uint8)
+  >>> print(equality)
+  tf.Tensor([False True True], shape=(3,), dtype=bool)
+  >>> print(equality_cast)
+  tf.Tensor([0. 1. 1.], shape=(3,), dtype=float32)
+  >>> print(equality_bitcast)
+  tf.Tensor(
+      [[  0   0   0   0]
+       [  0   0 128  63]
+       [  0   0 128  63]], shape=(3, 4), dtype=uint8)
+
+  *NOTE*: Bitcast is implemented as a low-level cast, so machines with different
+  endian orderings will give different results. A copy from input buffer to output
+  buffer is made on BE machines when types are of different sizes in order to get
+  the same casting results as on LE machines.
+
+  Args:
+    input: A `Tensor`. Must be one of the following types: `bfloat16`, `half`, `float32`, `float64`, `int64`, `int32`, `uint8`, `uint16`, `uint32`, `uint64`, `int8`, `int16`, `complex64`, `complex128`, `qint8`, `quint8`, `qint16`, `quint16`, `qint32`.
+    type: A `tf.DType` from: `tf.bfloat16, tf.half, tf.float32, tf.float64, tf.int64, tf.int32, tf.uint8, tf.uint16, tf.uint32, tf.uint64, tf.int8, tf.int16, tf.complex64, tf.complex128, tf.qint8, tf.quint8, tf.qint16, tf.quint16, tf.qint32`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `type`.
+
+[API Signature] input: tensor, type: dtype, name: string
+
+[Error Messages]
+TypeError: Expected DataType for argument 'type' not torch.int64.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (name (v_3), if provided, is chosen from the allowed string list)
+{v_3 : str} |= v_3 = "ii" ∨ v_3 = "ii->i" ∨ v_3 = "i,j->ij" ∨ v_3 = "bij,bjk->bik" ∨ v_3 = "...ij->...ji" ∨ v_3 = "bn,anm,bm->ba" ∨ v_3 = "none" ∨ v_3 = "sum" ∨ v_3 = "max" ∨ v_3 = "min" ∨ v_3 = "prod" ∨ v_3 = "relu" ∨ v_3 = "tanh" ∨ v_3 = "sigmoid" ∨ v_3 = "softmax" ∨ v_3 = "elu" ∨ v_3 = "selu" ∨ v_3 = "gelu" ∨ v_3 = "swish" ∨ v_3 = "softplus" ∨ v_3 = "linear" ∨ v_3 = "valid" ∨ v_3 = "same" ∨ v_3 = "causal" ∨ v_3 = "channels_last" ∨ v_3 = "channels_first"
+Token usage: input=2164, output=7466, total=9630
+** SUCCESS **
+

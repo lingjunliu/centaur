@@ -1,0 +1,1635 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.DataFormatDimMap API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns the dimension index in the destination data format given the one in
+
+  the source data format.
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A Tensor with each element as a dimension index in source data format.
+      Must be in the range [-4, 4).
+    src_format: An optional `string`. Defaults to `"NHWC"`.
+      source data format.
+    dst_format: An optional `string`. Defaults to `"NCHW"`.
+      destination data format.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[API Signature] src_format: string, dst_format: string, name: string, x: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (x contains valid dimension indices in the allowed range [-4, 4))
+{v_4 : tensor} |= min(v_4) ≥ -4 ∧ max(v_4) < 4
+Token usage: input=1459, output=6902, total=8361
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.DataFormatDimMap API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns the dimension index in the destination data format given the one in
+
+  the source data format.
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A Tensor with each element as a dimension index in source data format.
+      Must be in the range [-4, 4).
+    src_format: An optional `string`. Defaults to `"NHWC"`.
+      source data format.
+    dst_format: An optional `string`. Defaults to `"NCHW"`.
+      destination data format.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[API Signature] src_format: string, dst_format: string, name: string, x: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (source data format must be a valid layout keyword)
+{v_1 : str} |= v_1 = "channels_last" ∨ v_1 = "channels_first"
+Token usage: input=1459, output=6902, total=8361
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.DataFormatDimMap API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns the dimension index in the destination data format given the one in
+
+  the source data format.
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A Tensor with each element as a dimension index in source data format.
+      Must be in the range [-4, 4).
+    src_format: An optional `string`. Defaults to `"NHWC"`.
+      source data format.
+    dst_format: An optional `string`. Defaults to `"NCHW"`.
+      destination data format.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[API Signature] src_format: string, dst_format: string, name: string, x: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (destination data format must be a valid layout keyword)
+{v_2 : str} |= v_2 = "channels_last" ∨ v_2 = "channels_first"
+Token usage: input=1459, output=6902, total=8361
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.DataFormatDimMap API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns the dimension index in the destination data format given the one in
+
+  the source data format.
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A Tensor with each element as a dimension index in source data format.
+      Must be in the range [-4, 4).
+    src_format: An optional `string`. Defaults to `"NHWC"`.
+      source data format.
+    dst_format: An optional `string`. Defaults to `"NCHW"`.
+      destination data format.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[API Signature] src_format: string, dst_format: string, name: string, x: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (x tensor has a valid, non-negative shape)
+{v_4 : tensor} |= ∀i ∈ [0, ndim(v_4) - 1] : shape(v_4, i) ≥ 0
+Token usage: input=1459, output=6902, total=8361
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.DataFormatDimMap API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns the dimension index in the destination data format given the one in
+
+  the source data format.
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A Tensor with each element as a dimension index in source data format.
+      Must be in the range [-4, 4).
+    src_format: An optional `string`. Defaults to `"NHWC"`.
+      source data format.
+    dst_format: An optional `string`. Defaults to `"NCHW"`.
+      destination data format.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[API Signature] src_format: string, dst_format: string, name: string, x: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (x must be int32 or int64 tensor)
+{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Token usage: input=1531, output=4842, total=6373
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.DataFormatDimMap API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns the dimension index in the destination data format given the one in
+
+  the source data format.
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A Tensor with each element as a dimension index in source data format.
+      Must be in the range [-4, 4).
+    src_format: An optional `string`. Defaults to `"NHWC"`.
+      source data format.
+    dst_format: An optional `string`. Defaults to `"NCHW"`.
+      destination data format.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[API Signature] src_format: string, dst_format: string, name: string, x: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (dimension indices in x must be within [-4, 4))
+{v_1 : tensor} |= min(v_1) ≥ -4 ∧ max(v_1) < 4
+Token usage: input=1531, output=4842, total=6373
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.DataFormatDimMap API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns the dimension index in the destination data format given the one in
+
+  the source data format.
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A Tensor with each element as a dimension index in source data format.
+      Must be in the range [-4, 4).
+    src_format: An optional `string`. Defaults to `"NHWC"`.
+      source data format.
+    dst_format: An optional `string`. Defaults to `"NCHW"`.
+      destination data format.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[API Signature] src_format: string, dst_format: string, name: string, x: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (src_format and dst_format must be recognized data format keywords)
+{v_1 : str, v_2 : str} |= (v_1 = "channels_last" ∨ v_1 = "channels_first") ∧ (v_2 = "channels_last" ∨ v_2 = "channels_first")
+Token usage: input=1531, output=4842, total=6373
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.DataFormatDimMap API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns the dimension index in the destination data format given the one in
+
+  the source data format.
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A Tensor with each element as a dimension index in source data format.
+      Must be in the range [-4, 4).
+    src_format: An optional `string`. Defaults to `"NHWC"`.
+      source data format.
+    dst_format: An optional `string`. Defaults to `"NCHW"`.
+      destination data format.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[API Signature] src_format: string, dst_format: string, name: string, x: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (scalar x consistency for min/max)
+{v_1 : tensor} |= if ndim(v_1) = 0 then min(v_1) = max(v_1)
+Token usage: input=1531, output=4842, total=6373
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.DataFormatDimMap API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns the dimension index in the destination data format given the one in
+
+  the source data format.
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A Tensor with each element as a dimension index in source data format.
+      Must be in the range [-4, 4).
+    src_format: An optional `string`. Defaults to `"NHWC"`.
+      source data format.
+    dst_format: An optional `string`. Defaults to `"NCHW"`.
+      destination data format.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[API Signature] src_format: string, dst_format: string, name: string, x: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (non-negative shape dimensions for x)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Token usage: input=1531, output=4842, total=6373
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.DataFormatDimMap API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns the dimension index in the destination data format given the one in
+
+  the source data format.
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A Tensor with each element as a dimension index in source data format.
+      Must be in the range [-4, 4).
+    src_format: An optional `string`. Defaults to `"NHWC"`.
+      source data format.
+    dst_format: An optional `string`. Defaults to `"NCHW"`.
+      destination data format.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[API Signature] src_format: string, dst_format: string, name: string, x: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (src_format and dst_format must not be "none")
+{v_1 : str, v_2 : str} |= v_1 ≠ "none" ∧ v_2 ≠ "none"
+Token usage: input=1531, output=4842, total=6373
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.DataFormatDimMap API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns the dimension index in the destination data format given the one in
+
+  the source data format.
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A Tensor with each element as a dimension index in source data format.
+      Must be in the range [-4, 4).
+    src_format: An optional `string`. Defaults to `"NHWC"`.
+      source data format.
+    dst_format: An optional `string`. Defaults to `"NCHW"`.
+      destination data format.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[API Signature] src_format: string, dst_format: string, name: string, x: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (index tensor must be int32 or int64)
+{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Token usage: input=1486, output=6260, total=7746
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.DataFormatDimMap API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns the dimension index in the destination data format given the one in
+
+  the source data format.
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A Tensor with each element as a dimension index in source data format.
+      Must be in the range [-4, 4).
+    src_format: An optional `string`. Defaults to `"NHWC"`.
+      source data format.
+    dst_format: An optional `string`. Defaults to `"NCHW"`.
+      destination data format.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[API Signature] src_format: string, dst_format: string, name: string, x: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (each index in x must be within [-4, 4))
+{v_1 : tensor} |= min(v_1) ≥ -4 ∧ max(v_1) < 4
+Token usage: input=1486, output=6260, total=7746
+** DUPLICATED RULE ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.DataFormatDimMap API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns the dimension index in the destination data format given the one in
+
+  the source data format.
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A Tensor with each element as a dimension index in source data format.
+      Must be in the range [-4, 4).
+    src_format: An optional `string`. Defaults to `"NHWC"`.
+      source data format.
+    dst_format: An optional `string`. Defaults to `"NCHW"`.
+      destination data format.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[API Signature] src_format: string, dst_format: string, name: string, x: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (src_format and dst_format must be channel-order keywords)
+{v_1 : str, v_2 : str} |= (v_1 = "channels_last" ∨ v_1 = "channels_first") ∧ (v_2 = "channels_last" ∨ v_2 = "channels_first")
+Token usage: input=1486, output=6260, total=7746
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.DataFormatDimMap API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns the dimension index in the destination data format given the one in
+
+  the source data format.
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A Tensor with each element as a dimension index in source data format.
+      Must be in the range [-4, 4).
+    src_format: An optional `string`. Defaults to `"NHWC"`.
+      source data format.
+    dst_format: An optional `string`. Defaults to `"NCHW"`.
+      destination data format.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[API Signature] src_format: string, dst_format: string, name: string, x: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 14 (index tensor can be any shape, but dimensions are non-negative)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Token usage: input=1486, output=6260, total=7746
+** DUPLICATED RULE ** (num_failures: 4)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.DataFormatDimMap API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns the dimension index in the destination data format given the one in
+
+  the source data format.
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A Tensor with each element as a dimension index in source data format.
+      Must be in the range [-4, 4).
+    src_format: An optional `string`. Defaults to `"NHWC"`.
+      source data format.
+    dst_format: An optional `string`. Defaults to `"NCHW"`.
+      destination data format.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[API Signature] src_format: string, dst_format: string, name: string, x: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 15 (name, if provided, is a valid string token)
+{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "softplus" ∨ v_1 = "linear" ∨ v_1 = "valid" ∨ v_1 = "same" ∨ v_1 = "causal" ∨ v_1 = "channels_last" ∨ v_1 = "channels_first"
+Token usage: input=1486, output=6260, total=7746
+** SUCCESS **
+

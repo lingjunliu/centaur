@@ -1,0 +1,1080 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.crelu API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes Concatenated ReLU.
+
+  Concatenates a ReLU which selects only the positive part of the activation
+  with a ReLU which selects only the *negative* part of the activation.
+  Note that as a result this non-linearity doubles the depth of the activations.
+  Source: [Understanding and Improving Convolutional Neural Networks via
+  Concatenated Rectified Linear Units. W. Shang, et
+  al.](https://arxiv.org/abs/1603.05201)
+
+  Args:
+    features: A `Tensor` with type `float`, `double`, `int32`, `int64`, `uint8`,
+      `int16`, or `int8`.
+    name: A name for the operation (optional).
+    axis: The axis that the output values are concatenated along. Default is -1.
+
+  Returns:
+    A `Tensor` with the same type as `features`.
+
+  References:
+    Understanding and Improving Convolutional Neural Networks via Concatenated
+    Rectified Linear Units:
+      [Shang et al., 2016](http://proceedings.mlr.press/v48/shang16)
+      ([pdf](http://proceedings.mlr.press/v48/shang16.pdf))
+
+[API Signature] features: tensor, axis: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int8, int16, int32, int64, complex64, complex128 	; NodeDef: {{node Neg}}; Op<name=Neg; signature=x:T -> y:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_COMPLEX64, DT_COMPLEX128]> [Op:Neg] name:
+InvalidArgumentError: {{function_node __wrapped__ConcatV2_N_2_device_/job:localhost/replica:0/task:0/device:CPU:0}} ConcatOp : Expected concatenating dimensions in the range [-1, 1), but got -114 [Op:ConcatV2]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (features dtype must be supported; bool not allowed)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Token usage: input=1914, output=5399, total=7313
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.crelu API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes Concatenated ReLU.
+
+  Concatenates a ReLU which selects only the positive part of the activation
+  with a ReLU which selects only the *negative* part of the activation.
+  Note that as a result this non-linearity doubles the depth of the activations.
+  Source: [Understanding and Improving Convolutional Neural Networks via
+  Concatenated Rectified Linear Units. W. Shang, et
+  al.](https://arxiv.org/abs/1603.05201)
+
+  Args:
+    features: A `Tensor` with type `float`, `double`, `int32`, `int64`, `uint8`,
+      `int16`, or `int8`.
+    name: A name for the operation (optional).
+    axis: The axis that the output values are concatenated along. Default is -1.
+
+  Returns:
+    A `Tensor` with the same type as `features`.
+
+  References:
+    Understanding and Improving Convolutional Neural Networks via Concatenated
+    Rectified Linear Units:
+      [Shang et al., 2016](http://proceedings.mlr.press/v48/shang16)
+      ([pdf](http://proceedings.mlr.press/v48/shang16.pdf))
+
+[API Signature] features: tensor, axis: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int8, int16, int32, int64, complex64, complex128 	; NodeDef: {{node Neg}}; Op<name=Neg; signature=x:T -> y:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_COMPLEX64, DT_COMPLEX128]> [Op:Neg] name:
+InvalidArgumentError: {{function_node __wrapped__ConcatV2_N_2_device_/job:localhost/replica:0/task:0/device:CPU:0}} ConcatOp : Expected concatenating dimensions in the range [-1, 1), but got -114 [Op:ConcatV2]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (features must be at least 1D)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+Token usage: input=1914, output=5399, total=7313
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.crelu API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes Concatenated ReLU.
+
+  Concatenates a ReLU which selects only the positive part of the activation
+  with a ReLU which selects only the *negative* part of the activation.
+  Note that as a result this non-linearity doubles the depth of the activations.
+  Source: [Understanding and Improving Convolutional Neural Networks via
+  Concatenated Rectified Linear Units. W. Shang, et
+  al.](https://arxiv.org/abs/1603.05201)
+
+  Args:
+    features: A `Tensor` with type `float`, `double`, `int32`, `int64`, `uint8`,
+      `int16`, or `int8`.
+    name: A name for the operation (optional).
+    axis: The axis that the output values are concatenated along. Default is -1.
+
+  Returns:
+    A `Tensor` with the same type as `features`.
+
+  References:
+    Understanding and Improving Convolutional Neural Networks via Concatenated
+    Rectified Linear Units:
+      [Shang et al., 2016](http://proceedings.mlr.press/v48/shang16)
+      ([pdf](http://proceedings.mlr.press/v48/shang16.pdf))
+
+[API Signature] features: tensor, axis: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int8, int16, int32, int64, complex64, complex128 	; NodeDef: {{node Neg}}; Op<name=Neg; signature=x:T -> y:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_COMPLEX64, DT_COMPLEX128]> [Op:Neg] name:
+InvalidArgumentError: {{function_node __wrapped__ConcatV2_N_2_device_/job:localhost/replica:0/task:0/device:CPU:0}} ConcatOp : Expected concatenating dimensions in the range [-1, 1), but got -114 [Op:ConcatV2]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (axis must be within the valid concatenation range)
+{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
+Token usage: input=1914, output=5399, total=7313
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.crelu API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes Concatenated ReLU.
+
+  Concatenates a ReLU which selects only the positive part of the activation
+  with a ReLU which selects only the *negative* part of the activation.
+  Note that as a result this non-linearity doubles the depth of the activations.
+  Source: [Understanding and Improving Convolutional Neural Networks via
+  Concatenated Rectified Linear Units. W. Shang, et
+  al.](https://arxiv.org/abs/1603.05201)
+
+  Args:
+    features: A `Tensor` with type `float`, `double`, `int32`, `int64`, `uint8`,
+      `int16`, or `int8`.
+    name: A name for the operation (optional).
+    axis: The axis that the output values are concatenated along. Default is -1.
+
+  Returns:
+    A `Tensor` with the same type as `features`.
+
+  References:
+    Understanding and Improving Convolutional Neural Networks via Concatenated
+    Rectified Linear Units:
+      [Shang et al., 2016](http://proceedings.mlr.press/v48/shang16)
+      ([pdf](http://proceedings.mlr.press/v48/shang16.pdf))
+
+[API Signature] features: tensor, axis: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int8, int16, int32, int64, complex64, complex128 	; NodeDef: {{node Neg}}; Op<name=Neg; signature=x:T -> y:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_COMPLEX64, DT_COMPLEX128]> [Op:Neg] name:
+InvalidArgumentError: {{function_node __wrapped__ConcatV2_N_2_device_/job:localhost/replica:0/task:0/device:CPU:0}} ConcatOp : Expected concatenating dimensions in the range [-1, 1), but got -114 [Op:ConcatV2]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (axis must index an existing dimension with positive size)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then shape(v_1, ndim(v_1) + v_2) > 0 else shape(v_1, v_2) > 0
+Token usage: input=1914, output=5399, total=7313
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.crelu API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes Concatenated ReLU.
+
+  Concatenates a ReLU which selects only the positive part of the activation
+  with a ReLU which selects only the *negative* part of the activation.
+  Note that as a result this non-linearity doubles the depth of the activations.
+  Source: [Understanding and Improving Convolutional Neural Networks via
+  Concatenated Rectified Linear Units. W. Shang, et
+  al.](https://arxiv.org/abs/1603.05201)
+
+  Args:
+    features: A `Tensor` with type `float`, `double`, `int32`, `int64`, `uint8`,
+      `int16`, or `int8`.
+    name: A name for the operation (optional).
+    axis: The axis that the output values are concatenated along. Default is -1.
+
+  Returns:
+    A `Tensor` with the same type as `features`.
+
+  References:
+    Understanding and Improving Convolutional Neural Networks via Concatenated
+    Rectified Linear Units:
+      [Shang et al., 2016](http://proceedings.mlr.press/v48/shang16)
+      ([pdf](http://proceedings.mlr.press/v48/shang16.pdf))
+
+[API Signature] features: tensor, axis: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int8, int16, int32, int64, complex64, complex128 	; NodeDef: {{node Neg}}; Op<name=Neg; signature=x:T -> y:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_COMPLEX64, DT_COMPLEX128]> [Op:Neg] name:
+InvalidArgumentError: {{function_node __wrapped__ConcatV2_N_2_device_/job:localhost/replica:0/task:0/device:CPU:0}} ConcatOp : Expected concatenating dimensions in the range [-1, 1), but got -114 [Op:ConcatV2]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (name is a conventional, non-empty op name)
+{v_3 : str} |= v_3 = "relu" ∨ v_3 = "linear" ∨ v_3 = "tanh" ∨ v_3 = "sigmoid" ∨ v_3 = "softplus"
+Token usage: input=1914, output=5399, total=7313
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.crelu API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes Concatenated ReLU.
+
+  Concatenates a ReLU which selects only the positive part of the activation
+  with a ReLU which selects only the *negative* part of the activation.
+  Note that as a result this non-linearity doubles the depth of the activations.
+  Source: [Understanding and Improving Convolutional Neural Networks via
+  Concatenated Rectified Linear Units. W. Shang, et
+  al.](https://arxiv.org/abs/1603.05201)
+
+  Args:
+    features: A `Tensor` with type `float`, `double`, `int32`, `int64`, `uint8`,
+      `int16`, or `int8`.
+    name: A name for the operation (optional).
+    axis: The axis that the output values are concatenated along. Default is -1.
+
+  Returns:
+    A `Tensor` with the same type as `features`.
+
+  References:
+    Understanding and Improving Convolutional Neural Networks via Concatenated
+    Rectified Linear Units:
+      [Shang et al., 2016](http://proceedings.mlr.press/v48/shang16)
+      ([pdf](http://proceedings.mlr.press/v48/shang16.pdf))
+
+[API Signature] features: tensor, axis: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int8, int16, int32, int64, complex64, complex128 	; NodeDef: {{node Neg}}; Op<name=Neg; signature=x:T -> y:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_COMPLEX64, DT_COMPLEX128]> [Op:Neg] name:
+InvalidArgumentError: {{function_node __wrapped__ConcatV2_N_2_device_/job:localhost/replica:0/task:0/device:CPU:0}} ConcatOp : Expected concatenating dimensions in the range [-1, 1), but got -114 [Op:ConcatV2]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (features must be an allowed numeric tensor type: int8/int16/int32/int64/uint8/float16/float32/float64)
+{v_1 : tensor} |= (1 ≤ dtype(v_1) ∧ dtype(v_1) ≤ 5) ∨ (6 ≤ dtype(v_1) ∧ dtype(v_1) ≤ 8)
+Token usage: input=1810, output=5631, total=7441
+** PARSING ERROR ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.crelu API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes Concatenated ReLU.
+
+  Concatenates a ReLU which selects only the positive part of the activation
+  with a ReLU which selects only the *negative* part of the activation.
+  Note that as a result this non-linearity doubles the depth of the activations.
+  Source: [Understanding and Improving Convolutional Neural Networks via
+  Concatenated Rectified Linear Units. W. Shang, et
+  al.](https://arxiv.org/abs/1603.05201)
+
+  Args:
+    features: A `Tensor` with type `float`, `double`, `int32`, `int64`, `uint8`,
+      `int16`, or `int8`.
+    name: A name for the operation (optional).
+    axis: The axis that the output values are concatenated along. Default is -1.
+
+  Returns:
+    A `Tensor` with the same type as `features`.
+
+  References:
+    Understanding and Improving Convolutional Neural Networks via Concatenated
+    Rectified Linear Units:
+      [Shang et al., 2016](http://proceedings.mlr.press/v48/shang16)
+      ([pdf](http://proceedings.mlr.press/v48/shang16.pdf))
+
+[API Signature] features: tensor, axis: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int8, int16, int32, int64, complex64, complex128 	; NodeDef: {{node Neg}}; Op<name=Neg; signature=x:T -> y:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_COMPLEX64, DT_COMPLEX128]> [Op:Neg] name:
+InvalidArgumentError: {{function_node __wrapped__ConcatV2_N_2_device_/job:localhost/replica:0/task:0/device:CPU:0}} ConcatOp : Expected concatenating dimensions in the range [-1, 1), but got -114 [Op:ConcatV2]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (axis must lie within the valid concatenation range)
+{v_1 : tensor, v_2 : int} |= 0 - ndim(v_1) ≤ v_2 ∧ v_2 < ndim(v_1)
+Token usage: input=1810, output=5631, total=7441
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.crelu API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes Concatenated ReLU.
+
+  Concatenates a ReLU which selects only the positive part of the activation
+  with a ReLU which selects only the *negative* part of the activation.
+  Note that as a result this non-linearity doubles the depth of the activations.
+  Source: [Understanding and Improving Convolutional Neural Networks via
+  Concatenated Rectified Linear Units. W. Shang, et
+  al.](https://arxiv.org/abs/1603.05201)
+
+  Args:
+    features: A `Tensor` with type `float`, `double`, `int32`, `int64`, `uint8`,
+      `int16`, or `int8`.
+    name: A name for the operation (optional).
+    axis: The axis that the output values are concatenated along. Default is -1.
+
+  Returns:
+    A `Tensor` with the same type as `features`.
+
+  References:
+    Understanding and Improving Convolutional Neural Networks via Concatenated
+    Rectified Linear Units:
+      [Shang et al., 2016](http://proceedings.mlr.press/v48/shang16)
+      ([pdf](http://proceedings.mlr.press/v48/shang16.pdf))
+
+[API Signature] features: tensor, axis: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int8, int16, int32, int64, complex64, complex128 	; NodeDef: {{node Neg}}; Op<name=Neg; signature=x:T -> y:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_COMPLEX64, DT_COMPLEX128]> [Op:Neg] name:
+InvalidArgumentError: {{function_node __wrapped__ConcatV2_N_2_device_/job:localhost/replica:0/task:0/device:CPU:0}} ConcatOp : Expected concatenating dimensions in the range [-1, 1), but got -114 [Op:ConcatV2]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (features must have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+Token usage: input=1810, output=5631, total=7441
+** DUPLICATED RULE ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.crelu API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes Concatenated ReLU.
+
+  Concatenates a ReLU which selects only the positive part of the activation
+  with a ReLU which selects only the *negative* part of the activation.
+  Note that as a result this non-linearity doubles the depth of the activations.
+  Source: [Understanding and Improving Convolutional Neural Networks via
+  Concatenated Rectified Linear Units. W. Shang, et
+  al.](https://arxiv.org/abs/1603.05201)
+
+  Args:
+    features: A `Tensor` with type `float`, `double`, `int32`, `int64`, `uint8`,
+      `int16`, or `int8`.
+    name: A name for the operation (optional).
+    axis: The axis that the output values are concatenated along. Default is -1.
+
+  Returns:
+    A `Tensor` with the same type as `features`.
+
+  References:
+    Understanding and Improving Convolutional Neural Networks via Concatenated
+    Rectified Linear Units:
+      [Shang et al., 2016](http://proceedings.mlr.press/v48/shang16)
+      ([pdf](http://proceedings.mlr.press/v48/shang16.pdf))
+
+[API Signature] features: tensor, axis: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int8, int16, int32, int64, complex64, complex128 	; NodeDef: {{node Neg}}; Op<name=Neg; signature=x:T -> y:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT8, DT_INT16, DT_INT32, DT_INT64, DT_COMPLEX64, DT_COMPLEX128]> [Op:Neg] name:
+InvalidArgumentError: {{function_node __wrapped__ConcatV2_N_2_device_/job:localhost/replica:0/task:0/device:CPU:0}} ConcatOp : Expected concatenating dimensions in the range [-1, 1), but got -114 [Op:ConcatV2]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (name is an arbitrary string; no additional constraints)
+{v_3 : str} |= true
+Token usage: input=1810, output=5631, total=7441
+** REDUNDANT VARIABLES ** (num_failures: 3)
+

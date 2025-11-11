@@ -1,0 +1,48 @@
+>>
+Rule 1 (input tensor rank must be non-negative and reasonably bounded)
+{v_1 : tensor} |= 0 ≤ ndim(v_1) ∧ ndim(v_1) ≤ 8
+>>
+Rule 2 (non-scalar input must have positive sizes in every dimension)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true else ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 3 (name must be one of allowed operation-name strings)
+{v_2 : str} |= v_2 = "none" ∨ v_2 = "relu" ∨ v_2 = "tanh" ∨ v_2 = "softmax" ∨ v_2 = "linear"
+>>
+Rule 4 (dtype of the input tensor is well-defined)
+{v_1 : tensor} |= dtype_(v_1) = dtype_(v_1)
+>>
+Rule 5 (if name suggests a data-format, require at least 3D input)
+{v_1 : tensor, v_2 : str} |= if v_2 = "channels_last" ∨ v_2 = "channels_first" then ndim(v_1) ≥ 3
+>>
+Rule 6 (input tensor is either scalar or has only positive dimensions)
+{v_1 : tensor} |= (ndim(v_1) = 0) ∨ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 7 (name must be one of the allowed strings)
+{v_2 : str} |= v_2 = "ii" ∨ v_2 = "ii->i" ∨ v_2 = "i,j->ij" ∨ v_2 = "bij,bjk->bik" ∨ v_2 = "...ij->...ji" ∨ v_2 = "bn,anm,bm->ba" ∨ v_2 = "none" ∨ v_2 = "sum" ∨ v_2 = "max" ∨ v_2 = "min" ∨ v_2 = "prod" ∨ v_2 = "relu" ∨ v_2 = "tanh" ∨ v_2 = "sigmoid" ∨ v_2 = "softmax" ∨ v_2 = "elu" ∨ v_2 = "selu" ∨ v_2 = "gelu" ∨ v_2 = "swish" ∨ v_2 = "softplus" ∨ v_2 = "linear" ∨ v_2 = "valid" ∨ v_2 = "same" ∨ v_2 = "causal" ∨ v_2 = "channels_last" ∨ v_2 = "channels_first"
+>>
+Rule 8 (data-format-like names require a reasonably ranked tensor)
+{v_1 : tensor, v_2 : str} |= if (v_2 = "channels_last" ∨ v_2 = "channels_first") then ndim(v_1) ≥ 3
+>>
+Rule 9 (min/max consistency when an axis exists)
+{v_1 : tensor} |= if ndim(v_1) ≥ 1 then min(v_1, 0) ≤ max(v_1, 0)
+>>
+Rule 10 (softmax-like name implies a valid last dimension)
+{v_1 : tensor, v_2 : str} |= if v_2 = "softmax" then (ndim(v_1) ≥ 1 ∧ shape(v_1, ndim(v_1) - 1) > 0)
+>>
+Rule 11 (einsum-like names imply at least 1-D input)
+{v_1 : tensor, v_2 : str} |= if (v_2 = "ii" ∨ v_2 = "ii->i" ∨ v_2 = "i,j->ij" ∨ v_2 = "bij,bjk->bik" ∨ v_2 = "...ij->...ji" ∨ v_2 = "bn,anm,bm->ba") then ndim(v_1) ≥ 1
+>>
+Rule 12 (input tensor must have a valid dtype index 0–12)
+{v_1 : tensor} |= 0 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 12
+>>
+Rule 15 (padding-like names require at least 1-D input)
+{v_1 : tensor, v_2 : str} |= if (v_2 = "valid" ∨ v_2 = "same" ∨ v_2 = "causal") then ndim(v_1) ≥ 1
+>>
+Rule 18 (non-scalar tensors must have strictly positive sizes)
+{v_1 : tensor} |= if ndim(v_1) ≥ 1 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 20 (activation-like names allow scalar or positive-sized tensors)
+{v_1 : tensor, v_2 : str} |= if (v_2 = "relu" ∨ v_2 = "tanh" ∨ v_2 = "sigmoid" ∨ v_2 = "elu" ∨ v_2 = "selu" ∨ v_2 = "gelu" ∨ v_2 = "swish" ∨ v_2 = "softplus" ∨ v_2 = "linear") then ((ndim(v_1) = 0) ∨ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0))
+>>
+Rule 21 (reduction-like names imply at least one element along axis 0)
+{v_1 : tensor, v_2 : str} |= if (v_2 = "sum" ∨ v_2 = "max" ∨ v_2 = "min" ∨ v_2 = "prod") then (ndim(v_1) ≥ 1 ∧ shape(v_1, 0) > 0)

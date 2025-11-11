@@ -1,0 +1,1820 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.WriteFile API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Writes `contents` to the file at input `filename`.
+
+  Creates the file and recursively creates directory if it does not exist.
+
+  Args:
+    filename: A `Tensor` of type `string`.
+      scalar. The name of the file to which we write the contents.
+    contents: A `Tensor` of type `string`.
+      scalar. The content to be written to the output file.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+
+[API Signature] name: string, filename: tensor, contents: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (filename must be a scalar tensor)
+{filename : tensor} |= ndim(filename) = 0
+Token usage: input=1547, output=5697, total=7244
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.WriteFile API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Writes `contents` to the file at input `filename`.
+
+  Creates the file and recursively creates directory if it does not exist.
+
+  Args:
+    filename: A `Tensor` of type `string`.
+      scalar. The name of the file to which we write the contents.
+    contents: A `Tensor` of type `string`.
+      scalar. The content to be written to the output file.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+
+[API Signature] name: string, filename: tensor, contents: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (contents must be a scalar tensor)
+{contents : tensor} |= ndim(contents) = 0
+Token usage: input=1547, output=5697, total=7244
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.WriteFile API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Writes `contents` to the file at input `filename`.
+
+  Creates the file and recursively creates directory if it does not exist.
+
+  Args:
+    filename: A `Tensor` of type `string`.
+      scalar. The name of the file to which we write the contents.
+    contents: A `Tensor` of type `string`.
+      scalar. The content to be written to the output file.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+
+[API Signature] name: string, filename: tensor, contents: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (filename and contents must have the same dtype)
+{filename : tensor, contents : tensor} |= dtype_(filename) = dtype_(contents)
+Token usage: input=1547, output=5697, total=7244
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.WriteFile API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Writes `contents` to the file at input `filename`.
+
+  Creates the file and recursively creates directory if it does not exist.
+
+  Args:
+    filename: A `Tensor` of type `string`.
+      scalar. The name of the file to which we write the contents.
+    contents: A `Tensor` of type `string`.
+      scalar. The content to be written to the output file.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+
+[API Signature] name: string, filename: tensor, contents: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (filename and contents must have identical rank and shape)
+{filename : tensor, contents : tensor} |= ndim(filename) = ndim(contents) ∧ ∀i ∈ [0, ndim(filename) - 1] : shape(filename, i) = shape(contents, i)
+Token usage: input=1547, output=5697, total=7244
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.WriteFile API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Writes `contents` to the file at input `filename`.
+
+  Creates the file and recursively creates directory if it does not exist.
+
+  Args:
+    filename: A `Tensor` of type `string`.
+      scalar. The name of the file to which we write the contents.
+    contents: A `Tensor` of type `string`.
+      scalar. The content to be written to the output file.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+
+[API Signature] name: string, filename: tensor, contents: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (all shape dimensions, if any, are non-negative)
+{filename : tensor, contents : tensor} |= ∀i ∈ [0, ndim(filename) - 1] : shape(filename, i) ≥ 0 ∧ ∀j ∈ [0, ndim(contents) - 1] : shape(contents, j) ≥ 0
+Token usage: input=1547, output=5697, total=7244
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.WriteFile API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Writes `contents` to the file at input `filename`.
+
+  Creates the file and recursively creates directory if it does not exist.
+
+  Args:
+    filename: A `Tensor` of type `string`.
+      scalar. The name of the file to which we write the contents.
+    contents: A `Tensor` of type `string`.
+      scalar. The content to be written to the output file.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+
+[API Signature] name: string, filename: tensor, contents: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (name is chosen from the allowed string set)
+{name : str} |= name = "ii" ∨ name = "ii->i" ∨ name = "i,j->ij" ∨ name = "bij,bjk->bik" ∨ name = "...ij->...ji" ∨ name = "bn,anm,bm->ba" ∨ name = "none" ∨ name = "sum" ∨ name = "max" ∨ name = "min" ∨ name = "prod" ∨ name = "relu" ∨ name = "tanh" ∨ name = "sigmoid" ∨ name = "softmax" ∨ name = "elu" ∨ name = "selu" ∨ name = "gelu" ∨ name = "swish" ∨ name = "softplus" ∨ name = "linear" ∨ name = "valid" ∨ name = "same" ∨ name = "causal" ∨ name = "channels_last" ∨ name = "channels_first"
+Token usage: input=1547, output=5697, total=7244
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.WriteFile API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Writes `contents` to the file at input `filename`.
+
+  Creates the file and recursively creates directory if it does not exist.
+
+  Args:
+    filename: A `Tensor` of type `string`.
+      scalar. The name of the file to which we write the contents.
+    contents: A `Tensor` of type `string`.
+      scalar. The content to be written to the output file.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+
+[API Signature] name: string, filename: tensor, contents: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (filename must be a string scalar tensor)
+{v_1 : tensor} |= dtype_(v_1) = 11 ∧ ndim(v_1) = 0
+Token usage: input=1472, output=4777, total=6249
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.WriteFile API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Writes `contents` to the file at input `filename`.
+
+  Creates the file and recursively creates directory if it does not exist.
+
+  Args:
+    filename: A `Tensor` of type `string`.
+      scalar. The name of the file to which we write the contents.
+    contents: A `Tensor` of type `string`.
+      scalar. The content to be written to the output file.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+
+[API Signature] name: string, filename: tensor, contents: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (contents must be a string scalar tensor)
+{v_1 : tensor} |= dtype_(v_1) = 11 ∧ ndim(v_1) = 0
+Token usage: input=1472, output=4777, total=6249
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.WriteFile API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Writes `contents` to the file at input `filename`.
+
+  Creates the file and recursively creates directory if it does not exist.
+
+  Args:
+    filename: A `Tensor` of type `string`.
+      scalar. The name of the file to which we write the contents.
+    contents: A `Tensor` of type `string`.
+      scalar. The content to be written to the output file.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+
+[API Signature] name: string, filename: tensor, contents: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (both filename and contents are string scalars)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 11 ∧ ndim(v_1) = 0 ∧ dtype_(v_2) = 11 ∧ ndim(v_2) = 0
+Token usage: input=1472, output=4777, total=6249
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.WriteFile API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Writes `contents` to the file at input `filename`.
+
+  Creates the file and recursively creates directory if it does not exist.
+
+  Args:
+    filename: A `Tensor` of type `string`.
+      scalar. The name of the file to which we write the contents.
+    contents: A `Tensor` of type `string`.
+      scalar. The content to be written to the output file.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+
+[API Signature] name: string, filename: tensor, contents: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (name, if provided, must be one of the allowed strings)
+{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "softplus" ∨ v_1 = "linear" ∨ v_1 = "valid" ∨ v_1 = "same" ∨ v_1 = "causal" ∨ v_1 = "channels_last" ∨ v_1 = "channels_first"
+Token usage: input=1472, output=4777, total=6249
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.WriteFile API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Writes `contents` to the file at input `filename`.
+
+  Creates the file and recursively creates directory if it does not exist.
+
+  Args:
+    filename: A `Tensor` of type `string`.
+      scalar. The name of the file to which we write the contents.
+    contents: A `Tensor` of type `string`.
+      scalar. The content to be written to the output file.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+
+[API Signature] name: string, filename: tensor, contents: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (dtype consistency: filename string implies contents string)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 11 then dtype_(v_2) = 11 else false
+Token usage: input=1472, output=4777, total=6249
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= dtype_(v_1) = 11 ∧ ndim(v_1) = 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.WriteFile API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Writes `contents` to the file at input `filename`.
+
+  Creates the file and recursively creates directory if it does not exist.
+
+  Args:
+    filename: A `Tensor` of type `string`.
+      scalar. The name of the file to which we write the contents.
+    contents: A `Tensor` of type `string`.
+      scalar. The content to be written to the output file.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+
+[API Signature] name: string, filename: tensor, contents: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (filename and contents must be matching string scalars)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 11 ∧ dtype_(v_2) = 11 ∧ dtype_(v_1) = dtype_(v_2) ∧ ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ ndim(v_1) = ndim(v_2)
+Token usage: input=3445, output=5344, total=8789
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= dtype_(v_1) = 11 ∧ ndim(v_1) = 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.WriteFile API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Writes `contents` to the file at input `filename`.
+
+  Creates the file and recursively creates directory if it does not exist.
+
+  Args:
+    filename: A `Tensor` of type `string`.
+      scalar. The name of the file to which we write the contents.
+    contents: A `Tensor` of type `string`.
+      scalar. The content to be written to the output file.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+
+[API Signature] name: string, filename: tensor, contents: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (tensor argument must have string dtype, via quantified check)
+{v_1 : tensor} |= ∀i ∈ [dtype_(v_1), dtype_(v_1)] : i = 11
+Token usage: input=3445, output=5344, total=8789
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= dtype_(v_1) = 11 ∧ ndim(v_1) = 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.WriteFile API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Writes `contents` to the file at input `filename`.
+
+  Creates the file and recursively creates directory if it does not exist.
+
+  Args:
+    filename: A `Tensor` of type `string`.
+      scalar. The name of the file to which we write the contents.
+    contents: A `Tensor` of type `string`.
+      scalar. The content to be written to the output file.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+
+[API Signature] name: string, filename: tensor, contents: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 14 (scalar tensor argument must have string dtype)
+{v_1 : tensor} |= if ndim(v_1) = 0 then dtype_(v_1) = 11 else false
+Token usage: input=3445, output=5344, total=8789
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= dtype_(v_1) = 11 ∧ ndim(v_1) = 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.WriteFile API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Writes `contents` to the file at input `filename`.
+
+  Creates the file and recursively creates directory if it does not exist.
+
+  Args:
+    filename: A `Tensor` of type `string`.
+      scalar. The name of the file to which we write the contents.
+    contents: A `Tensor` of type `string`.
+      scalar. The content to be written to the output file.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+
+[API Signature] name: string, filename: tensor, contents: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 15 (name must be one of allowed strings)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "linear" ∨ v_1 = "relu" ∨ v_1 = "tanh"
+Token usage: input=3445, output=5344, total=8789
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= dtype_(v_1) = 11 ∧ ndim(v_1) = 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.WriteFile API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Writes `contents` to the file at input `filename`.
+
+  Creates the file and recursively creates directory if it does not exist.
+
+  Args:
+    filename: A `Tensor` of type `string`.
+      scalar. The name of the file to which we write the contents.
+    contents: A `Tensor` of type `string`.
+      scalar. The content to be written to the output file.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+
+[API Signature] name: string, filename: tensor, contents: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 16 (filename and contents must match in dtype and rank)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ ndim(v_1) = ndim(v_2)
+Token usage: input=3445, output=5344, total=8789
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor} |= dtype_(v_1) = 11 ∧ ndim(v_1) = 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.WriteFile API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Writes `contents` to the file at input `filename`.
+
+  Creates the file and recursively creates directory if it does not exist.
+
+  Args:
+    filename: A `Tensor` of type `string`.
+      scalar. The name of the file to which we write the contents.
+    contents: A `Tensor` of type `string`.
+      scalar. The content to be written to the output file.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+
+[API Signature] name: string, filename: tensor, contents: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 17 (all-parameter consistency: valid name implies valid string scalars)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if (v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "linear") then dtype_(v_2) = 11 ∧ dtype_(v_3) = 11 ∧ ndim(v_2) = 0 ∧ ndim(v_3) = 0 else false
+Token usage: input=3445, output=5344, total=8789
+** SUCCESS **
+

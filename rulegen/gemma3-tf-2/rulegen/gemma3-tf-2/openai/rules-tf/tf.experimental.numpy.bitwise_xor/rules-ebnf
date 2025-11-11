@@ -1,0 +1,27 @@
+>>
+Rule 1 (inputs must have matching dtypes)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 2 (inputs must be broadcast-compatible across all trailing dimensions)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : if i ≤ ndim(v_2) - 1 then (shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i) ∨ shape(v_1, ndim(v_1) - 1 - i) = 1 ∨ shape(v_2, ndim(v_2) - 1 - i) = 1) else shape(v_1, ndim(v_1) - 1 - i) = 1) ∧ (∀j ∈ [0, ndim(v_2) - 1] : if j ≤ ndim(v_1) - 1 then (shape(v_1, ndim(v_1) - 1 - j) = shape(v_2, ndim(v_2) - 1 - j) ∨ shape(v_1, ndim(v_1) - 1 - j) = 1 ∨ shape(v_2, ndim(v_2) - 1 - j) = 1) else shape(v_2, ndim(v_2) - 1 - j) = 1)
+>>
+Rule 3 (equal-rank inputs must be per-dimension compatible for broadcasting)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i)) ∨ (shape(v_1, i) = 1) ∨ (shape(v_2, i) = 1)
+>>
+Rule 4 (boolean-like values or emptiness are allowed)
+{v_1 : tensor, v_2 : tensor} |= (if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then true else (min(v_1) ≥ 0 ∧ max(v_1) ≤ 1)) ∧ (if (∃j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) = 0) then true else (min(v_2) ≥ 0 ∧ max(v_2) ≤ 1))
+>>
+Rule 5 (1-D vectors must have compatible lengths)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 1 ∧ ndim(v_2) = 1) then (shape(v_1, 0) = shape(v_2, 0)) ∨ (shape(v_1, 0) = 1) ∨ (shape(v_2, 0) = 1)
+>>
+Rule 6 (operands must be boolean or integer tensors)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 0 ∨ dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)
+>>
+Rule 8 (broadcasting compatibility, including support for scalars)
+{v_1 : tensor, v_2 : tensor} |= if (if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) else ndim(v_2)) ≥ 1 then ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)
+>>
+Rule 10 (broadcasting compatibility for x1 and x2)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)
+>>
+Rule 11 (all shape dimensions are non-negative)
+{v_1 : tensor, v_2 : tensor} |= (if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : 0 ≤ shape(v_1, i)) ∧ (if ndim(v_2) > 0 then ∀j ∈ [0, ndim(v_2) - 1] : 0 ≤ shape(v_2, j))

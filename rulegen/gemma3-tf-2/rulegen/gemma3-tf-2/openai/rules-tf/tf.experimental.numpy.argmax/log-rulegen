@@ -1,0 +1,1176 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.experimental.numpy.argmax API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+TensorFlow variant of NumPy's `argmax`.
+
+Unsupported arguments: `out`, `keepdims`.
+
+See the NumPy documentation for [`numpy.argmax`](https://numpy.org/doc/stable/reference/generated/numpy.argmax.html).
+
+[API Signature] a: tensor, axis: integer
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (axis must be within valid range [-ndim(a), ndim(a)-1])
+{v_1 : tensor, v_2 : int} |= -ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) - 1
+Token usage: input=1507, output=5985, total=7492
+** PARSING ERROR ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.experimental.numpy.argmax API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+TensorFlow variant of NumPy's `argmax`.
+
+Unsupported arguments: `out`, `keepdims`.
+
+See the NumPy documentation for [`numpy.argmax`](https://numpy.org/doc/stable/reference/generated/numpy.argmax.html).
+
+[API Signature] a: tensor, axis: integer
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (input must be at least 1-D)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+Token usage: input=1507, output=5985, total=7492
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.experimental.numpy.argmax API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+TensorFlow variant of NumPy's `argmax`.
+
+Unsupported arguments: `out`, `keepdims`.
+
+See the NumPy documentation for [`numpy.argmax`](https://numpy.org/doc/stable/reference/generated/numpy.argmax.html).
+
+[API Signature] a: tensor, axis: integer
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (dtype must be orderable: disallow complex and string)
+{v_1 : tensor} |= dtype(v_1) ≠ 9 ∧ dtype(v_1) ≠ 10 ∧ dtype(v_1) ≠ 11
+Token usage: input=1507, output=5985, total=7492
+** PARSING ERROR ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.experimental.numpy.argmax API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+TensorFlow variant of NumPy's `argmax`.
+
+Unsupported arguments: `out`, `keepdims`.
+
+See the NumPy documentation for [`numpy.argmax`](https://numpy.org/doc/stable/reference/generated/numpy.argmax.html).
+
+[API Signature] a: tensor, axis: integer
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (the reduced dimension must be non-empty)
+{v_1 : tensor, v_2 : int} |= (v_2 ≥ 0 ∧ shape(v_1, v_2) > 0) ∨ (v_2 < 0 ∧ shape(v_1, v_2 + ndim(v_1)) > 0)
+Token usage: input=1507, output=5985, total=7492
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.experimental.numpy.argmax API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+TensorFlow variant of NumPy's `argmax`.
+
+Unsupported arguments: `out`, `keepdims`.
+
+See the NumPy documentation for [`numpy.argmax`](https://numpy.org/doc/stable/reference/generated/numpy.argmax.html).
+
+[API Signature] a: tensor, axis: integer
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (all shape dimensions are non-negative)
+{v_1 : tensor} |= (ndim(v_1) = 0) ∨ (∀ i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0)
+Token usage: input=1507, output=5985, total=7492
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.experimental.numpy.argmax API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+TensorFlow variant of NumPy's `argmax`.
+
+Unsupported arguments: `out`, `keepdims`.
+
+See the NumPy documentation for [`numpy.argmax`](https://numpy.org/doc/stable/reference/generated/numpy.argmax.html).
+
+[API Signature] a: tensor, axis: integer
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (for 1-D inputs, only axes -1 or 0 are valid)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then (v_2 = 0 ∨ v_2 = -1)
+Token usage: input=1507, output=5985, total=7492
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.experimental.numpy.argmax API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+TensorFlow variant of NumPy's `argmax`.
+
+Unsupported arguments: `out`, `keepdims`.
+
+See the NumPy documentation for [`numpy.argmax`](https://numpy.org/doc/stable/reference/generated/numpy.argmax.html).
+
+[API Signature] a: tensor, axis: integer
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (axis must be within valid range)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) > 0 ∧ v_2 ≥ -ndim(v_1) ∧ v_2 ≤ ndim(v_1) - 1
+Token usage: input=1464, output=6204, total=7668
+** PARSING ERROR ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.experimental.numpy.argmax API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+TensorFlow variant of NumPy's `argmax`.
+
+Unsupported arguments: `out`, `keepdims`.
+
+See the NumPy documentation for [`numpy.argmax`](https://numpy.org/doc/stable/reference/generated/numpy.argmax.html).
+
+[API Signature] a: tensor, axis: integer
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (input must have rank at least 1)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) ≥ 1
+Token usage: input=1464, output=6204, total=7668
+** REDUNDANT VARIABLES ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.experimental.numpy.argmax API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+TensorFlow variant of NumPy's `argmax`.
+
+Unsupported arguments: `out`, `keepdims`.
+
+See the NumPy documentation for [`numpy.argmax`](https://numpy.org/doc/stable/reference/generated/numpy.argmax.html).
+
+[API Signature] a: tensor, axis: integer
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (reduction axis must be non-empty after normalization)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) > 0 ∧ shape(v_1, if v_2 ≥ 0 then v_2 else v_2 + ndim(v_1)) > 0
+Token usage: input=1464, output=6204, total=7668
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.experimental.numpy.argmax API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+TensorFlow variant of NumPy's `argmax`.
+
+Unsupported arguments: `out`, `keepdims`.
+
+See the NumPy documentation for [`numpy.argmax`](https://numpy.org/doc/stable/reference/generated/numpy.argmax.html).
+
+[API Signature] a: tensor, axis: integer
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (there exists a valid index along the reduction axis)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) > 0 ∧ shape(v_1, if v_2 ≥ 0 then v_2 else v_2 + ndim(v_1)) > 0 ∧ ∃i ∈ [0, shape(v_1, if v_2 ≥ 0 then v_2 else v_2 + ndim(v_1)) - 1] : i ≥ 0 ∧ i ≤ shape(v_1, if v_2 ≥ 0 then v_2 else v_2 + ndim(v_1)) - 1
+Token usage: input=1464, output=6204, total=7668
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.experimental.numpy.argmax API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+TensorFlow variant of NumPy's `argmax`.
+
+Unsupported arguments: `out`, `keepdims`.
+
+See the NumPy documentation for [`numpy.argmax`](https://numpy.org/doc/stable/reference/generated/numpy.argmax.html).
+
+[API Signature] a: tensor, axis: integer
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (valid axis values for 1-D input)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then (v_2 = 0 ∨ v_2 = -1)
+Token usage: input=1464, output=6204, total=7668
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.experimental.numpy.argmax API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+TensorFlow variant of NumPy's `argmax`.
+
+Unsupported arguments: `out`, `keepdims`.
+
+See the NumPy documentation for [`numpy.argmax`](https://numpy.org/doc/stable/reference/generated/numpy.argmax.html).
+
+[API Signature] a: tensor, axis: integer
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (valid axis values for 2-D input)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then (v_2 = 0 ∨ v_2 = 1 ∨ v_2 = -1 ∨ v_2 = -2)
+Token usage: input=1464, output=6204, total=7668
+** SUCCESS **
+

@@ -1,0 +1,36 @@
+>>
+Rule 1 (x must be float or complex dtype: 6, 7, 8, 9, or 10)
+{v_1: tensor} |= (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)
+>>
+Rule 2 (y must have the same dtype as x)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 3 (x and y must be broadcastable)
+{v_1: tensor, v_2: tensor} |= ∀i ∈ [0, ndim(v_1) + ndim(v_2) - 1] : if (i < ndim(v_1) ∧ i < ndim(v_2)) then ((shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i)) ∨ (shape(v_1, ndim(v_1) - 1 - i) = 1) ∨ (shape(v_2, ndim(v_2) - 1 - i) = 1))
+>>
+Rule 4 (for complex dtypes, shapes must match exactly)
+{v_1: tensor, v_2: tensor} |= if ((dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)) then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 5 (name must be one of a limited allowed set)
+{v_3: str} |= (v_3 = "none") ∨ (v_3 = "linear") ∨ (v_3 = "relu") ∨ (v_3 = "softplus")
+>>
+Rule 6 (if name is "linear", x and y must have equal rank)
+{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "linear" then ndim(v_1) = ndim(v_2)
+>>
+Rule 7 (if name is "relu", all dimensions of x must be positive)
+{v_1: tensor, v_3: str} |= if v_3 = "relu" then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 8 (if name is "softplus", both tensors must be at least 1-D)
+{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "softplus" then (ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1)
+>>
+Rule 9 (x and y must have the same, allowed dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 10 (x and y must be broadcastable)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≥ ndim(v_2) then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i + ndim(v_1) - ndim(v_2)) = shape(v_2, i) ∨ shape(v_1, i + ndim(v_1) - ndim(v_2)) = 1 ∨ shape(v_2, i) = 1 else ∀i ∈ [0, ndim(v_1) - 1] : shape(v_2, i + ndim(v_2) - ndim(v_1)) = shape(v_1, i) ∨ shape(v_2, i + ndim(v_2) - ndim(v_1)) = 1 ∨ shape(v_1, i) = 1
+>>
+Rule 11 (all dimensions of x and y are non-negative)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0) ∧ (∀j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) ≥ 0)
+>>
+Rule 12 (name is an unconstrained string)
+{v_1 : str} |= v_1 = v_1

@@ -1,0 +1,1200 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.baddbmm API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+baddbmm(input, batch1, batch2, *, beta=1, alpha=1, out=None) -> Tensor
+
+Performs a batch matrix-matrix product of matrices in :attr:`batch1`
+and :attr:`batch2`.
+:attr:`input` is added to the final result.
+
+:attr:`batch1` and :attr:`batch2` must be 3-D tensors each containing the same
+number of matrices.
+
+If :attr:`batch1` is a :math:`(b \times n \times m)` tensor, :attr:`batch2` is a
+:math:`(b \times m \times p)` tensor, then :attr:`input` must be
+:ref:`broadcastable <broadcasting-semantics>` with a
+:math:`(b \times n \times p)` tensor and :attr:`out` will be a
+:math:`(b \times n \times p)` tensor. Both :attr:`alpha` and :attr:`beta` mean the
+same as the scaling factors used in :meth:`torch.addbmm`.
+
+.. math::
+    \text{out}_i = \beta\ \text{input}_i + \alpha\ (\text{batch1}_i \mathbin{@} \text{batch2}_i)
+
+If :attr:`beta` is 0, then the content of :attr:`input` will be ignored, and `nan` and `inf` in
+it will not be propagated.
+
+For inputs of type `FloatTensor` or `DoubleTensor`, arguments :attr:`beta` and
+:attr:`alpha` must be real numbers, otherwise they should be integers.
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+On certain ROCm devices, when using float16 inputs this module will use :ref:`different precision<fp16_on_mi200>` for backward.
+
+Args:
+    input (Tensor): the tensor to be added
+    batch1 (Tensor): the first batch of matrices to be multiplied
+    batch2 (Tensor): the second batch of matrices to be multiplied
+
+Keyword args:
+    beta (Number, optional): multiplier for :attr:`input` (:math:`\beta`)
+    alpha (Number, optional): multiplier for :math:`\text{batch1} \mathbin{@} \text{batch2}` (:math:`\alpha`)
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> M = torch.randn(10, 3, 5)
+    >>> batch1 = torch.randn(10, 3, 4)
+    >>> batch2 = torch.randn(10, 4, 5)
+    >>> torch.baddbmm(M, batch1, batch2).size()
+    torch.Size([10, 3, 5])
+
+[Possible API Signatures]
+ - input: tensor, batch1: tensor, batch2: tensor, out_dtype: dtype, beta: float, alpha: float, out: tensor
+ - input: tensor, batch1: tensor, batch2: tensor, out_dtype: dtype, beta: integer, alpha: integer, out: tensor
+
+[Error Messages]
+RuntimeError: The expanded size of the tensor (5) must match the existing size (0) at non-singleton dimension 2.  Target sizes: [10, 3, 5].  Tensor sizes: [0]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: Input dtypes must be the same, got: input c10::Half, batch1: float, batch2: float
+RuntimeError: expected scalar type Float but found Double
+TypeError: baddbmm(): argument 'out' must be Tensor, not float
+RuntimeError: expand(CPUBoolType{[12, 82, 26, 67, 40]}, size=[53, 71, 46]): the number of sizes provided (3) must be greater or equal to the number of dimensions in the tensor (5)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (batch1 and batch2 are 3D with compatible matmul dims and same batch size; prevents dimension mismatch)
+{v_2 : tensor, v_3 : tensor} |= ndim(v_2) = 3 ∧ ndim(v_3) = 3 ∧ shape(v_2, 0) = shape(v_3, 0) ∧ shape(v_2, 2) = shape(v_3, 1)
+Token usage: input=2315, output=8251, total=10566
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.baddbmm API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+baddbmm(input, batch1, batch2, *, beta=1, alpha=1, out=None) -> Tensor
+
+Performs a batch matrix-matrix product of matrices in :attr:`batch1`
+and :attr:`batch2`.
+:attr:`input` is added to the final result.
+
+:attr:`batch1` and :attr:`batch2` must be 3-D tensors each containing the same
+number of matrices.
+
+If :attr:`batch1` is a :math:`(b \times n \times m)` tensor, :attr:`batch2` is a
+:math:`(b \times m \times p)` tensor, then :attr:`input` must be
+:ref:`broadcastable <broadcasting-semantics>` with a
+:math:`(b \times n \times p)` tensor and :attr:`out` will be a
+:math:`(b \times n \times p)` tensor. Both :attr:`alpha` and :attr:`beta` mean the
+same as the scaling factors used in :meth:`torch.addbmm`.
+
+.. math::
+    \text{out}_i = \beta\ \text{input}_i + \alpha\ (\text{batch1}_i \mathbin{@} \text{batch2}_i)
+
+If :attr:`beta` is 0, then the content of :attr:`input` will be ignored, and `nan` and `inf` in
+it will not be propagated.
+
+For inputs of type `FloatTensor` or `DoubleTensor`, arguments :attr:`beta` and
+:attr:`alpha` must be real numbers, otherwise they should be integers.
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+On certain ROCm devices, when using float16 inputs this module will use :ref:`different precision<fp16_on_mi200>` for backward.
+
+Args:
+    input (Tensor): the tensor to be added
+    batch1 (Tensor): the first batch of matrices to be multiplied
+    batch2 (Tensor): the second batch of matrices to be multiplied
+
+Keyword args:
+    beta (Number, optional): multiplier for :attr:`input` (:math:`\beta`)
+    alpha (Number, optional): multiplier for :math:`\text{batch1} \mathbin{@} \text{batch2}` (:math:`\alpha`)
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> M = torch.randn(10, 3, 5)
+    >>> batch1 = torch.randn(10, 3, 4)
+    >>> batch2 = torch.randn(10, 4, 5)
+    >>> torch.baddbmm(M, batch1, batch2).size()
+    torch.Size([10, 3, 5])
+
+[Possible API Signatures]
+ - input: tensor, batch1: tensor, batch2: tensor, out_dtype: dtype, beta: float, alpha: float, out: tensor
+ - input: tensor, batch1: tensor, batch2: tensor, out_dtype: dtype, beta: integer, alpha: integer, out: tensor
+
+[Error Messages]
+RuntimeError: The expanded size of the tensor (5) must match the existing size (0) at non-singleton dimension 2.  Target sizes: [10, 3, 5].  Tensor sizes: [0]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: Input dtypes must be the same, got: input c10::Half, batch1: float, batch2: float
+RuntimeError: expected scalar type Float but found Double
+TypeError: baddbmm(): argument 'out' must be Tensor, not float
+RuntimeError: expand(CPUBoolType{[12, 82, 26, 67, 40]}, size=[53, 71, 46]): the number of sizes provided (3) must be greater or equal to the number of dimensions in the tensor (5)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (input is 3D and broadcastable to (b×n×p); suppresses expanded size mismatch and invalid expand due to higher rank input)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = 3 ∧ ndim(v_2) = 3 ∧ ndim(v_3) = 3 ∧ shape(v_2, 2) = shape(v_3, 1) ∧ ((shape(v_1, 0) = 1) ∨ (shape(v_1, 0) = shape(v_2, 0))) ∧ ((shape(v_1, 1) = 1) ∨ (shape(v_1, 1) = shape(v_2, 1))) ∧ ((shape(v_1, 2) = 1) ∨ (shape(v_1, 2) = shape(v_3, 2)))
+Token usage: input=2315, output=8251, total=10566
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.baddbmm API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+baddbmm(input, batch1, batch2, *, beta=1, alpha=1, out=None) -> Tensor
+
+Performs a batch matrix-matrix product of matrices in :attr:`batch1`
+and :attr:`batch2`.
+:attr:`input` is added to the final result.
+
+:attr:`batch1` and :attr:`batch2` must be 3-D tensors each containing the same
+number of matrices.
+
+If :attr:`batch1` is a :math:`(b \times n \times m)` tensor, :attr:`batch2` is a
+:math:`(b \times m \times p)` tensor, then :attr:`input` must be
+:ref:`broadcastable <broadcasting-semantics>` with a
+:math:`(b \times n \times p)` tensor and :attr:`out` will be a
+:math:`(b \times n \times p)` tensor. Both :attr:`alpha` and :attr:`beta` mean the
+same as the scaling factors used in :meth:`torch.addbmm`.
+
+.. math::
+    \text{out}_i = \beta\ \text{input}_i + \alpha\ (\text{batch1}_i \mathbin{@} \text{batch2}_i)
+
+If :attr:`beta` is 0, then the content of :attr:`input` will be ignored, and `nan` and `inf` in
+it will not be propagated.
+
+For inputs of type `FloatTensor` or `DoubleTensor`, arguments :attr:`beta` and
+:attr:`alpha` must be real numbers, otherwise they should be integers.
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+On certain ROCm devices, when using float16 inputs this module will use :ref:`different precision<fp16_on_mi200>` for backward.
+
+Args:
+    input (Tensor): the tensor to be added
+    batch1 (Tensor): the first batch of matrices to be multiplied
+    batch2 (Tensor): the second batch of matrices to be multiplied
+
+Keyword args:
+    beta (Number, optional): multiplier for :attr:`input` (:math:`\beta`)
+    alpha (Number, optional): multiplier for :math:`\text{batch1} \mathbin{@} \text{batch2}` (:math:`\alpha`)
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> M = torch.randn(10, 3, 5)
+    >>> batch1 = torch.randn(10, 3, 4)
+    >>> batch2 = torch.randn(10, 4, 5)
+    >>> torch.baddbmm(M, batch1, batch2).size()
+    torch.Size([10, 3, 5])
+
+[Possible API Signatures]
+ - input: tensor, batch1: tensor, batch2: tensor, out_dtype: dtype, beta: float, alpha: float, out: tensor
+ - input: tensor, batch1: tensor, batch2: tensor, out_dtype: dtype, beta: integer, alpha: integer, out: tensor
+
+[Error Messages]
+RuntimeError: The expanded size of the tensor (5) must match the existing size (0) at non-singleton dimension 2.  Target sizes: [10, 3, 5].  Tensor sizes: [0]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: Input dtypes must be the same, got: input c10::Half, batch1: float, batch2: float
+RuntimeError: expected scalar type Float but found Double
+TypeError: baddbmm(): argument 'out' must be Tensor, not float
+RuntimeError: expand(CPUBoolType{[12, 82, 26, 67, 40]}, size=[53, 71, 46]): the number of sizes provided (3) must be greater or equal to the number of dimensions in the tensor (5)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (out tensor, when provided, must have result shape (b×n×p); prevents shape-related expand/index errors)
+{v_2 : tensor, v_3 : tensor, v_7 : tensor} |= ndim(v_7) = 3 ∧ ndim(v_2) = 3 ∧ ndim(v_3) = 3 ∧ shape(v_7, 0) = shape(v_2, 0) ∧ shape(v_7, 1) = shape(v_2, 1) ∧ shape(v_7, 2) = shape(v_3, 2)
+Token usage: input=2315, output=8251, total=10566
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.baddbmm API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+baddbmm(input, batch1, batch2, *, beta=1, alpha=1, out=None) -> Tensor
+
+Performs a batch matrix-matrix product of matrices in :attr:`batch1`
+and :attr:`batch2`.
+:attr:`input` is added to the final result.
+
+:attr:`batch1` and :attr:`batch2` must be 3-D tensors each containing the same
+number of matrices.
+
+If :attr:`batch1` is a :math:`(b \times n \times m)` tensor, :attr:`batch2` is a
+:math:`(b \times m \times p)` tensor, then :attr:`input` must be
+:ref:`broadcastable <broadcasting-semantics>` with a
+:math:`(b \times n \times p)` tensor and :attr:`out` will be a
+:math:`(b \times n \times p)` tensor. Both :attr:`alpha` and :attr:`beta` mean the
+same as the scaling factors used in :meth:`torch.addbmm`.
+
+.. math::
+    \text{out}_i = \beta\ \text{input}_i + \alpha\ (\text{batch1}_i \mathbin{@} \text{batch2}_i)
+
+If :attr:`beta` is 0, then the content of :attr:`input` will be ignored, and `nan` and `inf` in
+it will not be propagated.
+
+For inputs of type `FloatTensor` or `DoubleTensor`, arguments :attr:`beta` and
+:attr:`alpha` must be real numbers, otherwise they should be integers.
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+On certain ROCm devices, when using float16 inputs this module will use :ref:`different precision<fp16_on_mi200>` for backward.
+
+Args:
+    input (Tensor): the tensor to be added
+    batch1 (Tensor): the first batch of matrices to be multiplied
+    batch2 (Tensor): the second batch of matrices to be multiplied
+
+Keyword args:
+    beta (Number, optional): multiplier for :attr:`input` (:math:`\beta`)
+    alpha (Number, optional): multiplier for :math:`\text{batch1} \mathbin{@} \text{batch2}` (:math:`\alpha`)
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> M = torch.randn(10, 3, 5)
+    >>> batch1 = torch.randn(10, 3, 4)
+    >>> batch2 = torch.randn(10, 4, 5)
+    >>> torch.baddbmm(M, batch1, batch2).size()
+    torch.Size([10, 3, 5])
+
+[Possible API Signatures]
+ - input: tensor, batch1: tensor, batch2: tensor, out_dtype: dtype, beta: float, alpha: float, out: tensor
+ - input: tensor, batch1: tensor, batch2: tensor, out_dtype: dtype, beta: integer, alpha: integer, out: tensor
+
+[Error Messages]
+RuntimeError: The expanded size of the tensor (5) must match the existing size (0) at non-singleton dimension 2.  Target sizes: [10, 3, 5].  Tensor sizes: [0]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: Input dtypes must be the same, got: input c10::Half, batch1: float, batch2: float
+RuntimeError: expected scalar type Float but found Double
+TypeError: baddbmm(): argument 'out' must be Tensor, not float
+RuntimeError: expand(CPUBoolType{[12, 82, 26, 67, 40]}, size=[53, 71, 46]): the number of sizes provided (3) must be greater or equal to the number of dimensions in the tensor (5)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (input, batch1, batch2 dtypes must match; suppresses dtype mismatch errors)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_2) = dtype_(v_3)
+Token usage: input=2315, output=8251, total=10566
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.baddbmm API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+baddbmm(input, batch1, batch2, *, beta=1, alpha=1, out=None) -> Tensor
+
+Performs a batch matrix-matrix product of matrices in :attr:`batch1`
+and :attr:`batch2`.
+:attr:`input` is added to the final result.
+
+:attr:`batch1` and :attr:`batch2` must be 3-D tensors each containing the same
+number of matrices.
+
+If :attr:`batch1` is a :math:`(b \times n \times m)` tensor, :attr:`batch2` is a
+:math:`(b \times m \times p)` tensor, then :attr:`input` must be
+:ref:`broadcastable <broadcasting-semantics>` with a
+:math:`(b \times n \times p)` tensor and :attr:`out` will be a
+:math:`(b \times n \times p)` tensor. Both :attr:`alpha` and :attr:`beta` mean the
+same as the scaling factors used in :meth:`torch.addbmm`.
+
+.. math::
+    \text{out}_i = \beta\ \text{input}_i + \alpha\ (\text{batch1}_i \mathbin{@} \text{batch2}_i)
+
+If :attr:`beta` is 0, then the content of :attr:`input` will be ignored, and `nan` and `inf` in
+it will not be propagated.
+
+For inputs of type `FloatTensor` or `DoubleTensor`, arguments :attr:`beta` and
+:attr:`alpha` must be real numbers, otherwise they should be integers.
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+On certain ROCm devices, when using float16 inputs this module will use :ref:`different precision<fp16_on_mi200>` for backward.
+
+Args:
+    input (Tensor): the tensor to be added
+    batch1 (Tensor): the first batch of matrices to be multiplied
+    batch2 (Tensor): the second batch of matrices to be multiplied
+
+Keyword args:
+    beta (Number, optional): multiplier for :attr:`input` (:math:`\beta`)
+    alpha (Number, optional): multiplier for :math:`\text{batch1} \mathbin{@} \text{batch2}` (:math:`\alpha`)
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> M = torch.randn(10, 3, 5)
+    >>> batch1 = torch.randn(10, 3, 4)
+    >>> batch2 = torch.randn(10, 4, 5)
+    >>> torch.baddbmm(M, batch1, batch2).size()
+    torch.Size([10, 3, 5])
+
+[Possible API Signatures]
+ - input: tensor, batch1: tensor, batch2: tensor, out_dtype: dtype, beta: float, alpha: float, out: tensor
+ - input: tensor, batch1: tensor, batch2: tensor, out_dtype: dtype, beta: integer, alpha: integer, out: tensor
+
+[Error Messages]
+RuntimeError: The expanded size of the tensor (5) must match the existing size (0) at non-singleton dimension 2.  Target sizes: [10, 3, 5].  Tensor sizes: [0]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: Input dtypes must be the same, got: input c10::Half, batch1: float, batch2: float
+RuntimeError: expected scalar type Float but found Double
+TypeError: baddbmm(): argument 'out' must be Tensor, not float
+RuntimeError: expand(CPUBoolType{[12, 82, 26, 67, 40]}, size=[53, 71, 46]): the number of sizes provided (3) must be greater or equal to the number of dimensions in the tensor (5)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (out dtype must match input dtype and declared out_dtype; suppresses “Expected out tensor to have dtype float, but got double instead”)
+{v_1 : tensor, v_4 : dtype, v_7 : tensor} |= dtype_(v_7) = dtype_(v_1) ∧ v_4 = dtype_(v_7)
+Token usage: input=2315, output=8251, total=10566
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.baddbmm API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+baddbmm(input, batch1, batch2, *, beta=1, alpha=1, out=None) -> Tensor
+
+Performs a batch matrix-matrix product of matrices in :attr:`batch1`
+and :attr:`batch2`.
+:attr:`input` is added to the final result.
+
+:attr:`batch1` and :attr:`batch2` must be 3-D tensors each containing the same
+number of matrices.
+
+If :attr:`batch1` is a :math:`(b \times n \times m)` tensor, :attr:`batch2` is a
+:math:`(b \times m \times p)` tensor, then :attr:`input` must be
+:ref:`broadcastable <broadcasting-semantics>` with a
+:math:`(b \times n \times p)` tensor and :attr:`out` will be a
+:math:`(b \times n \times p)` tensor. Both :attr:`alpha` and :attr:`beta` mean the
+same as the scaling factors used in :meth:`torch.addbmm`.
+
+.. math::
+    \text{out}_i = \beta\ \text{input}_i + \alpha\ (\text{batch1}_i \mathbin{@} \text{batch2}_i)
+
+If :attr:`beta` is 0, then the content of :attr:`input` will be ignored, and `nan` and `inf` in
+it will not be propagated.
+
+For inputs of type `FloatTensor` or `DoubleTensor`, arguments :attr:`beta` and
+:attr:`alpha` must be real numbers, otherwise they should be integers.
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+On certain ROCm devices, when using float16 inputs this module will use :ref:`different precision<fp16_on_mi200>` for backward.
+
+Args:
+    input (Tensor): the tensor to be added
+    batch1 (Tensor): the first batch of matrices to be multiplied
+    batch2 (Tensor): the second batch of matrices to be multiplied
+
+Keyword args:
+    beta (Number, optional): multiplier for :attr:`input` (:math:`\beta`)
+    alpha (Number, optional): multiplier for :math:`\text{batch1} \mathbin{@} \text{batch2}` (:math:`\alpha`)
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> M = torch.randn(10, 3, 5)
+    >>> batch1 = torch.randn(10, 3, 4)
+    >>> batch2 = torch.randn(10, 4, 5)
+    >>> torch.baddbmm(M, batch1, batch2).size()
+    torch.Size([10, 3, 5])
+
+[Possible API Signatures]
+ - input: tensor, batch1: tensor, batch2: tensor, out_dtype: dtype, beta: float, alpha: float, out: tensor
+ - input: tensor, batch1: tensor, batch2: tensor, out_dtype: dtype, beta: integer, alpha: integer, out: tensor
+
+[Error Messages]
+RuntimeError: The expanded size of the tensor (5) must match the existing size (0) at non-singleton dimension 2.  Target sizes: [10, 3, 5].  Tensor sizes: [0]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: Input dtypes must be the same, got: input c10::Half, batch1: float, batch2: float
+RuntimeError: expected scalar type Float but found Double
+TypeError: baddbmm(): argument 'out' must be Tensor, not float
+RuntimeError: expand(CPUBoolType{[12, 82, 26, 67, 40]}, size=[53, 71, 46]): the number of sizes provided (3) must be greater or equal to the number of dimensions in the tensor (5)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (FloatTensor/DoubleTensor require real-number alpha and beta; selects float signature)
+{v_1 : tensor, v_5 : float, v_6 : float} |= (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)
+Token usage: input=2315, output=8251, total=10566
+** REDUNDANT VARIABLES ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.baddbmm API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+baddbmm(input, batch1, batch2, *, beta=1, alpha=1, out=None) -> Tensor
+
+Performs a batch matrix-matrix product of matrices in :attr:`batch1`
+and :attr:`batch2`.
+:attr:`input` is added to the final result.
+
+:attr:`batch1` and :attr:`batch2` must be 3-D tensors each containing the same
+number of matrices.
+
+If :attr:`batch1` is a :math:`(b \times n \times m)` tensor, :attr:`batch2` is a
+:math:`(b \times m \times p)` tensor, then :attr:`input` must be
+:ref:`broadcastable <broadcasting-semantics>` with a
+:math:`(b \times n \times p)` tensor and :attr:`out` will be a
+:math:`(b \times n \times p)` tensor. Both :attr:`alpha` and :attr:`beta` mean the
+same as the scaling factors used in :meth:`torch.addbmm`.
+
+.. math::
+    \text{out}_i = \beta\ \text{input}_i + \alpha\ (\text{batch1}_i \mathbin{@} \text{batch2}_i)
+
+If :attr:`beta` is 0, then the content of :attr:`input` will be ignored, and `nan` and `inf` in
+it will not be propagated.
+
+For inputs of type `FloatTensor` or `DoubleTensor`, arguments :attr:`beta` and
+:attr:`alpha` must be real numbers, otherwise they should be integers.
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+On certain ROCm devices, when using float16 inputs this module will use :ref:`different precision<fp16_on_mi200>` for backward.
+
+Args:
+    input (Tensor): the tensor to be added
+    batch1 (Tensor): the first batch of matrices to be multiplied
+    batch2 (Tensor): the second batch of matrices to be multiplied
+
+Keyword args:
+    beta (Number, optional): multiplier for :attr:`input` (:math:`\beta`)
+    alpha (Number, optional): multiplier for :math:`\text{batch1} \mathbin{@} \text{batch2}` (:math:`\alpha`)
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> M = torch.randn(10, 3, 5)
+    >>> batch1 = torch.randn(10, 3, 4)
+    >>> batch2 = torch.randn(10, 4, 5)
+    >>> torch.baddbmm(M, batch1, batch2).size()
+    torch.Size([10, 3, 5])
+
+[Possible API Signatures]
+ - input: tensor, batch1: tensor, batch2: tensor, out_dtype: dtype, beta: float, alpha: float, out: tensor
+ - input: tensor, batch1: tensor, batch2: tensor, out_dtype: dtype, beta: integer, alpha: integer, out: tensor
+
+[Error Messages]
+RuntimeError: The expanded size of the tensor (5) must match the existing size (0) at non-singleton dimension 2.  Target sizes: [10, 3, 5].  Tensor sizes: [0]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: Input dtypes must be the same, got: input c10::Half, batch1: float, batch2: float
+RuntimeError: expected scalar type Float but found Double
+TypeError: baddbmm(): argument 'out' must be Tensor, not float
+RuntimeError: expand(CPUBoolType{[12, 82, 26, 67, 40]}, size=[53, 71, 46]): the number of sizes provided (3) must be greater or equal to the number of dimensions in the tensor (5)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (non-float tensors require integer alpha and beta; selects integer signature)
+{v_1 : tensor, v_5 : int, v_6 : int} |= (dtype_(v_1) ≠ 7) ∧ (dtype_(v_1) ≠ 8)
+Token usage: input=2315, output=8251, total=10566
+** REDUNDANT VARIABLES ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.baddbmm API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+baddbmm(input, batch1, batch2, *, beta=1, alpha=1, out=None) -> Tensor
+
+Performs a batch matrix-matrix product of matrices in :attr:`batch1`
+and :attr:`batch2`.
+:attr:`input` is added to the final result.
+
+:attr:`batch1` and :attr:`batch2` must be 3-D tensors each containing the same
+number of matrices.
+
+If :attr:`batch1` is a :math:`(b \times n \times m)` tensor, :attr:`batch2` is a
+:math:`(b \times m \times p)` tensor, then :attr:`input` must be
+:ref:`broadcastable <broadcasting-semantics>` with a
+:math:`(b \times n \times p)` tensor and :attr:`out` will be a
+:math:`(b \times n \times p)` tensor. Both :attr:`alpha` and :attr:`beta` mean the
+same as the scaling factors used in :meth:`torch.addbmm`.
+
+.. math::
+    \text{out}_i = \beta\ \text{input}_i + \alpha\ (\text{batch1}_i \mathbin{@} \text{batch2}_i)
+
+If :attr:`beta` is 0, then the content of :attr:`input` will be ignored, and `nan` and `inf` in
+it will not be propagated.
+
+For inputs of type `FloatTensor` or `DoubleTensor`, arguments :attr:`beta` and
+:attr:`alpha` must be real numbers, otherwise they should be integers.
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+On certain ROCm devices, when using float16 inputs this module will use :ref:`different precision<fp16_on_mi200>` for backward.
+
+Args:
+    input (Tensor): the tensor to be added
+    batch1 (Tensor): the first batch of matrices to be multiplied
+    batch2 (Tensor): the second batch of matrices to be multiplied
+
+Keyword args:
+    beta (Number, optional): multiplier for :attr:`input` (:math:`\beta`)
+    alpha (Number, optional): multiplier for :math:`\text{batch1} \mathbin{@} \text{batch2}` (:math:`\alpha`)
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> M = torch.randn(10, 3, 5)
+    >>> batch1 = torch.randn(10, 3, 4)
+    >>> batch2 = torch.randn(10, 4, 5)
+    >>> torch.baddbmm(M, batch1, batch2).size()
+    torch.Size([10, 3, 5])
+
+[Possible API Signatures]
+ - input: tensor, batch1: tensor, batch2: tensor, out_dtype: dtype, beta: float, alpha: float, out: tensor
+ - input: tensor, batch1: tensor, batch2: tensor, out_dtype: dtype, beta: integer, alpha: integer, out: tensor
+
+[Error Messages]
+RuntimeError: The expanded size of the tensor (5) must match the existing size (0) at non-singleton dimension 2.  Target sizes: [10, 3, 5].  Tensor sizes: [0]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: Input dtypes must be the same, got: input c10::Half, batch1: float, batch2: float
+RuntimeError: expected scalar type Float but found Double
+TypeError: baddbmm(): argument 'out' must be Tensor, not float
+RuntimeError: expand(CPUBoolType{[12, 82, 26, 67, 40]}, size=[53, 71, 46]): the number of sizes provided (3) must be greater or equal to the number of dimensions in the tensor (5)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (out argument, when used, must be a tensor; suppresses “argument 'out' must be Tensor, not float”)
+{v_7 : tensor} |= ndim(v_7) ≥ 0
+Token usage: input=2315, output=8251, total=10566
+** SUCCESS **
+

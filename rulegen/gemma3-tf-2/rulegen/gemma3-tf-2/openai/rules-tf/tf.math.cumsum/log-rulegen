@@ -1,0 +1,2093 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.cumsum API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Compute the cumulative sum of the tensor `x` along `axis`.
+
+  By default, this op performs an inclusive cumsum, which means that the first
+  element of the input is identical to the first element of the output:
+  For example:
+
+  >>> # tf.cumsum([a, b, c])   # [a, a + b, a + b + c]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([ 2,  6, 12, 20], dtype=int32)>
+
+  >>> # using varying `axis` values
+  >>> y = tf.constant([[2, 4, 6, 8], [1,3,5,7]])
+  >>> tf.cumsum(y, axis=0)
+  <tf.Tensor: shape=(2, 4), dtype=int32, numpy=
+  array([[ 2,  4,  6,  8],
+         [ 3,  7, 11, 15]], dtype=int32)>
+  >>> tf.cumsum(y, axis=1)
+  <tf.Tensor: shape=(2, 4), dtype=int32, numpy=
+  array([[ 2,  6, 12, 20],
+         [ 1,  4,  9, 16]], dtype=int32)>
+
+  By setting the `exclusive` kwarg to `True`, an exclusive cumsum is performed
+  instead:
+
+  >>> # tf.cumsum([a, b, c], exclusive=True)  => [0, a, a + b]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, exclusive=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([ 0,  2,  6, 12], dtype=int32)>
+
+  By setting the `reverse` kwarg to `True`, the cumsum is performed in the
+  opposite direction:
+
+  >>> # tf.cumsum([a, b, c], reverse=True)  # [a + b + c, b + c, c]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, reverse=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([20, 18, 14,  8], dtype=int32)>
+
+  This is more efficient than using separate `tf.reverse` ops.
+  The `reverse` and `exclusive` kwargs can also be combined:
+
+  >>> # tf.cumsum([a, b, c], exclusive=True, reverse=True)  # [b + c, c, 0]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, exclusive=True, reverse=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([18, 14,  8,  0], dtype=int32)>
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `float32`, `float64`,
+      `int64`, `int32`, `uint8`, `uint16`, `int16`, `int8`, `complex64`,
+      `complex128`, `qint8`, `quint8`, `qint32`, `half`.
+    axis: A `Tensor` of type `int32` (default: 0). Must be in the range
+      `[-rank(x), rank(x))`.
+    exclusive: If `True`, perform exclusive cumsum.
+    reverse: A `bool` (default: False).
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[Possible API Signatures]
+ - x: tensor, axis: integer, exclusive: boolean, reverse: boolean, name: string
+ - x: tensor, axis: tensor, exclusive: boolean, reverse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, uint64 	; NodeDef: {{node Cumsum}}; Op<name=Cumsum; signature=x:T, axis:Tidx -> out:T; attr=exclusive:bool,default=false; attr=reverse:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_QINT16, DT_QUINT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Cumsum]
+InvalidArgumentError: {{function_node __wrapped__Cumsum_device_/job:localhost/replica:0/task:0/device:CPU:0}} ScanOp: Expected scan axis in the range [-1, 1), but got -113 [Op:Cumsum]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (x must have a supported numeric or complex dtype; prevents 'T=bool' error)
+{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10
+Token usage: input=2424, output=4636, total=7060
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.cumsum API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Compute the cumulative sum of the tensor `x` along `axis`.
+
+  By default, this op performs an inclusive cumsum, which means that the first
+  element of the input is identical to the first element of the output:
+  For example:
+
+  >>> # tf.cumsum([a, b, c])   # [a, a + b, a + b + c]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([ 2,  6, 12, 20], dtype=int32)>
+
+  >>> # using varying `axis` values
+  >>> y = tf.constant([[2, 4, 6, 8], [1,3,5,7]])
+  >>> tf.cumsum(y, axis=0)
+  <tf.Tensor: shape=(2, 4), dtype=int32, numpy=
+  array([[ 2,  4,  6,  8],
+         [ 3,  7, 11, 15]], dtype=int32)>
+  >>> tf.cumsum(y, axis=1)
+  <tf.Tensor: shape=(2, 4), dtype=int32, numpy=
+  array([[ 2,  6, 12, 20],
+         [ 1,  4,  9, 16]], dtype=int32)>
+
+  By setting the `exclusive` kwarg to `True`, an exclusive cumsum is performed
+  instead:
+
+  >>> # tf.cumsum([a, b, c], exclusive=True)  => [0, a, a + b]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, exclusive=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([ 0,  2,  6, 12], dtype=int32)>
+
+  By setting the `reverse` kwarg to `True`, the cumsum is performed in the
+  opposite direction:
+
+  >>> # tf.cumsum([a, b, c], reverse=True)  # [a + b + c, b + c, c]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, reverse=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([20, 18, 14,  8], dtype=int32)>
+
+  This is more efficient than using separate `tf.reverse` ops.
+  The `reverse` and `exclusive` kwargs can also be combined:
+
+  >>> # tf.cumsum([a, b, c], exclusive=True, reverse=True)  # [b + c, c, 0]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, exclusive=True, reverse=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([18, 14,  8,  0], dtype=int32)>
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `float32`, `float64`,
+      `int64`, `int32`, `uint8`, `uint16`, `int16`, `int8`, `complex64`,
+      `complex128`, `qint8`, `quint8`, `qint32`, `half`.
+    axis: A `Tensor` of type `int32` (default: 0). Must be in the range
+      `[-rank(x), rank(x))`.
+    exclusive: If `True`, perform exclusive cumsum.
+    reverse: A `bool` (default: False).
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[Possible API Signatures]
+ - x: tensor, axis: integer, exclusive: boolean, reverse: boolean, name: string
+ - x: tensor, axis: tensor, exclusive: boolean, reverse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, uint64 	; NodeDef: {{node Cumsum}}; Op<name=Cumsum; signature=x:T, axis:Tidx -> out:T; attr=exclusive:bool,default=false; attr=reverse:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_QINT16, DT_QUINT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Cumsum]
+InvalidArgumentError: {{function_node __wrapped__Cumsum_device_/job:localhost/replica:0/task:0/device:CPU:0}} ScanOp: Expected scan axis in the range [-1, 1), but got -113 [Op:Cumsum]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (integer axis must be within [-rank(x), rank(x) - 1]; prevents invalid axis range error)
+{v_1 : tensor, v_2 : int} |= -ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) - 1
+Token usage: input=2424, output=4636, total=7060
+** PARSING ERROR ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.cumsum API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Compute the cumulative sum of the tensor `x` along `axis`.
+
+  By default, this op performs an inclusive cumsum, which means that the first
+  element of the input is identical to the first element of the output:
+  For example:
+
+  >>> # tf.cumsum([a, b, c])   # [a, a + b, a + b + c]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([ 2,  6, 12, 20], dtype=int32)>
+
+  >>> # using varying `axis` values
+  >>> y = tf.constant([[2, 4, 6, 8], [1,3,5,7]])
+  >>> tf.cumsum(y, axis=0)
+  <tf.Tensor: shape=(2, 4), dtype=int32, numpy=
+  array([[ 2,  4,  6,  8],
+         [ 3,  7, 11, 15]], dtype=int32)>
+  >>> tf.cumsum(y, axis=1)
+  <tf.Tensor: shape=(2, 4), dtype=int32, numpy=
+  array([[ 2,  6, 12, 20],
+         [ 1,  4,  9, 16]], dtype=int32)>
+
+  By setting the `exclusive` kwarg to `True`, an exclusive cumsum is performed
+  instead:
+
+  >>> # tf.cumsum([a, b, c], exclusive=True)  => [0, a, a + b]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, exclusive=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([ 0,  2,  6, 12], dtype=int32)>
+
+  By setting the `reverse` kwarg to `True`, the cumsum is performed in the
+  opposite direction:
+
+  >>> # tf.cumsum([a, b, c], reverse=True)  # [a + b + c, b + c, c]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, reverse=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([20, 18, 14,  8], dtype=int32)>
+
+  This is more efficient than using separate `tf.reverse` ops.
+  The `reverse` and `exclusive` kwargs can also be combined:
+
+  >>> # tf.cumsum([a, b, c], exclusive=True, reverse=True)  # [b + c, c, 0]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, exclusive=True, reverse=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([18, 14,  8,  0], dtype=int32)>
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `float32`, `float64`,
+      `int64`, `int32`, `uint8`, `uint16`, `int16`, `int8`, `complex64`,
+      `complex128`, `qint8`, `quint8`, `qint32`, `half`.
+    axis: A `Tensor` of type `int32` (default: 0). Must be in the range
+      `[-rank(x), rank(x))`.
+    exclusive: If `True`, perform exclusive cumsum.
+    reverse: A `bool` (default: False).
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[Possible API Signatures]
+ - x: tensor, axis: integer, exclusive: boolean, reverse: boolean, name: string
+ - x: tensor, axis: tensor, exclusive: boolean, reverse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, uint64 	; NodeDef: {{node Cumsum}}; Op<name=Cumsum; signature=x:T, axis:Tidx -> out:T; attr=exclusive:bool,default=false; attr=reverse:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_QINT16, DT_QUINT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Cumsum]
+InvalidArgumentError: {{function_node __wrapped__Cumsum_device_/job:localhost/replica:0/task:0/device:CPU:0}} ScanOp: Expected scan axis in the range [-1, 1), but got -113 [Op:Cumsum]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (tensor axis must be a scalar int32 or int64)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 0 ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4)
+Token usage: input=2424, output=4636, total=7060
+** REDUNDANT VARIABLES ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.cumsum API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Compute the cumulative sum of the tensor `x` along `axis`.
+
+  By default, this op performs an inclusive cumsum, which means that the first
+  element of the input is identical to the first element of the output:
+  For example:
+
+  >>> # tf.cumsum([a, b, c])   # [a, a + b, a + b + c]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([ 2,  6, 12, 20], dtype=int32)>
+
+  >>> # using varying `axis` values
+  >>> y = tf.constant([[2, 4, 6, 8], [1,3,5,7]])
+  >>> tf.cumsum(y, axis=0)
+  <tf.Tensor: shape=(2, 4), dtype=int32, numpy=
+  array([[ 2,  4,  6,  8],
+         [ 3,  7, 11, 15]], dtype=int32)>
+  >>> tf.cumsum(y, axis=1)
+  <tf.Tensor: shape=(2, 4), dtype=int32, numpy=
+  array([[ 2,  6, 12, 20],
+         [ 1,  4,  9, 16]], dtype=int32)>
+
+  By setting the `exclusive` kwarg to `True`, an exclusive cumsum is performed
+  instead:
+
+  >>> # tf.cumsum([a, b, c], exclusive=True)  => [0, a, a + b]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, exclusive=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([ 0,  2,  6, 12], dtype=int32)>
+
+  By setting the `reverse` kwarg to `True`, the cumsum is performed in the
+  opposite direction:
+
+  >>> # tf.cumsum([a, b, c], reverse=True)  # [a + b + c, b + c, c]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, reverse=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([20, 18, 14,  8], dtype=int32)>
+
+  This is more efficient than using separate `tf.reverse` ops.
+  The `reverse` and `exclusive` kwargs can also be combined:
+
+  >>> # tf.cumsum([a, b, c], exclusive=True, reverse=True)  # [b + c, c, 0]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, exclusive=True, reverse=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([18, 14,  8,  0], dtype=int32)>
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `float32`, `float64`,
+      `int64`, `int32`, `uint8`, `uint16`, `int16`, `int8`, `complex64`,
+      `complex128`, `qint8`, `quint8`, `qint32`, `half`.
+    axis: A `Tensor` of type `int32` (default: 0). Must be in the range
+      `[-rank(x), rank(x))`.
+    exclusive: If `True`, perform exclusive cumsum.
+    reverse: A `bool` (default: False).
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[Possible API Signatures]
+ - x: tensor, axis: integer, exclusive: boolean, reverse: boolean, name: string
+ - x: tensor, axis: tensor, exclusive: boolean, reverse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, uint64 	; NodeDef: {{node Cumsum}}; Op<name=Cumsum; signature=x:T, axis:Tidx -> out:T; attr=exclusive:bool,default=false; attr=reverse:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_QINT16, DT_QUINT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Cumsum]
+InvalidArgumentError: {{function_node __wrapped__Cumsum_device_/job:localhost/replica:0/task:0/device:CPU:0}} ScanOp: Expected scan axis in the range [-1, 1), but got -113 [Op:Cumsum]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (tensor axis value must be within [-rank(x), rank(x) - 1]; prevents invalid axis range error)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ -ndim(v_1) ∧ max(v_2) ≤ ndim(v_1) - 1
+Token usage: input=2424, output=4636, total=7060
+** PARSING ERROR ** (num_failures: 3)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.cumsum API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Compute the cumulative sum of the tensor `x` along `axis`.
+
+  By default, this op performs an inclusive cumsum, which means that the first
+  element of the input is identical to the first element of the output:
+  For example:
+
+  >>> # tf.cumsum([a, b, c])   # [a, a + b, a + b + c]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([ 2,  6, 12, 20], dtype=int32)>
+
+  >>> # using varying `axis` values
+  >>> y = tf.constant([[2, 4, 6, 8], [1,3,5,7]])
+  >>> tf.cumsum(y, axis=0)
+  <tf.Tensor: shape=(2, 4), dtype=int32, numpy=
+  array([[ 2,  4,  6,  8],
+         [ 3,  7, 11, 15]], dtype=int32)>
+  >>> tf.cumsum(y, axis=1)
+  <tf.Tensor: shape=(2, 4), dtype=int32, numpy=
+  array([[ 2,  6, 12, 20],
+         [ 1,  4,  9, 16]], dtype=int32)>
+
+  By setting the `exclusive` kwarg to `True`, an exclusive cumsum is performed
+  instead:
+
+  >>> # tf.cumsum([a, b, c], exclusive=True)  => [0, a, a + b]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, exclusive=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([ 0,  2,  6, 12], dtype=int32)>
+
+  By setting the `reverse` kwarg to `True`, the cumsum is performed in the
+  opposite direction:
+
+  >>> # tf.cumsum([a, b, c], reverse=True)  # [a + b + c, b + c, c]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, reverse=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([20, 18, 14,  8], dtype=int32)>
+
+  This is more efficient than using separate `tf.reverse` ops.
+  The `reverse` and `exclusive` kwargs can also be combined:
+
+  >>> # tf.cumsum([a, b, c], exclusive=True, reverse=True)  # [b + c, c, 0]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, exclusive=True, reverse=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([18, 14,  8,  0], dtype=int32)>
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `float32`, `float64`,
+      `int64`, `int32`, `uint8`, `uint16`, `int16`, `int8`, `complex64`,
+      `complex128`, `qint8`, `quint8`, `qint32`, `half`.
+    axis: A `Tensor` of type `int32` (default: 0). Must be in the range
+      `[-rank(x), rank(x))`.
+    exclusive: If `True`, perform exclusive cumsum.
+    reverse: A `bool` (default: False).
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[Possible API Signatures]
+ - x: tensor, axis: integer, exclusive: boolean, reverse: boolean, name: string
+ - x: tensor, axis: tensor, exclusive: boolean, reverse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, uint64 	; NodeDef: {{node Cumsum}}; Op<name=Cumsum; signature=x:T, axis:Tidx -> out:T; attr=exclusive:bool,default=false; attr=reverse:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_QINT16, DT_QUINT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Cumsum]
+InvalidArgumentError: {{function_node __wrapped__Cumsum_device_/job:localhost/replica:0/task:0/device:CPU:0}} ScanOp: Expected scan axis in the range [-1, 1), but got -113 [Op:Cumsum]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (input must be at least 1-D so a valid axis can exist)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+Token usage: input=2424, output=4636, total=7060
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.cumsum API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Compute the cumulative sum of the tensor `x` along `axis`.
+
+  By default, this op performs an inclusive cumsum, which means that the first
+  element of the input is identical to the first element of the output:
+  For example:
+
+  >>> # tf.cumsum([a, b, c])   # [a, a + b, a + b + c]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([ 2,  6, 12, 20], dtype=int32)>
+
+  >>> # using varying `axis` values
+  >>> y = tf.constant([[2, 4, 6, 8], [1,3,5,7]])
+  >>> tf.cumsum(y, axis=0)
+  <tf.Tensor: shape=(2, 4), dtype=int32, numpy=
+  array([[ 2,  4,  6,  8],
+         [ 3,  7, 11, 15]], dtype=int32)>
+  >>> tf.cumsum(y, axis=1)
+  <tf.Tensor: shape=(2, 4), dtype=int32, numpy=
+  array([[ 2,  6, 12, 20],
+         [ 1,  4,  9, 16]], dtype=int32)>
+
+  By setting the `exclusive` kwarg to `True`, an exclusive cumsum is performed
+  instead:
+
+  >>> # tf.cumsum([a, b, c], exclusive=True)  => [0, a, a + b]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, exclusive=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([ 0,  2,  6, 12], dtype=int32)>
+
+  By setting the `reverse` kwarg to `True`, the cumsum is performed in the
+  opposite direction:
+
+  >>> # tf.cumsum([a, b, c], reverse=True)  # [a + b + c, b + c, c]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, reverse=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([20, 18, 14,  8], dtype=int32)>
+
+  This is more efficient than using separate `tf.reverse` ops.
+  The `reverse` and `exclusive` kwargs can also be combined:
+
+  >>> # tf.cumsum([a, b, c], exclusive=True, reverse=True)  # [b + c, c, 0]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, exclusive=True, reverse=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([18, 14,  8,  0], dtype=int32)>
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `float32`, `float64`,
+      `int64`, `int32`, `uint8`, `uint16`, `int16`, `int8`, `complex64`,
+      `complex128`, `qint8`, `quint8`, `qint32`, `half`.
+    axis: A `Tensor` of type `int32` (default: 0). Must be in the range
+      `[-rank(x), rank(x))`.
+    exclusive: If `True`, perform exclusive cumsum.
+    reverse: A `bool` (default: False).
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[Possible API Signatures]
+ - x: tensor, axis: integer, exclusive: boolean, reverse: boolean, name: string
+ - x: tensor, axis: tensor, exclusive: boolean, reverse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, uint64 	; NodeDef: {{node Cumsum}}; Op<name=Cumsum; signature=x:T, axis:Tidx -> out:T; attr=exclusive:bool,default=false; attr=reverse:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_QINT16, DT_QUINT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Cumsum]
+InvalidArgumentError: {{function_node __wrapped__Cumsum_device_/job:localhost/replica:0/task:0/device:CPU:0}} ScanOp: Expected scan axis in the range [-1, 1), but got -113 [Op:Cumsum]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (exclusive and reverse must be boolean flags)
+{v_3 : bool, v_4 : bool} |= (v_3 = true ∨ v_3 = false) ∧ (v_4 = true ∨ v_4 = false)
+Token usage: input=2424, output=4636, total=7060
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.cumsum API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Compute the cumulative sum of the tensor `x` along `axis`.
+
+  By default, this op performs an inclusive cumsum, which means that the first
+  element of the input is identical to the first element of the output:
+  For example:
+
+  >>> # tf.cumsum([a, b, c])   # [a, a + b, a + b + c]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([ 2,  6, 12, 20], dtype=int32)>
+
+  >>> # using varying `axis` values
+  >>> y = tf.constant([[2, 4, 6, 8], [1,3,5,7]])
+  >>> tf.cumsum(y, axis=0)
+  <tf.Tensor: shape=(2, 4), dtype=int32, numpy=
+  array([[ 2,  4,  6,  8],
+         [ 3,  7, 11, 15]], dtype=int32)>
+  >>> tf.cumsum(y, axis=1)
+  <tf.Tensor: shape=(2, 4), dtype=int32, numpy=
+  array([[ 2,  6, 12, 20],
+         [ 1,  4,  9, 16]], dtype=int32)>
+
+  By setting the `exclusive` kwarg to `True`, an exclusive cumsum is performed
+  instead:
+
+  >>> # tf.cumsum([a, b, c], exclusive=True)  => [0, a, a + b]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, exclusive=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([ 0,  2,  6, 12], dtype=int32)>
+
+  By setting the `reverse` kwarg to `True`, the cumsum is performed in the
+  opposite direction:
+
+  >>> # tf.cumsum([a, b, c], reverse=True)  # [a + b + c, b + c, c]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, reverse=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([20, 18, 14,  8], dtype=int32)>
+
+  This is more efficient than using separate `tf.reverse` ops.
+  The `reverse` and `exclusive` kwargs can also be combined:
+
+  >>> # tf.cumsum([a, b, c], exclusive=True, reverse=True)  # [b + c, c, 0]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, exclusive=True, reverse=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([18, 14,  8,  0], dtype=int32)>
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `float32`, `float64`,
+      `int64`, `int32`, `uint8`, `uint16`, `int16`, `int8`, `complex64`,
+      `complex128`, `qint8`, `quint8`, `qint32`, `half`.
+    axis: A `Tensor` of type `int32` (default: 0). Must be in the range
+      `[-rank(x), rank(x))`.
+    exclusive: If `True`, perform exclusive cumsum.
+    reverse: A `bool` (default: False).
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[Possible API Signatures]
+ - x: tensor, axis: integer, exclusive: boolean, reverse: boolean, name: string
+ - x: tensor, axis: tensor, exclusive: boolean, reverse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, uint64 	; NodeDef: {{node Cumsum}}; Op<name=Cumsum; signature=x:T, axis:Tidx -> out:T; attr=exclusive:bool,default=false; attr=reverse:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_QINT16, DT_QUINT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Cumsum]
+InvalidArgumentError: {{function_node __wrapped__Cumsum_device_/job:localhost/replica:0/task:0/device:CPU:0}} ScanOp: Expected scan axis in the range [-1, 1), but got -113 [Op:Cumsum]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (x must have a numeric or complex dtype; bool not allowed)
+{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10
+Token usage: input=2484, output=4517, total=7001
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.cumsum API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Compute the cumulative sum of the tensor `x` along `axis`.
+
+  By default, this op performs an inclusive cumsum, which means that the first
+  element of the input is identical to the first element of the output:
+  For example:
+
+  >>> # tf.cumsum([a, b, c])   # [a, a + b, a + b + c]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([ 2,  6, 12, 20], dtype=int32)>
+
+  >>> # using varying `axis` values
+  >>> y = tf.constant([[2, 4, 6, 8], [1,3,5,7]])
+  >>> tf.cumsum(y, axis=0)
+  <tf.Tensor: shape=(2, 4), dtype=int32, numpy=
+  array([[ 2,  4,  6,  8],
+         [ 3,  7, 11, 15]], dtype=int32)>
+  >>> tf.cumsum(y, axis=1)
+  <tf.Tensor: shape=(2, 4), dtype=int32, numpy=
+  array([[ 2,  6, 12, 20],
+         [ 1,  4,  9, 16]], dtype=int32)>
+
+  By setting the `exclusive` kwarg to `True`, an exclusive cumsum is performed
+  instead:
+
+  >>> # tf.cumsum([a, b, c], exclusive=True)  => [0, a, a + b]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, exclusive=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([ 0,  2,  6, 12], dtype=int32)>
+
+  By setting the `reverse` kwarg to `True`, the cumsum is performed in the
+  opposite direction:
+
+  >>> # tf.cumsum([a, b, c], reverse=True)  # [a + b + c, b + c, c]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, reverse=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([20, 18, 14,  8], dtype=int32)>
+
+  This is more efficient than using separate `tf.reverse` ops.
+  The `reverse` and `exclusive` kwargs can also be combined:
+
+  >>> # tf.cumsum([a, b, c], exclusive=True, reverse=True)  # [b + c, c, 0]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, exclusive=True, reverse=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([18, 14,  8,  0], dtype=int32)>
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `float32`, `float64`,
+      `int64`, `int32`, `uint8`, `uint16`, `int16`, `int8`, `complex64`,
+      `complex128`, `qint8`, `quint8`, `qint32`, `half`.
+    axis: A `Tensor` of type `int32` (default: 0). Must be in the range
+      `[-rank(x), rank(x))`.
+    exclusive: If `True`, perform exclusive cumsum.
+    reverse: A `bool` (default: False).
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[Possible API Signatures]
+ - x: tensor, axis: integer, exclusive: boolean, reverse: boolean, name: string
+ - x: tensor, axis: tensor, exclusive: boolean, reverse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, uint64 	; NodeDef: {{node Cumsum}}; Op<name=Cumsum; signature=x:T, axis:Tidx -> out:T; attr=exclusive:bool,default=false; attr=reverse:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_QINT16, DT_QUINT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Cumsum]
+InvalidArgumentError: {{function_node __wrapped__Cumsum_device_/job:localhost/replica:0/task:0/device:CPU:0}} ScanOp: Expected scan axis in the range [-1, 1), but got -113 [Op:Cumsum]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (axis as integer must be within valid range)
+{v_1 : tensor, v_2 : int} |= -1 * ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) - 1
+Token usage: input=2484, output=4517, total=7001
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.cumsum API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Compute the cumulative sum of the tensor `x` along `axis`.
+
+  By default, this op performs an inclusive cumsum, which means that the first
+  element of the input is identical to the first element of the output:
+  For example:
+
+  >>> # tf.cumsum([a, b, c])   # [a, a + b, a + b + c]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([ 2,  6, 12, 20], dtype=int32)>
+
+  >>> # using varying `axis` values
+  >>> y = tf.constant([[2, 4, 6, 8], [1,3,5,7]])
+  >>> tf.cumsum(y, axis=0)
+  <tf.Tensor: shape=(2, 4), dtype=int32, numpy=
+  array([[ 2,  4,  6,  8],
+         [ 3,  7, 11, 15]], dtype=int32)>
+  >>> tf.cumsum(y, axis=1)
+  <tf.Tensor: shape=(2, 4), dtype=int32, numpy=
+  array([[ 2,  6, 12, 20],
+         [ 1,  4,  9, 16]], dtype=int32)>
+
+  By setting the `exclusive` kwarg to `True`, an exclusive cumsum is performed
+  instead:
+
+  >>> # tf.cumsum([a, b, c], exclusive=True)  => [0, a, a + b]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, exclusive=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([ 0,  2,  6, 12], dtype=int32)>
+
+  By setting the `reverse` kwarg to `True`, the cumsum is performed in the
+  opposite direction:
+
+  >>> # tf.cumsum([a, b, c], reverse=True)  # [a + b + c, b + c, c]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, reverse=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([20, 18, 14,  8], dtype=int32)>
+
+  This is more efficient than using separate `tf.reverse` ops.
+  The `reverse` and `exclusive` kwargs can also be combined:
+
+  >>> # tf.cumsum([a, b, c], exclusive=True, reverse=True)  # [b + c, c, 0]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, exclusive=True, reverse=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([18, 14,  8,  0], dtype=int32)>
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `float32`, `float64`,
+      `int64`, `int32`, `uint8`, `uint16`, `int16`, `int8`, `complex64`,
+      `complex128`, `qint8`, `quint8`, `qint32`, `half`.
+    axis: A `Tensor` of type `int32` (default: 0). Must be in the range
+      `[-rank(x), rank(x))`.
+    exclusive: If `True`, perform exclusive cumsum.
+    reverse: A `bool` (default: False).
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[Possible API Signatures]
+ - x: tensor, axis: integer, exclusive: boolean, reverse: boolean, name: string
+ - x: tensor, axis: tensor, exclusive: boolean, reverse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, uint64 	; NodeDef: {{node Cumsum}}; Op<name=Cumsum; signature=x:T, axis:Tidx -> out:T; attr=exclusive:bool,default=false; attr=reverse:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_QINT16, DT_QUINT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Cumsum]
+InvalidArgumentError: {{function_node __wrapped__Cumsum_device_/job:localhost/replica:0/task:0/device:CPU:0}} ScanOp: Expected scan axis in the range [-1, 1), but got -113 [Op:Cumsum]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (axis as tensor must be a scalar of integer type)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 0 ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4)
+Token usage: input=2484, output=4517, total=7001
+** REDUNDANT VARIABLES ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.cumsum API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Compute the cumulative sum of the tensor `x` along `axis`.
+
+  By default, this op performs an inclusive cumsum, which means that the first
+  element of the input is identical to the first element of the output:
+  For example:
+
+  >>> # tf.cumsum([a, b, c])   # [a, a + b, a + b + c]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([ 2,  6, 12, 20], dtype=int32)>
+
+  >>> # using varying `axis` values
+  >>> y = tf.constant([[2, 4, 6, 8], [1,3,5,7]])
+  >>> tf.cumsum(y, axis=0)
+  <tf.Tensor: shape=(2, 4), dtype=int32, numpy=
+  array([[ 2,  4,  6,  8],
+         [ 3,  7, 11, 15]], dtype=int32)>
+  >>> tf.cumsum(y, axis=1)
+  <tf.Tensor: shape=(2, 4), dtype=int32, numpy=
+  array([[ 2,  6, 12, 20],
+         [ 1,  4,  9, 16]], dtype=int32)>
+
+  By setting the `exclusive` kwarg to `True`, an exclusive cumsum is performed
+  instead:
+
+  >>> # tf.cumsum([a, b, c], exclusive=True)  => [0, a, a + b]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, exclusive=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([ 0,  2,  6, 12], dtype=int32)>
+
+  By setting the `reverse` kwarg to `True`, the cumsum is performed in the
+  opposite direction:
+
+  >>> # tf.cumsum([a, b, c], reverse=True)  # [a + b + c, b + c, c]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, reverse=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([20, 18, 14,  8], dtype=int32)>
+
+  This is more efficient than using separate `tf.reverse` ops.
+  The `reverse` and `exclusive` kwargs can also be combined:
+
+  >>> # tf.cumsum([a, b, c], exclusive=True, reverse=True)  # [b + c, c, 0]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, exclusive=True, reverse=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([18, 14,  8,  0], dtype=int32)>
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `float32`, `float64`,
+      `int64`, `int32`, `uint8`, `uint16`, `int16`, `int8`, `complex64`,
+      `complex128`, `qint8`, `quint8`, `qint32`, `half`.
+    axis: A `Tensor` of type `int32` (default: 0). Must be in the range
+      `[-rank(x), rank(x))`.
+    exclusive: If `True`, perform exclusive cumsum.
+    reverse: A `bool` (default: False).
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[Possible API Signatures]
+ - x: tensor, axis: integer, exclusive: boolean, reverse: boolean, name: string
+ - x: tensor, axis: tensor, exclusive: boolean, reverse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, uint64 	; NodeDef: {{node Cumsum}}; Op<name=Cumsum; signature=x:T, axis:Tidx -> out:T; attr=exclusive:bool,default=false; attr=reverse:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_QINT16, DT_QUINT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Cumsum]
+InvalidArgumentError: {{function_node __wrapped__Cumsum_device_/job:localhost/replica:0/task:0/device:CPU:0}} ScanOp: Expected scan axis in the range [-1, 1), but got -113 [Op:Cumsum]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (axis as tensor must be within valid range)
+{v_1 : tensor, v_2 : tensor} |= -1 * ndim(v_1) ≤ min(v_2) ∧ max(v_2) ≤ ndim(v_1) - 1
+Token usage: input=2484, output=4517, total=7001
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.cumsum API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Compute the cumulative sum of the tensor `x` along `axis`.
+
+  By default, this op performs an inclusive cumsum, which means that the first
+  element of the input is identical to the first element of the output:
+  For example:
+
+  >>> # tf.cumsum([a, b, c])   # [a, a + b, a + b + c]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([ 2,  6, 12, 20], dtype=int32)>
+
+  >>> # using varying `axis` values
+  >>> y = tf.constant([[2, 4, 6, 8], [1,3,5,7]])
+  >>> tf.cumsum(y, axis=0)
+  <tf.Tensor: shape=(2, 4), dtype=int32, numpy=
+  array([[ 2,  4,  6,  8],
+         [ 3,  7, 11, 15]], dtype=int32)>
+  >>> tf.cumsum(y, axis=1)
+  <tf.Tensor: shape=(2, 4), dtype=int32, numpy=
+  array([[ 2,  6, 12, 20],
+         [ 1,  4,  9, 16]], dtype=int32)>
+
+  By setting the `exclusive` kwarg to `True`, an exclusive cumsum is performed
+  instead:
+
+  >>> # tf.cumsum([a, b, c], exclusive=True)  => [0, a, a + b]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, exclusive=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([ 0,  2,  6, 12], dtype=int32)>
+
+  By setting the `reverse` kwarg to `True`, the cumsum is performed in the
+  opposite direction:
+
+  >>> # tf.cumsum([a, b, c], reverse=True)  # [a + b + c, b + c, c]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, reverse=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([20, 18, 14,  8], dtype=int32)>
+
+  This is more efficient than using separate `tf.reverse` ops.
+  The `reverse` and `exclusive` kwargs can also be combined:
+
+  >>> # tf.cumsum([a, b, c], exclusive=True, reverse=True)  # [b + c, c, 0]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, exclusive=True, reverse=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([18, 14,  8,  0], dtype=int32)>
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `float32`, `float64`,
+      `int64`, `int32`, `uint8`, `uint16`, `int16`, `int8`, `complex64`,
+      `complex128`, `qint8`, `quint8`, `qint32`, `half`.
+    axis: A `Tensor` of type `int32` (default: 0). Must be in the range
+      `[-rank(x), rank(x))`.
+    exclusive: If `True`, perform exclusive cumsum.
+    reverse: A `bool` (default: False).
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[Possible API Signatures]
+ - x: tensor, axis: integer, exclusive: boolean, reverse: boolean, name: string
+ - x: tensor, axis: tensor, exclusive: boolean, reverse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, uint64 	; NodeDef: {{node Cumsum}}; Op<name=Cumsum; signature=x:T, axis:Tidx -> out:T; attr=exclusive:bool,default=false; attr=reverse:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_QINT16, DT_QUINT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Cumsum]
+InvalidArgumentError: {{function_node __wrapped__Cumsum_device_/job:localhost/replica:0/task:0/device:CPU:0}} ScanOp: Expected scan axis in the range [-1, 1), but got -113 [Op:Cumsum]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (exclusive is a boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Token usage: input=2484, output=4517, total=7001
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.cumsum API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Compute the cumulative sum of the tensor `x` along `axis`.
+
+  By default, this op performs an inclusive cumsum, which means that the first
+  element of the input is identical to the first element of the output:
+  For example:
+
+  >>> # tf.cumsum([a, b, c])   # [a, a + b, a + b + c]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([ 2,  6, 12, 20], dtype=int32)>
+
+  >>> # using varying `axis` values
+  >>> y = tf.constant([[2, 4, 6, 8], [1,3,5,7]])
+  >>> tf.cumsum(y, axis=0)
+  <tf.Tensor: shape=(2, 4), dtype=int32, numpy=
+  array([[ 2,  4,  6,  8],
+         [ 3,  7, 11, 15]], dtype=int32)>
+  >>> tf.cumsum(y, axis=1)
+  <tf.Tensor: shape=(2, 4), dtype=int32, numpy=
+  array([[ 2,  6, 12, 20],
+         [ 1,  4,  9, 16]], dtype=int32)>
+
+  By setting the `exclusive` kwarg to `True`, an exclusive cumsum is performed
+  instead:
+
+  >>> # tf.cumsum([a, b, c], exclusive=True)  => [0, a, a + b]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, exclusive=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([ 0,  2,  6, 12], dtype=int32)>
+
+  By setting the `reverse` kwarg to `True`, the cumsum is performed in the
+  opposite direction:
+
+  >>> # tf.cumsum([a, b, c], reverse=True)  # [a + b + c, b + c, c]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, reverse=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([20, 18, 14,  8], dtype=int32)>
+
+  This is more efficient than using separate `tf.reverse` ops.
+  The `reverse` and `exclusive` kwargs can also be combined:
+
+  >>> # tf.cumsum([a, b, c], exclusive=True, reverse=True)  # [b + c, c, 0]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, exclusive=True, reverse=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([18, 14,  8,  0], dtype=int32)>
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `float32`, `float64`,
+      `int64`, `int32`, `uint8`, `uint16`, `int16`, `int8`, `complex64`,
+      `complex128`, `qint8`, `quint8`, `qint32`, `half`.
+    axis: A `Tensor` of type `int32` (default: 0). Must be in the range
+      `[-rank(x), rank(x))`.
+    exclusive: If `True`, perform exclusive cumsum.
+    reverse: A `bool` (default: False).
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[Possible API Signatures]
+ - x: tensor, axis: integer, exclusive: boolean, reverse: boolean, name: string
+ - x: tensor, axis: tensor, exclusive: boolean, reverse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, uint64 	; NodeDef: {{node Cumsum}}; Op<name=Cumsum; signature=x:T, axis:Tidx -> out:T; attr=exclusive:bool,default=false; attr=reverse:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_QINT16, DT_QUINT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Cumsum]
+InvalidArgumentError: {{function_node __wrapped__Cumsum_device_/job:localhost/replica:0/task:0/device:CPU:0}} ScanOp: Expected scan axis in the range [-1, 1), but got -113 [Op:Cumsum]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (reverse is a boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Token usage: input=2484, output=4517, total=7001
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.cumsum API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Compute the cumulative sum of the tensor `x` along `axis`.
+
+  By default, this op performs an inclusive cumsum, which means that the first
+  element of the input is identical to the first element of the output:
+  For example:
+
+  >>> # tf.cumsum([a, b, c])   # [a, a + b, a + b + c]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([ 2,  6, 12, 20], dtype=int32)>
+
+  >>> # using varying `axis` values
+  >>> y = tf.constant([[2, 4, 6, 8], [1,3,5,7]])
+  >>> tf.cumsum(y, axis=0)
+  <tf.Tensor: shape=(2, 4), dtype=int32, numpy=
+  array([[ 2,  4,  6,  8],
+         [ 3,  7, 11, 15]], dtype=int32)>
+  >>> tf.cumsum(y, axis=1)
+  <tf.Tensor: shape=(2, 4), dtype=int32, numpy=
+  array([[ 2,  6, 12, 20],
+         [ 1,  4,  9, 16]], dtype=int32)>
+
+  By setting the `exclusive` kwarg to `True`, an exclusive cumsum is performed
+  instead:
+
+  >>> # tf.cumsum([a, b, c], exclusive=True)  => [0, a, a + b]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, exclusive=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([ 0,  2,  6, 12], dtype=int32)>
+
+  By setting the `reverse` kwarg to `True`, the cumsum is performed in the
+  opposite direction:
+
+  >>> # tf.cumsum([a, b, c], reverse=True)  # [a + b + c, b + c, c]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, reverse=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([20, 18, 14,  8], dtype=int32)>
+
+  This is more efficient than using separate `tf.reverse` ops.
+  The `reverse` and `exclusive` kwargs can also be combined:
+
+  >>> # tf.cumsum([a, b, c], exclusive=True, reverse=True)  # [b + c, c, 0]
+  >>> x = tf.constant([2, 4, 6, 8])
+  >>> tf.cumsum(x, exclusive=True, reverse=True)
+  <tf.Tensor: shape=(4,), dtype=int32,
+  numpy=array([18, 14,  8,  0], dtype=int32)>
+
+  Args:
+    x: A `Tensor`. Must be one of the following types: `float32`, `float64`,
+      `int64`, `int32`, `uint8`, `uint16`, `int16`, `int8`, `complex64`,
+      `complex128`, `qint8`, `quint8`, `qint32`, `half`.
+    axis: A `Tensor` of type `int32` (default: 0). Must be in the range
+      `[-rank(x), rank(x))`.
+    exclusive: If `True`, perform exclusive cumsum.
+    reverse: A `bool` (default: False).
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+
+[Possible API Signatures]
+ - x: tensor, axis: integer, exclusive: boolean, reverse: boolean, name: string
+ - x: tensor, axis: tensor, exclusive: boolean, reverse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, uint64 	; NodeDef: {{node Cumsum}}; Op<name=Cumsum; signature=x:T, axis:Tidx -> out:T; attr=exclusive:bool,default=false; attr=reverse:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_QINT16, DT_QUINT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Cumsum]
+InvalidArgumentError: {{function_node __wrapped__Cumsum_device_/job:localhost/replica:0/task:0/device:CPU:0}} ScanOp: Expected scan axis in the range [-1, 1), but got -113 [Op:Cumsum]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (name is one of the allowed strings)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "linear"
+Token usage: input=2484, output=4517, total=7001
+** SUCCESS **
+

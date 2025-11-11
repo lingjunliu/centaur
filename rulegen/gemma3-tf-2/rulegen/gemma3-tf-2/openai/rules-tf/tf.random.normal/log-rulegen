@@ -1,0 +1,2835 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.normal API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs random values from a normal distribution.
+
+  Example that generates a new set of random values every time:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([4], 0, 1, tf.float32)
+  <tf.Tensor: shape=(4,), dtype=float32, numpy=..., dtype=float32)>
+
+  Example that outputs a reproducible result:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([2,2], 0, 1, tf.float32, seed=1)
+  <tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+  array([[-1.3768897 , -0.01258316],
+        [-0.169515   ,  1.0824056 ]], dtype=float32)>
+
+  In this case, we are setting both the global and operation-level seed to
+  ensure this result is reproducible.  See `tf.random.set_seed` for more
+  information.
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    mean: A Tensor or Python value of type `dtype`, broadcastable with `stddev`.
+      The mean of the normal distribution.
+    stddev: A Tensor or Python value of type `dtype`, broadcastable with `mean`.
+      The standard deviation of the normal distribution.
+    dtype: The float type of the output: `float16`, `bfloat16`, `float32`,
+      `float64`. Defaults to `float32`.
+    seed: A Python integer. Used to create a random seed for the distribution.
+      See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tensor of the specified shape filled with random normal values.
+
+[Possible API Signatures]
+ - shape: list, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tuple, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tensor, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (dtype must be a TensorFlow floating dtype: float16/float32/float64)
+{v_4 : dtype} |= v_4 = 6 ∨ v_4 = 7 ∨ v_4 = 8
+Token usage: input=1767, output=6306, total=8073
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.normal API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs random values from a normal distribution.
+
+  Example that generates a new set of random values every time:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([4], 0, 1, tf.float32)
+  <tf.Tensor: shape=(4,), dtype=float32, numpy=..., dtype=float32)>
+
+  Example that outputs a reproducible result:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([2,2], 0, 1, tf.float32, seed=1)
+  <tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+  array([[-1.3768897 , -0.01258316],
+        [-0.169515   ,  1.0824056 ]], dtype=float32)>
+
+  In this case, we are setting both the global and operation-level seed to
+  ensure this result is reproducible.  See `tf.random.set_seed` for more
+  information.
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    mean: A Tensor or Python value of type `dtype`, broadcastable with `stddev`.
+      The mean of the normal distribution.
+    stddev: A Tensor or Python value of type `dtype`, broadcastable with `mean`.
+      The standard deviation of the normal distribution.
+    dtype: The float type of the output: `float16`, `bfloat16`, `float32`,
+      `float64`. Defaults to `float32`.
+    seed: A Python integer. Used to create a random seed for the distribution.
+      See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tensor of the specified shape filled with random normal values.
+
+[Possible API Signatures]
+ - shape: list, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tuple, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tensor, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (shape as Python list or tuple of ints: all dimensions are non-negative)
+{v_1 : list(int) ⊎ tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+Token usage: input=1767, output=6306, total=8073
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.normal API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs random values from a normal distribution.
+
+  Example that generates a new set of random values every time:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([4], 0, 1, tf.float32)
+  <tf.Tensor: shape=(4,), dtype=float32, numpy=..., dtype=float32)>
+
+  Example that outputs a reproducible result:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([2,2], 0, 1, tf.float32, seed=1)
+  <tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+  array([[-1.3768897 , -0.01258316],
+        [-0.169515   ,  1.0824056 ]], dtype=float32)>
+
+  In this case, we are setting both the global and operation-level seed to
+  ensure this result is reproducible.  See `tf.random.set_seed` for more
+  information.
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    mean: A Tensor or Python value of type `dtype`, broadcastable with `stddev`.
+      The mean of the normal distribution.
+    stddev: A Tensor or Python value of type `dtype`, broadcastable with `mean`.
+      The standard deviation of the normal distribution.
+    dtype: The float type of the output: `float16`, `bfloat16`, `float32`,
+      `float64`. Defaults to `float32`.
+    seed: A Python integer. Used to create a random seed for the distribution.
+      See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tensor of the specified shape filled with random normal values.
+
+[Possible API Signatures]
+ - shape: list, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tuple, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tensor, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (shape as a tensor: 1-D integer tensor with non-negative entries)
+{v_1 : tensor} |= 1 ≤ dtype(v_1) ∧ dtype(v_1) ≤ 5 ∧ ndim(v_1) = 1 ∧ min(v_1) ≥ 0
+Token usage: input=1767, output=6306, total=8073
+** PARSING ERROR ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.normal API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs random values from a normal distribution.
+
+  Example that generates a new set of random values every time:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([4], 0, 1, tf.float32)
+  <tf.Tensor: shape=(4,), dtype=float32, numpy=..., dtype=float32)>
+
+  Example that outputs a reproducible result:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([2,2], 0, 1, tf.float32, seed=1)
+  <tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+  array([[-1.3768897 , -0.01258316],
+        [-0.169515   ,  1.0824056 ]], dtype=float32)>
+
+  In this case, we are setting both the global and operation-level seed to
+  ensure this result is reproducible.  See `tf.random.set_seed` for more
+  information.
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    mean: A Tensor or Python value of type `dtype`, broadcastable with `stddev`.
+      The mean of the normal distribution.
+    stddev: A Tensor or Python value of type `dtype`, broadcastable with `mean`.
+      The standard deviation of the normal distribution.
+    dtype: The float type of the output: `float16`, `bfloat16`, `float32`,
+      `float64`. Defaults to `float32`.
+    seed: A Python integer. Used to create a random seed for the distribution.
+      See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tensor of the specified shape filled with random normal values.
+
+[Possible API Signatures]
+ - shape: list, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tuple, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tensor, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (mean/stddev tensors must match the requested output dtype)
+{v_2 : tensor, v_3 : tensor, v_4 : dtype} |= dtype(v_2) = v_4 ∧ dtype(v_3) = v_4
+Token usage: input=1767, output=6306, total=8073
+** PARSING ERROR ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.normal API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs random values from a normal distribution.
+
+  Example that generates a new set of random values every time:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([4], 0, 1, tf.float32)
+  <tf.Tensor: shape=(4,), dtype=float32, numpy=..., dtype=float32)>
+
+  Example that outputs a reproducible result:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([2,2], 0, 1, tf.float32, seed=1)
+  <tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+  array([[-1.3768897 , -0.01258316],
+        [-0.169515   ,  1.0824056 ]], dtype=float32)>
+
+  In this case, we are setting both the global and operation-level seed to
+  ensure this result is reproducible.  See `tf.random.set_seed` for more
+  information.
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    mean: A Tensor or Python value of type `dtype`, broadcastable with `stddev`.
+      The mean of the normal distribution.
+    stddev: A Tensor or Python value of type `dtype`, broadcastable with `mean`.
+      The standard deviation of the normal distribution.
+    dtype: The float type of the output: `float16`, `bfloat16`, `float32`,
+      `float64`. Defaults to `float32`.
+    seed: A Python integer. Used to create a random seed for the distribution.
+      See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tensor of the specified shape filled with random normal values.
+
+[Possible API Signatures]
+ - shape: list, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tuple, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tensor, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (stddev tensor must be strictly positive)
+{v_3 : tensor} |= min(v_3) > 0
+Token usage: input=1767, output=6306, total=8073
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.normal API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs random values from a normal distribution.
+
+  Example that generates a new set of random values every time:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([4], 0, 1, tf.float32)
+  <tf.Tensor: shape=(4,), dtype=float32, numpy=..., dtype=float32)>
+
+  Example that outputs a reproducible result:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([2,2], 0, 1, tf.float32, seed=1)
+  <tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+  array([[-1.3768897 , -0.01258316],
+        [-0.169515   ,  1.0824056 ]], dtype=float32)>
+
+  In this case, we are setting both the global and operation-level seed to
+  ensure this result is reproducible.  See `tf.random.set_seed` for more
+  information.
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    mean: A Tensor or Python value of type `dtype`, broadcastable with `stddev`.
+      The mean of the normal distribution.
+    stddev: A Tensor or Python value of type `dtype`, broadcastable with `mean`.
+      The standard deviation of the normal distribution.
+    dtype: The float type of the output: `float16`, `bfloat16`, `float32`,
+      `float64`. Defaults to `float32`.
+    seed: A Python integer. Used to create a random seed for the distribution.
+      See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tensor of the specified shape filled with random normal values.
+
+[Possible API Signatures]
+ - shape: list, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tuple, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tensor, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (stddev as a Python float must be strictly positive)
+{v_3 : float} |= v_3 > 0
+Token usage: input=1767, output=6306, total=8073
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.normal API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs random values from a normal distribution.
+
+  Example that generates a new set of random values every time:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([4], 0, 1, tf.float32)
+  <tf.Tensor: shape=(4,), dtype=float32, numpy=..., dtype=float32)>
+
+  Example that outputs a reproducible result:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([2,2], 0, 1, tf.float32, seed=1)
+  <tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+  array([[-1.3768897 , -0.01258316],
+        [-0.169515   ,  1.0824056 ]], dtype=float32)>
+
+  In this case, we are setting both the global and operation-level seed to
+  ensure this result is reproducible.  See `tf.random.set_seed` for more
+  information.
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    mean: A Tensor or Python value of type `dtype`, broadcastable with `stddev`.
+      The mean of the normal distribution.
+    stddev: A Tensor or Python value of type `dtype`, broadcastable with `mean`.
+      The standard deviation of the normal distribution.
+    dtype: The float type of the output: `float16`, `bfloat16`, `float32`,
+      `float64`. Defaults to `float32`.
+    seed: A Python integer. Used to create a random seed for the distribution.
+      See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tensor of the specified shape filled with random normal values.
+
+[Possible API Signatures]
+ - shape: list, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tuple, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tensor, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (mean and stddev must be broadcastable with each other: scalar or identical shapes)
+{v_2 : tensor, v_3 : tensor} |= (ndim(v_2) = 0) ∨ (ndim(v_3) = 0) ∨ (ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i))
+Token usage: input=1767, output=6306, total=8073
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.normal API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs random values from a normal distribution.
+
+  Example that generates a new set of random values every time:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([4], 0, 1, tf.float32)
+  <tf.Tensor: shape=(4,), dtype=float32, numpy=..., dtype=float32)>
+
+  Example that outputs a reproducible result:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([2,2], 0, 1, tf.float32, seed=1)
+  <tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+  array([[-1.3768897 , -0.01258316],
+        [-0.169515   ,  1.0824056 ]], dtype=float32)>
+
+  In this case, we are setting both the global and operation-level seed to
+  ensure this result is reproducible.  See `tf.random.set_seed` for more
+  information.
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    mean: A Tensor or Python value of type `dtype`, broadcastable with `stddev`.
+      The mean of the normal distribution.
+    stddev: A Tensor or Python value of type `dtype`, broadcastable with `mean`.
+      The standard deviation of the normal distribution.
+    dtype: The float type of the output: `float16`, `bfloat16`, `float32`,
+      `float64`. Defaults to `float32`.
+    seed: A Python integer. Used to create a random seed for the distribution.
+      See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tensor of the specified shape filled with random normal values.
+
+[Possible API Signatures]
+ - shape: list, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tuple, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tensor, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (seed is a non-negative 32-bit signed integer)
+{v_5 : int} |= 0 ≤ v_5 ∧ v_5 ≤ 2147483647
+Token usage: input=1767, output=6306, total=8073
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.normal API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs random values from a normal distribution.
+
+  Example that generates a new set of random values every time:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([4], 0, 1, tf.float32)
+  <tf.Tensor: shape=(4,), dtype=float32, numpy=..., dtype=float32)>
+
+  Example that outputs a reproducible result:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([2,2], 0, 1, tf.float32, seed=1)
+  <tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+  array([[-1.3768897 , -0.01258316],
+        [-0.169515   ,  1.0824056 ]], dtype=float32)>
+
+  In this case, we are setting both the global and operation-level seed to
+  ensure this result is reproducible.  See `tf.random.set_seed` for more
+  information.
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    mean: A Tensor or Python value of type `dtype`, broadcastable with `stddev`.
+      The mean of the normal distribution.
+    stddev: A Tensor or Python value of type `dtype`, broadcastable with `mean`.
+      The standard deviation of the normal distribution.
+    dtype: The float type of the output: `float16`, `bfloat16`, `float32`,
+      `float64`. Defaults to `float32`.
+    seed: A Python integer. Used to create a random seed for the distribution.
+      See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tensor of the specified shape filled with random normal values.
+
+[Possible API Signatures]
+ - shape: list, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tuple, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tensor, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (name, if provided, is a valid string token from the allowed set)
+{v_6 : str} |= v_6 = "none" ∨ v_6 = "sum" ∨ v_6 = "max" ∨ v_6 = "min" ∨ v_6 = "prod" ∨ v_6 = "relu" ∨ v_6 = "tanh" ∨ v_6 = "sigmoid" ∨ v_6 = "softmax" ∨ v_6 = "elu" ∨ v_6 = "selu" ∨ v_6 = "gelu" ∨ v_6 = "swish" ∨ v_6 = "softplus" ∨ v_6 = "linear" ∨ v_6 = "valid" ∨ v_6 = "same" ∨ v_6 = "causal" ∨ v_6 = "channels_last" ∨ v_6 = "channels_first"
+Token usage: input=1767, output=6306, total=8073
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.normal API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs random values from a normal distribution.
+
+  Example that generates a new set of random values every time:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([4], 0, 1, tf.float32)
+  <tf.Tensor: shape=(4,), dtype=float32, numpy=..., dtype=float32)>
+
+  Example that outputs a reproducible result:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([2,2], 0, 1, tf.float32, seed=1)
+  <tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+  array([[-1.3768897 , -0.01258316],
+        [-0.169515   ,  1.0824056 ]], dtype=float32)>
+
+  In this case, we are setting both the global and operation-level seed to
+  ensure this result is reproducible.  See `tf.random.set_seed` for more
+  information.
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    mean: A Tensor or Python value of type `dtype`, broadcastable with `stddev`.
+      The mean of the normal distribution.
+    stddev: A Tensor or Python value of type `dtype`, broadcastable with `mean`.
+      The standard deviation of the normal distribution.
+    dtype: The float type of the output: `float16`, `bfloat16`, `float32`,
+      `float64`. Defaults to `float32`.
+    seed: A Python integer. Used to create a random seed for the distribution.
+      See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tensor of the specified shape filled with random normal values.
+
+[Possible API Signatures]
+ - shape: list, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tuple, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tensor, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (dtype must be a floating-point TensorFlow dtype: indices 6–8)
+{v_4 : dtype} |= 6 ≤ v_4 ∧ v_4 ≤ 8
+Token usage: input=1770, output=7709, total=9479
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.normal API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs random values from a normal distribution.
+
+  Example that generates a new set of random values every time:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([4], 0, 1, tf.float32)
+  <tf.Tensor: shape=(4,), dtype=float32, numpy=..., dtype=float32)>
+
+  Example that outputs a reproducible result:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([2,2], 0, 1, tf.float32, seed=1)
+  <tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+  array([[-1.3768897 , -0.01258316],
+        [-0.169515   ,  1.0824056 ]], dtype=float32)>
+
+  In this case, we are setting both the global and operation-level seed to
+  ensure this result is reproducible.  See `tf.random.set_seed` for more
+  information.
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    mean: A Tensor or Python value of type `dtype`, broadcastable with `stddev`.
+      The mean of the normal distribution.
+    stddev: A Tensor or Python value of type `dtype`, broadcastable with `mean`.
+      The standard deviation of the normal distribution.
+    dtype: The float type of the output: `float16`, `bfloat16`, `float32`,
+      `float64`. Defaults to `float32`.
+    seed: A Python integer. Used to create a random seed for the distribution.
+      See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tensor of the specified shape filled with random normal values.
+
+[Possible API Signatures]
+ - shape: list, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tuple, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tensor, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (mean and stddev tensors must match the explicit dtype)
+{v_2 : tensor, v_3 : tensor, v_4 : dtype} |= dtype_(v_2) = v_4 ∧ dtype_(v_3) = v_4
+Token usage: input=1770, output=7709, total=9479
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.normal API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs random values from a normal distribution.
+
+  Example that generates a new set of random values every time:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([4], 0, 1, tf.float32)
+  <tf.Tensor: shape=(4,), dtype=float32, numpy=..., dtype=float32)>
+
+  Example that outputs a reproducible result:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([2,2], 0, 1, tf.float32, seed=1)
+  <tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+  array([[-1.3768897 , -0.01258316],
+        [-0.169515   ,  1.0824056 ]], dtype=float32)>
+
+  In this case, we are setting both the global and operation-level seed to
+  ensure this result is reproducible.  See `tf.random.set_seed` for more
+  information.
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    mean: A Tensor or Python value of type `dtype`, broadcastable with `stddev`.
+      The mean of the normal distribution.
+    stddev: A Tensor or Python value of type `dtype`, broadcastable with `mean`.
+      The standard deviation of the normal distribution.
+    dtype: The float type of the output: `float16`, `bfloat16`, `float32`,
+      `float64`. Defaults to `float32`.
+    seed: A Python integer. Used to create a random seed for the distribution.
+      See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tensor of the specified shape filled with random normal values.
+
+[Possible API Signatures]
+ - shape: list, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tuple, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tensor, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (mean and stddev must be floating tensors when provided as tensors)
+{v_2 : tensor, v_3 : tensor} |= (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8) ∧ (6 ≤ dtype_(v_3) ∧ dtype_(v_3) ≤ 8)
+Token usage: input=1770, output=7709, total=9479
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.normal API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs random values from a normal distribution.
+
+  Example that generates a new set of random values every time:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([4], 0, 1, tf.float32)
+  <tf.Tensor: shape=(4,), dtype=float32, numpy=..., dtype=float32)>
+
+  Example that outputs a reproducible result:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([2,2], 0, 1, tf.float32, seed=1)
+  <tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+  array([[-1.3768897 , -0.01258316],
+        [-0.169515   ,  1.0824056 ]], dtype=float32)>
+
+  In this case, we are setting both the global and operation-level seed to
+  ensure this result is reproducible.  See `tf.random.set_seed` for more
+  information.
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    mean: A Tensor or Python value of type `dtype`, broadcastable with `stddev`.
+      The mean of the normal distribution.
+    stddev: A Tensor or Python value of type `dtype`, broadcastable with `mean`.
+      The standard deviation of the normal distribution.
+    dtype: The float type of the output: `float16`, `bfloat16`, `float32`,
+      `float64`. Defaults to `float32`.
+    seed: A Python integer. Used to create a random seed for the distribution.
+      See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tensor of the specified shape filled with random normal values.
+
+[Possible API Signatures]
+ - shape: list, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tuple, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tensor, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (mean and stddev shapes must be the same for elementwise use)
+{v_2 : tensor, v_3 : tensor} |= ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)
+Token usage: input=1770, output=7709, total=9479
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.normal API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs random values from a normal distribution.
+
+  Example that generates a new set of random values every time:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([4], 0, 1, tf.float32)
+  <tf.Tensor: shape=(4,), dtype=float32, numpy=..., dtype=float32)>
+
+  Example that outputs a reproducible result:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([2,2], 0, 1, tf.float32, seed=1)
+  <tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+  array([[-1.3768897 , -0.01258316],
+        [-0.169515   ,  1.0824056 ]], dtype=float32)>
+
+  In this case, we are setting both the global and operation-level seed to
+  ensure this result is reproducible.  See `tf.random.set_seed` for more
+  information.
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    mean: A Tensor or Python value of type `dtype`, broadcastable with `stddev`.
+      The mean of the normal distribution.
+    stddev: A Tensor or Python value of type `dtype`, broadcastable with `mean`.
+      The standard deviation of the normal distribution.
+    dtype: The float type of the output: `float16`, `bfloat16`, `float32`,
+      `float64`. Defaults to `float32`.
+    seed: A Python integer. Used to create a random seed for the distribution.
+      See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tensor of the specified shape filled with random normal values.
+
+[Possible API Signatures]
+ - shape: list, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tuple, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tensor, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 14 (scalar broadcasting: at least one of mean or stddev can be a scalar)
+{v_2 : tensor, v_3 : tensor} |= ndim(v_2) = 0 ∨ ndim(v_3) = 0
+Token usage: input=1770, output=7709, total=9479
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.normal API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs random values from a normal distribution.
+
+  Example that generates a new set of random values every time:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([4], 0, 1, tf.float32)
+  <tf.Tensor: shape=(4,), dtype=float32, numpy=..., dtype=float32)>
+
+  Example that outputs a reproducible result:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([2,2], 0, 1, tf.float32, seed=1)
+  <tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+  array([[-1.3768897 , -0.01258316],
+        [-0.169515   ,  1.0824056 ]], dtype=float32)>
+
+  In this case, we are setting both the global and operation-level seed to
+  ensure this result is reproducible.  See `tf.random.set_seed` for more
+  information.
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    mean: A Tensor or Python value of type `dtype`, broadcastable with `stddev`.
+      The mean of the normal distribution.
+    stddev: A Tensor or Python value of type `dtype`, broadcastable with `mean`.
+      The standard deviation of the normal distribution.
+    dtype: The float type of the output: `float16`, `bfloat16`, `float32`,
+      `float64`. Defaults to `float32`.
+    seed: A Python integer. Used to create a random seed for the distribution.
+      See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tensor of the specified shape filled with random normal values.
+
+[Possible API Signatures]
+ - shape: list, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tuple, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tensor, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 15 (shape as a tensor must be 1-D int32 or int64)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)
+Token usage: input=1770, output=7709, total=9479
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.normal API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs random values from a normal distribution.
+
+  Example that generates a new set of random values every time:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([4], 0, 1, tf.float32)
+  <tf.Tensor: shape=(4,), dtype=float32, numpy=..., dtype=float32)>
+
+  Example that outputs a reproducible result:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([2,2], 0, 1, tf.float32, seed=1)
+  <tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+  array([[-1.3768897 , -0.01258316],
+        [-0.169515   ,  1.0824056 ]], dtype=float32)>
+
+  In this case, we are setting both the global and operation-level seed to
+  ensure this result is reproducible.  See `tf.random.set_seed` for more
+  information.
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    mean: A Tensor or Python value of type `dtype`, broadcastable with `stddev`.
+      The mean of the normal distribution.
+    stddev: A Tensor or Python value of type `dtype`, broadcastable with `mean`.
+      The standard deviation of the normal distribution.
+    dtype: The float type of the output: `float16`, `bfloat16`, `float32`,
+      `float64`. Defaults to `float32`.
+    seed: A Python integer. Used to create a random seed for the distribution.
+      See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tensor of the specified shape filled with random normal values.
+
+[Possible API Signatures]
+ - shape: list, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tuple, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tensor, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 16 (shape as a tuple of ints must have non-negative dimensions)
+{v_1 : tuple(int)} |= v_1.len ≥ 0 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+Token usage: input=1770, output=7709, total=9479
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.normal API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs random values from a normal distribution.
+
+  Example that generates a new set of random values every time:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([4], 0, 1, tf.float32)
+  <tf.Tensor: shape=(4,), dtype=float32, numpy=..., dtype=float32)>
+
+  Example that outputs a reproducible result:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([2,2], 0, 1, tf.float32, seed=1)
+  <tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+  array([[-1.3768897 , -0.01258316],
+        [-0.169515   ,  1.0824056 ]], dtype=float32)>
+
+  In this case, we are setting both the global and operation-level seed to
+  ensure this result is reproducible.  See `tf.random.set_seed` for more
+  information.
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    mean: A Tensor or Python value of type `dtype`, broadcastable with `stddev`.
+      The mean of the normal distribution.
+    stddev: A Tensor or Python value of type `dtype`, broadcastable with `mean`.
+      The standard deviation of the normal distribution.
+    dtype: The float type of the output: `float16`, `bfloat16`, `float32`,
+      `float64`. Defaults to `float32`.
+    seed: A Python integer. Used to create a random seed for the distribution.
+      See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tensor of the specified shape filled with random normal values.
+
+[Possible API Signatures]
+ - shape: list, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tuple, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tensor, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 17 (seed must be a non-negative integer)
+{v_5 : int} |= v_5 ≥ 0
+Token usage: input=1770, output=7709, total=9479
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.normal API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs random values from a normal distribution.
+
+  Example that generates a new set of random values every time:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([4], 0, 1, tf.float32)
+  <tf.Tensor: shape=(4,), dtype=float32, numpy=..., dtype=float32)>
+
+  Example that outputs a reproducible result:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([2,2], 0, 1, tf.float32, seed=1)
+  <tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+  array([[-1.3768897 , -0.01258316],
+        [-0.169515   ,  1.0824056 ]], dtype=float32)>
+
+  In this case, we are setting both the global and operation-level seed to
+  ensure this result is reproducible.  See `tf.random.set_seed` for more
+  information.
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    mean: A Tensor or Python value of type `dtype`, broadcastable with `stddev`.
+      The mean of the normal distribution.
+    stddev: A Tensor or Python value of type `dtype`, broadcastable with `mean`.
+      The standard deviation of the normal distribution.
+    dtype: The float type of the output: `float16`, `bfloat16`, `float32`,
+      `float64`. Defaults to `float32`.
+    seed: A Python integer. Used to create a random seed for the distribution.
+      See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tensor of the specified shape filled with random normal values.
+
+[Possible API Signatures]
+ - shape: list, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tuple, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tensor, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 18 (shape as a list of ints is permitted by signature)
+{v_1 : list(int)} |= v_1 = v_1
+Token usage: input=1770, output=7709, total=9479
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.normal API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs random values from a normal distribution.
+
+  Example that generates a new set of random values every time:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([4], 0, 1, tf.float32)
+  <tf.Tensor: shape=(4,), dtype=float32, numpy=..., dtype=float32)>
+
+  Example that outputs a reproducible result:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([2,2], 0, 1, tf.float32, seed=1)
+  <tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+  array([[-1.3768897 , -0.01258316],
+        [-0.169515   ,  1.0824056 ]], dtype=float32)>
+
+  In this case, we are setting both the global and operation-level seed to
+  ensure this result is reproducible.  See `tf.random.set_seed` for more
+  information.
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    mean: A Tensor or Python value of type `dtype`, broadcastable with `stddev`.
+      The mean of the normal distribution.
+    stddev: A Tensor or Python value of type `dtype`, broadcastable with `mean`.
+      The standard deviation of the normal distribution.
+    dtype: The float type of the output: `float16`, `bfloat16`, `float32`,
+      `float64`. Defaults to `float32`.
+    seed: A Python integer. Used to create a random seed for the distribution.
+      See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tensor of the specified shape filled with random normal values.
+
+[Possible API Signatures]
+ - shape: list, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tuple, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tensor, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 19 (name, when provided, is a string)
+{v_6 : str} |= v_6 = v_6
+Token usage: input=1770, output=7709, total=9479
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.normal API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs random values from a normal distribution.
+
+  Example that generates a new set of random values every time:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([4], 0, 1, tf.float32)
+  <tf.Tensor: shape=(4,), dtype=float32, numpy=..., dtype=float32)>
+
+  Example that outputs a reproducible result:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([2,2], 0, 1, tf.float32, seed=1)
+  <tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+  array([[-1.3768897 , -0.01258316],
+        [-0.169515   ,  1.0824056 ]], dtype=float32)>
+
+  In this case, we are setting both the global and operation-level seed to
+  ensure this result is reproducible.  See `tf.random.set_seed` for more
+  information.
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    mean: A Tensor or Python value of type `dtype`, broadcastable with `stddev`.
+      The mean of the normal distribution.
+    stddev: A Tensor or Python value of type `dtype`, broadcastable with `mean`.
+      The standard deviation of the normal distribution.
+    dtype: The float type of the output: `float16`, `bfloat16`, `float32`,
+      `float64`. Defaults to `float32`.
+    seed: A Python integer. Used to create a random seed for the distribution.
+      See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tensor of the specified shape filled with random normal values.
+
+[Possible API Signatures]
+ - shape: list, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tuple, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tensor, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 20 (conditional broadcast rule: if mean is scalar, stddev can be any shape; otherwise shapes must match)
+{v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 0 then true else (ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i))
+Token usage: input=1770, output=7709, total=9479
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.normal API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs random values from a normal distribution.
+
+  Example that generates a new set of random values every time:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([4], 0, 1, tf.float32)
+  <tf.Tensor: shape=(4,), dtype=float32, numpy=..., dtype=float32)>
+
+  Example that outputs a reproducible result:
+
+  >>> tf.random.set_seed(5);
+  >>> tf.random.normal([2,2], 0, 1, tf.float32, seed=1)
+  <tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+  array([[-1.3768897 , -0.01258316],
+        [-0.169515   ,  1.0824056 ]], dtype=float32)>
+
+  In this case, we are setting both the global and operation-level seed to
+  ensure this result is reproducible.  See `tf.random.set_seed` for more
+  information.
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    mean: A Tensor or Python value of type `dtype`, broadcastable with `stddev`.
+      The mean of the normal distribution.
+    stddev: A Tensor or Python value of type `dtype`, broadcastable with `mean`.
+      The standard deviation of the normal distribution.
+    dtype: The float type of the output: `float16`, `bfloat16`, `float32`,
+      `float64`. Defaults to `float32`.
+    seed: A Python integer. Used to create a random seed for the distribution.
+      See
+      `tf.random.set_seed`
+      for behavior.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tensor of the specified shape filled with random normal values.
+
+[Possible API Signatures]
+ - shape: list, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tuple, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+ - shape: tensor, mean: tensor, stddev: tensor, dtype: dtype, seed: integer, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 21 (shape can be provided as a list or tuple of ints)
+{v_1 : list(int) ⊎ tuple(int)} |= v_1 = v_1
+Token usage: input=1770, output=7709, total=9479
+** SUCCESS **
+

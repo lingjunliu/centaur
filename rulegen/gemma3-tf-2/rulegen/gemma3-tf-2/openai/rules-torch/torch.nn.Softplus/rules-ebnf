@@ -1,0 +1,24 @@
+>>
+Rule 1 (input tensor must use a floating-point dtype)
+{v_3 : tensor} |= dtype_(v_3) = 6 ∨ dtype_(v_3) = 7 ∨ dtype_(v_3) = 8
+>>
+Rule 2 (suppress "not implemented for 'Char'" by disallowing int8 input)
+{v_3 : tensor} |= dtype_(v_3) ≠ 1
+>>
+Rule 3 (beta must be strictly positive to avoid division by zero)
+{v_1 : float} |= v_1 > 0
+>>
+Rule 4 (threshold should be non-negative)
+{v_2 : float} |= v_2 ≥ 0
+>>
+Rule 5 (input tensor has valid non-negative extents along all dimensions)
+{v_3 : tensor} |= if ndim(v_3) = 0 then true else ∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) ≥ 0
+>>
+Rule 10 (threshold should be at least as large as beta)
+{v_1 : float, v_2 : float} |= v_2 ≥ v_1
+>>
+Rule 11 (input tensor sizes are either empty in some dim or strictly positive; scalars always valid)
+{v_3 : tensor} |= if ndim(v_3) = 0 then true else ( (∃i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) = 0) ∨ (∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) > 0) )
+>>
+Rule 12 (numerical stability guard: cap the effective range of beta*input relative to threshold)
+{v_1 : float, v_2 : float, v_3 : tensor} |= v_1 * max(v_3) ≤ v_2 + 50 ∧ v_1 * min(v_3) ≥ -100

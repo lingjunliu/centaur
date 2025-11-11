@@ -1,0 +1,42 @@
+>>
+Rule 1 (input tensor must have rank at least 2 and all positive dimensions; prevents "Shape (...) must have rank at least 2" and negative/zero dims)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 2 (fft_length as tensor must be a 1-D tensor of length 2; prevents "fft_length must have shape [2]" and index errors)
+{v_2 : tensor} |= ndim(v_2) = 1 ∧ shape(v_2, 0) = 2
+>>
+Rule 3 (fft_length elements must be positive when provided as tensor; prevents negative dimension errors)
+{v_2 : tensor} |= min(v_2) ≥ 1
+>>
+Rule 4 (fft_length provided as a Python tuple must have exactly two positive integers; prevents index errors and negative dimensions)
+{v_2 : tuple(int)} |= v_2.len = 2 ∧ v_2[0] ≥ 1 ∧ v_2[1] ≥ 1
+>>
+Rule 5 (last two dimensions of input must not exceed fft_length when fft_length is a tuple; reduces shape mismatch/cropping issues)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) ≥ 2 ∧ v_2.len = 2 ∧ shape(v_1, ndim(v_1) - 2) ≤ v_2[0] ∧ shape(v_1, ndim(v_1) - 1) ≤ v_2[1] + 1
+>>
+Rule 6 (restrict name to a scalar string to avoid ambiguous truth-value errors)
+{v_3 : str} |= v_3 = "none"
+>>
+Rule 7 (use exactly 2-D input to avoid broadcasting/incompatible shape operations with fft_length of length 2; prevents "Incompatible shapes: [...] vs. [2]")
+{v_1 : tensor} |= ndim(v_1) = 2
+>>
+Rule 8 (fft_length (v_2) must be a list of exactly 2 positive integers to avoid shape [2] errors and index out of range)
+{v_2 : list(int)} |= v_2.len = 2 ∧ ∀i ∈ [0, 1] : v_2[i] ≥ 1
+>>
+Rule 9 (input_tensor (v_1) must have rank at least 2)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
+>>
+Rule 10 (the last two dimensions of input_tensor (v_1) must be positive)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 2) ≥ 1 ∧ shape(v_1, ndim(v_1) - 1) ≥ 1
+>>
+Rule 11 (when fft_length (v_2) is provided with length 2, restrict input_tensor (v_1) to rank 2 to avoid incompatible shape subtraction)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len = 2 then ndim(v_1) = 2
+>>
+Rule 12 (fft_length (v_2) values must be within int32 non-negative range to avoid negative/overflow dimensions)
+{v_2 : list(int)} |= v_2.len = 2 ∧ v_2[0] ≥ 1 ∧ v_2[1] ≥ 1 ∧ v_2[0] ≤ 2147483647 ∧ v_2[1] ≤ 2147483647
+>>
+Rule 13 (name (v_3) must be a plain string to avoid ambiguous truth-value errors)
+{v_3 : str} |= v_3 = "none" ∨ v_3 = "linear" ∨ v_3 = "valid"
+>>
+Rule 14 (inner-most dimension of input_tensor (v_1) must match the unique-components convention when fft_length (v_2) is provided)
+{v_1 : tensor, v_2 : list(int)} |= v_2.len = 2 ∧ ndim(v_1) ≥ 2 ∧ v_2[1] = 2 * (shape(v_1, ndim(v_1) - 1) - 1)

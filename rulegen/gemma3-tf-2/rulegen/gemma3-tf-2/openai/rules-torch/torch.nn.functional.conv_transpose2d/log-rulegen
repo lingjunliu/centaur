@@ -1,0 +1,2934 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.functional.conv_transpose2d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+conv_transpose2d(input, weight, bias=None, stride=1, padding=0, output_padding=0, groups=1, dilation=1) -> Tensor
+
+Applies a 2D transposed convolution operator over an input image
+composed of several input planes, sometimes also called "deconvolution".
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+See :class:`~torch.nn.ConvTranspose2d` for details and output shape.
+
+Note:
+    In some circumstances when given tensors on a CUDA device and using CuDNN, this operator may select a nondeterministic algorithm to increase performance. If this is undesirable, you can try to make the operation deterministic (potentially at a performance cost) by setting ``torch.backends.cudnn.deterministic = True``. See :doc:`/notes/randomness` for more information.
+
+
+Args:
+    input: input tensor of shape :math:`(\text{minibatch} , \text{in\_channels} , iH , iW)`
+    weight: filters of shape :math:`(\text{in\_channels} , \frac{\text{out\_channels}}{\text{groups}} , kH , kW)`
+    bias: optional bias of shape :math:`(\text{out\_channels})`. Default: None
+    stride: the stride of the convolving kernel. Can be a single number or a
+      tuple ``(sH, sW)``. Default: 1
+    padding: ``dilation * (kernel_size - 1) - padding`` zero-padding will be added to both
+      sides of each dimension in the input. Can be a single number or a tuple
+      ``(padH, padW)``. Default: 0
+    output_padding: additional size added to one side of each dimension in the
+      output shape. Can be a single number or a tuple ``(out_padH, out_padW)``.
+      Default: 0
+    groups: split input into groups, :math:`\text{in\_channels}` should be divisible by the
+      number of groups. Default: 1
+    dilation: the spacing between kernel elements. Can be a single number or
+      a tuple ``(dH, dW)``. Default: 1
+
+Examples::
+
+    >>> # With square kernels and equal stride
+    >>> inputs = torch.randn(1, 4, 5, 5)
+    >>> weights = torch.randn(4, 8, 3, 3)
+    >>> F.conv_transpose2d(inputs, weights, padding=1)
+
+[Possible API Signatures]
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+
+[Error Messages]
+RuntimeError: Expected 3D (unbatched) or 4D (batched) input to conv_transpose2d, but got input of size: [0]
+RuntimeError: weight should have at least three dimensions
+RuntimeError: Given transposed=1, weight of size [1, 1, 3, 3], expected bias to be 1-dimensional with 1 elements, but got bias of size [0] instead
+RuntimeError: Input type (torch.HalfTensor) and weight type (torch.FloatTensor) should be the same or input should be a MKLDNN tensor and weight is a dense tensor
+RuntimeError: "slow_conv_transpose2d_out_cpu" not implemented for 'Char'
+RuntimeError: expected scalar type Float but found Short
+RuntimeError: non-positive stride is not supported
+RuntimeError: dilation should be greater than zero
+RuntimeError: dilation should be greater than zero, but got dilation_height: 0, dilation_width: 0
+RuntimeError: could not create a primitive descriptor for a deconvolution forward propagation primitive
+RuntimeError: /pytorch/build/aten/src/ATen/RegisterCompositeExplicitAutograd.cpp:1785: SymIntArrayRef expected to contain only concrete integers
+RuntimeError: expected dilation to be a single integer value or a list of 1 values to match the convolution dimensions, but got dilation=[-3, 64, -6, -95, -85, 97]
+RuntimeError: Given groups=20, expected weight to be divisible by 20 at dimension 0, but got weight of size [[73, 4, 75, 4]] instead
+RuntimeError: Input type (CPUComplexDoubleType) and bias type (CPUComplexFloatType) should be the same
+RuntimeError: negative output_padding is not supported
+RuntimeError: non-positive groups is not supported
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (input must be 3D or 4D)
+{v_1 : tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4
+Token usage: input=3136, output=12865, total=16001
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.functional.conv_transpose2d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+conv_transpose2d(input, weight, bias=None, stride=1, padding=0, output_padding=0, groups=1, dilation=1) -> Tensor
+
+Applies a 2D transposed convolution operator over an input image
+composed of several input planes, sometimes also called "deconvolution".
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+See :class:`~torch.nn.ConvTranspose2d` for details and output shape.
+
+Note:
+    In some circumstances when given tensors on a CUDA device and using CuDNN, this operator may select a nondeterministic algorithm to increase performance. If this is undesirable, you can try to make the operation deterministic (potentially at a performance cost) by setting ``torch.backends.cudnn.deterministic = True``. See :doc:`/notes/randomness` for more information.
+
+
+Args:
+    input: input tensor of shape :math:`(\text{minibatch} , \text{in\_channels} , iH , iW)`
+    weight: filters of shape :math:`(\text{in\_channels} , \frac{\text{out\_channels}}{\text{groups}} , kH , kW)`
+    bias: optional bias of shape :math:`(\text{out\_channels})`. Default: None
+    stride: the stride of the convolving kernel. Can be a single number or a
+      tuple ``(sH, sW)``. Default: 1
+    padding: ``dilation * (kernel_size - 1) - padding`` zero-padding will be added to both
+      sides of each dimension in the input. Can be a single number or a tuple
+      ``(padH, padW)``. Default: 0
+    output_padding: additional size added to one side of each dimension in the
+      output shape. Can be a single number or a tuple ``(out_padH, out_padW)``.
+      Default: 0
+    groups: split input into groups, :math:`\text{in\_channels}` should be divisible by the
+      number of groups. Default: 1
+    dilation: the spacing between kernel elements. Can be a single number or
+      a tuple ``(dH, dW)``. Default: 1
+
+Examples::
+
+    >>> # With square kernels and equal stride
+    >>> inputs = torch.randn(1, 4, 5, 5)
+    >>> weights = torch.randn(4, 8, 3, 3)
+    >>> F.conv_transpose2d(inputs, weights, padding=1)
+
+[Possible API Signatures]
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+
+[Error Messages]
+RuntimeError: Expected 3D (unbatched) or 4D (batched) input to conv_transpose2d, but got input of size: [0]
+RuntimeError: weight should have at least three dimensions
+RuntimeError: Given transposed=1, weight of size [1, 1, 3, 3], expected bias to be 1-dimensional with 1 elements, but got bias of size [0] instead
+RuntimeError: Input type (torch.HalfTensor) and weight type (torch.FloatTensor) should be the same or input should be a MKLDNN tensor and weight is a dense tensor
+RuntimeError: "slow_conv_transpose2d_out_cpu" not implemented for 'Char'
+RuntimeError: expected scalar type Float but found Short
+RuntimeError: non-positive stride is not supported
+RuntimeError: dilation should be greater than zero
+RuntimeError: dilation should be greater than zero, but got dilation_height: 0, dilation_width: 0
+RuntimeError: could not create a primitive descriptor for a deconvolution forward propagation primitive
+RuntimeError: /pytorch/build/aten/src/ATen/RegisterCompositeExplicitAutograd.cpp:1785: SymIntArrayRef expected to contain only concrete integers
+RuntimeError: expected dilation to be a single integer value or a list of 1 values to match the convolution dimensions, but got dilation=[-3, 64, -6, -95, -85, 97]
+RuntimeError: Given groups=20, expected weight to be divisible by 20 at dimension 0, but got weight of size [[73, 4, 75, 4]] instead
+RuntimeError: Input type (CPUComplexDoubleType) and bias type (CPUComplexFloatType) should be the same
+RuntimeError: negative output_padding is not supported
+RuntimeError: non-positive groups is not supported
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (weight must be 4D with valid kernel sizes)
+{v_2 : tensor} |= ndim(v_2) = 4 ∧ shape(v_2, 0) > 0 ∧ shape(v_2, 1) > 0 ∧ shape(v_2, 2) > 0 ∧ shape(v_2, 3) > 0
+Token usage: input=3136, output=12865, total=16001
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.functional.conv_transpose2d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+conv_transpose2d(input, weight, bias=None, stride=1, padding=0, output_padding=0, groups=1, dilation=1) -> Tensor
+
+Applies a 2D transposed convolution operator over an input image
+composed of several input planes, sometimes also called "deconvolution".
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+See :class:`~torch.nn.ConvTranspose2d` for details and output shape.
+
+Note:
+    In some circumstances when given tensors on a CUDA device and using CuDNN, this operator may select a nondeterministic algorithm to increase performance. If this is undesirable, you can try to make the operation deterministic (potentially at a performance cost) by setting ``torch.backends.cudnn.deterministic = True``. See :doc:`/notes/randomness` for more information.
+
+
+Args:
+    input: input tensor of shape :math:`(\text{minibatch} , \text{in\_channels} , iH , iW)`
+    weight: filters of shape :math:`(\text{in\_channels} , \frac{\text{out\_channels}}{\text{groups}} , kH , kW)`
+    bias: optional bias of shape :math:`(\text{out\_channels})`. Default: None
+    stride: the stride of the convolving kernel. Can be a single number or a
+      tuple ``(sH, sW)``. Default: 1
+    padding: ``dilation * (kernel_size - 1) - padding`` zero-padding will be added to both
+      sides of each dimension in the input. Can be a single number or a tuple
+      ``(padH, padW)``. Default: 0
+    output_padding: additional size added to one side of each dimension in the
+      output shape. Can be a single number or a tuple ``(out_padH, out_padW)``.
+      Default: 0
+    groups: split input into groups, :math:`\text{in\_channels}` should be divisible by the
+      number of groups. Default: 1
+    dilation: the spacing between kernel elements. Can be a single number or
+      a tuple ``(dH, dW)``. Default: 1
+
+Examples::
+
+    >>> # With square kernels and equal stride
+    >>> inputs = torch.randn(1, 4, 5, 5)
+    >>> weights = torch.randn(4, 8, 3, 3)
+    >>> F.conv_transpose2d(inputs, weights, padding=1)
+
+[Possible API Signatures]
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+
+[Error Messages]
+RuntimeError: Expected 3D (unbatched) or 4D (batched) input to conv_transpose2d, but got input of size: [0]
+RuntimeError: weight should have at least three dimensions
+RuntimeError: Given transposed=1, weight of size [1, 1, 3, 3], expected bias to be 1-dimensional with 1 elements, but got bias of size [0] instead
+RuntimeError: Input type (torch.HalfTensor) and weight type (torch.FloatTensor) should be the same or input should be a MKLDNN tensor and weight is a dense tensor
+RuntimeError: "slow_conv_transpose2d_out_cpu" not implemented for 'Char'
+RuntimeError: expected scalar type Float but found Short
+RuntimeError: non-positive stride is not supported
+RuntimeError: dilation should be greater than zero
+RuntimeError: dilation should be greater than zero, but got dilation_height: 0, dilation_width: 0
+RuntimeError: could not create a primitive descriptor for a deconvolution forward propagation primitive
+RuntimeError: /pytorch/build/aten/src/ATen/RegisterCompositeExplicitAutograd.cpp:1785: SymIntArrayRef expected to contain only concrete integers
+RuntimeError: expected dilation to be a single integer value or a list of 1 values to match the convolution dimensions, but got dilation=[-3, 64, -6, -95, -85, 97]
+RuntimeError: Given groups=20, expected weight to be divisible by 20 at dimension 0, but got weight of size [[73, 4, 75, 4]] instead
+RuntimeError: Input type (CPUComplexDoubleType) and bias type (CPUComplexFloatType) should be the same
+RuntimeError: negative output_padding is not supported
+RuntimeError: non-positive groups is not supported
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (bias is 1D and matches out_channels)
+{v_2 : tensor, v_3 : tensor, v_7 : int} |= ndim(v_2) = 4 ∧ v_7 ≥ 1 ∧ ndim(v_3) = 1 ∧ shape(v_3, 0) = shape(v_2, 1) * v_7
+Token usage: input=3136, output=12865, total=16001
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.functional.conv_transpose2d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+conv_transpose2d(input, weight, bias=None, stride=1, padding=0, output_padding=0, groups=1, dilation=1) -> Tensor
+
+Applies a 2D transposed convolution operator over an input image
+composed of several input planes, sometimes also called "deconvolution".
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+See :class:`~torch.nn.ConvTranspose2d` for details and output shape.
+
+Note:
+    In some circumstances when given tensors on a CUDA device and using CuDNN, this operator may select a nondeterministic algorithm to increase performance. If this is undesirable, you can try to make the operation deterministic (potentially at a performance cost) by setting ``torch.backends.cudnn.deterministic = True``. See :doc:`/notes/randomness` for more information.
+
+
+Args:
+    input: input tensor of shape :math:`(\text{minibatch} , \text{in\_channels} , iH , iW)`
+    weight: filters of shape :math:`(\text{in\_channels} , \frac{\text{out\_channels}}{\text{groups}} , kH , kW)`
+    bias: optional bias of shape :math:`(\text{out\_channels})`. Default: None
+    stride: the stride of the convolving kernel. Can be a single number or a
+      tuple ``(sH, sW)``. Default: 1
+    padding: ``dilation * (kernel_size - 1) - padding`` zero-padding will be added to both
+      sides of each dimension in the input. Can be a single number or a tuple
+      ``(padH, padW)``. Default: 0
+    output_padding: additional size added to one side of each dimension in the
+      output shape. Can be a single number or a tuple ``(out_padH, out_padW)``.
+      Default: 0
+    groups: split input into groups, :math:`\text{in\_channels}` should be divisible by the
+      number of groups. Default: 1
+    dilation: the spacing between kernel elements. Can be a single number or
+      a tuple ``(dH, dW)``. Default: 1
+
+Examples::
+
+    >>> # With square kernels and equal stride
+    >>> inputs = torch.randn(1, 4, 5, 5)
+    >>> weights = torch.randn(4, 8, 3, 3)
+    >>> F.conv_transpose2d(inputs, weights, padding=1)
+
+[Possible API Signatures]
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+
+[Error Messages]
+RuntimeError: Expected 3D (unbatched) or 4D (batched) input to conv_transpose2d, but got input of size: [0]
+RuntimeError: weight should have at least three dimensions
+RuntimeError: Given transposed=1, weight of size [1, 1, 3, 3], expected bias to be 1-dimensional with 1 elements, but got bias of size [0] instead
+RuntimeError: Input type (torch.HalfTensor) and weight type (torch.FloatTensor) should be the same or input should be a MKLDNN tensor and weight is a dense tensor
+RuntimeError: "slow_conv_transpose2d_out_cpu" not implemented for 'Char'
+RuntimeError: expected scalar type Float but found Short
+RuntimeError: non-positive stride is not supported
+RuntimeError: dilation should be greater than zero
+RuntimeError: dilation should be greater than zero, but got dilation_height: 0, dilation_width: 0
+RuntimeError: could not create a primitive descriptor for a deconvolution forward propagation primitive
+RuntimeError: /pytorch/build/aten/src/ATen/RegisterCompositeExplicitAutograd.cpp:1785: SymIntArrayRef expected to contain only concrete integers
+RuntimeError: expected dilation to be a single integer value or a list of 1 values to match the convolution dimensions, but got dilation=[-3, 64, -6, -95, -85, 97]
+RuntimeError: Given groups=20, expected weight to be divisible by 20 at dimension 0, but got weight of size [[73, 4, 75, 4]] instead
+RuntimeError: Input type (CPUComplexDoubleType) and bias type (CPUComplexFloatType) should be the same
+RuntimeError: negative output_padding is not supported
+RuntimeError: non-positive groups is not supported
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (dtype consistency among input, weight, and bias)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3)
+Token usage: input=3136, output=12865, total=16001
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.functional.conv_transpose2d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+conv_transpose2d(input, weight, bias=None, stride=1, padding=0, output_padding=0, groups=1, dilation=1) -> Tensor
+
+Applies a 2D transposed convolution operator over an input image
+composed of several input planes, sometimes also called "deconvolution".
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+See :class:`~torch.nn.ConvTranspose2d` for details and output shape.
+
+Note:
+    In some circumstances when given tensors on a CUDA device and using CuDNN, this operator may select a nondeterministic algorithm to increase performance. If this is undesirable, you can try to make the operation deterministic (potentially at a performance cost) by setting ``torch.backends.cudnn.deterministic = True``. See :doc:`/notes/randomness` for more information.
+
+
+Args:
+    input: input tensor of shape :math:`(\text{minibatch} , \text{in\_channels} , iH , iW)`
+    weight: filters of shape :math:`(\text{in\_channels} , \frac{\text{out\_channels}}{\text{groups}} , kH , kW)`
+    bias: optional bias of shape :math:`(\text{out\_channels})`. Default: None
+    stride: the stride of the convolving kernel. Can be a single number or a
+      tuple ``(sH, sW)``. Default: 1
+    padding: ``dilation * (kernel_size - 1) - padding`` zero-padding will be added to both
+      sides of each dimension in the input. Can be a single number or a tuple
+      ``(padH, padW)``. Default: 0
+    output_padding: additional size added to one side of each dimension in the
+      output shape. Can be a single number or a tuple ``(out_padH, out_padW)``.
+      Default: 0
+    groups: split input into groups, :math:`\text{in\_channels}` should be divisible by the
+      number of groups. Default: 1
+    dilation: the spacing between kernel elements. Can be a single number or
+      a tuple ``(dH, dW)``. Default: 1
+
+Examples::
+
+    >>> # With square kernels and equal stride
+    >>> inputs = torch.randn(1, 4, 5, 5)
+    >>> weights = torch.randn(4, 8, 3, 3)
+    >>> F.conv_transpose2d(inputs, weights, padding=1)
+
+[Possible API Signatures]
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+
+[Error Messages]
+RuntimeError: Expected 3D (unbatched) or 4D (batched) input to conv_transpose2d, but got input of size: [0]
+RuntimeError: weight should have at least three dimensions
+RuntimeError: Given transposed=1, weight of size [1, 1, 3, 3], expected bias to be 1-dimensional with 1 elements, but got bias of size [0] instead
+RuntimeError: Input type (torch.HalfTensor) and weight type (torch.FloatTensor) should be the same or input should be a MKLDNN tensor and weight is a dense tensor
+RuntimeError: "slow_conv_transpose2d_out_cpu" not implemented for 'Char'
+RuntimeError: expected scalar type Float but found Short
+RuntimeError: non-positive stride is not supported
+RuntimeError: dilation should be greater than zero
+RuntimeError: dilation should be greater than zero, but got dilation_height: 0, dilation_width: 0
+RuntimeError: could not create a primitive descriptor for a deconvolution forward propagation primitive
+RuntimeError: /pytorch/build/aten/src/ATen/RegisterCompositeExplicitAutograd.cpp:1785: SymIntArrayRef expected to contain only concrete integers
+RuntimeError: expected dilation to be a single integer value or a list of 1 values to match the convolution dimensions, but got dilation=[-3, 64, -6, -95, -85, 97]
+RuntimeError: Given groups=20, expected weight to be divisible by 20 at dimension 0, but got weight of size [[73, 4, 75, 4]] instead
+RuntimeError: Input type (CPUComplexDoubleType) and bias type (CPUComplexFloatType) should be the same
+RuntimeError: negative output_padding is not supported
+RuntimeError: non-positive groups is not supported
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (only floating/complex element types; avoid Char/Short)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ dtype_(v_1) = dtype_(v_2)
+Token usage: input=3136, output=12865, total=16001
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.functional.conv_transpose2d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+conv_transpose2d(input, weight, bias=None, stride=1, padding=0, output_padding=0, groups=1, dilation=1) -> Tensor
+
+Applies a 2D transposed convolution operator over an input image
+composed of several input planes, sometimes also called "deconvolution".
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+See :class:`~torch.nn.ConvTranspose2d` for details and output shape.
+
+Note:
+    In some circumstances when given tensors on a CUDA device and using CuDNN, this operator may select a nondeterministic algorithm to increase performance. If this is undesirable, you can try to make the operation deterministic (potentially at a performance cost) by setting ``torch.backends.cudnn.deterministic = True``. See :doc:`/notes/randomness` for more information.
+
+
+Args:
+    input: input tensor of shape :math:`(\text{minibatch} , \text{in\_channels} , iH , iW)`
+    weight: filters of shape :math:`(\text{in\_channels} , \frac{\text{out\_channels}}{\text{groups}} , kH , kW)`
+    bias: optional bias of shape :math:`(\text{out\_channels})`. Default: None
+    stride: the stride of the convolving kernel. Can be a single number or a
+      tuple ``(sH, sW)``. Default: 1
+    padding: ``dilation * (kernel_size - 1) - padding`` zero-padding will be added to both
+      sides of each dimension in the input. Can be a single number or a tuple
+      ``(padH, padW)``. Default: 0
+    output_padding: additional size added to one side of each dimension in the
+      output shape. Can be a single number or a tuple ``(out_padH, out_padW)``.
+      Default: 0
+    groups: split input into groups, :math:`\text{in\_channels}` should be divisible by the
+      number of groups. Default: 1
+    dilation: the spacing between kernel elements. Can be a single number or
+      a tuple ``(dH, dW)``. Default: 1
+
+Examples::
+
+    >>> # With square kernels and equal stride
+    >>> inputs = torch.randn(1, 4, 5, 5)
+    >>> weights = torch.randn(4, 8, 3, 3)
+    >>> F.conv_transpose2d(inputs, weights, padding=1)
+
+[Possible API Signatures]
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+
+[Error Messages]
+RuntimeError: Expected 3D (unbatched) or 4D (batched) input to conv_transpose2d, but got input of size: [0]
+RuntimeError: weight should have at least three dimensions
+RuntimeError: Given transposed=1, weight of size [1, 1, 3, 3], expected bias to be 1-dimensional with 1 elements, but got bias of size [0] instead
+RuntimeError: Input type (torch.HalfTensor) and weight type (torch.FloatTensor) should be the same or input should be a MKLDNN tensor and weight is a dense tensor
+RuntimeError: "slow_conv_transpose2d_out_cpu" not implemented for 'Char'
+RuntimeError: expected scalar type Float but found Short
+RuntimeError: non-positive stride is not supported
+RuntimeError: dilation should be greater than zero
+RuntimeError: dilation should be greater than zero, but got dilation_height: 0, dilation_width: 0
+RuntimeError: could not create a primitive descriptor for a deconvolution forward propagation primitive
+RuntimeError: /pytorch/build/aten/src/ATen/RegisterCompositeExplicitAutograd.cpp:1785: SymIntArrayRef expected to contain only concrete integers
+RuntimeError: expected dilation to be a single integer value or a list of 1 values to match the convolution dimensions, but got dilation=[-3, 64, -6, -95, -85, 97]
+RuntimeError: Given groups=20, expected weight to be divisible by 20 at dimension 0, but got weight of size [[73, 4, 75, 4]] instead
+RuntimeError: Input type (CPUComplexDoubleType) and bias type (CPUComplexFloatType) should be the same
+RuntimeError: negative output_padding is not supported
+RuntimeError: non-positive groups is not supported
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (groups positive, divide in_channels, and input channels match weight)
+{v_1 : tensor, v_2 : tensor, v_7 : int} |= ndim(v_1) ≥ 3 ∧ ndim(v_2) = 4 ∧ v_7 ≥ 1 ∧ shape(v_1, 1) = shape(v_2, 0) ∧ shape(v_2, 0) % v_7 = 0
+Token usage: input=3136, output=12865, total=16001
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.functional.conv_transpose2d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+conv_transpose2d(input, weight, bias=None, stride=1, padding=0, output_padding=0, groups=1, dilation=1) -> Tensor
+
+Applies a 2D transposed convolution operator over an input image
+composed of several input planes, sometimes also called "deconvolution".
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+See :class:`~torch.nn.ConvTranspose2d` for details and output shape.
+
+Note:
+    In some circumstances when given tensors on a CUDA device and using CuDNN, this operator may select a nondeterministic algorithm to increase performance. If this is undesirable, you can try to make the operation deterministic (potentially at a performance cost) by setting ``torch.backends.cudnn.deterministic = True``. See :doc:`/notes/randomness` for more information.
+
+
+Args:
+    input: input tensor of shape :math:`(\text{minibatch} , \text{in\_channels} , iH , iW)`
+    weight: filters of shape :math:`(\text{in\_channels} , \frac{\text{out\_channels}}{\text{groups}} , kH , kW)`
+    bias: optional bias of shape :math:`(\text{out\_channels})`. Default: None
+    stride: the stride of the convolving kernel. Can be a single number or a
+      tuple ``(sH, sW)``. Default: 1
+    padding: ``dilation * (kernel_size - 1) - padding`` zero-padding will be added to both
+      sides of each dimension in the input. Can be a single number or a tuple
+      ``(padH, padW)``. Default: 0
+    output_padding: additional size added to one side of each dimension in the
+      output shape. Can be a single number or a tuple ``(out_padH, out_padW)``.
+      Default: 0
+    groups: split input into groups, :math:`\text{in\_channels}` should be divisible by the
+      number of groups. Default: 1
+    dilation: the spacing between kernel elements. Can be a single number or
+      a tuple ``(dH, dW)``. Default: 1
+
+Examples::
+
+    >>> # With square kernels and equal stride
+    >>> inputs = torch.randn(1, 4, 5, 5)
+    >>> weights = torch.randn(4, 8, 3, 3)
+    >>> F.conv_transpose2d(inputs, weights, padding=1)
+
+[Possible API Signatures]
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+
+[Error Messages]
+RuntimeError: Expected 3D (unbatched) or 4D (batched) input to conv_transpose2d, but got input of size: [0]
+RuntimeError: weight should have at least three dimensions
+RuntimeError: Given transposed=1, weight of size [1, 1, 3, 3], expected bias to be 1-dimensional with 1 elements, but got bias of size [0] instead
+RuntimeError: Input type (torch.HalfTensor) and weight type (torch.FloatTensor) should be the same or input should be a MKLDNN tensor and weight is a dense tensor
+RuntimeError: "slow_conv_transpose2d_out_cpu" not implemented for 'Char'
+RuntimeError: expected scalar type Float but found Short
+RuntimeError: non-positive stride is not supported
+RuntimeError: dilation should be greater than zero
+RuntimeError: dilation should be greater than zero, but got dilation_height: 0, dilation_width: 0
+RuntimeError: could not create a primitive descriptor for a deconvolution forward propagation primitive
+RuntimeError: /pytorch/build/aten/src/ATen/RegisterCompositeExplicitAutograd.cpp:1785: SymIntArrayRef expected to contain only concrete integers
+RuntimeError: expected dilation to be a single integer value or a list of 1 values to match the convolution dimensions, but got dilation=[-3, 64, -6, -95, -85, 97]
+RuntimeError: Given groups=20, expected weight to be divisible by 20 at dimension 0, but got weight of size [[73, 4, 75, 4]] instead
+RuntimeError: Input type (CPUComplexDoubleType) and bias type (CPUComplexFloatType) should be the same
+RuntimeError: negative output_padding is not supported
+RuntimeError: non-positive groups is not supported
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (non-negative padding as integer)
+{v_5 : int} |= v_5 ≥ 0
+Token usage: input=3136, output=12865, total=16001
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.functional.conv_transpose2d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+conv_transpose2d(input, weight, bias=None, stride=1, padding=0, output_padding=0, groups=1, dilation=1) -> Tensor
+
+Applies a 2D transposed convolution operator over an input image
+composed of several input planes, sometimes also called "deconvolution".
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+See :class:`~torch.nn.ConvTranspose2d` for details and output shape.
+
+Note:
+    In some circumstances when given tensors on a CUDA device and using CuDNN, this operator may select a nondeterministic algorithm to increase performance. If this is undesirable, you can try to make the operation deterministic (potentially at a performance cost) by setting ``torch.backends.cudnn.deterministic = True``. See :doc:`/notes/randomness` for more information.
+
+
+Args:
+    input: input tensor of shape :math:`(\text{minibatch} , \text{in\_channels} , iH , iW)`
+    weight: filters of shape :math:`(\text{in\_channels} , \frac{\text{out\_channels}}{\text{groups}} , kH , kW)`
+    bias: optional bias of shape :math:`(\text{out\_channels})`. Default: None
+    stride: the stride of the convolving kernel. Can be a single number or a
+      tuple ``(sH, sW)``. Default: 1
+    padding: ``dilation * (kernel_size - 1) - padding`` zero-padding will be added to both
+      sides of each dimension in the input. Can be a single number or a tuple
+      ``(padH, padW)``. Default: 0
+    output_padding: additional size added to one side of each dimension in the
+      output shape. Can be a single number or a tuple ``(out_padH, out_padW)``.
+      Default: 0
+    groups: split input into groups, :math:`\text{in\_channels}` should be divisible by the
+      number of groups. Default: 1
+    dilation: the spacing between kernel elements. Can be a single number or
+      a tuple ``(dH, dW)``. Default: 1
+
+Examples::
+
+    >>> # With square kernels and equal stride
+    >>> inputs = torch.randn(1, 4, 5, 5)
+    >>> weights = torch.randn(4, 8, 3, 3)
+    >>> F.conv_transpose2d(inputs, weights, padding=1)
+
+[Possible API Signatures]
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+
+[Error Messages]
+RuntimeError: Expected 3D (unbatched) or 4D (batched) input to conv_transpose2d, but got input of size: [0]
+RuntimeError: weight should have at least three dimensions
+RuntimeError: Given transposed=1, weight of size [1, 1, 3, 3], expected bias to be 1-dimensional with 1 elements, but got bias of size [0] instead
+RuntimeError: Input type (torch.HalfTensor) and weight type (torch.FloatTensor) should be the same or input should be a MKLDNN tensor and weight is a dense tensor
+RuntimeError: "slow_conv_transpose2d_out_cpu" not implemented for 'Char'
+RuntimeError: expected scalar type Float but found Short
+RuntimeError: non-positive stride is not supported
+RuntimeError: dilation should be greater than zero
+RuntimeError: dilation should be greater than zero, but got dilation_height: 0, dilation_width: 0
+RuntimeError: could not create a primitive descriptor for a deconvolution forward propagation primitive
+RuntimeError: /pytorch/build/aten/src/ATen/RegisterCompositeExplicitAutograd.cpp:1785: SymIntArrayRef expected to contain only concrete integers
+RuntimeError: expected dilation to be a single integer value or a list of 1 values to match the convolution dimensions, but got dilation=[-3, 64, -6, -95, -85, 97]
+RuntimeError: Given groups=20, expected weight to be divisible by 20 at dimension 0, but got weight of size [[73, 4, 75, 4]] instead
+RuntimeError: Input type (CPUComplexDoubleType) and bias type (CPUComplexFloatType) should be the same
+RuntimeError: negative output_padding is not supported
+RuntimeError: non-positive groups is not supported
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (non-negative padding as 2-tuple)
+{v_5 : tuple(int)} |= v_5.len = 2 ∧ v_5[0] ≥ 0 ∧ v_5[1] ≥ 0
+Token usage: input=3136, output=12865, total=16001
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.functional.conv_transpose2d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+conv_transpose2d(input, weight, bias=None, stride=1, padding=0, output_padding=0, groups=1, dilation=1) -> Tensor
+
+Applies a 2D transposed convolution operator over an input image
+composed of several input planes, sometimes also called "deconvolution".
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+See :class:`~torch.nn.ConvTranspose2d` for details and output shape.
+
+Note:
+    In some circumstances when given tensors on a CUDA device and using CuDNN, this operator may select a nondeterministic algorithm to increase performance. If this is undesirable, you can try to make the operation deterministic (potentially at a performance cost) by setting ``torch.backends.cudnn.deterministic = True``. See :doc:`/notes/randomness` for more information.
+
+
+Args:
+    input: input tensor of shape :math:`(\text{minibatch} , \text{in\_channels} , iH , iW)`
+    weight: filters of shape :math:`(\text{in\_channels} , \frac{\text{out\_channels}}{\text{groups}} , kH , kW)`
+    bias: optional bias of shape :math:`(\text{out\_channels})`. Default: None
+    stride: the stride of the convolving kernel. Can be a single number or a
+      tuple ``(sH, sW)``. Default: 1
+    padding: ``dilation * (kernel_size - 1) - padding`` zero-padding will be added to both
+      sides of each dimension in the input. Can be a single number or a tuple
+      ``(padH, padW)``. Default: 0
+    output_padding: additional size added to one side of each dimension in the
+      output shape. Can be a single number or a tuple ``(out_padH, out_padW)``.
+      Default: 0
+    groups: split input into groups, :math:`\text{in\_channels}` should be divisible by the
+      number of groups. Default: 1
+    dilation: the spacing between kernel elements. Can be a single number or
+      a tuple ``(dH, dW)``. Default: 1
+
+Examples::
+
+    >>> # With square kernels and equal stride
+    >>> inputs = torch.randn(1, 4, 5, 5)
+    >>> weights = torch.randn(4, 8, 3, 3)
+    >>> F.conv_transpose2d(inputs, weights, padding=1)
+
+[Possible API Signatures]
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+
+[Error Messages]
+RuntimeError: Expected 3D (unbatched) or 4D (batched) input to conv_transpose2d, but got input of size: [0]
+RuntimeError: weight should have at least three dimensions
+RuntimeError: Given transposed=1, weight of size [1, 1, 3, 3], expected bias to be 1-dimensional with 1 elements, but got bias of size [0] instead
+RuntimeError: Input type (torch.HalfTensor) and weight type (torch.FloatTensor) should be the same or input should be a MKLDNN tensor and weight is a dense tensor
+RuntimeError: "slow_conv_transpose2d_out_cpu" not implemented for 'Char'
+RuntimeError: expected scalar type Float but found Short
+RuntimeError: non-positive stride is not supported
+RuntimeError: dilation should be greater than zero
+RuntimeError: dilation should be greater than zero, but got dilation_height: 0, dilation_width: 0
+RuntimeError: could not create a primitive descriptor for a deconvolution forward propagation primitive
+RuntimeError: /pytorch/build/aten/src/ATen/RegisterCompositeExplicitAutograd.cpp:1785: SymIntArrayRef expected to contain only concrete integers
+RuntimeError: expected dilation to be a single integer value or a list of 1 values to match the convolution dimensions, but got dilation=[-3, 64, -6, -95, -85, 97]
+RuntimeError: Given groups=20, expected weight to be divisible by 20 at dimension 0, but got weight of size [[73, 4, 75, 4]] instead
+RuntimeError: Input type (CPUComplexDoubleType) and bias type (CPUComplexFloatType) should be the same
+RuntimeError: negative output_padding is not supported
+RuntimeError: non-positive groups is not supported
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (positive stride as integer)
+{v_4 : int} |= v_4 ≥ 1
+Token usage: input=3136, output=12865, total=16001
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.functional.conv_transpose2d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+conv_transpose2d(input, weight, bias=None, stride=1, padding=0, output_padding=0, groups=1, dilation=1) -> Tensor
+
+Applies a 2D transposed convolution operator over an input image
+composed of several input planes, sometimes also called "deconvolution".
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+See :class:`~torch.nn.ConvTranspose2d` for details and output shape.
+
+Note:
+    In some circumstances when given tensors on a CUDA device and using CuDNN, this operator may select a nondeterministic algorithm to increase performance. If this is undesirable, you can try to make the operation deterministic (potentially at a performance cost) by setting ``torch.backends.cudnn.deterministic = True``. See :doc:`/notes/randomness` for more information.
+
+
+Args:
+    input: input tensor of shape :math:`(\text{minibatch} , \text{in\_channels} , iH , iW)`
+    weight: filters of shape :math:`(\text{in\_channels} , \frac{\text{out\_channels}}{\text{groups}} , kH , kW)`
+    bias: optional bias of shape :math:`(\text{out\_channels})`. Default: None
+    stride: the stride of the convolving kernel. Can be a single number or a
+      tuple ``(sH, sW)``. Default: 1
+    padding: ``dilation * (kernel_size - 1) - padding`` zero-padding will be added to both
+      sides of each dimension in the input. Can be a single number or a tuple
+      ``(padH, padW)``. Default: 0
+    output_padding: additional size added to one side of each dimension in the
+      output shape. Can be a single number or a tuple ``(out_padH, out_padW)``.
+      Default: 0
+    groups: split input into groups, :math:`\text{in\_channels}` should be divisible by the
+      number of groups. Default: 1
+    dilation: the spacing between kernel elements. Can be a single number or
+      a tuple ``(dH, dW)``. Default: 1
+
+Examples::
+
+    >>> # With square kernels and equal stride
+    >>> inputs = torch.randn(1, 4, 5, 5)
+    >>> weights = torch.randn(4, 8, 3, 3)
+    >>> F.conv_transpose2d(inputs, weights, padding=1)
+
+[Possible API Signatures]
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+
+[Error Messages]
+RuntimeError: Expected 3D (unbatched) or 4D (batched) input to conv_transpose2d, but got input of size: [0]
+RuntimeError: weight should have at least three dimensions
+RuntimeError: Given transposed=1, weight of size [1, 1, 3, 3], expected bias to be 1-dimensional with 1 elements, but got bias of size [0] instead
+RuntimeError: Input type (torch.HalfTensor) and weight type (torch.FloatTensor) should be the same or input should be a MKLDNN tensor and weight is a dense tensor
+RuntimeError: "slow_conv_transpose2d_out_cpu" not implemented for 'Char'
+RuntimeError: expected scalar type Float but found Short
+RuntimeError: non-positive stride is not supported
+RuntimeError: dilation should be greater than zero
+RuntimeError: dilation should be greater than zero, but got dilation_height: 0, dilation_width: 0
+RuntimeError: could not create a primitive descriptor for a deconvolution forward propagation primitive
+RuntimeError: /pytorch/build/aten/src/ATen/RegisterCompositeExplicitAutograd.cpp:1785: SymIntArrayRef expected to contain only concrete integers
+RuntimeError: expected dilation to be a single integer value or a list of 1 values to match the convolution dimensions, but got dilation=[-3, 64, -6, -95, -85, 97]
+RuntimeError: Given groups=20, expected weight to be divisible by 20 at dimension 0, but got weight of size [[73, 4, 75, 4]] instead
+RuntimeError: Input type (CPUComplexDoubleType) and bias type (CPUComplexFloatType) should be the same
+RuntimeError: negative output_padding is not supported
+RuntimeError: non-positive groups is not supported
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (positive stride as 2-tuple)
+{v_4 : tuple(int)} |= v_4.len = 2 ∧ v_4[0] ≥ 1 ∧ v_4[1] ≥ 1
+Token usage: input=3136, output=12865, total=16001
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.functional.conv_transpose2d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+conv_transpose2d(input, weight, bias=None, stride=1, padding=0, output_padding=0, groups=1, dilation=1) -> Tensor
+
+Applies a 2D transposed convolution operator over an input image
+composed of several input planes, sometimes also called "deconvolution".
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+See :class:`~torch.nn.ConvTranspose2d` for details and output shape.
+
+Note:
+    In some circumstances when given tensors on a CUDA device and using CuDNN, this operator may select a nondeterministic algorithm to increase performance. If this is undesirable, you can try to make the operation deterministic (potentially at a performance cost) by setting ``torch.backends.cudnn.deterministic = True``. See :doc:`/notes/randomness` for more information.
+
+
+Args:
+    input: input tensor of shape :math:`(\text{minibatch} , \text{in\_channels} , iH , iW)`
+    weight: filters of shape :math:`(\text{in\_channels} , \frac{\text{out\_channels}}{\text{groups}} , kH , kW)`
+    bias: optional bias of shape :math:`(\text{out\_channels})`. Default: None
+    stride: the stride of the convolving kernel. Can be a single number or a
+      tuple ``(sH, sW)``. Default: 1
+    padding: ``dilation * (kernel_size - 1) - padding`` zero-padding will be added to both
+      sides of each dimension in the input. Can be a single number or a tuple
+      ``(padH, padW)``. Default: 0
+    output_padding: additional size added to one side of each dimension in the
+      output shape. Can be a single number or a tuple ``(out_padH, out_padW)``.
+      Default: 0
+    groups: split input into groups, :math:`\text{in\_channels}` should be divisible by the
+      number of groups. Default: 1
+    dilation: the spacing between kernel elements. Can be a single number or
+      a tuple ``(dH, dW)``. Default: 1
+
+Examples::
+
+    >>> # With square kernels and equal stride
+    >>> inputs = torch.randn(1, 4, 5, 5)
+    >>> weights = torch.randn(4, 8, 3, 3)
+    >>> F.conv_transpose2d(inputs, weights, padding=1)
+
+[Possible API Signatures]
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+
+[Error Messages]
+RuntimeError: Expected 3D (unbatched) or 4D (batched) input to conv_transpose2d, but got input of size: [0]
+RuntimeError: weight should have at least three dimensions
+RuntimeError: Given transposed=1, weight of size [1, 1, 3, 3], expected bias to be 1-dimensional with 1 elements, but got bias of size [0] instead
+RuntimeError: Input type (torch.HalfTensor) and weight type (torch.FloatTensor) should be the same or input should be a MKLDNN tensor and weight is a dense tensor
+RuntimeError: "slow_conv_transpose2d_out_cpu" not implemented for 'Char'
+RuntimeError: expected scalar type Float but found Short
+RuntimeError: non-positive stride is not supported
+RuntimeError: dilation should be greater than zero
+RuntimeError: dilation should be greater than zero, but got dilation_height: 0, dilation_width: 0
+RuntimeError: could not create a primitive descriptor for a deconvolution forward propagation primitive
+RuntimeError: /pytorch/build/aten/src/ATen/RegisterCompositeExplicitAutograd.cpp:1785: SymIntArrayRef expected to contain only concrete integers
+RuntimeError: expected dilation to be a single integer value or a list of 1 values to match the convolution dimensions, but got dilation=[-3, 64, -6, -95, -85, 97]
+RuntimeError: Given groups=20, expected weight to be divisible by 20 at dimension 0, but got weight of size [[73, 4, 75, 4]] instead
+RuntimeError: Input type (CPUComplexDoubleType) and bias type (CPUComplexFloatType) should be the same
+RuntimeError: negative output_padding is not supported
+RuntimeError: non-positive groups is not supported
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (positive dilation as integer)
+{v_8 : int} |= v_8 ≥ 1
+Token usage: input=3136, output=12865, total=16001
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.functional.conv_transpose2d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+conv_transpose2d(input, weight, bias=None, stride=1, padding=0, output_padding=0, groups=1, dilation=1) -> Tensor
+
+Applies a 2D transposed convolution operator over an input image
+composed of several input planes, sometimes also called "deconvolution".
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+See :class:`~torch.nn.ConvTranspose2d` for details and output shape.
+
+Note:
+    In some circumstances when given tensors on a CUDA device and using CuDNN, this operator may select a nondeterministic algorithm to increase performance. If this is undesirable, you can try to make the operation deterministic (potentially at a performance cost) by setting ``torch.backends.cudnn.deterministic = True``. See :doc:`/notes/randomness` for more information.
+
+
+Args:
+    input: input tensor of shape :math:`(\text{minibatch} , \text{in\_channels} , iH , iW)`
+    weight: filters of shape :math:`(\text{in\_channels} , \frac{\text{out\_channels}}{\text{groups}} , kH , kW)`
+    bias: optional bias of shape :math:`(\text{out\_channels})`. Default: None
+    stride: the stride of the convolving kernel. Can be a single number or a
+      tuple ``(sH, sW)``. Default: 1
+    padding: ``dilation * (kernel_size - 1) - padding`` zero-padding will be added to both
+      sides of each dimension in the input. Can be a single number or a tuple
+      ``(padH, padW)``. Default: 0
+    output_padding: additional size added to one side of each dimension in the
+      output shape. Can be a single number or a tuple ``(out_padH, out_padW)``.
+      Default: 0
+    groups: split input into groups, :math:`\text{in\_channels}` should be divisible by the
+      number of groups. Default: 1
+    dilation: the spacing between kernel elements. Can be a single number or
+      a tuple ``(dH, dW)``. Default: 1
+
+Examples::
+
+    >>> # With square kernels and equal stride
+    >>> inputs = torch.randn(1, 4, 5, 5)
+    >>> weights = torch.randn(4, 8, 3, 3)
+    >>> F.conv_transpose2d(inputs, weights, padding=1)
+
+[Possible API Signatures]
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+
+[Error Messages]
+RuntimeError: Expected 3D (unbatched) or 4D (batched) input to conv_transpose2d, but got input of size: [0]
+RuntimeError: weight should have at least three dimensions
+RuntimeError: Given transposed=1, weight of size [1, 1, 3, 3], expected bias to be 1-dimensional with 1 elements, but got bias of size [0] instead
+RuntimeError: Input type (torch.HalfTensor) and weight type (torch.FloatTensor) should be the same or input should be a MKLDNN tensor and weight is a dense tensor
+RuntimeError: "slow_conv_transpose2d_out_cpu" not implemented for 'Char'
+RuntimeError: expected scalar type Float but found Short
+RuntimeError: non-positive stride is not supported
+RuntimeError: dilation should be greater than zero
+RuntimeError: dilation should be greater than zero, but got dilation_height: 0, dilation_width: 0
+RuntimeError: could not create a primitive descriptor for a deconvolution forward propagation primitive
+RuntimeError: /pytorch/build/aten/src/ATen/RegisterCompositeExplicitAutograd.cpp:1785: SymIntArrayRef expected to contain only concrete integers
+RuntimeError: expected dilation to be a single integer value or a list of 1 values to match the convolution dimensions, but got dilation=[-3, 64, -6, -95, -85, 97]
+RuntimeError: Given groups=20, expected weight to be divisible by 20 at dimension 0, but got weight of size [[73, 4, 75, 4]] instead
+RuntimeError: Input type (CPUComplexDoubleType) and bias type (CPUComplexFloatType) should be the same
+RuntimeError: negative output_padding is not supported
+RuntimeError: non-positive groups is not supported
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (positive dilation as 2-tuple)
+{v_8 : tuple(int)} |= v_8.len = 2 ∧ v_8[0] ≥ 1 ∧ v_8[1] ≥ 1
+Token usage: input=3136, output=12865, total=16001
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.functional.conv_transpose2d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+conv_transpose2d(input, weight, bias=None, stride=1, padding=0, output_padding=0, groups=1, dilation=1) -> Tensor
+
+Applies a 2D transposed convolution operator over an input image
+composed of several input planes, sometimes also called "deconvolution".
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+See :class:`~torch.nn.ConvTranspose2d` for details and output shape.
+
+Note:
+    In some circumstances when given tensors on a CUDA device and using CuDNN, this operator may select a nondeterministic algorithm to increase performance. If this is undesirable, you can try to make the operation deterministic (potentially at a performance cost) by setting ``torch.backends.cudnn.deterministic = True``. See :doc:`/notes/randomness` for more information.
+
+
+Args:
+    input: input tensor of shape :math:`(\text{minibatch} , \text{in\_channels} , iH , iW)`
+    weight: filters of shape :math:`(\text{in\_channels} , \frac{\text{out\_channels}}{\text{groups}} , kH , kW)`
+    bias: optional bias of shape :math:`(\text{out\_channels})`. Default: None
+    stride: the stride of the convolving kernel. Can be a single number or a
+      tuple ``(sH, sW)``. Default: 1
+    padding: ``dilation * (kernel_size - 1) - padding`` zero-padding will be added to both
+      sides of each dimension in the input. Can be a single number or a tuple
+      ``(padH, padW)``. Default: 0
+    output_padding: additional size added to one side of each dimension in the
+      output shape. Can be a single number or a tuple ``(out_padH, out_padW)``.
+      Default: 0
+    groups: split input into groups, :math:`\text{in\_channels}` should be divisible by the
+      number of groups. Default: 1
+    dilation: the spacing between kernel elements. Can be a single number or
+      a tuple ``(dH, dW)``. Default: 1
+
+Examples::
+
+    >>> # With square kernels and equal stride
+    >>> inputs = torch.randn(1, 4, 5, 5)
+    >>> weights = torch.randn(4, 8, 3, 3)
+    >>> F.conv_transpose2d(inputs, weights, padding=1)
+
+[Possible API Signatures]
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+
+[Error Messages]
+RuntimeError: Expected 3D (unbatched) or 4D (batched) input to conv_transpose2d, but got input of size: [0]
+RuntimeError: weight should have at least three dimensions
+RuntimeError: Given transposed=1, weight of size [1, 1, 3, 3], expected bias to be 1-dimensional with 1 elements, but got bias of size [0] instead
+RuntimeError: Input type (torch.HalfTensor) and weight type (torch.FloatTensor) should be the same or input should be a MKLDNN tensor and weight is a dense tensor
+RuntimeError: "slow_conv_transpose2d_out_cpu" not implemented for 'Char'
+RuntimeError: expected scalar type Float but found Short
+RuntimeError: non-positive stride is not supported
+RuntimeError: dilation should be greater than zero
+RuntimeError: dilation should be greater than zero, but got dilation_height: 0, dilation_width: 0
+RuntimeError: could not create a primitive descriptor for a deconvolution forward propagation primitive
+RuntimeError: /pytorch/build/aten/src/ATen/RegisterCompositeExplicitAutograd.cpp:1785: SymIntArrayRef expected to contain only concrete integers
+RuntimeError: expected dilation to be a single integer value or a list of 1 values to match the convolution dimensions, but got dilation=[-3, 64, -6, -95, -85, 97]
+RuntimeError: Given groups=20, expected weight to be divisible by 20 at dimension 0, but got weight of size [[73, 4, 75, 4]] instead
+RuntimeError: Input type (CPUComplexDoubleType) and bias type (CPUComplexFloatType) should be the same
+RuntimeError: negative output_padding is not supported
+RuntimeError: non-positive groups is not supported
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (non-negative output_padding int and less than stride int)
+{v_6 : int, v_4 : int} |= v_6 ≥ 0 ∧ v_6 < v_4
+Token usage: input=3136, output=12865, total=16001
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.functional.conv_transpose2d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+conv_transpose2d(input, weight, bias=None, stride=1, padding=0, output_padding=0, groups=1, dilation=1) -> Tensor
+
+Applies a 2D transposed convolution operator over an input image
+composed of several input planes, sometimes also called "deconvolution".
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+See :class:`~torch.nn.ConvTranspose2d` for details and output shape.
+
+Note:
+    In some circumstances when given tensors on a CUDA device and using CuDNN, this operator may select a nondeterministic algorithm to increase performance. If this is undesirable, you can try to make the operation deterministic (potentially at a performance cost) by setting ``torch.backends.cudnn.deterministic = True``. See :doc:`/notes/randomness` for more information.
+
+
+Args:
+    input: input tensor of shape :math:`(\text{minibatch} , \text{in\_channels} , iH , iW)`
+    weight: filters of shape :math:`(\text{in\_channels} , \frac{\text{out\_channels}}{\text{groups}} , kH , kW)`
+    bias: optional bias of shape :math:`(\text{out\_channels})`. Default: None
+    stride: the stride of the convolving kernel. Can be a single number or a
+      tuple ``(sH, sW)``. Default: 1
+    padding: ``dilation * (kernel_size - 1) - padding`` zero-padding will be added to both
+      sides of each dimension in the input. Can be a single number or a tuple
+      ``(padH, padW)``. Default: 0
+    output_padding: additional size added to one side of each dimension in the
+      output shape. Can be a single number or a tuple ``(out_padH, out_padW)``.
+      Default: 0
+    groups: split input into groups, :math:`\text{in\_channels}` should be divisible by the
+      number of groups. Default: 1
+    dilation: the spacing between kernel elements. Can be a single number or
+      a tuple ``(dH, dW)``. Default: 1
+
+Examples::
+
+    >>> # With square kernels and equal stride
+    >>> inputs = torch.randn(1, 4, 5, 5)
+    >>> weights = torch.randn(4, 8, 3, 3)
+    >>> F.conv_transpose2d(inputs, weights, padding=1)
+
+[Possible API Signatures]
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+
+[Error Messages]
+RuntimeError: Expected 3D (unbatched) or 4D (batched) input to conv_transpose2d, but got input of size: [0]
+RuntimeError: weight should have at least three dimensions
+RuntimeError: Given transposed=1, weight of size [1, 1, 3, 3], expected bias to be 1-dimensional with 1 elements, but got bias of size [0] instead
+RuntimeError: Input type (torch.HalfTensor) and weight type (torch.FloatTensor) should be the same or input should be a MKLDNN tensor and weight is a dense tensor
+RuntimeError: "slow_conv_transpose2d_out_cpu" not implemented for 'Char'
+RuntimeError: expected scalar type Float but found Short
+RuntimeError: non-positive stride is not supported
+RuntimeError: dilation should be greater than zero
+RuntimeError: dilation should be greater than zero, but got dilation_height: 0, dilation_width: 0
+RuntimeError: could not create a primitive descriptor for a deconvolution forward propagation primitive
+RuntimeError: /pytorch/build/aten/src/ATen/RegisterCompositeExplicitAutograd.cpp:1785: SymIntArrayRef expected to contain only concrete integers
+RuntimeError: expected dilation to be a single integer value or a list of 1 values to match the convolution dimensions, but got dilation=[-3, 64, -6, -95, -85, 97]
+RuntimeError: Given groups=20, expected weight to be divisible by 20 at dimension 0, but got weight of size [[73, 4, 75, 4]] instead
+RuntimeError: Input type (CPUComplexDoubleType) and bias type (CPUComplexFloatType) should be the same
+RuntimeError: negative output_padding is not supported
+RuntimeError: non-positive groups is not supported
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 14 (non-negative output_padding 2-tuple and less than stride 2-tuple)
+{v_6 : tuple(int), v_4 : tuple(int)} |= v_6.len = 2 ∧ v_4.len = 2 ∧ v_6[0] ≥ 0 ∧ v_6[1] ≥ 0 ∧ v_6[0] < v_4[0] ∧ v_6[1] < v_4[1]
+Token usage: input=3136, output=12865, total=16001
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.functional.conv_transpose2d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+conv_transpose2d(input, weight, bias=None, stride=1, padding=0, output_padding=0, groups=1, dilation=1) -> Tensor
+
+Applies a 2D transposed convolution operator over an input image
+composed of several input planes, sometimes also called "deconvolution".
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+See :class:`~torch.nn.ConvTranspose2d` for details and output shape.
+
+Note:
+    In some circumstances when given tensors on a CUDA device and using CuDNN, this operator may select a nondeterministic algorithm to increase performance. If this is undesirable, you can try to make the operation deterministic (potentially at a performance cost) by setting ``torch.backends.cudnn.deterministic = True``. See :doc:`/notes/randomness` for more information.
+
+
+Args:
+    input: input tensor of shape :math:`(\text{minibatch} , \text{in\_channels} , iH , iW)`
+    weight: filters of shape :math:`(\text{in\_channels} , \frac{\text{out\_channels}}{\text{groups}} , kH , kW)`
+    bias: optional bias of shape :math:`(\text{out\_channels})`. Default: None
+    stride: the stride of the convolving kernel. Can be a single number or a
+      tuple ``(sH, sW)``. Default: 1
+    padding: ``dilation * (kernel_size - 1) - padding`` zero-padding will be added to both
+      sides of each dimension in the input. Can be a single number or a tuple
+      ``(padH, padW)``. Default: 0
+    output_padding: additional size added to one side of each dimension in the
+      output shape. Can be a single number or a tuple ``(out_padH, out_padW)``.
+      Default: 0
+    groups: split input into groups, :math:`\text{in\_channels}` should be divisible by the
+      number of groups. Default: 1
+    dilation: the spacing between kernel elements. Can be a single number or
+      a tuple ``(dH, dW)``. Default: 1
+
+Examples::
+
+    >>> # With square kernels and equal stride
+    >>> inputs = torch.randn(1, 4, 5, 5)
+    >>> weights = torch.randn(4, 8, 3, 3)
+    >>> F.conv_transpose2d(inputs, weights, padding=1)
+
+[Possible API Signatures]
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+
+[Error Messages]
+RuntimeError: Expected 3D (unbatched) or 4D (batched) input to conv_transpose2d, but got input of size: [0]
+RuntimeError: weight should have at least three dimensions
+RuntimeError: Given transposed=1, weight of size [1, 1, 3, 3], expected bias to be 1-dimensional with 1 elements, but got bias of size [0] instead
+RuntimeError: Input type (torch.HalfTensor) and weight type (torch.FloatTensor) should be the same or input should be a MKLDNN tensor and weight is a dense tensor
+RuntimeError: "slow_conv_transpose2d_out_cpu" not implemented for 'Char'
+RuntimeError: expected scalar type Float but found Short
+RuntimeError: non-positive stride is not supported
+RuntimeError: dilation should be greater than zero
+RuntimeError: dilation should be greater than zero, but got dilation_height: 0, dilation_width: 0
+RuntimeError: could not create a primitive descriptor for a deconvolution forward propagation primitive
+RuntimeError: /pytorch/build/aten/src/ATen/RegisterCompositeExplicitAutograd.cpp:1785: SymIntArrayRef expected to contain only concrete integers
+RuntimeError: expected dilation to be a single integer value or a list of 1 values to match the convolution dimensions, but got dilation=[-3, 64, -6, -95, -85, 97]
+RuntimeError: Given groups=20, expected weight to be divisible by 20 at dimension 0, but got weight of size [[73, 4, 75, 4]] instead
+RuntimeError: Input type (CPUComplexDoubleType) and bias type (CPUComplexFloatType) should be the same
+RuntimeError: negative output_padding is not supported
+RuntimeError: non-positive groups is not supported
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 15 (non-negative output_padding 2-tuple and less than stride int)
+{v_6 : tuple(int), v_4 : int} |= v_6.len = 2 ∧ v_6[0] ≥ 0 ∧ v_6[1] ≥ 0 ∧ v_6[0] < v_4 ∧ v_6[1] < v_4
+Token usage: input=3136, output=12865, total=16001
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.functional.conv_transpose2d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+conv_transpose2d(input, weight, bias=None, stride=1, padding=0, output_padding=0, groups=1, dilation=1) -> Tensor
+
+Applies a 2D transposed convolution operator over an input image
+composed of several input planes, sometimes also called "deconvolution".
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+See :class:`~torch.nn.ConvTranspose2d` for details and output shape.
+
+Note:
+    In some circumstances when given tensors on a CUDA device and using CuDNN, this operator may select a nondeterministic algorithm to increase performance. If this is undesirable, you can try to make the operation deterministic (potentially at a performance cost) by setting ``torch.backends.cudnn.deterministic = True``. See :doc:`/notes/randomness` for more information.
+
+
+Args:
+    input: input tensor of shape :math:`(\text{minibatch} , \text{in\_channels} , iH , iW)`
+    weight: filters of shape :math:`(\text{in\_channels} , \frac{\text{out\_channels}}{\text{groups}} , kH , kW)`
+    bias: optional bias of shape :math:`(\text{out\_channels})`. Default: None
+    stride: the stride of the convolving kernel. Can be a single number or a
+      tuple ``(sH, sW)``. Default: 1
+    padding: ``dilation * (kernel_size - 1) - padding`` zero-padding will be added to both
+      sides of each dimension in the input. Can be a single number or a tuple
+      ``(padH, padW)``. Default: 0
+    output_padding: additional size added to one side of each dimension in the
+      output shape. Can be a single number or a tuple ``(out_padH, out_padW)``.
+      Default: 0
+    groups: split input into groups, :math:`\text{in\_channels}` should be divisible by the
+      number of groups. Default: 1
+    dilation: the spacing between kernel elements. Can be a single number or
+      a tuple ``(dH, dW)``. Default: 1
+
+Examples::
+
+    >>> # With square kernels and equal stride
+    >>> inputs = torch.randn(1, 4, 5, 5)
+    >>> weights = torch.randn(4, 8, 3, 3)
+    >>> F.conv_transpose2d(inputs, weights, padding=1)
+
+[Possible API Signatures]
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+
+[Error Messages]
+RuntimeError: Expected 3D (unbatched) or 4D (batched) input to conv_transpose2d, but got input of size: [0]
+RuntimeError: weight should have at least three dimensions
+RuntimeError: Given transposed=1, weight of size [1, 1, 3, 3], expected bias to be 1-dimensional with 1 elements, but got bias of size [0] instead
+RuntimeError: Input type (torch.HalfTensor) and weight type (torch.FloatTensor) should be the same or input should be a MKLDNN tensor and weight is a dense tensor
+RuntimeError: "slow_conv_transpose2d_out_cpu" not implemented for 'Char'
+RuntimeError: expected scalar type Float but found Short
+RuntimeError: non-positive stride is not supported
+RuntimeError: dilation should be greater than zero
+RuntimeError: dilation should be greater than zero, but got dilation_height: 0, dilation_width: 0
+RuntimeError: could not create a primitive descriptor for a deconvolution forward propagation primitive
+RuntimeError: /pytorch/build/aten/src/ATen/RegisterCompositeExplicitAutograd.cpp:1785: SymIntArrayRef expected to contain only concrete integers
+RuntimeError: expected dilation to be a single integer value or a list of 1 values to match the convolution dimensions, but got dilation=[-3, 64, -6, -95, -85, 97]
+RuntimeError: Given groups=20, expected weight to be divisible by 20 at dimension 0, but got weight of size [[73, 4, 75, 4]] instead
+RuntimeError: Input type (CPUComplexDoubleType) and bias type (CPUComplexFloatType) should be the same
+RuntimeError: negative output_padding is not supported
+RuntimeError: non-positive groups is not supported
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 16 (non-negative output_padding int and less than stride 2-tuple)
+{v_6 : int, v_4 : tuple(int)} |= v_4.len = 2 ∧ v_6 ≥ 0 ∧ v_6 < v_4[0] ∧ v_6 < v_4[1]
+Token usage: input=3136, output=12865, total=16001
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.functional.conv_transpose2d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+conv_transpose2d(input, weight, bias=None, stride=1, padding=0, output_padding=0, groups=1, dilation=1) -> Tensor
+
+Applies a 2D transposed convolution operator over an input image
+composed of several input planes, sometimes also called "deconvolution".
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+See :class:`~torch.nn.ConvTranspose2d` for details and output shape.
+
+Note:
+    In some circumstances when given tensors on a CUDA device and using CuDNN, this operator may select a nondeterministic algorithm to increase performance. If this is undesirable, you can try to make the operation deterministic (potentially at a performance cost) by setting ``torch.backends.cudnn.deterministic = True``. See :doc:`/notes/randomness` for more information.
+
+
+Args:
+    input: input tensor of shape :math:`(\text{minibatch} , \text{in\_channels} , iH , iW)`
+    weight: filters of shape :math:`(\text{in\_channels} , \frac{\text{out\_channels}}{\text{groups}} , kH , kW)`
+    bias: optional bias of shape :math:`(\text{out\_channels})`. Default: None
+    stride: the stride of the convolving kernel. Can be a single number or a
+      tuple ``(sH, sW)``. Default: 1
+    padding: ``dilation * (kernel_size - 1) - padding`` zero-padding will be added to both
+      sides of each dimension in the input. Can be a single number or a tuple
+      ``(padH, padW)``. Default: 0
+    output_padding: additional size added to one side of each dimension in the
+      output shape. Can be a single number or a tuple ``(out_padH, out_padW)``.
+      Default: 0
+    groups: split input into groups, :math:`\text{in\_channels}` should be divisible by the
+      number of groups. Default: 1
+    dilation: the spacing between kernel elements. Can be a single number or
+      a tuple ``(dH, dW)``. Default: 1
+
+Examples::
+
+    >>> # With square kernels and equal stride
+    >>> inputs = torch.randn(1, 4, 5, 5)
+    >>> weights = torch.randn(4, 8, 3, 3)
+    >>> F.conv_transpose2d(inputs, weights, padding=1)
+
+[Possible API Signatures]
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+
+[Error Messages]
+RuntimeError: Expected 3D (unbatched) or 4D (batched) input to conv_transpose2d, but got input of size: [0]
+RuntimeError: weight should have at least three dimensions
+RuntimeError: Given transposed=1, weight of size [1, 1, 3, 3], expected bias to be 1-dimensional with 1 elements, but got bias of size [0] instead
+RuntimeError: Input type (torch.HalfTensor) and weight type (torch.FloatTensor) should be the same or input should be a MKLDNN tensor and weight is a dense tensor
+RuntimeError: "slow_conv_transpose2d_out_cpu" not implemented for 'Char'
+RuntimeError: expected scalar type Float but found Short
+RuntimeError: non-positive stride is not supported
+RuntimeError: dilation should be greater than zero
+RuntimeError: dilation should be greater than zero, but got dilation_height: 0, dilation_width: 0
+RuntimeError: could not create a primitive descriptor for a deconvolution forward propagation primitive
+RuntimeError: /pytorch/build/aten/src/ATen/RegisterCompositeExplicitAutograd.cpp:1785: SymIntArrayRef expected to contain only concrete integers
+RuntimeError: expected dilation to be a single integer value or a list of 1 values to match the convolution dimensions, but got dilation=[-3, 64, -6, -95, -85, 97]
+RuntimeError: Given groups=20, expected weight to be divisible by 20 at dimension 0, but got weight of size [[73, 4, 75, 4]] instead
+RuntimeError: Input type (CPUComplexDoubleType) and bias type (CPUComplexFloatType) should be the same
+RuntimeError: negative output_padding is not supported
+RuntimeError: non-positive groups is not supported
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 17 (valid output spatial sizes for scalar hyperparameters)
+{v_1 : tensor, v_2 : tensor, v_4 : int, v_5 : int, v_6 : int, v_8 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_4 ≥ 1 ∧ v_5 ≥ 0 ∧ v_6 ≥ 0 ∧ v_8 ≥ 1 ∧ v_4 * (shape(v_1, 2) - 1) - 2 * v_5 + v_8 * (shape(v_2, 2) - 1) + v_6 + 1 > 0 ∧ v_4 * (shape(v_1, 3) - 1) - 2 * v_5 + v_8 * (shape(v_2, 3) - 1) + v_6 + 1 > 0
+Token usage: input=3136, output=12865, total=16001
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.nn.functional.conv_transpose2d API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+conv_transpose2d(input, weight, bias=None, stride=1, padding=0, output_padding=0, groups=1, dilation=1) -> Tensor
+
+Applies a 2D transposed convolution operator over an input image
+composed of several input planes, sometimes also called "deconvolution".
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+See :class:`~torch.nn.ConvTranspose2d` for details and output shape.
+
+Note:
+    In some circumstances when given tensors on a CUDA device and using CuDNN, this operator may select a nondeterministic algorithm to increase performance. If this is undesirable, you can try to make the operation deterministic (potentially at a performance cost) by setting ``torch.backends.cudnn.deterministic = True``. See :doc:`/notes/randomness` for more information.
+
+
+Args:
+    input: input tensor of shape :math:`(\text{minibatch} , \text{in\_channels} , iH , iW)`
+    weight: filters of shape :math:`(\text{in\_channels} , \frac{\text{out\_channels}}{\text{groups}} , kH , kW)`
+    bias: optional bias of shape :math:`(\text{out\_channels})`. Default: None
+    stride: the stride of the convolving kernel. Can be a single number or a
+      tuple ``(sH, sW)``. Default: 1
+    padding: ``dilation * (kernel_size - 1) - padding`` zero-padding will be added to both
+      sides of each dimension in the input. Can be a single number or a tuple
+      ``(padH, padW)``. Default: 0
+    output_padding: additional size added to one side of each dimension in the
+      output shape. Can be a single number or a tuple ``(out_padH, out_padW)``.
+      Default: 0
+    groups: split input into groups, :math:`\text{in\_channels}` should be divisible by the
+      number of groups. Default: 1
+    dilation: the spacing between kernel elements. Can be a single number or
+      a tuple ``(dH, dW)``. Default: 1
+
+Examples::
+
+    >>> # With square kernels and equal stride
+    >>> inputs = torch.randn(1, 4, 5, 5)
+    >>> weights = torch.randn(4, 8, 3, 3)
+    >>> F.conv_transpose2d(inputs, weights, padding=1)
+
+[Possible API Signatures]
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: integer, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: integer, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: integer, groups: integer, dilation: tuple, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: integer, padding_mode: string
+ - input: tensor, weight: tensor, bias: tensor, stride: tuple, padding: tuple, output_padding: tuple, groups: integer, dilation: tuple, padding_mode: string
+
+[Error Messages]
+RuntimeError: Expected 3D (unbatched) or 4D (batched) input to conv_transpose2d, but got input of size: [0]
+RuntimeError: weight should have at least three dimensions
+RuntimeError: Given transposed=1, weight of size [1, 1, 3, 3], expected bias to be 1-dimensional with 1 elements, but got bias of size [0] instead
+RuntimeError: Input type (torch.HalfTensor) and weight type (torch.FloatTensor) should be the same or input should be a MKLDNN tensor and weight is a dense tensor
+RuntimeError: "slow_conv_transpose2d_out_cpu" not implemented for 'Char'
+RuntimeError: expected scalar type Float but found Short
+RuntimeError: non-positive stride is not supported
+RuntimeError: dilation should be greater than zero
+RuntimeError: dilation should be greater than zero, but got dilation_height: 0, dilation_width: 0
+RuntimeError: could not create a primitive descriptor for a deconvolution forward propagation primitive
+RuntimeError: /pytorch/build/aten/src/ATen/RegisterCompositeExplicitAutograd.cpp:1785: SymIntArrayRef expected to contain only concrete integers
+RuntimeError: expected dilation to be a single integer value or a list of 1 values to match the convolution dimensions, but got dilation=[-3, 64, -6, -95, -85, 97]
+RuntimeError: Given groups=20, expected weight to be divisible by 20 at dimension 0, but got weight of size [[73, 4, 75, 4]] instead
+RuntimeError: Input type (CPUComplexDoubleType) and bias type (CPUComplexFloatType) should be the same
+RuntimeError: negative output_padding is not supported
+RuntimeError: non-positive groups is not supported
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 18 (padding_mode must be one of supported values)
+{v_9 : str} |= v_9 = "constant" ∨ v_9 = "reflect" ∨ v_9 = "replicate" ∨ v_9 = "circular"
+Token usage: input=3136, output=12865, total=16001
+** SUCCESS **
+

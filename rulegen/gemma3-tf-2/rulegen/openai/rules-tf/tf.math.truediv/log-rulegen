@@ -1,0 +1,1740 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.truediv API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Divides x / y elementwise (using Python 3 division operator semantics).
+
+  NOTE: Prefer using the Tensor operator or tf.divide which obey Python
+  division operator semantics.
+
+  This function forces Python 3 division operator semantics where all integer
+  arguments are cast to floating types first. If you want integer
+  division that rounds down, use `x // y` or `tf.math.floordiv`.
+
+  `x` and `y` must have the same numeric type.  If the inputs are floating
+  point, the output will have the same type.  If the inputs are integral, the
+  inputs are cast to `float32` for `int8` and `int16` and `float64` for `int32`
+  and `int64` (matching the behavior of Numpy).
+
+  Example:
+
+  >>> # Division with integer tensors (returns float)
+  >>> x1 = tf.constant([10, 20, 30], dtype=tf.int32)
+  >>> y1 = tf.constant([2, 4, 5], dtype=tf.int32)
+  >>> result1 = tf.math.truediv(x1, y1)
+
+  <tf.Tensor: shape=(3,), dtype=float64, numpy=array([5., 5., 6.])>
+
+  >>> # Division with different shaped tensors (broadcasting)
+  >>> x2 = tf.constant([[10, 20], [30, 40]], dtype=tf.float64)
+  >>> y2 = tf.constant([2, 5], dtype=tf.float64)
+  >>> result2 = tf.math.truediv(x2, y2)
+
+  <tf.Tensor: shape=(2, 2),dtype=float64,numpy= array([[ 5.,  4.],[15.,  8.]])>
+
+  # Handling potential division by zero (returns inf)
+  >>> x3 = tf.constant(5, dtype=tf.float32)
+  >>> y3 = tf.constant(0, dtype=tf.float32)
+  >>> result3 = tf.math.truediv(x3, y3)
+
+  <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  Args:
+    x: `Tensor` numerator of numeric type.
+    y: `Tensor` denominator of numeric type.
+    name: A name for the operation (optional).
+
+  Returns:
+    `x / y` evaluated in floating point.
+
+  Raises:
+    TypeError: If `x` and `y` have different dtypes.
+
+[API Signature] x: tensor, y: tensor, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__RealDiv_device_/job:localhost/replica:0/task:0/device:CPU:0}} Incompatible shapes: [0,58,94,19] vs. [73,78] [Op:RealDiv] name:
+TypeError: Invalid dtype tf.bool in __truediv__. Expected one of {tf.uint8, tf.int8, tf.uint16, tf.int16, tf.uint32, tf.int32, tf.uint64, tf.int64, tf.bfloat16, tf.float16, tf.float32, tf.float64, tf.complex64, tf.complex128}.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (x and y must have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Token usage: input=2065, output=6566, total=8631
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.truediv API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Divides x / y elementwise (using Python 3 division operator semantics).
+
+  NOTE: Prefer using the Tensor operator or tf.divide which obey Python
+  division operator semantics.
+
+  This function forces Python 3 division operator semantics where all integer
+  arguments are cast to floating types first. If you want integer
+  division that rounds down, use `x // y` or `tf.math.floordiv`.
+
+  `x` and `y` must have the same numeric type.  If the inputs are floating
+  point, the output will have the same type.  If the inputs are integral, the
+  inputs are cast to `float32` for `int8` and `int16` and `float64` for `int32`
+  and `int64` (matching the behavior of Numpy).
+
+  Example:
+
+  >>> # Division with integer tensors (returns float)
+  >>> x1 = tf.constant([10, 20, 30], dtype=tf.int32)
+  >>> y1 = tf.constant([2, 4, 5], dtype=tf.int32)
+  >>> result1 = tf.math.truediv(x1, y1)
+
+  <tf.Tensor: shape=(3,), dtype=float64, numpy=array([5., 5., 6.])>
+
+  >>> # Division with different shaped tensors (broadcasting)
+  >>> x2 = tf.constant([[10, 20], [30, 40]], dtype=tf.float64)
+  >>> y2 = tf.constant([2, 5], dtype=tf.float64)
+  >>> result2 = tf.math.truediv(x2, y2)
+
+  <tf.Tensor: shape=(2, 2),dtype=float64,numpy= array([[ 5.,  4.],[15.,  8.]])>
+
+  # Handling potential division by zero (returns inf)
+  >>> x3 = tf.constant(5, dtype=tf.float32)
+  >>> y3 = tf.constant(0, dtype=tf.float32)
+  >>> result3 = tf.math.truediv(x3, y3)
+
+  <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  Args:
+    x: `Tensor` numerator of numeric type.
+    y: `Tensor` denominator of numeric type.
+    name: A name for the operation (optional).
+
+  Returns:
+    `x / y` evaluated in floating point.
+
+  Raises:
+    TypeError: If `x` and `y` have different dtypes.
+
+[API Signature] x: tensor, y: tensor, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__RealDiv_device_/job:localhost/replica:0/task:0/device:CPU:0}} Incompatible shapes: [0,58,94,19] vs. [73,78] [Op:RealDiv] name:
+TypeError: Invalid dtype tf.bool in __truediv__. Expected one of {tf.uint8, tf.int8, tf.uint16, tf.int16, tf.uint32, tf.int32, tf.uint64, tf.int64, tf.bfloat16, tf.float16, tf.float32, tf.float64, tf.complex64, tf.complex128}.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (x and y dtypes must be numeric; bool not allowed)
+{v_1 : tensor, v_2 : tensor} |= (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10) ∧ (1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 10)
+Token usage: input=2065, output=6566, total=8631
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.truediv API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Divides x / y elementwise (using Python 3 division operator semantics).
+
+  NOTE: Prefer using the Tensor operator or tf.divide which obey Python
+  division operator semantics.
+
+  This function forces Python 3 division operator semantics where all integer
+  arguments are cast to floating types first. If you want integer
+  division that rounds down, use `x // y` or `tf.math.floordiv`.
+
+  `x` and `y` must have the same numeric type.  If the inputs are floating
+  point, the output will have the same type.  If the inputs are integral, the
+  inputs are cast to `float32` for `int8` and `int16` and `float64` for `int32`
+  and `int64` (matching the behavior of Numpy).
+
+  Example:
+
+  >>> # Division with integer tensors (returns float)
+  >>> x1 = tf.constant([10, 20, 30], dtype=tf.int32)
+  >>> y1 = tf.constant([2, 4, 5], dtype=tf.int32)
+  >>> result1 = tf.math.truediv(x1, y1)
+
+  <tf.Tensor: shape=(3,), dtype=float64, numpy=array([5., 5., 6.])>
+
+  >>> # Division with different shaped tensors (broadcasting)
+  >>> x2 = tf.constant([[10, 20], [30, 40]], dtype=tf.float64)
+  >>> y2 = tf.constant([2, 5], dtype=tf.float64)
+  >>> result2 = tf.math.truediv(x2, y2)
+
+  <tf.Tensor: shape=(2, 2),dtype=float64,numpy= array([[ 5.,  4.],[15.,  8.]])>
+
+  # Handling potential division by zero (returns inf)
+  >>> x3 = tf.constant(5, dtype=tf.float32)
+  >>> y3 = tf.constant(0, dtype=tf.float32)
+  >>> result3 = tf.math.truediv(x3, y3)
+
+  <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  Args:
+    x: `Tensor` numerator of numeric type.
+    y: `Tensor` denominator of numeric type.
+    name: A name for the operation (optional).
+
+  Returns:
+    `x / y` evaluated in floating point.
+
+  Raises:
+    TypeError: If `x` and `y` have different dtypes.
+
+[API Signature] x: tensor, y: tensor, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__RealDiv_device_/job:localhost/replica:0/task:0/device:CPU:0}} Incompatible shapes: [0,58,94,19] vs. [73,78] [Op:RealDiv] name:
+TypeError: Invalid dtype tf.bool in __truediv__. Expected one of {tf.uint8, tf.int8, tf.uint16, tf.int16, tf.uint32, tf.int32, tf.uint64, tf.int64, tf.bfloat16, tf.float16, tf.float32, tf.float64, tf.complex64, tf.complex128}.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (broadcastable shapes for elementwise division)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then true else ∀k ∈ [0, ndim(v_1) - 1] : if k ≤ ndim(v_2) - 1 then (shape(v_1, ndim(v_1) - 1 - k) = shape(v_2, ndim(v_2) - 1 - k) ∨ shape(v_1, ndim(v_1) - 1 - k) = 1 ∨ shape(v_2, ndim(v_2) - 1 - k) = 1)
+Token usage: input=2065, output=6566, total=8631
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.truediv API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Divides x / y elementwise (using Python 3 division operator semantics).
+
+  NOTE: Prefer using the Tensor operator or tf.divide which obey Python
+  division operator semantics.
+
+  This function forces Python 3 division operator semantics where all integer
+  arguments are cast to floating types first. If you want integer
+  division that rounds down, use `x // y` or `tf.math.floordiv`.
+
+  `x` and `y` must have the same numeric type.  If the inputs are floating
+  point, the output will have the same type.  If the inputs are integral, the
+  inputs are cast to `float32` for `int8` and `int16` and `float64` for `int32`
+  and `int64` (matching the behavior of Numpy).
+
+  Example:
+
+  >>> # Division with integer tensors (returns float)
+  >>> x1 = tf.constant([10, 20, 30], dtype=tf.int32)
+  >>> y1 = tf.constant([2, 4, 5], dtype=tf.int32)
+  >>> result1 = tf.math.truediv(x1, y1)
+
+  <tf.Tensor: shape=(3,), dtype=float64, numpy=array([5., 5., 6.])>
+
+  >>> # Division with different shaped tensors (broadcasting)
+  >>> x2 = tf.constant([[10, 20], [30, 40]], dtype=tf.float64)
+  >>> y2 = tf.constant([2, 5], dtype=tf.float64)
+  >>> result2 = tf.math.truediv(x2, y2)
+
+  <tf.Tensor: shape=(2, 2),dtype=float64,numpy= array([[ 5.,  4.],[15.,  8.]])>
+
+  # Handling potential division by zero (returns inf)
+  >>> x3 = tf.constant(5, dtype=tf.float32)
+  >>> y3 = tf.constant(0, dtype=tf.float32)
+  >>> result3 = tf.math.truediv(x3, y3)
+
+  <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  Args:
+    x: `Tensor` numerator of numeric type.
+    y: `Tensor` denominator of numeric type.
+    name: A name for the operation (optional).
+
+  Returns:
+    `x / y` evaluated in floating point.
+
+  Raises:
+    TypeError: If `x` and `y` have different dtypes.
+
+[API Signature] x: tensor, y: tensor, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__RealDiv_device_/job:localhost/replica:0/task:0/device:CPU:0}} Incompatible shapes: [0,58,94,19] vs. [73,78] [Op:RealDiv] name:
+TypeError: Invalid dtype tf.bool in __truediv__. Expected one of {tf.uint8, tf.int8, tf.uint16, tf.int16, tf.uint32, tf.int32, tf.uint64, tf.int64, tf.bfloat16, tf.float16, tf.float32, tf.float64, tf.complex64, tf.complex128}.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (name is a string parameter)
+{v_3 : str} |= v_3 = v_3
+Token usage: input=2065, output=6566, total=8631
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.truediv API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Divides x / y elementwise (using Python 3 division operator semantics).
+
+  NOTE: Prefer using the Tensor operator or tf.divide which obey Python
+  division operator semantics.
+
+  This function forces Python 3 division operator semantics where all integer
+  arguments are cast to floating types first. If you want integer
+  division that rounds down, use `x // y` or `tf.math.floordiv`.
+
+  `x` and `y` must have the same numeric type.  If the inputs are floating
+  point, the output will have the same type.  If the inputs are integral, the
+  inputs are cast to `float32` for `int8` and `int16` and `float64` for `int32`
+  and `int64` (matching the behavior of Numpy).
+
+  Example:
+
+  >>> # Division with integer tensors (returns float)
+  >>> x1 = tf.constant([10, 20, 30], dtype=tf.int32)
+  >>> y1 = tf.constant([2, 4, 5], dtype=tf.int32)
+  >>> result1 = tf.math.truediv(x1, y1)
+
+  <tf.Tensor: shape=(3,), dtype=float64, numpy=array([5., 5., 6.])>
+
+  >>> # Division with different shaped tensors (broadcasting)
+  >>> x2 = tf.constant([[10, 20], [30, 40]], dtype=tf.float64)
+  >>> y2 = tf.constant([2, 5], dtype=tf.float64)
+  >>> result2 = tf.math.truediv(x2, y2)
+
+  <tf.Tensor: shape=(2, 2),dtype=float64,numpy= array([[ 5.,  4.],[15.,  8.]])>
+
+  # Handling potential division by zero (returns inf)
+  >>> x3 = tf.constant(5, dtype=tf.float32)
+  >>> y3 = tf.constant(0, dtype=tf.float32)
+  >>> result3 = tf.math.truediv(x3, y3)
+
+  <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  Args:
+    x: `Tensor` numerator of numeric type.
+    y: `Tensor` denominator of numeric type.
+    name: A name for the operation (optional).
+
+  Returns:
+    `x / y` evaluated in floating point.
+
+  Raises:
+    TypeError: If `x` and `y` have different dtypes.
+
+[API Signature] x: tensor, y: tensor, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__RealDiv_device_/job:localhost/replica:0/task:0/device:CPU:0}} Incompatible shapes: [0,58,94,19] vs. [73,78] [Op:RealDiv] name:
+TypeError: Invalid dtype tf.bool in __truediv__. Expected one of {tf.uint8, tf.int8, tf.uint16, tf.int16, tf.uint32, tf.int32, tf.uint64, tf.int64, tf.bfloat16, tf.float16, tf.float32, tf.float64, tf.complex64, tf.complex128}.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (x and y must have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Token usage: input=2216, output=5228, total=7444
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.truediv API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Divides x / y elementwise (using Python 3 division operator semantics).
+
+  NOTE: Prefer using the Tensor operator or tf.divide which obey Python
+  division operator semantics.
+
+  This function forces Python 3 division operator semantics where all integer
+  arguments are cast to floating types first. If you want integer
+  division that rounds down, use `x // y` or `tf.math.floordiv`.
+
+  `x` and `y` must have the same numeric type.  If the inputs are floating
+  point, the output will have the same type.  If the inputs are integral, the
+  inputs are cast to `float32` for `int8` and `int16` and `float64` for `int32`
+  and `int64` (matching the behavior of Numpy).
+
+  Example:
+
+  >>> # Division with integer tensors (returns float)
+  >>> x1 = tf.constant([10, 20, 30], dtype=tf.int32)
+  >>> y1 = tf.constant([2, 4, 5], dtype=tf.int32)
+  >>> result1 = tf.math.truediv(x1, y1)
+
+  <tf.Tensor: shape=(3,), dtype=float64, numpy=array([5., 5., 6.])>
+
+  >>> # Division with different shaped tensors (broadcasting)
+  >>> x2 = tf.constant([[10, 20], [30, 40]], dtype=tf.float64)
+  >>> y2 = tf.constant([2, 5], dtype=tf.float64)
+  >>> result2 = tf.math.truediv(x2, y2)
+
+  <tf.Tensor: shape=(2, 2),dtype=float64,numpy= array([[ 5.,  4.],[15.,  8.]])>
+
+  # Handling potential division by zero (returns inf)
+  >>> x3 = tf.constant(5, dtype=tf.float32)
+  >>> y3 = tf.constant(0, dtype=tf.float32)
+  >>> result3 = tf.math.truediv(x3, y3)
+
+  <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  Args:
+    x: `Tensor` numerator of numeric type.
+    y: `Tensor` denominator of numeric type.
+    name: A name for the operation (optional).
+
+  Returns:
+    `x / y` evaluated in floating point.
+
+  Raises:
+    TypeError: If `x` and `y` have different dtypes.
+
+[API Signature] x: tensor, y: tensor, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__RealDiv_device_/job:localhost/replica:0/task:0/device:CPU:0}} Incompatible shapes: [0,58,94,19] vs. [73,78] [Op:RealDiv] name:
+TypeError: Invalid dtype tf.bool in __truediv__. Expected one of {tf.uint8, tf.int8, tf.uint16, tf.int16, tf.uint32, tf.int32, tf.uint64, tf.int64, tf.bfloat16, tf.float16, tf.float32, tf.float64, tf.complex64, tf.complex128}.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (x and y must be numeric tensors; bool is not allowed)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0
+Token usage: input=2216, output=5228, total=7444
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.truediv API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Divides x / y elementwise (using Python 3 division operator semantics).
+
+  NOTE: Prefer using the Tensor operator or tf.divide which obey Python
+  division operator semantics.
+
+  This function forces Python 3 division operator semantics where all integer
+  arguments are cast to floating types first. If you want integer
+  division that rounds down, use `x // y` or `tf.math.floordiv`.
+
+  `x` and `y` must have the same numeric type.  If the inputs are floating
+  point, the output will have the same type.  If the inputs are integral, the
+  inputs are cast to `float32` for `int8` and `int16` and `float64` for `int32`
+  and `int64` (matching the behavior of Numpy).
+
+  Example:
+
+  >>> # Division with integer tensors (returns float)
+  >>> x1 = tf.constant([10, 20, 30], dtype=tf.int32)
+  >>> y1 = tf.constant([2, 4, 5], dtype=tf.int32)
+  >>> result1 = tf.math.truediv(x1, y1)
+
+  <tf.Tensor: shape=(3,), dtype=float64, numpy=array([5., 5., 6.])>
+
+  >>> # Division with different shaped tensors (broadcasting)
+  >>> x2 = tf.constant([[10, 20], [30, 40]], dtype=tf.float64)
+  >>> y2 = tf.constant([2, 5], dtype=tf.float64)
+  >>> result2 = tf.math.truediv(x2, y2)
+
+  <tf.Tensor: shape=(2, 2),dtype=float64,numpy= array([[ 5.,  4.],[15.,  8.]])>
+
+  # Handling potential division by zero (returns inf)
+  >>> x3 = tf.constant(5, dtype=tf.float32)
+  >>> y3 = tf.constant(0, dtype=tf.float32)
+  >>> result3 = tf.math.truediv(x3, y3)
+
+  <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  Args:
+    x: `Tensor` numerator of numeric type.
+    y: `Tensor` denominator of numeric type.
+    name: A name for the operation (optional).
+
+  Returns:
+    `x / y` evaluated in floating point.
+
+  Raises:
+    TypeError: If `x` and `y` have different dtypes.
+
+[API Signature] x: tensor, y: tensor, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__RealDiv_device_/job:localhost/replica:0/task:0/device:CPU:0}} Incompatible shapes: [0,58,94,19] vs. [73,78] [Op:RealDiv] name:
+TypeError: Invalid dtype tf.bool in __truediv__. Expected one of {tf.uint8, tf.int8, tf.uint16, tf.int16, tf.uint32, tf.int32, tf.uint64, tf.int64, tf.bfloat16, tf.float16, tf.float32, tf.float64, tf.complex64, tf.complex128}.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (broadcasting compatibility for elementwise division)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) ≤ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)
+Token usage: input=2216, output=5228, total=7444
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.truediv API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Divides x / y elementwise (using Python 3 division operator semantics).
+
+  NOTE: Prefer using the Tensor operator or tf.divide which obey Python
+  division operator semantics.
+
+  This function forces Python 3 division operator semantics where all integer
+  arguments are cast to floating types first. If you want integer
+  division that rounds down, use `x // y` or `tf.math.floordiv`.
+
+  `x` and `y` must have the same numeric type.  If the inputs are floating
+  point, the output will have the same type.  If the inputs are integral, the
+  inputs are cast to `float32` for `int8` and `int16` and `float64` for `int32`
+  and `int64` (matching the behavior of Numpy).
+
+  Example:
+
+  >>> # Division with integer tensors (returns float)
+  >>> x1 = tf.constant([10, 20, 30], dtype=tf.int32)
+  >>> y1 = tf.constant([2, 4, 5], dtype=tf.int32)
+  >>> result1 = tf.math.truediv(x1, y1)
+
+  <tf.Tensor: shape=(3,), dtype=float64, numpy=array([5., 5., 6.])>
+
+  >>> # Division with different shaped tensors (broadcasting)
+  >>> x2 = tf.constant([[10, 20], [30, 40]], dtype=tf.float64)
+  >>> y2 = tf.constant([2, 5], dtype=tf.float64)
+  >>> result2 = tf.math.truediv(x2, y2)
+
+  <tf.Tensor: shape=(2, 2),dtype=float64,numpy= array([[ 5.,  4.],[15.,  8.]])>
+
+  # Handling potential division by zero (returns inf)
+  >>> x3 = tf.constant(5, dtype=tf.float32)
+  >>> y3 = tf.constant(0, dtype=tf.float32)
+  >>> result3 = tf.math.truediv(x3, y3)
+
+  <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  Args:
+    x: `Tensor` numerator of numeric type.
+    y: `Tensor` denominator of numeric type.
+    name: A name for the operation (optional).
+
+  Returns:
+    `x / y` evaluated in floating point.
+
+  Raises:
+    TypeError: If `x` and `y` have different dtypes.
+
+[API Signature] x: tensor, y: tensor, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__RealDiv_device_/job:localhost/replica:0/task:0/device:CPU:0}} Incompatible shapes: [0,58,94,19] vs. [73,78] [Op:RealDiv] name:
+TypeError: Invalid dtype tf.bool in __truediv__. Expected one of {tf.uint8, tf.int8, tf.uint16, tf.int16, tf.uint32, tf.int32, tf.uint64, tf.int64, tf.bfloat16, tf.float16, tf.float32, tf.float64, tf.complex64, tf.complex128}.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (valid name strings commonly used; optional name can be "none")
+{v_3 : str} |= v_3 = "none" ∨ v_3 = "sum" ∨ v_3 = "max" ∨ v_3 = "min"
+Token usage: input=2216, output=5228, total=7444
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.truediv API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Divides x / y elementwise (using Python 3 division operator semantics).
+
+  NOTE: Prefer using the Tensor operator or tf.divide which obey Python
+  division operator semantics.
+
+  This function forces Python 3 division operator semantics where all integer
+  arguments are cast to floating types first. If you want integer
+  division that rounds down, use `x // y` or `tf.math.floordiv`.
+
+  `x` and `y` must have the same numeric type.  If the inputs are floating
+  point, the output will have the same type.  If the inputs are integral, the
+  inputs are cast to `float32` for `int8` and `int16` and `float64` for `int32`
+  and `int64` (matching the behavior of Numpy).
+
+  Example:
+
+  >>> # Division with integer tensors (returns float)
+  >>> x1 = tf.constant([10, 20, 30], dtype=tf.int32)
+  >>> y1 = tf.constant([2, 4, 5], dtype=tf.int32)
+  >>> result1 = tf.math.truediv(x1, y1)
+
+  <tf.Tensor: shape=(3,), dtype=float64, numpy=array([5., 5., 6.])>
+
+  >>> # Division with different shaped tensors (broadcasting)
+  >>> x2 = tf.constant([[10, 20], [30, 40]], dtype=tf.float64)
+  >>> y2 = tf.constant([2, 5], dtype=tf.float64)
+  >>> result2 = tf.math.truediv(x2, y2)
+
+  <tf.Tensor: shape=(2, 2),dtype=float64,numpy= array([[ 5.,  4.],[15.,  8.]])>
+
+  # Handling potential division by zero (returns inf)
+  >>> x3 = tf.constant(5, dtype=tf.float32)
+  >>> y3 = tf.constant(0, dtype=tf.float32)
+  >>> result3 = tf.math.truediv(x3, y3)
+
+  <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  Args:
+    x: `Tensor` numerator of numeric type.
+    y: `Tensor` denominator of numeric type.
+    name: A name for the operation (optional).
+
+  Returns:
+    `x / y` evaluated in floating point.
+
+  Raises:
+    TypeError: If `x` and `y` have different dtypes.
+
+[API Signature] x: tensor, y: tensor, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__RealDiv_device_/job:localhost/replica:0/task:0/device:CPU:0}} Incompatible shapes: [0,58,94,19] vs. [73,78] [Op:RealDiv] name:
+TypeError: Invalid dtype tf.bool in __truediv__. Expected one of {tf.uint8, tf.int8, tf.uint16, tf.int16, tf.uint32, tf.int32, tf.uint64, tf.int64, tf.bfloat16, tf.float16, tf.float32, tf.float64, tf.complex64, tf.complex128}.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (x and y must be numeric and share the same dtype)
+{v_1 : tensor, v_2 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10 ∧ dtype_(v_2) = dtype_(v_1)
+Token usage: input=4570, output=6172, total=10742
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.truediv API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Divides x / y elementwise (using Python 3 division operator semantics).
+
+  NOTE: Prefer using the Tensor operator or tf.divide which obey Python
+  division operator semantics.
+
+  This function forces Python 3 division operator semantics where all integer
+  arguments are cast to floating types first. If you want integer
+  division that rounds down, use `x // y` or `tf.math.floordiv`.
+
+  `x` and `y` must have the same numeric type.  If the inputs are floating
+  point, the output will have the same type.  If the inputs are integral, the
+  inputs are cast to `float32` for `int8` and `int16` and `float64` for `int32`
+  and `int64` (matching the behavior of Numpy).
+
+  Example:
+
+  >>> # Division with integer tensors (returns float)
+  >>> x1 = tf.constant([10, 20, 30], dtype=tf.int32)
+  >>> y1 = tf.constant([2, 4, 5], dtype=tf.int32)
+  >>> result1 = tf.math.truediv(x1, y1)
+
+  <tf.Tensor: shape=(3,), dtype=float64, numpy=array([5., 5., 6.])>
+
+  >>> # Division with different shaped tensors (broadcasting)
+  >>> x2 = tf.constant([[10, 20], [30, 40]], dtype=tf.float64)
+  >>> y2 = tf.constant([2, 5], dtype=tf.float64)
+  >>> result2 = tf.math.truediv(x2, y2)
+
+  <tf.Tensor: shape=(2, 2),dtype=float64,numpy= array([[ 5.,  4.],[15.,  8.]])>
+
+  # Handling potential division by zero (returns inf)
+  >>> x3 = tf.constant(5, dtype=tf.float32)
+  >>> y3 = tf.constant(0, dtype=tf.float32)
+  >>> result3 = tf.math.truediv(x3, y3)
+
+  <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  Args:
+    x: `Tensor` numerator of numeric type.
+    y: `Tensor` denominator of numeric type.
+    name: A name for the operation (optional).
+
+  Returns:
+    `x / y` evaluated in floating point.
+
+  Raises:
+    TypeError: If `x` and `y` have different dtypes.
+
+[API Signature] x: tensor, y: tensor, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__RealDiv_device_/job:localhost/replica:0/task:0/device:CPU:0}} Incompatible shapes: [0,58,94,19] vs. [73,78] [Op:RealDiv] name:
+TypeError: Invalid dtype tf.bool in __truediv__. Expected one of {tf.uint8, tf.int8, tf.uint16, tf.int16, tf.uint32, tf.int32, tf.uint64, tf.int64, tf.bfloat16, tf.float16, tf.float32, tf.float64, tf.complex64, tf.complex128}.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (broadcasting compatibility for elementwise division)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_2) - 1 else ndim(v_1) - 1] : shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1) ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1
+Token usage: input=4570, output=6172, total=10742
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.truediv API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Divides x / y elementwise (using Python 3 division operator semantics).
+
+  NOTE: Prefer using the Tensor operator or tf.divide which obey Python
+  division operator semantics.
+
+  This function forces Python 3 division operator semantics where all integer
+  arguments are cast to floating types first. If you want integer
+  division that rounds down, use `x // y` or `tf.math.floordiv`.
+
+  `x` and `y` must have the same numeric type.  If the inputs are floating
+  point, the output will have the same type.  If the inputs are integral, the
+  inputs are cast to `float32` for `int8` and `int16` and `float64` for `int32`
+  and `int64` (matching the behavior of Numpy).
+
+  Example:
+
+  >>> # Division with integer tensors (returns float)
+  >>> x1 = tf.constant([10, 20, 30], dtype=tf.int32)
+  >>> y1 = tf.constant([2, 4, 5], dtype=tf.int32)
+  >>> result1 = tf.math.truediv(x1, y1)
+
+  <tf.Tensor: shape=(3,), dtype=float64, numpy=array([5., 5., 6.])>
+
+  >>> # Division with different shaped tensors (broadcasting)
+  >>> x2 = tf.constant([[10, 20], [30, 40]], dtype=tf.float64)
+  >>> y2 = tf.constant([2, 5], dtype=tf.float64)
+  >>> result2 = tf.math.truediv(x2, y2)
+
+  <tf.Tensor: shape=(2, 2),dtype=float64,numpy= array([[ 5.,  4.],[15.,  8.]])>
+
+  # Handling potential division by zero (returns inf)
+  >>> x3 = tf.constant(5, dtype=tf.float32)
+  >>> y3 = tf.constant(0, dtype=tf.float32)
+  >>> result3 = tf.math.truediv(x3, y3)
+
+  <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  Args:
+    x: `Tensor` numerator of numeric type.
+    y: `Tensor` denominator of numeric type.
+    name: A name for the operation (optional).
+
+  Returns:
+    `x / y` evaluated in floating point.
+
+  Raises:
+    TypeError: If `x` and `y` have different dtypes.
+
+[API Signature] x: tensor, y: tensor, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__RealDiv_device_/job:localhost/replica:0/task:0/device:CPU:0}} Incompatible shapes: [0,58,94,19] vs. [73,78] [Op:RealDiv] name:
+TypeError: Invalid dtype tf.bool in __truediv__. Expected one of {tf.uint8, tf.int8, tf.uint16, tf.int16, tf.uint32, tf.int32, tf.uint64, tf.int64, tf.bfloat16, tf.float16, tf.float32, tf.float64, tf.complex64, tf.complex128}.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (complex dtype consistency if used)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) < 9 ∨ dtype_(v_1) > 10 ∨ (9 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10 ∧ dtype_(v_2) = dtype_(v_1))
+Token usage: input=4570, output=6172, total=10742
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.truediv API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Divides x / y elementwise (using Python 3 division operator semantics).
+
+  NOTE: Prefer using the Tensor operator or tf.divide which obey Python
+  division operator semantics.
+
+  This function forces Python 3 division operator semantics where all integer
+  arguments are cast to floating types first. If you want integer
+  division that rounds down, use `x // y` or `tf.math.floordiv`.
+
+  `x` and `y` must have the same numeric type.  If the inputs are floating
+  point, the output will have the same type.  If the inputs are integral, the
+  inputs are cast to `float32` for `int8` and `int16` and `float64` for `int32`
+  and `int64` (matching the behavior of Numpy).
+
+  Example:
+
+  >>> # Division with integer tensors (returns float)
+  >>> x1 = tf.constant([10, 20, 30], dtype=tf.int32)
+  >>> y1 = tf.constant([2, 4, 5], dtype=tf.int32)
+  >>> result1 = tf.math.truediv(x1, y1)
+
+  <tf.Tensor: shape=(3,), dtype=float64, numpy=array([5., 5., 6.])>
+
+  >>> # Division with different shaped tensors (broadcasting)
+  >>> x2 = tf.constant([[10, 20], [30, 40]], dtype=tf.float64)
+  >>> y2 = tf.constant([2, 5], dtype=tf.float64)
+  >>> result2 = tf.math.truediv(x2, y2)
+
+  <tf.Tensor: shape=(2, 2),dtype=float64,numpy= array([[ 5.,  4.],[15.,  8.]])>
+
+  # Handling potential division by zero (returns inf)
+  >>> x3 = tf.constant(5, dtype=tf.float32)
+  >>> y3 = tf.constant(0, dtype=tf.float32)
+  >>> result3 = tf.math.truediv(x3, y3)
+
+  <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  Args:
+    x: `Tensor` numerator of numeric type.
+    y: `Tensor` denominator of numeric type.
+    name: A name for the operation (optional).
+
+  Returns:
+    `x / y` evaluated in floating point.
+
+  Raises:
+    TypeError: If `x` and `y` have different dtypes.
+
+[API Signature] x: tensor, y: tensor, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__RealDiv_device_/job:localhost/replica:0/task:0/device:CPU:0}} Incompatible shapes: [0,58,94,19] vs. [73,78] [Op:RealDiv] name:
+TypeError: Invalid dtype tf.bool in __truediv__. Expected one of {tf.uint8, tf.int8, tf.uint16, tf.int16, tf.uint32, tf.int32, tf.uint64, tf.int64, tf.bfloat16, tf.float16, tf.float32, tf.float64, tf.complex64, tf.complex128}.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (name is an allowed string token)
+{v_3 : str} |= v_3 = "none" ∨ v_3 = "linear" ∨ v_3 = "relu" ∨ v_3 = "softplus"
+Token usage: input=4570, output=6172, total=10742
+** SUCCESS **
+

@@ -1,0 +1,1072 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.compute_accidental_hits API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Compute the position ids in `sampled_candidates` matching `true_classes`.
+
+  In Candidate Sampling, this operation facilitates virtually removing
+  sampled classes which happen to match target classes.  This is done
+  in Sampled Softmax and Sampled Logistic.
+
+  See our [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf).
+
+  We presuppose that the `sampled_candidates` are unique.
+
+  We call it an 'accidental hit' when one of the target classes
+  matches one of the sampled classes.  This operation reports
+  accidental hits as triples `(index, id, weight)`, where `index`
+  represents the row number in `true_classes`, `id` represents the
+  position in `sampled_candidates`, and weight is `-FLOAT_MAX`.
+
+  The result of this op should be passed through a `sparse_to_dense`
+  operation, then added to the logits of the sampled classes. This
+  removes the contradictory effect of accidentally sampling the true
+  target classes as noise classes for the same example.
+
+  Args:
+    true_classes: A `Tensor` of type `int64` and shape `[batch_size,
+      num_true]`. The target classes.
+    sampled_candidates: A tensor of type `int64` and shape `[num_sampled]`.
+      The sampled_candidates output of CandidateSampler.
+    num_true: An `int`.  The number of target classes per training example.
+    seed: An `int`. An operation-specific seed. Default is 0.
+    name: A name for the operation (optional).
+
+  Returns:
+    indices: A `Tensor` of type `int32` and shape `[num_accidental_hits]`.
+      Values indicate rows in `true_classes`.
+    ids: A `Tensor` of type `int64` and shape `[num_accidental_hits]`.
+      Values indicate positions in `sampled_candidates`.
+    weights: A `Tensor` of type `float` and shape `[num_accidental_hits]`.
+      Each value is `-FLOAT_MAX`.
+
+[API Signature] true_classes: tensor, sampled_candidates: tensor, num_true: integer, seed: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__ComputeAccidentalHits_device_/job:localhost/replica:0/task:0/device:CPU:0}} true_candidates must be a batch_size * num_true matrix [Op:ComputeAccidentalHits]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (true_classes must be a 2D matrix)
+{v_1 : tensor} |= ndim(v_1) = 2
+Token usage: input=2000, output=5029, total=7029
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.compute_accidental_hits API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Compute the position ids in `sampled_candidates` matching `true_classes`.
+
+  In Candidate Sampling, this operation facilitates virtually removing
+  sampled classes which happen to match target classes.  This is done
+  in Sampled Softmax and Sampled Logistic.
+
+  See our [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf).
+
+  We presuppose that the `sampled_candidates` are unique.
+
+  We call it an 'accidental hit' when one of the target classes
+  matches one of the sampled classes.  This operation reports
+  accidental hits as triples `(index, id, weight)`, where `index`
+  represents the row number in `true_classes`, `id` represents the
+  position in `sampled_candidates`, and weight is `-FLOAT_MAX`.
+
+  The result of this op should be passed through a `sparse_to_dense`
+  operation, then added to the logits of the sampled classes. This
+  removes the contradictory effect of accidentally sampling the true
+  target classes as noise classes for the same example.
+
+  Args:
+    true_classes: A `Tensor` of type `int64` and shape `[batch_size,
+      num_true]`. The target classes.
+    sampled_candidates: A tensor of type `int64` and shape `[num_sampled]`.
+      The sampled_candidates output of CandidateSampler.
+    num_true: An `int`.  The number of target classes per training example.
+    seed: An `int`. An operation-specific seed. Default is 0.
+    name: A name for the operation (optional).
+
+  Returns:
+    indices: A `Tensor` of type `int32` and shape `[num_accidental_hits]`.
+      Values indicate rows in `true_classes`.
+    ids: A `Tensor` of type `int64` and shape `[num_accidental_hits]`.
+      Values indicate positions in `sampled_candidates`.
+    weights: A `Tensor` of type `float` and shape `[num_accidental_hits]`.
+      Each value is `-FLOAT_MAX`.
+
+[API Signature] true_classes: tensor, sampled_candidates: tensor, num_true: integer, seed: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__ComputeAccidentalHits_device_/job:localhost/replica:0/task:0/device:CPU:0}} true_candidates must be a batch_size * num_true matrix [Op:ComputeAccidentalHits]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (num_true must match the second dimension of true_classes)
+{v_1 : tensor, v_3 : int} |= ndim(v_1) = 2 ∧ shape(v_1, 1) = v_3
+Token usage: input=2000, output=5029, total=7029
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.compute_accidental_hits API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Compute the position ids in `sampled_candidates` matching `true_classes`.
+
+  In Candidate Sampling, this operation facilitates virtually removing
+  sampled classes which happen to match target classes.  This is done
+  in Sampled Softmax and Sampled Logistic.
+
+  See our [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf).
+
+  We presuppose that the `sampled_candidates` are unique.
+
+  We call it an 'accidental hit' when one of the target classes
+  matches one of the sampled classes.  This operation reports
+  accidental hits as triples `(index, id, weight)`, where `index`
+  represents the row number in `true_classes`, `id` represents the
+  position in `sampled_candidates`, and weight is `-FLOAT_MAX`.
+
+  The result of this op should be passed through a `sparse_to_dense`
+  operation, then added to the logits of the sampled classes. This
+  removes the contradictory effect of accidentally sampling the true
+  target classes as noise classes for the same example.
+
+  Args:
+    true_classes: A `Tensor` of type `int64` and shape `[batch_size,
+      num_true]`. The target classes.
+    sampled_candidates: A tensor of type `int64` and shape `[num_sampled]`.
+      The sampled_candidates output of CandidateSampler.
+    num_true: An `int`.  The number of target classes per training example.
+    seed: An `int`. An operation-specific seed. Default is 0.
+    name: A name for the operation (optional).
+
+  Returns:
+    indices: A `Tensor` of type `int32` and shape `[num_accidental_hits]`.
+      Values indicate rows in `true_classes`.
+    ids: A `Tensor` of type `int64` and shape `[num_accidental_hits]`.
+      Values indicate positions in `sampled_candidates`.
+    weights: A `Tensor` of type `float` and shape `[num_accidental_hits]`.
+      Each value is `-FLOAT_MAX`.
+
+[API Signature] true_classes: tensor, sampled_candidates: tensor, num_true: integer, seed: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__ComputeAccidentalHits_device_/job:localhost/replica:0/task:0/device:CPU:0}} true_candidates must be a batch_size * num_true matrix [Op:ComputeAccidentalHits]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (sampled_candidates must be 1-D)
+{v_2 : tensor} |= ndim(v_2) = 1
+Token usage: input=2000, output=5029, total=7029
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.compute_accidental_hits API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Compute the position ids in `sampled_candidates` matching `true_classes`.
+
+  In Candidate Sampling, this operation facilitates virtually removing
+  sampled classes which happen to match target classes.  This is done
+  in Sampled Softmax and Sampled Logistic.
+
+  See our [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf).
+
+  We presuppose that the `sampled_candidates` are unique.
+
+  We call it an 'accidental hit' when one of the target classes
+  matches one of the sampled classes.  This operation reports
+  accidental hits as triples `(index, id, weight)`, where `index`
+  represents the row number in `true_classes`, `id` represents the
+  position in `sampled_candidates`, and weight is `-FLOAT_MAX`.
+
+  The result of this op should be passed through a `sparse_to_dense`
+  operation, then added to the logits of the sampled classes. This
+  removes the contradictory effect of accidentally sampling the true
+  target classes as noise classes for the same example.
+
+  Args:
+    true_classes: A `Tensor` of type `int64` and shape `[batch_size,
+      num_true]`. The target classes.
+    sampled_candidates: A tensor of type `int64` and shape `[num_sampled]`.
+      The sampled_candidates output of CandidateSampler.
+    num_true: An `int`.  The number of target classes per training example.
+    seed: An `int`. An operation-specific seed. Default is 0.
+    name: A name for the operation (optional).
+
+  Returns:
+    indices: A `Tensor` of type `int32` and shape `[num_accidental_hits]`.
+      Values indicate rows in `true_classes`.
+    ids: A `Tensor` of type `int64` and shape `[num_accidental_hits]`.
+      Values indicate positions in `sampled_candidates`.
+    weights: A `Tensor` of type `float` and shape `[num_accidental_hits]`.
+      Each value is `-FLOAT_MAX`.
+
+[API Signature] true_classes: tensor, sampled_candidates: tensor, num_true: integer, seed: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__ComputeAccidentalHits_device_/job:localhost/replica:0/task:0/device:CPU:0}} true_candidates must be a batch_size * num_true matrix [Op:ComputeAccidentalHits]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (true_classes and sampled_candidates must be int64 tensors)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 4 ∧ dtype_(v_2) = 4
+Token usage: input=2000, output=5029, total=7029
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.compute_accidental_hits API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Compute the position ids in `sampled_candidates` matching `true_classes`.
+
+  In Candidate Sampling, this operation facilitates virtually removing
+  sampled classes which happen to match target classes.  This is done
+  in Sampled Softmax and Sampled Logistic.
+
+  See our [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf).
+
+  We presuppose that the `sampled_candidates` are unique.
+
+  We call it an 'accidental hit' when one of the target classes
+  matches one of the sampled classes.  This operation reports
+  accidental hits as triples `(index, id, weight)`, where `index`
+  represents the row number in `true_classes`, `id` represents the
+  position in `sampled_candidates`, and weight is `-FLOAT_MAX`.
+
+  The result of this op should be passed through a `sparse_to_dense`
+  operation, then added to the logits of the sampled classes. This
+  removes the contradictory effect of accidentally sampling the true
+  target classes as noise classes for the same example.
+
+  Args:
+    true_classes: A `Tensor` of type `int64` and shape `[batch_size,
+      num_true]`. The target classes.
+    sampled_candidates: A tensor of type `int64` and shape `[num_sampled]`.
+      The sampled_candidates output of CandidateSampler.
+    num_true: An `int`.  The number of target classes per training example.
+    seed: An `int`. An operation-specific seed. Default is 0.
+    name: A name for the operation (optional).
+
+  Returns:
+    indices: A `Tensor` of type `int32` and shape `[num_accidental_hits]`.
+      Values indicate rows in `true_classes`.
+    ids: A `Tensor` of type `int64` and shape `[num_accidental_hits]`.
+      Values indicate positions in `sampled_candidates`.
+    weights: A `Tensor` of type `float` and shape `[num_accidental_hits]`.
+      Each value is `-FLOAT_MAX`.
+
+[API Signature] true_classes: tensor, sampled_candidates: tensor, num_true: integer, seed: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__ComputeAccidentalHits_device_/job:localhost/replica:0/task:0/device:CPU:0}} true_candidates must be a batch_size * num_true matrix [Op:ComputeAccidentalHits]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (class IDs must be non-negative)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) ≥ 0 ∧ min(v_2) ≥ 0
+Token usage: input=2000, output=5029, total=7029
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.compute_accidental_hits API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Compute the position ids in `sampled_candidates` matching `true_classes`.
+
+  In Candidate Sampling, this operation facilitates virtually removing
+  sampled classes which happen to match target classes.  This is done
+  in Sampled Softmax and Sampled Logistic.
+
+  See our [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf).
+
+  We presuppose that the `sampled_candidates` are unique.
+
+  We call it an 'accidental hit' when one of the target classes
+  matches one of the sampled classes.  This operation reports
+  accidental hits as triples `(index, id, weight)`, where `index`
+  represents the row number in `true_classes`, `id` represents the
+  position in `sampled_candidates`, and weight is `-FLOAT_MAX`.
+
+  The result of this op should be passed through a `sparse_to_dense`
+  operation, then added to the logits of the sampled classes. This
+  removes the contradictory effect of accidentally sampling the true
+  target classes as noise classes for the same example.
+
+  Args:
+    true_classes: A `Tensor` of type `int64` and shape `[batch_size,
+      num_true]`. The target classes.
+    sampled_candidates: A tensor of type `int64` and shape `[num_sampled]`.
+      The sampled_candidates output of CandidateSampler.
+    num_true: An `int`.  The number of target classes per training example.
+    seed: An `int`. An operation-specific seed. Default is 0.
+    name: A name for the operation (optional).
+
+  Returns:
+    indices: A `Tensor` of type `int32` and shape `[num_accidental_hits]`.
+      Values indicate rows in `true_classes`.
+    ids: A `Tensor` of type `int64` and shape `[num_accidental_hits]`.
+      Values indicate positions in `sampled_candidates`.
+    weights: A `Tensor` of type `float` and shape `[num_accidental_hits]`.
+      Each value is `-FLOAT_MAX`.
+
+[API Signature] true_classes: tensor, sampled_candidates: tensor, num_true: integer, seed: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__ComputeAccidentalHits_device_/job:localhost/replica:0/task:0/device:CPU:0}} true_candidates must be a batch_size * num_true matrix [Op:ComputeAccidentalHits]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (num_true must be positive)
+{v_3 : int} |= v_3 > 0
+Token usage: input=2000, output=5029, total=7029
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.compute_accidental_hits API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Compute the position ids in `sampled_candidates` matching `true_classes`.
+
+  In Candidate Sampling, this operation facilitates virtually removing
+  sampled classes which happen to match target classes.  This is done
+  in Sampled Softmax and Sampled Logistic.
+
+  See our [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf).
+
+  We presuppose that the `sampled_candidates` are unique.
+
+  We call it an 'accidental hit' when one of the target classes
+  matches one of the sampled classes.  This operation reports
+  accidental hits as triples `(index, id, weight)`, where `index`
+  represents the row number in `true_classes`, `id` represents the
+  position in `sampled_candidates`, and weight is `-FLOAT_MAX`.
+
+  The result of this op should be passed through a `sparse_to_dense`
+  operation, then added to the logits of the sampled classes. This
+  removes the contradictory effect of accidentally sampling the true
+  target classes as noise classes for the same example.
+
+  Args:
+    true_classes: A `Tensor` of type `int64` and shape `[batch_size,
+      num_true]`. The target classes.
+    sampled_candidates: A tensor of type `int64` and shape `[num_sampled]`.
+      The sampled_candidates output of CandidateSampler.
+    num_true: An `int`.  The number of target classes per training example.
+    seed: An `int`. An operation-specific seed. Default is 0.
+    name: A name for the operation (optional).
+
+  Returns:
+    indices: A `Tensor` of type `int32` and shape `[num_accidental_hits]`.
+      Values indicate rows in `true_classes`.
+    ids: A `Tensor` of type `int64` and shape `[num_accidental_hits]`.
+      Values indicate positions in `sampled_candidates`.
+    weights: A `Tensor` of type `float` and shape `[num_accidental_hits]`.
+      Each value is `-FLOAT_MAX`.
+
+[API Signature] true_classes: tensor, sampled_candidates: tensor, num_true: integer, seed: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__ComputeAccidentalHits_device_/job:localhost/replica:0/task:0/device:CPU:0}} true_candidates must be a batch_size * num_true matrix [Op:ComputeAccidentalHits]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (seed must be non-negative)
+{v_4 : int} |= v_4 ≥ 0
+Token usage: input=2000, output=5029, total=7029
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.compute_accidental_hits API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Compute the position ids in `sampled_candidates` matching `true_classes`.
+
+  In Candidate Sampling, this operation facilitates virtually removing
+  sampled classes which happen to match target classes.  This is done
+  in Sampled Softmax and Sampled Logistic.
+
+  See our [Candidate Sampling Algorithms
+  Reference](http://www.tensorflow.org/extras/candidate_sampling.pdf).
+
+  We presuppose that the `sampled_candidates` are unique.
+
+  We call it an 'accidental hit' when one of the target classes
+  matches one of the sampled classes.  This operation reports
+  accidental hits as triples `(index, id, weight)`, where `index`
+  represents the row number in `true_classes`, `id` represents the
+  position in `sampled_candidates`, and weight is `-FLOAT_MAX`.
+
+  The result of this op should be passed through a `sparse_to_dense`
+  operation, then added to the logits of the sampled classes. This
+  removes the contradictory effect of accidentally sampling the true
+  target classes as noise classes for the same example.
+
+  Args:
+    true_classes: A `Tensor` of type `int64` and shape `[batch_size,
+      num_true]`. The target classes.
+    sampled_candidates: A tensor of type `int64` and shape `[num_sampled]`.
+      The sampled_candidates output of CandidateSampler.
+    num_true: An `int`.  The number of target classes per training example.
+    seed: An `int`. An operation-specific seed. Default is 0.
+    name: A name for the operation (optional).
+
+  Returns:
+    indices: A `Tensor` of type `int32` and shape `[num_accidental_hits]`.
+      Values indicate rows in `true_classes`.
+    ids: A `Tensor` of type `int64` and shape `[num_accidental_hits]`.
+      Values indicate positions in `sampled_candidates`.
+    weights: A `Tensor` of type `float` and shape `[num_accidental_hits]`.
+      Each value is `-FLOAT_MAX`.
+
+[API Signature] true_classes: tensor, sampled_candidates: tensor, num_true: integer, seed: integer, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__ComputeAccidentalHits_device_/job:localhost/replica:0/task:0/device:CPU:0}} true_candidates must be a batch_size * num_true matrix [Op:ComputeAccidentalHits]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (name, if provided, must be from the allowed string set)
+{v_5 : str} |= v_5 = "ii" ∨ v_5 = "ii->i" ∨ v_5 = "i,j->ij" ∨ v_5 = "bij,bjk->bik" ∨ v_5 = "...ij->...ji" ∨ v_5 = "bn,anm,bm->ba" ∨ v_5 = "none" ∨ v_5 = "sum" ∨ v_5 = "max" ∨ v_5 = "min" ∨ v_5 = "prod" ∨ v_5 = "relu" ∨ v_5 = "tanh" ∨ v_5 = "sigmoid" ∨ v_5 = "softmax" ∨ v_5 = "elu" ∨ v_5 = "selu" ∨ v_5 = "gelu" ∨ v_5 = "swish" ∨ v_5 = "softplus" ∨ v_5 = "linear" ∨ v_5 = "valid" ∨ v_5 = "same" ∨ v_5 = "causal" ∨ v_5 = "channels_last" ∨ v_5 = "channels_first"
+Token usage: input=2000, output=5029, total=7029
+** SUCCESS **
+

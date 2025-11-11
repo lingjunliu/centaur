@@ -1,0 +1,1974 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.transpose API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Transpose image(s) by swapping the height and width dimension.
+
+  Usage Example:
+
+  >>> x = [[[1.0, 2.0, 3.0],
+  ...       [4.0, 5.0, 6.0]],
+  ...     [[7.0, 8.0, 9.0],
+  ...       [10.0, 11.0, 12.0]]]
+  >>> tf.image.transpose(x)
+  <tf.Tensor: shape=(2, 2, 3), dtype=float32, numpy=
+  array([[[ 1.,  2.,  3.],
+          [ 7.,  8.,  9.]],
+         [[ 4.,  5.,  6.],
+          [10., 11., 12.]]], dtype=float32)>
+
+  Args:
+    image: 4-D Tensor of shape `[batch, height, width, channels]` or 3-D Tensor
+      of shape `[height, width, channels]`.
+    name: A name for this operation (optional).
+
+  Returns:
+    If `image` was 4-D, a 4-D float Tensor of shape
+   `[batch, width, height, channels]`
+    If `image` was 3-D, a 3-D float Tensor of shape
+   `[width, height, channels]`
+
+  Raises:
+    ValueError: if the shape of `image` not supported.
+
+  Usage Example:
+
+  >>> image = [[[1, 2], [3, 4]],
+  ...         [[5, 6], [7, 8]],
+  ...         [[9, 10], [11, 12]]]
+  >>> image = tf.constant(image)
+  >>> tf.image.transpose(image)
+  <tf.Tensor: shape=(2, 3, 2), dtype=int32, numpy=
+  array([[[ 1,  2],
+         [ 5,  6],
+         [ 9, 10]],
+        [[ 3,  4],
+         [ 7,  8],
+         [11, 12]]], dtype=int32)>
+
+[API Signature] image: tensor, name: string
+
+[Error Messages]
+ValueError: 'image' (shape (0, 9)) must be at least three-dimensional.
+ValueError: 'image' (shape (1, 25, 24, 22, 72)) must have either 3 or 4 dimensions.
+ValueError: inner 3 dims of 'image.shape' must be > 0: (41, 28, 86, 0)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (image must be 3-D or 4-D)
+{v_1 : tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4
+Token usage: input=1879, output=4110, total=5989
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.transpose API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Transpose image(s) by swapping the height and width dimension.
+
+  Usage Example:
+
+  >>> x = [[[1.0, 2.0, 3.0],
+  ...       [4.0, 5.0, 6.0]],
+  ...     [[7.0, 8.0, 9.0],
+  ...       [10.0, 11.0, 12.0]]]
+  >>> tf.image.transpose(x)
+  <tf.Tensor: shape=(2, 2, 3), dtype=float32, numpy=
+  array([[[ 1.,  2.,  3.],
+          [ 7.,  8.,  9.]],
+         [[ 4.,  5.,  6.],
+          [10., 11., 12.]]], dtype=float32)>
+
+  Args:
+    image: 4-D Tensor of shape `[batch, height, width, channels]` or 3-D Tensor
+      of shape `[height, width, channels]`.
+    name: A name for this operation (optional).
+
+  Returns:
+    If `image` was 4-D, a 4-D float Tensor of shape
+   `[batch, width, height, channels]`
+    If `image` was 3-D, a 3-D float Tensor of shape
+   `[width, height, channels]`
+
+  Raises:
+    ValueError: if the shape of `image` not supported.
+
+  Usage Example:
+
+  >>> image = [[[1, 2], [3, 4]],
+  ...         [[5, 6], [7, 8]],
+  ...         [[9, 10], [11, 12]]]
+  >>> image = tf.constant(image)
+  >>> tf.image.transpose(image)
+  <tf.Tensor: shape=(2, 3, 2), dtype=int32, numpy=
+  array([[[ 1,  2],
+         [ 5,  6],
+         [ 9, 10]],
+        [[ 3,  4],
+         [ 7,  8],
+         [11, 12]]], dtype=int32)>
+
+[API Signature] image: tensor, name: string
+
+[Error Messages]
+ValueError: 'image' (shape (0, 9)) must be at least three-dimensional.
+ValueError: 'image' (shape (1, 25, 24, 22, 72)) must have either 3 or 4 dimensions.
+ValueError: inner 3 dims of 'image.shape' must be > 0: (41, 28, 86, 0)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (for 3-D image, all dimensions must be > 0)
+{v_1 : tensor} |= if ndim(v_1) = 3 then ∀i ∈ [0, 2] : shape(v_1, i) > 0
+Token usage: input=1879, output=4110, total=5989
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.transpose API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Transpose image(s) by swapping the height and width dimension.
+
+  Usage Example:
+
+  >>> x = [[[1.0, 2.0, 3.0],
+  ...       [4.0, 5.0, 6.0]],
+  ...     [[7.0, 8.0, 9.0],
+  ...       [10.0, 11.0, 12.0]]]
+  >>> tf.image.transpose(x)
+  <tf.Tensor: shape=(2, 2, 3), dtype=float32, numpy=
+  array([[[ 1.,  2.,  3.],
+          [ 7.,  8.,  9.]],
+         [[ 4.,  5.,  6.],
+          [10., 11., 12.]]], dtype=float32)>
+
+  Args:
+    image: 4-D Tensor of shape `[batch, height, width, channels]` or 3-D Tensor
+      of shape `[height, width, channels]`.
+    name: A name for this operation (optional).
+
+  Returns:
+    If `image` was 4-D, a 4-D float Tensor of shape
+   `[batch, width, height, channels]`
+    If `image` was 3-D, a 3-D float Tensor of shape
+   `[width, height, channels]`
+
+  Raises:
+    ValueError: if the shape of `image` not supported.
+
+  Usage Example:
+
+  >>> image = [[[1, 2], [3, 4]],
+  ...         [[5, 6], [7, 8]],
+  ...         [[9, 10], [11, 12]]]
+  >>> image = tf.constant(image)
+  >>> tf.image.transpose(image)
+  <tf.Tensor: shape=(2, 3, 2), dtype=int32, numpy=
+  array([[[ 1,  2],
+         [ 5,  6],
+         [ 9, 10]],
+        [[ 3,  4],
+         [ 7,  8],
+         [11, 12]]], dtype=int32)>
+
+[API Signature] image: tensor, name: string
+
+[Error Messages]
+ValueError: 'image' (shape (0, 9)) must be at least three-dimensional.
+ValueError: 'image' (shape (1, 25, 24, 22, 72)) must have either 3 or 4 dimensions.
+ValueError: inner 3 dims of 'image.shape' must be > 0: (41, 28, 86, 0)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (for 4-D image, inner 3 dims [height, width, channels] must be > 0)
+{v_1 : tensor} |= if ndim(v_1) = 4 then ∀j ∈ [1, 3] : shape(v_1, j) > 0
+Token usage: input=1879, output=4110, total=5989
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.transpose API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Transpose image(s) by swapping the height and width dimension.
+
+  Usage Example:
+
+  >>> x = [[[1.0, 2.0, 3.0],
+  ...       [4.0, 5.0, 6.0]],
+  ...     [[7.0, 8.0, 9.0],
+  ...       [10.0, 11.0, 12.0]]]
+  >>> tf.image.transpose(x)
+  <tf.Tensor: shape=(2, 2, 3), dtype=float32, numpy=
+  array([[[ 1.,  2.,  3.],
+          [ 7.,  8.,  9.]],
+         [[ 4.,  5.,  6.],
+          [10., 11., 12.]]], dtype=float32)>
+
+  Args:
+    image: 4-D Tensor of shape `[batch, height, width, channels]` or 3-D Tensor
+      of shape `[height, width, channels]`.
+    name: A name for this operation (optional).
+
+  Returns:
+    If `image` was 4-D, a 4-D float Tensor of shape
+   `[batch, width, height, channels]`
+    If `image` was 3-D, a 3-D float Tensor of shape
+   `[width, height, channels]`
+
+  Raises:
+    ValueError: if the shape of `image` not supported.
+
+  Usage Example:
+
+  >>> image = [[[1, 2], [3, 4]],
+  ...         [[5, 6], [7, 8]],
+  ...         [[9, 10], [11, 12]]]
+  >>> image = tf.constant(image)
+  >>> tf.image.transpose(image)
+  <tf.Tensor: shape=(2, 3, 2), dtype=int32, numpy=
+  array([[[ 1,  2],
+         [ 5,  6],
+         [ 9, 10]],
+        [[ 3,  4],
+         [ 7,  8],
+         [11, 12]]], dtype=int32)>
+
+[API Signature] image: tensor, name: string
+
+[Error Messages]
+ValueError: 'image' (shape (0, 9)) must be at least three-dimensional.
+ValueError: 'image' (shape (1, 25, 24, 22, 72)) must have either 3 or 4 dimensions.
+ValueError: inner 3 dims of 'image.shape' must be > 0: (41, 28, 86, 0)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (name is a valid string from the allowed set)
+{v_2 : str} |= v_2 = "ii" ∨ v_2 = "ii->i" ∨ v_2 = "i,j->ij" ∨ v_2 = "bij,bjk->bik" ∨ v_2 = "...ij->...ji" ∨ v_2 = "bn,anm,bm->ba" ∨ v_2 = "none" ∨ v_2 = "sum" ∨ v_2 = "max" ∨ v_2 = "min" ∨ v_2 = "prod" ∨ v_2 = "relu" ∨ v_2 = "tanh" ∨ v_2 = "sigmoid" ∨ v_2 = "softmax" ∨ v_2 = "elu" ∨ v_2 = "selu" ∨ v_2 = "gelu" ∨ v_2 = "swish" ∨ v_2 = "softplus" ∨ v_2 = "linear" ∨ v_2 = "valid" ∨ v_2 = "same" ∨ v_2 = "causal" ∨ v_2 = "channels_last" ∨ v_2 = "channels_first"
+Token usage: input=1879, output=4110, total=5989
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.transpose API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Transpose image(s) by swapping the height and width dimension.
+
+  Usage Example:
+
+  >>> x = [[[1.0, 2.0, 3.0],
+  ...       [4.0, 5.0, 6.0]],
+  ...     [[7.0, 8.0, 9.0],
+  ...       [10.0, 11.0, 12.0]]]
+  >>> tf.image.transpose(x)
+  <tf.Tensor: shape=(2, 2, 3), dtype=float32, numpy=
+  array([[[ 1.,  2.,  3.],
+          [ 7.,  8.,  9.]],
+         [[ 4.,  5.,  6.],
+          [10., 11., 12.]]], dtype=float32)>
+
+  Args:
+    image: 4-D Tensor of shape `[batch, height, width, channels]` or 3-D Tensor
+      of shape `[height, width, channels]`.
+    name: A name for this operation (optional).
+
+  Returns:
+    If `image` was 4-D, a 4-D float Tensor of shape
+   `[batch, width, height, channels]`
+    If `image` was 3-D, a 3-D float Tensor of shape
+   `[width, height, channels]`
+
+  Raises:
+    ValueError: if the shape of `image` not supported.
+
+  Usage Example:
+
+  >>> image = [[[1, 2], [3, 4]],
+  ...         [[5, 6], [7, 8]],
+  ...         [[9, 10], [11, 12]]]
+  >>> image = tf.constant(image)
+  >>> tf.image.transpose(image)
+  <tf.Tensor: shape=(2, 3, 2), dtype=int32, numpy=
+  array([[[ 1,  2],
+         [ 5,  6],
+         [ 9, 10]],
+        [[ 3,  4],
+         [ 7,  8],
+         [11, 12]]], dtype=int32)>
+
+[API Signature] image: tensor, name: string
+
+[Error Messages]
+ValueError: 'image' (shape (0, 9)) must be at least three-dimensional.
+ValueError: 'image' (shape (1, 25, 24, 22, 72)) must have either 3 or 4 dimensions.
+ValueError: inner 3 dims of 'image.shape' must be > 0: (41, 28, 86, 0)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (image must be at least three-dimensional)
+{v_1 : tensor} |= ndim(v_1) ≥ 3
+Token usage: input=4181, output=2947, total=7128
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.transpose API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Transpose image(s) by swapping the height and width dimension.
+
+  Usage Example:
+
+  >>> x = [[[1.0, 2.0, 3.0],
+  ...       [4.0, 5.0, 6.0]],
+  ...     [[7.0, 8.0, 9.0],
+  ...       [10.0, 11.0, 12.0]]]
+  >>> tf.image.transpose(x)
+  <tf.Tensor: shape=(2, 2, 3), dtype=float32, numpy=
+  array([[[ 1.,  2.,  3.],
+          [ 7.,  8.,  9.]],
+         [[ 4.,  5.,  6.],
+          [10., 11., 12.]]], dtype=float32)>
+
+  Args:
+    image: 4-D Tensor of shape `[batch, height, width, channels]` or 3-D Tensor
+      of shape `[height, width, channels]`.
+    name: A name for this operation (optional).
+
+  Returns:
+    If `image` was 4-D, a 4-D float Tensor of shape
+   `[batch, width, height, channels]`
+    If `image` was 3-D, a 3-D float Tensor of shape
+   `[width, height, channels]`
+
+  Raises:
+    ValueError: if the shape of `image` not supported.
+
+  Usage Example:
+
+  >>> image = [[[1, 2], [3, 4]],
+  ...         [[5, 6], [7, 8]],
+  ...         [[9, 10], [11, 12]]]
+  >>> image = tf.constant(image)
+  >>> tf.image.transpose(image)
+  <tf.Tensor: shape=(2, 3, 2), dtype=int32, numpy=
+  array([[[ 1,  2],
+         [ 5,  6],
+         [ 9, 10]],
+        [[ 3,  4],
+         [ 7,  8],
+         [11, 12]]], dtype=int32)>
+
+[API Signature] image: tensor, name: string
+
+[Error Messages]
+ValueError: 'image' (shape (0, 9)) must be at least three-dimensional.
+ValueError: 'image' (shape (1, 25, 24, 22, 72)) must have either 3 or 4 dimensions.
+ValueError: inner 3 dims of 'image.shape' must be > 0: (41, 28, 86, 0)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (image must have either 3 or 4 dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4
+Token usage: input=4181, output=2947, total=7128
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.transpose API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Transpose image(s) by swapping the height and width dimension.
+
+  Usage Example:
+
+  >>> x = [[[1.0, 2.0, 3.0],
+  ...       [4.0, 5.0, 6.0]],
+  ...     [[7.0, 8.0, 9.0],
+  ...       [10.0, 11.0, 12.0]]]
+  >>> tf.image.transpose(x)
+  <tf.Tensor: shape=(2, 2, 3), dtype=float32, numpy=
+  array([[[ 1.,  2.,  3.],
+          [ 7.,  8.,  9.]],
+         [[ 4.,  5.,  6.],
+          [10., 11., 12.]]], dtype=float32)>
+
+  Args:
+    image: 4-D Tensor of shape `[batch, height, width, channels]` or 3-D Tensor
+      of shape `[height, width, channels]`.
+    name: A name for this operation (optional).
+
+  Returns:
+    If `image` was 4-D, a 4-D float Tensor of shape
+   `[batch, width, height, channels]`
+    If `image` was 3-D, a 3-D float Tensor of shape
+   `[width, height, channels]`
+
+  Raises:
+    ValueError: if the shape of `image` not supported.
+
+  Usage Example:
+
+  >>> image = [[[1, 2], [3, 4]],
+  ...         [[5, 6], [7, 8]],
+  ...         [[9, 10], [11, 12]]]
+  >>> image = tf.constant(image)
+  >>> tf.image.transpose(image)
+  <tf.Tensor: shape=(2, 3, 2), dtype=int32, numpy=
+  array([[[ 1,  2],
+         [ 5,  6],
+         [ 9, 10]],
+        [[ 3,  4],
+         [ 7,  8],
+         [11, 12]]], dtype=int32)>
+
+[API Signature] image: tensor, name: string
+
+[Error Messages]
+ValueError: 'image' (shape (0, 9)) must be at least three-dimensional.
+ValueError: 'image' (shape (1, 25, 24, 22, 72)) must have either 3 or 4 dimensions.
+ValueError: inner 3 dims of 'image.shape' must be > 0: (41, 28, 86, 0)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (inner 3 dimensions must be positive for valid ranks)
+{v_1 : tensor} |= if ndim(v_1) = 3 then ∀i ∈ [0, 2] : shape(v_1, i) > 0 else if ndim(v_1) = 4 then ∀j ∈ [1, 3] : shape(v_1, j) > 0
+Token usage: input=4181, output=2947, total=7128
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.transpose API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Transpose image(s) by swapping the height and width dimension.
+
+  Usage Example:
+
+  >>> x = [[[1.0, 2.0, 3.0],
+  ...       [4.0, 5.0, 6.0]],
+  ...     [[7.0, 8.0, 9.0],
+  ...       [10.0, 11.0, 12.0]]]
+  >>> tf.image.transpose(x)
+  <tf.Tensor: shape=(2, 2, 3), dtype=float32, numpy=
+  array([[[ 1.,  2.,  3.],
+          [ 7.,  8.,  9.]],
+         [[ 4.,  5.,  6.],
+          [10., 11., 12.]]], dtype=float32)>
+
+  Args:
+    image: 4-D Tensor of shape `[batch, height, width, channels]` or 3-D Tensor
+      of shape `[height, width, channels]`.
+    name: A name for this operation (optional).
+
+  Returns:
+    If `image` was 4-D, a 4-D float Tensor of shape
+   `[batch, width, height, channels]`
+    If `image` was 3-D, a 3-D float Tensor of shape
+   `[width, height, channels]`
+
+  Raises:
+    ValueError: if the shape of `image` not supported.
+
+  Usage Example:
+
+  >>> image = [[[1, 2], [3, 4]],
+  ...         [[5, 6], [7, 8]],
+  ...         [[9, 10], [11, 12]]]
+  >>> image = tf.constant(image)
+  >>> tf.image.transpose(image)
+  <tf.Tensor: shape=(2, 3, 2), dtype=int32, numpy=
+  array([[[ 1,  2],
+         [ 5,  6],
+         [ 9, 10]],
+        [[ 3,  4],
+         [ 7,  8],
+         [11, 12]]], dtype=int32)>
+
+[API Signature] image: tensor, name: string
+
+[Error Messages]
+ValueError: 'image' (shape (0, 9)) must be at least three-dimensional.
+ValueError: 'image' (shape (1, 25, 24, 22, 72)) must have either 3 or 4 dimensions.
+ValueError: inner 3 dims of 'image.shape' must be > 0: (41, 28, 86, 0)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (name is a valid string from the allowed set)
+{v_2 : str} |= v_2 = "ii" ∨ v_2 = "ii->i" ∨ v_2 = "i,j->ij" ∨ v_2 = "bij,bjk->bik" ∨ v_2 = "...ij->...ji" ∨ v_2 = "bn,anm,bm->ba" ∨ v_2 = "none" ∨ v_2 = "sum" ∨ v_2 = "max" ∨ v_2 = "min" ∨ v_2 = "prod" ∨ v_2 = "relu" ∨ v_2 = "tanh" ∨ v_2 = "sigmoid" ∨ v_2 = "softmax" ∨ v_2 = "elu" ∨ v_2 = "selu" ∨ v_2 = "gelu" ∨ v_2 = "swish" ∨ v_2 = "softplus" ∨ v_2 = "linear" ∨ v_2 = "valid" ∨ v_2 = "same" ∨ v_2 = "causal" ∨ v_2 = "channels_last" ∨ v_2 = "channels_first"
+Token usage: input=4181, output=2947, total=7128
+** DUPLICATED RULE ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.transpose API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Transpose image(s) by swapping the height and width dimension.
+
+  Usage Example:
+
+  >>> x = [[[1.0, 2.0, 3.0],
+  ...       [4.0, 5.0, 6.0]],
+  ...     [[7.0, 8.0, 9.0],
+  ...       [10.0, 11.0, 12.0]]]
+  >>> tf.image.transpose(x)
+  <tf.Tensor: shape=(2, 2, 3), dtype=float32, numpy=
+  array([[[ 1.,  2.,  3.],
+          [ 7.,  8.,  9.]],
+         [[ 4.,  5.,  6.],
+          [10., 11., 12.]]], dtype=float32)>
+
+  Args:
+    image: 4-D Tensor of shape `[batch, height, width, channels]` or 3-D Tensor
+      of shape `[height, width, channels]`.
+    name: A name for this operation (optional).
+
+  Returns:
+    If `image` was 4-D, a 4-D float Tensor of shape
+   `[batch, width, height, channels]`
+    If `image` was 3-D, a 3-D float Tensor of shape
+   `[width, height, channels]`
+
+  Raises:
+    ValueError: if the shape of `image` not supported.
+
+  Usage Example:
+
+  >>> image = [[[1, 2], [3, 4]],
+  ...         [[5, 6], [7, 8]],
+  ...         [[9, 10], [11, 12]]]
+  >>> image = tf.constant(image)
+  >>> tf.image.transpose(image)
+  <tf.Tensor: shape=(2, 3, 2), dtype=int32, numpy=
+  array([[[ 1,  2],
+         [ 5,  6],
+         [ 9, 10]],
+        [[ 3,  4],
+         [ 7,  8],
+         [11, 12]]], dtype=int32)>
+
+[API Signature] image: tensor, name: string
+
+[Error Messages]
+ValueError: 'image' (shape (0, 9)) must be at least three-dimensional.
+ValueError: 'image' (shape (1, 25, 24, 22, 72)) must have either 3 or 4 dimensions.
+ValueError: inner 3 dims of 'image.shape' must be > 0: (41, 28, 86, 0)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (image must be at least 3-D to be a valid image tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 3
+Token usage: input=1805, output=4609, total=6414
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.transpose API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Transpose image(s) by swapping the height and width dimension.
+
+  Usage Example:
+
+  >>> x = [[[1.0, 2.0, 3.0],
+  ...       [4.0, 5.0, 6.0]],
+  ...     [[7.0, 8.0, 9.0],
+  ...       [10.0, 11.0, 12.0]]]
+  >>> tf.image.transpose(x)
+  <tf.Tensor: shape=(2, 2, 3), dtype=float32, numpy=
+  array([[[ 1.,  2.,  3.],
+          [ 7.,  8.,  9.]],
+         [[ 4.,  5.,  6.],
+          [10., 11., 12.]]], dtype=float32)>
+
+  Args:
+    image: 4-D Tensor of shape `[batch, height, width, channels]` or 3-D Tensor
+      of shape `[height, width, channels]`.
+    name: A name for this operation (optional).
+
+  Returns:
+    If `image` was 4-D, a 4-D float Tensor of shape
+   `[batch, width, height, channels]`
+    If `image` was 3-D, a 3-D float Tensor of shape
+   `[width, height, channels]`
+
+  Raises:
+    ValueError: if the shape of `image` not supported.
+
+  Usage Example:
+
+  >>> image = [[[1, 2], [3, 4]],
+  ...         [[5, 6], [7, 8]],
+  ...         [[9, 10], [11, 12]]]
+  >>> image = tf.constant(image)
+  >>> tf.image.transpose(image)
+  <tf.Tensor: shape=(2, 3, 2), dtype=int32, numpy=
+  array([[[ 1,  2],
+         [ 5,  6],
+         [ 9, 10]],
+        [[ 3,  4],
+         [ 7,  8],
+         [11, 12]]], dtype=int32)>
+
+[API Signature] image: tensor, name: string
+
+[Error Messages]
+ValueError: 'image' (shape (0, 9)) must be at least three-dimensional.
+ValueError: 'image' (shape (1, 25, 24, 22, 72)) must have either 3 or 4 dimensions.
+ValueError: inner 3 dims of 'image.shape' must be > 0: (41, 28, 86, 0)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (image rank must be either 3 or 4)
+{v_1 : tensor} |= shape(v_1).len = 3 ∨ shape(v_1).len = 4
+Token usage: input=1805, output=4609, total=6414
+** PARSING ERROR ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.transpose API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Transpose image(s) by swapping the height and width dimension.
+
+  Usage Example:
+
+  >>> x = [[[1.0, 2.0, 3.0],
+  ...       [4.0, 5.0, 6.0]],
+  ...     [[7.0, 8.0, 9.0],
+  ...       [10.0, 11.0, 12.0]]]
+  >>> tf.image.transpose(x)
+  <tf.Tensor: shape=(2, 2, 3), dtype=float32, numpy=
+  array([[[ 1.,  2.,  3.],
+          [ 7.,  8.,  9.]],
+         [[ 4.,  5.,  6.],
+          [10., 11., 12.]]], dtype=float32)>
+
+  Args:
+    image: 4-D Tensor of shape `[batch, height, width, channels]` or 3-D Tensor
+      of shape `[height, width, channels]`.
+    name: A name for this operation (optional).
+
+  Returns:
+    If `image` was 4-D, a 4-D float Tensor of shape
+   `[batch, width, height, channels]`
+    If `image` was 3-D, a 3-D float Tensor of shape
+   `[width, height, channels]`
+
+  Raises:
+    ValueError: if the shape of `image` not supported.
+
+  Usage Example:
+
+  >>> image = [[[1, 2], [3, 4]],
+  ...         [[5, 6], [7, 8]],
+  ...         [[9, 10], [11, 12]]]
+  >>> image = tf.constant(image)
+  >>> tf.image.transpose(image)
+  <tf.Tensor: shape=(2, 3, 2), dtype=int32, numpy=
+  array([[[ 1,  2],
+         [ 5,  6],
+         [ 9, 10]],
+        [[ 3,  4],
+         [ 7,  8],
+         [11, 12]]], dtype=int32)>
+
+[API Signature] image: tensor, name: string
+
+[Error Messages]
+ValueError: 'image' (shape (0, 9)) must be at least three-dimensional.
+ValueError: 'image' (shape (1, 25, 24, 22, 72)) must have either 3 or 4 dimensions.
+ValueError: inner 3 dims of 'image.shape' must be > 0: (41, 28, 86, 0)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (for 3-D image, all dimensions [height, width, channels] must be > 0)
+{v_1 : tensor} |= if shape(v_1).len = 3 then shape(v_1)[0] > 0 ∧ shape(v_1)[1] > 0 ∧ shape(v_1)[2] > 0
+Token usage: input=1805, output=4609, total=6414
+** PARSING ERROR ** (num_failures: 3)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.transpose API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Transpose image(s) by swapping the height and width dimension.
+
+  Usage Example:
+
+  >>> x = [[[1.0, 2.0, 3.0],
+  ...       [4.0, 5.0, 6.0]],
+  ...     [[7.0, 8.0, 9.0],
+  ...       [10.0, 11.0, 12.0]]]
+  >>> tf.image.transpose(x)
+  <tf.Tensor: shape=(2, 2, 3), dtype=float32, numpy=
+  array([[[ 1.,  2.,  3.],
+          [ 7.,  8.,  9.]],
+         [[ 4.,  5.,  6.],
+          [10., 11., 12.]]], dtype=float32)>
+
+  Args:
+    image: 4-D Tensor of shape `[batch, height, width, channels]` or 3-D Tensor
+      of shape `[height, width, channels]`.
+    name: A name for this operation (optional).
+
+  Returns:
+    If `image` was 4-D, a 4-D float Tensor of shape
+   `[batch, width, height, channels]`
+    If `image` was 3-D, a 3-D float Tensor of shape
+   `[width, height, channels]`
+
+  Raises:
+    ValueError: if the shape of `image` not supported.
+
+  Usage Example:
+
+  >>> image = [[[1, 2], [3, 4]],
+  ...         [[5, 6], [7, 8]],
+  ...         [[9, 10], [11, 12]]]
+  >>> image = tf.constant(image)
+  >>> tf.image.transpose(image)
+  <tf.Tensor: shape=(2, 3, 2), dtype=int32, numpy=
+  array([[[ 1,  2],
+         [ 5,  6],
+         [ 9, 10]],
+        [[ 3,  4],
+         [ 7,  8],
+         [11, 12]]], dtype=int32)>
+
+[API Signature] image: tensor, name: string
+
+[Error Messages]
+ValueError: 'image' (shape (0, 9)) must be at least three-dimensional.
+ValueError: 'image' (shape (1, 25, 24, 22, 72)) must have either 3 or 4 dimensions.
+ValueError: inner 3 dims of 'image.shape' must be > 0: (41, 28, 86, 0)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (for 4-D image, inner 3 dims [height, width, channels] must be > 0)
+{v_1 : tensor} |= if shape(v_1).len = 4 then shape(v_1)[1] > 0 ∧ shape(v_1)[2] > 0 ∧ shape(v_1)[3] > 0
+Token usage: input=1805, output=4609, total=6414
+** PARSING ERROR ** (num_failures: 4)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.transpose API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Transpose image(s) by swapping the height and width dimension.
+
+  Usage Example:
+
+  >>> x = [[[1.0, 2.0, 3.0],
+  ...       [4.0, 5.0, 6.0]],
+  ...     [[7.0, 8.0, 9.0],
+  ...       [10.0, 11.0, 12.0]]]
+  >>> tf.image.transpose(x)
+  <tf.Tensor: shape=(2, 2, 3), dtype=float32, numpy=
+  array([[[ 1.,  2.,  3.],
+          [ 7.,  8.,  9.]],
+         [[ 4.,  5.,  6.],
+          [10., 11., 12.]]], dtype=float32)>
+
+  Args:
+    image: 4-D Tensor of shape `[batch, height, width, channels]` or 3-D Tensor
+      of shape `[height, width, channels]`.
+    name: A name for this operation (optional).
+
+  Returns:
+    If `image` was 4-D, a 4-D float Tensor of shape
+   `[batch, width, height, channels]`
+    If `image` was 3-D, a 3-D float Tensor of shape
+   `[width, height, channels]`
+
+  Raises:
+    ValueError: if the shape of `image` not supported.
+
+  Usage Example:
+
+  >>> image = [[[1, 2], [3, 4]],
+  ...         [[5, 6], [7, 8]],
+  ...         [[9, 10], [11, 12]]]
+  >>> image = tf.constant(image)
+  >>> tf.image.transpose(image)
+  <tf.Tensor: shape=(2, 3, 2), dtype=int32, numpy=
+  array([[[ 1,  2],
+         [ 5,  6],
+         [ 9, 10]],
+        [[ 3,  4],
+         [ 7,  8],
+         [11, 12]]], dtype=int32)>
+
+[API Signature] image: tensor, name: string
+
+[Error Messages]
+ValueError: 'image' (shape (0, 9)) must be at least three-dimensional.
+ValueError: 'image' (shape (1, 25, 24, 22, 72)) must have either 3 or 4 dimensions.
+ValueError: inner 3 dims of 'image.shape' must be > 0: (41, 28, 86, 0)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (name is a free-form string; no semantic restriction)
+{v_2 : str} |= v_2 = v_2
+Token usage: input=1805, output=4609, total=6414
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.image.transpose API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Transpose image(s) by swapping the height and width dimension.
+
+  Usage Example:
+
+  >>> x = [[[1.0, 2.0, 3.0],
+  ...       [4.0, 5.0, 6.0]],
+  ...     [[7.0, 8.0, 9.0],
+  ...       [10.0, 11.0, 12.0]]]
+  >>> tf.image.transpose(x)
+  <tf.Tensor: shape=(2, 2, 3), dtype=float32, numpy=
+  array([[[ 1.,  2.,  3.],
+          [ 7.,  8.,  9.]],
+         [[ 4.,  5.,  6.],
+          [10., 11., 12.]]], dtype=float32)>
+
+  Args:
+    image: 4-D Tensor of shape `[batch, height, width, channels]` or 3-D Tensor
+      of shape `[height, width, channels]`.
+    name: A name for this operation (optional).
+
+  Returns:
+    If `image` was 4-D, a 4-D float Tensor of shape
+   `[batch, width, height, channels]`
+    If `image` was 3-D, a 3-D float Tensor of shape
+   `[width, height, channels]`
+
+  Raises:
+    ValueError: if the shape of `image` not supported.
+
+  Usage Example:
+
+  >>> image = [[[1, 2], [3, 4]],
+  ...         [[5, 6], [7, 8]],
+  ...         [[9, 10], [11, 12]]]
+  >>> image = tf.constant(image)
+  >>> tf.image.transpose(image)
+  <tf.Tensor: shape=(2, 3, 2), dtype=int32, numpy=
+  array([[[ 1,  2],
+         [ 5,  6],
+         [ 9, 10]],
+        [[ 3,  4],
+         [ 7,  8],
+         [11, 12]]], dtype=int32)>
+
+[API Signature] image: tensor, name: string
+
+[Error Messages]
+ValueError: 'image' (shape (0, 9)) must be at least three-dimensional.
+ValueError: 'image' (shape (1, 25, 24, 22, 72)) must have either 3 or 4 dimensions.
+ValueError: inner 3 dims of 'image.shape' must be > 0: (41, 28, 86, 0)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (image dtype is any defined dtype index)
+{v_1 : tensor} |= 0 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 12
+Token usage: input=1805, output=4609, total=6414
+** SUCCESS **
+

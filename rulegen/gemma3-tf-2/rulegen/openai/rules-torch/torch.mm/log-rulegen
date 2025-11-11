@@ -1,0 +1,980 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.mm API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+mm(input, mat2, *, out=None) -> Tensor
+
+Performs a matrix multiplication of the matrices :attr:`input` and :attr:`mat2`.
+
+If :attr:`input` is a :math:`(n \times m)` tensor, :attr:`mat2` is a
+:math:`(m \times p)` tensor, :attr:`out` will be a :math:`(n \times p)` tensor.
+
+.. note:: This function does not :ref:`broadcast <broadcasting-semantics>`.
+          For broadcasting matrix products, see :func:`torch.matmul`.
+
+Supports strided and sparse 2-D tensors as inputs, autograd with
+respect to strided inputs.
+
+This operation has support for arguments with :ref:`sparse layouts<sparse-docs>`.
+If :attr:`out` is provided its layout will be used. Otherwise, the result
+layout will be deduced from that of :attr:`input`.
+
+
+.. warning::
+    Sparse support is a beta feature and some layout(s)/dtype/device combinations may not be supported,
+    or may not have autograd support. If you notice missing functionality please
+    open a feature request.
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+On certain ROCm devices, when using float16 inputs this module will use :ref:`different precision<fp16_on_mi200>` for backward.
+
+Args:
+    input (Tensor): the first matrix to be matrix multiplied
+    mat2 (Tensor): the second matrix to be matrix multiplied
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> mat1 = torch.randn(2, 3)
+    >>> mat2 = torch.randn(3, 3)
+    >>> torch.mm(mat1, mat2)
+    tensor([[ 0.4851,  0.5037, -0.3633],
+            [-0.0760, -3.6705,  2.4784]])
+
+[API Signature] input: tensor, mat2: tensor, out_dtype: dtype, out: tensor
+
+[Error Messages]
+RuntimeError: self must be a matrix
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: expected m1 and m2 to have the same dtype, but got: c10::Half != float
+TypeError: mm(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (input must be a 2-D matrix)
+{v_1 : tensor} |= ndim(v_1) = 2
+Token usage: input=1851, output=5919, total=7770
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.mm API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+mm(input, mat2, *, out=None) -> Tensor
+
+Performs a matrix multiplication of the matrices :attr:`input` and :attr:`mat2`.
+
+If :attr:`input` is a :math:`(n \times m)` tensor, :attr:`mat2` is a
+:math:`(m \times p)` tensor, :attr:`out` will be a :math:`(n \times p)` tensor.
+
+.. note:: This function does not :ref:`broadcast <broadcasting-semantics>`.
+          For broadcasting matrix products, see :func:`torch.matmul`.
+
+Supports strided and sparse 2-D tensors as inputs, autograd with
+respect to strided inputs.
+
+This operation has support for arguments with :ref:`sparse layouts<sparse-docs>`.
+If :attr:`out` is provided its layout will be used. Otherwise, the result
+layout will be deduced from that of :attr:`input`.
+
+
+.. warning::
+    Sparse support is a beta feature and some layout(s)/dtype/device combinations may not be supported,
+    or may not have autograd support. If you notice missing functionality please
+    open a feature request.
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+On certain ROCm devices, when using float16 inputs this module will use :ref:`different precision<fp16_on_mi200>` for backward.
+
+Args:
+    input (Tensor): the first matrix to be matrix multiplied
+    mat2 (Tensor): the second matrix to be matrix multiplied
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> mat1 = torch.randn(2, 3)
+    >>> mat2 = torch.randn(3, 3)
+    >>> torch.mm(mat1, mat2)
+    tensor([[ 0.4851,  0.5037, -0.3633],
+            [-0.0760, -3.6705,  2.4784]])
+
+[API Signature] input: tensor, mat2: tensor, out_dtype: dtype, out: tensor
+
+[Error Messages]
+RuntimeError: self must be a matrix
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: expected m1 and m2 to have the same dtype, but got: c10::Half != float
+TypeError: mm(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (mat2 must be a 2-D matrix)
+{v_2 : tensor} |= ndim(v_2) = 2
+Token usage: input=1851, output=5919, total=7770
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.mm API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+mm(input, mat2, *, out=None) -> Tensor
+
+Performs a matrix multiplication of the matrices :attr:`input` and :attr:`mat2`.
+
+If :attr:`input` is a :math:`(n \times m)` tensor, :attr:`mat2` is a
+:math:`(m \times p)` tensor, :attr:`out` will be a :math:`(n \times p)` tensor.
+
+.. note:: This function does not :ref:`broadcast <broadcasting-semantics>`.
+          For broadcasting matrix products, see :func:`torch.matmul`.
+
+Supports strided and sparse 2-D tensors as inputs, autograd with
+respect to strided inputs.
+
+This operation has support for arguments with :ref:`sparse layouts<sparse-docs>`.
+If :attr:`out` is provided its layout will be used. Otherwise, the result
+layout will be deduced from that of :attr:`input`.
+
+
+.. warning::
+    Sparse support is a beta feature and some layout(s)/dtype/device combinations may not be supported,
+    or may not have autograd support. If you notice missing functionality please
+    open a feature request.
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+On certain ROCm devices, when using float16 inputs this module will use :ref:`different precision<fp16_on_mi200>` for backward.
+
+Args:
+    input (Tensor): the first matrix to be matrix multiplied
+    mat2 (Tensor): the second matrix to be matrix multiplied
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> mat1 = torch.randn(2, 3)
+    >>> mat2 = torch.randn(3, 3)
+    >>> torch.mm(mat1, mat2)
+    tensor([[ 0.4851,  0.5037, -0.3633],
+            [-0.0760, -3.6705,  2.4784]])
+
+[API Signature] input: tensor, mat2: tensor, out_dtype: dtype, out: tensor
+
+[Error Messages]
+RuntimeError: self must be a matrix
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: expected m1 and m2 to have the same dtype, but got: c10::Half != float
+TypeError: mm(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (inner dimensions must match for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 then shape(v_1, 1) = shape(v_2, 0)
+Token usage: input=1851, output=5919, total=7770
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.mm API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+mm(input, mat2, *, out=None) -> Tensor
+
+Performs a matrix multiplication of the matrices :attr:`input` and :attr:`mat2`.
+
+If :attr:`input` is a :math:`(n \times m)` tensor, :attr:`mat2` is a
+:math:`(m \times p)` tensor, :attr:`out` will be a :math:`(n \times p)` tensor.
+
+.. note:: This function does not :ref:`broadcast <broadcasting-semantics>`.
+          For broadcasting matrix products, see :func:`torch.matmul`.
+
+Supports strided and sparse 2-D tensors as inputs, autograd with
+respect to strided inputs.
+
+This operation has support for arguments with :ref:`sparse layouts<sparse-docs>`.
+If :attr:`out` is provided its layout will be used. Otherwise, the result
+layout will be deduced from that of :attr:`input`.
+
+
+.. warning::
+    Sparse support is a beta feature and some layout(s)/dtype/device combinations may not be supported,
+    or may not have autograd support. If you notice missing functionality please
+    open a feature request.
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+On certain ROCm devices, when using float16 inputs this module will use :ref:`different precision<fp16_on_mi200>` for backward.
+
+Args:
+    input (Tensor): the first matrix to be matrix multiplied
+    mat2 (Tensor): the second matrix to be matrix multiplied
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> mat1 = torch.randn(2, 3)
+    >>> mat2 = torch.randn(3, 3)
+    >>> torch.mm(mat1, mat2)
+    tensor([[ 0.4851,  0.5037, -0.3633],
+            [-0.0760, -3.6705,  2.4784]])
+
+[API Signature] input: tensor, mat2: tensor, out_dtype: dtype, out: tensor
+
+[Error Messages]
+RuntimeError: self must be a matrix
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: expected m1 and m2 to have the same dtype, but got: c10::Half != float
+TypeError: mm(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (input and mat2 must have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Token usage: input=1851, output=5919, total=7770
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.mm API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+mm(input, mat2, *, out=None) -> Tensor
+
+Performs a matrix multiplication of the matrices :attr:`input` and :attr:`mat2`.
+
+If :attr:`input` is a :math:`(n \times m)` tensor, :attr:`mat2` is a
+:math:`(m \times p)` tensor, :attr:`out` will be a :math:`(n \times p)` tensor.
+
+.. note:: This function does not :ref:`broadcast <broadcasting-semantics>`.
+          For broadcasting matrix products, see :func:`torch.matmul`.
+
+Supports strided and sparse 2-D tensors as inputs, autograd with
+respect to strided inputs.
+
+This operation has support for arguments with :ref:`sparse layouts<sparse-docs>`.
+If :attr:`out` is provided its layout will be used. Otherwise, the result
+layout will be deduced from that of :attr:`input`.
+
+
+.. warning::
+    Sparse support is a beta feature and some layout(s)/dtype/device combinations may not be supported,
+    or may not have autograd support. If you notice missing functionality please
+    open a feature request.
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+On certain ROCm devices, when using float16 inputs this module will use :ref:`different precision<fp16_on_mi200>` for backward.
+
+Args:
+    input (Tensor): the first matrix to be matrix multiplied
+    mat2 (Tensor): the second matrix to be matrix multiplied
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> mat1 = torch.randn(2, 3)
+    >>> mat2 = torch.randn(3, 3)
+    >>> torch.mm(mat1, mat2)
+    tensor([[ 0.4851,  0.5037, -0.3633],
+            [-0.0760, -3.6705,  2.4784]])
+
+[API Signature] input: tensor, mat2: tensor, out_dtype: dtype, out: tensor
+
+[Error Messages]
+RuntimeError: self must be a matrix
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: expected m1 and m2 to have the same dtype, but got: c10::Half != float
+TypeError: mm(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (out, if provided, must be a tensor matrix)
+{v_4 : tensor} |= ndim(v_4) = 2
+Token usage: input=1851, output=5919, total=7770
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.mm API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+mm(input, mat2, *, out=None) -> Tensor
+
+Performs a matrix multiplication of the matrices :attr:`input` and :attr:`mat2`.
+
+If :attr:`input` is a :math:`(n \times m)` tensor, :attr:`mat2` is a
+:math:`(m \times p)` tensor, :attr:`out` will be a :math:`(n \times p)` tensor.
+
+.. note:: This function does not :ref:`broadcast <broadcasting-semantics>`.
+          For broadcasting matrix products, see :func:`torch.matmul`.
+
+Supports strided and sparse 2-D tensors as inputs, autograd with
+respect to strided inputs.
+
+This operation has support for arguments with :ref:`sparse layouts<sparse-docs>`.
+If :attr:`out` is provided its layout will be used. Otherwise, the result
+layout will be deduced from that of :attr:`input`.
+
+
+.. warning::
+    Sparse support is a beta feature and some layout(s)/dtype/device combinations may not be supported,
+    or may not have autograd support. If you notice missing functionality please
+    open a feature request.
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+On certain ROCm devices, when using float16 inputs this module will use :ref:`different precision<fp16_on_mi200>` for backward.
+
+Args:
+    input (Tensor): the first matrix to be matrix multiplied
+    mat2 (Tensor): the second matrix to be matrix multiplied
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> mat1 = torch.randn(2, 3)
+    >>> mat2 = torch.randn(3, 3)
+    >>> torch.mm(mat1, mat2)
+    tensor([[ 0.4851,  0.5037, -0.3633],
+            [-0.0760, -3.6705,  2.4784]])
+
+[API Signature] input: tensor, mat2: tensor, out_dtype: dtype, out: tensor
+
+[Error Messages]
+RuntimeError: self must be a matrix
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: expected m1 and m2 to have the same dtype, but got: c10::Half != float
+TypeError: mm(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (out tensor must have the expected dtype)
+{v_1 : tensor, v_2 : tensor, v_3 : dtype, v_4 : tensor} |= dtype_(v_1) = v_3 ∧ dtype_(v_2) = v_3 ∧ dtype_(v_4) = v_3
+Token usage: input=1851, output=5919, total=7770
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.mm API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+mm(input, mat2, *, out=None) -> Tensor
+
+Performs a matrix multiplication of the matrices :attr:`input` and :attr:`mat2`.
+
+If :attr:`input` is a :math:`(n \times m)` tensor, :attr:`mat2` is a
+:math:`(m \times p)` tensor, :attr:`out` will be a :math:`(n \times p)` tensor.
+
+.. note:: This function does not :ref:`broadcast <broadcasting-semantics>`.
+          For broadcasting matrix products, see :func:`torch.matmul`.
+
+Supports strided and sparse 2-D tensors as inputs, autograd with
+respect to strided inputs.
+
+This operation has support for arguments with :ref:`sparse layouts<sparse-docs>`.
+If :attr:`out` is provided its layout will be used. Otherwise, the result
+layout will be deduced from that of :attr:`input`.
+
+
+.. warning::
+    Sparse support is a beta feature and some layout(s)/dtype/device combinations may not be supported,
+    or may not have autograd support. If you notice missing functionality please
+    open a feature request.
+
+This operator supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+On certain ROCm devices, when using float16 inputs this module will use :ref:`different precision<fp16_on_mi200>` for backward.
+
+Args:
+    input (Tensor): the first matrix to be matrix multiplied
+    mat2 (Tensor): the second matrix to be matrix multiplied
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> mat1 = torch.randn(2, 3)
+    >>> mat2 = torch.randn(3, 3)
+    >>> torch.mm(mat1, mat2)
+    tensor([[ 0.4851,  0.5037, -0.3633],
+            [-0.0760, -3.6705,  2.4784]])
+
+[API Signature] input: tensor, mat2: tensor, out_dtype: dtype, out: tensor
+
+[Error Messages]
+RuntimeError: self must be a matrix
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: expected m1 and m2 to have the same dtype, but got: c10::Half != float
+TypeError: mm(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (out tensor must have the correct shape (n × p))
+{v_1 : tensor, v_2 : tensor, v_4 : tensor} |= shape(v_4, 0) = shape(v_1, 0) ∧ shape(v_4, 1) = shape(v_2, 1)
+Token usage: input=1851, output=5919, total=7770
+** SUCCESS **
+

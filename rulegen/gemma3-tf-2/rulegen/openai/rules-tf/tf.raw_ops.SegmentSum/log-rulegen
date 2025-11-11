@@ -1,0 +1,1474 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.SegmentSum API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the sum along segments of a tensor.
+
+  Read
+  [the section on segmentation](https://tensorflow.org/api_docs/python/tf/math#Segmentation)
+  for an explanation of segments.
+
+  Computes a tensor such that
+  \\(output_i = \sum_j data_j\\) where sum is over `j` such
+  that `segment_ids[j] == i`.
+
+  If the sum is empty for a given segment ID `i`, `output[i] = 0`.
+
+  Caution: On CPU, values in `segment_ids` are always validated to be sorted,
+  and an error is thrown for indices that are not increasing. On GPU, this
+  does not throw an error for unsorted indices. On GPU, out-of-order indices
+  result in safe but unspecified behavior, which may include treating
+  out-of-order indices as the same as a smaller following index.
+
+  <div style="width:70%; margin:auto; margin-bottom:10px; margin-top:20px;">
+  <img style="width:100%" src="https://www.tensorflow.org/images/SegmentSum.png" alt>
+  </div>
+
+  For example:
+
+  >>> c = tf.constant([[1,2,3,4], [4, 3, 2, 1], [5,6,7,8]])
+  >>> tf.math.segment_sum(c, tf.constant([0, 0, 1])).numpy()
+  array([[5, 5, 5, 5],
+         [5, 6, 7, 8]], dtype=int32)
+
+  Args:
+    data: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `complex64`, `int64`, `qint8`, `quint8`, `qint32`, `bfloat16`, `qint16`, `quint16`, `uint16`, `complex128`, `half`, `uint32`, `uint64`.
+    segment_ids: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A 1-D tensor whose size is equal to the size of `data`'s
+      first dimension.  Values should be sorted and can be repeated.
+
+      Caution: The values are always validated to be sorted on CPU, never validated
+      on GPU.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `data`.
+
+[API Signature] name: string, data: tensor, segment_ids: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (data must be of a supported numeric or complex dtype)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Token usage: input=1934, output=5935, total=7869
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.SegmentSum API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the sum along segments of a tensor.
+
+  Read
+  [the section on segmentation](https://tensorflow.org/api_docs/python/tf/math#Segmentation)
+  for an explanation of segments.
+
+  Computes a tensor such that
+  \\(output_i = \sum_j data_j\\) where sum is over `j` such
+  that `segment_ids[j] == i`.
+
+  If the sum is empty for a given segment ID `i`, `output[i] = 0`.
+
+  Caution: On CPU, values in `segment_ids` are always validated to be sorted,
+  and an error is thrown for indices that are not increasing. On GPU, this
+  does not throw an error for unsorted indices. On GPU, out-of-order indices
+  result in safe but unspecified behavior, which may include treating
+  out-of-order indices as the same as a smaller following index.
+
+  <div style="width:70%; margin:auto; margin-bottom:10px; margin-top:20px;">
+  <img style="width:100%" src="https://www.tensorflow.org/images/SegmentSum.png" alt>
+  </div>
+
+  For example:
+
+  >>> c = tf.constant([[1,2,3,4], [4, 3, 2, 1], [5,6,7,8]])
+  >>> tf.math.segment_sum(c, tf.constant([0, 0, 1])).numpy()
+  array([[5, 5, 5, 5],
+         [5, 6, 7, 8]], dtype=int32)
+
+  Args:
+    data: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `complex64`, `int64`, `qint8`, `quint8`, `qint32`, `bfloat16`, `qint16`, `quint16`, `uint16`, `complex128`, `half`, `uint32`, `uint64`.
+    segment_ids: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A 1-D tensor whose size is equal to the size of `data`'s
+      first dimension.  Values should be sorted and can be repeated.
+
+      Caution: The values are always validated to be sorted on CPU, never validated
+      on GPU.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `data`.
+
+[API Signature] name: string, data: tensor, segment_ids: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (segment_ids must be 32-bit or 64-bit integers)
+{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Token usage: input=1934, output=5935, total=7869
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.SegmentSum API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the sum along segments of a tensor.
+
+  Read
+  [the section on segmentation](https://tensorflow.org/api_docs/python/tf/math#Segmentation)
+  for an explanation of segments.
+
+  Computes a tensor such that
+  \\(output_i = \sum_j data_j\\) where sum is over `j` such
+  that `segment_ids[j] == i`.
+
+  If the sum is empty for a given segment ID `i`, `output[i] = 0`.
+
+  Caution: On CPU, values in `segment_ids` are always validated to be sorted,
+  and an error is thrown for indices that are not increasing. On GPU, this
+  does not throw an error for unsorted indices. On GPU, out-of-order indices
+  result in safe but unspecified behavior, which may include treating
+  out-of-order indices as the same as a smaller following index.
+
+  <div style="width:70%; margin:auto; margin-bottom:10px; margin-top:20px;">
+  <img style="width:100%" src="https://www.tensorflow.org/images/SegmentSum.png" alt>
+  </div>
+
+  For example:
+
+  >>> c = tf.constant([[1,2,3,4], [4, 3, 2, 1], [5,6,7,8]])
+  >>> tf.math.segment_sum(c, tf.constant([0, 0, 1])).numpy()
+  array([[5, 5, 5, 5],
+         [5, 6, 7, 8]], dtype=int32)
+
+  Args:
+    data: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `complex64`, `int64`, `qint8`, `quint8`, `qint32`, `bfloat16`, `qint16`, `quint16`, `uint16`, `complex128`, `half`, `uint32`, `uint64`.
+    segment_ids: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A 1-D tensor whose size is equal to the size of `data`'s
+      first dimension.  Values should be sorted and can be repeated.
+
+      Caution: The values are always validated to be sorted on CPU, never validated
+      on GPU.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `data`.
+
+[API Signature] name: string, data: tensor, segment_ids: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (rank and leading-dimension alignment)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0))
+Token usage: input=1934, output=5935, total=7869
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.SegmentSum API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the sum along segments of a tensor.
+
+  Read
+  [the section on segmentation](https://tensorflow.org/api_docs/python/tf/math#Segmentation)
+  for an explanation of segments.
+
+  Computes a tensor such that
+  \\(output_i = \sum_j data_j\\) where sum is over `j` such
+  that `segment_ids[j] == i`.
+
+  If the sum is empty for a given segment ID `i`, `output[i] = 0`.
+
+  Caution: On CPU, values in `segment_ids` are always validated to be sorted,
+  and an error is thrown for indices that are not increasing. On GPU, this
+  does not throw an error for unsorted indices. On GPU, out-of-order indices
+  result in safe but unspecified behavior, which may include treating
+  out-of-order indices as the same as a smaller following index.
+
+  <div style="width:70%; margin:auto; margin-bottom:10px; margin-top:20px;">
+  <img style="width:100%" src="https://www.tensorflow.org/images/SegmentSum.png" alt>
+  </div>
+
+  For example:
+
+  >>> c = tf.constant([[1,2,3,4], [4, 3, 2, 1], [5,6,7,8]])
+  >>> tf.math.segment_sum(c, tf.constant([0, 0, 1])).numpy()
+  array([[5, 5, 5, 5],
+         [5, 6, 7, 8]], dtype=int32)
+
+  Args:
+    data: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `complex64`, `int64`, `qint8`, `quint8`, `qint32`, `bfloat16`, `qint16`, `quint16`, `uint16`, `complex128`, `half`, `uint32`, `uint64`.
+    segment_ids: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A 1-D tensor whose size is equal to the size of `data`'s
+      first dimension.  Values should be sorted and can be repeated.
+
+      Caution: The values are always validated to be sorted on CPU, never validated
+      on GPU.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `data`.
+
+[API Signature] name: string, data: tensor, segment_ids: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (segment_ids are non-negative when provided)
+{v_1 : tensor} |= if shape(v_1, 0) > 0 then min(v_1) ≥ 0
+Token usage: input=1934, output=5935, total=7869
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.SegmentSum API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the sum along segments of a tensor.
+
+  Read
+  [the section on segmentation](https://tensorflow.org/api_docs/python/tf/math#Segmentation)
+  for an explanation of segments.
+
+  Computes a tensor such that
+  \\(output_i = \sum_j data_j\\) where sum is over `j` such
+  that `segment_ids[j] == i`.
+
+  If the sum is empty for a given segment ID `i`, `output[i] = 0`.
+
+  Caution: On CPU, values in `segment_ids` are always validated to be sorted,
+  and an error is thrown for indices that are not increasing. On GPU, this
+  does not throw an error for unsorted indices. On GPU, out-of-order indices
+  result in safe but unspecified behavior, which may include treating
+  out-of-order indices as the same as a smaller following index.
+
+  <div style="width:70%; margin:auto; margin-bottom:10px; margin-top:20px;">
+  <img style="width:100%" src="https://www.tensorflow.org/images/SegmentSum.png" alt>
+  </div>
+
+  For example:
+
+  >>> c = tf.constant([[1,2,3,4], [4, 3, 2, 1], [5,6,7,8]])
+  >>> tf.math.segment_sum(c, tf.constant([0, 0, 1])).numpy()
+  array([[5, 5, 5, 5],
+         [5, 6, 7, 8]], dtype=int32)
+
+  Args:
+    data: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `complex64`, `int64`, `qint8`, `quint8`, `qint32`, `bfloat16`, `qint16`, `quint16`, `uint16`, `complex128`, `half`, `uint32`, `uint64`.
+    segment_ids: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A 1-D tensor whose size is equal to the size of `data`'s
+      first dimension.  Values should be sorted and can be repeated.
+
+      Caution: The values are always validated to be sorted on CPU, never validated
+      on GPU.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `data`.
+
+[API Signature] name: string, data: tensor, segment_ids: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (segment_ids have a well-defined range when provided)
+{v_1 : tensor} |= if shape(v_1, 0) > 0 then max(v_1) ≥ min(v_1)
+Token usage: input=1934, output=5935, total=7869
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.SegmentSum API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the sum along segments of a tensor.
+
+  Read
+  [the section on segmentation](https://tensorflow.org/api_docs/python/tf/math#Segmentation)
+  for an explanation of segments.
+
+  Computes a tensor such that
+  \\(output_i = \sum_j data_j\\) where sum is over `j` such
+  that `segment_ids[j] == i`.
+
+  If the sum is empty for a given segment ID `i`, `output[i] = 0`.
+
+  Caution: On CPU, values in `segment_ids` are always validated to be sorted,
+  and an error is thrown for indices that are not increasing. On GPU, this
+  does not throw an error for unsorted indices. On GPU, out-of-order indices
+  result in safe but unspecified behavior, which may include treating
+  out-of-order indices as the same as a smaller following index.
+
+  <div style="width:70%; margin:auto; margin-bottom:10px; margin-top:20px;">
+  <img style="width:100%" src="https://www.tensorflow.org/images/SegmentSum.png" alt>
+  </div>
+
+  For example:
+
+  >>> c = tf.constant([[1,2,3,4], [4, 3, 2, 1], [5,6,7,8]])
+  >>> tf.math.segment_sum(c, tf.constant([0, 0, 1])).numpy()
+  array([[5, 5, 5, 5],
+         [5, 6, 7, 8]], dtype=int32)
+
+  Args:
+    data: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `complex64`, `int64`, `qint8`, `quint8`, `qint32`, `bfloat16`, `qint16`, `quint16`, `uint16`, `complex128`, `half`, `uint32`, `uint64`.
+    segment_ids: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A 1-D tensor whose size is equal to the size of `data`'s
+      first dimension.  Values should be sorted and can be repeated.
+
+      Caution: The values are always validated to be sorted on CPU, never validated
+      on GPU.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `data`.
+
+[API Signature] name: string, data: tensor, segment_ids: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (name is a valid string parameter)
+{v_1 : str} |= v_1 = v_1
+Token usage: input=1934, output=5935, total=7869
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.SegmentSum API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the sum along segments of a tensor.
+
+  Read
+  [the section on segmentation](https://tensorflow.org/api_docs/python/tf/math#Segmentation)
+  for an explanation of segments.
+
+  Computes a tensor such that
+  \\(output_i = \sum_j data_j\\) where sum is over `j` such
+  that `segment_ids[j] == i`.
+
+  If the sum is empty for a given segment ID `i`, `output[i] = 0`.
+
+  Caution: On CPU, values in `segment_ids` are always validated to be sorted,
+  and an error is thrown for indices that are not increasing. On GPU, this
+  does not throw an error for unsorted indices. On GPU, out-of-order indices
+  result in safe but unspecified behavior, which may include treating
+  out-of-order indices as the same as a smaller following index.
+
+  <div style="width:70%; margin:auto; margin-bottom:10px; margin-top:20px;">
+  <img style="width:100%" src="https://www.tensorflow.org/images/SegmentSum.png" alt>
+  </div>
+
+  For example:
+
+  >>> c = tf.constant([[1,2,3,4], [4, 3, 2, 1], [5,6,7,8]])
+  >>> tf.math.segment_sum(c, tf.constant([0, 0, 1])).numpy()
+  array([[5, 5, 5, 5],
+         [5, 6, 7, 8]], dtype=int32)
+
+  Args:
+    data: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `complex64`, `int64`, `qint8`, `quint8`, `qint32`, `bfloat16`, `qint16`, `quint16`, `uint16`, `complex128`, `half`, `uint32`, `uint64`.
+    segment_ids: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A 1-D tensor whose size is equal to the size of `data`'s
+      first dimension.  Values should be sorted and can be repeated.
+
+      Caution: The values are always validated to be sorted on CPU, never validated
+      on GPU.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `data`.
+
+[API Signature] name: string, data: tensor, segment_ids: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (segment_ids must be 1-D and match data’s first dimension)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_1, 0)
+Token usage: input=1992, output=6852, total=8844
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.SegmentSum API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the sum along segments of a tensor.
+
+  Read
+  [the section on segmentation](https://tensorflow.org/api_docs/python/tf/math#Segmentation)
+  for an explanation of segments.
+
+  Computes a tensor such that
+  \\(output_i = \sum_j data_j\\) where sum is over `j` such
+  that `segment_ids[j] == i`.
+
+  If the sum is empty for a given segment ID `i`, `output[i] = 0`.
+
+  Caution: On CPU, values in `segment_ids` are always validated to be sorted,
+  and an error is thrown for indices that are not increasing. On GPU, this
+  does not throw an error for unsorted indices. On GPU, out-of-order indices
+  result in safe but unspecified behavior, which may include treating
+  out-of-order indices as the same as a smaller following index.
+
+  <div style="width:70%; margin:auto; margin-bottom:10px; margin-top:20px;">
+  <img style="width:100%" src="https://www.tensorflow.org/images/SegmentSum.png" alt>
+  </div>
+
+  For example:
+
+  >>> c = tf.constant([[1,2,3,4], [4, 3, 2, 1], [5,6,7,8]])
+  >>> tf.math.segment_sum(c, tf.constant([0, 0, 1])).numpy()
+  array([[5, 5, 5, 5],
+         [5, 6, 7, 8]], dtype=int32)
+
+  Args:
+    data: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `complex64`, `int64`, `qint8`, `quint8`, `qint32`, `bfloat16`, `qint16`, `quint16`, `uint16`, `complex128`, `half`, `uint32`, `uint64`.
+    segment_ids: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A 1-D tensor whose size is equal to the size of `data`'s
+      first dimension.  Values should be sorted and can be repeated.
+
+      Caution: The values are always validated to be sorted on CPU, never validated
+      on GPU.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `data`.
+
+[API Signature] name: string, data: tensor, segment_ids: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (segment_ids values are non-negative)
+{v_2 : tensor} |= ndim(v_2) = 1 ∧ min(v_2) ≥ 0
+Token usage: input=1992, output=6852, total=8844
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.SegmentSum API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the sum along segments of a tensor.
+
+  Read
+  [the section on segmentation](https://tensorflow.org/api_docs/python/tf/math#Segmentation)
+  for an explanation of segments.
+
+  Computes a tensor such that
+  \\(output_i = \sum_j data_j\\) where sum is over `j` such
+  that `segment_ids[j] == i`.
+
+  If the sum is empty for a given segment ID `i`, `output[i] = 0`.
+
+  Caution: On CPU, values in `segment_ids` are always validated to be sorted,
+  and an error is thrown for indices that are not increasing. On GPU, this
+  does not throw an error for unsorted indices. On GPU, out-of-order indices
+  result in safe but unspecified behavior, which may include treating
+  out-of-order indices as the same as a smaller following index.
+
+  <div style="width:70%; margin:auto; margin-bottom:10px; margin-top:20px;">
+  <img style="width:100%" src="https://www.tensorflow.org/images/SegmentSum.png" alt>
+  </div>
+
+  For example:
+
+  >>> c = tf.constant([[1,2,3,4], [4, 3, 2, 1], [5,6,7,8]])
+  >>> tf.math.segment_sum(c, tf.constant([0, 0, 1])).numpy()
+  array([[5, 5, 5, 5],
+         [5, 6, 7, 8]], dtype=int32)
+
+  Args:
+    data: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `complex64`, `int64`, `qint8`, `quint8`, `qint32`, `bfloat16`, `qint16`, `quint16`, `uint16`, `complex128`, `half`, `uint32`, `uint64`.
+    segment_ids: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A 1-D tensor whose size is equal to the size of `data`'s
+      first dimension.  Values should be sorted and can be repeated.
+
+      Caution: The values are always validated to be sorted on CPU, never validated
+      on GPU.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `data`.
+
+[API Signature] name: string, data: tensor, segment_ids: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (if segment_ids is non-empty, its min does not exceed its max)
+{v_2 : tensor} |= if shape(v_2, 0) > 0 then min(v_2) ≤ max(v_2)
+Token usage: input=1992, output=6852, total=8844
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.SegmentSum API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the sum along segments of a tensor.
+
+  Read
+  [the section on segmentation](https://tensorflow.org/api_docs/python/tf/math#Segmentation)
+  for an explanation of segments.
+
+  Computes a tensor such that
+  \\(output_i = \sum_j data_j\\) where sum is over `j` such
+  that `segment_ids[j] == i`.
+
+  If the sum is empty for a given segment ID `i`, `output[i] = 0`.
+
+  Caution: On CPU, values in `segment_ids` are always validated to be sorted,
+  and an error is thrown for indices that are not increasing. On GPU, this
+  does not throw an error for unsorted indices. On GPU, out-of-order indices
+  result in safe but unspecified behavior, which may include treating
+  out-of-order indices as the same as a smaller following index.
+
+  <div style="width:70%; margin:auto; margin-bottom:10px; margin-top:20px;">
+  <img style="width:100%" src="https://www.tensorflow.org/images/SegmentSum.png" alt>
+  </div>
+
+  For example:
+
+  >>> c = tf.constant([[1,2,3,4], [4, 3, 2, 1], [5,6,7,8]])
+  >>> tf.math.segment_sum(c, tf.constant([0, 0, 1])).numpy()
+  array([[5, 5, 5, 5],
+         [5, 6, 7, 8]], dtype=int32)
+
+  Args:
+    data: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `complex64`, `int64`, `qint8`, `quint8`, `qint32`, `bfloat16`, `qint16`, `quint16`, `uint16`, `complex128`, `half`, `uint32`, `uint64`.
+    segment_ids: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A 1-D tensor whose size is equal to the size of `data`'s
+      first dimension.  Values should be sorted and can be repeated.
+
+      Caution: The values are always validated to be sorted on CPU, never validated
+      on GPU.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `data`.
+
+[API Signature] name: string, data: tensor, segment_ids: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (data must have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+Token usage: input=1992, output=6852, total=8844
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.SegmentSum API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the sum along segments of a tensor.
+
+  Read
+  [the section on segmentation](https://tensorflow.org/api_docs/python/tf/math#Segmentation)
+  for an explanation of segments.
+
+  Computes a tensor such that
+  \\(output_i = \sum_j data_j\\) where sum is over `j` such
+  that `segment_ids[j] == i`.
+
+  If the sum is empty for a given segment ID `i`, `output[i] = 0`.
+
+  Caution: On CPU, values in `segment_ids` are always validated to be sorted,
+  and an error is thrown for indices that are not increasing. On GPU, this
+  does not throw an error for unsorted indices. On GPU, out-of-order indices
+  result in safe but unspecified behavior, which may include treating
+  out-of-order indices as the same as a smaller following index.
+
+  <div style="width:70%; margin:auto; margin-bottom:10px; margin-top:20px;">
+  <img style="width:100%" src="https://www.tensorflow.org/images/SegmentSum.png" alt>
+  </div>
+
+  For example:
+
+  >>> c = tf.constant([[1,2,3,4], [4, 3, 2, 1], [5,6,7,8]])
+  >>> tf.math.segment_sum(c, tf.constant([0, 0, 1])).numpy()
+  array([[5, 5, 5, 5],
+         [5, 6, 7, 8]], dtype=int32)
+
+  Args:
+    data: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `complex64`, `int64`, `qint8`, `quint8`, `qint32`, `bfloat16`, `qint16`, `quint16`, `uint16`, `complex128`, `half`, `uint32`, `uint64`.
+    segment_ids: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A 1-D tensor whose size is equal to the size of `data`'s
+      first dimension.  Values should be sorted and can be repeated.
+
+      Caution: The values are always validated to be sorted on CPU, never validated
+      on GPU.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `data`.
+
+[API Signature] name: string, data: tensor, segment_ids: tensor
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (length agreement stated as an implication)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≥ 1 ∧ ndim(v_2) = 1 then shape(v_1, 0) = shape(v_2, 0)
+Token usage: input=1992, output=6852, total=8844
+** SUCCESS **
+

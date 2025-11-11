@@ -1,0 +1,45 @@
+>>
+Rule 1 (size as tuple: length matches rank and fits within value shape; suppresses “Need value.shape >= size” and negative begin)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len = ndim(v_1) ∧ v_2.len ≥ 1 ∧ ∀ i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] ≤ shape(v_1, i)
+>>
+Rule 2 (size as tensor: must be 1-D int32/int64 and length equals rank(value); suppresses incompatible-shape and begin/size rank errors)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 1 ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ shape(v_2, 0) = ndim(v_1)
+>>
+Rule 3 (value must be at least 1-D with all positive dimensions; helps avoid invalid slice ranges)
+{v_1 : tensor} |= ndim(v_1) ≥ 1 ∧ if ndim(v_1) ≥ 1 then ∀ i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 else false
+>>
+Rule 4 (seed is non-negative; uses union over primitive types)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+>>
+Rule 5 (name is a valid operation name from the allowed set)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "valid" ∨ v_1 = "same" ∨ v_1 = "channels_last" ∨ v_1 = "channels_first"
+>>
+Rule 6 (value must not have string-like dtypes)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 12
+>>
+Rule 7 (common image case: if channels dimension exists, do not crop it)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = ndim(v_1) ∧ ndim(v_1) ≥ 3 then ∃ i ∈ [ndim(v_1) - 1, ndim(v_1) - 1] : v_2[i] = shape(v_1, i) ∨ v_2[i] = 1
+>>
+Rule 8 (size tensor must be 1-D integer, match rank, and fit within value’s shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 1 ∧ shape(v_2, 0) = ndim(v_1) ∧ 1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5 ∧ min(v_2) ≥ 0 ∧ (∀ i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ max(v_2))
+>>
+Rule 9 (tuple size matches rank and per-dimension is non-negative and ≤ shape)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len = ndim(v_1) ∧ (∀ i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] ≤ shape(v_1, i))
+>>
+Rule 10 (no empty size vector for rank ≥ 1 tensors)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≥ 1 then (ndim(v_2) = 1 ∧ shape(v_2, 0) ≥ 1)
+>>
+Rule 11 (preserve channels when cropping RGB tensors with tuple size)
+{v_1 : tensor, v_2 : tuple(int)} |= if shape(v_1, ndim(v_1) - 1) = 3 then v_2[v_2.len - 1] = 3
+>>
+Rule 12 (seed is a non-negative integer)
+{v_3 : int} |= v_3 ≥ 0
+>>
+Rule 13 (name is one of the allowed string identifiers)
+{v_4 : str} |= v_4 = "linear" ∨ v_4 = "valid" ∨ v_4 = "same" ∨ v_4 = "channels_last" ∨ v_4 = "channels_first"
+>>
+Rule 14 (cover list/tuple size signature; benign constraint using the parameter)
+{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= ndim(v_1) ≥ 0 ∧ v_2 = v_2
+>>
+Rule 15 (positive crop request implies all value dimensions are non-empty; tensor-size form)
+{v_1 : tensor, v_2 : tensor} |= if max(v_2) > 0 then (∀ i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)

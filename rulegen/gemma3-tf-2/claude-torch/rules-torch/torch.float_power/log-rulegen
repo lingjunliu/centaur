@@ -1,0 +1,4160 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.float_power API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+float_power(input, exponent, *, out=None) -> Tensor
+
+Raises :attr:`input` to the power of :attr:`exponent`, elementwise, in double precision.
+If neither input is complex returns a ``torch.float64`` tensor,
+and if one or more inputs is complex returns a ``torch.complex128`` tensor.
+
+.. note::
+    This function always computes in double precision, unlike :func:`torch.pow`,
+    which implements more typical :ref:`type promotion <type-promotion-doc>`.
+    This is useful when the computation needs to be performed in a wider or more precise dtype,
+    or the results of the computation may contain fractional values not representable in the input dtypes,
+    like when an integer base is raised to a negative integer exponent.
+
+Args:
+    input (Tensor or Number): the base value(s)
+    exponent (Tensor or Number): the exponent value(s)
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randint(10, (4,))
+    >>> a
+    tensor([6, 4, 7, 1])
+    >>> torch.float_power(a, 2)
+    tensor([36., 16., 49.,  1.], dtype=torch.float64)
+
+    >>> a = torch.arange(1, 5)
+    >>> a
+    tensor([ 1,  2,  3,  4])
+    >>> exp = torch.tensor([2, -3, 4, -5])
+    >>> exp
+    tensor([ 2, -3,  4, -5])
+    >>> torch.float_power(a, exp)
+    tensor([1.0000e+00, 1.2500e-01, 8.1000e+01, 9.7656e-04], dtype=torch.float64)
+
+[API Signature] input: tensor, exponent: tensor, out: tensor
+
+[Error Messages]
+TypeError: float_power() received an invalid combination of arguments - got (Tensor, float, out=float), but expected one of:
+ * (Tensor input, Tensor exponent, *, Tensor out = None)
+ * (Number self, Tensor exponent, *, Tensor out = None)
+ * (Tensor input, Number exponent, *, Tensor out = None)
+RuntimeError: the output given to float_power has dtype Double but the operation's result requires dtype ComplexDouble
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (input must be tensor or numeric type)
+{v_1 : tensor ⊎ int ⊎ float} |= true
+Token usage: input=2249, output=1024, total=3273
+** REDUNDANT VARIABLES ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.float_power API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+float_power(input, exponent, *, out=None) -> Tensor
+
+Raises :attr:`input` to the power of :attr:`exponent`, elementwise, in double precision.
+If neither input is complex returns a ``torch.float64`` tensor,
+and if one or more inputs is complex returns a ``torch.complex128`` tensor.
+
+.. note::
+    This function always computes in double precision, unlike :func:`torch.pow`,
+    which implements more typical :ref:`type promotion <type-promotion-doc>`.
+    This is useful when the computation needs to be performed in a wider or more precise dtype,
+    or the results of the computation may contain fractional values not representable in the input dtypes,
+    like when an integer base is raised to a negative integer exponent.
+
+Args:
+    input (Tensor or Number): the base value(s)
+    exponent (Tensor or Number): the exponent value(s)
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randint(10, (4,))
+    >>> a
+    tensor([6, 4, 7, 1])
+    >>> torch.float_power(a, 2)
+    tensor([36., 16., 49.,  1.], dtype=torch.float64)
+
+    >>> a = torch.arange(1, 5)
+    >>> a
+    tensor([ 1,  2,  3,  4])
+    >>> exp = torch.tensor([2, -3, 4, -5])
+    >>> exp
+    tensor([ 2, -3,  4, -5])
+    >>> torch.float_power(a, exp)
+    tensor([1.0000e+00, 1.2500e-01, 8.1000e+01, 9.7656e-04], dtype=torch.float64)
+
+[API Signature] input: tensor, exponent: tensor, out: tensor
+
+[Error Messages]
+TypeError: float_power() received an invalid combination of arguments - got (Tensor, float, out=float), but expected one of:
+ * (Tensor input, Tensor exponent, *, Tensor out = None)
+ * (Number self, Tensor exponent, *, Tensor out = None)
+ * (Tensor input, Number exponent, *, Tensor out = None)
+RuntimeError: the output given to float_power has dtype Double but the operation's result requires dtype ComplexDouble
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (exponent must be tensor or numeric type)
+{v_2 : tensor ⊎ int ⊎ float} |= true
+Token usage: input=2249, output=1024, total=3273
+** REDUNDANT VARIABLES ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.float_power API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+float_power(input, exponent, *, out=None) -> Tensor
+
+Raises :attr:`input` to the power of :attr:`exponent`, elementwise, in double precision.
+If neither input is complex returns a ``torch.float64`` tensor,
+and if one or more inputs is complex returns a ``torch.complex128`` tensor.
+
+.. note::
+    This function always computes in double precision, unlike :func:`torch.pow`,
+    which implements more typical :ref:`type promotion <type-promotion-doc>`.
+    This is useful when the computation needs to be performed in a wider or more precise dtype,
+    or the results of the computation may contain fractional values not representable in the input dtypes,
+    like when an integer base is raised to a negative integer exponent.
+
+Args:
+    input (Tensor or Number): the base value(s)
+    exponent (Tensor or Number): the exponent value(s)
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randint(10, (4,))
+    >>> a
+    tensor([6, 4, 7, 1])
+    >>> torch.float_power(a, 2)
+    tensor([36., 16., 49.,  1.], dtype=torch.float64)
+
+    >>> a = torch.arange(1, 5)
+    >>> a
+    tensor([ 1,  2,  3,  4])
+    >>> exp = torch.tensor([2, -3, 4, -5])
+    >>> exp
+    tensor([ 2, -3,  4, -5])
+    >>> torch.float_power(a, exp)
+    tensor([1.0000e+00, 1.2500e-01, 8.1000e+01, 9.7656e-04], dtype=torch.float64)
+
+[API Signature] input: tensor, exponent: tensor, out: tensor
+
+[Error Messages]
+TypeError: float_power() received an invalid combination of arguments - got (Tensor, float, out=float), but expected one of:
+ * (Tensor input, Tensor exponent, *, Tensor out = None)
+ * (Number self, Tensor exponent, *, Tensor out = None)
+ * (Tensor input, Number exponent, *, Tensor out = None)
+RuntimeError: the output given to float_power has dtype Double but the operation's result requires dtype ComplexDouble
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (out parameter must be a tensor when provided)
+{v_3 : tensor} |= ndim(v_3) ≥ 0
+Token usage: input=2249, output=1024, total=3273
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.float_power API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+float_power(input, exponent, *, out=None) -> Tensor
+
+Raises :attr:`input` to the power of :attr:`exponent`, elementwise, in double precision.
+If neither input is complex returns a ``torch.float64`` tensor,
+and if one or more inputs is complex returns a ``torch.complex128`` tensor.
+
+.. note::
+    This function always computes in double precision, unlike :func:`torch.pow`,
+    which implements more typical :ref:`type promotion <type-promotion-doc>`.
+    This is useful when the computation needs to be performed in a wider or more precise dtype,
+    or the results of the computation may contain fractional values not representable in the input dtypes,
+    like when an integer base is raised to a negative integer exponent.
+
+Args:
+    input (Tensor or Number): the base value(s)
+    exponent (Tensor or Number): the exponent value(s)
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randint(10, (4,))
+    >>> a
+    tensor([6, 4, 7, 1])
+    >>> torch.float_power(a, 2)
+    tensor([36., 16., 49.,  1.], dtype=torch.float64)
+
+    >>> a = torch.arange(1, 5)
+    >>> a
+    tensor([ 1,  2,  3,  4])
+    >>> exp = torch.tensor([2, -3, 4, -5])
+    >>> exp
+    tensor([ 2, -3,  4, -5])
+    >>> torch.float_power(a, exp)
+    tensor([1.0000e+00, 1.2500e-01, 8.1000e+01, 9.7656e-04], dtype=torch.float64)
+
+[API Signature] input: tensor, exponent: tensor, out: tensor
+
+[Error Messages]
+TypeError: float_power() received an invalid combination of arguments - got (Tensor, float, out=float), but expected one of:
+ * (Tensor input, Tensor exponent, *, Tensor out = None)
+ * (Number self, Tensor exponent, *, Tensor out = None)
+ * (Tensor input, Number exponent, *, Tensor out = None)
+RuntimeError: the output given to float_power has dtype Double but the operation's result requires dtype ComplexDouble
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (output tensor for real inputs must have float64 dtype)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8
+Token usage: input=2249, output=1024, total=3273
+** PARSING ERROR ** (num_failures: 3)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.float_power API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+float_power(input, exponent, *, out=None) -> Tensor
+
+Raises :attr:`input` to the power of :attr:`exponent`, elementwise, in double precision.
+If neither input is complex returns a ``torch.float64`` tensor,
+and if one or more inputs is complex returns a ``torch.complex128`` tensor.
+
+.. note::
+    This function always computes in double precision, unlike :func:`torch.pow`,
+    which implements more typical :ref:`type promotion <type-promotion-doc>`.
+    This is useful when the computation needs to be performed in a wider or more precise dtype,
+    or the results of the computation may contain fractional values not representable in the input dtypes,
+    like when an integer base is raised to a negative integer exponent.
+
+Args:
+    input (Tensor or Number): the base value(s)
+    exponent (Tensor or Number): the exponent value(s)
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randint(10, (4,))
+    >>> a
+    tensor([6, 4, 7, 1])
+    >>> torch.float_power(a, 2)
+    tensor([36., 16., 49.,  1.], dtype=torch.float64)
+
+    >>> a = torch.arange(1, 5)
+    >>> a
+    tensor([ 1,  2,  3,  4])
+    >>> exp = torch.tensor([2, -3, 4, -5])
+    >>> exp
+    tensor([ 2, -3,  4, -5])
+    >>> torch.float_power(a, exp)
+    tensor([1.0000e+00, 1.2500e-01, 8.1000e+01, 9.7656e-04], dtype=torch.float64)
+
+[API Signature] input: tensor, exponent: tensor, out: tensor
+
+[Error Messages]
+TypeError: float_power() received an invalid combination of arguments - got (Tensor, float, out=float), but expected one of:
+ * (Tensor input, Tensor exponent, *, Tensor out = None)
+ * (Number self, Tensor exponent, *, Tensor out = None)
+ * (Tensor input, Number exponent, *, Tensor out = None)
+RuntimeError: the output given to float_power has dtype Double but the operation's result requires dtype ComplexDouble
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (output tensor for complex inputs must have complex128 dtype)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10
+Token usage: input=2249, output=1024, total=3273
+** PARSING ERROR ** (num_failures: 4)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.float_power API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+float_power(input, exponent, *, out=None) -> Tensor
+
+Raises :attr:`input` to the power of :attr:`exponent`, elementwise, in double precision.
+If neither input is complex returns a ``torch.float64`` tensor,
+and if one or more inputs is complex returns a ``torch.complex128`` tensor.
+
+.. note::
+    This function always computes in double precision, unlike :func:`torch.pow`,
+    which implements more typical :ref:`type promotion <type-promotion-doc>`.
+    This is useful when the computation needs to be performed in a wider or more precise dtype,
+    or the results of the computation may contain fractional values not representable in the input dtypes,
+    like when an integer base is raised to a negative integer exponent.
+
+Args:
+    input (Tensor or Number): the base value(s)
+    exponent (Tensor or Number): the exponent value(s)
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randint(10, (4,))
+    >>> a
+    tensor([6, 4, 7, 1])
+    >>> torch.float_power(a, 2)
+    tensor([36., 16., 49.,  1.], dtype=torch.float64)
+
+    >>> a = torch.arange(1, 5)
+    >>> a
+    tensor([ 1,  2,  3,  4])
+    >>> exp = torch.tensor([2, -3, 4, -5])
+    >>> exp
+    tensor([ 2, -3,  4, -5])
+    >>> torch.float_power(a, exp)
+    tensor([1.0000e+00, 1.2500e-01, 8.1000e+01, 9.7656e-04], dtype=torch.float64)
+
+[API Signature] input: tensor, exponent: tensor, out: tensor
+
+[Error Messages]
+TypeError: float_power() received an invalid combination of arguments - got (Tensor, float, out=float), but expected one of:
+ * (Tensor input, Tensor exponent, *, Tensor out = None)
+ * (Number self, Tensor exponent, *, Tensor out = None)
+ * (Tensor input, Number exponent, *, Tensor out = None)
+RuntimeError: the output given to float_power has dtype Double but the operation's result requires dtype ComplexDouble
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (input and exponent tensors must be broadcastable - same ndim)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∨ ndim(v_1) = 0 ∨ ndim(v_2) = 0
+Token usage: input=2249, output=1024, total=3273
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.float_power API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+float_power(input, exponent, *, out=None) -> Tensor
+
+Raises :attr:`input` to the power of :attr:`exponent`, elementwise, in double precision.
+If neither input is complex returns a ``torch.float64`` tensor,
+and if one or more inputs is complex returns a ``torch.complex128`` tensor.
+
+.. note::
+    This function always computes in double precision, unlike :func:`torch.pow`,
+    which implements more typical :ref:`type promotion <type-promotion-doc>`.
+    This is useful when the computation needs to be performed in a wider or more precise dtype,
+    or the results of the computation may contain fractional values not representable in the input dtypes,
+    like when an integer base is raised to a negative integer exponent.
+
+Args:
+    input (Tensor or Number): the base value(s)
+    exponent (Tensor or Number): the exponent value(s)
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randint(10, (4,))
+    >>> a
+    tensor([6, 4, 7, 1])
+    >>> torch.float_power(a, 2)
+    tensor([36., 16., 49.,  1.], dtype=torch.float64)
+
+    >>> a = torch.arange(1, 5)
+    >>> a
+    tensor([ 1,  2,  3,  4])
+    >>> exp = torch.tensor([2, -3, 4, -5])
+    >>> exp
+    tensor([ 2, -3,  4, -5])
+    >>> torch.float_power(a, exp)
+    tensor([1.0000e+00, 1.2500e-01, 8.1000e+01, 9.7656e-04], dtype=torch.float64)
+
+[API Signature] input: tensor, exponent: tensor, out: tensor
+
+[Error Messages]
+TypeError: float_power() received an invalid combination of arguments - got (Tensor, float, out=float), but expected one of:
+ * (Tensor input, Tensor exponent, *, Tensor out = None)
+ * (Number self, Tensor exponent, *, Tensor out = None)
+ * (Tensor input, Number exponent, *, Tensor out = None)
+RuntimeError: the output given to float_power has dtype Double but the operation's result requires dtype ComplexDouble
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (output tensor must match result dimensions when input is tensor)
+{v_1 : tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1)
+Token usage: input=2249, output=1024, total=3273
+** PARSING ERROR ** (num_failures: 5)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.float_power API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+float_power(input, exponent, *, out=None) -> Tensor
+
+Raises :attr:`input` to the power of :attr:`exponent`, elementwise, in double precision.
+If neither input is complex returns a ``torch.float64`` tensor,
+and if one or more inputs is complex returns a ``torch.complex128`` tensor.
+
+.. note::
+    This function always computes in double precision, unlike :func:`torch.pow`,
+    which implements more typical :ref:`type promotion <type-promotion-doc>`.
+    This is useful when the computation needs to be performed in a wider or more precise dtype,
+    or the results of the computation may contain fractional values not representable in the input dtypes,
+    like when an integer base is raised to a negative integer exponent.
+
+Args:
+    input (Tensor or Number): the base value(s)
+    exponent (Tensor or Number): the exponent value(s)
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randint(10, (4,))
+    >>> a
+    tensor([6, 4, 7, 1])
+    >>> torch.float_power(a, 2)
+    tensor([36., 16., 49.,  1.], dtype=torch.float64)
+
+    >>> a = torch.arange(1, 5)
+    >>> a
+    tensor([ 1,  2,  3,  4])
+    >>> exp = torch.tensor([2, -3, 4, -5])
+    >>> exp
+    tensor([ 2, -3,  4, -5])
+    >>> torch.float_power(a, exp)
+    tensor([1.0000e+00, 1.2500e-01, 8.1000e+01, 9.7656e-04], dtype=torch.float64)
+
+[API Signature] input: tensor, exponent: tensor, out: tensor
+
+[Error Messages]
+TypeError: float_power() received an invalid combination of arguments - got (Tensor, float, out=float), but expected one of:
+ * (Tensor input, Tensor exponent, *, Tensor out = None)
+ * (Number self, Tensor exponent, *, Tensor out = None)
+ * (Tensor input, Number exponent, *, Tensor out = None)
+RuntimeError: the output given to float_power has dtype Double but the operation's result requires dtype ComplexDouble
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (input tensor must not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Token usage: input=2249, output=1024, total=3273
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.float_power API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+float_power(input, exponent, *, out=None) -> Tensor
+
+Raises :attr:`input` to the power of :attr:`exponent`, elementwise, in double precision.
+If neither input is complex returns a ``torch.float64`` tensor,
+and if one or more inputs is complex returns a ``torch.complex128`` tensor.
+
+.. note::
+    This function always computes in double precision, unlike :func:`torch.pow`,
+    which implements more typical :ref:`type promotion <type-promotion-doc>`.
+    This is useful when the computation needs to be performed in a wider or more precise dtype,
+    or the results of the computation may contain fractional values not representable in the input dtypes,
+    like when an integer base is raised to a negative integer exponent.
+
+Args:
+    input (Tensor or Number): the base value(s)
+    exponent (Tensor or Number): the exponent value(s)
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randint(10, (4,))
+    >>> a
+    tensor([6, 4, 7, 1])
+    >>> torch.float_power(a, 2)
+    tensor([36., 16., 49.,  1.], dtype=torch.float64)
+
+    >>> a = torch.arange(1, 5)
+    >>> a
+    tensor([ 1,  2,  3,  4])
+    >>> exp = torch.tensor([2, -3, 4, -5])
+    >>> exp
+    tensor([ 2, -3,  4, -5])
+    >>> torch.float_power(a, exp)
+    tensor([1.0000e+00, 1.2500e-01, 8.1000e+01, 9.7656e-04], dtype=torch.float64)
+
+[API Signature] input: tensor, exponent: tensor, out: tensor
+
+[Error Messages]
+TypeError: float_power() received an invalid combination of arguments - got (Tensor, float, out=float), but expected one of:
+ * (Tensor input, Tensor exponent, *, Tensor out = None)
+ * (Number self, Tensor exponent, *, Tensor out = None)
+ * (Tensor input, Number exponent, *, Tensor out = None)
+RuntimeError: the output given to float_power has dtype Double but the operation's result requires dtype ComplexDouble
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (exponent tensor must not be empty)
+{v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+Token usage: input=2249, output=1024, total=3273
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.float_power API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+float_power(input, exponent, *, out=None) -> Tensor
+
+Raises :attr:`input` to the power of :attr:`exponent`, elementwise, in double precision.
+If neither input is complex returns a ``torch.float64`` tensor,
+and if one or more inputs is complex returns a ``torch.complex128`` tensor.
+
+.. note::
+    This function always computes in double precision, unlike :func:`torch.pow`,
+    which implements more typical :ref:`type promotion <type-promotion-doc>`.
+    This is useful when the computation needs to be performed in a wider or more precise dtype,
+    or the results of the computation may contain fractional values not representable in the input dtypes,
+    like when an integer base is raised to a negative integer exponent.
+
+Args:
+    input (Tensor or Number): the base value(s)
+    exponent (Tensor or Number): the exponent value(s)
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randint(10, (4,))
+    >>> a
+    tensor([6, 4, 7, 1])
+    >>> torch.float_power(a, 2)
+    tensor([36., 16., 49.,  1.], dtype=torch.float64)
+
+    >>> a = torch.arange(1, 5)
+    >>> a
+    tensor([ 1,  2,  3,  4])
+    >>> exp = torch.tensor([2, -3, 4, -5])
+    >>> exp
+    tensor([ 2, -3,  4, -5])
+    >>> torch.float_power(a, exp)
+    tensor([1.0000e+00, 1.2500e-01, 8.1000e+01, 9.7656e-04], dtype=torch.float64)
+
+[API Signature] input: tensor, exponent: tensor, out: tensor
+
+[Error Messages]
+TypeError: float_power() received an invalid combination of arguments - got (Tensor, float, out=float), but expected one of:
+ * (Tensor input, Tensor exponent, *, Tensor out = None)
+ * (Number self, Tensor exponent, *, Tensor out = None)
+ * (Tensor input, Number exponent, *, Tensor out = None)
+RuntimeError: the output given to float_power has dtype Double but the operation's result requires dtype ComplexDouble
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (output tensor must not be empty)
+{v_3 : tensor} |= ∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) > 0
+Token usage: input=2249, output=1024, total=3273
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.float_power API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+float_power(input, exponent, *, out=None) -> Tensor
+
+Raises :attr:`input` to the power of :attr:`exponent`, elementwise, in double precision.
+If neither input is complex returns a ``torch.float64`` tensor,
+and if one or more inputs is complex returns a ``torch.complex128`` tensor.
+
+.. note::
+    This function always computes in double precision, unlike :func:`torch.pow`,
+    which implements more typical :ref:`type promotion <type-promotion-doc>`.
+    This is useful when the computation needs to be performed in a wider or more precise dtype,
+    or the results of the computation may contain fractional values not representable in the input dtypes,
+    like when an integer base is raised to a negative integer exponent.
+
+Args:
+    input (Tensor or Number): the base value(s)
+    exponent (Tensor or Number): the exponent value(s)
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randint(10, (4,))
+    >>> a
+    tensor([6, 4, 7, 1])
+    >>> torch.float_power(a, 2)
+    tensor([36., 16., 49.,  1.], dtype=torch.float64)
+
+    >>> a = torch.arange(1, 5)
+    >>> a
+    tensor([ 1,  2,  3,  4])
+    >>> exp = torch.tensor([2, -3, 4, -5])
+    >>> exp
+    tensor([ 2, -3,  4, -5])
+    >>> torch.float_power(a, exp)
+    tensor([1.0000e+00, 1.2500e-01, 8.1000e+01, 9.7656e-04], dtype=torch.float64)
+
+[API Signature] input: tensor, exponent: tensor, out: tensor
+
+[Error Messages]
+TypeError: float_power() received an invalid combination of arguments - got (Tensor, float, out=float), but expected one of:
+ * (Tensor input, Tensor exponent, *, Tensor out = None)
+ * (Number self, Tensor exponent, *, Tensor out = None)
+ * (Tensor input, Number exponent, *, Tensor out = None)
+RuntimeError: the output given to float_power has dtype Double but the operation's result requires dtype ComplexDouble
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (matching shape dimensions for input and exponent tensors)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
+Token usage: input=2249, output=1024, total=3273
+** PARSING ERROR ** (num_failures: 6)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.float_power API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+float_power(input, exponent, *, out=None) -> Tensor
+
+Raises :attr:`input` to the power of :attr:`exponent`, elementwise, in double precision.
+If neither input is complex returns a ``torch.float64`` tensor,
+and if one or more inputs is complex returns a ``torch.complex128`` tensor.
+
+.. note::
+    This function always computes in double precision, unlike :func:`torch.pow`,
+    which implements more typical :ref:`type promotion <type-promotion-doc>`.
+    This is useful when the computation needs to be performed in a wider or more precise dtype,
+    or the results of the computation may contain fractional values not representable in the input dtypes,
+    like when an integer base is raised to a negative integer exponent.
+
+Args:
+    input (Tensor or Number): the base value(s)
+    exponent (Tensor or Number): the exponent value(s)
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randint(10, (4,))
+    >>> a
+    tensor([6, 4, 7, 1])
+    >>> torch.float_power(a, 2)
+    tensor([36., 16., 49.,  1.], dtype=torch.float64)
+
+    >>> a = torch.arange(1, 5)
+    >>> a
+    tensor([ 1,  2,  3,  4])
+    >>> exp = torch.tensor([2, -3, 4, -5])
+    >>> exp
+    tensor([ 2, -3,  4, -5])
+    >>> torch.float_power(a, exp)
+    tensor([1.0000e+00, 1.2500e-01, 8.1000e+01, 9.7656e-04], dtype=torch.float64)
+
+[API Signature] input: tensor, exponent: tensor, out: tensor
+
+[Error Messages]
+TypeError: float_power() received an invalid combination of arguments - got (Tensor, float, out=float), but expected one of:
+ * (Tensor input, Tensor exponent, *, Tensor out = None)
+ * (Number self, Tensor exponent, *, Tensor out = None)
+ * (Tensor input, Number exponent, *, Tensor out = None)
+RuntimeError: the output given to float_power has dtype Double but the operation's result requires dtype ComplexDouble
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (output tensor shape matches input when exponent is scalar)
+{v_1 : tensor, v_2 : int ⊎ float, v_3 : tensor} |= ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)
+Token usage: input=2249, output=1024, total=3273
+** REDUNDANT VARIABLES ** (num_failures: 7)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.float_power API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+float_power(input, exponent, *, out=None) -> Tensor
+
+Raises :attr:`input` to the power of :attr:`exponent`, elementwise, in double precision.
+If neither input is complex returns a ``torch.float64`` tensor,
+and if one or more inputs is complex returns a ``torch.complex128`` tensor.
+
+.. note::
+    This function always computes in double precision, unlike :func:`torch.pow`,
+    which implements more typical :ref:`type promotion <type-promotion-doc>`.
+    This is useful when the computation needs to be performed in a wider or more precise dtype,
+    or the results of the computation may contain fractional values not representable in the input dtypes,
+    like when an integer base is raised to a negative integer exponent.
+
+Args:
+    input (Tensor or Number): the base value(s)
+    exponent (Tensor or Number): the exponent value(s)
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randint(10, (4,))
+    >>> a
+    tensor([6, 4, 7, 1])
+    >>> torch.float_power(a, 2)
+    tensor([36., 16., 49.,  1.], dtype=torch.float64)
+
+    >>> a = torch.arange(1, 5)
+    >>> a
+    tensor([ 1,  2,  3,  4])
+    >>> exp = torch.tensor([2, -3, 4, -5])
+    >>> exp
+    tensor([ 2, -3,  4, -5])
+    >>> torch.float_power(a, exp)
+    tensor([1.0000e+00, 1.2500e-01, 8.1000e+01, 9.7656e-04], dtype=torch.float64)
+
+[API Signature] input: tensor, exponent: tensor, out: tensor
+
+[Error Messages]
+TypeError: float_power() received an invalid combination of arguments - got (Tensor, float, out=float), but expected one of:
+ * (Tensor input, Tensor exponent, *, Tensor out = None)
+ * (Number self, Tensor exponent, *, Tensor out = None)
+ * (Tensor input, Number exponent, *, Tensor out = None)
+RuntimeError: the output given to float_power has dtype Double but the operation's result requires dtype ComplexDouble
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (output tensor shape matches exponent when input is scalar)
+{v_1 : int ⊎ float, v_2 : tensor, v_3 : tensor} |= ndim(v_2) = ndim(v_
+Token usage: input=2249, output=1024, total=3273
+** REDUNDANT VARIABLES ** (num_failures: 8)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Redundant variables: {v_1 : tensor ⊎ int ⊎ float} |= true (Unused: v_1)
+Redundant variables: {v_2 : tensor ⊎ int ⊎ float} |= true (Unused: v_2)
+Parse error: {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8 (Error: No terminal matches '→' in the current parser context, at line 1 col 83
+
+ |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* ADDOP
+	* __ANON_3
+	* COMPOP
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10 (Error: No terminal matches '→' in the current parser context, at line 1 col 83
+
+ |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* ADDOP
+	* __ANON_3
+	* COMPOP
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1) (Error: No terminal matches '→' in the current parser context, at line 1 col 47
+
+ tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1)
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_3
+	* __ANON_2
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1) (Error: No terminal matches '→' in the current parser context, at line 1 col 55
+
+ v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, 
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_3
+	* __ANON_2
+	* MULOP
+)
+Redundant variables: {v_1 : tensor, v_2 : int ⊎ float, v_3 : tensor} |= ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i) (Unused: v_2)
+Redundant variables: {v_1 : int ⊎ float, v_2 : tensor, v_3 : tensor} |= ndim(v_2) = ndim(v_ (Unused: v_1, v_3)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.float_power API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+float_power(input, exponent, *, out=None) -> Tensor
+
+Raises :attr:`input` to the power of :attr:`exponent`, elementwise, in double precision.
+If neither input is complex returns a ``torch.float64`` tensor,
+and if one or more inputs is complex returns a ``torch.complex128`` tensor.
+
+.. note::
+    This function always computes in double precision, unlike :func:`torch.pow`,
+    which implements more typical :ref:`type promotion <type-promotion-doc>`.
+    This is useful when the computation needs to be performed in a wider or more precise dtype,
+    or the results of the computation may contain fractional values not representable in the input dtypes,
+    like when an integer base is raised to a negative integer exponent.
+
+Args:
+    input (Tensor or Number): the base value(s)
+    exponent (Tensor or Number): the exponent value(s)
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randint(10, (4,))
+    >>> a
+    tensor([6, 4, 7, 1])
+    >>> torch.float_power(a, 2)
+    tensor([36., 16., 49.,  1.], dtype=torch.float64)
+
+    >>> a = torch.arange(1, 5)
+    >>> a
+    tensor([ 1,  2,  3,  4])
+    >>> exp = torch.tensor([2, -3, 4, -5])
+    >>> exp
+    tensor([ 2, -3,  4, -5])
+    >>> torch.float_power(a, exp)
+    tensor([1.0000e+00, 1.2500e-01, 8.1000e+01, 9.7656e-04], dtype=torch.float64)
+
+[API Signature] input: tensor, exponent: tensor, out: tensor
+
+[Error Messages]
+TypeError: float_power() received an invalid combination of arguments - got (Tensor, float, out=float), but expected one of:
+ * (Tensor input, Tensor exponent, *, Tensor out = None)
+ * (Number self, Tensor exponent, *, Tensor out = None)
+ * (Tensor input, Number exponent, *, Tensor out = None)
+RuntimeError: the output given to float_power has dtype Double but the operation's result requires dtype ComplexDouble
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 14 (output tensor for real inputs must have float64 dtype)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8 then dtype_(v_3) = 8
+Token usage: input=6521, output=1024, total=7545
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Redundant variables: {v_1 : tensor ⊎ int ⊎ float} |= true (Unused: v_1)
+Redundant variables: {v_2 : tensor ⊎ int ⊎ float} |= true (Unused: v_2)
+Parse error: {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8 (Error: No terminal matches '→' in the current parser context, at line 1 col 83
+
+ |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* ADDOP
+	* __ANON_3
+	* COMPOP
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10 (Error: No terminal matches '→' in the current parser context, at line 1 col 83
+
+ |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* ADDOP
+	* __ANON_3
+	* COMPOP
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1) (Error: No terminal matches '→' in the current parser context, at line 1 col 47
+
+ tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1)
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_3
+	* __ANON_2
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1) (Error: No terminal matches '→' in the current parser context, at line 1 col 55
+
+ v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, 
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_3
+	* __ANON_2
+	* MULOP
+)
+Redundant variables: {v_1 : tensor, v_2 : int ⊎ float, v_3 : tensor} |= ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i) (Unused: v_2)
+Redundant variables: {v_1 : int ⊎ float, v_2 : tensor, v_3 : tensor} |= ndim(v_2) = ndim(v_ (Unused: v_1, v_3)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.float_power API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+float_power(input, exponent, *, out=None) -> Tensor
+
+Raises :attr:`input` to the power of :attr:`exponent`, elementwise, in double precision.
+If neither input is complex returns a ``torch.float64`` tensor,
+and if one or more inputs is complex returns a ``torch.complex128`` tensor.
+
+.. note::
+    This function always computes in double precision, unlike :func:`torch.pow`,
+    which implements more typical :ref:`type promotion <type-promotion-doc>`.
+    This is useful when the computation needs to be performed in a wider or more precise dtype,
+    or the results of the computation may contain fractional values not representable in the input dtypes,
+    like when an integer base is raised to a negative integer exponent.
+
+Args:
+    input (Tensor or Number): the base value(s)
+    exponent (Tensor or Number): the exponent value(s)
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randint(10, (4,))
+    >>> a
+    tensor([6, 4, 7, 1])
+    >>> torch.float_power(a, 2)
+    tensor([36., 16., 49.,  1.], dtype=torch.float64)
+
+    >>> a = torch.arange(1, 5)
+    >>> a
+    tensor([ 1,  2,  3,  4])
+    >>> exp = torch.tensor([2, -3, 4, -5])
+    >>> exp
+    tensor([ 2, -3,  4, -5])
+    >>> torch.float_power(a, exp)
+    tensor([1.0000e+00, 1.2500e-01, 8.1000e+01, 9.7656e-04], dtype=torch.float64)
+
+[API Signature] input: tensor, exponent: tensor, out: tensor
+
+[Error Messages]
+TypeError: float_power() received an invalid combination of arguments - got (Tensor, float, out=float), but expected one of:
+ * (Tensor input, Tensor exponent, *, Tensor out = None)
+ * (Number self, Tensor exponent, *, Tensor out = None)
+ * (Tensor input, Number exponent, *, Tensor out = None)
+RuntimeError: the output given to float_power has dtype Double but the operation's result requires dtype ComplexDouble
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 15 (output tensor for complex inputs must have complex128 dtype)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9 then dtype_(v_3) = 10
+Token usage: input=6521, output=1024, total=7545
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Redundant variables: {v_1 : tensor ⊎ int ⊎ float} |= true (Unused: v_1)
+Redundant variables: {v_2 : tensor ⊎ int ⊎ float} |= true (Unused: v_2)
+Parse error: {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8 (Error: No terminal matches '→' in the current parser context, at line 1 col 83
+
+ |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* ADDOP
+	* __ANON_3
+	* COMPOP
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10 (Error: No terminal matches '→' in the current parser context, at line 1 col 83
+
+ |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* ADDOP
+	* __ANON_3
+	* COMPOP
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1) (Error: No terminal matches '→' in the current parser context, at line 1 col 47
+
+ tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1)
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_3
+	* __ANON_2
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1) (Error: No terminal matches '→' in the current parser context, at line 1 col 55
+
+ v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, 
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_3
+	* __ANON_2
+	* MULOP
+)
+Redundant variables: {v_1 : tensor, v_2 : int ⊎ float, v_3 : tensor} |= ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i) (Unused: v_2)
+Redundant variables: {v_1 : int ⊎ float, v_2 : tensor, v_3 : tensor} |= ndim(v_2) = ndim(v_ (Unused: v_1, v_3)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.float_power API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+float_power(input, exponent, *, out=None) -> Tensor
+
+Raises :attr:`input` to the power of :attr:`exponent`, elementwise, in double precision.
+If neither input is complex returns a ``torch.float64`` tensor,
+and if one or more inputs is complex returns a ``torch.complex128`` tensor.
+
+.. note::
+    This function always computes in double precision, unlike :func:`torch.pow`,
+    which implements more typical :ref:`type promotion <type-promotion-doc>`.
+    This is useful when the computation needs to be performed in a wider or more precise dtype,
+    or the results of the computation may contain fractional values not representable in the input dtypes,
+    like when an integer base is raised to a negative integer exponent.
+
+Args:
+    input (Tensor or Number): the base value(s)
+    exponent (Tensor or Number): the exponent value(s)
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randint(10, (4,))
+    >>> a
+    tensor([6, 4, 7, 1])
+    >>> torch.float_power(a, 2)
+    tensor([36., 16., 49.,  1.], dtype=torch.float64)
+
+    >>> a = torch.arange(1, 5)
+    >>> a
+    tensor([ 1,  2,  3,  4])
+    >>> exp = torch.tensor([2, -3, 4, -5])
+    >>> exp
+    tensor([ 2, -3,  4, -5])
+    >>> torch.float_power(a, exp)
+    tensor([1.0000e+00, 1.2500e-01, 8.1000e+01, 9.7656e-04], dtype=torch.float64)
+
+[API Signature] input: tensor, exponent: tensor, out: tensor
+
+[Error Messages]
+TypeError: float_power() received an invalid combination of arguments - got (Tensor, float, out=float), but expected one of:
+ * (Tensor input, Tensor exponent, *, Tensor out = None)
+ * (Number self, Tensor exponent, *, Tensor out = None)
+ * (Tensor input, Number exponent, *, Tensor out = None)
+RuntimeError: the output given to float_power has dtype Double but the operation's result requires dtype ComplexDouble
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 16 (output tensor must not be empty)
+{v_3 : tensor} |= ∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) > 0
+Token usage: input=6521, output=1024, total=7545
+** DUPLICATED RULE ** (num_failures: 9)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Redundant variables: {v_1 : tensor ⊎ int ⊎ float} |= true (Unused: v_1)
+Redundant variables: {v_2 : tensor ⊎ int ⊎ float} |= true (Unused: v_2)
+Parse error: {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8 (Error: No terminal matches '→' in the current parser context, at line 1 col 83
+
+ |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* ADDOP
+	* __ANON_3
+	* COMPOP
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10 (Error: No terminal matches '→' in the current parser context, at line 1 col 83
+
+ |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* ADDOP
+	* __ANON_3
+	* COMPOP
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1) (Error: No terminal matches '→' in the current parser context, at line 1 col 47
+
+ tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1)
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_3
+	* __ANON_2
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1) (Error: No terminal matches '→' in the current parser context, at line 1 col 55
+
+ v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, 
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_3
+	* __ANON_2
+	* MULOP
+)
+Redundant variables: {v_1 : tensor, v_2 : int ⊎ float, v_3 : tensor} |= ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i) (Unused: v_2)
+Redundant variables: {v_1 : int ⊎ float, v_2 : tensor, v_3 : tensor} |= ndim(v_2) = ndim(v_ (Unused: v_1, v_3)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.float_power API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+float_power(input, exponent, *, out=None) -> Tensor
+
+Raises :attr:`input` to the power of :attr:`exponent`, elementwise, in double precision.
+If neither input is complex returns a ``torch.float64`` tensor,
+and if one or more inputs is complex returns a ``torch.complex128`` tensor.
+
+.. note::
+    This function always computes in double precision, unlike :func:`torch.pow`,
+    which implements more typical :ref:`type promotion <type-promotion-doc>`.
+    This is useful when the computation needs to be performed in a wider or more precise dtype,
+    or the results of the computation may contain fractional values not representable in the input dtypes,
+    like when an integer base is raised to a negative integer exponent.
+
+Args:
+    input (Tensor or Number): the base value(s)
+    exponent (Tensor or Number): the exponent value(s)
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randint(10, (4,))
+    >>> a
+    tensor([6, 4, 7, 1])
+    >>> torch.float_power(a, 2)
+    tensor([36., 16., 49.,  1.], dtype=torch.float64)
+
+    >>> a = torch.arange(1, 5)
+    >>> a
+    tensor([ 1,  2,  3,  4])
+    >>> exp = torch.tensor([2, -3, 4, -5])
+    >>> exp
+    tensor([ 2, -3,  4, -5])
+    >>> torch.float_power(a, exp)
+    tensor([1.0000e+00, 1.2500e-01, 8.1000e+01, 9.7656e-04], dtype=torch.float64)
+
+[API Signature] input: tensor, exponent: tensor, out: tensor
+
+[Error Messages]
+TypeError: float_power() received an invalid combination of arguments - got (Tensor, float, out=float), but expected one of:
+ * (Tensor input, Tensor exponent, *, Tensor out = None)
+ * (Number self, Tensor exponent, *, Tensor out = None)
+ * (Tensor input, Number exponent, *, Tensor out = None)
+RuntimeError: the output given to float_power has dtype Double but the operation's result requires dtype ComplexDouble
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 17 (input tensor must not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Token usage: input=6521, output=1024, total=7545
+** DUPLICATED RULE ** (num_failures: 10)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Redundant variables: {v_1 : tensor ⊎ int ⊎ float} |= true (Unused: v_1)
+Redundant variables: {v_2 : tensor ⊎ int ⊎ float} |= true (Unused: v_2)
+Parse error: {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8 (Error: No terminal matches '→' in the current parser context, at line 1 col 83
+
+ |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* ADDOP
+	* __ANON_3
+	* COMPOP
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10 (Error: No terminal matches '→' in the current parser context, at line 1 col 83
+
+ |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* ADDOP
+	* __ANON_3
+	* COMPOP
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1) (Error: No terminal matches '→' in the current parser context, at line 1 col 47
+
+ tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1)
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_3
+	* __ANON_2
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1) (Error: No terminal matches '→' in the current parser context, at line 1 col 55
+
+ v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, 
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_3
+	* __ANON_2
+	* MULOP
+)
+Redundant variables: {v_1 : tensor, v_2 : int ⊎ float, v_3 : tensor} |= ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i) (Unused: v_2)
+Redundant variables: {v_1 : int ⊎ float, v_2 : tensor, v_3 : tensor} |= ndim(v_2) = ndim(v_ (Unused: v_1, v_3)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.float_power API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+float_power(input, exponent, *, out=None) -> Tensor
+
+Raises :attr:`input` to the power of :attr:`exponent`, elementwise, in double precision.
+If neither input is complex returns a ``torch.float64`` tensor,
+and if one or more inputs is complex returns a ``torch.complex128`` tensor.
+
+.. note::
+    This function always computes in double precision, unlike :func:`torch.pow`,
+    which implements more typical :ref:`type promotion <type-promotion-doc>`.
+    This is useful when the computation needs to be performed in a wider or more precise dtype,
+    or the results of the computation may contain fractional values not representable in the input dtypes,
+    like when an integer base is raised to a negative integer exponent.
+
+Args:
+    input (Tensor or Number): the base value(s)
+    exponent (Tensor or Number): the exponent value(s)
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randint(10, (4,))
+    >>> a
+    tensor([6, 4, 7, 1])
+    >>> torch.float_power(a, 2)
+    tensor([36., 16., 49.,  1.], dtype=torch.float64)
+
+    >>> a = torch.arange(1, 5)
+    >>> a
+    tensor([ 1,  2,  3,  4])
+    >>> exp = torch.tensor([2, -3, 4, -5])
+    >>> exp
+    tensor([ 2, -3,  4, -5])
+    >>> torch.float_power(a, exp)
+    tensor([1.0000e+00, 1.2500e-01, 8.1000e+01, 9.7656e-04], dtype=torch.float64)
+
+[API Signature] input: tensor, exponent: tensor, out: tensor
+
+[Error Messages]
+TypeError: float_power() received an invalid combination of arguments - got (Tensor, float, out=float), but expected one of:
+ * (Tensor input, Tensor exponent, *, Tensor out = None)
+ * (Number self, Tensor exponent, *, Tensor out = None)
+ * (Tensor input, Number exponent, *, Tensor out = None)
+RuntimeError: the output given to float_power has dtype Double but the operation's result requires dtype ComplexDouble
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 18 (exponent tensor must not be empty)
+{v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+Token usage: input=6521, output=1024, total=7545
+** DUPLICATED RULE ** (num_failures: 11)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Redundant variables: {v_1 : tensor ⊎ int ⊎ float} |= true (Unused: v_1)
+Redundant variables: {v_2 : tensor ⊎ int ⊎ float} |= true (Unused: v_2)
+Parse error: {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8 (Error: No terminal matches '→' in the current parser context, at line 1 col 83
+
+ |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* ADDOP
+	* __ANON_3
+	* COMPOP
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10 (Error: No terminal matches '→' in the current parser context, at line 1 col 83
+
+ |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* ADDOP
+	* __ANON_3
+	* COMPOP
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1) (Error: No terminal matches '→' in the current parser context, at line 1 col 47
+
+ tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1)
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_3
+	* __ANON_2
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1) (Error: No terminal matches '→' in the current parser context, at line 1 col 55
+
+ v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, 
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_3
+	* __ANON_2
+	* MULOP
+)
+Redundant variables: {v_1 : tensor, v_2 : int ⊎ float, v_3 : tensor} |= ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i) (Unused: v_2)
+Redundant variables: {v_1 : int ⊎ float, v_2 : tensor, v_3 : tensor} |= ndim(v_2) = ndim(v_ (Unused: v_1, v_3)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.float_power API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+float_power(input, exponent, *, out=None) -> Tensor
+
+Raises :attr:`input` to the power of :attr:`exponent`, elementwise, in double precision.
+If neither input is complex returns a ``torch.float64`` tensor,
+and if one or more inputs is complex returns a ``torch.complex128`` tensor.
+
+.. note::
+    This function always computes in double precision, unlike :func:`torch.pow`,
+    which implements more typical :ref:`type promotion <type-promotion-doc>`.
+    This is useful when the computation needs to be performed in a wider or more precise dtype,
+    or the results of the computation may contain fractional values not representable in the input dtypes,
+    like when an integer base is raised to a negative integer exponent.
+
+Args:
+    input (Tensor or Number): the base value(s)
+    exponent (Tensor or Number): the exponent value(s)
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randint(10, (4,))
+    >>> a
+    tensor([6, 4, 7, 1])
+    >>> torch.float_power(a, 2)
+    tensor([36., 16., 49.,  1.], dtype=torch.float64)
+
+    >>> a = torch.arange(1, 5)
+    >>> a
+    tensor([ 1,  2,  3,  4])
+    >>> exp = torch.tensor([2, -3, 4, -5])
+    >>> exp
+    tensor([ 2, -3,  4, -5])
+    >>> torch.float_power(a, exp)
+    tensor([1.0000e+00, 1.2500e-01, 8.1000e+01, 9.7656e-04], dtype=torch.float64)
+
+[API Signature] input: tensor, exponent: tensor, out: tensor
+
+[Error Messages]
+TypeError: float_power() received an invalid combination of arguments - got (Tensor, float, out=float), but expected one of:
+ * (Tensor input, Tensor exponent, *, Tensor out = None)
+ * (Number self, Tensor exponent, *, Tensor out = None)
+ * (Tensor input, Number exponent, *, Tensor out = None)
+RuntimeError: the output given to float_power has dtype Double but the operation's result requires dtype ComplexDouble
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 19 (input and exponent tensors must have compatible dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∨ ndim(v_1) = 0 ∨ ndim(v_2) = 0
+Token usage: input=6521, output=1024, total=7545
+** DUPLICATED RULE ** (num_failures: 12)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Redundant variables: {v_1 : tensor ⊎ int ⊎ float} |= true (Unused: v_1)
+Redundant variables: {v_2 : tensor ⊎ int ⊎ float} |= true (Unused: v_2)
+Parse error: {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8 (Error: No terminal matches '→' in the current parser context, at line 1 col 83
+
+ |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* ADDOP
+	* __ANON_3
+	* COMPOP
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10 (Error: No terminal matches '→' in the current parser context, at line 1 col 83
+
+ |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* ADDOP
+	* __ANON_3
+	* COMPOP
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1) (Error: No terminal matches '→' in the current parser context, at line 1 col 47
+
+ tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1)
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_3
+	* __ANON_2
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1) (Error: No terminal matches '→' in the current parser context, at line 1 col 55
+
+ v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, 
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_3
+	* __ANON_2
+	* MULOP
+)
+Redundant variables: {v_1 : tensor, v_2 : int ⊎ float, v_3 : tensor} |= ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i) (Unused: v_2)
+Redundant variables: {v_1 : int ⊎ float, v_2 : tensor, v_3 : tensor} |= ndim(v_2) = ndim(v_ (Unused: v_1, v_3)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.float_power API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+float_power(input, exponent, *, out=None) -> Tensor
+
+Raises :attr:`input` to the power of :attr:`exponent`, elementwise, in double precision.
+If neither input is complex returns a ``torch.float64`` tensor,
+and if one or more inputs is complex returns a ``torch.complex128`` tensor.
+
+.. note::
+    This function always computes in double precision, unlike :func:`torch.pow`,
+    which implements more typical :ref:`type promotion <type-promotion-doc>`.
+    This is useful when the computation needs to be performed in a wider or more precise dtype,
+    or the results of the computation may contain fractional values not representable in the input dtypes,
+    like when an integer base is raised to a negative integer exponent.
+
+Args:
+    input (Tensor or Number): the base value(s)
+    exponent (Tensor or Number): the exponent value(s)
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randint(10, (4,))
+    >>> a
+    tensor([6, 4, 7, 1])
+    >>> torch.float_power(a, 2)
+    tensor([36., 16., 49.,  1.], dtype=torch.float64)
+
+    >>> a = torch.arange(1, 5)
+    >>> a
+    tensor([ 1,  2,  3,  4])
+    >>> exp = torch.tensor([2, -3, 4, -5])
+    >>> exp
+    tensor([ 2, -3,  4, -5])
+    >>> torch.float_power(a, exp)
+    tensor([1.0000e+00, 1.2500e-01, 8.1000e+01, 9.7656e-04], dtype=torch.float64)
+
+[API Signature] input: tensor, exponent: tensor, out: tensor
+
+[Error Messages]
+TypeError: float_power() received an invalid combination of arguments - got (Tensor, float, out=float), but expected one of:
+ * (Tensor input, Tensor exponent, *, Tensor out = None)
+ * (Number self, Tensor exponent, *, Tensor out = None)
+ * (Tensor input, Number exponent, *, Tensor out = None)
+RuntimeError: the output given to float_power has dtype Double but the operation's result requires dtype ComplexDouble
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 20 (output tensor dimension matches non-scalar input)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_1) > 0 then ndim(v_3) = ndim(v_1)
+Token usage: input=6521, output=1024, total=7545
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Redundant variables: {v_1 : tensor ⊎ int ⊎ float} |= true (Unused: v_1)
+Redundant variables: {v_2 : tensor ⊎ int ⊎ float} |= true (Unused: v_2)
+Parse error: {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8 (Error: No terminal matches '→' in the current parser context, at line 1 col 83
+
+ |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* ADDOP
+	* __ANON_3
+	* COMPOP
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10 (Error: No terminal matches '→' in the current parser context, at line 1 col 83
+
+ |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* ADDOP
+	* __ANON_3
+	* COMPOP
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1) (Error: No terminal matches '→' in the current parser context, at line 1 col 47
+
+ tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1)
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_3
+	* __ANON_2
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1) (Error: No terminal matches '→' in the current parser context, at line 1 col 55
+
+ v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, 
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_3
+	* __ANON_2
+	* MULOP
+)
+Redundant variables: {v_1 : tensor, v_2 : int ⊎ float, v_3 : tensor} |= ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i) (Unused: v_2)
+Redundant variables: {v_1 : int ⊎ float, v_2 : tensor, v_3 : tensor} |= ndim(v_2) = ndim(v_ (Unused: v_1, v_3)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.float_power API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+float_power(input, exponent, *, out=None) -> Tensor
+
+Raises :attr:`input` to the power of :attr:`exponent`, elementwise, in double precision.
+If neither input is complex returns a ``torch.float64`` tensor,
+and if one or more inputs is complex returns a ``torch.complex128`` tensor.
+
+.. note::
+    This function always computes in double precision, unlike :func:`torch.pow`,
+    which implements more typical :ref:`type promotion <type-promotion-doc>`.
+    This is useful when the computation needs to be performed in a wider or more precise dtype,
+    or the results of the computation may contain fractional values not representable in the input dtypes,
+    like when an integer base is raised to a negative integer exponent.
+
+Args:
+    input (Tensor or Number): the base value(s)
+    exponent (Tensor or Number): the exponent value(s)
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randint(10, (4,))
+    >>> a
+    tensor([6, 4, 7, 1])
+    >>> torch.float_power(a, 2)
+    tensor([36., 16., 49.,  1.], dtype=torch.float64)
+
+    >>> a = torch.arange(1, 5)
+    >>> a
+    tensor([ 1,  2,  3,  4])
+    >>> exp = torch.tensor([2, -3, 4, -5])
+    >>> exp
+    tensor([ 2, -3,  4, -5])
+    >>> torch.float_power(a, exp)
+    tensor([1.0000e+00, 1.2500e-01, 8.1000e+01, 9.7656e-04], dtype=torch.float64)
+
+[API Signature] input: tensor, exponent: tensor, out: tensor
+
+[Error Messages]
+TypeError: float_power() received an invalid combination of arguments - got (Tensor, float, out=float), but expected one of:
+ * (Tensor input, Tensor exponent, *, Tensor out = None)
+ * (Number self, Tensor exponent, *, Tensor out = None)
+ * (Tensor input, Number exponent, *, Tensor out = None)
+RuntimeError: the output given to float_power has dtype Double but the operation's result requires dtype ComplexDouble
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 21 (matching shape dimensions for broadcastable tensors)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1
+Token usage: input=6521, output=1024, total=7545
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Redundant variables: {v_1 : tensor ⊎ int ⊎ float} |= true (Unused: v_1)
+Redundant variables: {v_2 : tensor ⊎ int ⊎ float} |= true (Unused: v_2)
+Parse error: {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8 (Error: No terminal matches '→' in the current parser context, at line 1 col 83
+
+ |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* ADDOP
+	* __ANON_3
+	* COMPOP
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10 (Error: No terminal matches '→' in the current parser context, at line 1 col 83
+
+ |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* ADDOP
+	* __ANON_3
+	* COMPOP
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1) (Error: No terminal matches '→' in the current parser context, at line 1 col 47
+
+ tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1)
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_3
+	* __ANON_2
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1) (Error: No terminal matches '→' in the current parser context, at line 1 col 55
+
+ v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, 
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_3
+	* __ANON_2
+	* MULOP
+)
+Redundant variables: {v_1 : tensor, v_2 : int ⊎ float, v_3 : tensor} |= ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i) (Unused: v_2)
+Redundant variables: {v_1 : int ⊎ float, v_2 : tensor, v_3 : tensor} |= ndim(v_2) = ndim(v_ (Unused: v_1, v_3)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.float_power API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+float_power(input, exponent, *, out=None) -> Tensor
+
+Raises :attr:`input` to the power of :attr:`exponent`, elementwise, in double precision.
+If neither input is complex returns a ``torch.float64`` tensor,
+and if one or more inputs is complex returns a ``torch.complex128`` tensor.
+
+.. note::
+    This function always computes in double precision, unlike :func:`torch.pow`,
+    which implements more typical :ref:`type promotion <type-promotion-doc>`.
+    This is useful when the computation needs to be performed in a wider or more precise dtype,
+    or the results of the computation may contain fractional values not representable in the input dtypes,
+    like when an integer base is raised to a negative integer exponent.
+
+Args:
+    input (Tensor or Number): the base value(s)
+    exponent (Tensor or Number): the exponent value(s)
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randint(10, (4,))
+    >>> a
+    tensor([6, 4, 7, 1])
+    >>> torch.float_power(a, 2)
+    tensor([36., 16., 49.,  1.], dtype=torch.float64)
+
+    >>> a = torch.arange(1, 5)
+    >>> a
+    tensor([ 1,  2,  3,  4])
+    >>> exp = torch.tensor([2, -3, 4, -5])
+    >>> exp
+    tensor([ 2, -3,  4, -5])
+    >>> torch.float_power(a, exp)
+    tensor([1.0000e+00, 1.2500e-01, 8.1000e+01, 9.7656e-04], dtype=torch.float64)
+
+[API Signature] input: tensor, exponent: tensor, out: tensor
+
+[Error Messages]
+TypeError: float_power() received an invalid combination of arguments - got (Tensor, float, out=float), but expected one of:
+ * (Tensor input, Tensor exponent, *, Tensor out = None)
+ * (Number self, Tensor exponent, *, Tensor out = None)
+ * (Tensor input, Number exponent, *, Tensor out = None)
+RuntimeError: the output given to float_power has dtype Double but the operation's result requires dtype ComplexDouble
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 22 (output shape matches input for same dimension tensors)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_1) = ndim(v_3) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i) ∨ shape(v_1, i) = 1
+Token usage: input=6521, output=1024, total=7545
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Redundant variables: {v_1 : tensor ⊎ int ⊎ float} |= true (Unused: v_1)
+Redundant variables: {v_2 : tensor ⊎ int ⊎ float} |= true (Unused: v_2)
+Parse error: {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8 (Error: No terminal matches '→' in the current parser context, at line 1 col 83
+
+ |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* ADDOP
+	* __ANON_3
+	* COMPOP
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10 (Error: No terminal matches '→' in the current parser context, at line 1 col 83
+
+ |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* ADDOP
+	* __ANON_3
+	* COMPOP
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1) (Error: No terminal matches '→' in the current parser context, at line 1 col 47
+
+ tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1)
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_3
+	* __ANON_2
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1) (Error: No terminal matches '→' in the current parser context, at line 1 col 55
+
+ v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, 
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_3
+	* __ANON_2
+	* MULOP
+)
+Redundant variables: {v_1 : tensor, v_2 : int ⊎ float, v_3 : tensor} |= ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i) (Unused: v_2)
+Redundant variables: {v_1 : int ⊎ float, v_2 : tensor, v_3 : tensor} |= ndim(v_2) = ndim(v_ (Unused: v_1, v_3)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.float_power API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+float_power(input, exponent, *, out=None) -> Tensor
+
+Raises :attr:`input` to the power of :attr:`exponent`, elementwise, in double precision.
+If neither input is complex returns a ``torch.float64`` tensor,
+and if one or more inputs is complex returns a ``torch.complex128`` tensor.
+
+.. note::
+    This function always computes in double precision, unlike :func:`torch.pow`,
+    which implements more typical :ref:`type promotion <type-promotion-doc>`.
+    This is useful when the computation needs to be performed in a wider or more precise dtype,
+    or the results of the computation may contain fractional values not representable in the input dtypes,
+    like when an integer base is raised to a negative integer exponent.
+
+Args:
+    input (Tensor or Number): the base value(s)
+    exponent (Tensor or Number): the exponent value(s)
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randint(10, (4,))
+    >>> a
+    tensor([6, 4, 7, 1])
+    >>> torch.float_power(a, 2)
+    tensor([36., 16., 49.,  1.], dtype=torch.float64)
+
+    >>> a = torch.arange(1, 5)
+    >>> a
+    tensor([ 1,  2,  3,  4])
+    >>> exp = torch.tensor([2, -3, 4, -5])
+    >>> exp
+    tensor([ 2, -3,  4, -5])
+    >>> torch.float_power(a, exp)
+    tensor([1.0000e+00, 1.2500e-01, 8.1000e+01, 9.7656e-04], dtype=torch.float64)
+
+[API Signature] input: tensor, exponent: tensor, out: tensor
+
+[Error Messages]
+TypeError: float_power() received an invalid combination of arguments - got (Tensor, float, out=float), but expected one of:
+ * (Tensor input, Tensor exponent, *, Tensor out = None)
+ * (Number self, Tensor exponent, *, Tensor out = None)
+ * (Tensor input, Number exponent, *, Tensor out = None)
+RuntimeError: the output given to float_power has dtype Double but the operation's result requires dtype ComplexDouble
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 23 (input tensor with complex dtype must have valid type)
+{v_1 : tensor} |= if dtype_(v_1) ≥ 9 then dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Token usage: input=6521, output=1024, total=7545
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Redundant variables: {v_1 : tensor ⊎ int ⊎ float} |= true (Unused: v_1)
+Redundant variables: {v_2 : tensor ⊎ int ⊎ float} |= true (Unused: v_2)
+Parse error: {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8 (Error: No terminal matches '→' in the current parser context, at line 1 col 83
+
+ |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* ADDOP
+	* __ANON_3
+	* COMPOP
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10 (Error: No terminal matches '→' in the current parser context, at line 1 col 83
+
+ |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* ADDOP
+	* __ANON_3
+	* COMPOP
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1) (Error: No terminal matches '→' in the current parser context, at line 1 col 47
+
+ tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1)
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_3
+	* __ANON_2
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1) (Error: No terminal matches '→' in the current parser context, at line 1 col 55
+
+ v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, 
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_3
+	* __ANON_2
+	* MULOP
+)
+Redundant variables: {v_1 : tensor, v_2 : int ⊎ float, v_3 : tensor} |= ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i) (Unused: v_2)
+Redundant variables: {v_1 : int ⊎ float, v_2 : tensor, v_3 : tensor} |= ndim(v_2) = ndim(v_ (Unused: v_1, v_3)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.float_power API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+float_power(input, exponent, *, out=None) -> Tensor
+
+Raises :attr:`input` to the power of :attr:`exponent`, elementwise, in double precision.
+If neither input is complex returns a ``torch.float64`` tensor,
+and if one or more inputs is complex returns a ``torch.complex128`` tensor.
+
+.. note::
+    This function always computes in double precision, unlike :func:`torch.pow`,
+    which implements more typical :ref:`type promotion <type-promotion-doc>`.
+    This is useful when the computation needs to be performed in a wider or more precise dtype,
+    or the results of the computation may contain fractional values not representable in the input dtypes,
+    like when an integer base is raised to a negative integer exponent.
+
+Args:
+    input (Tensor or Number): the base value(s)
+    exponent (Tensor or Number): the exponent value(s)
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randint(10, (4,))
+    >>> a
+    tensor([6, 4, 7, 1])
+    >>> torch.float_power(a, 2)
+    tensor([36., 16., 49.,  1.], dtype=torch.float64)
+
+    >>> a = torch.arange(1, 5)
+    >>> a
+    tensor([ 1,  2,  3,  4])
+    >>> exp = torch.tensor([2, -3, 4, -5])
+    >>> exp
+    tensor([ 2, -3,  4, -5])
+    >>> torch.float_power(a, exp)
+    tensor([1.0000e+00, 1.2500e-01, 8.1000e+01, 9.7656e-04], dtype=torch.float64)
+
+[API Signature] input: tensor, exponent: tensor, out: tensor
+
+[Error Messages]
+TypeError: float_power() received an invalid combination of arguments - got (Tensor, float, out=float), but expected one of:
+ * (Tensor input, Tensor exponent, *, Tensor out = None)
+ * (Number self, Tensor exponent, *, Tensor out = None)
+ * (Tensor input, Number exponent, *, Tensor out = None)
+RuntimeError: the output given to float_power has dtype Double but the operation's result requires dtype ComplexDouble
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 24 (exponent tensor with complex dtype must have valid type)
+{v_2 : tensor} |= if dtype_(v_2) ≥ 9 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+Token usage: input=6521, output=1024, total=7545
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Redundant variables: {v_1 : tensor ⊎ int ⊎ float} |= true (Unused: v_1)
+Redundant variables: {v_2 : tensor ⊎ int ⊎ float} |= true (Unused: v_2)
+Parse error: {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8 (Error: No terminal matches '→' in the current parser context, at line 1 col 83
+
+ |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* ADDOP
+	* __ANON_3
+	* COMPOP
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10 (Error: No terminal matches '→' in the current parser context, at line 1 col 83
+
+ |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* ADDOP
+	* __ANON_3
+	* COMPOP
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1) (Error: No terminal matches '→' in the current parser context, at line 1 col 47
+
+ tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1)
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_3
+	* __ANON_2
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1) (Error: No terminal matches '→' in the current parser context, at line 1 col 55
+
+ v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, 
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_3
+	* __ANON_2
+	* MULOP
+)
+Redundant variables: {v_1 : tensor, v_2 : int ⊎ float, v_3 : tensor} |= ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i) (Unused: v_2)
+Redundant variables: {v_1 : int ⊎ float, v_2 : tensor, v_3 : tensor} |= ndim(v_2) = ndim(v_ (Unused: v_1, v_3)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.float_power API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+float_power(input, exponent, *, out=None) -> Tensor
+
+Raises :attr:`input` to the power of :attr:`exponent`, elementwise, in double precision.
+If neither input is complex returns a ``torch.float64`` tensor,
+and if one or more inputs is complex returns a ``torch.complex128`` tensor.
+
+.. note::
+    This function always computes in double precision, unlike :func:`torch.pow`,
+    which implements more typical :ref:`type promotion <type-promotion-doc>`.
+    This is useful when the computation needs to be performed in a wider or more precise dtype,
+    or the results of the computation may contain fractional values not representable in the input dtypes,
+    like when an integer base is raised to a negative integer exponent.
+
+Args:
+    input (Tensor or Number): the base value(s)
+    exponent (Tensor or Number): the exponent value(s)
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randint(10, (4,))
+    >>> a
+    tensor([6, 4, 7, 1])
+    >>> torch.float_power(a, 2)
+    tensor([36., 16., 49.,  1.], dtype=torch.float64)
+
+    >>> a = torch.arange(1, 5)
+    >>> a
+    tensor([ 1,  2,  3,  4])
+    >>> exp = torch.tensor([2, -3, 4, -5])
+    >>> exp
+    tensor([ 2, -3,  4, -5])
+    >>> torch.float_power(a, exp)
+    tensor([1.0000e+00, 1.2500e-01, 8.1000e+01, 9.7656e-04], dtype=torch.float64)
+
+[API Signature] input: tensor, exponent: tensor, out: tensor
+
+[Error Messages]
+TypeError: float_power() received an invalid combination of arguments - got (Tensor, float, out=float), but expected one of:
+ * (Tensor input, Tensor exponent, *, Tensor out = None)
+ * (Number self, Tensor exponent, *, Tensor out = None)
+ * (Tensor input, Number exponent, *, Tensor out = None)
+RuntimeError: the output given to float_power has dtype Double but the operation's result requires dtype ComplexDouble
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 25 (output tensor dtype must be double or complex double)
+{v_3 : tensor} |= dtype_(v_3) = 8 ∨ dtype_(v_3) = 10
+Token usage: input=6521, output=1024, total=7545
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Redundant variables: {v_1 : tensor ⊎ int ⊎ float} |= true (Unused: v_1)
+Redundant variables: {v_2 : tensor ⊎ int ⊎ float} |= true (Unused: v_2)
+Parse error: {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8 (Error: No terminal matches '→' in the current parser context, at line 1 col 83
+
+ |= (dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≤ 8) → dtype_(v_3) = 8
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* ADDOP
+	* __ANON_3
+	* COMPOP
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10 (Error: No terminal matches '→' in the current parser context, at line 1 col 83
+
+ |= (dtype_(v_1) ≥ 9 ∨ dtype_(v_2) ≥ 9) → dtype_(v_3) = 10
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* ADDOP
+	* __ANON_3
+	* COMPOP
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1) (Error: No terminal matches '→' in the current parser context, at line 1 col 47
+
+ tensor, v_3 : tensor} |= ndim(v_1) > 0 → ndim(v_3) = ndim(v_1)
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_3
+	* __ANON_2
+	* MULOP
+)
+Parse error: {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1) (Error: No terminal matches '→' in the current parser context, at line 1 col 55
+
+ v_2 : tensor} |= ndim(v_1) = ndim(v_2) → ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, 
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_3
+	* __ANON_2
+	* MULOP
+)
+Redundant variables: {v_1 : tensor, v_2 : int ⊎ float, v_3 : tensor} |= ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i) (Unused: v_2)
+Redundant variables: {v_1 : int ⊎ float, v_2 : tensor, v_3 : tensor} |= ndim(v_2) = ndim(v_ (Unused: v_1, v_3)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.float_power API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+float_power(input, exponent, *, out=None) -> Tensor
+
+Raises :attr:`input` to the power of :attr:`exponent`, elementwise, in double precision.
+If neither input is complex returns a ``torch.float64`` tensor,
+and if one or more inputs is complex returns a ``torch.complex128`` tensor.
+
+.. note::
+    This function always computes in double precision, unlike :func:`torch.pow`,
+    which implements more typical :ref:`type promotion <type-promotion-doc>`.
+    This is useful when the computation needs to be performed in a wider or more precise dtype,
+    or the results of the computation may contain fractional values not representable in the input dtypes,
+    like when an integer base is raised to a negative integer exponent.
+
+Args:
+    input (Tensor or Number): the base value(s)
+    exponent (Tensor or Number): the exponent value(s)
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randint(10, (4,))
+    >>> a
+    tensor([6, 4, 7, 1])
+    >>> torch.float_power(a, 2)
+    tensor([36., 16., 49.,  1.], dtype=torch.float64)
+
+    >>> a = torch.arange(1, 5)
+    >>> a
+    tensor([ 1,  2,  3,  4])
+    >>> exp = torch.tensor([2, -3, 4, -5])
+    >>> exp
+    tensor([ 2, -3,  4, -5])
+    >>> torch.float_power(a, exp)
+    tensor([1.0000e+00, 1.2500e-01, 8.1000e+01, 9.7656e-04], dtype=torch.float64)
+
+[API Signature] input: tensor, exponent: tensor, out: tensor
+
+[Error Messages]
+TypeError: float_power() received an invalid combination of arguments - got (Tensor, float, out=float), but expected one of:
+ * (Tensor input, Tensor exponent, *, Tensor out = None)
+ * (Number self, Tensor exponent, *, Tensor out = None)
+ * (Tensor input, Number exponent, *, Tensor out = None)
+RuntimeError: the output given to float_power has dtype Double but the operation's result requires dtype ComplexDouble
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 26 (input tensor dtype must be valid numeric type)
+{v_1 : tensor} |= dtype_(v_1) ≥ 0 ∧ dtype_(v_1) ≤ 10
+Token usage: input=6521, output=1024, total=7545
+** SUCCESS **
+

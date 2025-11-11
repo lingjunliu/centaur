@@ -1,0 +1,42 @@
+>>
+Rule 1 (a must be floating-point: half/float32/float64)
+{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+>>
+Rule 2 (x must have the same dtype as a)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_2) = dtype_(v_1)
+>>
+Rule 3 (broadcast compatibility from a to x on trailing dimensions)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : if i < ndim(v_2) then (shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i) ∨ shape(v_1, ndim(v_1) - 1 - i) = 1 ∨ shape(v_2, ndim(v_2) - 1 - i) = 1) else shape(v_1, ndim(v_1) - 1 - i) = 1
+>>
+Rule 4 (broadcast compatibility from x to a on trailing dimensions)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : if i < ndim(v_1) then (shape(v_2, ndim(v_2) - 1 - i) = shape(v_1, ndim(v_1) - 1 - i) ∨ shape(v_2, ndim(v_2) - 1 - i) = 1 ∨ shape(v_1, ndim(v_1) - 1 - i) = 1) else shape(v_2, ndim(v_2) - 1 - i) = 1
+>>
+Rule 5 (CPU-safe dtypes: restrict to float32/float64 to avoid missing kernels)
+{v_1 : tensor, v_2 : tensor} |= 7 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8 ∧ dtype_(v_2) = dtype_(v_1)
+>>
+Rule 6 (name, if provided, should be a valid string from the allowed set)
+{v_3 : str} |= v_3 = "none" ∨ v_3 = "linear" ∨ v_3 = "relu"
+>>
+Rule 7 (a and x must be floating tensors of the same type; suppresses InvalidArgumentError about attr 'T')
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ dtype_(v_2) = dtype_(v_1)
+>>
+Rule 9 (a and x have exactly the same shape; simple way to ensure compatibility)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 10 (use dtypes with widely available kernels; suppresses NotFoundError due to missing device kernel)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v__1) = 7 ∨ dtype_(v_1) = 8) ∧ dtype_(v_2) = dtype_(v_1)
+>>
+Rule 11 (all shape dimensions are positive)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) > 0)
+>>
+Rule 12 (name is a valid string from the allowed list)
+{v_3 : str} |= v_3 = "none" ∨ v_3 = "linear" ∨ v_3 = "valid" ∨ v_3 = "same" ∨ v_3 = "channels_last" ∨ v_3 = "channels_first" ∨ v_3 = "sum" ∨ v_3 = "max" ∨ v_3 = "min" ∨ v_3 = "prod"
+>>
+Rule 15 (use dtypes with widely available kernels on CPU/GPU; suppresses NotFoundError for half on CPU)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ dtype_(v_2) = dtype_(v_1)
+>>
+Rule 16 (name must be chosen from the allowed string list)
+{v_3 : str} |= v_3 = "none" ∨ v_3 = "sum" ∨ v_3 = "max" ∨ v_3 = "min" ∨ v_3 = "prod" ∨ v_3 = "relu" ∨ v_3 = "tanh" ∨ v_3 = "sigmoid" ∨ v_3 = "softmax" ∨ v_3 = "elu" ∨ v_3 = "selu" ∨ v_3 = "gelu" ∨ v_3 = "swish" ∨ v_3 = "softplus" ∨ v_3 = "linear" ∨ v_3 = "valid" ∨ v_3 = "same" ∨ v_3 = "causal" ∨ v_3 = "channels_last" ∨ v_3 = "channels_first" ∨ v_3 = "ii" ∨ v_3 = "ii->i" ∨ v_3 = "i,j->ij" ∨ v_3 = "bij,bjk->bik" ∨ v_3 = "...ij->...ji" ∨ v_3 = "bn,anm,bm->ba"
+>>
+Rule 17 (domain sanity: a strictly positive and x non-negative to avoid invalid values)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) > 0 ∧ min(v_2) ≥ 0

@@ -1,0 +1,42 @@
+>>
+Rule 1 (input must be 4D or 5D and non-empty)
+{v_1 : tensor} |= (ndim(v_1) = 4 ∨ ndim(v_1) = 5) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 2 (kernel_size as single int must be positive and 32-bit)
+{v_2 : int} |= v_2 ≥ 1 ∧ v_2 ≥ -2147483648 ∧ v_2 ≤ 2147483647
+>>
+Rule 3 (kernel_size as tuple must be length-3 positive ints within 32-bit)
+{v_2 : tuple(int)} |= v_2.len = 3 ∧ ∀i ∈ [0, 2] : v_2[i] ≥ 1 ∧ v_2[i] ≥ -2147483648 ∧ v_2[i] ≤ 2147483647
+>>
+Rule 4 (padding as single int must be non-negative)
+{v_4 : int} |= v_4 ≥ 0
+>>
+Rule 5 (padding as tuple must be length-3 and non-negative)
+{v_4 : tuple(int)} |= v_4.len = 3 ∧ ∀i ∈ [0, 2] : v_4[i] ≥ 0
+>>
+Rule 6 (padding at most half of kernel size: int kernel_size, int padding)
+{v_2 : int, v_4 : int} |= v_4 ≥ 0 ∧ 2 * v_4 ≤ v_2 - 1
+>>
+Rule 7 (padding at most half of kernel size: int kernel_size, tuple padding)
+{v_2 : int, v_4 : tuple(int)} |= v_4.len = 3 ∧ ∀i ∈ [0, 2] : v_4[i] ≥ 0 ∧ 2 * v_4[i] ≤ v_2 - 1
+>>
+Rule 8 (padding at most half of kernel size: tuple kernel_size, int padding)
+{v_2 : tuple(int), v_4 : int} |= v_2.len = 3 ∧ v_4 ≥ 0 ∧ ∀i ∈ [0, 2] : 2 * v_4 ≤ v_2[i] - 1
+>>
+Rule 9 (padding at most half of kernel size: tuple kernel_size, tuple padding)
+{v_2 : tuple(int), v_4 : tuple(int)} |= v_2.len = 3 ∧ v_4.len = 3 ∧ ∀i ∈ [0, 2] : v_4[i] ≥ 0 ∧ 2 * v_4[i] ≤ v_2[i] - 1
+>>
+Rule 10 (input spatial size must not be smaller than kernel after padding: int kernel_size, int padding)
+{v_1 : tensor, v_2 : int, v_4 : int} |= if ndim(v_1) = 5 then (shape(v_1, 2) + 2 * v_4 ≥ v_2 ∧ shape(v_1, 3) + 2 * v_4 ≥ v_2 ∧ shape(v_1, 4) + 2 * v_4 ≥ v_2) else (shape(v_1, 1) + 2 * v_4 ≥ v_2 ∧ shape(v_1, 2) + 2 * v_4 ≥ v_2 ∧ shape(v_1, 3) + 2 * v_4 ≥ v_2)
+>>
+Rule 11 (input spatial size must not be smaller than kernel after padding: tuple kernel_size, tuple padding)
+{v_1 : tensor, v_2 : tuple(int), v_4 : tuple(int)} |= v_2.len = 3 ∧ v_4.len = 3 ∧ if ndim(v_1) = 5 then (shape(v_1, 2) + 2 * v_4[0] ≥ v_2[0] ∧ shape(v_1, 3) + 2 * v_4[1] ≥ v_2[1] ∧ shape(v_1, 4) + 2 * v_4[2] ≥ v_2[2]) else (shape(v_1, 1) + 2 * v_4[0] ≥ v_2[0] ∧ shape(v_1, 2) + 2 * v_4[1] ≥ v_2[1] ∧ shape(v_1, 3) + 2 * v_4[2] ≥ v_2[2])
+>>
+Rule 12 (input spatial size must not be smaller than kernel after padding: tuple kernel_size, int padding)
+{v_1 : tensor, v_2 : tuple(int), v_4 : int} |= v_2.len = 3 ∧ v_4 ≥ 0 ∧ if ndim(v_1) = 5 then (shape(v_1, 2) + 2 * v_4 ≥ v_2[0] ∧ shape(v_1, 3) + 2 * v_4 ≥ v_2[1] ∧ shape(v_1, 4) + 2 * v_4 ≥ v_2[2]) else (shape(v_1, 1) + 2 * v_4 ≥ v_2[0] ∧ shape(v_1, 2) + 2 * v_4 ≥ v_2[1] ∧ shape(v_1, 3) + 2 * v_4 ≥ v_2[2])
+>>
+Rule 13 (input spatial size must not be smaller than kernel after padding: int kernel_size, tuple padding)
+{v_1 : tensor, v_2 : int, v_4 : tuple(int)} |= v_4.len = 3 ∧ if ndim(v_1) = 5 then (shape(v_1, 2) + 2 * v_4[0] ≥ v_2 ∧ shape(v_1, 3) + 2 * v_4[1] ≥ v_2 ∧ shape(v_1, 4) + 2 * v_4[2] ≥ v_2) else (shape(v_1, 1) + 2 * v_4[0] ≥ v_2 ∧ shape(v_1, 2) + 2 * v_4[1] ≥ v_2 ∧ shape(v_1, 3) + 2 * v_4[2] ≥ v_2)
+>>
+Rule 14 (32-bit integer ranges for tuple parameters and divisor)
+{v_2 : tuple(int), v_3 : tuple(int), v_4 : tuple(int), v_7 : int} |= v_2.len = 3 ∧ v_3.len = 3 ∧ v_4.len = 3 ∧ ∀i ∈ [0, 2] : (v_2[i] ≥ -2147483648 ∧ v_2[i] ≤ 2147483647) ∧ (v_3[i] ≥ -2147483648 ∧ v_3[i] ≤ 2147483647) ∧ (v_4[i] ≥ -2147483648 ∧ v_4[i] ≤ 2147483647) ∧ v_7 ≥ -2147483648 ∧ v_7 ≤ 2147483647

@@ -1,0 +1,2431 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.reduce_max API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes `tf.math.maximum` of elements across dimensions of a tensor.
+
+  This is the reduction operation for the elementwise `tf.math.maximum` op.
+
+  Reduces `input_tensor` along the dimensions given in `axis`.
+  Unless `keepdims` is true, the rank of the tensor is reduced by 1 for each
+  of the entries in `axis`, which must be unique. If `keepdims` is true, the
+  reduced dimensions are retained with length 1.
+
+  If `axis` is None, all dimensions are reduced, and a
+  tensor with a single element is returned.
+
+  Usage example:
+
+    >>> x = tf.constant([5, 1, 2, 4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=5>
+    >>> x = tf.constant([-5, -1, -2, -4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=-1>
+    >>> x = tf.constant([4, float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('nan'), float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('-inf'), float('inf')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  See the numpy docs for `np.amax` and `np.nanmax` behavior.
+
+  Args:
+    input_tensor: The tensor to reduce. Should have real numeric type.
+    axis: The dimensions to reduce. If `None` (the default), reduces all
+      dimensions. Must be in the range `[-rank(input_tensor),
+      rank(input_tensor))`.
+    keepdims: If true, retains reduced dimensions with length 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The reduced tensor.
+
+[Possible API Signatures]
+ - input_tensor: tensor, axis: integer, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: list, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tuple, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tensor, keepdims: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64, qint8, quint8, qint32, qint16, quint16 	; NodeDef: {{node Max}}; Op<name=Max; signature=input:T, reduction_indices:Tidx -> output:T; attr=keep_dims:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_QINT16, DT_QUINT16]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Max]
+InvalidArgumentError: {{function_node __wrapped__Max_device_/job:localhost/replica:0/task:0/device:CPU:0}} Invalid reduction dimension (-10 for input with 4 dimension(s) [Op:Max]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (input tensor must have a real numeric dtype)
+{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+Token usage: input=2122, output=6602, total=8724
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.reduce_max API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes `tf.math.maximum` of elements across dimensions of a tensor.
+
+  This is the reduction operation for the elementwise `tf.math.maximum` op.
+
+  Reduces `input_tensor` along the dimensions given in `axis`.
+  Unless `keepdims` is true, the rank of the tensor is reduced by 1 for each
+  of the entries in `axis`, which must be unique. If `keepdims` is true, the
+  reduced dimensions are retained with length 1.
+
+  If `axis` is None, all dimensions are reduced, and a
+  tensor with a single element is returned.
+
+  Usage example:
+
+    >>> x = tf.constant([5, 1, 2, 4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=5>
+    >>> x = tf.constant([-5, -1, -2, -4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=-1>
+    >>> x = tf.constant([4, float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('nan'), float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('-inf'), float('inf')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  See the numpy docs for `np.amax` and `np.nanmax` behavior.
+
+  Args:
+    input_tensor: The tensor to reduce. Should have real numeric type.
+    axis: The dimensions to reduce. If `None` (the default), reduces all
+      dimensions. Must be in the range `[-rank(input_tensor),
+      rank(input_tensor))`.
+    keepdims: If true, retains reduced dimensions with length 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The reduced tensor.
+
+[Possible API Signatures]
+ - input_tensor: tensor, axis: integer, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: list, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tuple, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tensor, keepdims: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64, qint8, quint8, qint32, qint16, quint16 	; NodeDef: {{node Max}}; Op<name=Max; signature=input:T, reduction_indices:Tidx -> output:T; attr=keep_dims:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_QINT16, DT_QUINT16]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Max]
+InvalidArgumentError: {{function_node __wrapped__Max_device_/job:localhost/replica:0/task:0/device:CPU:0}} Invalid reduction dimension (-10 for input with 4 dimension(s) [Op:Max]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (axis as integer must be within valid range)
+{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
+Token usage: input=2122, output=6602, total=8724
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.reduce_max API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes `tf.math.maximum` of elements across dimensions of a tensor.
+
+  This is the reduction operation for the elementwise `tf.math.maximum` op.
+
+  Reduces `input_tensor` along the dimensions given in `axis`.
+  Unless `keepdims` is true, the rank of the tensor is reduced by 1 for each
+  of the entries in `axis`, which must be unique. If `keepdims` is true, the
+  reduced dimensions are retained with length 1.
+
+  If `axis` is None, all dimensions are reduced, and a
+  tensor with a single element is returned.
+
+  Usage example:
+
+    >>> x = tf.constant([5, 1, 2, 4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=5>
+    >>> x = tf.constant([-5, -1, -2, -4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=-1>
+    >>> x = tf.constant([4, float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('nan'), float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('-inf'), float('inf')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  See the numpy docs for `np.amax` and `np.nanmax` behavior.
+
+  Args:
+    input_tensor: The tensor to reduce. Should have real numeric type.
+    axis: The dimensions to reduce. If `None` (the default), reduces all
+      dimensions. Must be in the range `[-rank(input_tensor),
+      rank(input_tensor))`.
+    keepdims: If true, retains reduced dimensions with length 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The reduced tensor.
+
+[Possible API Signatures]
+ - input_tensor: tensor, axis: integer, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: list, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tuple, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tensor, keepdims: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64, qint8, quint8, qint32, qint16, quint16 	; NodeDef: {{node Max}}; Op<name=Max; signature=input:T, reduction_indices:Tidx -> output:T; attr=keep_dims:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_QINT16, DT_QUINT16]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Max]
+InvalidArgumentError: {{function_node __wrapped__Max_device_/job:localhost/replica:0/task:0/device:CPU:0}} Invalid reduction dimension (-10 for input with 4 dimension(s) [Op:Max]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (axis as tuple must be within valid range for every index)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : (0 - ndim(v_1)) ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+Token usage: input=2122, output=6602, total=8724
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.reduce_max API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes `tf.math.maximum` of elements across dimensions of a tensor.
+
+  This is the reduction operation for the elementwise `tf.math.maximum` op.
+
+  Reduces `input_tensor` along the dimensions given in `axis`.
+  Unless `keepdims` is true, the rank of the tensor is reduced by 1 for each
+  of the entries in `axis`, which must be unique. If `keepdims` is true, the
+  reduced dimensions are retained with length 1.
+
+  If `axis` is None, all dimensions are reduced, and a
+  tensor with a single element is returned.
+
+  Usage example:
+
+    >>> x = tf.constant([5, 1, 2, 4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=5>
+    >>> x = tf.constant([-5, -1, -2, -4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=-1>
+    >>> x = tf.constant([4, float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('nan'), float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('-inf'), float('inf')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  See the numpy docs for `np.amax` and `np.nanmax` behavior.
+
+  Args:
+    input_tensor: The tensor to reduce. Should have real numeric type.
+    axis: The dimensions to reduce. If `None` (the default), reduces all
+      dimensions. Must be in the range `[-rank(input_tensor),
+      rank(input_tensor))`.
+    keepdims: If true, retains reduced dimensions with length 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The reduced tensor.
+
+[Possible API Signatures]
+ - input_tensor: tensor, axis: integer, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: list, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tuple, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tensor, keepdims: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64, qint8, quint8, qint32, qint16, quint16 	; NodeDef: {{node Max}}; Op<name=Max; signature=input:T, reduction_indices:Tidx -> output:T; attr=keep_dims:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_QINT16, DT_QUINT16]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Max]
+InvalidArgumentError: {{function_node __wrapped__Max_device_/job:localhost/replica:0/task:0/device:CPU:0}} Invalid reduction dimension (-10 for input with 4 dimension(s) [Op:Max]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (axis indices must be unique when a tuple is provided)
+{v_2 : tuple(int)} |= if v_2.len ≤ 1 then true else ∀i ∈ [0, v_2.len - 2] : ∀j ∈ [i + 1, v_2.len - 1] : v_2[i] ≠ v_2[j]
+Token usage: input=2122, output=6602, total=8724
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.reduce_max API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes `tf.math.maximum` of elements across dimensions of a tensor.
+
+  This is the reduction operation for the elementwise `tf.math.maximum` op.
+
+  Reduces `input_tensor` along the dimensions given in `axis`.
+  Unless `keepdims` is true, the rank of the tensor is reduced by 1 for each
+  of the entries in `axis`, which must be unique. If `keepdims` is true, the
+  reduced dimensions are retained with length 1.
+
+  If `axis` is None, all dimensions are reduced, and a
+  tensor with a single element is returned.
+
+  Usage example:
+
+    >>> x = tf.constant([5, 1, 2, 4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=5>
+    >>> x = tf.constant([-5, -1, -2, -4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=-1>
+    >>> x = tf.constant([4, float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('nan'), float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('-inf'), float('inf')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  See the numpy docs for `np.amax` and `np.nanmax` behavior.
+
+  Args:
+    input_tensor: The tensor to reduce. Should have real numeric type.
+    axis: The dimensions to reduce. If `None` (the default), reduces all
+      dimensions. Must be in the range `[-rank(input_tensor),
+      rank(input_tensor))`.
+    keepdims: If true, retains reduced dimensions with length 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The reduced tensor.
+
+[Possible API Signatures]
+ - input_tensor: tensor, axis: integer, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: list, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tuple, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tensor, keepdims: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64, qint8, quint8, qint32, qint16, quint16 	; NodeDef: {{node Max}}; Op<name=Max; signature=input:T, reduction_indices:Tidx -> output:T; attr=keep_dims:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_QINT16, DT_QUINT16]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Max]
+InvalidArgumentError: {{function_node __wrapped__Max_device_/job:localhost/replica:0/task:0/device:CPU:0}} Invalid reduction dimension (-10 for input with 4 dimension(s) [Op:Max]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (tuple axis length cannot exceed the rank of the input)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≤ ndim(v_1)
+Token usage: input=2122, output=6602, total=8724
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.reduce_max API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes `tf.math.maximum` of elements across dimensions of a tensor.
+
+  This is the reduction operation for the elementwise `tf.math.maximum` op.
+
+  Reduces `input_tensor` along the dimensions given in `axis`.
+  Unless `keepdims` is true, the rank of the tensor is reduced by 1 for each
+  of the entries in `axis`, which must be unique. If `keepdims` is true, the
+  reduced dimensions are retained with length 1.
+
+  If `axis` is None, all dimensions are reduced, and a
+  tensor with a single element is returned.
+
+  Usage example:
+
+    >>> x = tf.constant([5, 1, 2, 4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=5>
+    >>> x = tf.constant([-5, -1, -2, -4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=-1>
+    >>> x = tf.constant([4, float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('nan'), float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('-inf'), float('inf')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  See the numpy docs for `np.amax` and `np.nanmax` behavior.
+
+  Args:
+    input_tensor: The tensor to reduce. Should have real numeric type.
+    axis: The dimensions to reduce. If `None` (the default), reduces all
+      dimensions. Must be in the range `[-rank(input_tensor),
+      rank(input_tensor))`.
+    keepdims: If true, retains reduced dimensions with length 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The reduced tensor.
+
+[Possible API Signatures]
+ - input_tensor: tensor, axis: integer, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: list, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tuple, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tensor, keepdims: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64, qint8, quint8, qint32, qint16, quint16 	; NodeDef: {{node Max}}; Op<name=Max; signature=input:T, reduction_indices:Tidx -> output:T; attr=keep_dims:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_QINT16, DT_QUINT16]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Max]
+InvalidArgumentError: {{function_node __wrapped__Max_device_/job:localhost/replica:0/task:0/device:CPU:0}} Invalid reduction dimension (-10 for input with 4 dimension(s) [Op:Max]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (axis as tensor must have integer dtype)
+{v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+Token usage: input=2122, output=6602, total=8724
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.reduce_max API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes `tf.math.maximum` of elements across dimensions of a tensor.
+
+  This is the reduction operation for the elementwise `tf.math.maximum` op.
+
+  Reduces `input_tensor` along the dimensions given in `axis`.
+  Unless `keepdims` is true, the rank of the tensor is reduced by 1 for each
+  of the entries in `axis`, which must be unique. If `keepdims` is true, the
+  reduced dimensions are retained with length 1.
+
+  If `axis` is None, all dimensions are reduced, and a
+  tensor with a single element is returned.
+
+  Usage example:
+
+    >>> x = tf.constant([5, 1, 2, 4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=5>
+    >>> x = tf.constant([-5, -1, -2, -4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=-1>
+    >>> x = tf.constant([4, float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('nan'), float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('-inf'), float('inf')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  See the numpy docs for `np.amax` and `np.nanmax` behavior.
+
+  Args:
+    input_tensor: The tensor to reduce. Should have real numeric type.
+    axis: The dimensions to reduce. If `None` (the default), reduces all
+      dimensions. Must be in the range `[-rank(input_tensor),
+      rank(input_tensor))`.
+    keepdims: If true, retains reduced dimensions with length 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The reduced tensor.
+
+[Possible API Signatures]
+ - input_tensor: tensor, axis: integer, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: list, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tuple, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tensor, keepdims: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64, qint8, quint8, qint32, qint16, quint16 	; NodeDef: {{node Max}}; Op<name=Max; signature=input:T, reduction_indices:Tidx -> output:T; attr=keep_dims:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_QINT16, DT_QUINT16]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Max]
+InvalidArgumentError: {{function_node __wrapped__Max_device_/job:localhost/replica:0/task:0/device:CPU:0}} Invalid reduction dimension (-10 for input with 4 dimension(s) [Op:Max]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (axis as tensor must be a scalar or 1-D vector)
+{v_2 : tensor} |= ndim(v_2) = 0 ∨ ndim(v_2) = 1
+Token usage: input=2122, output=6602, total=8724
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.reduce_max API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes `tf.math.maximum` of elements across dimensions of a tensor.
+
+  This is the reduction operation for the elementwise `tf.math.maximum` op.
+
+  Reduces `input_tensor` along the dimensions given in `axis`.
+  Unless `keepdims` is true, the rank of the tensor is reduced by 1 for each
+  of the entries in `axis`, which must be unique. If `keepdims` is true, the
+  reduced dimensions are retained with length 1.
+
+  If `axis` is None, all dimensions are reduced, and a
+  tensor with a single element is returned.
+
+  Usage example:
+
+    >>> x = tf.constant([5, 1, 2, 4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=5>
+    >>> x = tf.constant([-5, -1, -2, -4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=-1>
+    >>> x = tf.constant([4, float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('nan'), float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('-inf'), float('inf')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  See the numpy docs for `np.amax` and `np.nanmax` behavior.
+
+  Args:
+    input_tensor: The tensor to reduce. Should have real numeric type.
+    axis: The dimensions to reduce. If `None` (the default), reduces all
+      dimensions. Must be in the range `[-rank(input_tensor),
+      rank(input_tensor))`.
+    keepdims: If true, retains reduced dimensions with length 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The reduced tensor.
+
+[Possible API Signatures]
+ - input_tensor: tensor, axis: integer, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: list, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tuple, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tensor, keepdims: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64, qint8, quint8, qint32, qint16, quint16 	; NodeDef: {{node Max}}; Op<name=Max; signature=input:T, reduction_indices:Tidx -> output:T; attr=keep_dims:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_QINT16, DT_QUINT16]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Max]
+InvalidArgumentError: {{function_node __wrapped__Max_device_/job:localhost/replica:0/task:0/device:CPU:0}} Invalid reduction dimension (-10 for input with 4 dimension(s) [Op:Max]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (input tensor must have positive sizes in every dimension)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Token usage: input=2122, output=6602, total=8724
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.reduce_max API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes `tf.math.maximum` of elements across dimensions of a tensor.
+
+  This is the reduction operation for the elementwise `tf.math.maximum` op.
+
+  Reduces `input_tensor` along the dimensions given in `axis`.
+  Unless `keepdims` is true, the rank of the tensor is reduced by 1 for each
+  of the entries in `axis`, which must be unique. If `keepdims` is true, the
+  reduced dimensions are retained with length 1.
+
+  If `axis` is None, all dimensions are reduced, and a
+  tensor with a single element is returned.
+
+  Usage example:
+
+    >>> x = tf.constant([5, 1, 2, 4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=5>
+    >>> x = tf.constant([-5, -1, -2, -4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=-1>
+    >>> x = tf.constant([4, float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('nan'), float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('-inf'), float('inf')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  See the numpy docs for `np.amax` and `np.nanmax` behavior.
+
+  Args:
+    input_tensor: The tensor to reduce. Should have real numeric type.
+    axis: The dimensions to reduce. If `None` (the default), reduces all
+      dimensions. Must be in the range `[-rank(input_tensor),
+      rank(input_tensor))`.
+    keepdims: If true, retains reduced dimensions with length 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The reduced tensor.
+
+[Possible API Signatures]
+ - input_tensor: tensor, axis: integer, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: list, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tuple, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tensor, keepdims: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64, qint8, quint8, qint32, qint16, quint16 	; NodeDef: {{node Max}}; Op<name=Max; signature=input:T, reduction_indices:Tidx -> output:T; attr=keep_dims:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_QINT16, DT_QUINT16]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Max]
+InvalidArgumentError: {{function_node __wrapped__Max_device_/job:localhost/replica:0/task:0/device:CPU:0}} Invalid reduction dimension (-10 for input with 4 dimension(s) [Op:Max]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (name must be a permitted string token)
+{v_4 : str} |= v_4 = "ii" ∨ v_4 = "ii->i" ∨ v_4 = "i,j->ij" ∨ v_4 = "bij,bjk->bik" ∨ v_4 = "...ij->...ji" ∨ v_4 = "bn,anm,bm->ba" ∨ v_4 = "none" ∨ v_4 = "sum" ∨ v_4 = "max" ∨ v_4 = "min" ∨ v_4 = "prod" ∨ v_4 = "relu" ∨ v_4 = "tanh" ∨ v_4 = "sigmoid" ∨ v_4 = "softmax" ∨ v_4 = "elu" ∨ v_4 = "selu" ∨ v_4 = "gelu" ∨ v_4 = "swish" ∨ v_4 = "softplus" ∨ v_4 = "linear" ∨ v_4 = "valid" ∨ v_4 = "same" ∨ v_4 = "causal" ∨ v_4 = "channels_last" ∨ v_4 = "channels_first"
+Token usage: input=2122, output=6602, total=8724
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.reduce_max API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes `tf.math.maximum` of elements across dimensions of a tensor.
+
+  This is the reduction operation for the elementwise `tf.math.maximum` op.
+
+  Reduces `input_tensor` along the dimensions given in `axis`.
+  Unless `keepdims` is true, the rank of the tensor is reduced by 1 for each
+  of the entries in `axis`, which must be unique. If `keepdims` is true, the
+  reduced dimensions are retained with length 1.
+
+  If `axis` is None, all dimensions are reduced, and a
+  tensor with a single element is returned.
+
+  Usage example:
+
+    >>> x = tf.constant([5, 1, 2, 4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=5>
+    >>> x = tf.constant([-5, -1, -2, -4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=-1>
+    >>> x = tf.constant([4, float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('nan'), float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('-inf'), float('inf')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  See the numpy docs for `np.amax` and `np.nanmax` behavior.
+
+  Args:
+    input_tensor: The tensor to reduce. Should have real numeric type.
+    axis: The dimensions to reduce. If `None` (the default), reduces all
+      dimensions. Must be in the range `[-rank(input_tensor),
+      rank(input_tensor))`.
+    keepdims: If true, retains reduced dimensions with length 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The reduced tensor.
+
+[Possible API Signatures]
+ - input_tensor: tensor, axis: integer, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: list, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tuple, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tensor, keepdims: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64, qint8, quint8, qint32, qint16, quint16 	; NodeDef: {{node Max}}; Op<name=Max; signature=input:T, reduction_indices:Tidx -> output:T; attr=keep_dims:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_QINT16, DT_QUINT16]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Max]
+InvalidArgumentError: {{function_node __wrapped__Max_device_/job:localhost/replica:0/task:0/device:CPU:0}} Invalid reduction dimension (-10 for input with 4 dimension(s) [Op:Max]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (input_tensor must have a real numeric dtype)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Token usage: input=2169, output=7225, total=9394
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.reduce_max API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes `tf.math.maximum` of elements across dimensions of a tensor.
+
+  This is the reduction operation for the elementwise `tf.math.maximum` op.
+
+  Reduces `input_tensor` along the dimensions given in `axis`.
+  Unless `keepdims` is true, the rank of the tensor is reduced by 1 for each
+  of the entries in `axis`, which must be unique. If `keepdims` is true, the
+  reduced dimensions are retained with length 1.
+
+  If `axis` is None, all dimensions are reduced, and a
+  tensor with a single element is returned.
+
+  Usage example:
+
+    >>> x = tf.constant([5, 1, 2, 4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=5>
+    >>> x = tf.constant([-5, -1, -2, -4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=-1>
+    >>> x = tf.constant([4, float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('nan'), float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('-inf'), float('inf')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  See the numpy docs for `np.amax` and `np.nanmax` behavior.
+
+  Args:
+    input_tensor: The tensor to reduce. Should have real numeric type.
+    axis: The dimensions to reduce. If `None` (the default), reduces all
+      dimensions. Must be in the range `[-rank(input_tensor),
+      rank(input_tensor))`.
+    keepdims: If true, retains reduced dimensions with length 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The reduced tensor.
+
+[Possible API Signatures]
+ - input_tensor: tensor, axis: integer, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: list, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tuple, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tensor, keepdims: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64, qint8, quint8, qint32, qint16, quint16 	; NodeDef: {{node Max}}; Op<name=Max; signature=input:T, reduction_indices:Tidx -> output:T; attr=keep_dims:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_QINT16, DT_QUINT16]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Max]
+InvalidArgumentError: {{function_node __wrapped__Max_device_/job:localhost/replica:0/task:0/device:CPU:0}} Invalid reduction dimension (-10 for input with 4 dimension(s) [Op:Max]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (integer axis within valid range [-rank(input), rank(input) - 1])
+{v_1 : tensor, v_2 : int} |= v_2 ≥ -ndim(v_1) ∧ v_2 < ndim(v_1)
+Token usage: input=2169, output=7225, total=9394
+** PARSING ERROR ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.reduce_max API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes `tf.math.maximum` of elements across dimensions of a tensor.
+
+  This is the reduction operation for the elementwise `tf.math.maximum` op.
+
+  Reduces `input_tensor` along the dimensions given in `axis`.
+  Unless `keepdims` is true, the rank of the tensor is reduced by 1 for each
+  of the entries in `axis`, which must be unique. If `keepdims` is true, the
+  reduced dimensions are retained with length 1.
+
+  If `axis` is None, all dimensions are reduced, and a
+  tensor with a single element is returned.
+
+  Usage example:
+
+    >>> x = tf.constant([5, 1, 2, 4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=5>
+    >>> x = tf.constant([-5, -1, -2, -4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=-1>
+    >>> x = tf.constant([4, float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('nan'), float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('-inf'), float('inf')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  See the numpy docs for `np.amax` and `np.nanmax` behavior.
+
+  Args:
+    input_tensor: The tensor to reduce. Should have real numeric type.
+    axis: The dimensions to reduce. If `None` (the default), reduces all
+      dimensions. Must be in the range `[-rank(input_tensor),
+      rank(input_tensor))`.
+    keepdims: If true, retains reduced dimensions with length 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The reduced tensor.
+
+[Possible API Signatures]
+ - input_tensor: tensor, axis: integer, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: list, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tuple, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tensor, keepdims: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64, qint8, quint8, qint32, qint16, quint16 	; NodeDef: {{node Max}}; Op<name=Max; signature=input:T, reduction_indices:Tidx -> output:T; attr=keep_dims:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_QINT16, DT_QUINT16]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Max]
+InvalidArgumentError: {{function_node __wrapped__Max_device_/job:localhost/replica:0/task:0/device:CPU:0}} Invalid reduction dimension (-10 for input with 4 dimension(s) [Op:Max]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (list axis: each index in range and all indices unique)
+{v_1 : tensor, v_2 : list(int)} |= v_2.len ≥ 1 ∧ ∀i ∈ [0, v_2.len - 1] : (v_2[i] ≥ -ndim(v_1) ∧ v_2[i] < ndim(v_1) ∧ ∀j ∈ [i + 1, v_2.len - 1] : v_2[i] ≠ v_2[j])
+Token usage: input=2169, output=7225, total=9394
+** PARSING ERROR ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.reduce_max API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes `tf.math.maximum` of elements across dimensions of a tensor.
+
+  This is the reduction operation for the elementwise `tf.math.maximum` op.
+
+  Reduces `input_tensor` along the dimensions given in `axis`.
+  Unless `keepdims` is true, the rank of the tensor is reduced by 1 for each
+  of the entries in `axis`, which must be unique. If `keepdims` is true, the
+  reduced dimensions are retained with length 1.
+
+  If `axis` is None, all dimensions are reduced, and a
+  tensor with a single element is returned.
+
+  Usage example:
+
+    >>> x = tf.constant([5, 1, 2, 4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=5>
+    >>> x = tf.constant([-5, -1, -2, -4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=-1>
+    >>> x = tf.constant([4, float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('nan'), float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('-inf'), float('inf')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  See the numpy docs for `np.amax` and `np.nanmax` behavior.
+
+  Args:
+    input_tensor: The tensor to reduce. Should have real numeric type.
+    axis: The dimensions to reduce. If `None` (the default), reduces all
+      dimensions. Must be in the range `[-rank(input_tensor),
+      rank(input_tensor))`.
+    keepdims: If true, retains reduced dimensions with length 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The reduced tensor.
+
+[Possible API Signatures]
+ - input_tensor: tensor, axis: integer, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: list, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tuple, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tensor, keepdims: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64, qint8, quint8, qint32, qint16, quint16 	; NodeDef: {{node Max}}; Op<name=Max; signature=input:T, reduction_indices:Tidx -> output:T; attr=keep_dims:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_QINT16, DT_QUINT16]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Max]
+InvalidArgumentError: {{function_node __wrapped__Max_device_/job:localhost/replica:0/task:0/device:CPU:0}} Invalid reduction dimension (-10 for input with 4 dimension(s) [Op:Max]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (tuple axis: each index in range and all indices unique)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≥ 1 ∧ ∀i ∈ [0, v_2.len - 1] : (v_2[i] ≥ -ndim(v_1) ∧ v_2[i] < ndim(v_1) ∧ ∀j ∈ [i + 1, v_2.len - 1] : v_2[i] ≠ v_2[j])
+Token usage: input=2169, output=7225, total=9394
+** PARSING ERROR ** (num_failures: 3)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.reduce_max API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes `tf.math.maximum` of elements across dimensions of a tensor.
+
+  This is the reduction operation for the elementwise `tf.math.maximum` op.
+
+  Reduces `input_tensor` along the dimensions given in `axis`.
+  Unless `keepdims` is true, the rank of the tensor is reduced by 1 for each
+  of the entries in `axis`, which must be unique. If `keepdims` is true, the
+  reduced dimensions are retained with length 1.
+
+  If `axis` is None, all dimensions are reduced, and a
+  tensor with a single element is returned.
+
+  Usage example:
+
+    >>> x = tf.constant([5, 1, 2, 4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=5>
+    >>> x = tf.constant([-5, -1, -2, -4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=-1>
+    >>> x = tf.constant([4, float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('nan'), float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('-inf'), float('inf')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  See the numpy docs for `np.amax` and `np.nanmax` behavior.
+
+  Args:
+    input_tensor: The tensor to reduce. Should have real numeric type.
+    axis: The dimensions to reduce. If `None` (the default), reduces all
+      dimensions. Must be in the range `[-rank(input_tensor),
+      rank(input_tensor))`.
+    keepdims: If true, retains reduced dimensions with length 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The reduced tensor.
+
+[Possible API Signatures]
+ - input_tensor: tensor, axis: integer, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: list, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tuple, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tensor, keepdims: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64, qint8, quint8, qint32, qint16, quint16 	; NodeDef: {{node Max}}; Op<name=Max; signature=input:T, reduction_indices:Tidx -> output:T; attr=keep_dims:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_QINT16, DT_QUINT16]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Max]
+InvalidArgumentError: {{function_node __wrapped__Max_device_/job:localhost/replica:0/task:0/device:CPU:0}} Invalid reduction dimension (-10 for input with 4 dimension(s) [Op:Max]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 14 (axis provided as tensor must be int32 or int64 and be scalar or 1-D)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (ndim(v_2) = 0 ∨ ndim(v_2) = 1)
+Token usage: input=2169, output=7225, total=9394
+** REDUNDANT VARIABLES ** (num_failures: 4)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.reduce_max API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes `tf.math.maximum` of elements across dimensions of a tensor.
+
+  This is the reduction operation for the elementwise `tf.math.maximum` op.
+
+  Reduces `input_tensor` along the dimensions given in `axis`.
+  Unless `keepdims` is true, the rank of the tensor is reduced by 1 for each
+  of the entries in `axis`, which must be unique. If `keepdims` is true, the
+  reduced dimensions are retained with length 1.
+
+  If `axis` is None, all dimensions are reduced, and a
+  tensor with a single element is returned.
+
+  Usage example:
+
+    >>> x = tf.constant([5, 1, 2, 4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=5>
+    >>> x = tf.constant([-5, -1, -2, -4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=-1>
+    >>> x = tf.constant([4, float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('nan'), float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('-inf'), float('inf')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  See the numpy docs for `np.amax` and `np.nanmax` behavior.
+
+  Args:
+    input_tensor: The tensor to reduce. Should have real numeric type.
+    axis: The dimensions to reduce. If `None` (the default), reduces all
+      dimensions. Must be in the range `[-rank(input_tensor),
+      rank(input_tensor))`.
+    keepdims: If true, retains reduced dimensions with length 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The reduced tensor.
+
+[Possible API Signatures]
+ - input_tensor: tensor, axis: integer, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: list, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tuple, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tensor, keepdims: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64, qint8, quint8, qint32, qint16, quint16 	; NodeDef: {{node Max}}; Op<name=Max; signature=input:T, reduction_indices:Tidx -> output:T; attr=keep_dims:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_QINT16, DT_QUINT16]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Max]
+InvalidArgumentError: {{function_node __wrapped__Max_device_/job:localhost/replica:0/task:0/device:CPU:0}} Invalid reduction dimension (-10 for input with 4 dimension(s) [Op:Max]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 15 (axis as list or tuple cannot specify more axes than the tensor rank)
+{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= v_2.len ≤ ndim(v_1)
+Token usage: input=2169, output=7225, total=9394
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.reduce_max API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes `tf.math.maximum` of elements across dimensions of a tensor.
+
+  This is the reduction operation for the elementwise `tf.math.maximum` op.
+
+  Reduces `input_tensor` along the dimensions given in `axis`.
+  Unless `keepdims` is true, the rank of the tensor is reduced by 1 for each
+  of the entries in `axis`, which must be unique. If `keepdims` is true, the
+  reduced dimensions are retained with length 1.
+
+  If `axis` is None, all dimensions are reduced, and a
+  tensor with a single element is returned.
+
+  Usage example:
+
+    >>> x = tf.constant([5, 1, 2, 4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=5>
+    >>> x = tf.constant([-5, -1, -2, -4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=-1>
+    >>> x = tf.constant([4, float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('nan'), float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('-inf'), float('inf')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  See the numpy docs for `np.amax` and `np.nanmax` behavior.
+
+  Args:
+    input_tensor: The tensor to reduce. Should have real numeric type.
+    axis: The dimensions to reduce. If `None` (the default), reduces all
+      dimensions. Must be in the range `[-rank(input_tensor),
+      rank(input_tensor))`.
+    keepdims: If true, retains reduced dimensions with length 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The reduced tensor.
+
+[Possible API Signatures]
+ - input_tensor: tensor, axis: integer, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: list, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tuple, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tensor, keepdims: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64, qint8, quint8, qint32, qint16, quint16 	; NodeDef: {{node Max}}; Op<name=Max; signature=input:T, reduction_indices:Tidx -> output:T; attr=keep_dims:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_QINT16, DT_QUINT16]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Max]
+InvalidArgumentError: {{function_node __wrapped__Max_device_/job:localhost/replica:0/task:0/device:CPU:0}} Invalid reduction dimension (-10 for input with 4 dimension(s) [Op:Max]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 16 (keepdims must be a boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Token usage: input=2169, output=7225, total=9394
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.reduce_max API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes `tf.math.maximum` of elements across dimensions of a tensor.
+
+  This is the reduction operation for the elementwise `tf.math.maximum` op.
+
+  Reduces `input_tensor` along the dimensions given in `axis`.
+  Unless `keepdims` is true, the rank of the tensor is reduced by 1 for each
+  of the entries in `axis`, which must be unique. If `keepdims` is true, the
+  reduced dimensions are retained with length 1.
+
+  If `axis` is None, all dimensions are reduced, and a
+  tensor with a single element is returned.
+
+  Usage example:
+
+    >>> x = tf.constant([5, 1, 2, 4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=5>
+    >>> x = tf.constant([-5, -1, -2, -4])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=int32, numpy=-1>
+    >>> x = tf.constant([4, float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('nan'), float('nan')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=nan>
+    >>> x = tf.constant([float('-inf'), float('inf')])
+    >>> tf.reduce_max(x)
+    <tf.Tensor: shape=(), dtype=float32, numpy=inf>
+
+  See the numpy docs for `np.amax` and `np.nanmax` behavior.
+
+  Args:
+    input_tensor: The tensor to reduce. Should have real numeric type.
+    axis: The dimensions to reduce. If `None` (the default), reduces all
+      dimensions. Must be in the range `[-rank(input_tensor),
+      rank(input_tensor))`.
+    keepdims: If true, retains reduced dimensions with length 1.
+    name: A name for the operation (optional).
+
+  Returns:
+    The reduced tensor.
+
+[Possible API Signatures]
+ - input_tensor: tensor, axis: integer, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: list, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tuple, keepdims: boolean, name: string
+ - input_tensor: tensor, axis: tensor, keepdims: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64, qint8, quint8, qint32, qint16, quint16 	; NodeDef: {{node Max}}; Op<name=Max; signature=input:T, reduction_indices:Tidx -> output:T; attr=keep_dims:bool,default=false; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64, DT_QINT8, DT_QUINT8, DT_QINT32, DT_QINT16, DT_QUINT16]; attr=Tidx:type,default=DT_INT32,allowed=[DT_INT32, DT_INT64]> [Op:Max]
+InvalidArgumentError: {{function_node __wrapped__Max_device_/job:localhost/replica:0/task:0/device:CPU:0}} Invalid reduction dimension (-10 for input with 4 dimension(s) [Op:Max]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 17 (name is a string from the allowed set)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod"
+Token usage: input=2169, output=7225, total=9394
+** SUCCESS **
+

@@ -1,0 +1,39 @@
+>>
+Rule 1 (equation must be a valid einsum pattern)
+{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba"
+>>
+Rule 2 (number of inputs must match the equation arity)
+{v_1 : str, v_2 : list(tensor)} |= if v_1 = "bn,anm,bm->ba" then v_2.len = 3 else if v_1 = "i,j->ij" then v_2.len = 2 else if v_1 = "bij,bjk->bik" then v_2.len = 2 else v_2.len = 1
+>>
+Rule 3 (outer product: both inputs must be vectors with matching dtype)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= v_1 = "i,j->ij" ∧ ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ dtype_(v_2) = dtype_(v_3)
+>>
+Rule 4 (batch matmul: shapes and dtypes must be consistent)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= v_1 = "bij,bjk->bik" ∧ ndim(v_2) = 3 ∧ ndim(v_3) = 3 ∧ shape(v_2, 0) = shape(v_3, 0) ∧ shape(v_2, 2) = shape(v_3, 1) ∧ dtype_(v_2) = dtype_(v_3)
+>>
+Rule 5 (diagonal extraction requires a square matrix)
+{v_1 : str, v_2 : tensor} |= v_1 = "ii->i" ∧ ndim(v_2) = 2 ∧ shape(v_2, 0) = shape(v_2, 1)
+>>
+Rule 6 (trace requires a square matrix)
+{v_1 : str, v_2 : tensor} |= v_1 = "ii" ∧ ndim(v_2) = 2 ∧ shape(v_2, 0) = shape(v_2, 1)
+>>
+Rule 7 (ellipsis transpose requires rank ≥ 2)
+{v_1 : str, v_2 : tensor} |= v_1 = "...ij->...ji" ∧ ndim(v_2) ≥ 2
+>>
+Rule 8 (three-input contraction bn,anm,bm->ba: shape and dtype consistency)
+{v_1 : str, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= v_1 = "bn,anm,bm->ba" ∧ ndim(v_2) = 2 ∧ ndim(v_3) = 3 ∧ ndim(v_4) = 2 ∧ shape(v_2, 0) = shape(v_4, 0) ∧ shape(v_2, 1) = shape(v_3, 1) ∧ shape(v_3, 2) = shape(v_4, 1) ∧ dtype_(v_2) = dtype_(v_3) ∧ dtype_(v_2) = dtype_(v_4)
+>>
+Rule 9 (positive dimensions for batch matmul operands)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= v_1 = "bij,bjk->bik" ∧ shape(v_2, 0) > 0 ∧ shape(v_2, 1) > 0 ∧ shape(v_2, 2) > 0 ∧ shape(v_3, 0) > 0 ∧ shape(v_3, 1) > 0 ∧ shape(v_3, 2) > 0
+>>
+Rule 10 (positive dimensions for vectors in outer product)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= v_1 = "i,j->ij" ∧ shape(v_2, 0) > 0 ∧ shape(v_3, 0) > 0
+>>
+Rule 12 (number of input tensors must match the equation)
+{v_1 : str, v_2 : list(tensor)} |= (v_1 = "ii" ∧ v_2.len = 1) ∨ (v_1 = "ii->i" ∧ v_2.len = 1) ∨ (v_1 = "i,j->ij" ∧ v_2.len = 2) ∨ (v_1 = "bij,bjk->bik" ∧ v_2.len = 2) ∨ (v_1 = "...ij->...ji" ∧ v_2.len = 1) ∨ (v_1 = "bn,anm,bm->ba" ∧ v_2.len = 3)
+>>
+Rule 19 (optimize parameter restricted to known placeholders from the available string set)
+{v_3 : str} |= v_3 = "none" ∨ v_3 = "sum" ∨ v_3 = "max" ∨ v_3 = "min"
+>>
+Rule 20 (operation name, if provided, should not be the reserved literal "none")
+{v_4 : str} |= v_4 ≠ "none"

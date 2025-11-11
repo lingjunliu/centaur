@@ -1,0 +1,27 @@
+>>
+Rule 1 (input must have at least three dimensions to match (N, C, *))
+{v_5 : tensor} |= ndim(v_5) ≥ 3
+>>
+Rule 2 (size must be a positive integer to ensure valid kernel size)
+{v_1 : int} |= v_1 ≥ 1
+>>
+Rule 3 (channel dimension must be positive)
+{v_5 : tensor} |= ndim(v_5) ≥ 2 ∧ shape(v_5, 1) ≥ 1
+>>
+Rule 4 (avoid unsupported Half dtype for 3D normalization paths)
+{v_5 : tensor} |= if ndim(v_5) ≥ 5 then dtype_(v_5) ≠ 6
+>>
+Rule 5 (avoid unsupported Byte dtype for 2D normalization paths)
+{v_5 : tensor} |= if ndim(v_5) ≥ 4 then dtype_(v_5) ≠ 5
+>>
+Rule 6 (limit tensor rank and per-dimension size to prevent OOM/overflow)
+{v_5 : tensor} |= if ndim(v_5) ≥ 1 then ndim(v_5) ≤ 6 ∧ ∀i ∈ [0, ndim(v_5) - 1] : shape(v_5, i) ≤ 1048576
+>>
+Rule 7 (half-precision safe magnitudes for alpha, beta, and k to avoid casting overflow)
+{v_2 : float, v_3 : float, v_4 : float, v_5 : tensor} |= if dtype_(v_5) = 6 then v_2 ≤ 65504 ∧ v_2 ≥ -65504 ∧ v_3 ≤ 65504 ∧ v_3 ≥ -65504 ∧ v_4 ≤ 65504 ∧ v_4 ≥ -65504
+>>
+Rule 8 (window size should not exceed twice the channel count plus one)
+{v_1 : int, v_5 : tensor} |= if ndim(v_5) ≥ 2 then v_1 ≤ 2 * shape(v_5, 1) + 1
+>>
+Rule 9 (no zero-sized dimensions in the input tensor)
+{v_5 : tensor} |= if ndim(v_5) ≥ 1 then ∀i ∈ [0, ndim(v_5) - 1] : shape(v_5, i) > 0

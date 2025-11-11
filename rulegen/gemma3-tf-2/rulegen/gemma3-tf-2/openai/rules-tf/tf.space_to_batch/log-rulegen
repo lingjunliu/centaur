@@ -1,0 +1,2530 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.space_to_batch API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+SpaceToBatch for N-D tensors of type T.
+
+  This operation divides "spatial" dimensions `[1, ..., M]` of the input into a
+  grid of blocks of shape `block_shape`, and interleaves these blocks with the
+  "batch" dimension (0) such that in the output, the spatial dimensions
+  `[1, ..., M]` correspond to the position within the grid, and the batch
+  dimension combines both the position within a spatial block and the original
+  batch position.  Prior to division into blocks, the spatial dimensions of the
+  input are optionally zero padded according to `paddings`. See below for a
+  precise description.
+
+  This operation is equivalent to the following steps:
+
+  1. Zero-pad the start and end of dimensions `[1, ..., M]` of the
+     input according to `paddings` to produce `padded` of shape `padded_shape`.
+
+  2. Reshape `padded` to `reshaped_padded` of shape:
+
+       [batch] +
+       [padded_shape[1] / block_shape[0],
+         block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1],
+        block_shape[M-1]] +
+       remaining_shape
+
+  3. Permute dimensions of `reshaped_padded` to produce
+     `permuted_reshaped_padded` of shape:
+
+       block_shape +
+       [batch] +
+       [padded_shape[1] / block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1]] +
+       remaining_shape
+
+  4. Reshape `permuted_reshaped_padded` to flatten `block_shape` into the batch
+     dimension, producing an output tensor of shape:
+
+       [batch * prod(block_shape)] +
+       [padded_shape[1] / block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1]] +
+       remaining_shape
+
+  Some examples:
+
+  (1) For the following input of shape `[1, 2, 2, 1]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1], [2]], [[3], [4]]]]
+  ```
+
+  The output tensor has shape `[4, 1, 1, 1]` and value:
+
+  ```
+  [[[[1]]], [[[2]]], [[[3]]], [[[4]]]]
+  ```
+
+  (2) For the following input of shape `[1, 2, 2, 3]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1, 2, 3], [4, 5, 6]],
+        [[7, 8, 9], [10, 11, 12]]]]
+  ```
+
+  The output tensor has shape `[4, 1, 1, 3]` and value:
+
+  ```
+  [[[[1, 2, 3]]], [[[4, 5, 6]]], [[[7, 8, 9]]], [[[10, 11, 12]]]]
+  ```
+
+  (3) For the following input of shape `[1, 4, 4, 1]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1],   [2],  [3],  [4]],
+        [[5],   [6],  [7],  [8]],
+        [[9],  [10], [11],  [12]],
+        [[13], [14], [15],  [16]]]]
+  ```
+
+  The output tensor has shape `[4, 2, 2, 1]` and value:
+
+  ```
+  x = [[[[1], [3]], [[9], [11]]],
+       [[[2], [4]], [[10], [12]]],
+       [[[5], [7]], [[13], [15]]],
+       [[[6], [8]], [[14], [16]]]]
+  ```
+
+  (4) For the following input of shape `[2, 2, 4, 1]`, block_shape = `[2, 2]`, and
+      paddings = `[[0, 0], [2, 0]]`:
+
+  ```
+  x = [[[[1],   [2],  [3],  [4]],
+        [[5],   [6],  [7],  [8]]],
+       [[[9],  [10], [11],  [12]],
+        [[13], [14], [15],  [16]]]]
+  ```
+
+  The output tensor has shape `[8, 1, 3, 1]` and value:
+
+  ```
+  x = [[[[0], [1], [3]]], [[[0], [9], [11]]],
+       [[[0], [2], [4]]], [[[0], [10], [12]]],
+       [[[0], [5], [7]]], [[[0], [13], [15]]],
+       [[[0], [6], [8]]], [[[0], [14], [16]]]]
+  ```
+
+  Among others, this operation is useful for reducing atrous convolution into
+  regular convolution.
+
+  Args:
+    input: A `Tensor`.
+      N-D with shape `input_shape = [batch] + spatial_shape + remaining_shape`,
+      where spatial_shape has `M` dimensions.
+    block_shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      1-D with shape `[M]`, all values must be >= 1.
+    paddings: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      2-D with shape `[M, 2]`, all values must be >= 0.
+        `paddings[i] = [pad_start, pad_end]` specifies the padding for input dimension
+        `i + 1`, which corresponds to spatial dimension `i`.  It is required that
+        `block_shape[i]` divides `input_shape[i + 1] + pad_start + pad_end`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[Possible API Signatures]
+ - input: tensor, block_shape: tensor, paddings: tensor, name: string
+ - input: tensor, block_shape: list, paddings: list, name: string
+ - input: tensor, block_shape: tuple, paddings: tuple, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__SpaceToBatchND_device_/job:localhost/replica:0/task:0/device:CPU:0}} block_shape rank should be 1 instead of 2 [Op:SpaceToBatchND]
+NotFoundError: Could not find device for node: {{node SpaceToBatchND}} = SpaceToBatchND[T=DT_BOOL, Tblock_shape=DT_INT32, Tpaddings=DT_INT32] All kernels registered for op SpaceToBatchND:   device='XLA_CPU_JIT'; Tpaddings in [DT_INT32, DT_INT64]; Tblock_shape in [DT_INT32, DT_INT64]; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_BOOL, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN, DT_INT4, DT_UINT4]   device='XLA_GPU_JIT'; Tpaddings in [DT_INT32, DT_INT64]; Tblock_shape in [DT_INT32, DT_INT64]; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_BOOL, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN, DT_INT4, DT_UINT4]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT8]   device='CPU'; T in [DT_UINT8]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_UINT16]   device='CPU'; T in [DT_UINT32]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_UINT64]  [Op:SpaceToBatchND]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (block_shape tensor must be rank 1)
+{v_2 : tensor} |= ndim(v_2) = 1
+Token usage: input=3388, output=8475, total=11863
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.space_to_batch API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+SpaceToBatch for N-D tensors of type T.
+
+  This operation divides "spatial" dimensions `[1, ..., M]` of the input into a
+  grid of blocks of shape `block_shape`, and interleaves these blocks with the
+  "batch" dimension (0) such that in the output, the spatial dimensions
+  `[1, ..., M]` correspond to the position within the grid, and the batch
+  dimension combines both the position within a spatial block and the original
+  batch position.  Prior to division into blocks, the spatial dimensions of the
+  input are optionally zero padded according to `paddings`. See below for a
+  precise description.
+
+  This operation is equivalent to the following steps:
+
+  1. Zero-pad the start and end of dimensions `[1, ..., M]` of the
+     input according to `paddings` to produce `padded` of shape `padded_shape`.
+
+  2. Reshape `padded` to `reshaped_padded` of shape:
+
+       [batch] +
+       [padded_shape[1] / block_shape[0],
+         block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1],
+        block_shape[M-1]] +
+       remaining_shape
+
+  3. Permute dimensions of `reshaped_padded` to produce
+     `permuted_reshaped_padded` of shape:
+
+       block_shape +
+       [batch] +
+       [padded_shape[1] / block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1]] +
+       remaining_shape
+
+  4. Reshape `permuted_reshaped_padded` to flatten `block_shape` into the batch
+     dimension, producing an output tensor of shape:
+
+       [batch * prod(block_shape)] +
+       [padded_shape[1] / block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1]] +
+       remaining_shape
+
+  Some examples:
+
+  (1) For the following input of shape `[1, 2, 2, 1]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1], [2]], [[3], [4]]]]
+  ```
+
+  The output tensor has shape `[4, 1, 1, 1]` and value:
+
+  ```
+  [[[[1]]], [[[2]]], [[[3]]], [[[4]]]]
+  ```
+
+  (2) For the following input of shape `[1, 2, 2, 3]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1, 2, 3], [4, 5, 6]],
+        [[7, 8, 9], [10, 11, 12]]]]
+  ```
+
+  The output tensor has shape `[4, 1, 1, 3]` and value:
+
+  ```
+  [[[[1, 2, 3]]], [[[4, 5, 6]]], [[[7, 8, 9]]], [[[10, 11, 12]]]]
+  ```
+
+  (3) For the following input of shape `[1, 4, 4, 1]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1],   [2],  [3],  [4]],
+        [[5],   [6],  [7],  [8]],
+        [[9],  [10], [11],  [12]],
+        [[13], [14], [15],  [16]]]]
+  ```
+
+  The output tensor has shape `[4, 2, 2, 1]` and value:
+
+  ```
+  x = [[[[1], [3]], [[9], [11]]],
+       [[[2], [4]], [[10], [12]]],
+       [[[5], [7]], [[13], [15]]],
+       [[[6], [8]], [[14], [16]]]]
+  ```
+
+  (4) For the following input of shape `[2, 2, 4, 1]`, block_shape = `[2, 2]`, and
+      paddings = `[[0, 0], [2, 0]]`:
+
+  ```
+  x = [[[[1],   [2],  [3],  [4]],
+        [[5],   [6],  [7],  [8]]],
+       [[[9],  [10], [11],  [12]],
+        [[13], [14], [15],  [16]]]]
+  ```
+
+  The output tensor has shape `[8, 1, 3, 1]` and value:
+
+  ```
+  x = [[[[0], [1], [3]]], [[[0], [9], [11]]],
+       [[[0], [2], [4]]], [[[0], [10], [12]]],
+       [[[0], [5], [7]]], [[[0], [13], [15]]],
+       [[[0], [6], [8]]], [[[0], [14], [16]]]]
+  ```
+
+  Among others, this operation is useful for reducing atrous convolution into
+  regular convolution.
+
+  Args:
+    input: A `Tensor`.
+      N-D with shape `input_shape = [batch] + spatial_shape + remaining_shape`,
+      where spatial_shape has `M` dimensions.
+    block_shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      1-D with shape `[M]`, all values must be >= 1.
+    paddings: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      2-D with shape `[M, 2]`, all values must be >= 0.
+        `paddings[i] = [pad_start, pad_end]` specifies the padding for input dimension
+        `i + 1`, which corresponds to spatial dimension `i`.  It is required that
+        `block_shape[i]` divides `input_shape[i + 1] + pad_start + pad_end`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[Possible API Signatures]
+ - input: tensor, block_shape: tensor, paddings: tensor, name: string
+ - input: tensor, block_shape: list, paddings: list, name: string
+ - input: tensor, block_shape: tuple, paddings: tuple, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__SpaceToBatchND_device_/job:localhost/replica:0/task:0/device:CPU:0}} block_shape rank should be 1 instead of 2 [Op:SpaceToBatchND]
+NotFoundError: Could not find device for node: {{node SpaceToBatchND}} = SpaceToBatchND[T=DT_BOOL, Tblock_shape=DT_INT32, Tpaddings=DT_INT32] All kernels registered for op SpaceToBatchND:   device='XLA_CPU_JIT'; Tpaddings in [DT_INT32, DT_INT64]; Tblock_shape in [DT_INT32, DT_INT64]; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_BOOL, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN, DT_INT4, DT_UINT4]   device='XLA_GPU_JIT'; Tpaddings in [DT_INT32, DT_INT64]; Tblock_shape in [DT_INT32, DT_INT64]; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_BOOL, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN, DT_INT4, DT_UINT4]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT8]   device='CPU'; T in [DT_UINT8]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_UINT16]   device='CPU'; T in [DT_UINT32]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_UINT64]  [Op:SpaceToBatchND]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (paddings tensor must be rank 2 with inner dimension 2)
+{v_3 : tensor} |= ndim(v_3) = 2 ∧ shape(v_3, 1) = 2
+Token usage: input=3388, output=8475, total=11863
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.space_to_batch API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+SpaceToBatch for N-D tensors of type T.
+
+  This operation divides "spatial" dimensions `[1, ..., M]` of the input into a
+  grid of blocks of shape `block_shape`, and interleaves these blocks with the
+  "batch" dimension (0) such that in the output, the spatial dimensions
+  `[1, ..., M]` correspond to the position within the grid, and the batch
+  dimension combines both the position within a spatial block and the original
+  batch position.  Prior to division into blocks, the spatial dimensions of the
+  input are optionally zero padded according to `paddings`. See below for a
+  precise description.
+
+  This operation is equivalent to the following steps:
+
+  1. Zero-pad the start and end of dimensions `[1, ..., M]` of the
+     input according to `paddings` to produce `padded` of shape `padded_shape`.
+
+  2. Reshape `padded` to `reshaped_padded` of shape:
+
+       [batch] +
+       [padded_shape[1] / block_shape[0],
+         block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1],
+        block_shape[M-1]] +
+       remaining_shape
+
+  3. Permute dimensions of `reshaped_padded` to produce
+     `permuted_reshaped_padded` of shape:
+
+       block_shape +
+       [batch] +
+       [padded_shape[1] / block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1]] +
+       remaining_shape
+
+  4. Reshape `permuted_reshaped_padded` to flatten `block_shape` into the batch
+     dimension, producing an output tensor of shape:
+
+       [batch * prod(block_shape)] +
+       [padded_shape[1] / block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1]] +
+       remaining_shape
+
+  Some examples:
+
+  (1) For the following input of shape `[1, 2, 2, 1]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1], [2]], [[3], [4]]]]
+  ```
+
+  The output tensor has shape `[4, 1, 1, 1]` and value:
+
+  ```
+  [[[[1]]], [[[2]]], [[[3]]], [[[4]]]]
+  ```
+
+  (2) For the following input of shape `[1, 2, 2, 3]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1, 2, 3], [4, 5, 6]],
+        [[7, 8, 9], [10, 11, 12]]]]
+  ```
+
+  The output tensor has shape `[4, 1, 1, 3]` and value:
+
+  ```
+  [[[[1, 2, 3]]], [[[4, 5, 6]]], [[[7, 8, 9]]], [[[10, 11, 12]]]]
+  ```
+
+  (3) For the following input of shape `[1, 4, 4, 1]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1],   [2],  [3],  [4]],
+        [[5],   [6],  [7],  [8]],
+        [[9],  [10], [11],  [12]],
+        [[13], [14], [15],  [16]]]]
+  ```
+
+  The output tensor has shape `[4, 2, 2, 1]` and value:
+
+  ```
+  x = [[[[1], [3]], [[9], [11]]],
+       [[[2], [4]], [[10], [12]]],
+       [[[5], [7]], [[13], [15]]],
+       [[[6], [8]], [[14], [16]]]]
+  ```
+
+  (4) For the following input of shape `[2, 2, 4, 1]`, block_shape = `[2, 2]`, and
+      paddings = `[[0, 0], [2, 0]]`:
+
+  ```
+  x = [[[[1],   [2],  [3],  [4]],
+        [[5],   [6],  [7],  [8]]],
+       [[[9],  [10], [11],  [12]],
+        [[13], [14], [15],  [16]]]]
+  ```
+
+  The output tensor has shape `[8, 1, 3, 1]` and value:
+
+  ```
+  x = [[[[0], [1], [3]]], [[[0], [9], [11]]],
+       [[[0], [2], [4]]], [[[0], [10], [12]]],
+       [[[0], [5], [7]]], [[[0], [13], [15]]],
+       [[[0], [6], [8]]], [[[0], [14], [16]]]]
+  ```
+
+  Among others, this operation is useful for reducing atrous convolution into
+  regular convolution.
+
+  Args:
+    input: A `Tensor`.
+      N-D with shape `input_shape = [batch] + spatial_shape + remaining_shape`,
+      where spatial_shape has `M` dimensions.
+    block_shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      1-D with shape `[M]`, all values must be >= 1.
+    paddings: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      2-D with shape `[M, 2]`, all values must be >= 0.
+        `paddings[i] = [pad_start, pad_end]` specifies the padding for input dimension
+        `i + 1`, which corresponds to spatial dimension `i`.  It is required that
+        `block_shape[i]` divides `input_shape[i + 1] + pad_start + pad_end`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[Possible API Signatures]
+ - input: tensor, block_shape: tensor, paddings: tensor, name: string
+ - input: tensor, block_shape: list, paddings: list, name: string
+ - input: tensor, block_shape: tuple, paddings: tuple, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__SpaceToBatchND_device_/job:localhost/replica:0/task:0/device:CPU:0}} block_shape rank should be 1 instead of 2 [Op:SpaceToBatchND]
+NotFoundError: Could not find device for node: {{node SpaceToBatchND}} = SpaceToBatchND[T=DT_BOOL, Tblock_shape=DT_INT32, Tpaddings=DT_INT32] All kernels registered for op SpaceToBatchND:   device='XLA_CPU_JIT'; Tpaddings in [DT_INT32, DT_INT64]; Tblock_shape in [DT_INT32, DT_INT64]; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_BOOL, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN, DT_INT4, DT_UINT4]   device='XLA_GPU_JIT'; Tpaddings in [DT_INT32, DT_INT64]; Tblock_shape in [DT_INT32, DT_INT64]; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_BOOL, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN, DT_INT4, DT_UINT4]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT8]   device='CPU'; T in [DT_UINT8]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_UINT16]   device='CPU'; T in [DT_UINT32]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_UINT64]  [Op:SpaceToBatchND]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (tensor signature: paddings rows match block_shape length)
+{v_2 : tensor, v_3 : tensor} |= shape(v_3, 0) = shape(v_2, 0)
+Token usage: input=3388, output=8475, total=11863
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.space_to_batch API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+SpaceToBatch for N-D tensors of type T.
+
+  This operation divides "spatial" dimensions `[1, ..., M]` of the input into a
+  grid of blocks of shape `block_shape`, and interleaves these blocks with the
+  "batch" dimension (0) such that in the output, the spatial dimensions
+  `[1, ..., M]` correspond to the position within the grid, and the batch
+  dimension combines both the position within a spatial block and the original
+  batch position.  Prior to division into blocks, the spatial dimensions of the
+  input are optionally zero padded according to `paddings`. See below for a
+  precise description.
+
+  This operation is equivalent to the following steps:
+
+  1. Zero-pad the start and end of dimensions `[1, ..., M]` of the
+     input according to `paddings` to produce `padded` of shape `padded_shape`.
+
+  2. Reshape `padded` to `reshaped_padded` of shape:
+
+       [batch] +
+       [padded_shape[1] / block_shape[0],
+         block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1],
+        block_shape[M-1]] +
+       remaining_shape
+
+  3. Permute dimensions of `reshaped_padded` to produce
+     `permuted_reshaped_padded` of shape:
+
+       block_shape +
+       [batch] +
+       [padded_shape[1] / block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1]] +
+       remaining_shape
+
+  4. Reshape `permuted_reshaped_padded` to flatten `block_shape` into the batch
+     dimension, producing an output tensor of shape:
+
+       [batch * prod(block_shape)] +
+       [padded_shape[1] / block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1]] +
+       remaining_shape
+
+  Some examples:
+
+  (1) For the following input of shape `[1, 2, 2, 1]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1], [2]], [[3], [4]]]]
+  ```
+
+  The output tensor has shape `[4, 1, 1, 1]` and value:
+
+  ```
+  [[[[1]]], [[[2]]], [[[3]]], [[[4]]]]
+  ```
+
+  (2) For the following input of shape `[1, 2, 2, 3]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1, 2, 3], [4, 5, 6]],
+        [[7, 8, 9], [10, 11, 12]]]]
+  ```
+
+  The output tensor has shape `[4, 1, 1, 3]` and value:
+
+  ```
+  [[[[1, 2, 3]]], [[[4, 5, 6]]], [[[7, 8, 9]]], [[[10, 11, 12]]]]
+  ```
+
+  (3) For the following input of shape `[1, 4, 4, 1]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1],   [2],  [3],  [4]],
+        [[5],   [6],  [7],  [8]],
+        [[9],  [10], [11],  [12]],
+        [[13], [14], [15],  [16]]]]
+  ```
+
+  The output tensor has shape `[4, 2, 2, 1]` and value:
+
+  ```
+  x = [[[[1], [3]], [[9], [11]]],
+       [[[2], [4]], [[10], [12]]],
+       [[[5], [7]], [[13], [15]]],
+       [[[6], [8]], [[14], [16]]]]
+  ```
+
+  (4) For the following input of shape `[2, 2, 4, 1]`, block_shape = `[2, 2]`, and
+      paddings = `[[0, 0], [2, 0]]`:
+
+  ```
+  x = [[[[1],   [2],  [3],  [4]],
+        [[5],   [6],  [7],  [8]]],
+       [[[9],  [10], [11],  [12]],
+        [[13], [14], [15],  [16]]]]
+  ```
+
+  The output tensor has shape `[8, 1, 3, 1]` and value:
+
+  ```
+  x = [[[[0], [1], [3]]], [[[0], [9], [11]]],
+       [[[0], [2], [4]]], [[[0], [10], [12]]],
+       [[[0], [5], [7]]], [[[0], [13], [15]]],
+       [[[0], [6], [8]]], [[[0], [14], [16]]]]
+  ```
+
+  Among others, this operation is useful for reducing atrous convolution into
+  regular convolution.
+
+  Args:
+    input: A `Tensor`.
+      N-D with shape `input_shape = [batch] + spatial_shape + remaining_shape`,
+      where spatial_shape has `M` dimensions.
+    block_shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      1-D with shape `[M]`, all values must be >= 1.
+    paddings: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      2-D with shape `[M, 2]`, all values must be >= 0.
+        `paddings[i] = [pad_start, pad_end]` specifies the padding for input dimension
+        `i + 1`, which corresponds to spatial dimension `i`.  It is required that
+        `block_shape[i]` divides `input_shape[i + 1] + pad_start + pad_end`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[Possible API Signatures]
+ - input: tensor, block_shape: tensor, paddings: tensor, name: string
+ - input: tensor, block_shape: list, paddings: list, name: string
+ - input: tensor, block_shape: tuple, paddings: tuple, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__SpaceToBatchND_device_/job:localhost/replica:0/task:0/device:CPU:0}} block_shape rank should be 1 instead of 2 [Op:SpaceToBatchND]
+NotFoundError: Could not find device for node: {{node SpaceToBatchND}} = SpaceToBatchND[T=DT_BOOL, Tblock_shape=DT_INT32, Tpaddings=DT_INT32] All kernels registered for op SpaceToBatchND:   device='XLA_CPU_JIT'; Tpaddings in [DT_INT32, DT_INT64]; Tblock_shape in [DT_INT32, DT_INT64]; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_BOOL, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN, DT_INT4, DT_UINT4]   device='XLA_GPU_JIT'; Tpaddings in [DT_INT32, DT_INT64]; Tblock_shape in [DT_INT32, DT_INT64]; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_BOOL, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN, DT_INT4, DT_UINT4]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT8]   device='CPU'; T in [DT_UINT8]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_UINT16]   device='CPU'; T in [DT_UINT32]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_UINT64]  [Op:SpaceToBatchND]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (tensor signature: input must have at least M spatial dims)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ shape(v_2, 0) + 1
+Token usage: input=3388, output=8475, total=11863
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.space_to_batch API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+SpaceToBatch for N-D tensors of type T.
+
+  This operation divides "spatial" dimensions `[1, ..., M]` of the input into a
+  grid of blocks of shape `block_shape`, and interleaves these blocks with the
+  "batch" dimension (0) such that in the output, the spatial dimensions
+  `[1, ..., M]` correspond to the position within the grid, and the batch
+  dimension combines both the position within a spatial block and the original
+  batch position.  Prior to division into blocks, the spatial dimensions of the
+  input are optionally zero padded according to `paddings`. See below for a
+  precise description.
+
+  This operation is equivalent to the following steps:
+
+  1. Zero-pad the start and end of dimensions `[1, ..., M]` of the
+     input according to `paddings` to produce `padded` of shape `padded_shape`.
+
+  2. Reshape `padded` to `reshaped_padded` of shape:
+
+       [batch] +
+       [padded_shape[1] / block_shape[0],
+         block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1],
+        block_shape[M-1]] +
+       remaining_shape
+
+  3. Permute dimensions of `reshaped_padded` to produce
+     `permuted_reshaped_padded` of shape:
+
+       block_shape +
+       [batch] +
+       [padded_shape[1] / block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1]] +
+       remaining_shape
+
+  4. Reshape `permuted_reshaped_padded` to flatten `block_shape` into the batch
+     dimension, producing an output tensor of shape:
+
+       [batch * prod(block_shape)] +
+       [padded_shape[1] / block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1]] +
+       remaining_shape
+
+  Some examples:
+
+  (1) For the following input of shape `[1, 2, 2, 1]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1], [2]], [[3], [4]]]]
+  ```
+
+  The output tensor has shape `[4, 1, 1, 1]` and value:
+
+  ```
+  [[[[1]]], [[[2]]], [[[3]]], [[[4]]]]
+  ```
+
+  (2) For the following input of shape `[1, 2, 2, 3]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1, 2, 3], [4, 5, 6]],
+        [[7, 8, 9], [10, 11, 12]]]]
+  ```
+
+  The output tensor has shape `[4, 1, 1, 3]` and value:
+
+  ```
+  [[[[1, 2, 3]]], [[[4, 5, 6]]], [[[7, 8, 9]]], [[[10, 11, 12]]]]
+  ```
+
+  (3) For the following input of shape `[1, 4, 4, 1]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1],   [2],  [3],  [4]],
+        [[5],   [6],  [7],  [8]],
+        [[9],  [10], [11],  [12]],
+        [[13], [14], [15],  [16]]]]
+  ```
+
+  The output tensor has shape `[4, 2, 2, 1]` and value:
+
+  ```
+  x = [[[[1], [3]], [[9], [11]]],
+       [[[2], [4]], [[10], [12]]],
+       [[[5], [7]], [[13], [15]]],
+       [[[6], [8]], [[14], [16]]]]
+  ```
+
+  (4) For the following input of shape `[2, 2, 4, 1]`, block_shape = `[2, 2]`, and
+      paddings = `[[0, 0], [2, 0]]`:
+
+  ```
+  x = [[[[1],   [2],  [3],  [4]],
+        [[5],   [6],  [7],  [8]]],
+       [[[9],  [10], [11],  [12]],
+        [[13], [14], [15],  [16]]]]
+  ```
+
+  The output tensor has shape `[8, 1, 3, 1]` and value:
+
+  ```
+  x = [[[[0], [1], [3]]], [[[0], [9], [11]]],
+       [[[0], [2], [4]]], [[[0], [10], [12]]],
+       [[[0], [5], [7]]], [[[0], [13], [15]]],
+       [[[0], [6], [8]]], [[[0], [14], [16]]]]
+  ```
+
+  Among others, this operation is useful for reducing atrous convolution into
+  regular convolution.
+
+  Args:
+    input: A `Tensor`.
+      N-D with shape `input_shape = [batch] + spatial_shape + remaining_shape`,
+      where spatial_shape has `M` dimensions.
+    block_shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      1-D with shape `[M]`, all values must be >= 1.
+    paddings: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      2-D with shape `[M, 2]`, all values must be >= 0.
+        `paddings[i] = [pad_start, pad_end]` specifies the padding for input dimension
+        `i + 1`, which corresponds to spatial dimension `i`.  It is required that
+        `block_shape[i]` divides `input_shape[i + 1] + pad_start + pad_end`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[Possible API Signatures]
+ - input: tensor, block_shape: tensor, paddings: tensor, name: string
+ - input: tensor, block_shape: list, paddings: list, name: string
+ - input: tensor, block_shape: tuple, paddings: tuple, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__SpaceToBatchND_device_/job:localhost/replica:0/task:0/device:CPU:0}} block_shape rank should be 1 instead of 2 [Op:SpaceToBatchND]
+NotFoundError: Could not find device for node: {{node SpaceToBatchND}} = SpaceToBatchND[T=DT_BOOL, Tblock_shape=DT_INT32, Tpaddings=DT_INT32] All kernels registered for op SpaceToBatchND:   device='XLA_CPU_JIT'; Tpaddings in [DT_INT32, DT_INT64]; Tblock_shape in [DT_INT32, DT_INT64]; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_BOOL, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN, DT_INT4, DT_UINT4]   device='XLA_GPU_JIT'; Tpaddings in [DT_INT32, DT_INT64]; Tblock_shape in [DT_INT32, DT_INT64]; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_BOOL, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN, DT_INT4, DT_UINT4]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT8]   device='CPU'; T in [DT_UINT8]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_UINT16]   device='CPU'; T in [DT_UINT32]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_UINT64]  [Op:SpaceToBatchND]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (tensor signature: value ranges for block_shape and paddings)
+{v_2 : tensor, v_3 : tensor} |= min(v_2) ≥ 1 ∧ min(v_3) ≥ 0
+Token usage: input=3388, output=8475, total=11863
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.space_to_batch API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+SpaceToBatch for N-D tensors of type T.
+
+  This operation divides "spatial" dimensions `[1, ..., M]` of the input into a
+  grid of blocks of shape `block_shape`, and interleaves these blocks with the
+  "batch" dimension (0) such that in the output, the spatial dimensions
+  `[1, ..., M]` correspond to the position within the grid, and the batch
+  dimension combines both the position within a spatial block and the original
+  batch position.  Prior to division into blocks, the spatial dimensions of the
+  input are optionally zero padded according to `paddings`. See below for a
+  precise description.
+
+  This operation is equivalent to the following steps:
+
+  1. Zero-pad the start and end of dimensions `[1, ..., M]` of the
+     input according to `paddings` to produce `padded` of shape `padded_shape`.
+
+  2. Reshape `padded` to `reshaped_padded` of shape:
+
+       [batch] +
+       [padded_shape[1] / block_shape[0],
+         block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1],
+        block_shape[M-1]] +
+       remaining_shape
+
+  3. Permute dimensions of `reshaped_padded` to produce
+     `permuted_reshaped_padded` of shape:
+
+       block_shape +
+       [batch] +
+       [padded_shape[1] / block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1]] +
+       remaining_shape
+
+  4. Reshape `permuted_reshaped_padded` to flatten `block_shape` into the batch
+     dimension, producing an output tensor of shape:
+
+       [batch * prod(block_shape)] +
+       [padded_shape[1] / block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1]] +
+       remaining_shape
+
+  Some examples:
+
+  (1) For the following input of shape `[1, 2, 2, 1]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1], [2]], [[3], [4]]]]
+  ```
+
+  The output tensor has shape `[4, 1, 1, 1]` and value:
+
+  ```
+  [[[[1]]], [[[2]]], [[[3]]], [[[4]]]]
+  ```
+
+  (2) For the following input of shape `[1, 2, 2, 3]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1, 2, 3], [4, 5, 6]],
+        [[7, 8, 9], [10, 11, 12]]]]
+  ```
+
+  The output tensor has shape `[4, 1, 1, 3]` and value:
+
+  ```
+  [[[[1, 2, 3]]], [[[4, 5, 6]]], [[[7, 8, 9]]], [[[10, 11, 12]]]]
+  ```
+
+  (3) For the following input of shape `[1, 4, 4, 1]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1],   [2],  [3],  [4]],
+        [[5],   [6],  [7],  [8]],
+        [[9],  [10], [11],  [12]],
+        [[13], [14], [15],  [16]]]]
+  ```
+
+  The output tensor has shape `[4, 2, 2, 1]` and value:
+
+  ```
+  x = [[[[1], [3]], [[9], [11]]],
+       [[[2], [4]], [[10], [12]]],
+       [[[5], [7]], [[13], [15]]],
+       [[[6], [8]], [[14], [16]]]]
+  ```
+
+  (4) For the following input of shape `[2, 2, 4, 1]`, block_shape = `[2, 2]`, and
+      paddings = `[[0, 0], [2, 0]]`:
+
+  ```
+  x = [[[[1],   [2],  [3],  [4]],
+        [[5],   [6],  [7],  [8]]],
+       [[[9],  [10], [11],  [12]],
+        [[13], [14], [15],  [16]]]]
+  ```
+
+  The output tensor has shape `[8, 1, 3, 1]` and value:
+
+  ```
+  x = [[[[0], [1], [3]]], [[[0], [9], [11]]],
+       [[[0], [2], [4]]], [[[0], [10], [12]]],
+       [[[0], [5], [7]]], [[[0], [13], [15]]],
+       [[[0], [6], [8]]], [[[0], [14], [16]]]]
+  ```
+
+  Among others, this operation is useful for reducing atrous convolution into
+  regular convolution.
+
+  Args:
+    input: A `Tensor`.
+      N-D with shape `input_shape = [batch] + spatial_shape + remaining_shape`,
+      where spatial_shape has `M` dimensions.
+    block_shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      1-D with shape `[M]`, all values must be >= 1.
+    paddings: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      2-D with shape `[M, 2]`, all values must be >= 0.
+        `paddings[i] = [pad_start, pad_end]` specifies the padding for input dimension
+        `i + 1`, which corresponds to spatial dimension `i`.  It is required that
+        `block_shape[i]` divides `input_shape[i + 1] + pad_start + pad_end`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[Possible API Signatures]
+ - input: tensor, block_shape: tensor, paddings: tensor, name: string
+ - input: tensor, block_shape: list, paddings: list, name: string
+ - input: tensor, block_shape: tuple, paddings: tuple, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__SpaceToBatchND_device_/job:localhost/replica:0/task:0/device:CPU:0}} block_shape rank should be 1 instead of 2 [Op:SpaceToBatchND]
+NotFoundError: Could not find device for node: {{node SpaceToBatchND}} = SpaceToBatchND[T=DT_BOOL, Tblock_shape=DT_INT32, Tpaddings=DT_INT32] All kernels registered for op SpaceToBatchND:   device='XLA_CPU_JIT'; Tpaddings in [DT_INT32, DT_INT64]; Tblock_shape in [DT_INT32, DT_INT64]; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_BOOL, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN, DT_INT4, DT_UINT4]   device='XLA_GPU_JIT'; Tpaddings in [DT_INT32, DT_INT64]; Tblock_shape in [DT_INT32, DT_INT64]; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_BOOL, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN, DT_INT4, DT_UINT4]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT8]   device='CPU'; T in [DT_UINT8]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_UINT16]   device='CPU'; T in [DT_UINT32]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_UINT64]  [Op:SpaceToBatchND]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (tensor signature: M=1, zero paddings, and divisibility hold)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_2, 0) = 1 ∧ shape(v_3, 0) = 1 ∧ shape(v_3, 1) = 2 ∧ max(v_3) = 0 ∧ (shape(v_1, 1) % min(v_2) = 0)
+Token usage: input=3388, output=8475, total=11863
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.space_to_batch API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+SpaceToBatch for N-D tensors of type T.
+
+  This operation divides "spatial" dimensions `[1, ..., M]` of the input into a
+  grid of blocks of shape `block_shape`, and interleaves these blocks with the
+  "batch" dimension (0) such that in the output, the spatial dimensions
+  `[1, ..., M]` correspond to the position within the grid, and the batch
+  dimension combines both the position within a spatial block and the original
+  batch position.  Prior to division into blocks, the spatial dimensions of the
+  input are optionally zero padded according to `paddings`. See below for a
+  precise description.
+
+  This operation is equivalent to the following steps:
+
+  1. Zero-pad the start and end of dimensions `[1, ..., M]` of the
+     input according to `paddings` to produce `padded` of shape `padded_shape`.
+
+  2. Reshape `padded` to `reshaped_padded` of shape:
+
+       [batch] +
+       [padded_shape[1] / block_shape[0],
+         block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1],
+        block_shape[M-1]] +
+       remaining_shape
+
+  3. Permute dimensions of `reshaped_padded` to produce
+     `permuted_reshaped_padded` of shape:
+
+       block_shape +
+       [batch] +
+       [padded_shape[1] / block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1]] +
+       remaining_shape
+
+  4. Reshape `permuted_reshaped_padded` to flatten `block_shape` into the batch
+     dimension, producing an output tensor of shape:
+
+       [batch * prod(block_shape)] +
+       [padded_shape[1] / block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1]] +
+       remaining_shape
+
+  Some examples:
+
+  (1) For the following input of shape `[1, 2, 2, 1]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1], [2]], [[3], [4]]]]
+  ```
+
+  The output tensor has shape `[4, 1, 1, 1]` and value:
+
+  ```
+  [[[[1]]], [[[2]]], [[[3]]], [[[4]]]]
+  ```
+
+  (2) For the following input of shape `[1, 2, 2, 3]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1, 2, 3], [4, 5, 6]],
+        [[7, 8, 9], [10, 11, 12]]]]
+  ```
+
+  The output tensor has shape `[4, 1, 1, 3]` and value:
+
+  ```
+  [[[[1, 2, 3]]], [[[4, 5, 6]]], [[[7, 8, 9]]], [[[10, 11, 12]]]]
+  ```
+
+  (3) For the following input of shape `[1, 4, 4, 1]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1],   [2],  [3],  [4]],
+        [[5],   [6],  [7],  [8]],
+        [[9],  [10], [11],  [12]],
+        [[13], [14], [15],  [16]]]]
+  ```
+
+  The output tensor has shape `[4, 2, 2, 1]` and value:
+
+  ```
+  x = [[[[1], [3]], [[9], [11]]],
+       [[[2], [4]], [[10], [12]]],
+       [[[5], [7]], [[13], [15]]],
+       [[[6], [8]], [[14], [16]]]]
+  ```
+
+  (4) For the following input of shape `[2, 2, 4, 1]`, block_shape = `[2, 2]`, and
+      paddings = `[[0, 0], [2, 0]]`:
+
+  ```
+  x = [[[[1],   [2],  [3],  [4]],
+        [[5],   [6],  [7],  [8]]],
+       [[[9],  [10], [11],  [12]],
+        [[13], [14], [15],  [16]]]]
+  ```
+
+  The output tensor has shape `[8, 1, 3, 1]` and value:
+
+  ```
+  x = [[[[0], [1], [3]]], [[[0], [9], [11]]],
+       [[[0], [2], [4]]], [[[0], [10], [12]]],
+       [[[0], [5], [7]]], [[[0], [13], [15]]],
+       [[[0], [6], [8]]], [[[0], [14], [16]]]]
+  ```
+
+  Among others, this operation is useful for reducing atrous convolution into
+  regular convolution.
+
+  Args:
+    input: A `Tensor`.
+      N-D with shape `input_shape = [batch] + spatial_shape + remaining_shape`,
+      where spatial_shape has `M` dimensions.
+    block_shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      1-D with shape `[M]`, all values must be >= 1.
+    paddings: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      2-D with shape `[M, 2]`, all values must be >= 0.
+        `paddings[i] = [pad_start, pad_end]` specifies the padding for input dimension
+        `i + 1`, which corresponds to spatial dimension `i`.  It is required that
+        `block_shape[i]` divides `input_shape[i + 1] + pad_start + pad_end`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[Possible API Signatures]
+ - input: tensor, block_shape: tensor, paddings: tensor, name: string
+ - input: tensor, block_shape: list, paddings: list, name: string
+ - input: tensor, block_shape: tuple, paddings: tuple, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__SpaceToBatchND_device_/job:localhost/replica:0/task:0/device:CPU:0}} block_shape rank should be 1 instead of 2 [Op:SpaceToBatchND]
+NotFoundError: Could not find device for node: {{node SpaceToBatchND}} = SpaceToBatchND[T=DT_BOOL, Tblock_shape=DT_INT32, Tpaddings=DT_INT32] All kernels registered for op SpaceToBatchND:   device='XLA_CPU_JIT'; Tpaddings in [DT_INT32, DT_INT64]; Tblock_shape in [DT_INT32, DT_INT64]; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_BOOL, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN, DT_INT4, DT_UINT4]   device='XLA_GPU_JIT'; Tpaddings in [DT_INT32, DT_INT64]; Tblock_shape in [DT_INT32, DT_INT64]; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_BOOL, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN, DT_INT4, DT_UINT4]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT8]   device='CPU'; T in [DT_UINT8]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_UINT16]   device='CPU'; T in [DT_UINT32]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_UINT64]  [Op:SpaceToBatchND]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (input tensor must be numeric to avoid unsupported kernel types)
+{v_1 : tensor} |= min(v_1) ≤ max(v_1)
+Token usage: input=3388, output=8475, total=11863
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.space_to_batch API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+SpaceToBatch for N-D tensors of type T.
+
+  This operation divides "spatial" dimensions `[1, ..., M]` of the input into a
+  grid of blocks of shape `block_shape`, and interleaves these blocks with the
+  "batch" dimension (0) such that in the output, the spatial dimensions
+  `[1, ..., M]` correspond to the position within the grid, and the batch
+  dimension combines both the position within a spatial block and the original
+  batch position.  Prior to division into blocks, the spatial dimensions of the
+  input are optionally zero padded according to `paddings`. See below for a
+  precise description.
+
+  This operation is equivalent to the following steps:
+
+  1. Zero-pad the start and end of dimensions `[1, ..., M]` of the
+     input according to `paddings` to produce `padded` of shape `padded_shape`.
+
+  2. Reshape `padded` to `reshaped_padded` of shape:
+
+       [batch] +
+       [padded_shape[1] / block_shape[0],
+         block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1],
+        block_shape[M-1]] +
+       remaining_shape
+
+  3. Permute dimensions of `reshaped_padded` to produce
+     `permuted_reshaped_padded` of shape:
+
+       block_shape +
+       [batch] +
+       [padded_shape[1] / block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1]] +
+       remaining_shape
+
+  4. Reshape `permuted_reshaped_padded` to flatten `block_shape` into the batch
+     dimension, producing an output tensor of shape:
+
+       [batch * prod(block_shape)] +
+       [padded_shape[1] / block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1]] +
+       remaining_shape
+
+  Some examples:
+
+  (1) For the following input of shape `[1, 2, 2, 1]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1], [2]], [[3], [4]]]]
+  ```
+
+  The output tensor has shape `[4, 1, 1, 1]` and value:
+
+  ```
+  [[[[1]]], [[[2]]], [[[3]]], [[[4]]]]
+  ```
+
+  (2) For the following input of shape `[1, 2, 2, 3]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1, 2, 3], [4, 5, 6]],
+        [[7, 8, 9], [10, 11, 12]]]]
+  ```
+
+  The output tensor has shape `[4, 1, 1, 3]` and value:
+
+  ```
+  [[[[1, 2, 3]]], [[[4, 5, 6]]], [[[7, 8, 9]]], [[[10, 11, 12]]]]
+  ```
+
+  (3) For the following input of shape `[1, 4, 4, 1]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1],   [2],  [3],  [4]],
+        [[5],   [6],  [7],  [8]],
+        [[9],  [10], [11],  [12]],
+        [[13], [14], [15],  [16]]]]
+  ```
+
+  The output tensor has shape `[4, 2, 2, 1]` and value:
+
+  ```
+  x = [[[[1], [3]], [[9], [11]]],
+       [[[2], [4]], [[10], [12]]],
+       [[[5], [7]], [[13], [15]]],
+       [[[6], [8]], [[14], [16]]]]
+  ```
+
+  (4) For the following input of shape `[2, 2, 4, 1]`, block_shape = `[2, 2]`, and
+      paddings = `[[0, 0], [2, 0]]`:
+
+  ```
+  x = [[[[1],   [2],  [3],  [4]],
+        [[5],   [6],  [7],  [8]]],
+       [[[9],  [10], [11],  [12]],
+        [[13], [14], [15],  [16]]]]
+  ```
+
+  The output tensor has shape `[8, 1, 3, 1]` and value:
+
+  ```
+  x = [[[[0], [1], [3]]], [[[0], [9], [11]]],
+       [[[0], [2], [4]]], [[[0], [10], [12]]],
+       [[[0], [5], [7]]], [[[0], [13], [15]]],
+       [[[0], [6], [8]]], [[[0], [14], [16]]]]
+  ```
+
+  Among others, this operation is useful for reducing atrous convolution into
+  regular convolution.
+
+  Args:
+    input: A `Tensor`.
+      N-D with shape `input_shape = [batch] + spatial_shape + remaining_shape`,
+      where spatial_shape has `M` dimensions.
+    block_shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      1-D with shape `[M]`, all values must be >= 1.
+    paddings: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      2-D with shape `[M, 2]`, all values must be >= 0.
+        `paddings[i] = [pad_start, pad_end]` specifies the padding for input dimension
+        `i + 1`, which corresponds to spatial dimension `i`.  It is required that
+        `block_shape[i]` divides `input_shape[i + 1] + pad_start + pad_end`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[Possible API Signatures]
+ - input: tensor, block_shape: tensor, paddings: tensor, name: string
+ - input: tensor, block_shape: list, paddings: list, name: string
+ - input: tensor, block_shape: tuple, paddings: tuple, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__SpaceToBatchND_device_/job:localhost/replica:0/task:0/device:CPU:0}} block_shape rank should be 1 instead of 2 [Op:SpaceToBatchND]
+NotFoundError: Could not find device for node: {{node SpaceToBatchND}} = SpaceToBatchND[T=DT_BOOL, Tblock_shape=DT_INT32, Tpaddings=DT_INT32] All kernels registered for op SpaceToBatchND:   device='XLA_CPU_JIT'; Tpaddings in [DT_INT32, DT_INT64]; Tblock_shape in [DT_INT32, DT_INT64]; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_BOOL, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN, DT_INT4, DT_UINT4]   device='XLA_GPU_JIT'; Tpaddings in [DT_INT32, DT_INT64]; Tblock_shape in [DT_INT32, DT_INT64]; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_BOOL, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN, DT_INT4, DT_UINT4]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT8]   device='CPU'; T in [DT_UINT8]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_UINT16]   device='CPU'; T in [DT_UINT32]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_UINT64]  [Op:SpaceToBatchND]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (list/tuple signatures: block_shape length equals paddings length)
+{v_2 : list(int) ⊎ tuple(int), v_3 : list(tuple(int)) ⊎ tuple(tuple(int))} |= v_2.len = v_3.len
+Token usage: input=3388, output=8475, total=11863
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.space_to_batch API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+SpaceToBatch for N-D tensors of type T.
+
+  This operation divides "spatial" dimensions `[1, ..., M]` of the input into a
+  grid of blocks of shape `block_shape`, and interleaves these blocks with the
+  "batch" dimension (0) such that in the output, the spatial dimensions
+  `[1, ..., M]` correspond to the position within the grid, and the batch
+  dimension combines both the position within a spatial block and the original
+  batch position.  Prior to division into blocks, the spatial dimensions of the
+  input are optionally zero padded according to `paddings`. See below for a
+  precise description.
+
+  This operation is equivalent to the following steps:
+
+  1. Zero-pad the start and end of dimensions `[1, ..., M]` of the
+     input according to `paddings` to produce `padded` of shape `padded_shape`.
+
+  2. Reshape `padded` to `reshaped_padded` of shape:
+
+       [batch] +
+       [padded_shape[1] / block_shape[0],
+         block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1],
+        block_shape[M-1]] +
+       remaining_shape
+
+  3. Permute dimensions of `reshaped_padded` to produce
+     `permuted_reshaped_padded` of shape:
+
+       block_shape +
+       [batch] +
+       [padded_shape[1] / block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1]] +
+       remaining_shape
+
+  4. Reshape `permuted_reshaped_padded` to flatten `block_shape` into the batch
+     dimension, producing an output tensor of shape:
+
+       [batch * prod(block_shape)] +
+       [padded_shape[1] / block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1]] +
+       remaining_shape
+
+  Some examples:
+
+  (1) For the following input of shape `[1, 2, 2, 1]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1], [2]], [[3], [4]]]]
+  ```
+
+  The output tensor has shape `[4, 1, 1, 1]` and value:
+
+  ```
+  [[[[1]]], [[[2]]], [[[3]]], [[[4]]]]
+  ```
+
+  (2) For the following input of shape `[1, 2, 2, 3]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1, 2, 3], [4, 5, 6]],
+        [[7, 8, 9], [10, 11, 12]]]]
+  ```
+
+  The output tensor has shape `[4, 1, 1, 3]` and value:
+
+  ```
+  [[[[1, 2, 3]]], [[[4, 5, 6]]], [[[7, 8, 9]]], [[[10, 11, 12]]]]
+  ```
+
+  (3) For the following input of shape `[1, 4, 4, 1]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1],   [2],  [3],  [4]],
+        [[5],   [6],  [7],  [8]],
+        [[9],  [10], [11],  [12]],
+        [[13], [14], [15],  [16]]]]
+  ```
+
+  The output tensor has shape `[4, 2, 2, 1]` and value:
+
+  ```
+  x = [[[[1], [3]], [[9], [11]]],
+       [[[2], [4]], [[10], [12]]],
+       [[[5], [7]], [[13], [15]]],
+       [[[6], [8]], [[14], [16]]]]
+  ```
+
+  (4) For the following input of shape `[2, 2, 4, 1]`, block_shape = `[2, 2]`, and
+      paddings = `[[0, 0], [2, 0]]`:
+
+  ```
+  x = [[[[1],   [2],  [3],  [4]],
+        [[5],   [6],  [7],  [8]]],
+       [[[9],  [10], [11],  [12]],
+        [[13], [14], [15],  [16]]]]
+  ```
+
+  The output tensor has shape `[8, 1, 3, 1]` and value:
+
+  ```
+  x = [[[[0], [1], [3]]], [[[0], [9], [11]]],
+       [[[0], [2], [4]]], [[[0], [10], [12]]],
+       [[[0], [5], [7]]], [[[0], [13], [15]]],
+       [[[0], [6], [8]]], [[[0], [14], [16]]]]
+  ```
+
+  Among others, this operation is useful for reducing atrous convolution into
+  regular convolution.
+
+  Args:
+    input: A `Tensor`.
+      N-D with shape `input_shape = [batch] + spatial_shape + remaining_shape`,
+      where spatial_shape has `M` dimensions.
+    block_shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      1-D with shape `[M]`, all values must be >= 1.
+    paddings: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      2-D with shape `[M, 2]`, all values must be >= 0.
+        `paddings[i] = [pad_start, pad_end]` specifies the padding for input dimension
+        `i + 1`, which corresponds to spatial dimension `i`.  It is required that
+        `block_shape[i]` divides `input_shape[i + 1] + pad_start + pad_end`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[Possible API Signatures]
+ - input: tensor, block_shape: tensor, paddings: tensor, name: string
+ - input: tensor, block_shape: list, paddings: list, name: string
+ - input: tensor, block_shape: tuple, paddings: tuple, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__SpaceToBatchND_device_/job:localhost/replica:0/task:0/device:CPU:0}} block_shape rank should be 1 instead of 2 [Op:SpaceToBatchND]
+NotFoundError: Could not find device for node: {{node SpaceToBatchND}} = SpaceToBatchND[T=DT_BOOL, Tblock_shape=DT_INT32, Tpaddings=DT_INT32] All kernels registered for op SpaceToBatchND:   device='XLA_CPU_JIT'; Tpaddings in [DT_INT32, DT_INT64]; Tblock_shape in [DT_INT32, DT_INT64]; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_BOOL, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN, DT_INT4, DT_UINT4]   device='XLA_GPU_JIT'; Tpaddings in [DT_INT32, DT_INT64]; Tblock_shape in [DT_INT32, DT_INT64]; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_BOOL, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN, DT_INT4, DT_UINT4]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT8]   device='CPU'; T in [DT_UINT8]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_UINT16]   device='CPU'; T in [DT_UINT32]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_UINT64]  [Op:SpaceToBatchND]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (list signature: input must have at least M spatial dims)
+{v_1 : tensor, v_2 : list(int)} |= ndim(v_1) ≥ v_2.len + 1
+Token usage: input=3388, output=8475, total=11863
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.space_to_batch API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+SpaceToBatch for N-D tensors of type T.
+
+  This operation divides "spatial" dimensions `[1, ..., M]` of the input into a
+  grid of blocks of shape `block_shape`, and interleaves these blocks with the
+  "batch" dimension (0) such that in the output, the spatial dimensions
+  `[1, ..., M]` correspond to the position within the grid, and the batch
+  dimension combines both the position within a spatial block and the original
+  batch position.  Prior to division into blocks, the spatial dimensions of the
+  input are optionally zero padded according to `paddings`. See below for a
+  precise description.
+
+  This operation is equivalent to the following steps:
+
+  1. Zero-pad the start and end of dimensions `[1, ..., M]` of the
+     input according to `paddings` to produce `padded` of shape `padded_shape`.
+
+  2. Reshape `padded` to `reshaped_padded` of shape:
+
+       [batch] +
+       [padded_shape[1] / block_shape[0],
+         block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1],
+        block_shape[M-1]] +
+       remaining_shape
+
+  3. Permute dimensions of `reshaped_padded` to produce
+     `permuted_reshaped_padded` of shape:
+
+       block_shape +
+       [batch] +
+       [padded_shape[1] / block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1]] +
+       remaining_shape
+
+  4. Reshape `permuted_reshaped_padded` to flatten `block_shape` into the batch
+     dimension, producing an output tensor of shape:
+
+       [batch * prod(block_shape)] +
+       [padded_shape[1] / block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1]] +
+       remaining_shape
+
+  Some examples:
+
+  (1) For the following input of shape `[1, 2, 2, 1]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1], [2]], [[3], [4]]]]
+  ```
+
+  The output tensor has shape `[4, 1, 1, 1]` and value:
+
+  ```
+  [[[[1]]], [[[2]]], [[[3]]], [[[4]]]]
+  ```
+
+  (2) For the following input of shape `[1, 2, 2, 3]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1, 2, 3], [4, 5, 6]],
+        [[7, 8, 9], [10, 11, 12]]]]
+  ```
+
+  The output tensor has shape `[4, 1, 1, 3]` and value:
+
+  ```
+  [[[[1, 2, 3]]], [[[4, 5, 6]]], [[[7, 8, 9]]], [[[10, 11, 12]]]]
+  ```
+
+  (3) For the following input of shape `[1, 4, 4, 1]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1],   [2],  [3],  [4]],
+        [[5],   [6],  [7],  [8]],
+        [[9],  [10], [11],  [12]],
+        [[13], [14], [15],  [16]]]]
+  ```
+
+  The output tensor has shape `[4, 2, 2, 1]` and value:
+
+  ```
+  x = [[[[1], [3]], [[9], [11]]],
+       [[[2], [4]], [[10], [12]]],
+       [[[5], [7]], [[13], [15]]],
+       [[[6], [8]], [[14], [16]]]]
+  ```
+
+  (4) For the following input of shape `[2, 2, 4, 1]`, block_shape = `[2, 2]`, and
+      paddings = `[[0, 0], [2, 0]]`:
+
+  ```
+  x = [[[[1],   [2],  [3],  [4]],
+        [[5],   [6],  [7],  [8]]],
+       [[[9],  [10], [11],  [12]],
+        [[13], [14], [15],  [16]]]]
+  ```
+
+  The output tensor has shape `[8, 1, 3, 1]` and value:
+
+  ```
+  x = [[[[0], [1], [3]]], [[[0], [9], [11]]],
+       [[[0], [2], [4]]], [[[0], [10], [12]]],
+       [[[0], [5], [7]]], [[[0], [13], [15]]],
+       [[[0], [6], [8]]], [[[0], [14], [16]]]]
+  ```
+
+  Among others, this operation is useful for reducing atrous convolution into
+  regular convolution.
+
+  Args:
+    input: A `Tensor`.
+      N-D with shape `input_shape = [batch] + spatial_shape + remaining_shape`,
+      where spatial_shape has `M` dimensions.
+    block_shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      1-D with shape `[M]`, all values must be >= 1.
+    paddings: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      2-D with shape `[M, 2]`, all values must be >= 0.
+        `paddings[i] = [pad_start, pad_end]` specifies the padding for input dimension
+        `i + 1`, which corresponds to spatial dimension `i`.  It is required that
+        `block_shape[i]` divides `input_shape[i + 1] + pad_start + pad_end`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[Possible API Signatures]
+ - input: tensor, block_shape: tensor, paddings: tensor, name: string
+ - input: tensor, block_shape: list, paddings: list, name: string
+ - input: tensor, block_shape: tuple, paddings: tuple, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__SpaceToBatchND_device_/job:localhost/replica:0/task:0/device:CPU:0}} block_shape rank should be 1 instead of 2 [Op:SpaceToBatchND]
+NotFoundError: Could not find device for node: {{node SpaceToBatchND}} = SpaceToBatchND[T=DT_BOOL, Tblock_shape=DT_INT32, Tpaddings=DT_INT32] All kernels registered for op SpaceToBatchND:   device='XLA_CPU_JIT'; Tpaddings in [DT_INT32, DT_INT64]; Tblock_shape in [DT_INT32, DT_INT64]; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_BOOL, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN, DT_INT4, DT_UINT4]   device='XLA_GPU_JIT'; Tpaddings in [DT_INT32, DT_INT64]; Tblock_shape in [DT_INT32, DT_INT64]; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_BOOL, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN, DT_INT4, DT_UINT4]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT8]   device='CPU'; T in [DT_UINT8]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_UINT16]   device='CPU'; T in [DT_UINT32]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_UINT64]  [Op:SpaceToBatchND]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (tuple signature: all block_shape entries are ≥ 1 and at least one spatial dim)
+{v_2 : tuple(int)} |= v_2.len ≥ 1 ∧ (∀ i ∈ [0, v_2.len - 1] : v_2[i] ≥ 1)
+Token usage: input=3388, output=8475, total=11863
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.space_to_batch API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+SpaceToBatch for N-D tensors of type T.
+
+  This operation divides "spatial" dimensions `[1, ..., M]` of the input into a
+  grid of blocks of shape `block_shape`, and interleaves these blocks with the
+  "batch" dimension (0) such that in the output, the spatial dimensions
+  `[1, ..., M]` correspond to the position within the grid, and the batch
+  dimension combines both the position within a spatial block and the original
+  batch position.  Prior to division into blocks, the spatial dimensions of the
+  input are optionally zero padded according to `paddings`. See below for a
+  precise description.
+
+  This operation is equivalent to the following steps:
+
+  1. Zero-pad the start and end of dimensions `[1, ..., M]` of the
+     input according to `paddings` to produce `padded` of shape `padded_shape`.
+
+  2. Reshape `padded` to `reshaped_padded` of shape:
+
+       [batch] +
+       [padded_shape[1] / block_shape[0],
+         block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1],
+        block_shape[M-1]] +
+       remaining_shape
+
+  3. Permute dimensions of `reshaped_padded` to produce
+     `permuted_reshaped_padded` of shape:
+
+       block_shape +
+       [batch] +
+       [padded_shape[1] / block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1]] +
+       remaining_shape
+
+  4. Reshape `permuted_reshaped_padded` to flatten `block_shape` into the batch
+     dimension, producing an output tensor of shape:
+
+       [batch * prod(block_shape)] +
+       [padded_shape[1] / block_shape[0],
+        ...,
+        padded_shape[M] / block_shape[M-1]] +
+       remaining_shape
+
+  Some examples:
+
+  (1) For the following input of shape `[1, 2, 2, 1]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1], [2]], [[3], [4]]]]
+  ```
+
+  The output tensor has shape `[4, 1, 1, 1]` and value:
+
+  ```
+  [[[[1]]], [[[2]]], [[[3]]], [[[4]]]]
+  ```
+
+  (2) For the following input of shape `[1, 2, 2, 3]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1, 2, 3], [4, 5, 6]],
+        [[7, 8, 9], [10, 11, 12]]]]
+  ```
+
+  The output tensor has shape `[4, 1, 1, 3]` and value:
+
+  ```
+  [[[[1, 2, 3]]], [[[4, 5, 6]]], [[[7, 8, 9]]], [[[10, 11, 12]]]]
+  ```
+
+  (3) For the following input of shape `[1, 4, 4, 1]`, `block_shape = [2, 2]`, and
+      `paddings = [[0, 0], [0, 0]]`:
+
+  ```
+  x = [[[[1],   [2],  [3],  [4]],
+        [[5],   [6],  [7],  [8]],
+        [[9],  [10], [11],  [12]],
+        [[13], [14], [15],  [16]]]]
+  ```
+
+  The output tensor has shape `[4, 2, 2, 1]` and value:
+
+  ```
+  x = [[[[1], [3]], [[9], [11]]],
+       [[[2], [4]], [[10], [12]]],
+       [[[5], [7]], [[13], [15]]],
+       [[[6], [8]], [[14], [16]]]]
+  ```
+
+  (4) For the following input of shape `[2, 2, 4, 1]`, block_shape = `[2, 2]`, and
+      paddings = `[[0, 0], [2, 0]]`:
+
+  ```
+  x = [[[[1],   [2],  [3],  [4]],
+        [[5],   [6],  [7],  [8]]],
+       [[[9],  [10], [11],  [12]],
+        [[13], [14], [15],  [16]]]]
+  ```
+
+  The output tensor has shape `[8, 1, 3, 1]` and value:
+
+  ```
+  x = [[[[0], [1], [3]]], [[[0], [9], [11]]],
+       [[[0], [2], [4]]], [[[0], [10], [12]]],
+       [[[0], [5], [7]]], [[[0], [13], [15]]],
+       [[[0], [6], [8]]], [[[0], [14], [16]]]]
+  ```
+
+  Among others, this operation is useful for reducing atrous convolution into
+  regular convolution.
+
+  Args:
+    input: A `Tensor`.
+      N-D with shape `input_shape = [batch] + spatial_shape + remaining_shape`,
+      where spatial_shape has `M` dimensions.
+    block_shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      1-D with shape `[M]`, all values must be >= 1.
+    paddings: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      2-D with shape `[M, 2]`, all values must be >= 0.
+        `paddings[i] = [pad_start, pad_end]` specifies the padding for input dimension
+        `i + 1`, which corresponds to spatial dimension `i`.  It is required that
+        `block_shape[i]` divides `input_shape[i + 1] + pad_start + pad_end`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `input`.
+
+[Possible API Signatures]
+ - input: tensor, block_shape: tensor, paddings: tensor, name: string
+ - input: tensor, block_shape: list, paddings: list, name: string
+ - input: tensor, block_shape: tuple, paddings: tuple, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__SpaceToBatchND_device_/job:localhost/replica:0/task:0/device:CPU:0}} block_shape rank should be 1 instead of 2 [Op:SpaceToBatchND]
+NotFoundError: Could not find device for node: {{node SpaceToBatchND}} = SpaceToBatchND[T=DT_BOOL, Tblock_shape=DT_INT32, Tpaddings=DT_INT32] All kernels registered for op SpaceToBatchND:   device='XLA_CPU_JIT'; Tpaddings in [DT_INT32, DT_INT64]; Tblock_shape in [DT_INT32, DT_INT64]; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_BOOL, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN, DT_INT4, DT_UINT4]   device='XLA_GPU_JIT'; Tpaddings in [DT_INT32, DT_INT64]; Tblock_shape in [DT_INT32, DT_INT64]; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_COMPLEX64, DT_INT64, DT_BOOL, DT_QINT8, DT_QUINT8, DT_QINT32, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64, DT_FLOAT8_E5M2, DT_FLOAT8_E4M3FN, DT_INT4, DT_UINT4]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT8]   device='CPU'; T in [DT_UINT8]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_UINT16]   device='CPU'; T in [DT_UINT32]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_UINT64]  [Op:SpaceToBatchND]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (name is a simple, valid string)
+{v_4 : str} |= v_4 = "none" ∨ v_4 = "valid" ∨ v_4 = "same" ∨ v_4 = "linear"
+Token usage: input=3388, output=8475, total=11863
+** SUCCESS **
+

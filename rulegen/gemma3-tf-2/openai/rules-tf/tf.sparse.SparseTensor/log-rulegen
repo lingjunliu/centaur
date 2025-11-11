@@ -1,0 +1,3912 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.sparse.SparseTensor API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Represents a sparse tensor.
+
+  TensorFlow represents a sparse tensor as three separate dense tensors:
+  `indices`, `values`, and `dense_shape`.  In Python, the three tensors are
+  collected into a `SparseTensor` class for ease of use.  If you have separate
+  `indices`, `values`, and `dense_shape` tensors, wrap them in a `SparseTensor`
+  object before passing to the ops below.
+
+  Concretely, the sparse tensor `SparseTensor(indices, values, dense_shape)`
+  comprises the following components, where `N` and `ndims` are the number
+  of values and number of dimensions in the `SparseTensor`, respectively:
+
+  * `indices`: A 2-D int64 tensor of shape `[N, ndims]`, which specifies the
+    indices of the elements in the sparse tensor that contain nonzero values
+    (elements are zero-indexed). For example, `indices=[[1,3], [2,4]]` specifies
+    that the elements with indexes of [1,3] and [2,4] have nonzero values.
+
+  * `values`: A 1-D tensor of any type and shape `[N]`, which supplies the
+    values for each element in `indices`. For example, given `indices=[[1,3],
+    [2,4]]`, the parameter `values=[18, 3.6]` specifies that element [1,3] of
+    the sparse tensor has a value of 18, and element [2,4] of the tensor has a
+    value of 3.6.
+
+  * `dense_shape`: A 1-D int64 tensor of shape `[ndims]`, which specifies the
+    dense_shape of the sparse tensor. Takes a list indicating the number of
+    elements in each dimension. For example, `dense_shape=[3,6]` specifies a
+    two-dimensional 3x6 tensor, `dense_shape=[2,3,4]` specifies a
+    three-dimensional 2x3x4 tensor, and `dense_shape=[9]` specifies a
+    one-dimensional tensor with 9 elements.
+
+  The corresponding dense tensor satisfies:
+
+  ```python
+  dense.shape = dense_shape
+  dense[tuple(indices[i])] = values[i]
+  ```
+
+  By convention, `indices` should be sorted in row-major order (or equivalently
+  lexicographic order on the tuples `indices[i]`). This is not enforced when
+  `SparseTensor` objects are constructed, but most ops assume correct ordering.
+  If the ordering of sparse tensor `st` is wrong, a fixed version can be
+  obtained by calling `tf.sparse.reorder(st)`.
+
+  Example: The sparse tensor
+
+  ```python
+  SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4])
+  ```
+
+  represents the dense tensor
+
+  ```python
+  [[1, 0, 0, 0]
+   [0, 0, 2, 0]
+   [0, 0, 0, 0]]
+  ```
+
+[Possible API Signatures]
+ - indices: tensor, values: tensor, dense_shape: tensor
+ - indices: list, values: tensor, dense_shape: list
+ - indices: list, values: list, dense_shape: list
+
+[Error Messages]
+ValueError: Dimension -181406535902664160 must be >= 0
+ValueError: Dimension -2423027925926175744 must be >= 0
+ValueError: Dimension -2474740089867993088 must be >= 0
+ValueError: Dimension -3807368798575525888 must be >= 0
+ValueError: Dimension -473125213551198208 must be >= 0
+ValueError: Dimension -7861642828772802560 must be >= 0
+ValueError: Dimensions 18 and 46 are not compatible
+ValueError: Shape (1, 68, 72, 81, 33) must have rank 2
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (indices must be a 2-D tensor; suppresses “Shape (...) must have rank 2”)
+{v_1 : tensor} |= ndim(v_1) = 2
+Token usage: input=2238, output=8842, total=11080
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.sparse.SparseTensor API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Represents a sparse tensor.
+
+  TensorFlow represents a sparse tensor as three separate dense tensors:
+  `indices`, `values`, and `dense_shape`.  In Python, the three tensors are
+  collected into a `SparseTensor` class for ease of use.  If you have separate
+  `indices`, `values`, and `dense_shape` tensors, wrap them in a `SparseTensor`
+  object before passing to the ops below.
+
+  Concretely, the sparse tensor `SparseTensor(indices, values, dense_shape)`
+  comprises the following components, where `N` and `ndims` are the number
+  of values and number of dimensions in the `SparseTensor`, respectively:
+
+  * `indices`: A 2-D int64 tensor of shape `[N, ndims]`, which specifies the
+    indices of the elements in the sparse tensor that contain nonzero values
+    (elements are zero-indexed). For example, `indices=[[1,3], [2,4]]` specifies
+    that the elements with indexes of [1,3] and [2,4] have nonzero values.
+
+  * `values`: A 1-D tensor of any type and shape `[N]`, which supplies the
+    values for each element in `indices`. For example, given `indices=[[1,3],
+    [2,4]]`, the parameter `values=[18, 3.6]` specifies that element [1,3] of
+    the sparse tensor has a value of 18, and element [2,4] of the tensor has a
+    value of 3.6.
+
+  * `dense_shape`: A 1-D int64 tensor of shape `[ndims]`, which specifies the
+    dense_shape of the sparse tensor. Takes a list indicating the number of
+    elements in each dimension. For example, `dense_shape=[3,6]` specifies a
+    two-dimensional 3x6 tensor, `dense_shape=[2,3,4]` specifies a
+    three-dimensional 2x3x4 tensor, and `dense_shape=[9]` specifies a
+    one-dimensional tensor with 9 elements.
+
+  The corresponding dense tensor satisfies:
+
+  ```python
+  dense.shape = dense_shape
+  dense[tuple(indices[i])] = values[i]
+  ```
+
+  By convention, `indices` should be sorted in row-major order (or equivalently
+  lexicographic order on the tuples `indices[i]`). This is not enforced when
+  `SparseTensor` objects are constructed, but most ops assume correct ordering.
+  If the ordering of sparse tensor `st` is wrong, a fixed version can be
+  obtained by calling `tf.sparse.reorder(st)`.
+
+  Example: The sparse tensor
+
+  ```python
+  SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4])
+  ```
+
+  represents the dense tensor
+
+  ```python
+  [[1, 0, 0, 0]
+   [0, 0, 2, 0]
+   [0, 0, 0, 0]]
+  ```
+
+[Possible API Signatures]
+ - indices: tensor, values: tensor, dense_shape: tensor
+ - indices: list, values: tensor, dense_shape: list
+ - indices: list, values: list, dense_shape: list
+
+[Error Messages]
+ValueError: Dimension -181406535902664160 must be >= 0
+ValueError: Dimension -2423027925926175744 must be >= 0
+ValueError: Dimension -2474740089867993088 must be >= 0
+ValueError: Dimension -3807368798575525888 must be >= 0
+ValueError: Dimension -473125213551198208 must be >= 0
+ValueError: Dimension -7861642828772802560 must be >= 0
+ValueError: Dimensions 18 and 46 are not compatible
+ValueError: Shape (1, 68, 72, 81, 33) must have rank 2
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (dense_shape must be a 1-D int64 tensor)
+{v_3 : tensor} |= ndim(v_3) = 1 ∧ dtype_(v_3) = 4
+Token usage: input=2238, output=8842, total=11080
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.sparse.SparseTensor API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Represents a sparse tensor.
+
+  TensorFlow represents a sparse tensor as three separate dense tensors:
+  `indices`, `values`, and `dense_shape`.  In Python, the three tensors are
+  collected into a `SparseTensor` class for ease of use.  If you have separate
+  `indices`, `values`, and `dense_shape` tensors, wrap them in a `SparseTensor`
+  object before passing to the ops below.
+
+  Concretely, the sparse tensor `SparseTensor(indices, values, dense_shape)`
+  comprises the following components, where `N` and `ndims` are the number
+  of values and number of dimensions in the `SparseTensor`, respectively:
+
+  * `indices`: A 2-D int64 tensor of shape `[N, ndims]`, which specifies the
+    indices of the elements in the sparse tensor that contain nonzero values
+    (elements are zero-indexed). For example, `indices=[[1,3], [2,4]]` specifies
+    that the elements with indexes of [1,3] and [2,4] have nonzero values.
+
+  * `values`: A 1-D tensor of any type and shape `[N]`, which supplies the
+    values for each element in `indices`. For example, given `indices=[[1,3],
+    [2,4]]`, the parameter `values=[18, 3.6]` specifies that element [1,3] of
+    the sparse tensor has a value of 18, and element [2,4] of the tensor has a
+    value of 3.6.
+
+  * `dense_shape`: A 1-D int64 tensor of shape `[ndims]`, which specifies the
+    dense_shape of the sparse tensor. Takes a list indicating the number of
+    elements in each dimension. For example, `dense_shape=[3,6]` specifies a
+    two-dimensional 3x6 tensor, `dense_shape=[2,3,4]` specifies a
+    three-dimensional 2x3x4 tensor, and `dense_shape=[9]` specifies a
+    one-dimensional tensor with 9 elements.
+
+  The corresponding dense tensor satisfies:
+
+  ```python
+  dense.shape = dense_shape
+  dense[tuple(indices[i])] = values[i]
+  ```
+
+  By convention, `indices` should be sorted in row-major order (or equivalently
+  lexicographic order on the tuples `indices[i]`). This is not enforced when
+  `SparseTensor` objects are constructed, but most ops assume correct ordering.
+  If the ordering of sparse tensor `st` is wrong, a fixed version can be
+  obtained by calling `tf.sparse.reorder(st)`.
+
+  Example: The sparse tensor
+
+  ```python
+  SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4])
+  ```
+
+  represents the dense tensor
+
+  ```python
+  [[1, 0, 0, 0]
+   [0, 0, 2, 0]
+   [0, 0, 0, 0]]
+  ```
+
+[Possible API Signatures]
+ - indices: tensor, values: tensor, dense_shape: tensor
+ - indices: list, values: tensor, dense_shape: list
+ - indices: list, values: list, dense_shape: list
+
+[Error Messages]
+ValueError: Dimension -181406535902664160 must be >= 0
+ValueError: Dimension -2423027925926175744 must be >= 0
+ValueError: Dimension -2474740089867993088 must be >= 0
+ValueError: Dimension -3807368798575525888 must be >= 0
+ValueError: Dimension -473125213551198208 must be >= 0
+ValueError: Dimension -7861642828772802560 must be >= 0
+ValueError: Dimensions 18 and 46 are not compatible
+ValueError: Shape (1, 68, 72, 81, 33) must have rank 2
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (values must be a 1-D tensor)
+{v_2 : tensor} |= ndim(v_2) = 1
+Token usage: input=2238, output=8842, total=11080
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.sparse.SparseTensor API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Represents a sparse tensor.
+
+  TensorFlow represents a sparse tensor as three separate dense tensors:
+  `indices`, `values`, and `dense_shape`.  In Python, the three tensors are
+  collected into a `SparseTensor` class for ease of use.  If you have separate
+  `indices`, `values`, and `dense_shape` tensors, wrap them in a `SparseTensor`
+  object before passing to the ops below.
+
+  Concretely, the sparse tensor `SparseTensor(indices, values, dense_shape)`
+  comprises the following components, where `N` and `ndims` are the number
+  of values and number of dimensions in the `SparseTensor`, respectively:
+
+  * `indices`: A 2-D int64 tensor of shape `[N, ndims]`, which specifies the
+    indices of the elements in the sparse tensor that contain nonzero values
+    (elements are zero-indexed). For example, `indices=[[1,3], [2,4]]` specifies
+    that the elements with indexes of [1,3] and [2,4] have nonzero values.
+
+  * `values`: A 1-D tensor of any type and shape `[N]`, which supplies the
+    values for each element in `indices`. For example, given `indices=[[1,3],
+    [2,4]]`, the parameter `values=[18, 3.6]` specifies that element [1,3] of
+    the sparse tensor has a value of 18, and element [2,4] of the tensor has a
+    value of 3.6.
+
+  * `dense_shape`: A 1-D int64 tensor of shape `[ndims]`, which specifies the
+    dense_shape of the sparse tensor. Takes a list indicating the number of
+    elements in each dimension. For example, `dense_shape=[3,6]` specifies a
+    two-dimensional 3x6 tensor, `dense_shape=[2,3,4]` specifies a
+    three-dimensional 2x3x4 tensor, and `dense_shape=[9]` specifies a
+    one-dimensional tensor with 9 elements.
+
+  The corresponding dense tensor satisfies:
+
+  ```python
+  dense.shape = dense_shape
+  dense[tuple(indices[i])] = values[i]
+  ```
+
+  By convention, `indices` should be sorted in row-major order (or equivalently
+  lexicographic order on the tuples `indices[i]`). This is not enforced when
+  `SparseTensor` objects are constructed, but most ops assume correct ordering.
+  If the ordering of sparse tensor `st` is wrong, a fixed version can be
+  obtained by calling `tf.sparse.reorder(st)`.
+
+  Example: The sparse tensor
+
+  ```python
+  SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4])
+  ```
+
+  represents the dense tensor
+
+  ```python
+  [[1, 0, 0, 0]
+   [0, 0, 2, 0]
+   [0, 0, 0, 0]]
+  ```
+
+[Possible API Signatures]
+ - indices: tensor, values: tensor, dense_shape: tensor
+ - indices: list, values: tensor, dense_shape: list
+ - indices: list, values: list, dense_shape: list
+
+[Error Messages]
+ValueError: Dimension -181406535902664160 must be >= 0
+ValueError: Dimension -2423027925926175744 must be >= 0
+ValueError: Dimension -2474740089867993088 must be >= 0
+ValueError: Dimension -3807368798575525888 must be >= 0
+ValueError: Dimension -473125213551198208 must be >= 0
+ValueError: Dimension -7861642828772802560 must be >= 0
+ValueError: Dimensions 18 and 46 are not compatible
+ValueError: Shape (1, 68, 72, 81, 33) must have rank 2
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (sizes are compatible for tensor signature; suppresses “Dimensions X and Y are not compatible”)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_3, 0)
+Token usage: input=2238, output=8842, total=11080
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.sparse.SparseTensor API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Represents a sparse tensor.
+
+  TensorFlow represents a sparse tensor as three separate dense tensors:
+  `indices`, `values`, and `dense_shape`.  In Python, the three tensors are
+  collected into a `SparseTensor` class for ease of use.  If you have separate
+  `indices`, `values`, and `dense_shape` tensors, wrap them in a `SparseTensor`
+  object before passing to the ops below.
+
+  Concretely, the sparse tensor `SparseTensor(indices, values, dense_shape)`
+  comprises the following components, where `N` and `ndims` are the number
+  of values and number of dimensions in the `SparseTensor`, respectively:
+
+  * `indices`: A 2-D int64 tensor of shape `[N, ndims]`, which specifies the
+    indices of the elements in the sparse tensor that contain nonzero values
+    (elements are zero-indexed). For example, `indices=[[1,3], [2,4]]` specifies
+    that the elements with indexes of [1,3] and [2,4] have nonzero values.
+
+  * `values`: A 1-D tensor of any type and shape `[N]`, which supplies the
+    values for each element in `indices`. For example, given `indices=[[1,3],
+    [2,4]]`, the parameter `values=[18, 3.6]` specifies that element [1,3] of
+    the sparse tensor has a value of 18, and element [2,4] of the tensor has a
+    value of 3.6.
+
+  * `dense_shape`: A 1-D int64 tensor of shape `[ndims]`, which specifies the
+    dense_shape of the sparse tensor. Takes a list indicating the number of
+    elements in each dimension. For example, `dense_shape=[3,6]` specifies a
+    two-dimensional 3x6 tensor, `dense_shape=[2,3,4]` specifies a
+    three-dimensional 2x3x4 tensor, and `dense_shape=[9]` specifies a
+    one-dimensional tensor with 9 elements.
+
+  The corresponding dense tensor satisfies:
+
+  ```python
+  dense.shape = dense_shape
+  dense[tuple(indices[i])] = values[i]
+  ```
+
+  By convention, `indices` should be sorted in row-major order (or equivalently
+  lexicographic order on the tuples `indices[i]`). This is not enforced when
+  `SparseTensor` objects are constructed, but most ops assume correct ordering.
+  If the ordering of sparse tensor `st` is wrong, a fixed version can be
+  obtained by calling `tf.sparse.reorder(st)`.
+
+  Example: The sparse tensor
+
+  ```python
+  SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4])
+  ```
+
+  represents the dense tensor
+
+  ```python
+  [[1, 0, 0, 0]
+   [0, 0, 2, 0]
+   [0, 0, 0, 0]]
+  ```
+
+[Possible API Signatures]
+ - indices: tensor, values: tensor, dense_shape: tensor
+ - indices: list, values: tensor, dense_shape: list
+ - indices: list, values: list, dense_shape: list
+
+[Error Messages]
+ValueError: Dimension -181406535902664160 must be >= 0
+ValueError: Dimension -2423027925926175744 must be >= 0
+ValueError: Dimension -2474740089867993088 must be >= 0
+ValueError: Dimension -3807368798575525888 must be >= 0
+ValueError: Dimension -473125213551198208 must be >= 0
+ValueError: Dimension -7861642828772802560 must be >= 0
+ValueError: Dimensions 18 and 46 are not compatible
+ValueError: Shape (1, 68, 72, 81, 33) must have rank 2
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (indices and dense_shape tensors have valid dtypes and nonnegative contents; suppresses “Dimension ... must be >= 0”)
+{v_1 : tensor, v_3 : tensor} |= dtype_(v_1) = 4 ∧ dtype_(v_3) = 4 ∧ min(v_1) ≥ 0 ∧ min(v_3) ≥ 0
+Token usage: input=2238, output=8842, total=11080
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.sparse.SparseTensor API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Represents a sparse tensor.
+
+  TensorFlow represents a sparse tensor as three separate dense tensors:
+  `indices`, `values`, and `dense_shape`.  In Python, the three tensors are
+  collected into a `SparseTensor` class for ease of use.  If you have separate
+  `indices`, `values`, and `dense_shape` tensors, wrap them in a `SparseTensor`
+  object before passing to the ops below.
+
+  Concretely, the sparse tensor `SparseTensor(indices, values, dense_shape)`
+  comprises the following components, where `N` and `ndims` are the number
+  of values and number of dimensions in the `SparseTensor`, respectively:
+
+  * `indices`: A 2-D int64 tensor of shape `[N, ndims]`, which specifies the
+    indices of the elements in the sparse tensor that contain nonzero values
+    (elements are zero-indexed). For example, `indices=[[1,3], [2,4]]` specifies
+    that the elements with indexes of [1,3] and [2,4] have nonzero values.
+
+  * `values`: A 1-D tensor of any type and shape `[N]`, which supplies the
+    values for each element in `indices`. For example, given `indices=[[1,3],
+    [2,4]]`, the parameter `values=[18, 3.6]` specifies that element [1,3] of
+    the sparse tensor has a value of 18, and element [2,4] of the tensor has a
+    value of 3.6.
+
+  * `dense_shape`: A 1-D int64 tensor of shape `[ndims]`, which specifies the
+    dense_shape of the sparse tensor. Takes a list indicating the number of
+    elements in each dimension. For example, `dense_shape=[3,6]` specifies a
+    two-dimensional 3x6 tensor, `dense_shape=[2,3,4]` specifies a
+    three-dimensional 2x3x4 tensor, and `dense_shape=[9]` specifies a
+    one-dimensional tensor with 9 elements.
+
+  The corresponding dense tensor satisfies:
+
+  ```python
+  dense.shape = dense_shape
+  dense[tuple(indices[i])] = values[i]
+  ```
+
+  By convention, `indices` should be sorted in row-major order (or equivalently
+  lexicographic order on the tuples `indices[i]`). This is not enforced when
+  `SparseTensor` objects are constructed, but most ops assume correct ordering.
+  If the ordering of sparse tensor `st` is wrong, a fixed version can be
+  obtained by calling `tf.sparse.reorder(st)`.
+
+  Example: The sparse tensor
+
+  ```python
+  SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4])
+  ```
+
+  represents the dense tensor
+
+  ```python
+  [[1, 0, 0, 0]
+   [0, 0, 2, 0]
+   [0, 0, 0, 0]]
+  ```
+
+[Possible API Signatures]
+ - indices: tensor, values: tensor, dense_shape: tensor
+ - indices: list, values: tensor, dense_shape: list
+ - indices: list, values: list, dense_shape: list
+
+[Error Messages]
+ValueError: Dimension -181406535902664160 must be >= 0
+ValueError: Dimension -2423027925926175744 must be >= 0
+ValueError: Dimension -2474740089867993088 must be >= 0
+ValueError: Dimension -3807368798575525888 must be >= 0
+ValueError: Dimension -473125213551198208 must be >= 0
+ValueError: Dimension -7861642828772802560 must be >= 0
+ValueError: Dimensions 18 and 46 are not compatible
+ValueError: Shape (1, 68, 72, 81, 33) must have rank 2
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (all tensor shape dimensions are nonnegative; suppresses “Dimension ... must be >= 0”)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) ≥ 0 ∧ ∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) ≥ 0
+Token usage: input=2238, output=8842, total=11080
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.sparse.SparseTensor API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Represents a sparse tensor.
+
+  TensorFlow represents a sparse tensor as three separate dense tensors:
+  `indices`, `values`, and `dense_shape`.  In Python, the three tensors are
+  collected into a `SparseTensor` class for ease of use.  If you have separate
+  `indices`, `values`, and `dense_shape` tensors, wrap them in a `SparseTensor`
+  object before passing to the ops below.
+
+  Concretely, the sparse tensor `SparseTensor(indices, values, dense_shape)`
+  comprises the following components, where `N` and `ndims` are the number
+  of values and number of dimensions in the `SparseTensor`, respectively:
+
+  * `indices`: A 2-D int64 tensor of shape `[N, ndims]`, which specifies the
+    indices of the elements in the sparse tensor that contain nonzero values
+    (elements are zero-indexed). For example, `indices=[[1,3], [2,4]]` specifies
+    that the elements with indexes of [1,3] and [2,4] have nonzero values.
+
+  * `values`: A 1-D tensor of any type and shape `[N]`, which supplies the
+    values for each element in `indices`. For example, given `indices=[[1,3],
+    [2,4]]`, the parameter `values=[18, 3.6]` specifies that element [1,3] of
+    the sparse tensor has a value of 18, and element [2,4] of the tensor has a
+    value of 3.6.
+
+  * `dense_shape`: A 1-D int64 tensor of shape `[ndims]`, which specifies the
+    dense_shape of the sparse tensor. Takes a list indicating the number of
+    elements in each dimension. For example, `dense_shape=[3,6]` specifies a
+    two-dimensional 3x6 tensor, `dense_shape=[2,3,4]` specifies a
+    three-dimensional 2x3x4 tensor, and `dense_shape=[9]` specifies a
+    one-dimensional tensor with 9 elements.
+
+  The corresponding dense tensor satisfies:
+
+  ```python
+  dense.shape = dense_shape
+  dense[tuple(indices[i])] = values[i]
+  ```
+
+  By convention, `indices` should be sorted in row-major order (or equivalently
+  lexicographic order on the tuples `indices[i]`). This is not enforced when
+  `SparseTensor` objects are constructed, but most ops assume correct ordering.
+  If the ordering of sparse tensor `st` is wrong, a fixed version can be
+  obtained by calling `tf.sparse.reorder(st)`.
+
+  Example: The sparse tensor
+
+  ```python
+  SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4])
+  ```
+
+  represents the dense tensor
+
+  ```python
+  [[1, 0, 0, 0]
+   [0, 0, 2, 0]
+   [0, 0, 0, 0]]
+  ```
+
+[Possible API Signatures]
+ - indices: tensor, values: tensor, dense_shape: tensor
+ - indices: list, values: tensor, dense_shape: list
+ - indices: list, values: list, dense_shape: list
+
+[Error Messages]
+ValueError: Dimension -181406535902664160 must be >= 0
+ValueError: Dimension -2423027925926175744 must be >= 0
+ValueError: Dimension -2474740089867993088 must be >= 0
+ValueError: Dimension -3807368798575525888 must be >= 0
+ValueError: Dimension -473125213551198208 must be >= 0
+ValueError: Dimension -7861642828772802560 must be >= 0
+ValueError: Dimensions 18 and 46 are not compatible
+ValueError: Shape (1, 68, 72, 81, 33) must have rank 2
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (list signature structure and scalar values; suppresses “The truth value of an array ... is ambiguous” and dimension mismatches)
+{v_1 : list(tuple(int)), v_2 : list(int ⊎ float ⊎ bool ⊎ str), v_3 : list(int)} |= v_1.len = v_2.len ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i].len = v_3.len
+Token usage: input=2238, output=8842, total=11080
+** PARSING ERROR ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.sparse.SparseTensor API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Represents a sparse tensor.
+
+  TensorFlow represents a sparse tensor as three separate dense tensors:
+  `indices`, `values`, and `dense_shape`.  In Python, the three tensors are
+  collected into a `SparseTensor` class for ease of use.  If you have separate
+  `indices`, `values`, and `dense_shape` tensors, wrap them in a `SparseTensor`
+  object before passing to the ops below.
+
+  Concretely, the sparse tensor `SparseTensor(indices, values, dense_shape)`
+  comprises the following components, where `N` and `ndims` are the number
+  of values and number of dimensions in the `SparseTensor`, respectively:
+
+  * `indices`: A 2-D int64 tensor of shape `[N, ndims]`, which specifies the
+    indices of the elements in the sparse tensor that contain nonzero values
+    (elements are zero-indexed). For example, `indices=[[1,3], [2,4]]` specifies
+    that the elements with indexes of [1,3] and [2,4] have nonzero values.
+
+  * `values`: A 1-D tensor of any type and shape `[N]`, which supplies the
+    values for each element in `indices`. For example, given `indices=[[1,3],
+    [2,4]]`, the parameter `values=[18, 3.6]` specifies that element [1,3] of
+    the sparse tensor has a value of 18, and element [2,4] of the tensor has a
+    value of 3.6.
+
+  * `dense_shape`: A 1-D int64 tensor of shape `[ndims]`, which specifies the
+    dense_shape of the sparse tensor. Takes a list indicating the number of
+    elements in each dimension. For example, `dense_shape=[3,6]` specifies a
+    two-dimensional 3x6 tensor, `dense_shape=[2,3,4]` specifies a
+    three-dimensional 2x3x4 tensor, and `dense_shape=[9]` specifies a
+    one-dimensional tensor with 9 elements.
+
+  The corresponding dense tensor satisfies:
+
+  ```python
+  dense.shape = dense_shape
+  dense[tuple(indices[i])] = values[i]
+  ```
+
+  By convention, `indices` should be sorted in row-major order (or equivalently
+  lexicographic order on the tuples `indices[i]`). This is not enforced when
+  `SparseTensor` objects are constructed, but most ops assume correct ordering.
+  If the ordering of sparse tensor `st` is wrong, a fixed version can be
+  obtained by calling `tf.sparse.reorder(st)`.
+
+  Example: The sparse tensor
+
+  ```python
+  SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4])
+  ```
+
+  represents the dense tensor
+
+  ```python
+  [[1, 0, 0, 0]
+   [0, 0, 2, 0]
+   [0, 0, 0, 0]]
+  ```
+
+[Possible API Signatures]
+ - indices: tensor, values: tensor, dense_shape: tensor
+ - indices: list, values: tensor, dense_shape: list
+ - indices: list, values: list, dense_shape: list
+
+[Error Messages]
+ValueError: Dimension -181406535902664160 must be >= 0
+ValueError: Dimension -2423027925926175744 must be >= 0
+ValueError: Dimension -2474740089867993088 must be >= 0
+ValueError: Dimension -3807368798575525888 must be >= 0
+ValueError: Dimension -473125213551198208 must be >= 0
+ValueError: Dimension -7861642828772802560 must be >= 0
+ValueError: Dimensions 18 and 46 are not compatible
+ValueError: Shape (1, 68, 72, 81, 33) must have rank 2
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (list signature requires nonnegative dense_shape and in-bounds indices; suppresses “Dimension ... must be >= 0”)
+{v_1 : list(tuple(int)), v_3 : list(int)} |= ∀j ∈ [0, v_3.len - 1] : v_3[j] ≥ 0 ∧ ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [0, v_3.len - 1] : 0 ≤ v_1[i][j] ∧ v_1[i][j] < v_3[j]
+Token usage: input=2238, output=8842, total=11080
+** PARSING ERROR ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.sparse.SparseTensor API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Represents a sparse tensor.
+
+  TensorFlow represents a sparse tensor as three separate dense tensors:
+  `indices`, `values`, and `dense_shape`.  In Python, the three tensors are
+  collected into a `SparseTensor` class for ease of use.  If you have separate
+  `indices`, `values`, and `dense_shape` tensors, wrap them in a `SparseTensor`
+  object before passing to the ops below.
+
+  Concretely, the sparse tensor `SparseTensor(indices, values, dense_shape)`
+  comprises the following components, where `N` and `ndims` are the number
+  of values and number of dimensions in the `SparseTensor`, respectively:
+
+  * `indices`: A 2-D int64 tensor of shape `[N, ndims]`, which specifies the
+    indices of the elements in the sparse tensor that contain nonzero values
+    (elements are zero-indexed). For example, `indices=[[1,3], [2,4]]` specifies
+    that the elements with indexes of [1,3] and [2,4] have nonzero values.
+
+  * `values`: A 1-D tensor of any type and shape `[N]`, which supplies the
+    values for each element in `indices`. For example, given `indices=[[1,3],
+    [2,4]]`, the parameter `values=[18, 3.6]` specifies that element [1,3] of
+    the sparse tensor has a value of 18, and element [2,4] of the tensor has a
+    value of 3.6.
+
+  * `dense_shape`: A 1-D int64 tensor of shape `[ndims]`, which specifies the
+    dense_shape of the sparse tensor. Takes a list indicating the number of
+    elements in each dimension. For example, `dense_shape=[3,6]` specifies a
+    two-dimensional 3x6 tensor, `dense_shape=[2,3,4]` specifies a
+    three-dimensional 2x3x4 tensor, and `dense_shape=[9]` specifies a
+    one-dimensional tensor with 9 elements.
+
+  The corresponding dense tensor satisfies:
+
+  ```python
+  dense.shape = dense_shape
+  dense[tuple(indices[i])] = values[i]
+  ```
+
+  By convention, `indices` should be sorted in row-major order (or equivalently
+  lexicographic order on the tuples `indices[i]`). This is not enforced when
+  `SparseTensor` objects are constructed, but most ops assume correct ordering.
+  If the ordering of sparse tensor `st` is wrong, a fixed version can be
+  obtained by calling `tf.sparse.reorder(st)`.
+
+  Example: The sparse tensor
+
+  ```python
+  SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4])
+  ```
+
+  represents the dense tensor
+
+  ```python
+  [[1, 0, 0, 0]
+   [0, 0, 2, 0]
+   [0, 0, 0, 0]]
+  ```
+
+[Possible API Signatures]
+ - indices: tensor, values: tensor, dense_shape: tensor
+ - indices: list, values: tensor, dense_shape: list
+ - indices: list, values: list, dense_shape: list
+
+[Error Messages]
+ValueError: Dimension -181406535902664160 must be >= 0
+ValueError: Dimension -2423027925926175744 must be >= 0
+ValueError: Dimension -2474740089867993088 must be >= 0
+ValueError: Dimension -3807368798575525888 must be >= 0
+ValueError: Dimension -473125213551198208 must be >= 0
+ValueError: Dimension -7861642828772802560 must be >= 0
+ValueError: Dimensions 18 and 46 are not compatible
+ValueError: Shape (1, 68, 72, 81, 33) must have rank 2
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (mixed signature: indices list, values tensor, dense_shape list; suppresses rank and size mismatches)
+{v_1 : list(tuple(int)), v_2 : tensor, v_3 : list(int)} |= ndim(v_2) = 1 ∧ shape(v_2, 0) = v_1.len ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i].len = v_3.len ∧ ∀j ∈ [0, v_3.len - 1] : v_3[j] ≥ 0
+Token usage: input=2238, output=8842, total=11080
+** PARSING ERROR ** (num_failures: 3)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.sparse.SparseTensor API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Represents a sparse tensor.
+
+  TensorFlow represents a sparse tensor as three separate dense tensors:
+  `indices`, `values`, and `dense_shape`.  In Python, the three tensors are
+  collected into a `SparseTensor` class for ease of use.  If you have separate
+  `indices`, `values`, and `dense_shape` tensors, wrap them in a `SparseTensor`
+  object before passing to the ops below.
+
+  Concretely, the sparse tensor `SparseTensor(indices, values, dense_shape)`
+  comprises the following components, where `N` and `ndims` are the number
+  of values and number of dimensions in the `SparseTensor`, respectively:
+
+  * `indices`: A 2-D int64 tensor of shape `[N, ndims]`, which specifies the
+    indices of the elements in the sparse tensor that contain nonzero values
+    (elements are zero-indexed). For example, `indices=[[1,3], [2,4]]` specifies
+    that the elements with indexes of [1,3] and [2,4] have nonzero values.
+
+  * `values`: A 1-D tensor of any type and shape `[N]`, which supplies the
+    values for each element in `indices`. For example, given `indices=[[1,3],
+    [2,4]]`, the parameter `values=[18, 3.6]` specifies that element [1,3] of
+    the sparse tensor has a value of 18, and element [2,4] of the tensor has a
+    value of 3.6.
+
+  * `dense_shape`: A 1-D int64 tensor of shape `[ndims]`, which specifies the
+    dense_shape of the sparse tensor. Takes a list indicating the number of
+    elements in each dimension. For example, `dense_shape=[3,6]` specifies a
+    two-dimensional 3x6 tensor, `dense_shape=[2,3,4]` specifies a
+    three-dimensional 2x3x4 tensor, and `dense_shape=[9]` specifies a
+    one-dimensional tensor with 9 elements.
+
+  The corresponding dense tensor satisfies:
+
+  ```python
+  dense.shape = dense_shape
+  dense[tuple(indices[i])] = values[i]
+  ```
+
+  By convention, `indices` should be sorted in row-major order (or equivalently
+  lexicographic order on the tuples `indices[i]`). This is not enforced when
+  `SparseTensor` objects are constructed, but most ops assume correct ordering.
+  If the ordering of sparse tensor `st` is wrong, a fixed version can be
+  obtained by calling `tf.sparse.reorder(st)`.
+
+  Example: The sparse tensor
+
+  ```python
+  SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4])
+  ```
+
+  represents the dense tensor
+
+  ```python
+  [[1, 0, 0, 0]
+   [0, 0, 2, 0]
+   [0, 0, 0, 0]]
+  ```
+
+[Possible API Signatures]
+ - indices: tensor, values: tensor, dense_shape: tensor
+ - indices: list, values: tensor, dense_shape: list
+ - indices: list, values: list, dense_shape: list
+
+[Error Messages]
+ValueError: Dimension -181406535902664160 must be >= 0
+ValueError: Dimension -2423027925926175744 must be >= 0
+ValueError: Dimension -2474740089867993088 must be >= 0
+ValueError: Dimension -3807368798575525888 must be >= 0
+ValueError: Dimension -473125213551198208 must be >= 0
+ValueError: Dimension -7861642828772802560 must be >= 0
+ValueError: Dimensions 18 and 46 are not compatible
+ValueError: Shape (1, 68, 72, 81, 33) must have rank 2
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (tensor signature: indices and dense_shape magnitudes consistent; reduces index/shape incompatibilities)
+{v_1 : tensor, v_3 : tensor} |= max(v_3) > 0 ∧ max(v_1) < max(v_3)
+Token usage: input=2238, output=8842, total=11080
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.sparse.SparseTensor API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Represents a sparse tensor.
+
+  TensorFlow represents a sparse tensor as three separate dense tensors:
+  `indices`, `values`, and `dense_shape`.  In Python, the three tensors are
+  collected into a `SparseTensor` class for ease of use.  If you have separate
+  `indices`, `values`, and `dense_shape` tensors, wrap them in a `SparseTensor`
+  object before passing to the ops below.
+
+  Concretely, the sparse tensor `SparseTensor(indices, values, dense_shape)`
+  comprises the following components, where `N` and `ndims` are the number
+  of values and number of dimensions in the `SparseTensor`, respectively:
+
+  * `indices`: A 2-D int64 tensor of shape `[N, ndims]`, which specifies the
+    indices of the elements in the sparse tensor that contain nonzero values
+    (elements are zero-indexed). For example, `indices=[[1,3], [2,4]]` specifies
+    that the elements with indexes of [1,3] and [2,4] have nonzero values.
+
+  * `values`: A 1-D tensor of any type and shape `[N]`, which supplies the
+    values for each element in `indices`. For example, given `indices=[[1,3],
+    [2,4]]`, the parameter `values=[18, 3.6]` specifies that element [1,3] of
+    the sparse tensor has a value of 18, and element [2,4] of the tensor has a
+    value of 3.6.
+
+  * `dense_shape`: A 1-D int64 tensor of shape `[ndims]`, which specifies the
+    dense_shape of the sparse tensor. Takes a list indicating the number of
+    elements in each dimension. For example, `dense_shape=[3,6]` specifies a
+    two-dimensional 3x6 tensor, `dense_shape=[2,3,4]` specifies a
+    three-dimensional 2x3x4 tensor, and `dense_shape=[9]` specifies a
+    one-dimensional tensor with 9 elements.
+
+  The corresponding dense tensor satisfies:
+
+  ```python
+  dense.shape = dense_shape
+  dense[tuple(indices[i])] = values[i]
+  ```
+
+  By convention, `indices` should be sorted in row-major order (or equivalently
+  lexicographic order on the tuples `indices[i]`). This is not enforced when
+  `SparseTensor` objects are constructed, but most ops assume correct ordering.
+  If the ordering of sparse tensor `st` is wrong, a fixed version can be
+  obtained by calling `tf.sparse.reorder(st)`.
+
+  Example: The sparse tensor
+
+  ```python
+  SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4])
+  ```
+
+  represents the dense tensor
+
+  ```python
+  [[1, 0, 0, 0]
+   [0, 0, 2, 0]
+   [0, 0, 0, 0]]
+  ```
+
+[Possible API Signatures]
+ - indices: tensor, values: tensor, dense_shape: tensor
+ - indices: list, values: tensor, dense_shape: list
+ - indices: list, values: list, dense_shape: list
+
+[Error Messages]
+ValueError: Dimension -181406535902664160 must be >= 0
+ValueError: Dimension -2423027925926175744 must be >= 0
+ValueError: Dimension -2474740089867993088 must be >= 0
+ValueError: Dimension -3807368798575525888 must be >= 0
+ValueError: Dimension -473125213551198208 must be >= 0
+ValueError: Dimension -7861642828772802560 must be >= 0
+ValueError: Dimensions 18 and 46 are not compatible
+ValueError: Shape (1, 68, 72, 81, 33) must have rank 2
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (indices must be rank-2 to form [N, ndims]; avoids “Shape (…) must have rank 2”)
+{v_1 : tensor} |= ndim(v_1) = 2
+Token usage: input=2174, output=9840, total=12014
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.sparse.SparseTensor API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Represents a sparse tensor.
+
+  TensorFlow represents a sparse tensor as three separate dense tensors:
+  `indices`, `values`, and `dense_shape`.  In Python, the three tensors are
+  collected into a `SparseTensor` class for ease of use.  If you have separate
+  `indices`, `values`, and `dense_shape` tensors, wrap them in a `SparseTensor`
+  object before passing to the ops below.
+
+  Concretely, the sparse tensor `SparseTensor(indices, values, dense_shape)`
+  comprises the following components, where `N` and `ndims` are the number
+  of values and number of dimensions in the `SparseTensor`, respectively:
+
+  * `indices`: A 2-D int64 tensor of shape `[N, ndims]`, which specifies the
+    indices of the elements in the sparse tensor that contain nonzero values
+    (elements are zero-indexed). For example, `indices=[[1,3], [2,4]]` specifies
+    that the elements with indexes of [1,3] and [2,4] have nonzero values.
+
+  * `values`: A 1-D tensor of any type and shape `[N]`, which supplies the
+    values for each element in `indices`. For example, given `indices=[[1,3],
+    [2,4]]`, the parameter `values=[18, 3.6]` specifies that element [1,3] of
+    the sparse tensor has a value of 18, and element [2,4] of the tensor has a
+    value of 3.6.
+
+  * `dense_shape`: A 1-D int64 tensor of shape `[ndims]`, which specifies the
+    dense_shape of the sparse tensor. Takes a list indicating the number of
+    elements in each dimension. For example, `dense_shape=[3,6]` specifies a
+    two-dimensional 3x6 tensor, `dense_shape=[2,3,4]` specifies a
+    three-dimensional 2x3x4 tensor, and `dense_shape=[9]` specifies a
+    one-dimensional tensor with 9 elements.
+
+  The corresponding dense tensor satisfies:
+
+  ```python
+  dense.shape = dense_shape
+  dense[tuple(indices[i])] = values[i]
+  ```
+
+  By convention, `indices` should be sorted in row-major order (or equivalently
+  lexicographic order on the tuples `indices[i]`). This is not enforced when
+  `SparseTensor` objects are constructed, but most ops assume correct ordering.
+  If the ordering of sparse tensor `st` is wrong, a fixed version can be
+  obtained by calling `tf.sparse.reorder(st)`.
+
+  Example: The sparse tensor
+
+  ```python
+  SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4])
+  ```
+
+  represents the dense tensor
+
+  ```python
+  [[1, 0, 0, 0]
+   [0, 0, 2, 0]
+   [0, 0, 0, 0]]
+  ```
+
+[Possible API Signatures]
+ - indices: tensor, values: tensor, dense_shape: tensor
+ - indices: list, values: tensor, dense_shape: list
+ - indices: list, values: list, dense_shape: list
+
+[Error Messages]
+ValueError: Dimension -181406535902664160 must be >= 0
+ValueError: Dimension -2423027925926175744 must be >= 0
+ValueError: Dimension -2474740089867993088 must be >= 0
+ValueError: Dimension -3807368798575525888 must be >= 0
+ValueError: Dimension -473125213551198208 must be >= 0
+ValueError: Dimension -7861642828772802560 must be >= 0
+ValueError: Dimensions 18 and 46 are not compatible
+ValueError: Shape (1, 68, 72, 81, 33) must have rank 2
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (values must be rank-1 to form [N])
+{v_2 : tensor} |= ndim(v_2) = 1
+Token usage: input=2174, output=9840, total=12014
+** DUPLICATED RULE ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.sparse.SparseTensor API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Represents a sparse tensor.
+
+  TensorFlow represents a sparse tensor as three separate dense tensors:
+  `indices`, `values`, and `dense_shape`.  In Python, the three tensors are
+  collected into a `SparseTensor` class for ease of use.  If you have separate
+  `indices`, `values`, and `dense_shape` tensors, wrap them in a `SparseTensor`
+  object before passing to the ops below.
+
+  Concretely, the sparse tensor `SparseTensor(indices, values, dense_shape)`
+  comprises the following components, where `N` and `ndims` are the number
+  of values and number of dimensions in the `SparseTensor`, respectively:
+
+  * `indices`: A 2-D int64 tensor of shape `[N, ndims]`, which specifies the
+    indices of the elements in the sparse tensor that contain nonzero values
+    (elements are zero-indexed). For example, `indices=[[1,3], [2,4]]` specifies
+    that the elements with indexes of [1,3] and [2,4] have nonzero values.
+
+  * `values`: A 1-D tensor of any type and shape `[N]`, which supplies the
+    values for each element in `indices`. For example, given `indices=[[1,3],
+    [2,4]]`, the parameter `values=[18, 3.6]` specifies that element [1,3] of
+    the sparse tensor has a value of 18, and element [2,4] of the tensor has a
+    value of 3.6.
+
+  * `dense_shape`: A 1-D int64 tensor of shape `[ndims]`, which specifies the
+    dense_shape of the sparse tensor. Takes a list indicating the number of
+    elements in each dimension. For example, `dense_shape=[3,6]` specifies a
+    two-dimensional 3x6 tensor, `dense_shape=[2,3,4]` specifies a
+    three-dimensional 2x3x4 tensor, and `dense_shape=[9]` specifies a
+    one-dimensional tensor with 9 elements.
+
+  The corresponding dense tensor satisfies:
+
+  ```python
+  dense.shape = dense_shape
+  dense[tuple(indices[i])] = values[i]
+  ```
+
+  By convention, `indices` should be sorted in row-major order (or equivalently
+  lexicographic order on the tuples `indices[i]`). This is not enforced when
+  `SparseTensor` objects are constructed, but most ops assume correct ordering.
+  If the ordering of sparse tensor `st` is wrong, a fixed version can be
+  obtained by calling `tf.sparse.reorder(st)`.
+
+  Example: The sparse tensor
+
+  ```python
+  SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4])
+  ```
+
+  represents the dense tensor
+
+  ```python
+  [[1, 0, 0, 0]
+   [0, 0, 2, 0]
+   [0, 0, 0, 0]]
+  ```
+
+[Possible API Signatures]
+ - indices: tensor, values: tensor, dense_shape: tensor
+ - indices: list, values: tensor, dense_shape: list
+ - indices: list, values: list, dense_shape: list
+
+[Error Messages]
+ValueError: Dimension -181406535902664160 must be >= 0
+ValueError: Dimension -2423027925926175744 must be >= 0
+ValueError: Dimension -2474740089867993088 must be >= 0
+ValueError: Dimension -3807368798575525888 must be >= 0
+ValueError: Dimension -473125213551198208 must be >= 0
+ValueError: Dimension -7861642828772802560 must be >= 0
+ValueError: Dimensions 18 and 46 are not compatible
+ValueError: Shape (1, 68, 72, 81, 33) must have rank 2
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (dense_shape must be rank-1 to form [ndims])
+{v_3 : tensor} |= ndim(v_3) = 1
+Token usage: input=2174, output=9840, total=12014
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.sparse.SparseTensor API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Represents a sparse tensor.
+
+  TensorFlow represents a sparse tensor as three separate dense tensors:
+  `indices`, `values`, and `dense_shape`.  In Python, the three tensors are
+  collected into a `SparseTensor` class for ease of use.  If you have separate
+  `indices`, `values`, and `dense_shape` tensors, wrap them in a `SparseTensor`
+  object before passing to the ops below.
+
+  Concretely, the sparse tensor `SparseTensor(indices, values, dense_shape)`
+  comprises the following components, where `N` and `ndims` are the number
+  of values and number of dimensions in the `SparseTensor`, respectively:
+
+  * `indices`: A 2-D int64 tensor of shape `[N, ndims]`, which specifies the
+    indices of the elements in the sparse tensor that contain nonzero values
+    (elements are zero-indexed). For example, `indices=[[1,3], [2,4]]` specifies
+    that the elements with indexes of [1,3] and [2,4] have nonzero values.
+
+  * `values`: A 1-D tensor of any type and shape `[N]`, which supplies the
+    values for each element in `indices`. For example, given `indices=[[1,3],
+    [2,4]]`, the parameter `values=[18, 3.6]` specifies that element [1,3] of
+    the sparse tensor has a value of 18, and element [2,4] of the tensor has a
+    value of 3.6.
+
+  * `dense_shape`: A 1-D int64 tensor of shape `[ndims]`, which specifies the
+    dense_shape of the sparse tensor. Takes a list indicating the number of
+    elements in each dimension. For example, `dense_shape=[3,6]` specifies a
+    two-dimensional 3x6 tensor, `dense_shape=[2,3,4]` specifies a
+    three-dimensional 2x3x4 tensor, and `dense_shape=[9]` specifies a
+    one-dimensional tensor with 9 elements.
+
+  The corresponding dense tensor satisfies:
+
+  ```python
+  dense.shape = dense_shape
+  dense[tuple(indices[i])] = values[i]
+  ```
+
+  By convention, `indices` should be sorted in row-major order (or equivalently
+  lexicographic order on the tuples `indices[i]`). This is not enforced when
+  `SparseTensor` objects are constructed, but most ops assume correct ordering.
+  If the ordering of sparse tensor `st` is wrong, a fixed version can be
+  obtained by calling `tf.sparse.reorder(st)`.
+
+  Example: The sparse tensor
+
+  ```python
+  SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4])
+  ```
+
+  represents the dense tensor
+
+  ```python
+  [[1, 0, 0, 0]
+   [0, 0, 2, 0]
+   [0, 0, 0, 0]]
+  ```
+
+[Possible API Signatures]
+ - indices: tensor, values: tensor, dense_shape: tensor
+ - indices: list, values: tensor, dense_shape: list
+ - indices: list, values: list, dense_shape: list
+
+[Error Messages]
+ValueError: Dimension -181406535902664160 must be >= 0
+ValueError: Dimension -2423027925926175744 must be >= 0
+ValueError: Dimension -2474740089867993088 must be >= 0
+ValueError: Dimension -3807368798575525888 must be >= 0
+ValueError: Dimension -473125213551198208 must be >= 0
+ValueError: Dimension -7861642828772802560 must be >= 0
+ValueError: Dimensions 18 and 46 are not compatible
+ValueError: Shape (1, 68, 72, 81, 33) must have rank 2
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 14 (dense_shape entries are non-negative; suppresses “Dimension … must be >= 0”)
+{v_3 : tensor} |= ndim(v_3) = 1 ∧ min(v_3) ≥ 0
+Token usage: input=2174, output=9840, total=12014
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.sparse.SparseTensor API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Represents a sparse tensor.
+
+  TensorFlow represents a sparse tensor as three separate dense tensors:
+  `indices`, `values`, and `dense_shape`.  In Python, the three tensors are
+  collected into a `SparseTensor` class for ease of use.  If you have separate
+  `indices`, `values`, and `dense_shape` tensors, wrap them in a `SparseTensor`
+  object before passing to the ops below.
+
+  Concretely, the sparse tensor `SparseTensor(indices, values, dense_shape)`
+  comprises the following components, where `N` and `ndims` are the number
+  of values and number of dimensions in the `SparseTensor`, respectively:
+
+  * `indices`: A 2-D int64 tensor of shape `[N, ndims]`, which specifies the
+    indices of the elements in the sparse tensor that contain nonzero values
+    (elements are zero-indexed). For example, `indices=[[1,3], [2,4]]` specifies
+    that the elements with indexes of [1,3] and [2,4] have nonzero values.
+
+  * `values`: A 1-D tensor of any type and shape `[N]`, which supplies the
+    values for each element in `indices`. For example, given `indices=[[1,3],
+    [2,4]]`, the parameter `values=[18, 3.6]` specifies that element [1,3] of
+    the sparse tensor has a value of 18, and element [2,4] of the tensor has a
+    value of 3.6.
+
+  * `dense_shape`: A 1-D int64 tensor of shape `[ndims]`, which specifies the
+    dense_shape of the sparse tensor. Takes a list indicating the number of
+    elements in each dimension. For example, `dense_shape=[3,6]` specifies a
+    two-dimensional 3x6 tensor, `dense_shape=[2,3,4]` specifies a
+    three-dimensional 2x3x4 tensor, and `dense_shape=[9]` specifies a
+    one-dimensional tensor with 9 elements.
+
+  The corresponding dense tensor satisfies:
+
+  ```python
+  dense.shape = dense_shape
+  dense[tuple(indices[i])] = values[i]
+  ```
+
+  By convention, `indices` should be sorted in row-major order (or equivalently
+  lexicographic order on the tuples `indices[i]`). This is not enforced when
+  `SparseTensor` objects are constructed, but most ops assume correct ordering.
+  If the ordering of sparse tensor `st` is wrong, a fixed version can be
+  obtained by calling `tf.sparse.reorder(st)`.
+
+  Example: The sparse tensor
+
+  ```python
+  SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4])
+  ```
+
+  represents the dense tensor
+
+  ```python
+  [[1, 0, 0, 0]
+   [0, 0, 2, 0]
+   [0, 0, 0, 0]]
+  ```
+
+[Possible API Signatures]
+ - indices: tensor, values: tensor, dense_shape: tensor
+ - indices: list, values: tensor, dense_shape: list
+ - indices: list, values: list, dense_shape: list
+
+[Error Messages]
+ValueError: Dimension -181406535902664160 must be >= 0
+ValueError: Dimension -2423027925926175744 must be >= 0
+ValueError: Dimension -2474740089867993088 must be >= 0
+ValueError: Dimension -3807368798575525888 must be >= 0
+ValueError: Dimension -473125213551198208 must be >= 0
+ValueError: Dimension -7861642828772802560 must be >= 0
+ValueError: Dimensions 18 and 46 are not compatible
+ValueError: Shape (1, 68, 72, 81, 33) must have rank 2
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 15 (indices entries are non-negative; suppresses “Dimension … must be >= 0” arising from invalid negatives)
+{v_1 : tensor} |= ndim(v_1) = 2 ∧ min(v_1) ≥ 0
+Token usage: input=2174, output=9840, total=12014
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.sparse.SparseTensor API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Represents a sparse tensor.
+
+  TensorFlow represents a sparse tensor as three separate dense tensors:
+  `indices`, `values`, and `dense_shape`.  In Python, the three tensors are
+  collected into a `SparseTensor` class for ease of use.  If you have separate
+  `indices`, `values`, and `dense_shape` tensors, wrap them in a `SparseTensor`
+  object before passing to the ops below.
+
+  Concretely, the sparse tensor `SparseTensor(indices, values, dense_shape)`
+  comprises the following components, where `N` and `ndims` are the number
+  of values and number of dimensions in the `SparseTensor`, respectively:
+
+  * `indices`: A 2-D int64 tensor of shape `[N, ndims]`, which specifies the
+    indices of the elements in the sparse tensor that contain nonzero values
+    (elements are zero-indexed). For example, `indices=[[1,3], [2,4]]` specifies
+    that the elements with indexes of [1,3] and [2,4] have nonzero values.
+
+  * `values`: A 1-D tensor of any type and shape `[N]`, which supplies the
+    values for each element in `indices`. For example, given `indices=[[1,3],
+    [2,4]]`, the parameter `values=[18, 3.6]` specifies that element [1,3] of
+    the sparse tensor has a value of 18, and element [2,4] of the tensor has a
+    value of 3.6.
+
+  * `dense_shape`: A 1-D int64 tensor of shape `[ndims]`, which specifies the
+    dense_shape of the sparse tensor. Takes a list indicating the number of
+    elements in each dimension. For example, `dense_shape=[3,6]` specifies a
+    two-dimensional 3x6 tensor, `dense_shape=[2,3,4]` specifies a
+    three-dimensional 2x3x4 tensor, and `dense_shape=[9]` specifies a
+    one-dimensional tensor with 9 elements.
+
+  The corresponding dense tensor satisfies:
+
+  ```python
+  dense.shape = dense_shape
+  dense[tuple(indices[i])] = values[i]
+  ```
+
+  By convention, `indices` should be sorted in row-major order (or equivalently
+  lexicographic order on the tuples `indices[i]`). This is not enforced when
+  `SparseTensor` objects are constructed, but most ops assume correct ordering.
+  If the ordering of sparse tensor `st` is wrong, a fixed version can be
+  obtained by calling `tf.sparse.reorder(st)`.
+
+  Example: The sparse tensor
+
+  ```python
+  SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4])
+  ```
+
+  represents the dense tensor
+
+  ```python
+  [[1, 0, 0, 0]
+   [0, 0, 2, 0]
+   [0, 0, 0, 0]]
+  ```
+
+[Possible API Signatures]
+ - indices: tensor, values: tensor, dense_shape: tensor
+ - indices: list, values: tensor, dense_shape: list
+ - indices: list, values: list, dense_shape: list
+
+[Error Messages]
+ValueError: Dimension -181406535902664160 must be >= 0
+ValueError: Dimension -2423027925926175744 must be >= 0
+ValueError: Dimension -2474740089867993088 must be >= 0
+ValueError: Dimension -3807368798575525888 must be >= 0
+ValueError: Dimension -473125213551198208 must be >= 0
+ValueError: Dimension -7861642828772802560 must be >= 0
+ValueError: Dimensions 18 and 46 are not compatible
+ValueError: Shape (1, 68, 72, 81, 33) must have rank 2
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 16 (indices tensor sizes are non-negative; suppresses “Dimension … must be >= 0” on index shape components)
+{v_1 : tensor} |= ndim(v_1) = 2 ∧ shape(v_1, 0) ≥ 0 ∧ shape(v_1, 1) ≥ 0
+Token usage: input=2174, output=9840, total=12014
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.sparse.SparseTensor API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Represents a sparse tensor.
+
+  TensorFlow represents a sparse tensor as three separate dense tensors:
+  `indices`, `values`, and `dense_shape`.  In Python, the three tensors are
+  collected into a `SparseTensor` class for ease of use.  If you have separate
+  `indices`, `values`, and `dense_shape` tensors, wrap them in a `SparseTensor`
+  object before passing to the ops below.
+
+  Concretely, the sparse tensor `SparseTensor(indices, values, dense_shape)`
+  comprises the following components, where `N` and `ndims` are the number
+  of values and number of dimensions in the `SparseTensor`, respectively:
+
+  * `indices`: A 2-D int64 tensor of shape `[N, ndims]`, which specifies the
+    indices of the elements in the sparse tensor that contain nonzero values
+    (elements are zero-indexed). For example, `indices=[[1,3], [2,4]]` specifies
+    that the elements with indexes of [1,3] and [2,4] have nonzero values.
+
+  * `values`: A 1-D tensor of any type and shape `[N]`, which supplies the
+    values for each element in `indices`. For example, given `indices=[[1,3],
+    [2,4]]`, the parameter `values=[18, 3.6]` specifies that element [1,3] of
+    the sparse tensor has a value of 18, and element [2,4] of the tensor has a
+    value of 3.6.
+
+  * `dense_shape`: A 1-D int64 tensor of shape `[ndims]`, which specifies the
+    dense_shape of the sparse tensor. Takes a list indicating the number of
+    elements in each dimension. For example, `dense_shape=[3,6]` specifies a
+    two-dimensional 3x6 tensor, `dense_shape=[2,3,4]` specifies a
+    three-dimensional 2x3x4 tensor, and `dense_shape=[9]` specifies a
+    one-dimensional tensor with 9 elements.
+
+  The corresponding dense tensor satisfies:
+
+  ```python
+  dense.shape = dense_shape
+  dense[tuple(indices[i])] = values[i]
+  ```
+
+  By convention, `indices` should be sorted in row-major order (or equivalently
+  lexicographic order on the tuples `indices[i]`). This is not enforced when
+  `SparseTensor` objects are constructed, but most ops assume correct ordering.
+  If the ordering of sparse tensor `st` is wrong, a fixed version can be
+  obtained by calling `tf.sparse.reorder(st)`.
+
+  Example: The sparse tensor
+
+  ```python
+  SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4])
+  ```
+
+  represents the dense tensor
+
+  ```python
+  [[1, 0, 0, 0]
+   [0, 0, 2, 0]
+   [0, 0, 0, 0]]
+  ```
+
+[Possible API Signatures]
+ - indices: tensor, values: tensor, dense_shape: tensor
+ - indices: list, values: tensor, dense_shape: list
+ - indices: list, values: list, dense_shape: list
+
+[Error Messages]
+ValueError: Dimension -181406535902664160 must be >= 0
+ValueError: Dimension -2423027925926175744 must be >= 0
+ValueError: Dimension -2474740089867993088 must be >= 0
+ValueError: Dimension -3807368798575525888 must be >= 0
+ValueError: Dimension -473125213551198208 must be >= 0
+ValueError: Dimension -7861642828772802560 must be >= 0
+ValueError: Dimensions 18 and 46 are not compatible
+ValueError: Shape (1, 68, 72, 81, 33) must have rank 2
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 17 (values length is non-negative; suppresses “Dimension … must be >= 0” on values length)
+{v_2 : tensor} |= ndim(v_2) = 1 ∧ shape(v_2, 0) ≥ 0
+Token usage: input=2174, output=9840, total=12014
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.sparse.SparseTensor API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Represents a sparse tensor.
+
+  TensorFlow represents a sparse tensor as three separate dense tensors:
+  `indices`, `values`, and `dense_shape`.  In Python, the three tensors are
+  collected into a `SparseTensor` class for ease of use.  If you have separate
+  `indices`, `values`, and `dense_shape` tensors, wrap them in a `SparseTensor`
+  object before passing to the ops below.
+
+  Concretely, the sparse tensor `SparseTensor(indices, values, dense_shape)`
+  comprises the following components, where `N` and `ndims` are the number
+  of values and number of dimensions in the `SparseTensor`, respectively:
+
+  * `indices`: A 2-D int64 tensor of shape `[N, ndims]`, which specifies the
+    indices of the elements in the sparse tensor that contain nonzero values
+    (elements are zero-indexed). For example, `indices=[[1,3], [2,4]]` specifies
+    that the elements with indexes of [1,3] and [2,4] have nonzero values.
+
+  * `values`: A 1-D tensor of any type and shape `[N]`, which supplies the
+    values for each element in `indices`. For example, given `indices=[[1,3],
+    [2,4]]`, the parameter `values=[18, 3.6]` specifies that element [1,3] of
+    the sparse tensor has a value of 18, and element [2,4] of the tensor has a
+    value of 3.6.
+
+  * `dense_shape`: A 1-D int64 tensor of shape `[ndims]`, which specifies the
+    dense_shape of the sparse tensor. Takes a list indicating the number of
+    elements in each dimension. For example, `dense_shape=[3,6]` specifies a
+    two-dimensional 3x6 tensor, `dense_shape=[2,3,4]` specifies a
+    three-dimensional 2x3x4 tensor, and `dense_shape=[9]` specifies a
+    one-dimensional tensor with 9 elements.
+
+  The corresponding dense tensor satisfies:
+
+  ```python
+  dense.shape = dense_shape
+  dense[tuple(indices[i])] = values[i]
+  ```
+
+  By convention, `indices` should be sorted in row-major order (or equivalently
+  lexicographic order on the tuples `indices[i]`). This is not enforced when
+  `SparseTensor` objects are constructed, but most ops assume correct ordering.
+  If the ordering of sparse tensor `st` is wrong, a fixed version can be
+  obtained by calling `tf.sparse.reorder(st)`.
+
+  Example: The sparse tensor
+
+  ```python
+  SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4])
+  ```
+
+  represents the dense tensor
+
+  ```python
+  [[1, 0, 0, 0]
+   [0, 0, 2, 0]
+   [0, 0, 0, 0]]
+  ```
+
+[Possible API Signatures]
+ - indices: tensor, values: tensor, dense_shape: tensor
+ - indices: list, values: tensor, dense_shape: list
+ - indices: list, values: list, dense_shape: list
+
+[Error Messages]
+ValueError: Dimension -181406535902664160 must be >= 0
+ValueError: Dimension -2423027925926175744 must be >= 0
+ValueError: Dimension -2474740089867993088 must be >= 0
+ValueError: Dimension -3807368798575525888 must be >= 0
+ValueError: Dimension -473125213551198208 must be >= 0
+ValueError: Dimension -7861642828772802560 must be >= 0
+ValueError: Dimensions 18 and 46 are not compatible
+ValueError: Shape (1, 68, 72, 81, 33) must have rank 2
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 18 (number of index rows equals number of values; suppresses “Dimensions 18 and 46 are not compatible”)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0)
+Token usage: input=2174, output=9840, total=12014
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.sparse.SparseTensor API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Represents a sparse tensor.
+
+  TensorFlow represents a sparse tensor as three separate dense tensors:
+  `indices`, `values`, and `dense_shape`.  In Python, the three tensors are
+  collected into a `SparseTensor` class for ease of use.  If you have separate
+  `indices`, `values`, and `dense_shape` tensors, wrap them in a `SparseTensor`
+  object before passing to the ops below.
+
+  Concretely, the sparse tensor `SparseTensor(indices, values, dense_shape)`
+  comprises the following components, where `N` and `ndims` are the number
+  of values and number of dimensions in the `SparseTensor`, respectively:
+
+  * `indices`: A 2-D int64 tensor of shape `[N, ndims]`, which specifies the
+    indices of the elements in the sparse tensor that contain nonzero values
+    (elements are zero-indexed). For example, `indices=[[1,3], [2,4]]` specifies
+    that the elements with indexes of [1,3] and [2,4] have nonzero values.
+
+  * `values`: A 1-D tensor of any type and shape `[N]`, which supplies the
+    values for each element in `indices`. For example, given `indices=[[1,3],
+    [2,4]]`, the parameter `values=[18, 3.6]` specifies that element [1,3] of
+    the sparse tensor has a value of 18, and element [2,4] of the tensor has a
+    value of 3.6.
+
+  * `dense_shape`: A 1-D int64 tensor of shape `[ndims]`, which specifies the
+    dense_shape of the sparse tensor. Takes a list indicating the number of
+    elements in each dimension. For example, `dense_shape=[3,6]` specifies a
+    two-dimensional 3x6 tensor, `dense_shape=[2,3,4]` specifies a
+    three-dimensional 2x3x4 tensor, and `dense_shape=[9]` specifies a
+    one-dimensional tensor with 9 elements.
+
+  The corresponding dense tensor satisfies:
+
+  ```python
+  dense.shape = dense_shape
+  dense[tuple(indices[i])] = values[i]
+  ```
+
+  By convention, `indices` should be sorted in row-major order (or equivalently
+  lexicographic order on the tuples `indices[i]`). This is not enforced when
+  `SparseTensor` objects are constructed, but most ops assume correct ordering.
+  If the ordering of sparse tensor `st` is wrong, a fixed version can be
+  obtained by calling `tf.sparse.reorder(st)`.
+
+  Example: The sparse tensor
+
+  ```python
+  SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4])
+  ```
+
+  represents the dense tensor
+
+  ```python
+  [[1, 0, 0, 0]
+   [0, 0, 2, 0]
+   [0, 0, 0, 0]]
+  ```
+
+[Possible API Signatures]
+ - indices: tensor, values: tensor, dense_shape: tensor
+ - indices: list, values: tensor, dense_shape: list
+ - indices: list, values: list, dense_shape: list
+
+[Error Messages]
+ValueError: Dimension -181406535902664160 must be >= 0
+ValueError: Dimension -2423027925926175744 must be >= 0
+ValueError: Dimension -2474740089867993088 must be >= 0
+ValueError: Dimension -3807368798575525888 must be >= 0
+ValueError: Dimension -473125213551198208 must be >= 0
+ValueError: Dimension -7861642828772802560 must be >= 0
+ValueError: Dimensions 18 and 46 are not compatible
+ValueError: Shape (1, 68, 72, 81, 33) must have rank 2
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 19 (indices’ ndims equals length of dense_shape)
+{v_1 : tensor, v_3 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_3) = 1 ∧ shape(v_1, 1) = shape(v_3, 0)
+Token usage: input=2174, output=9840, total=12014
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.sparse.SparseTensor API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Represents a sparse tensor.
+
+  TensorFlow represents a sparse tensor as three separate dense tensors:
+  `indices`, `values`, and `dense_shape`.  In Python, the three tensors are
+  collected into a `SparseTensor` class for ease of use.  If you have separate
+  `indices`, `values`, and `dense_shape` tensors, wrap them in a `SparseTensor`
+  object before passing to the ops below.
+
+  Concretely, the sparse tensor `SparseTensor(indices, values, dense_shape)`
+  comprises the following components, where `N` and `ndims` are the number
+  of values and number of dimensions in the `SparseTensor`, respectively:
+
+  * `indices`: A 2-D int64 tensor of shape `[N, ndims]`, which specifies the
+    indices of the elements in the sparse tensor that contain nonzero values
+    (elements are zero-indexed). For example, `indices=[[1,3], [2,4]]` specifies
+    that the elements with indexes of [1,3] and [2,4] have nonzero values.
+
+  * `values`: A 1-D tensor of any type and shape `[N]`, which supplies the
+    values for each element in `indices`. For example, given `indices=[[1,3],
+    [2,4]]`, the parameter `values=[18, 3.6]` specifies that element [1,3] of
+    the sparse tensor has a value of 18, and element [2,4] of the tensor has a
+    value of 3.6.
+
+  * `dense_shape`: A 1-D int64 tensor of shape `[ndims]`, which specifies the
+    dense_shape of the sparse tensor. Takes a list indicating the number of
+    elements in each dimension. For example, `dense_shape=[3,6]` specifies a
+    two-dimensional 3x6 tensor, `dense_shape=[2,3,4]` specifies a
+    three-dimensional 2x3x4 tensor, and `dense_shape=[9]` specifies a
+    one-dimensional tensor with 9 elements.
+
+  The corresponding dense tensor satisfies:
+
+  ```python
+  dense.shape = dense_shape
+  dense[tuple(indices[i])] = values[i]
+  ```
+
+  By convention, `indices` should be sorted in row-major order (or equivalently
+  lexicographic order on the tuples `indices[i]`). This is not enforced when
+  `SparseTensor` objects are constructed, but most ops assume correct ordering.
+  If the ordering of sparse tensor `st` is wrong, a fixed version can be
+  obtained by calling `tf.sparse.reorder(st)`.
+
+  Example: The sparse tensor
+
+  ```python
+  SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4])
+  ```
+
+  represents the dense tensor
+
+  ```python
+  [[1, 0, 0, 0]
+   [0, 0, 2, 0]
+   [0, 0, 0, 0]]
+  ```
+
+[Possible API Signatures]
+ - indices: tensor, values: tensor, dense_shape: tensor
+ - indices: list, values: tensor, dense_shape: list
+ - indices: list, values: list, dense_shape: list
+
+[Error Messages]
+ValueError: Dimension -181406535902664160 must be >= 0
+ValueError: Dimension -2423027925926175744 must be >= 0
+ValueError: Dimension -2474740089867993088 must be >= 0
+ValueError: Dimension -3807368798575525888 must be >= 0
+ValueError: Dimension -473125213551198208 must be >= 0
+ValueError: Dimension -7861642828772802560 must be >= 0
+ValueError: Dimensions 18 and 46 are not compatible
+ValueError: Shape (1, 68, 72, 81, 33) must have rank 2
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 20 (indices lie within dense bounds in aggregate; helps avoid out-of-range/shape conflicts)
+{v_1 : tensor, v_3 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_3) = 1 ∧ min(v_1) ≥ 0 ∧ max(v_1) < max(v_3)
+Token usage: input=2174, output=9840, total=12014
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.sparse.SparseTensor API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Represents a sparse tensor.
+
+  TensorFlow represents a sparse tensor as three separate dense tensors:
+  `indices`, `values`, and `dense_shape`.  In Python, the three tensors are
+  collected into a `SparseTensor` class for ease of use.  If you have separate
+  `indices`, `values`, and `dense_shape` tensors, wrap them in a `SparseTensor`
+  object before passing to the ops below.
+
+  Concretely, the sparse tensor `SparseTensor(indices, values, dense_shape)`
+  comprises the following components, where `N` and `ndims` are the number
+  of values and number of dimensions in the `SparseTensor`, respectively:
+
+  * `indices`: A 2-D int64 tensor of shape `[N, ndims]`, which specifies the
+    indices of the elements in the sparse tensor that contain nonzero values
+    (elements are zero-indexed). For example, `indices=[[1,3], [2,4]]` specifies
+    that the elements with indexes of [1,3] and [2,4] have nonzero values.
+
+  * `values`: A 1-D tensor of any type and shape `[N]`, which supplies the
+    values for each element in `indices`. For example, given `indices=[[1,3],
+    [2,4]]`, the parameter `values=[18, 3.6]` specifies that element [1,3] of
+    the sparse tensor has a value of 18, and element [2,4] of the tensor has a
+    value of 3.6.
+
+  * `dense_shape`: A 1-D int64 tensor of shape `[ndims]`, which specifies the
+    dense_shape of the sparse tensor. Takes a list indicating the number of
+    elements in each dimension. For example, `dense_shape=[3,6]` specifies a
+    two-dimensional 3x6 tensor, `dense_shape=[2,3,4]` specifies a
+    three-dimensional 2x3x4 tensor, and `dense_shape=[9]` specifies a
+    one-dimensional tensor with 9 elements.
+
+  The corresponding dense tensor satisfies:
+
+  ```python
+  dense.shape = dense_shape
+  dense[tuple(indices[i])] = values[i]
+  ```
+
+  By convention, `indices` should be sorted in row-major order (or equivalently
+  lexicographic order on the tuples `indices[i]`). This is not enforced when
+  `SparseTensor` objects are constructed, but most ops assume correct ordering.
+  If the ordering of sparse tensor `st` is wrong, a fixed version can be
+  obtained by calling `tf.sparse.reorder(st)`.
+
+  Example: The sparse tensor
+
+  ```python
+  SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4])
+  ```
+
+  represents the dense tensor
+
+  ```python
+  [[1, 0, 0, 0]
+   [0, 0, 2, 0]
+   [0, 0, 0, 0]]
+  ```
+
+[Possible API Signatures]
+ - indices: tensor, values: tensor, dense_shape: tensor
+ - indices: list, values: tensor, dense_shape: list
+ - indices: list, values: list, dense_shape: list
+
+[Error Messages]
+ValueError: Dimension -181406535902664160 must be >= 0
+ValueError: Dimension -2423027925926175744 must be >= 0
+ValueError: Dimension -2474740089867993088 must be >= 0
+ValueError: Dimension -3807368798575525888 must be >= 0
+ValueError: Dimension -473125213551198208 must be >= 0
+ValueError: Dimension -7861642828772802560 must be >= 0
+ValueError: Dimensions 18 and 46 are not compatible
+ValueError: Shape (1, 68, 72, 81, 33) must have rank 2
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 21 (index-like tensors share integer dtype; avoids dtype-based shape/compatibility pitfalls)
+{v_1 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_3)
+Token usage: input=2174, output=9840, total=12014
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.sparse.SparseTensor API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Represents a sparse tensor.
+
+  TensorFlow represents a sparse tensor as three separate dense tensors:
+  `indices`, `values`, and `dense_shape`.  In Python, the three tensors are
+  collected into a `SparseTensor` class for ease of use.  If you have separate
+  `indices`, `values`, and `dense_shape` tensors, wrap them in a `SparseTensor`
+  object before passing to the ops below.
+
+  Concretely, the sparse tensor `SparseTensor(indices, values, dense_shape)`
+  comprises the following components, where `N` and `ndims` are the number
+  of values and number of dimensions in the `SparseTensor`, respectively:
+
+  * `indices`: A 2-D int64 tensor of shape `[N, ndims]`, which specifies the
+    indices of the elements in the sparse tensor that contain nonzero values
+    (elements are zero-indexed). For example, `indices=[[1,3], [2,4]]` specifies
+    that the elements with indexes of [1,3] and [2,4] have nonzero values.
+
+  * `values`: A 1-D tensor of any type and shape `[N]`, which supplies the
+    values for each element in `indices`. For example, given `indices=[[1,3],
+    [2,4]]`, the parameter `values=[18, 3.6]` specifies that element [1,3] of
+    the sparse tensor has a value of 18, and element [2,4] of the tensor has a
+    value of 3.6.
+
+  * `dense_shape`: A 1-D int64 tensor of shape `[ndims]`, which specifies the
+    dense_shape of the sparse tensor. Takes a list indicating the number of
+    elements in each dimension. For example, `dense_shape=[3,6]` specifies a
+    two-dimensional 3x6 tensor, `dense_shape=[2,3,4]` specifies a
+    three-dimensional 2x3x4 tensor, and `dense_shape=[9]` specifies a
+    one-dimensional tensor with 9 elements.
+
+  The corresponding dense tensor satisfies:
+
+  ```python
+  dense.shape = dense_shape
+  dense[tuple(indices[i])] = values[i]
+  ```
+
+  By convention, `indices` should be sorted in row-major order (or equivalently
+  lexicographic order on the tuples `indices[i]`). This is not enforced when
+  `SparseTensor` objects are constructed, but most ops assume correct ordering.
+  If the ordering of sparse tensor `st` is wrong, a fixed version can be
+  obtained by calling `tf.sparse.reorder(st)`.
+
+  Example: The sparse tensor
+
+  ```python
+  SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4])
+  ```
+
+  represents the dense tensor
+
+  ```python
+  [[1, 0, 0, 0]
+   [0, 0, 2, 0]
+   [0, 0, 0, 0]]
+  ```
+
+[Possible API Signatures]
+ - indices: tensor, values: tensor, dense_shape: tensor
+ - indices: list, values: tensor, dense_shape: list
+ - indices: list, values: list, dense_shape: list
+
+[Error Messages]
+ValueError: Dimension -181406535902664160 must be >= 0
+ValueError: Dimension -2423027925926175744 must be >= 0
+ValueError: Dimension -2474740089867993088 must be >= 0
+ValueError: Dimension -3807368798575525888 must be >= 0
+ValueError: Dimension -473125213551198208 must be >= 0
+ValueError: Dimension -7861642828772802560 must be >= 0
+ValueError: Dimensions 18 and 46 are not compatible
+ValueError: Shape (1, 68, 72, 81, 33) must have rank 2
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 22 (list-signature: ensure only structure is Python lists; avoid ambiguous array truth by not testing array truth)
+{v_1 : list(tuple(int)), v_2 : tensor, v_3 : list(int)} |= if true then true
+Token usage: input=2174, output=9840, total=12014
+** REDUNDANT VARIABLES ** (num_failures: 3)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.sparse.SparseTensor API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Represents a sparse tensor.
+
+  TensorFlow represents a sparse tensor as three separate dense tensors:
+  `indices`, `values`, and `dense_shape`.  In Python, the three tensors are
+  collected into a `SparseTensor` class for ease of use.  If you have separate
+  `indices`, `values`, and `dense_shape` tensors, wrap them in a `SparseTensor`
+  object before passing to the ops below.
+
+  Concretely, the sparse tensor `SparseTensor(indices, values, dense_shape)`
+  comprises the following components, where `N` and `ndims` are the number
+  of values and number of dimensions in the `SparseTensor`, respectively:
+
+  * `indices`: A 2-D int64 tensor of shape `[N, ndims]`, which specifies the
+    indices of the elements in the sparse tensor that contain nonzero values
+    (elements are zero-indexed). For example, `indices=[[1,3], [2,4]]` specifies
+    that the elements with indexes of [1,3] and [2,4] have nonzero values.
+
+  * `values`: A 1-D tensor of any type and shape `[N]`, which supplies the
+    values for each element in `indices`. For example, given `indices=[[1,3],
+    [2,4]]`, the parameter `values=[18, 3.6]` specifies that element [1,3] of
+    the sparse tensor has a value of 18, and element [2,4] of the tensor has a
+    value of 3.6.
+
+  * `dense_shape`: A 1-D int64 tensor of shape `[ndims]`, which specifies the
+    dense_shape of the sparse tensor. Takes a list indicating the number of
+    elements in each dimension. For example, `dense_shape=[3,6]` specifies a
+    two-dimensional 3x6 tensor, `dense_shape=[2,3,4]` specifies a
+    three-dimensional 2x3x4 tensor, and `dense_shape=[9]` specifies a
+    one-dimensional tensor with 9 elements.
+
+  The corresponding dense tensor satisfies:
+
+  ```python
+  dense.shape = dense_shape
+  dense[tuple(indices[i])] = values[i]
+  ```
+
+  By convention, `indices` should be sorted in row-major order (or equivalently
+  lexicographic order on the tuples `indices[i]`). This is not enforced when
+  `SparseTensor` objects are constructed, but most ops assume correct ordering.
+  If the ordering of sparse tensor `st` is wrong, a fixed version can be
+  obtained by calling `tf.sparse.reorder(st)`.
+
+  Example: The sparse tensor
+
+  ```python
+  SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4])
+  ```
+
+  represents the dense tensor
+
+  ```python
+  [[1, 0, 0, 0]
+   [0, 0, 2, 0]
+   [0, 0, 0, 0]]
+  ```
+
+[Possible API Signatures]
+ - indices: tensor, values: tensor, dense_shape: tensor
+ - indices: list, values: tensor, dense_shape: list
+ - indices: list, values: list, dense_shape: list
+
+[Error Messages]
+ValueError: Dimension -181406535902664160 must be >= 0
+ValueError: Dimension -2423027925926175744 must be >= 0
+ValueError: Dimension -2474740089867993088 must be >= 0
+ValueError: Dimension -3807368798575525888 must be >= 0
+ValueError: Dimension -473125213551198208 must be >= 0
+ValueError: Dimension -7861642828772802560 must be >= 0
+ValueError: Dimensions 18 and 46 are not compatible
+ValueError: Shape (1, 68, 72, 81, 33) must have rank 2
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 23 (cover both accepted forms of indices via union type selector)
+{v_1 : tensor ⊎ list(tuple(int))} |= true
+Token usage: input=2174, output=9840, total=12014
+** REDUNDANT VARIABLES ** (num_failures: 4)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.sparse.SparseTensor API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Represents a sparse tensor.
+
+  TensorFlow represents a sparse tensor as three separate dense tensors:
+  `indices`, `values`, and `dense_shape`.  In Python, the three tensors are
+  collected into a `SparseTensor` class for ease of use.  If you have separate
+  `indices`, `values`, and `dense_shape` tensors, wrap them in a `SparseTensor`
+  object before passing to the ops below.
+
+  Concretely, the sparse tensor `SparseTensor(indices, values, dense_shape)`
+  comprises the following components, where `N` and `ndims` are the number
+  of values and number of dimensions in the `SparseTensor`, respectively:
+
+  * `indices`: A 2-D int64 tensor of shape `[N, ndims]`, which specifies the
+    indices of the elements in the sparse tensor that contain nonzero values
+    (elements are zero-indexed). For example, `indices=[[1,3], [2,4]]` specifies
+    that the elements with indexes of [1,3] and [2,4] have nonzero values.
+
+  * `values`: A 1-D tensor of any type and shape `[N]`, which supplies the
+    values for each element in `indices`. For example, given `indices=[[1,3],
+    [2,4]]`, the parameter `values=[18, 3.6]` specifies that element [1,3] of
+    the sparse tensor has a value of 18, and element [2,4] of the tensor has a
+    value of 3.6.
+
+  * `dense_shape`: A 1-D int64 tensor of shape `[ndims]`, which specifies the
+    dense_shape of the sparse tensor. Takes a list indicating the number of
+    elements in each dimension. For example, `dense_shape=[3,6]` specifies a
+    two-dimensional 3x6 tensor, `dense_shape=[2,3,4]` specifies a
+    three-dimensional 2x3x4 tensor, and `dense_shape=[9]` specifies a
+    one-dimensional tensor with 9 elements.
+
+  The corresponding dense tensor satisfies:
+
+  ```python
+  dense.shape = dense_shape
+  dense[tuple(indices[i])] = values[i]
+  ```
+
+  By convention, `indices` should be sorted in row-major order (or equivalently
+  lexicographic order on the tuples `indices[i]`). This is not enforced when
+  `SparseTensor` objects are constructed, but most ops assume correct ordering.
+  If the ordering of sparse tensor `st` is wrong, a fixed version can be
+  obtained by calling `tf.sparse.reorder(st)`.
+
+  Example: The sparse tensor
+
+  ```python
+  SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4])
+  ```
+
+  represents the dense tensor
+
+  ```python
+  [[1, 0, 0, 0]
+   [0, 0, 2, 0]
+   [0, 0, 0, 0]]
+  ```
+
+[Possible API Signatures]
+ - indices: tensor, values: tensor, dense_shape: tensor
+ - indices: list, values: tensor, dense_shape: list
+ - indices: list, values: list, dense_shape: list
+
+[Error Messages]
+ValueError: Dimension -181406535902664160 must be >= 0
+ValueError: Dimension -2423027925926175744 must be >= 0
+ValueError: Dimension -2474740089867993088 must be >= 0
+ValueError: Dimension -3807368798575525888 must be >= 0
+ValueError: Dimension -473125213551198208 must be >= 0
+ValueError: Dimension -7861642828772802560 must be >= 0
+ValueError: Dimensions 18 and 46 are not compatible
+ValueError: Shape (1, 68, 72, 81, 33) must have rank 2
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 24 (guard against ambiguous truth-value of arrays by using scalar predicate in condition)
+{v_2 : tensor} |= if ndim(v_2) > 0 then true
+Token usage: input=2174, output=9840, total=12014
+** SUCCESS **
+

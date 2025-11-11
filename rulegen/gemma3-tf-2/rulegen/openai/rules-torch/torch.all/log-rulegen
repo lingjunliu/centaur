@@ -1,0 +1,1600 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.all API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+all(input: Tensor) -> Tensor
+
+Tests if all elements in :attr:`input` evaluate to `True`.
+
+.. note:: This function matches the behaviour of NumPy in returning
+          output of dtype `bool` for all supported dtypes except `uint8`.
+          For `uint8` the dtype of output is `uint8` itself.
+
+Example::
+
+    >>> a = torch.rand(1, 2).bool()
+    >>> a
+    tensor([[False, True]], dtype=torch.bool)
+    >>> torch.all(a)
+    tensor(False, dtype=torch.bool)
+    >>> a = torch.arange(0, 3)
+    >>> a
+    tensor([0, 1, 2])
+    >>> torch.all(a)
+    tensor(False)
+
+.. function:: all(input, dim, keepdim=False, *, out=None) -> Tensor
+   :noindex:
+
+For each row of :attr:`input` in the given dimension :attr:`dim`,
+returns `True` if all elements in the row evaluate to `True` and `False` otherwise.
+
+
+If :attr:`keepdim` is ``True``, the output tensor is of the same size
+as :attr:`input` except in the dimension(s) :attr:`dim` where it is of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in the
+output tensor having 1 (or ``len(dim)``) fewer dimension(s).
+
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int or tuple of ints): the dimension or dimensions to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.rand(4, 2).bool()
+    >>> a
+    tensor([[True, True],
+            [True, False],
+            [True, True],
+            [True, True]], dtype=torch.bool)
+    >>> torch.all(a, dim=1)
+    tensor([ True, False,  True,  True], dtype=torch.bool)
+    >>> torch.all(a, dim=0)
+    tensor([ True, False], dtype=torch.bool)
+
+[Possible API Signatures]
+ - input: tensor, out: tensor
+ - input: tensor, dim: integer, keepdim: boolean, out: tensor
+ - input: tensor, dim: tuple, keepdim: boolean, out: tensor
+
+[Error Messages]
+RuntimeError: all only supports bool tensor for result, got: Double
+TypeError: all() received an invalid combination of arguments - got (Tensor, NoneType, out=float, keepdim=bool), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+ * (Tensor input, tuple of ints dim = None, bool keepdim = False, *, Tensor out = None)
+ * (Tensor input, int dim, bool keepdim = False, *, Tensor out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, Tensor out = None)
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: dim 0 appears multiple times in the list of dims
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (out tensor dtype matches torch.all’s result dtype)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 5 ∧ dtype_(v_2) = 5) ∨ (dtype_(v_1) ≠ 5 ∧ dtype_(v_2) = 0)
+Token usage: input=2164, output=11976, total=14140
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.all API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+all(input: Tensor) -> Tensor
+
+Tests if all elements in :attr:`input` evaluate to `True`.
+
+.. note:: This function matches the behaviour of NumPy in returning
+          output of dtype `bool` for all supported dtypes except `uint8`.
+          For `uint8` the dtype of output is `uint8` itself.
+
+Example::
+
+    >>> a = torch.rand(1, 2).bool()
+    >>> a
+    tensor([[False, True]], dtype=torch.bool)
+    >>> torch.all(a)
+    tensor(False, dtype=torch.bool)
+    >>> a = torch.arange(0, 3)
+    >>> a
+    tensor([0, 1, 2])
+    >>> torch.all(a)
+    tensor(False)
+
+.. function:: all(input, dim, keepdim=False, *, out=None) -> Tensor
+   :noindex:
+
+For each row of :attr:`input` in the given dimension :attr:`dim`,
+returns `True` if all elements in the row evaluate to `True` and `False` otherwise.
+
+
+If :attr:`keepdim` is ``True``, the output tensor is of the same size
+as :attr:`input` except in the dimension(s) :attr:`dim` where it is of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in the
+output tensor having 1 (or ``len(dim)``) fewer dimension(s).
+
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int or tuple of ints): the dimension or dimensions to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.rand(4, 2).bool()
+    >>> a
+    tensor([[True, True],
+            [True, False],
+            [True, True],
+            [True, True]], dtype=torch.bool)
+    >>> torch.all(a, dim=1)
+    tensor([ True, False,  True,  True], dtype=torch.bool)
+    >>> torch.all(a, dim=0)
+    tensor([ True, False], dtype=torch.bool)
+
+[Possible API Signatures]
+ - input: tensor, out: tensor
+ - input: tensor, dim: integer, keepdim: boolean, out: tensor
+ - input: tensor, dim: tuple, keepdim: boolean, out: tensor
+
+[Error Messages]
+RuntimeError: all only supports bool tensor for result, got: Double
+TypeError: all() received an invalid combination of arguments - got (Tensor, NoneType, out=float, keepdim=bool), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+ * (Tensor input, tuple of ints dim = None, bool keepdim = False, *, Tensor out = None)
+ * (Tensor input, int dim, bool keepdim = False, *, Tensor out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, Tensor out = None)
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: dim 0 appears multiple times in the list of dims
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (global reduction returns a 0-D tensor)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) = 0
+Token usage: input=2164, output=11976, total=14140
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.all API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+all(input: Tensor) -> Tensor
+
+Tests if all elements in :attr:`input` evaluate to `True`.
+
+.. note:: This function matches the behaviour of NumPy in returning
+          output of dtype `bool` for all supported dtypes except `uint8`.
+          For `uint8` the dtype of output is `uint8` itself.
+
+Example::
+
+    >>> a = torch.rand(1, 2).bool()
+    >>> a
+    tensor([[False, True]], dtype=torch.bool)
+    >>> torch.all(a)
+    tensor(False, dtype=torch.bool)
+    >>> a = torch.arange(0, 3)
+    >>> a
+    tensor([0, 1, 2])
+    >>> torch.all(a)
+    tensor(False)
+
+.. function:: all(input, dim, keepdim=False, *, out=None) -> Tensor
+   :noindex:
+
+For each row of :attr:`input` in the given dimension :attr:`dim`,
+returns `True` if all elements in the row evaluate to `True` and `False` otherwise.
+
+
+If :attr:`keepdim` is ``True``, the output tensor is of the same size
+as :attr:`input` except in the dimension(s) :attr:`dim` where it is of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in the
+output tensor having 1 (or ``len(dim)``) fewer dimension(s).
+
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int or tuple of ints): the dimension or dimensions to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.rand(4, 2).bool()
+    >>> a
+    tensor([[True, True],
+            [True, False],
+            [True, True],
+            [True, True]], dtype=torch.bool)
+    >>> torch.all(a, dim=1)
+    tensor([ True, False,  True,  True], dtype=torch.bool)
+    >>> torch.all(a, dim=0)
+    tensor([ True, False], dtype=torch.bool)
+
+[Possible API Signatures]
+ - input: tensor, out: tensor
+ - input: tensor, dim: integer, keepdim: boolean, out: tensor
+ - input: tensor, dim: tuple, keepdim: boolean, out: tensor
+
+[Error Messages]
+RuntimeError: all only supports bool tensor for result, got: Double
+TypeError: all() received an invalid combination of arguments - got (Tensor, NoneType, out=float, keepdim=bool), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+ * (Tensor input, tuple of ints dim = None, bool keepdim = False, *, Tensor out = None)
+ * (Tensor input, int dim, bool keepdim = False, *, Tensor out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, Tensor out = None)
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: dim 0 appears multiple times in the list of dims
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (integer dim is within valid range)
+{v_1 : tensor, v_2 : int} |= -1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) - 1
+Token usage: input=2164, output=11976, total=14140
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.all API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+all(input: Tensor) -> Tensor
+
+Tests if all elements in :attr:`input` evaluate to `True`.
+
+.. note:: This function matches the behaviour of NumPy in returning
+          output of dtype `bool` for all supported dtypes except `uint8`.
+          For `uint8` the dtype of output is `uint8` itself.
+
+Example::
+
+    >>> a = torch.rand(1, 2).bool()
+    >>> a
+    tensor([[False, True]], dtype=torch.bool)
+    >>> torch.all(a)
+    tensor(False, dtype=torch.bool)
+    >>> a = torch.arange(0, 3)
+    >>> a
+    tensor([0, 1, 2])
+    >>> torch.all(a)
+    tensor(False)
+
+.. function:: all(input, dim, keepdim=False, *, out=None) -> Tensor
+   :noindex:
+
+For each row of :attr:`input` in the given dimension :attr:`dim`,
+returns `True` if all elements in the row evaluate to `True` and `False` otherwise.
+
+
+If :attr:`keepdim` is ``True``, the output tensor is of the same size
+as :attr:`input` except in the dimension(s) :attr:`dim` where it is of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in the
+output tensor having 1 (or ``len(dim)``) fewer dimension(s).
+
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int or tuple of ints): the dimension or dimensions to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.rand(4, 2).bool()
+    >>> a
+    tensor([[True, True],
+            [True, False],
+            [True, True],
+            [True, True]], dtype=torch.bool)
+    >>> torch.all(a, dim=1)
+    tensor([ True, False,  True,  True], dtype=torch.bool)
+    >>> torch.all(a, dim=0)
+    tensor([ True, False], dtype=torch.bool)
+
+[Possible API Signatures]
+ - input: tensor, out: tensor
+ - input: tensor, dim: integer, keepdim: boolean, out: tensor
+ - input: tensor, dim: tuple, keepdim: boolean, out: tensor
+
+[Error Messages]
+RuntimeError: all only supports bool tensor for result, got: Double
+TypeError: all() received an invalid combination of arguments - got (Tensor, NoneType, out=float, keepdim=bool), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+ * (Tensor input, tuple of ints dim = None, bool keepdim = False, *, Tensor out = None)
+ * (Tensor input, int dim, bool keepdim = False, *, Tensor out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, Tensor out = None)
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: dim 0 appears multiple times in the list of dims
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (tuple dims are each within valid range)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≥ 1 ∧ ∀i ∈ [0, v_2.len - 1] : (-1 × ndim(v_1) ≤ v_2[i] ∧ v_2[i] ≤ ndim(v_1) - 1)
+Token usage: input=2164, output=11976, total=14140
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.all API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+all(input: Tensor) -> Tensor
+
+Tests if all elements in :attr:`input` evaluate to `True`.
+
+.. note:: This function matches the behaviour of NumPy in returning
+          output of dtype `bool` for all supported dtypes except `uint8`.
+          For `uint8` the dtype of output is `uint8` itself.
+
+Example::
+
+    >>> a = torch.rand(1, 2).bool()
+    >>> a
+    tensor([[False, True]], dtype=torch.bool)
+    >>> torch.all(a)
+    tensor(False, dtype=torch.bool)
+    >>> a = torch.arange(0, 3)
+    >>> a
+    tensor([0, 1, 2])
+    >>> torch.all(a)
+    tensor(False)
+
+.. function:: all(input, dim, keepdim=False, *, out=None) -> Tensor
+   :noindex:
+
+For each row of :attr:`input` in the given dimension :attr:`dim`,
+returns `True` if all elements in the row evaluate to `True` and `False` otherwise.
+
+
+If :attr:`keepdim` is ``True``, the output tensor is of the same size
+as :attr:`input` except in the dimension(s) :attr:`dim` where it is of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in the
+output tensor having 1 (or ``len(dim)``) fewer dimension(s).
+
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int or tuple of ints): the dimension or dimensions to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.rand(4, 2).bool()
+    >>> a
+    tensor([[True, True],
+            [True, False],
+            [True, True],
+            [True, True]], dtype=torch.bool)
+    >>> torch.all(a, dim=1)
+    tensor([ True, False,  True,  True], dtype=torch.bool)
+    >>> torch.all(a, dim=0)
+    tensor([ True, False], dtype=torch.bool)
+
+[Possible API Signatures]
+ - input: tensor, out: tensor
+ - input: tensor, dim: integer, keepdim: boolean, out: tensor
+ - input: tensor, dim: tuple, keepdim: boolean, out: tensor
+
+[Error Messages]
+RuntimeError: all only supports bool tensor for result, got: Double
+TypeError: all() received an invalid combination of arguments - got (Tensor, NoneType, out=float, keepdim=bool), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+ * (Tensor input, tuple of ints dim = None, bool keepdim = False, *, Tensor out = None)
+ * (Tensor input, int dim, bool keepdim = False, *, Tensor out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, Tensor out = None)
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: dim 0 appears multiple times in the list of dims
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (tuple dims have no duplicates after normalization)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i + 1, v_2.len - 1] : ( (v_2[i] ≥ 0 ∧ v_2[j] ≥ 0 ∧ v_2[i] ≠ v_2[j]) ∨ (v_2[i] ≥ 0 ∧ v_2[j] < 0 ∧ v_2[i] ≠ ndim(v_1) + v_2[j]) ∨ (v_2[i] < 0 ∧ v_2[j] ≥ 0 ∧ ndim(v_1) + v_2[i] ≠ v_2[j]) ∨ (v_2[i] < 0 ∧ v_2[j] < 0 ∧ ndim(v_1) + v_2[i] ≠ ndim(v_1) + v_2[j]) )
+Token usage: input=2164, output=11976, total=14140
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.all API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+all(input: Tensor) -> Tensor
+
+Tests if all elements in :attr:`input` evaluate to `True`.
+
+.. note:: This function matches the behaviour of NumPy in returning
+          output of dtype `bool` for all supported dtypes except `uint8`.
+          For `uint8` the dtype of output is `uint8` itself.
+
+Example::
+
+    >>> a = torch.rand(1, 2).bool()
+    >>> a
+    tensor([[False, True]], dtype=torch.bool)
+    >>> torch.all(a)
+    tensor(False, dtype=torch.bool)
+    >>> a = torch.arange(0, 3)
+    >>> a
+    tensor([0, 1, 2])
+    >>> torch.all(a)
+    tensor(False)
+
+.. function:: all(input, dim, keepdim=False, *, out=None) -> Tensor
+   :noindex:
+
+For each row of :attr:`input` in the given dimension :attr:`dim`,
+returns `True` if all elements in the row evaluate to `True` and `False` otherwise.
+
+
+If :attr:`keepdim` is ``True``, the output tensor is of the same size
+as :attr:`input` except in the dimension(s) :attr:`dim` where it is of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in the
+output tensor having 1 (or ``len(dim)``) fewer dimension(s).
+
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int or tuple of ints): the dimension or dimensions to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.rand(4, 2).bool()
+    >>> a
+    tensor([[True, True],
+            [True, False],
+            [True, True],
+            [True, True]], dtype=torch.bool)
+    >>> torch.all(a, dim=1)
+    tensor([ True, False,  True,  True], dtype=torch.bool)
+    >>> torch.all(a, dim=0)
+    tensor([ True, False], dtype=torch.bool)
+
+[Possible API Signatures]
+ - input: tensor, out: tensor
+ - input: tensor, dim: integer, keepdim: boolean, out: tensor
+ - input: tensor, dim: tuple, keepdim: boolean, out: tensor
+
+[Error Messages]
+RuntimeError: all only supports bool tensor for result, got: Double
+TypeError: all() received an invalid combination of arguments - got (Tensor, NoneType, out=float, keepdim=bool), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+ * (Tensor input, tuple of ints dim = None, bool keepdim = False, *, Tensor out = None)
+ * (Tensor input, int dim, bool keepdim = False, *, Tensor out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, Tensor out = None)
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: dim 0 appears multiple times in the list of dims
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (int dim with keepdim=True preserves ndim and sets reduced dim to 1)
+{v_1 : tensor, v_2 : int, v_3 : bool, v_4 : tensor} |= v_3 = true ∧ -1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) - 1 ∧ ndim(v_4) = ndim(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1] : ( (v_2 ≥ 0 ∧ i = v_2 ∧ shape(v_4, i) = 1) ∨ (v_2 ≥ 0 ∧ i ≠ v_2 ∧ shape(v_4, i) = shape(v_1, i)) ∨ (v_2 < 0 ∧ i = ndim(v_1) + v_2 ∧ shape(v_4, i) = 1) ∨ (v_2 < 0 ∧ i ≠ ndim(v_1) + v_2 ∧ shape(v_4, i) = shape(v_1, i)) )
+Token usage: input=2164, output=11976, total=14140
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.all API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+all(input: Tensor) -> Tensor
+
+Tests if all elements in :attr:`input` evaluate to `True`.
+
+.. note:: This function matches the behaviour of NumPy in returning
+          output of dtype `bool` for all supported dtypes except `uint8`.
+          For `uint8` the dtype of output is `uint8` itself.
+
+Example::
+
+    >>> a = torch.rand(1, 2).bool()
+    >>> a
+    tensor([[False, True]], dtype=torch.bool)
+    >>> torch.all(a)
+    tensor(False, dtype=torch.bool)
+    >>> a = torch.arange(0, 3)
+    >>> a
+    tensor([0, 1, 2])
+    >>> torch.all(a)
+    tensor(False)
+
+.. function:: all(input, dim, keepdim=False, *, out=None) -> Tensor
+   :noindex:
+
+For each row of :attr:`input` in the given dimension :attr:`dim`,
+returns `True` if all elements in the row evaluate to `True` and `False` otherwise.
+
+
+If :attr:`keepdim` is ``True``, the output tensor is of the same size
+as :attr:`input` except in the dimension(s) :attr:`dim` where it is of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in the
+output tensor having 1 (or ``len(dim)``) fewer dimension(s).
+
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int or tuple of ints): the dimension or dimensions to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.rand(4, 2).bool()
+    >>> a
+    tensor([[True, True],
+            [True, False],
+            [True, True],
+            [True, True]], dtype=torch.bool)
+    >>> torch.all(a, dim=1)
+    tensor([ True, False,  True,  True], dtype=torch.bool)
+    >>> torch.all(a, dim=0)
+    tensor([ True, False], dtype=torch.bool)
+
+[Possible API Signatures]
+ - input: tensor, out: tensor
+ - input: tensor, dim: integer, keepdim: boolean, out: tensor
+ - input: tensor, dim: tuple, keepdim: boolean, out: tensor
+
+[Error Messages]
+RuntimeError: all only supports bool tensor for result, got: Double
+TypeError: all() received an invalid combination of arguments - got (Tensor, NoneType, out=float, keepdim=bool), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+ * (Tensor input, tuple of ints dim = None, bool keepdim = False, *, Tensor out = None)
+ * (Tensor input, int dim, bool keepdim = False, *, Tensor out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, Tensor out = None)
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: dim 0 appears multiple times in the list of dims
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (int dim with keepdim=False reduces ndim by 1 and maps shapes correctly)
+{v_1 : tensor, v_2 : int, v_3 : bool, v_4 : tensor} |= v_3 = false ∧ -1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) - 1 ∧ ndim(v_4) = ndim(v_1) - 1 ∧ ∀i ∈ [0, ndim(v_4) - 1] : ( (v_2 ≥ 0 ∧ i < v_2 ∧ shape(v_4, i) = shape(v_1, i)) ∨ (v_2 ≥ 0 ∧ i ≥ v_2 ∧ shape(v_4, i) = shape(v_1, i + 1)) ∨ (v_2 < 0 ∧ i < ndim(v_1) + v_2 ∧ shape(v_4, i) = shape(v_1, i)) ∨ (v_2 < 0 ∧ i ≥ ndim(v_1) + v_2 ∧ shape(v_4, i) = shape(v_1, i + 1)) )
+Token usage: input=2164, output=11976, total=14140
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.all API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+all(input: Tensor) -> Tensor
+
+Tests if all elements in :attr:`input` evaluate to `True`.
+
+.. note:: This function matches the behaviour of NumPy in returning
+          output of dtype `bool` for all supported dtypes except `uint8`.
+          For `uint8` the dtype of output is `uint8` itself.
+
+Example::
+
+    >>> a = torch.rand(1, 2).bool()
+    >>> a
+    tensor([[False, True]], dtype=torch.bool)
+    >>> torch.all(a)
+    tensor(False, dtype=torch.bool)
+    >>> a = torch.arange(0, 3)
+    >>> a
+    tensor([0, 1, 2])
+    >>> torch.all(a)
+    tensor(False)
+
+.. function:: all(input, dim, keepdim=False, *, out=None) -> Tensor
+   :noindex:
+
+For each row of :attr:`input` in the given dimension :attr:`dim`,
+returns `True` if all elements in the row evaluate to `True` and `False` otherwise.
+
+
+If :attr:`keepdim` is ``True``, the output tensor is of the same size
+as :attr:`input` except in the dimension(s) :attr:`dim` where it is of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in the
+output tensor having 1 (or ``len(dim)``) fewer dimension(s).
+
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int or tuple of ints): the dimension or dimensions to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.rand(4, 2).bool()
+    >>> a
+    tensor([[True, True],
+            [True, False],
+            [True, True],
+            [True, True]], dtype=torch.bool)
+    >>> torch.all(a, dim=1)
+    tensor([ True, False,  True,  True], dtype=torch.bool)
+    >>> torch.all(a, dim=0)
+    tensor([ True, False], dtype=torch.bool)
+
+[Possible API Signatures]
+ - input: tensor, out: tensor
+ - input: tensor, dim: integer, keepdim: boolean, out: tensor
+ - input: tensor, dim: tuple, keepdim: boolean, out: tensor
+
+[Error Messages]
+RuntimeError: all only supports bool tensor for result, got: Double
+TypeError: all() received an invalid combination of arguments - got (Tensor, NoneType, out=float, keepdim=bool), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+ * (Tensor input, tuple of ints dim = None, bool keepdim = False, *, Tensor out = None)
+ * (Tensor input, int dim, bool keepdim = False, *, Tensor out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, Tensor out = None)
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: dim 0 appears multiple times in the list of dims
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (tuple dims with keepdim=True preserve ndim; reduced dims become size 1)
+{v_1 : tensor, v_2 : tuple(int), v_3 : bool, v_4 : tensor} |= v_3 = true ∧ v_2.len ≥ 1 ∧ ndim(v_4) = ndim(v_1) ∧ ∀i ∈ [0, v_2.len - 1] : (-1 × ndim(v_1) ≤ v_2[i] ∧ v_2[i] ≤ ndim(v_1) - 1) ∧ ∀j ∈ [0, ndim(v_1) - 1] : ( (∃k ∈ [0, v_2.len - 1] : ( (v_2[k] ≥ 0 ∧ v_2[k] = j) ∨ (v_2[k] < 0 ∧ ndim(v_1) + v_2[k] = j) )) ∧ shape(v_4, j) = 1 ) ∨ ( (∀k ∈ [0, v_2.len - 1] : ( (v_2[k] ≥ 0 ∧ v_2[k] ≠ j) ∨ (v_2[k] < 0 ∧ ndim(v_1) + v_2[k] ≠ j) )) ∧ shape(v_4, j) = shape(v_1, j) )
+Token usage: input=2164, output=11976, total=14140
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.all API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+all(input: Tensor) -> Tensor
+
+Tests if all elements in :attr:`input` evaluate to `True`.
+
+.. note:: This function matches the behaviour of NumPy in returning
+          output of dtype `bool` for all supported dtypes except `uint8`.
+          For `uint8` the dtype of output is `uint8` itself.
+
+Example::
+
+    >>> a = torch.rand(1, 2).bool()
+    >>> a
+    tensor([[False, True]], dtype=torch.bool)
+    >>> torch.all(a)
+    tensor(False, dtype=torch.bool)
+    >>> a = torch.arange(0, 3)
+    >>> a
+    tensor([0, 1, 2])
+    >>> torch.all(a)
+    tensor(False)
+
+.. function:: all(input, dim, keepdim=False, *, out=None) -> Tensor
+   :noindex:
+
+For each row of :attr:`input` in the given dimension :attr:`dim`,
+returns `True` if all elements in the row evaluate to `True` and `False` otherwise.
+
+
+If :attr:`keepdim` is ``True``, the output tensor is of the same size
+as :attr:`input` except in the dimension(s) :attr:`dim` where it is of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in the
+output tensor having 1 (or ``len(dim)``) fewer dimension(s).
+
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int or tuple of ints): the dimension or dimensions to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.rand(4, 2).bool()
+    >>> a
+    tensor([[True, True],
+            [True, False],
+            [True, True],
+            [True, True]], dtype=torch.bool)
+    >>> torch.all(a, dim=1)
+    tensor([ True, False,  True,  True], dtype=torch.bool)
+    >>> torch.all(a, dim=0)
+    tensor([ True, False], dtype=torch.bool)
+
+[Possible API Signatures]
+ - input: tensor, out: tensor
+ - input: tensor, dim: integer, keepdim: boolean, out: tensor
+ - input: tensor, dim: tuple, keepdim: boolean, out: tensor
+
+[Error Messages]
+RuntimeError: all only supports bool tensor for result, got: Double
+TypeError: all() received an invalid combination of arguments - got (Tensor, NoneType, out=float, keepdim=bool), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+ * (Tensor input, tuple of ints dim = None, bool keepdim = False, *, Tensor out = None)
+ * (Tensor input, int dim, bool keepdim = False, *, Tensor out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, Tensor out = None)
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: dim 0 appears multiple times in the list of dims
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (tuple dims with keepdim=False reduce ndim by the number of dims)
+{v_1 : tensor, v_2 : tuple(int), v_3 : bool, v_4 : tensor} |= v_3 = false ∧ v_2.len ≥ 1 ∧ ∀i ∈ [0, v_2.len - 1] : (-1 × ndim(v_1) ≤ v_2[i] ∧ v_2[i] ≤ ndim(v_1) - 1) ∧ ndim(v_4) = ndim(v_1) - v_2.len
+Token usage: input=2164, output=11976, total=14140
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.all API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+all(input: Tensor) -> Tensor
+
+Tests if all elements in :attr:`input` evaluate to `True`.
+
+.. note:: This function matches the behaviour of NumPy in returning
+          output of dtype `bool` for all supported dtypes except `uint8`.
+          For `uint8` the dtype of output is `uint8` itself.
+
+Example::
+
+    >>> a = torch.rand(1, 2).bool()
+    >>> a
+    tensor([[False, True]], dtype=torch.bool)
+    >>> torch.all(a)
+    tensor(False, dtype=torch.bool)
+    >>> a = torch.arange(0, 3)
+    >>> a
+    tensor([0, 1, 2])
+    >>> torch.all(a)
+    tensor(False)
+
+.. function:: all(input, dim, keepdim=False, *, out=None) -> Tensor
+   :noindex:
+
+For each row of :attr:`input` in the given dimension :attr:`dim`,
+returns `True` if all elements in the row evaluate to `True` and `False` otherwise.
+
+
+If :attr:`keepdim` is ``True``, the output tensor is of the same size
+as :attr:`input` except in the dimension(s) :attr:`dim` where it is of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in the
+output tensor having 1 (or ``len(dim)``) fewer dimension(s).
+
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int or tuple of ints): the dimension or dimensions to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.rand(4, 2).bool()
+    >>> a
+    tensor([[True, True],
+            [True, False],
+            [True, True],
+            [True, True]], dtype=torch.bool)
+    >>> torch.all(a, dim=1)
+    tensor([ True, False,  True,  True], dtype=torch.bool)
+    >>> torch.all(a, dim=0)
+    tensor([ True, False], dtype=torch.bool)
+
+[Possible API Signatures]
+ - input: tensor, out: tensor
+ - input: tensor, dim: integer, keepdim: boolean, out: tensor
+ - input: tensor, dim: tuple, keepdim: boolean, out: tensor
+
+[Error Messages]
+RuntimeError: all only supports bool tensor for result, got: Double
+TypeError: all() received an invalid combination of arguments - got (Tensor, NoneType, out=float, keepdim=bool), but expected one of:
+ * (Tensor input, *, Tensor out = None)
+ * (Tensor input, tuple of ints dim = None, bool keepdim = False, *, Tensor out = None)
+ * (Tensor input, int dim, bool keepdim = False, *, Tensor out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, Tensor out = None)
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: dim 0 appears multiple times in the list of dims
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (out tensor dtype is valid when reducing over a dim or dims)
+{v_1 : tensor, v_2 : int ⊎ tuple(int), v_3 : bool, v_4 : tensor} |= (dtype_(v_1) = 5 ∧ dtype_(v_4) = 5) ∨ (dtype_(v_1) ≠ 5 ∧ dtype_(v_4) = 0)
+Token usage: input=2164, output=11976, total=14140
+** REDUNDANT VARIABLES ** (num_failures: 1)
+

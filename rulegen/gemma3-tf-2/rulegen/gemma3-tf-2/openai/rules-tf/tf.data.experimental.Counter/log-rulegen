@@ -1,0 +1,1310 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.Counter API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Creates a `Dataset` that counts from `start` in steps of size `step`. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.counter(...)` instead.
+
+Unlike `tf.data.Dataset.range` which will stop at some ending number,
+`Counter` will produce elements indefinitely.
+
+>>> dataset = tf.data.experimental.Counter().take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[0, 1, 2, 3, 4]
+>>> dataset.element_spec
+TensorSpec(shape=(), dtype=tf.int64, name=None)
+>>> dataset = tf.data.experimental.Counter(dtype=tf.int32)
+>>> dataset.element_spec
+TensorSpec(shape=(), dtype=tf.int32, name=None)
+>>> dataset = tf.data.experimental.Counter(start=2).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[2, 3, 4, 5, 6]
+>>> dataset = tf.data.experimental.Counter(start=2, step=5).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[2, 7, 12, 17, 22]
+>>> dataset = tf.data.experimental.Counter(start=10, step=-1).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[10, 9, 8, 7, 6]
+
+Args:
+  start: (Optional.) The starting value for the counter. Defaults to 0.
+  step: (Optional.) The step size for the counter. Defaults to 1.
+  dtype: (Optional.) The data type for counter elements. Defaults to
+    `tf.int64`.
+
+Returns:
+  A `Dataset` of scalar `dtype` elements.
+
+[API Signature] start: integer, step: integer, dtype: dtype
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (dtype must be a valid TensorFlow dtype object, not a foreign dtype)
+{v_3 : dtype} |= v_3 = v_3
+Token usage: input=1623, output=4380, total=6003
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.Counter API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Creates a `Dataset` that counts from `start` in steps of size `step`. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.counter(...)` instead.
+
+Unlike `tf.data.Dataset.range` which will stop at some ending number,
+`Counter` will produce elements indefinitely.
+
+>>> dataset = tf.data.experimental.Counter().take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[0, 1, 2, 3, 4]
+>>> dataset.element_spec
+TensorSpec(shape=(), dtype=tf.int64, name=None)
+>>> dataset = tf.data.experimental.Counter(dtype=tf.int32)
+>>> dataset.element_spec
+TensorSpec(shape=(), dtype=tf.int32, name=None)
+>>> dataset = tf.data.experimental.Counter(start=2).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[2, 3, 4, 5, 6]
+>>> dataset = tf.data.experimental.Counter(start=2, step=5).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[2, 7, 12, 17, 22]
+>>> dataset = tf.data.experimental.Counter(start=10, step=-1).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[10, 9, 8, 7, 6]
+
+Args:
+  start: (Optional.) The starting value for the counter. Defaults to 0.
+  step: (Optional.) The step size for the counter. Defaults to 1.
+  dtype: (Optional.) The data type for counter elements. Defaults to
+    `tf.int64`.
+
+Returns:
+  A `Dataset` of scalar `dtype` elements.
+
+[API Signature] start: integer, step: integer, dtype: dtype
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (positive step increases the counter)
+{v_1 : int, v_2 : int} |= if v_2 > 0 then v_1 + v_2 > v_1
+Token usage: input=1623, output=4380, total=6003
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.Counter API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Creates a `Dataset` that counts from `start` in steps of size `step`. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.counter(...)` instead.
+
+Unlike `tf.data.Dataset.range` which will stop at some ending number,
+`Counter` will produce elements indefinitely.
+
+>>> dataset = tf.data.experimental.Counter().take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[0, 1, 2, 3, 4]
+>>> dataset.element_spec
+TensorSpec(shape=(), dtype=tf.int64, name=None)
+>>> dataset = tf.data.experimental.Counter(dtype=tf.int32)
+>>> dataset.element_spec
+TensorSpec(shape=(), dtype=tf.int32, name=None)
+>>> dataset = tf.data.experimental.Counter(start=2).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[2, 3, 4, 5, 6]
+>>> dataset = tf.data.experimental.Counter(start=2, step=5).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[2, 7, 12, 17, 22]
+>>> dataset = tf.data.experimental.Counter(start=10, step=-1).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[10, 9, 8, 7, 6]
+
+Args:
+  start: (Optional.) The starting value for the counter. Defaults to 0.
+  step: (Optional.) The step size for the counter. Defaults to 1.
+  dtype: (Optional.) The data type for counter elements. Defaults to
+    `tf.int64`.
+
+Returns:
+  A `Dataset` of scalar `dtype` elements.
+
+[API Signature] start: integer, step: integer, dtype: dtype
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (negative step decreases the counter)
+{v_1 : int, v_2 : int} |= if v_2 < 0 then v_1 + v_2 < v_1
+Token usage: input=1623, output=4380, total=6003
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.Counter API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Creates a `Dataset` that counts from `start` in steps of size `step`. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.counter(...)` instead.
+
+Unlike `tf.data.Dataset.range` which will stop at some ending number,
+`Counter` will produce elements indefinitely.
+
+>>> dataset = tf.data.experimental.Counter().take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[0, 1, 2, 3, 4]
+>>> dataset.element_spec
+TensorSpec(shape=(), dtype=tf.int64, name=None)
+>>> dataset = tf.data.experimental.Counter(dtype=tf.int32)
+>>> dataset.element_spec
+TensorSpec(shape=(), dtype=tf.int32, name=None)
+>>> dataset = tf.data.experimental.Counter(start=2).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[2, 3, 4, 5, 6]
+>>> dataset = tf.data.experimental.Counter(start=2, step=5).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[2, 7, 12, 17, 22]
+>>> dataset = tf.data.experimental.Counter(start=10, step=-1).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[10, 9, 8, 7, 6]
+
+Args:
+  start: (Optional.) The starting value for the counter. Defaults to 0.
+  step: (Optional.) The step size for the counter. Defaults to 1.
+  dtype: (Optional.) The data type for counter elements. Defaults to
+    `tf.int64`.
+
+Returns:
+  A `Dataset` of scalar `dtype` elements.
+
+[API Signature] start: integer, step: integer, dtype: dtype
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (zero step leaves the value unchanged on the next element)
+{v_1 : int, v_2 : int} |= if v_2 = 0 then v_1 + v_2 = v_1
+Token usage: input=1623, output=4380, total=6003
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.Counter API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Creates a `Dataset` that counts from `start` in steps of size `step`. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.counter(...)` instead.
+
+Unlike `tf.data.Dataset.range` which will stop at some ending number,
+`Counter` will produce elements indefinitely.
+
+>>> dataset = tf.data.experimental.Counter().take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[0, 1, 2, 3, 4]
+>>> dataset.element_spec
+TensorSpec(shape=(), dtype=tf.int64, name=None)
+>>> dataset = tf.data.experimental.Counter(dtype=tf.int32)
+>>> dataset.element_spec
+TensorSpec(shape=(), dtype=tf.int32, name=None)
+>>> dataset = tf.data.experimental.Counter(start=2).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[2, 3, 4, 5, 6]
+>>> dataset = tf.data.experimental.Counter(start=2, step=5).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[2, 7, 12, 17, 22]
+>>> dataset = tf.data.experimental.Counter(start=10, step=-1).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[10, 9, 8, 7, 6]
+
+Args:
+  start: (Optional.) The starting value for the counter. Defaults to 0.
+  step: (Optional.) The step size for the counter. Defaults to 1.
+  dtype: (Optional.) The data type for counter elements. Defaults to
+    `tf.int64`.
+
+Returns:
+  A `Dataset` of scalar `dtype` elements.
+
+[API Signature] start: integer, step: integer, dtype: dtype
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (counter monotonicity follows the sign of step over initial positions)
+{v_1 : int, v_2 : int} |= ∀i ∈ [0, 4] : if v_2 ≥ 0 then v_1 + (i + 1) * v_2 ≥ v_1 + i * v_2 else v_1 + (i + 1) * v_2 ≤ v_1 + i * v_2
+Token usage: input=1623, output=4380, total=6003
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.Counter API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Creates a `Dataset` that counts from `start` in steps of size `step`. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.counter(...)` instead.
+
+Unlike `tf.data.Dataset.range` which will stop at some ending number,
+`Counter` will produce elements indefinitely.
+
+>>> dataset = tf.data.experimental.Counter().take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[0, 1, 2, 3, 4]
+>>> dataset.element_spec
+TensorSpec(shape=(), dtype=tf.int64, name=None)
+>>> dataset = tf.data.experimental.Counter(dtype=tf.int32)
+>>> dataset.element_spec
+TensorSpec(shape=(), dtype=tf.int32, name=None)
+>>> dataset = tf.data.experimental.Counter(start=2).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[2, 3, 4, 5, 6]
+>>> dataset = tf.data.experimental.Counter(start=2, step=5).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[2, 7, 12, 17, 22]
+>>> dataset = tf.data.experimental.Counter(start=10, step=-1).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[10, 9, 8, 7, 6]
+
+Args:
+  start: (Optional.) The starting value for the counter. Defaults to 0.
+  step: (Optional.) The step size for the counter. Defaults to 1.
+  dtype: (Optional.) The data type for counter elements. Defaults to
+    `tf.int64`.
+
+Returns:
+  A `Dataset` of scalar `dtype` elements.
+
+[API Signature] start: integer, step: integer, dtype: dtype
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (dtype must be a TensorFlow integer type)
+{v_3 : dtype} |= v_3 = 1 ∨ v_3 = 2 ∨ v_3 = 3 ∨ v_3 = 4 ∨ v_3 = 5
+Token usage: input=1781, output=4519, total=6300
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.Counter API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Creates a `Dataset` that counts from `start` in steps of size `step`. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.counter(...)` instead.
+
+Unlike `tf.data.Dataset.range` which will stop at some ending number,
+`Counter` will produce elements indefinitely.
+
+>>> dataset = tf.data.experimental.Counter().take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[0, 1, 2, 3, 4]
+>>> dataset.element_spec
+TensorSpec(shape=(), dtype=tf.int64, name=None)
+>>> dataset = tf.data.experimental.Counter(dtype=tf.int32)
+>>> dataset.element_spec
+TensorSpec(shape=(), dtype=tf.int32, name=None)
+>>> dataset = tf.data.experimental.Counter(start=2).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[2, 3, 4, 5, 6]
+>>> dataset = tf.data.experimental.Counter(start=2, step=5).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[2, 7, 12, 17, 22]
+>>> dataset = tf.data.experimental.Counter(start=10, step=-1).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[10, 9, 8, 7, 6]
+
+Args:
+  start: (Optional.) The starting value for the counter. Defaults to 0.
+  step: (Optional.) The step size for the counter. Defaults to 1.
+  dtype: (Optional.) The data type for counter elements. Defaults to
+    `tf.int64`.
+
+Returns:
+  A `Dataset` of scalar `dtype` elements.
+
+[API Signature] start: integer, step: integer, dtype: dtype
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (uint8 dtype requires non-negative start and step)
+{v_1 : int, v_2 : int, v_3 : dtype} |= if v_3 = 5 then v_1 ≥ 0 ∧ v_2 ≥ 0
+Token usage: input=1781, output=4519, total=6300
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.Counter API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Creates a `Dataset` that counts from `start` in steps of size `step`. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.counter(...)` instead.
+
+Unlike `tf.data.Dataset.range` which will stop at some ending number,
+`Counter` will produce elements indefinitely.
+
+>>> dataset = tf.data.experimental.Counter().take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[0, 1, 2, 3, 4]
+>>> dataset.element_spec
+TensorSpec(shape=(), dtype=tf.int64, name=None)
+>>> dataset = tf.data.experimental.Counter(dtype=tf.int32)
+>>> dataset.element_spec
+TensorSpec(shape=(), dtype=tf.int32, name=None)
+>>> dataset = tf.data.experimental.Counter(start=2).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[2, 3, 4, 5, 6]
+>>> dataset = tf.data.experimental.Counter(start=2, step=5).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[2, 7, 12, 17, 22]
+>>> dataset = tf.data.experimental.Counter(start=10, step=-1).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[10, 9, 8, 7, 6]
+
+Args:
+  start: (Optional.) The starting value for the counter. Defaults to 0.
+  step: (Optional.) The step size for the counter. Defaults to 1.
+  dtype: (Optional.) The data type for counter elements. Defaults to
+    `tf.int64`.
+
+Returns:
+  A `Dataset` of scalar `dtype` elements.
+
+[API Signature] start: integer, step: integer, dtype: dtype
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (int32 bounds for start and step)
+{v_1 : int, v_2 : int, v_3 : dtype} |= if v_3 = 3 then v_1 ≥ -2147483648 ∧ v_1 ≤ 2147483647 ∧ v_2 ≥ -2147483648 ∧ v_2 ≤ 2147483647
+Token usage: input=1781, output=4519, total=6300
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.Counter API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Creates a `Dataset` that counts from `start` in steps of size `step`. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.counter(...)` instead.
+
+Unlike `tf.data.Dataset.range` which will stop at some ending number,
+`Counter` will produce elements indefinitely.
+
+>>> dataset = tf.data.experimental.Counter().take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[0, 1, 2, 3, 4]
+>>> dataset.element_spec
+TensorSpec(shape=(), dtype=tf.int64, name=None)
+>>> dataset = tf.data.experimental.Counter(dtype=tf.int32)
+>>> dataset.element_spec
+TensorSpec(shape=(), dtype=tf.int32, name=None)
+>>> dataset = tf.data.experimental.Counter(start=2).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[2, 3, 4, 5, 6]
+>>> dataset = tf.data.experimental.Counter(start=2, step=5).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[2, 7, 12, 17, 22]
+>>> dataset = tf.data.experimental.Counter(start=10, step=-1).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[10, 9, 8, 7, 6]
+
+Args:
+  start: (Optional.) The starting value for the counter. Defaults to 0.
+  step: (Optional.) The step size for the counter. Defaults to 1.
+  dtype: (Optional.) The data type for counter elements. Defaults to
+    `tf.int64`.
+
+Returns:
+  A `Dataset` of scalar `dtype` elements.
+
+[API Signature] start: integer, step: integer, dtype: dtype
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (int16 bounds for start and step)
+{v_1 : int, v_2 : int, v_3 : dtype} |= if v_3 = 2 then v_1 ≥ -32768 ∧ v_1 ≤ 32767 ∧ v_2 ≥ -32768 ∧ v_2 ≤ 32767
+Token usage: input=1781, output=4519, total=6300
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.Counter API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Creates a `Dataset` that counts from `start` in steps of size `step`. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.counter(...)` instead.
+
+Unlike `tf.data.Dataset.range` which will stop at some ending number,
+`Counter` will produce elements indefinitely.
+
+>>> dataset = tf.data.experimental.Counter().take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[0, 1, 2, 3, 4]
+>>> dataset.element_spec
+TensorSpec(shape=(), dtype=tf.int64, name=None)
+>>> dataset = tf.data.experimental.Counter(dtype=tf.int32)
+>>> dataset.element_spec
+TensorSpec(shape=(), dtype=tf.int32, name=None)
+>>> dataset = tf.data.experimental.Counter(start=2).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[2, 3, 4, 5, 6]
+>>> dataset = tf.data.experimental.Counter(start=2, step=5).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[2, 7, 12, 17, 22]
+>>> dataset = tf.data.experimental.Counter(start=10, step=-1).take(5)
+>>> [a.item() for a in dataset.as_numpy_iterator()]
+[10, 9, 8, 7, 6]
+
+Args:
+  start: (Optional.) The starting value for the counter. Defaults to 0.
+  step: (Optional.) The step size for the counter. Defaults to 1.
+  dtype: (Optional.) The data type for counter elements. Defaults to
+    `tf.int64`.
+
+Returns:
+  A `Dataset` of scalar `dtype` elements.
+
+[API Signature] start: integer, step: integer, dtype: dtype
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (int8 bounds for start and step)
+{v_1 : int, v_2 : int, v_3 : dtype} |= if v_3 = 1 then v_1 ≥ -128 ∧ v_1 ≤ 127 ∧ v_2 ≥ -128 ∧ v_2 ≤ 127
+Token usage: input=1781, output=4519, total=6300
+** SUCCESS **
+

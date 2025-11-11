@@ -1,0 +1,2189 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.linalg.solve API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+linalg.solve(A, B, *, left=True, out=None) -> Tensor
+
+Computes the solution of a square system of linear equations with a unique solution.
+
+Letting :math:`\mathbb{K}` be :math:`\mathbb{R}` or :math:`\mathbb{C}`,
+this function computes the solution :math:`X \in \mathbb{K}^{n \times k}` of the **linear system** associated to
+:math:`A \in \mathbb{K}^{n \times n}, B \in \mathbb{K}^{n \times k}`, which is defined as
+
+.. math:: AX = B
+
+If :attr:`left`\ `= False`, this function returns the matrix :math:`X \in \mathbb{K}^{n \times k}` that solves the system
+
+.. math::
+
+    XA = B\mathrlap{\qquad A \in \mathbb{K}^{k \times k}, B \in \mathbb{K}^{n \times k}.}
+
+This system of linear equations has one solution if and only if :math:`A` is `invertible`_.
+This function assumes that :math:`A` is invertible.
+
+Supports inputs of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if the inputs are batches of matrices then
+the output has the same batch dimensions.
+
+Letting `*` be zero or more batch dimensions,
+
+- If :attr:`A` has shape `(*, n, n)` and :attr:`B` has shape `(*, n)` (a batch of vectors) or shape
+  `(*, n, k)` (a batch of matrices or "multiple right-hand sides"), this function returns `X` of shape
+  `(*, n)` or `(*, n, k)` respectively.
+- Otherwise, if :attr:`A` has shape `(*, n, n)` and  :attr:`B` has shape `(n,)`  or `(n, k)`, :attr:`B`
+  is broadcasted to have shape `(*, n)` or `(*, n, k)` respectively.
+  This function then returns the solution of the resulting batch of systems of linear equations.
+
+.. note::
+    This function computes `X = \ `:attr:`A`\ `.inverse() @ \ `:attr:`B` in a faster and
+    more numerically stable way than performing the computations separately.
+
+.. note::
+    It is possible to compute the solution of the system :math:`XA = B` by passing the inputs
+    :attr:`A` and :attr:`B` transposed and transposing the output returned by this function.
+
+.. note::
+    :attr:`A` is allowed to be a non-batched `torch.sparse_csr_tensor`, but only with `left=True`.
+
+
+.. note:: When inputs are on a CUDA device, this function synchronizes that device with the CPU. For a version of this function that does not synchronize, see :func:`torch.linalg.solve_ex`.
+
+
+.. seealso::
+
+        :func:`torch.linalg.solve_triangular` computes the solution of a triangular system of linear
+        equations with a unique solution.
+
+Args:
+    A (Tensor): tensor of shape `(*, n, n)` where `*` is zero or more batch dimensions.
+    B (Tensor): right-hand side tensor of shape `(*, n)` or  `(*, n, k)` or `(n,)` or `(n, k)`
+                according to the rules described above
+
+Keyword args:
+    left (bool, optional): whether to solve the system :math:`AX=B` or :math:`XA = B`. Default: `True`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Raises:
+    RuntimeError: if the :attr:`A` matrix is not invertible or any matrix in a batched :attr:`A`
+                  is not invertible.
+
+Examples::
+
+    >>> A = torch.randn(3, 3)
+    >>> b = torch.randn(3)
+    >>> x = torch.linalg.solve(A, b)
+    >>> torch.allclose(A @ x, b)
+    True
+    >>> A = torch.randn(2, 3, 3)
+    >>> B = torch.randn(2, 3, 4)
+    >>> X = torch.linalg.solve(A, B)
+    >>> X.shape
+    torch.Size([2, 3, 4])
+    >>> torch.allclose(A @ X, B)
+    True
+
+    >>> A = torch.randn(2, 3, 3)
+    >>> b = torch.randn(3, 1)
+    >>> x = torch.linalg.solve(A, b) # b is broadcasted to size (2, 3, 1)
+    >>> x.shape
+    torch.Size([2, 3, 1])
+    >>> torch.allclose(A @ x, b)
+    True
+    >>> b = torch.randn(3)
+    >>> x = torch.linalg.solve(A, b) # b is broadcasted to size (2, 3)
+    >>> x.shape
+    torch.Size([2, 3])
+    >>> Ax = A @ x.unsqueeze(-1)
+    >>> torch.allclose(Ax, b.unsqueeze(-1).expand_as(Ax))
+    True
+
+.. _invertible:
+    https://en.wikipedia.org/wiki/Invertible_matrix#The_invertible_matrix_theorem
+
+[API Signature] A: tensor, B: tensor, left: boolean, out: tensor
+
+[Error Messages]
+RuntimeError: linalg.solve: Expected A and B to have the same dtype, but found A of type Double and B of type Float instead
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: linalg.solve: Expected a floating point or complex tensor as input. Got Char
+RuntimeError: linalg.solve: Incompatible shapes of A and B for the equation XA = B (3x3 and 3x1)
+TypeError: linalg_solve(): argument 'out' must be Tensor, not float
+RuntimeError: linalg.solve: The input tensor A must have at least 2 dimensions.
+_LinAlgError: torch.linalg.solve: The solver failed because the input matrix is singular.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (A and B must have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Token usage: input=2609, output=6883, total=9492
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.linalg.solve API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+linalg.solve(A, B, *, left=True, out=None) -> Tensor
+
+Computes the solution of a square system of linear equations with a unique solution.
+
+Letting :math:`\mathbb{K}` be :math:`\mathbb{R}` or :math:`\mathbb{C}`,
+this function computes the solution :math:`X \in \mathbb{K}^{n \times k}` of the **linear system** associated to
+:math:`A \in \mathbb{K}^{n \times n}, B \in \mathbb{K}^{n \times k}`, which is defined as
+
+.. math:: AX = B
+
+If :attr:`left`\ `= False`, this function returns the matrix :math:`X \in \mathbb{K}^{n \times k}` that solves the system
+
+.. math::
+
+    XA = B\mathrlap{\qquad A \in \mathbb{K}^{k \times k}, B \in \mathbb{K}^{n \times k}.}
+
+This system of linear equations has one solution if and only if :math:`A` is `invertible`_.
+This function assumes that :math:`A` is invertible.
+
+Supports inputs of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if the inputs are batches of matrices then
+the output has the same batch dimensions.
+
+Letting `*` be zero or more batch dimensions,
+
+- If :attr:`A` has shape `(*, n, n)` and :attr:`B` has shape `(*, n)` (a batch of vectors) or shape
+  `(*, n, k)` (a batch of matrices or "multiple right-hand sides"), this function returns `X` of shape
+  `(*, n)` or `(*, n, k)` respectively.
+- Otherwise, if :attr:`A` has shape `(*, n, n)` and  :attr:`B` has shape `(n,)`  or `(n, k)`, :attr:`B`
+  is broadcasted to have shape `(*, n)` or `(*, n, k)` respectively.
+  This function then returns the solution of the resulting batch of systems of linear equations.
+
+.. note::
+    This function computes `X = \ `:attr:`A`\ `.inverse() @ \ `:attr:`B` in a faster and
+    more numerically stable way than performing the computations separately.
+
+.. note::
+    It is possible to compute the solution of the system :math:`XA = B` by passing the inputs
+    :attr:`A` and :attr:`B` transposed and transposing the output returned by this function.
+
+.. note::
+    :attr:`A` is allowed to be a non-batched `torch.sparse_csr_tensor`, but only with `left=True`.
+
+
+.. note:: When inputs are on a CUDA device, this function synchronizes that device with the CPU. For a version of this function that does not synchronize, see :func:`torch.linalg.solve_ex`.
+
+
+.. seealso::
+
+        :func:`torch.linalg.solve_triangular` computes the solution of a triangular system of linear
+        equations with a unique solution.
+
+Args:
+    A (Tensor): tensor of shape `(*, n, n)` where `*` is zero or more batch dimensions.
+    B (Tensor): right-hand side tensor of shape `(*, n)` or  `(*, n, k)` or `(n,)` or `(n, k)`
+                according to the rules described above
+
+Keyword args:
+    left (bool, optional): whether to solve the system :math:`AX=B` or :math:`XA = B`. Default: `True`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Raises:
+    RuntimeError: if the :attr:`A` matrix is not invertible or any matrix in a batched :attr:`A`
+                  is not invertible.
+
+Examples::
+
+    >>> A = torch.randn(3, 3)
+    >>> b = torch.randn(3)
+    >>> x = torch.linalg.solve(A, b)
+    >>> torch.allclose(A @ x, b)
+    True
+    >>> A = torch.randn(2, 3, 3)
+    >>> B = torch.randn(2, 3, 4)
+    >>> X = torch.linalg.solve(A, B)
+    >>> X.shape
+    torch.Size([2, 3, 4])
+    >>> torch.allclose(A @ X, B)
+    True
+
+    >>> A = torch.randn(2, 3, 3)
+    >>> b = torch.randn(3, 1)
+    >>> x = torch.linalg.solve(A, b) # b is broadcasted to size (2, 3, 1)
+    >>> x.shape
+    torch.Size([2, 3, 1])
+    >>> torch.allclose(A @ x, b)
+    True
+    >>> b = torch.randn(3)
+    >>> x = torch.linalg.solve(A, b) # b is broadcasted to size (2, 3)
+    >>> x.shape
+    torch.Size([2, 3])
+    >>> Ax = A @ x.unsqueeze(-1)
+    >>> torch.allclose(Ax, b.unsqueeze(-1).expand_as(Ax))
+    True
+
+.. _invertible:
+    https://en.wikipedia.org/wiki/Invertible_matrix#The_invertible_matrix_theorem
+
+[API Signature] A: tensor, B: tensor, left: boolean, out: tensor
+
+[Error Messages]
+RuntimeError: linalg.solve: Expected A and B to have the same dtype, but found A of type Double and B of type Float instead
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: linalg.solve: Expected a floating point or complex tensor as input. Got Char
+RuntimeError: linalg.solve: Incompatible shapes of A and B for the equation XA = B (3x3 and 3x1)
+TypeError: linalg_solve(): argument 'out' must be Tensor, not float
+RuntimeError: linalg.solve: The input tensor A must have at least 2 dimensions.
+_LinAlgError: torch.linalg.solve: The solver failed because the input matrix is singular.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (A must be floating-point or complex: dtypes 7–10)
+{v_1 : tensor} |= 7 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10
+Token usage: input=2609, output=6883, total=9492
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.linalg.solve API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+linalg.solve(A, B, *, left=True, out=None) -> Tensor
+
+Computes the solution of a square system of linear equations with a unique solution.
+
+Letting :math:`\mathbb{K}` be :math:`\mathbb{R}` or :math:`\mathbb{C}`,
+this function computes the solution :math:`X \in \mathbb{K}^{n \times k}` of the **linear system** associated to
+:math:`A \in \mathbb{K}^{n \times n}, B \in \mathbb{K}^{n \times k}`, which is defined as
+
+.. math:: AX = B
+
+If :attr:`left`\ `= False`, this function returns the matrix :math:`X \in \mathbb{K}^{n \times k}` that solves the system
+
+.. math::
+
+    XA = B\mathrlap{\qquad A \in \mathbb{K}^{k \times k}, B \in \mathbb{K}^{n \times k}.}
+
+This system of linear equations has one solution if and only if :math:`A` is `invertible`_.
+This function assumes that :math:`A` is invertible.
+
+Supports inputs of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if the inputs are batches of matrices then
+the output has the same batch dimensions.
+
+Letting `*` be zero or more batch dimensions,
+
+- If :attr:`A` has shape `(*, n, n)` and :attr:`B` has shape `(*, n)` (a batch of vectors) or shape
+  `(*, n, k)` (a batch of matrices or "multiple right-hand sides"), this function returns `X` of shape
+  `(*, n)` or `(*, n, k)` respectively.
+- Otherwise, if :attr:`A` has shape `(*, n, n)` and  :attr:`B` has shape `(n,)`  or `(n, k)`, :attr:`B`
+  is broadcasted to have shape `(*, n)` or `(*, n, k)` respectively.
+  This function then returns the solution of the resulting batch of systems of linear equations.
+
+.. note::
+    This function computes `X = \ `:attr:`A`\ `.inverse() @ \ `:attr:`B` in a faster and
+    more numerically stable way than performing the computations separately.
+
+.. note::
+    It is possible to compute the solution of the system :math:`XA = B` by passing the inputs
+    :attr:`A` and :attr:`B` transposed and transposing the output returned by this function.
+
+.. note::
+    :attr:`A` is allowed to be a non-batched `torch.sparse_csr_tensor`, but only with `left=True`.
+
+
+.. note:: When inputs are on a CUDA device, this function synchronizes that device with the CPU. For a version of this function that does not synchronize, see :func:`torch.linalg.solve_ex`.
+
+
+.. seealso::
+
+        :func:`torch.linalg.solve_triangular` computes the solution of a triangular system of linear
+        equations with a unique solution.
+
+Args:
+    A (Tensor): tensor of shape `(*, n, n)` where `*` is zero or more batch dimensions.
+    B (Tensor): right-hand side tensor of shape `(*, n)` or  `(*, n, k)` or `(n,)` or `(n, k)`
+                according to the rules described above
+
+Keyword args:
+    left (bool, optional): whether to solve the system :math:`AX=B` or :math:`XA = B`. Default: `True`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Raises:
+    RuntimeError: if the :attr:`A` matrix is not invertible or any matrix in a batched :attr:`A`
+                  is not invertible.
+
+Examples::
+
+    >>> A = torch.randn(3, 3)
+    >>> b = torch.randn(3)
+    >>> x = torch.linalg.solve(A, b)
+    >>> torch.allclose(A @ x, b)
+    True
+    >>> A = torch.randn(2, 3, 3)
+    >>> B = torch.randn(2, 3, 4)
+    >>> X = torch.linalg.solve(A, B)
+    >>> X.shape
+    torch.Size([2, 3, 4])
+    >>> torch.allclose(A @ X, B)
+    True
+
+    >>> A = torch.randn(2, 3, 3)
+    >>> b = torch.randn(3, 1)
+    >>> x = torch.linalg.solve(A, b) # b is broadcasted to size (2, 3, 1)
+    >>> x.shape
+    torch.Size([2, 3, 1])
+    >>> torch.allclose(A @ x, b)
+    True
+    >>> b = torch.randn(3)
+    >>> x = torch.linalg.solve(A, b) # b is broadcasted to size (2, 3)
+    >>> x.shape
+    torch.Size([2, 3])
+    >>> Ax = A @ x.unsqueeze(-1)
+    >>> torch.allclose(Ax, b.unsqueeze(-1).expand_as(Ax))
+    True
+
+.. _invertible:
+    https://en.wikipedia.org/wiki/Invertible_matrix#The_invertible_matrix_theorem
+
+[API Signature] A: tensor, B: tensor, left: boolean, out: tensor
+
+[Error Messages]
+RuntimeError: linalg.solve: Expected A and B to have the same dtype, but found A of type Double and B of type Float instead
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: linalg.solve: Expected a floating point or complex tensor as input. Got Char
+RuntimeError: linalg.solve: Incompatible shapes of A and B for the equation XA = B (3x3 and 3x1)
+TypeError: linalg_solve(): argument 'out' must be Tensor, not float
+RuntimeError: linalg.solve: The input tensor A must have at least 2 dimensions.
+_LinAlgError: torch.linalg.solve: The solver failed because the input matrix is singular.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (B must be floating-point or complex: dtypes 7–10)
+{v_2 : tensor} |= 7 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 10
+Token usage: input=2609, output=6883, total=9492
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.linalg.solve API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+linalg.solve(A, B, *, left=True, out=None) -> Tensor
+
+Computes the solution of a square system of linear equations with a unique solution.
+
+Letting :math:`\mathbb{K}` be :math:`\mathbb{R}` or :math:`\mathbb{C}`,
+this function computes the solution :math:`X \in \mathbb{K}^{n \times k}` of the **linear system** associated to
+:math:`A \in \mathbb{K}^{n \times n}, B \in \mathbb{K}^{n \times k}`, which is defined as
+
+.. math:: AX = B
+
+If :attr:`left`\ `= False`, this function returns the matrix :math:`X \in \mathbb{K}^{n \times k}` that solves the system
+
+.. math::
+
+    XA = B\mathrlap{\qquad A \in \mathbb{K}^{k \times k}, B \in \mathbb{K}^{n \times k}.}
+
+This system of linear equations has one solution if and only if :math:`A` is `invertible`_.
+This function assumes that :math:`A` is invertible.
+
+Supports inputs of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if the inputs are batches of matrices then
+the output has the same batch dimensions.
+
+Letting `*` be zero or more batch dimensions,
+
+- If :attr:`A` has shape `(*, n, n)` and :attr:`B` has shape `(*, n)` (a batch of vectors) or shape
+  `(*, n, k)` (a batch of matrices or "multiple right-hand sides"), this function returns `X` of shape
+  `(*, n)` or `(*, n, k)` respectively.
+- Otherwise, if :attr:`A` has shape `(*, n, n)` and  :attr:`B` has shape `(n,)`  or `(n, k)`, :attr:`B`
+  is broadcasted to have shape `(*, n)` or `(*, n, k)` respectively.
+  This function then returns the solution of the resulting batch of systems of linear equations.
+
+.. note::
+    This function computes `X = \ `:attr:`A`\ `.inverse() @ \ `:attr:`B` in a faster and
+    more numerically stable way than performing the computations separately.
+
+.. note::
+    It is possible to compute the solution of the system :math:`XA = B` by passing the inputs
+    :attr:`A` and :attr:`B` transposed and transposing the output returned by this function.
+
+.. note::
+    :attr:`A` is allowed to be a non-batched `torch.sparse_csr_tensor`, but only with `left=True`.
+
+
+.. note:: When inputs are on a CUDA device, this function synchronizes that device with the CPU. For a version of this function that does not synchronize, see :func:`torch.linalg.solve_ex`.
+
+
+.. seealso::
+
+        :func:`torch.linalg.solve_triangular` computes the solution of a triangular system of linear
+        equations with a unique solution.
+
+Args:
+    A (Tensor): tensor of shape `(*, n, n)` where `*` is zero or more batch dimensions.
+    B (Tensor): right-hand side tensor of shape `(*, n)` or  `(*, n, k)` or `(n,)` or `(n, k)`
+                according to the rules described above
+
+Keyword args:
+    left (bool, optional): whether to solve the system :math:`AX=B` or :math:`XA = B`. Default: `True`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Raises:
+    RuntimeError: if the :attr:`A` matrix is not invertible or any matrix in a batched :attr:`A`
+                  is not invertible.
+
+Examples::
+
+    >>> A = torch.randn(3, 3)
+    >>> b = torch.randn(3)
+    >>> x = torch.linalg.solve(A, b)
+    >>> torch.allclose(A @ x, b)
+    True
+    >>> A = torch.randn(2, 3, 3)
+    >>> B = torch.randn(2, 3, 4)
+    >>> X = torch.linalg.solve(A, B)
+    >>> X.shape
+    torch.Size([2, 3, 4])
+    >>> torch.allclose(A @ X, B)
+    True
+
+    >>> A = torch.randn(2, 3, 3)
+    >>> b = torch.randn(3, 1)
+    >>> x = torch.linalg.solve(A, b) # b is broadcasted to size (2, 3, 1)
+    >>> x.shape
+    torch.Size([2, 3, 1])
+    >>> torch.allclose(A @ x, b)
+    True
+    >>> b = torch.randn(3)
+    >>> x = torch.linalg.solve(A, b) # b is broadcasted to size (2, 3)
+    >>> x.shape
+    torch.Size([2, 3])
+    >>> Ax = A @ x.unsqueeze(-1)
+    >>> torch.allclose(Ax, b.unsqueeze(-1).expand_as(Ax))
+    True
+
+.. _invertible:
+    https://en.wikipedia.org/wiki/Invertible_matrix#The_invertible_matrix_theorem
+
+[API Signature] A: tensor, B: tensor, left: boolean, out: tensor
+
+[Error Messages]
+RuntimeError: linalg.solve: Expected A and B to have the same dtype, but found A of type Double and B of type Float instead
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: linalg.solve: Expected a floating point or complex tensor as input. Got Char
+RuntimeError: linalg.solve: Incompatible shapes of A and B for the equation XA = B (3x3 and 3x1)
+TypeError: linalg_solve(): argument 'out' must be Tensor, not float
+RuntimeError: linalg.solve: The input tensor A must have at least 2 dimensions.
+_LinAlgError: torch.linalg.solve: The solver failed because the input matrix is singular.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (A must have at least two dimensions)
+{v_1 : tensor} |= 2 ≤ ndim(v_1)
+Token usage: input=2609, output=6883, total=9492
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.linalg.solve API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+linalg.solve(A, B, *, left=True, out=None) -> Tensor
+
+Computes the solution of a square system of linear equations with a unique solution.
+
+Letting :math:`\mathbb{K}` be :math:`\mathbb{R}` or :math:`\mathbb{C}`,
+this function computes the solution :math:`X \in \mathbb{K}^{n \times k}` of the **linear system** associated to
+:math:`A \in \mathbb{K}^{n \times n}, B \in \mathbb{K}^{n \times k}`, which is defined as
+
+.. math:: AX = B
+
+If :attr:`left`\ `= False`, this function returns the matrix :math:`X \in \mathbb{K}^{n \times k}` that solves the system
+
+.. math::
+
+    XA = B\mathrlap{\qquad A \in \mathbb{K}^{k \times k}, B \in \mathbb{K}^{n \times k}.}
+
+This system of linear equations has one solution if and only if :math:`A` is `invertible`_.
+This function assumes that :math:`A` is invertible.
+
+Supports inputs of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if the inputs are batches of matrices then
+the output has the same batch dimensions.
+
+Letting `*` be zero or more batch dimensions,
+
+- If :attr:`A` has shape `(*, n, n)` and :attr:`B` has shape `(*, n)` (a batch of vectors) or shape
+  `(*, n, k)` (a batch of matrices or "multiple right-hand sides"), this function returns `X` of shape
+  `(*, n)` or `(*, n, k)` respectively.
+- Otherwise, if :attr:`A` has shape `(*, n, n)` and  :attr:`B` has shape `(n,)`  or `(n, k)`, :attr:`B`
+  is broadcasted to have shape `(*, n)` or `(*, n, k)` respectively.
+  This function then returns the solution of the resulting batch of systems of linear equations.
+
+.. note::
+    This function computes `X = \ `:attr:`A`\ `.inverse() @ \ `:attr:`B` in a faster and
+    more numerically stable way than performing the computations separately.
+
+.. note::
+    It is possible to compute the solution of the system :math:`XA = B` by passing the inputs
+    :attr:`A` and :attr:`B` transposed and transposing the output returned by this function.
+
+.. note::
+    :attr:`A` is allowed to be a non-batched `torch.sparse_csr_tensor`, but only with `left=True`.
+
+
+.. note:: When inputs are on a CUDA device, this function synchronizes that device with the CPU. For a version of this function that does not synchronize, see :func:`torch.linalg.solve_ex`.
+
+
+.. seealso::
+
+        :func:`torch.linalg.solve_triangular` computes the solution of a triangular system of linear
+        equations with a unique solution.
+
+Args:
+    A (Tensor): tensor of shape `(*, n, n)` where `*` is zero or more batch dimensions.
+    B (Tensor): right-hand side tensor of shape `(*, n)` or  `(*, n, k)` or `(n,)` or `(n, k)`
+                according to the rules described above
+
+Keyword args:
+    left (bool, optional): whether to solve the system :math:`AX=B` or :math:`XA = B`. Default: `True`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Raises:
+    RuntimeError: if the :attr:`A` matrix is not invertible or any matrix in a batched :attr:`A`
+                  is not invertible.
+
+Examples::
+
+    >>> A = torch.randn(3, 3)
+    >>> b = torch.randn(3)
+    >>> x = torch.linalg.solve(A, b)
+    >>> torch.allclose(A @ x, b)
+    True
+    >>> A = torch.randn(2, 3, 3)
+    >>> B = torch.randn(2, 3, 4)
+    >>> X = torch.linalg.solve(A, B)
+    >>> X.shape
+    torch.Size([2, 3, 4])
+    >>> torch.allclose(A @ X, B)
+    True
+
+    >>> A = torch.randn(2, 3, 3)
+    >>> b = torch.randn(3, 1)
+    >>> x = torch.linalg.solve(A, b) # b is broadcasted to size (2, 3, 1)
+    >>> x.shape
+    torch.Size([2, 3, 1])
+    >>> torch.allclose(A @ x, b)
+    True
+    >>> b = torch.randn(3)
+    >>> x = torch.linalg.solve(A, b) # b is broadcasted to size (2, 3)
+    >>> x.shape
+    torch.Size([2, 3])
+    >>> Ax = A @ x.unsqueeze(-1)
+    >>> torch.allclose(Ax, b.unsqueeze(-1).expand_as(Ax))
+    True
+
+.. _invertible:
+    https://en.wikipedia.org/wiki/Invertible_matrix#The_invertible_matrix_theorem
+
+[API Signature] A: tensor, B: tensor, left: boolean, out: tensor
+
+[Error Messages]
+RuntimeError: linalg.solve: Expected A and B to have the same dtype, but found A of type Double and B of type Float instead
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: linalg.solve: Expected a floating point or complex tensor as input. Got Char
+RuntimeError: linalg.solve: Incompatible shapes of A and B for the equation XA = B (3x3 and 3x1)
+TypeError: linalg_solve(): argument 'out' must be Tensor, not float
+RuntimeError: linalg.solve: The input tensor A must have at least 2 dimensions.
+_LinAlgError: torch.linalg.solve: The solver failed because the input matrix is singular.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (A must be square)
+{v_1 : tensor} |= shape(v_1, -1) = shape(v_1, -2)
+Token usage: input=2609, output=6883, total=9492
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.linalg.solve API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+linalg.solve(A, B, *, left=True, out=None) -> Tensor
+
+Computes the solution of a square system of linear equations with a unique solution.
+
+Letting :math:`\mathbb{K}` be :math:`\mathbb{R}` or :math:`\mathbb{C}`,
+this function computes the solution :math:`X \in \mathbb{K}^{n \times k}` of the **linear system** associated to
+:math:`A \in \mathbb{K}^{n \times n}, B \in \mathbb{K}^{n \times k}`, which is defined as
+
+.. math:: AX = B
+
+If :attr:`left`\ `= False`, this function returns the matrix :math:`X \in \mathbb{K}^{n \times k}` that solves the system
+
+.. math::
+
+    XA = B\mathrlap{\qquad A \in \mathbb{K}^{k \times k}, B \in \mathbb{K}^{n \times k}.}
+
+This system of linear equations has one solution if and only if :math:`A` is `invertible`_.
+This function assumes that :math:`A` is invertible.
+
+Supports inputs of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if the inputs are batches of matrices then
+the output has the same batch dimensions.
+
+Letting `*` be zero or more batch dimensions,
+
+- If :attr:`A` has shape `(*, n, n)` and :attr:`B` has shape `(*, n)` (a batch of vectors) or shape
+  `(*, n, k)` (a batch of matrices or "multiple right-hand sides"), this function returns `X` of shape
+  `(*, n)` or `(*, n, k)` respectively.
+- Otherwise, if :attr:`A` has shape `(*, n, n)` and  :attr:`B` has shape `(n,)`  or `(n, k)`, :attr:`B`
+  is broadcasted to have shape `(*, n)` or `(*, n, k)` respectively.
+  This function then returns the solution of the resulting batch of systems of linear equations.
+
+.. note::
+    This function computes `X = \ `:attr:`A`\ `.inverse() @ \ `:attr:`B` in a faster and
+    more numerically stable way than performing the computations separately.
+
+.. note::
+    It is possible to compute the solution of the system :math:`XA = B` by passing the inputs
+    :attr:`A` and :attr:`B` transposed and transposing the output returned by this function.
+
+.. note::
+    :attr:`A` is allowed to be a non-batched `torch.sparse_csr_tensor`, but only with `left=True`.
+
+
+.. note:: When inputs are on a CUDA device, this function synchronizes that device with the CPU. For a version of this function that does not synchronize, see :func:`torch.linalg.solve_ex`.
+
+
+.. seealso::
+
+        :func:`torch.linalg.solve_triangular` computes the solution of a triangular system of linear
+        equations with a unique solution.
+
+Args:
+    A (Tensor): tensor of shape `(*, n, n)` where `*` is zero or more batch dimensions.
+    B (Tensor): right-hand side tensor of shape `(*, n)` or  `(*, n, k)` or `(n,)` or `(n, k)`
+                according to the rules described above
+
+Keyword args:
+    left (bool, optional): whether to solve the system :math:`AX=B` or :math:`XA = B`. Default: `True`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Raises:
+    RuntimeError: if the :attr:`A` matrix is not invertible or any matrix in a batched :attr:`A`
+                  is not invertible.
+
+Examples::
+
+    >>> A = torch.randn(3, 3)
+    >>> b = torch.randn(3)
+    >>> x = torch.linalg.solve(A, b)
+    >>> torch.allclose(A @ x, b)
+    True
+    >>> A = torch.randn(2, 3, 3)
+    >>> B = torch.randn(2, 3, 4)
+    >>> X = torch.linalg.solve(A, B)
+    >>> X.shape
+    torch.Size([2, 3, 4])
+    >>> torch.allclose(A @ X, B)
+    True
+
+    >>> A = torch.randn(2, 3, 3)
+    >>> b = torch.randn(3, 1)
+    >>> x = torch.linalg.solve(A, b) # b is broadcasted to size (2, 3, 1)
+    >>> x.shape
+    torch.Size([2, 3, 1])
+    >>> torch.allclose(A @ x, b)
+    True
+    >>> b = torch.randn(3)
+    >>> x = torch.linalg.solve(A, b) # b is broadcasted to size (2, 3)
+    >>> x.shape
+    torch.Size([2, 3])
+    >>> Ax = A @ x.unsqueeze(-1)
+    >>> torch.allclose(Ax, b.unsqueeze(-1).expand_as(Ax))
+    True
+
+.. _invertible:
+    https://en.wikipedia.org/wiki/Invertible_matrix#The_invertible_matrix_theorem
+
+[API Signature] A: tensor, B: tensor, left: boolean, out: tensor
+
+[Error Messages]
+RuntimeError: linalg.solve: Expected A and B to have the same dtype, but found A of type Double and B of type Float instead
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: linalg.solve: Expected a floating point or complex tensor as input. Got Char
+RuntimeError: linalg.solve: Incompatible shapes of A and B for the equation XA = B (3x3 and 3x1)
+TypeError: linalg_solve(): argument 'out' must be Tensor, not float
+RuntimeError: linalg.solve: The input tensor A must have at least 2 dimensions.
+_LinAlgError: torch.linalg.solve: The solver failed because the input matrix is singular.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (Shape compatibility for AX = B when left = True)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then ((ndim(v_2) = ndim(v_1) - 1 ∧ shape(v_2, -1) = shape(v_1, -1)) ∨ (ndim(v_2) = ndim(v_1) ∧ shape(v_2, -2) = shape(v_1, -1)))
+Token usage: input=2609, output=6883, total=9492
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.linalg.solve API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+linalg.solve(A, B, *, left=True, out=None) -> Tensor
+
+Computes the solution of a square system of linear equations with a unique solution.
+
+Letting :math:`\mathbb{K}` be :math:`\mathbb{R}` or :math:`\mathbb{C}`,
+this function computes the solution :math:`X \in \mathbb{K}^{n \times k}` of the **linear system** associated to
+:math:`A \in \mathbb{K}^{n \times n}, B \in \mathbb{K}^{n \times k}`, which is defined as
+
+.. math:: AX = B
+
+If :attr:`left`\ `= False`, this function returns the matrix :math:`X \in \mathbb{K}^{n \times k}` that solves the system
+
+.. math::
+
+    XA = B\mathrlap{\qquad A \in \mathbb{K}^{k \times k}, B \in \mathbb{K}^{n \times k}.}
+
+This system of linear equations has one solution if and only if :math:`A` is `invertible`_.
+This function assumes that :math:`A` is invertible.
+
+Supports inputs of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if the inputs are batches of matrices then
+the output has the same batch dimensions.
+
+Letting `*` be zero or more batch dimensions,
+
+- If :attr:`A` has shape `(*, n, n)` and :attr:`B` has shape `(*, n)` (a batch of vectors) or shape
+  `(*, n, k)` (a batch of matrices or "multiple right-hand sides"), this function returns `X` of shape
+  `(*, n)` or `(*, n, k)` respectively.
+- Otherwise, if :attr:`A` has shape `(*, n, n)` and  :attr:`B` has shape `(n,)`  or `(n, k)`, :attr:`B`
+  is broadcasted to have shape `(*, n)` or `(*, n, k)` respectively.
+  This function then returns the solution of the resulting batch of systems of linear equations.
+
+.. note::
+    This function computes `X = \ `:attr:`A`\ `.inverse() @ \ `:attr:`B` in a faster and
+    more numerically stable way than performing the computations separately.
+
+.. note::
+    It is possible to compute the solution of the system :math:`XA = B` by passing the inputs
+    :attr:`A` and :attr:`B` transposed and transposing the output returned by this function.
+
+.. note::
+    :attr:`A` is allowed to be a non-batched `torch.sparse_csr_tensor`, but only with `left=True`.
+
+
+.. note:: When inputs are on a CUDA device, this function synchronizes that device with the CPU. For a version of this function that does not synchronize, see :func:`torch.linalg.solve_ex`.
+
+
+.. seealso::
+
+        :func:`torch.linalg.solve_triangular` computes the solution of a triangular system of linear
+        equations with a unique solution.
+
+Args:
+    A (Tensor): tensor of shape `(*, n, n)` where `*` is zero or more batch dimensions.
+    B (Tensor): right-hand side tensor of shape `(*, n)` or  `(*, n, k)` or `(n,)` or `(n, k)`
+                according to the rules described above
+
+Keyword args:
+    left (bool, optional): whether to solve the system :math:`AX=B` or :math:`XA = B`. Default: `True`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Raises:
+    RuntimeError: if the :attr:`A` matrix is not invertible or any matrix in a batched :attr:`A`
+                  is not invertible.
+
+Examples::
+
+    >>> A = torch.randn(3, 3)
+    >>> b = torch.randn(3)
+    >>> x = torch.linalg.solve(A, b)
+    >>> torch.allclose(A @ x, b)
+    True
+    >>> A = torch.randn(2, 3, 3)
+    >>> B = torch.randn(2, 3, 4)
+    >>> X = torch.linalg.solve(A, B)
+    >>> X.shape
+    torch.Size([2, 3, 4])
+    >>> torch.allclose(A @ X, B)
+    True
+
+    >>> A = torch.randn(2, 3, 3)
+    >>> b = torch.randn(3, 1)
+    >>> x = torch.linalg.solve(A, b) # b is broadcasted to size (2, 3, 1)
+    >>> x.shape
+    torch.Size([2, 3, 1])
+    >>> torch.allclose(A @ x, b)
+    True
+    >>> b = torch.randn(3)
+    >>> x = torch.linalg.solve(A, b) # b is broadcasted to size (2, 3)
+    >>> x.shape
+    torch.Size([2, 3])
+    >>> Ax = A @ x.unsqueeze(-1)
+    >>> torch.allclose(Ax, b.unsqueeze(-1).expand_as(Ax))
+    True
+
+.. _invertible:
+    https://en.wikipedia.org/wiki/Invertible_matrix#The_invertible_matrix_theorem
+
+[API Signature] A: tensor, B: tensor, left: boolean, out: tensor
+
+[Error Messages]
+RuntimeError: linalg.solve: Expected A and B to have the same dtype, but found A of type Double and B of type Float instead
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: linalg.solve: Expected a floating point or complex tensor as input. Got Char
+RuntimeError: linalg.solve: Incompatible shapes of A and B for the equation XA = B (3x3 and 3x1)
+TypeError: linalg_solve(): argument 'out' must be Tensor, not float
+RuntimeError: linalg.solve: The input tensor A must have at least 2 dimensions.
+_LinAlgError: torch.linalg.solve: The solver failed because the input matrix is singular.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (Shape compatibility for XA = B when left = False)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then true else (shape(v_1, -2) = shape(v_1, -1) ∧ shape(v_2, -1) = shape(v_1, -1))
+Token usage: input=2609, output=6883, total=9492
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.linalg.solve API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+linalg.solve(A, B, *, left=True, out=None) -> Tensor
+
+Computes the solution of a square system of linear equations with a unique solution.
+
+Letting :math:`\mathbb{K}` be :math:`\mathbb{R}` or :math:`\mathbb{C}`,
+this function computes the solution :math:`X \in \mathbb{K}^{n \times k}` of the **linear system** associated to
+:math:`A \in \mathbb{K}^{n \times n}, B \in \mathbb{K}^{n \times k}`, which is defined as
+
+.. math:: AX = B
+
+If :attr:`left`\ `= False`, this function returns the matrix :math:`X \in \mathbb{K}^{n \times k}` that solves the system
+
+.. math::
+
+    XA = B\mathrlap{\qquad A \in \mathbb{K}^{k \times k}, B \in \mathbb{K}^{n \times k}.}
+
+This system of linear equations has one solution if and only if :math:`A` is `invertible`_.
+This function assumes that :math:`A` is invertible.
+
+Supports inputs of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if the inputs are batches of matrices then
+the output has the same batch dimensions.
+
+Letting `*` be zero or more batch dimensions,
+
+- If :attr:`A` has shape `(*, n, n)` and :attr:`B` has shape `(*, n)` (a batch of vectors) or shape
+  `(*, n, k)` (a batch of matrices or "multiple right-hand sides"), this function returns `X` of shape
+  `(*, n)` or `(*, n, k)` respectively.
+- Otherwise, if :attr:`A` has shape `(*, n, n)` and  :attr:`B` has shape `(n,)`  or `(n, k)`, :attr:`B`
+  is broadcasted to have shape `(*, n)` or `(*, n, k)` respectively.
+  This function then returns the solution of the resulting batch of systems of linear equations.
+
+.. note::
+    This function computes `X = \ `:attr:`A`\ `.inverse() @ \ `:attr:`B` in a faster and
+    more numerically stable way than performing the computations separately.
+
+.. note::
+    It is possible to compute the solution of the system :math:`XA = B` by passing the inputs
+    :attr:`A` and :attr:`B` transposed and transposing the output returned by this function.
+
+.. note::
+    :attr:`A` is allowed to be a non-batched `torch.sparse_csr_tensor`, but only with `left=True`.
+
+
+.. note:: When inputs are on a CUDA device, this function synchronizes that device with the CPU. For a version of this function that does not synchronize, see :func:`torch.linalg.solve_ex`.
+
+
+.. seealso::
+
+        :func:`torch.linalg.solve_triangular` computes the solution of a triangular system of linear
+        equations with a unique solution.
+
+Args:
+    A (Tensor): tensor of shape `(*, n, n)` where `*` is zero or more batch dimensions.
+    B (Tensor): right-hand side tensor of shape `(*, n)` or  `(*, n, k)` or `(n,)` or `(n, k)`
+                according to the rules described above
+
+Keyword args:
+    left (bool, optional): whether to solve the system :math:`AX=B` or :math:`XA = B`. Default: `True`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Raises:
+    RuntimeError: if the :attr:`A` matrix is not invertible or any matrix in a batched :attr:`A`
+                  is not invertible.
+
+Examples::
+
+    >>> A = torch.randn(3, 3)
+    >>> b = torch.randn(3)
+    >>> x = torch.linalg.solve(A, b)
+    >>> torch.allclose(A @ x, b)
+    True
+    >>> A = torch.randn(2, 3, 3)
+    >>> B = torch.randn(2, 3, 4)
+    >>> X = torch.linalg.solve(A, B)
+    >>> X.shape
+    torch.Size([2, 3, 4])
+    >>> torch.allclose(A @ X, B)
+    True
+
+    >>> A = torch.randn(2, 3, 3)
+    >>> b = torch.randn(3, 1)
+    >>> x = torch.linalg.solve(A, b) # b is broadcasted to size (2, 3, 1)
+    >>> x.shape
+    torch.Size([2, 3, 1])
+    >>> torch.allclose(A @ x, b)
+    True
+    >>> b = torch.randn(3)
+    >>> x = torch.linalg.solve(A, b) # b is broadcasted to size (2, 3)
+    >>> x.shape
+    torch.Size([2, 3])
+    >>> Ax = A @ x.unsqueeze(-1)
+    >>> torch.allclose(Ax, b.unsqueeze(-1).expand_as(Ax))
+    True
+
+.. _invertible:
+    https://en.wikipedia.org/wiki/Invertible_matrix#The_invertible_matrix_theorem
+
+[API Signature] A: tensor, B: tensor, left: boolean, out: tensor
+
+[Error Messages]
+RuntimeError: linalg.solve: Expected A and B to have the same dtype, but found A of type Double and B of type Float instead
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: linalg.solve: Expected a floating point or complex tensor as input. Got Char
+RuntimeError: linalg.solve: Incompatible shapes of A and B for the equation XA = B (3x3 and 3x1)
+TypeError: linalg_solve(): argument 'out' must be Tensor, not float
+RuntimeError: linalg.solve: The input tensor A must have at least 2 dimensions.
+_LinAlgError: torch.linalg.solve: The solver failed because the input matrix is singular.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (out must match input dtype)
+{v_1 : tensor, v_4 : tensor} |= dtype_(v_4) = dtype_(v_1)
+Token usage: input=2609, output=6883, total=9492
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.linalg.solve API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+linalg.solve(A, B, *, left=True, out=None) -> Tensor
+
+Computes the solution of a square system of linear equations with a unique solution.
+
+Letting :math:`\mathbb{K}` be :math:`\mathbb{R}` or :math:`\mathbb{C}`,
+this function computes the solution :math:`X \in \mathbb{K}^{n \times k}` of the **linear system** associated to
+:math:`A \in \mathbb{K}^{n \times n}, B \in \mathbb{K}^{n \times k}`, which is defined as
+
+.. math:: AX = B
+
+If :attr:`left`\ `= False`, this function returns the matrix :math:`X \in \mathbb{K}^{n \times k}` that solves the system
+
+.. math::
+
+    XA = B\mathrlap{\qquad A \in \mathbb{K}^{k \times k}, B \in \mathbb{K}^{n \times k}.}
+
+This system of linear equations has one solution if and only if :math:`A` is `invertible`_.
+This function assumes that :math:`A` is invertible.
+
+Supports inputs of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if the inputs are batches of matrices then
+the output has the same batch dimensions.
+
+Letting `*` be zero or more batch dimensions,
+
+- If :attr:`A` has shape `(*, n, n)` and :attr:`B` has shape `(*, n)` (a batch of vectors) or shape
+  `(*, n, k)` (a batch of matrices or "multiple right-hand sides"), this function returns `X` of shape
+  `(*, n)` or `(*, n, k)` respectively.
+- Otherwise, if :attr:`A` has shape `(*, n, n)` and  :attr:`B` has shape `(n,)`  or `(n, k)`, :attr:`B`
+  is broadcasted to have shape `(*, n)` or `(*, n, k)` respectively.
+  This function then returns the solution of the resulting batch of systems of linear equations.
+
+.. note::
+    This function computes `X = \ `:attr:`A`\ `.inverse() @ \ `:attr:`B` in a faster and
+    more numerically stable way than performing the computations separately.
+
+.. note::
+    It is possible to compute the solution of the system :math:`XA = B` by passing the inputs
+    :attr:`A` and :attr:`B` transposed and transposing the output returned by this function.
+
+.. note::
+    :attr:`A` is allowed to be a non-batched `torch.sparse_csr_tensor`, but only with `left=True`.
+
+
+.. note:: When inputs are on a CUDA device, this function synchronizes that device with the CPU. For a version of this function that does not synchronize, see :func:`torch.linalg.solve_ex`.
+
+
+.. seealso::
+
+        :func:`torch.linalg.solve_triangular` computes the solution of a triangular system of linear
+        equations with a unique solution.
+
+Args:
+    A (Tensor): tensor of shape `(*, n, n)` where `*` is zero or more batch dimensions.
+    B (Tensor): right-hand side tensor of shape `(*, n)` or  `(*, n, k)` or `(n,)` or `(n, k)`
+                according to the rules described above
+
+Keyword args:
+    left (bool, optional): whether to solve the system :math:`AX=B` or :math:`XA = B`. Default: `True`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Raises:
+    RuntimeError: if the :attr:`A` matrix is not invertible or any matrix in a batched :attr:`A`
+                  is not invertible.
+
+Examples::
+
+    >>> A = torch.randn(3, 3)
+    >>> b = torch.randn(3)
+    >>> x = torch.linalg.solve(A, b)
+    >>> torch.allclose(A @ x, b)
+    True
+    >>> A = torch.randn(2, 3, 3)
+    >>> B = torch.randn(2, 3, 4)
+    >>> X = torch.linalg.solve(A, B)
+    >>> X.shape
+    torch.Size([2, 3, 4])
+    >>> torch.allclose(A @ X, B)
+    True
+
+    >>> A = torch.randn(2, 3, 3)
+    >>> b = torch.randn(3, 1)
+    >>> x = torch.linalg.solve(A, b) # b is broadcasted to size (2, 3, 1)
+    >>> x.shape
+    torch.Size([2, 3, 1])
+    >>> torch.allclose(A @ x, b)
+    True
+    >>> b = torch.randn(3)
+    >>> x = torch.linalg.solve(A, b) # b is broadcasted to size (2, 3)
+    >>> x.shape
+    torch.Size([2, 3])
+    >>> Ax = A @ x.unsqueeze(-1)
+    >>> torch.allclose(Ax, b.unsqueeze(-1).expand_as(Ax))
+    True
+
+.. _invertible:
+    https://en.wikipedia.org/wiki/Invertible_matrix#The_invertible_matrix_theorem
+
+[API Signature] A: tensor, B: tensor, left: boolean, out: tensor
+
+[Error Messages]
+RuntimeError: linalg.solve: Expected A and B to have the same dtype, but found A of type Double and B of type Float instead
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: linalg.solve: Expected a floating point or complex tensor as input. Got Char
+RuntimeError: linalg.solve: Incompatible shapes of A and B for the equation XA = B (3x3 and 3x1)
+TypeError: linalg_solve(): argument 'out' must be Tensor, not float
+RuntimeError: linalg.solve: The input tensor A must have at least 2 dimensions.
+_LinAlgError: torch.linalg.solve: The solver failed because the input matrix is singular.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (out must match B’s shape on existing dimensions)
+{v_2 : tensor, v_4 : tensor} |= ndim(v_4) = ndim(v_2) ∧ shape(v_4, -1) = shape(v_2, -1) ∧ (if 2 ≤ ndim(v_2) then shape(v_4, -2) = shape(v_2, -2))
+Token usage: input=2609, output=6883, total=9492
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.linalg.solve API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+linalg.solve(A, B, *, left=True, out=None) -> Tensor
+
+Computes the solution of a square system of linear equations with a unique solution.
+
+Letting :math:`\mathbb{K}` be :math:`\mathbb{R}` or :math:`\mathbb{C}`,
+this function computes the solution :math:`X \in \mathbb{K}^{n \times k}` of the **linear system** associated to
+:math:`A \in \mathbb{K}^{n \times n}, B \in \mathbb{K}^{n \times k}`, which is defined as
+
+.. math:: AX = B
+
+If :attr:`left`\ `= False`, this function returns the matrix :math:`X \in \mathbb{K}^{n \times k}` that solves the system
+
+.. math::
+
+    XA = B\mathrlap{\qquad A \in \mathbb{K}^{k \times k}, B \in \mathbb{K}^{n \times k}.}
+
+This system of linear equations has one solution if and only if :math:`A` is `invertible`_.
+This function assumes that :math:`A` is invertible.
+
+Supports inputs of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if the inputs are batches of matrices then
+the output has the same batch dimensions.
+
+Letting `*` be zero or more batch dimensions,
+
+- If :attr:`A` has shape `(*, n, n)` and :attr:`B` has shape `(*, n)` (a batch of vectors) or shape
+  `(*, n, k)` (a batch of matrices or "multiple right-hand sides"), this function returns `X` of shape
+  `(*, n)` or `(*, n, k)` respectively.
+- Otherwise, if :attr:`A` has shape `(*, n, n)` and  :attr:`B` has shape `(n,)`  or `(n, k)`, :attr:`B`
+  is broadcasted to have shape `(*, n)` or `(*, n, k)` respectively.
+  This function then returns the solution of the resulting batch of systems of linear equations.
+
+.. note::
+    This function computes `X = \ `:attr:`A`\ `.inverse() @ \ `:attr:`B` in a faster and
+    more numerically stable way than performing the computations separately.
+
+.. note::
+    It is possible to compute the solution of the system :math:`XA = B` by passing the inputs
+    :attr:`A` and :attr:`B` transposed and transposing the output returned by this function.
+
+.. note::
+    :attr:`A` is allowed to be a non-batched `torch.sparse_csr_tensor`, but only with `left=True`.
+
+
+.. note:: When inputs are on a CUDA device, this function synchronizes that device with the CPU. For a version of this function that does not synchronize, see :func:`torch.linalg.solve_ex`.
+
+
+.. seealso::
+
+        :func:`torch.linalg.solve_triangular` computes the solution of a triangular system of linear
+        equations with a unique solution.
+
+Args:
+    A (Tensor): tensor of shape `(*, n, n)` where `*` is zero or more batch dimensions.
+    B (Tensor): right-hand side tensor of shape `(*, n)` or  `(*, n, k)` or `(n,)` or `(n, k)`
+                according to the rules described above
+
+Keyword args:
+    left (bool, optional): whether to solve the system :math:`AX=B` or :math:`XA = B`. Default: `True`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Raises:
+    RuntimeError: if the :attr:`A` matrix is not invertible or any matrix in a batched :attr:`A`
+                  is not invertible.
+
+Examples::
+
+    >>> A = torch.randn(3, 3)
+    >>> b = torch.randn(3)
+    >>> x = torch.linalg.solve(A, b)
+    >>> torch.allclose(A @ x, b)
+    True
+    >>> A = torch.randn(2, 3, 3)
+    >>> B = torch.randn(2, 3, 4)
+    >>> X = torch.linalg.solve(A, B)
+    >>> X.shape
+    torch.Size([2, 3, 4])
+    >>> torch.allclose(A @ X, B)
+    True
+
+    >>> A = torch.randn(2, 3, 3)
+    >>> b = torch.randn(3, 1)
+    >>> x = torch.linalg.solve(A, b) # b is broadcasted to size (2, 3, 1)
+    >>> x.shape
+    torch.Size([2, 3, 1])
+    >>> torch.allclose(A @ x, b)
+    True
+    >>> b = torch.randn(3)
+    >>> x = torch.linalg.solve(A, b) # b is broadcasted to size (2, 3)
+    >>> x.shape
+    torch.Size([2, 3])
+    >>> Ax = A @ x.unsqueeze(-1)
+    >>> torch.allclose(Ax, b.unsqueeze(-1).expand_as(Ax))
+    True
+
+.. _invertible:
+    https://en.wikipedia.org/wiki/Invertible_matrix#The_invertible_matrix_theorem
+
+[API Signature] A: tensor, B: tensor, left: boolean, out: tensor
+
+[Error Messages]
+RuntimeError: linalg.solve: Expected A and B to have the same dtype, but found A of type Double and B of type Float instead
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: linalg.solve: Expected a floating point or complex tensor as input. Got Char
+RuntimeError: linalg.solve: Incompatible shapes of A and B for the equation XA = B (3x3 and 3x1)
+TypeError: linalg_solve(): argument 'out' must be Tensor, not float
+RuntimeError: linalg.solve: The input tensor A must have at least 2 dimensions.
+_LinAlgError: torch.linalg.solve: The solver failed because the input matrix is singular.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (out must be a Tensor)
+{v_4 : tensor} |= 0 ≤ ndim(v_4)
+Token usage: input=2609, output=6883, total=9492
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.linalg.solve API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+linalg.solve(A, B, *, left=True, out=None) -> Tensor
+
+Computes the solution of a square system of linear equations with a unique solution.
+
+Letting :math:`\mathbb{K}` be :math:`\mathbb{R}` or :math:`\mathbb{C}`,
+this function computes the solution :math:`X \in \mathbb{K}^{n \times k}` of the **linear system** associated to
+:math:`A \in \mathbb{K}^{n \times n}, B \in \mathbb{K}^{n \times k}`, which is defined as
+
+.. math:: AX = B
+
+If :attr:`left`\ `= False`, this function returns the matrix :math:`X \in \mathbb{K}^{n \times k}` that solves the system
+
+.. math::
+
+    XA = B\mathrlap{\qquad A \in \mathbb{K}^{k \times k}, B \in \mathbb{K}^{n \times k}.}
+
+This system of linear equations has one solution if and only if :math:`A` is `invertible`_.
+This function assumes that :math:`A` is invertible.
+
+Supports inputs of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if the inputs are batches of matrices then
+the output has the same batch dimensions.
+
+Letting `*` be zero or more batch dimensions,
+
+- If :attr:`A` has shape `(*, n, n)` and :attr:`B` has shape `(*, n)` (a batch of vectors) or shape
+  `(*, n, k)` (a batch of matrices or "multiple right-hand sides"), this function returns `X` of shape
+  `(*, n)` or `(*, n, k)` respectively.
+- Otherwise, if :attr:`A` has shape `(*, n, n)` and  :attr:`B` has shape `(n,)`  or `(n, k)`, :attr:`B`
+  is broadcasted to have shape `(*, n)` or `(*, n, k)` respectively.
+  This function then returns the solution of the resulting batch of systems of linear equations.
+
+.. note::
+    This function computes `X = \ `:attr:`A`\ `.inverse() @ \ `:attr:`B` in a faster and
+    more numerically stable way than performing the computations separately.
+
+.. note::
+    It is possible to compute the solution of the system :math:`XA = B` by passing the inputs
+    :attr:`A` and :attr:`B` transposed and transposing the output returned by this function.
+
+.. note::
+    :attr:`A` is allowed to be a non-batched `torch.sparse_csr_tensor`, but only with `left=True`.
+
+
+.. note:: When inputs are on a CUDA device, this function synchronizes that device with the CPU. For a version of this function that does not synchronize, see :func:`torch.linalg.solve_ex`.
+
+
+.. seealso::
+
+        :func:`torch.linalg.solve_triangular` computes the solution of a triangular system of linear
+        equations with a unique solution.
+
+Args:
+    A (Tensor): tensor of shape `(*, n, n)` where `*` is zero or more batch dimensions.
+    B (Tensor): right-hand side tensor of shape `(*, n)` or  `(*, n, k)` or `(n,)` or `(n, k)`
+                according to the rules described above
+
+Keyword args:
+    left (bool, optional): whether to solve the system :math:`AX=B` or :math:`XA = B`. Default: `True`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Raises:
+    RuntimeError: if the :attr:`A` matrix is not invertible or any matrix in a batched :attr:`A`
+                  is not invertible.
+
+Examples::
+
+    >>> A = torch.randn(3, 3)
+    >>> b = torch.randn(3)
+    >>> x = torch.linalg.solve(A, b)
+    >>> torch.allclose(A @ x, b)
+    True
+    >>> A = torch.randn(2, 3, 3)
+    >>> B = torch.randn(2, 3, 4)
+    >>> X = torch.linalg.solve(A, B)
+    >>> X.shape
+    torch.Size([2, 3, 4])
+    >>> torch.allclose(A @ X, B)
+    True
+
+    >>> A = torch.randn(2, 3, 3)
+    >>> b = torch.randn(3, 1)
+    >>> x = torch.linalg.solve(A, b) # b is broadcasted to size (2, 3, 1)
+    >>> x.shape
+    torch.Size([2, 3, 1])
+    >>> torch.allclose(A @ x, b)
+    True
+    >>> b = torch.randn(3)
+    >>> x = torch.linalg.solve(A, b) # b is broadcasted to size (2, 3)
+    >>> x.shape
+    torch.Size([2, 3])
+    >>> Ax = A @ x.unsqueeze(-1)
+    >>> torch.allclose(Ax, b.unsqueeze(-1).expand_as(Ax))
+    True
+
+.. _invertible:
+    https://en.wikipedia.org/wiki/Invertible_matrix#The_invertible_matrix_theorem
+
+[API Signature] A: tensor, B: tensor, left: boolean, out: tensor
+
+[Error Messages]
+RuntimeError: linalg.solve: Expected A and B to have the same dtype, but found A of type Double and B of type Float instead
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: linalg.solve: Expected a floating point or complex tensor as input. Got Char
+RuntimeError: linalg.solve: Incompatible shapes of A and B for the equation XA = B (3x3 and 3x1)
+TypeError: linalg_solve(): argument 'out' must be Tensor, not float
+RuntimeError: linalg.solve: The input tensor A must have at least 2 dimensions.
+_LinAlgError: torch.linalg.solve: The solver failed because the input matrix is singular.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (Non-singular guarantee for 1×1 systems)
+{v_1 : tensor} |= if (shape(v_1, -1) = 1 ∧ shape(v_1, -2) = 1) then min(v_1) ≠ 0
+Token usage: input=2609, output=6883, total=9492
+** SUCCESS **
+

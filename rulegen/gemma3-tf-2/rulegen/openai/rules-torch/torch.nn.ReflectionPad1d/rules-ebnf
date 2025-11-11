@@ -1,0 +1,36 @@
+>>
+Rule 1 (input must be 2D or 3D for ReflectionPad1d)
+{v_2: tensor} |= ndim(v_2) = 2 ∨ ndim(v_2) = 3
+>>
+Rule 2 (non-batch dimensions must be positive; batch may be zero)
+{v_2: tensor} |= if ndim(v_2) = 2 then shape(v_2, 0) > 0 ∧ shape(v_2, 1) > 0 else shape(v_2, 1) > 0 ∧ shape(v_2, 2) > 0 ∧ shape(v_2, 0) ≥ 0
+>>
+Rule 3 (tuple padding must have exactly two elements)
+{v_1: tuple(int)} |= v_1.len = 2
+>>
+Rule 4 (integer padding must be non-negative)
+{v_1: int} |= v_1 ≥ 0
+>>
+Rule 5 (tuple padding elements must be non-negative)
+{v_1: tuple(int)} |= v_1.len = 2 ∧ v_1[0] ≥ 0 ∧ v_1[1] ≥ 0
+>>
+Rule 6 (integer padding must be strictly less than input width)
+{v_1: int, v_2: tensor} |= v_1 < (if ndim(v_2) = 2 then shape(v_2, 1) else shape(v_2, 2))
+>>
+Rule 7 (each side of tuple padding must be strictly less than input width)
+{v_1: tuple(int), v_2: tensor} |= v_1.len = 2 ∧ v_1[0] < (if ndim(v_2) = 2 then shape(v_2, 1) else shape(v_2, 2)) ∧ v_1[1] < (if ndim(v_2) = 2 then shape(v_2, 1) else shape(v_2, 2))
+>>
+Rule 8 (non-negative output width for integer padding)
+{v_1: int, v_2: tensor} |= (if ndim(v_2) = 2 then (shape(v_2, 1) + v_1 + v_1) else (shape(v_2, 2) + v_1 + v_1)) ≥ 0
+>>
+Rule 9 (non-negative output width for tuple padding)
+{v_1: tuple(int), v_2: tensor} |= v_1.len = 2 ∧ (if ndim(v_2) = 2 then (shape(v_2, 1) + v_1[0] + v_1[1]) else (shape(v_2, 2) + v_1[0] + v_1[1])) ≥ 0
+>>
+Rule 10 (avoid integer multiplication overflow of numel with integer padding)
+{v_1: int, v_2: tensor} |= if ndim(v_2) = 2 then shape(v_2, 0) ≤ 3037000499 ∧ (shape(v_2, 1) + v_1 + v_1) ≤ 3037000499 else shape(v_2, 0) ≤ 2000000 ∧ shape(v_2, 1) ≤ 2000000 ∧ (shape(v_2, 2) + v_1 + v_1) ≤ 2000000
+>>
+Rule 11 (avoid integer multiplication overflow of numel with tuple padding)
+{v_1: tuple(int), v_2: tensor} |= v_1.len = 2 ∧ if ndim(v_2) = 2 then shape(v_2, 0) ≤ 3037000499 ∧ (shape(v_2, 1) + v_1[0] + v_1[1]) ≤ 3037000499 else shape(v_2, 0) ≤ 2000000 ∧ shape(v_2, 1) ≤ 2000000 ∧ (shape(v_2, 2) + v_1[0] + v_1[1]) ≤ 2000000
+>>
+Rule 12 (padding tuple length compatible with 1D reflection)
+{v_1: tuple(int), v_2: tensor} |= v_1.len ≤ 2 ∧ (ndim(v_2) = 2 ∨ ndim(v_2) = 3)

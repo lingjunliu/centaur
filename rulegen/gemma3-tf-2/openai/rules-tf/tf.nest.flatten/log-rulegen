@@ -1,0 +1,3196 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nest.flatten API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a flat list from a given structure.
+
+  Refer to [tf.nest](https://www.tensorflow.org/api_docs/python/tf/nest)
+  for the definition of a structure.
+
+  If the structure is an atom, then returns a single-item list: [structure].
+
+  This is the inverse of the `nest.pack_sequence_as` method that takes in a
+  flattened list and re-packs it into the nested structure.
+
+  In the case of dict instances, the sequence consists of the values, sorted by
+  key to ensure deterministic behavior. This is true also for OrderedDict
+  instances: their sequence order is ignored, the sorting order of keys is used
+  instead. The same convention is followed in `nest.pack_sequence_as`. This
+  correctly repacks dicts and OrderedDicts after they have been flattened, and
+  also allows flattening an OrderedDict and then repacking it back using a
+  corresponding plain dict, or vice-versa. Dictionaries with non-sortable keys
+  cannot be flattened.
+
+  Users must not modify any collections used in nest while this function is
+  running.
+
+  Examples:
+
+  1. Python dict (ordered by key):
+
+    >>> dict = { "key3": "value3", "key1": "value1", "key2": "value2" }
+    >>> tf.nest.flatten(dict)
+    ['value1', 'value2', 'value3']
+
+  2. For a nested python tuple:
+
+    >>> tuple = ((1.0, 2.0), (3.0, 4.0, 5.0), 6.0)
+    >>> tf.nest.flatten(tuple)
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+
+  3. For a nested dictionary of dictionaries:
+
+    >>> dict = { "key3": {"c": (1.0, 2.0), "a": (3.0)},
+    ... "key1": {"m": "val1", "g": "val2"} }
+    >>> tf.nest.flatten(dict)
+    ['val2', 'val1', 3.0, 1.0, 2.0]
+
+  4. Numpy array (will not flatten):
+
+    >>> array = np.array([[1, 2], [3, 4]])
+    >>> tf.nest.flatten(array)
+        [array([[1, 2],
+                [3, 4]])]
+
+  5. `tf.Tensor` (will not flatten):
+
+    >>> tensor = tf.constant([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
+    >>> tf.nest.flatten(tensor)
+        [<tf.Tensor: shape=(3, 3), dtype=float32, numpy=
+          array([[1., 2., 3.],
+                 [4., 5., 6.],
+                 [7., 8., 9.]], dtype=float32)>]
+
+  6. `tf.RaggedTensor`: This is a composite tensor thats representation consists
+  of a flattened list of 'values' and a list of 'row_splits' which indicate how
+  to chop up the flattened list into different rows. For more details on
+  `tf.RaggedTensor`, please visit
+  https://www.tensorflow.org/api_docs/python/tf/RaggedTensor.
+
+  with `expand_composites=False`, we just return the RaggedTensor as is.
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=False)
+    [<tf.RaggedTensor [[3, 1, 4, 1], [], [5, 9, 2]]>]
+
+  with `expand_composites=True`, we return the component Tensors that make up
+  the RaggedTensor representation (the values and row_splits tensors)
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=True)
+    [<tf.Tensor: shape=(7,), dtype=int32, numpy=array([3, 1, 4, 1, 5, 9, 2],
+                                                      dtype=int32)>,
+     <tf.Tensor: shape=(4,), dtype=int64, numpy=array([0, 4, 4, 7])>]
+
+  Args:
+    structure: an atom or a nested structure. Note, numpy arrays are considered
+      atoms and are not flattened.
+    expand_composites: If true, then composite tensors such as
+      `tf.sparse.SparseTensor` and `tf.RaggedTensor` are expanded into their
+      component tensors.
+
+  Returns:
+    A Python list, the flattened version of the input.
+
+  Raises:
+    TypeError: The nest is or contains a dict with non-sortable keys.
+
+[Possible API Signatures]
+ - structure: list, expand_composites: boolean
+ - structure: tuple, expand_composites: boolean
+ - structure: tensor, expand_composites: boolean
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (expand_composites must be a boolean flag)
+{v_2 : bool} |= v_2 = true ∨ v_2 = false
+Token usage: input=2477, output=6430, total=8907
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nest.flatten API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a flat list from a given structure.
+
+  Refer to [tf.nest](https://www.tensorflow.org/api_docs/python/tf/nest)
+  for the definition of a structure.
+
+  If the structure is an atom, then returns a single-item list: [structure].
+
+  This is the inverse of the `nest.pack_sequence_as` method that takes in a
+  flattened list and re-packs it into the nested structure.
+
+  In the case of dict instances, the sequence consists of the values, sorted by
+  key to ensure deterministic behavior. This is true also for OrderedDict
+  instances: their sequence order is ignored, the sorting order of keys is used
+  instead. The same convention is followed in `nest.pack_sequence_as`. This
+  correctly repacks dicts and OrderedDicts after they have been flattened, and
+  also allows flattening an OrderedDict and then repacking it back using a
+  corresponding plain dict, or vice-versa. Dictionaries with non-sortable keys
+  cannot be flattened.
+
+  Users must not modify any collections used in nest while this function is
+  running.
+
+  Examples:
+
+  1. Python dict (ordered by key):
+
+    >>> dict = { "key3": "value3", "key1": "value1", "key2": "value2" }
+    >>> tf.nest.flatten(dict)
+    ['value1', 'value2', 'value3']
+
+  2. For a nested python tuple:
+
+    >>> tuple = ((1.0, 2.0), (3.0, 4.0, 5.0), 6.0)
+    >>> tf.nest.flatten(tuple)
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+
+  3. For a nested dictionary of dictionaries:
+
+    >>> dict = { "key3": {"c": (1.0, 2.0), "a": (3.0)},
+    ... "key1": {"m": "val1", "g": "val2"} }
+    >>> tf.nest.flatten(dict)
+    ['val2', 'val1', 3.0, 1.0, 2.0]
+
+  4. Numpy array (will not flatten):
+
+    >>> array = np.array([[1, 2], [3, 4]])
+    >>> tf.nest.flatten(array)
+        [array([[1, 2],
+                [3, 4]])]
+
+  5. `tf.Tensor` (will not flatten):
+
+    >>> tensor = tf.constant([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
+    >>> tf.nest.flatten(tensor)
+        [<tf.Tensor: shape=(3, 3), dtype=float32, numpy=
+          array([[1., 2., 3.],
+                 [4., 5., 6.],
+                 [7., 8., 9.]], dtype=float32)>]
+
+  6. `tf.RaggedTensor`: This is a composite tensor thats representation consists
+  of a flattened list of 'values' and a list of 'row_splits' which indicate how
+  to chop up the flattened list into different rows. For more details on
+  `tf.RaggedTensor`, please visit
+  https://www.tensorflow.org/api_docs/python/tf/RaggedTensor.
+
+  with `expand_composites=False`, we just return the RaggedTensor as is.
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=False)
+    [<tf.RaggedTensor [[3, 1, 4, 1], [], [5, 9, 2]]>]
+
+  with `expand_composites=True`, we return the component Tensors that make up
+  the RaggedTensor representation (the values and row_splits tensors)
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=True)
+    [<tf.Tensor: shape=(7,), dtype=int32, numpy=array([3, 1, 4, 1, 5, 9, 2],
+                                                      dtype=int32)>,
+     <tf.Tensor: shape=(4,), dtype=int64, numpy=array([0, 4, 4, 7])>]
+
+  Args:
+    structure: an atom or a nested structure. Note, numpy arrays are considered
+      atoms and are not flattened.
+    expand_composites: If true, then composite tensors such as
+      `tf.sparse.SparseTensor` and `tf.RaggedTensor` are expanded into their
+      component tensors.
+
+  Returns:
+    A Python list, the flattened version of the input.
+
+  Raises:
+    TypeError: The nest is or contains a dict with non-sortable keys.
+
+[Possible API Signatures]
+ - structure: list, expand_composites: boolean
+ - structure: tuple, expand_composites: boolean
+ - structure: tensor, expand_composites: boolean
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (tensor structure must have a valid dtype index 0–12)
+{v_1 : tensor} |= 0 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 12
+Token usage: input=2477, output=6430, total=8907
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nest.flatten API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a flat list from a given structure.
+
+  Refer to [tf.nest](https://www.tensorflow.org/api_docs/python/tf/nest)
+  for the definition of a structure.
+
+  If the structure is an atom, then returns a single-item list: [structure].
+
+  This is the inverse of the `nest.pack_sequence_as` method that takes in a
+  flattened list and re-packs it into the nested structure.
+
+  In the case of dict instances, the sequence consists of the values, sorted by
+  key to ensure deterministic behavior. This is true also for OrderedDict
+  instances: their sequence order is ignored, the sorting order of keys is used
+  instead. The same convention is followed in `nest.pack_sequence_as`. This
+  correctly repacks dicts and OrderedDicts after they have been flattened, and
+  also allows flattening an OrderedDict and then repacking it back using a
+  corresponding plain dict, or vice-versa. Dictionaries with non-sortable keys
+  cannot be flattened.
+
+  Users must not modify any collections used in nest while this function is
+  running.
+
+  Examples:
+
+  1. Python dict (ordered by key):
+
+    >>> dict = { "key3": "value3", "key1": "value1", "key2": "value2" }
+    >>> tf.nest.flatten(dict)
+    ['value1', 'value2', 'value3']
+
+  2. For a nested python tuple:
+
+    >>> tuple = ((1.0, 2.0), (3.0, 4.0, 5.0), 6.0)
+    >>> tf.nest.flatten(tuple)
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+
+  3. For a nested dictionary of dictionaries:
+
+    >>> dict = { "key3": {"c": (1.0, 2.0), "a": (3.0)},
+    ... "key1": {"m": "val1", "g": "val2"} }
+    >>> tf.nest.flatten(dict)
+    ['val2', 'val1', 3.0, 1.0, 2.0]
+
+  4. Numpy array (will not flatten):
+
+    >>> array = np.array([[1, 2], [3, 4]])
+    >>> tf.nest.flatten(array)
+        [array([[1, 2],
+                [3, 4]])]
+
+  5. `tf.Tensor` (will not flatten):
+
+    >>> tensor = tf.constant([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
+    >>> tf.nest.flatten(tensor)
+        [<tf.Tensor: shape=(3, 3), dtype=float32, numpy=
+          array([[1., 2., 3.],
+                 [4., 5., 6.],
+                 [7., 8., 9.]], dtype=float32)>]
+
+  6. `tf.RaggedTensor`: This is a composite tensor thats representation consists
+  of a flattened list of 'values' and a list of 'row_splits' which indicate how
+  to chop up the flattened list into different rows. For more details on
+  `tf.RaggedTensor`, please visit
+  https://www.tensorflow.org/api_docs/python/tf/RaggedTensor.
+
+  with `expand_composites=False`, we just return the RaggedTensor as is.
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=False)
+    [<tf.RaggedTensor [[3, 1, 4, 1], [], [5, 9, 2]]>]
+
+  with `expand_composites=True`, we return the component Tensors that make up
+  the RaggedTensor representation (the values and row_splits tensors)
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=True)
+    [<tf.Tensor: shape=(7,), dtype=int32, numpy=array([3, 1, 4, 1, 5, 9, 2],
+                                                      dtype=int32)>,
+     <tf.Tensor: shape=(4,), dtype=int64, numpy=array([0, 4, 4, 7])>]
+
+  Args:
+    structure: an atom or a nested structure. Note, numpy arrays are considered
+      atoms and are not flattened.
+    expand_composites: If true, then composite tensors such as
+      `tf.sparse.SparseTensor` and `tf.RaggedTensor` are expanded into their
+      component tensors.
+
+  Returns:
+    A Python list, the flattened version of the input.
+
+  Raises:
+    TypeError: The nest is or contains a dict with non-sortable keys.
+
+[Possible API Signatures]
+ - structure: list, expand_composites: boolean
+ - structure: tuple, expand_composites: boolean
+ - structure: tensor, expand_composites: boolean
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (tensor structure must have non-negative dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Token usage: input=2477, output=6430, total=8907
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nest.flatten API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a flat list from a given structure.
+
+  Refer to [tf.nest](https://www.tensorflow.org/api_docs/python/tf/nest)
+  for the definition of a structure.
+
+  If the structure is an atom, then returns a single-item list: [structure].
+
+  This is the inverse of the `nest.pack_sequence_as` method that takes in a
+  flattened list and re-packs it into the nested structure.
+
+  In the case of dict instances, the sequence consists of the values, sorted by
+  key to ensure deterministic behavior. This is true also for OrderedDict
+  instances: their sequence order is ignored, the sorting order of keys is used
+  instead. The same convention is followed in `nest.pack_sequence_as`. This
+  correctly repacks dicts and OrderedDicts after they have been flattened, and
+  also allows flattening an OrderedDict and then repacking it back using a
+  corresponding plain dict, or vice-versa. Dictionaries with non-sortable keys
+  cannot be flattened.
+
+  Users must not modify any collections used in nest while this function is
+  running.
+
+  Examples:
+
+  1. Python dict (ordered by key):
+
+    >>> dict = { "key3": "value3", "key1": "value1", "key2": "value2" }
+    >>> tf.nest.flatten(dict)
+    ['value1', 'value2', 'value3']
+
+  2. For a nested python tuple:
+
+    >>> tuple = ((1.0, 2.0), (3.0, 4.0, 5.0), 6.0)
+    >>> tf.nest.flatten(tuple)
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+
+  3. For a nested dictionary of dictionaries:
+
+    >>> dict = { "key3": {"c": (1.0, 2.0), "a": (3.0)},
+    ... "key1": {"m": "val1", "g": "val2"} }
+    >>> tf.nest.flatten(dict)
+    ['val2', 'val1', 3.0, 1.0, 2.0]
+
+  4. Numpy array (will not flatten):
+
+    >>> array = np.array([[1, 2], [3, 4]])
+    >>> tf.nest.flatten(array)
+        [array([[1, 2],
+                [3, 4]])]
+
+  5. `tf.Tensor` (will not flatten):
+
+    >>> tensor = tf.constant([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
+    >>> tf.nest.flatten(tensor)
+        [<tf.Tensor: shape=(3, 3), dtype=float32, numpy=
+          array([[1., 2., 3.],
+                 [4., 5., 6.],
+                 [7., 8., 9.]], dtype=float32)>]
+
+  6. `tf.RaggedTensor`: This is a composite tensor thats representation consists
+  of a flattened list of 'values' and a list of 'row_splits' which indicate how
+  to chop up the flattened list into different rows. For more details on
+  `tf.RaggedTensor`, please visit
+  https://www.tensorflow.org/api_docs/python/tf/RaggedTensor.
+
+  with `expand_composites=False`, we just return the RaggedTensor as is.
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=False)
+    [<tf.RaggedTensor [[3, 1, 4, 1], [], [5, 9, 2]]>]
+
+  with `expand_composites=True`, we return the component Tensors that make up
+  the RaggedTensor representation (the values and row_splits tensors)
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=True)
+    [<tf.Tensor: shape=(7,), dtype=int32, numpy=array([3, 1, 4, 1, 5, 9, 2],
+                                                      dtype=int32)>,
+     <tf.Tensor: shape=(4,), dtype=int64, numpy=array([0, 4, 4, 7])>]
+
+  Args:
+    structure: an atom or a nested structure. Note, numpy arrays are considered
+      atoms and are not flattened.
+    expand_composites: If true, then composite tensors such as
+      `tf.sparse.SparseTensor` and `tf.RaggedTensor` are expanded into their
+      component tensors.
+
+  Returns:
+    A Python list, the flattened version of the input.
+
+  Raises:
+    TypeError: The nest is or contains a dict with non-sortable keys.
+
+[Possible API Signatures]
+ - structure: list, expand_composites: boolean
+ - structure: tuple, expand_composites: boolean
+ - structure: tensor, expand_composites: boolean
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (list of tensors as structure has a well-defined length)
+{v_1 : list(tensor)} |= v_1.len ≥ 0
+Token usage: input=2477, output=6430, total=8907
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nest.flatten API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a flat list from a given structure.
+
+  Refer to [tf.nest](https://www.tensorflow.org/api_docs/python/tf/nest)
+  for the definition of a structure.
+
+  If the structure is an atom, then returns a single-item list: [structure].
+
+  This is the inverse of the `nest.pack_sequence_as` method that takes in a
+  flattened list and re-packs it into the nested structure.
+
+  In the case of dict instances, the sequence consists of the values, sorted by
+  key to ensure deterministic behavior. This is true also for OrderedDict
+  instances: their sequence order is ignored, the sorting order of keys is used
+  instead. The same convention is followed in `nest.pack_sequence_as`. This
+  correctly repacks dicts and OrderedDicts after they have been flattened, and
+  also allows flattening an OrderedDict and then repacking it back using a
+  corresponding plain dict, or vice-versa. Dictionaries with non-sortable keys
+  cannot be flattened.
+
+  Users must not modify any collections used in nest while this function is
+  running.
+
+  Examples:
+
+  1. Python dict (ordered by key):
+
+    >>> dict = { "key3": "value3", "key1": "value1", "key2": "value2" }
+    >>> tf.nest.flatten(dict)
+    ['value1', 'value2', 'value3']
+
+  2. For a nested python tuple:
+
+    >>> tuple = ((1.0, 2.0), (3.0, 4.0, 5.0), 6.0)
+    >>> tf.nest.flatten(tuple)
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+
+  3. For a nested dictionary of dictionaries:
+
+    >>> dict = { "key3": {"c": (1.0, 2.0), "a": (3.0)},
+    ... "key1": {"m": "val1", "g": "val2"} }
+    >>> tf.nest.flatten(dict)
+    ['val2', 'val1', 3.0, 1.0, 2.0]
+
+  4. Numpy array (will not flatten):
+
+    >>> array = np.array([[1, 2], [3, 4]])
+    >>> tf.nest.flatten(array)
+        [array([[1, 2],
+                [3, 4]])]
+
+  5. `tf.Tensor` (will not flatten):
+
+    >>> tensor = tf.constant([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
+    >>> tf.nest.flatten(tensor)
+        [<tf.Tensor: shape=(3, 3), dtype=float32, numpy=
+          array([[1., 2., 3.],
+                 [4., 5., 6.],
+                 [7., 8., 9.]], dtype=float32)>]
+
+  6. `tf.RaggedTensor`: This is a composite tensor thats representation consists
+  of a flattened list of 'values' and a list of 'row_splits' which indicate how
+  to chop up the flattened list into different rows. For more details on
+  `tf.RaggedTensor`, please visit
+  https://www.tensorflow.org/api_docs/python/tf/RaggedTensor.
+
+  with `expand_composites=False`, we just return the RaggedTensor as is.
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=False)
+    [<tf.RaggedTensor [[3, 1, 4, 1], [], [5, 9, 2]]>]
+
+  with `expand_composites=True`, we return the component Tensors that make up
+  the RaggedTensor representation (the values and row_splits tensors)
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=True)
+    [<tf.Tensor: shape=(7,), dtype=int32, numpy=array([3, 1, 4, 1, 5, 9, 2],
+                                                      dtype=int32)>,
+     <tf.Tensor: shape=(4,), dtype=int64, numpy=array([0, 4, 4, 7])>]
+
+  Args:
+    structure: an atom or a nested structure. Note, numpy arrays are considered
+      atoms and are not flattened.
+    expand_composites: If true, then composite tensors such as
+      `tf.sparse.SparseTensor` and `tf.RaggedTensor` are expanded into their
+      component tensors.
+
+  Returns:
+    A Python list, the flattened version of the input.
+
+  Raises:
+    TypeError: The nest is or contains a dict with non-sortable keys.
+
+[Possible API Signatures]
+ - structure: list, expand_composites: boolean
+ - structure: tuple, expand_composites: boolean
+ - structure: tensor, expand_composites: boolean
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (tuple of tensors as structure has a well-defined length)
+{v_1 : tuple(tensor)} |= v_1.len ≥ 0
+Token usage: input=2477, output=6430, total=8907
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nest.flatten API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a flat list from a given structure.
+
+  Refer to [tf.nest](https://www.tensorflow.org/api_docs/python/tf/nest)
+  for the definition of a structure.
+
+  If the structure is an atom, then returns a single-item list: [structure].
+
+  This is the inverse of the `nest.pack_sequence_as` method that takes in a
+  flattened list and re-packs it into the nested structure.
+
+  In the case of dict instances, the sequence consists of the values, sorted by
+  key to ensure deterministic behavior. This is true also for OrderedDict
+  instances: their sequence order is ignored, the sorting order of keys is used
+  instead. The same convention is followed in `nest.pack_sequence_as`. This
+  correctly repacks dicts and OrderedDicts after they have been flattened, and
+  also allows flattening an OrderedDict and then repacking it back using a
+  corresponding plain dict, or vice-versa. Dictionaries with non-sortable keys
+  cannot be flattened.
+
+  Users must not modify any collections used in nest while this function is
+  running.
+
+  Examples:
+
+  1. Python dict (ordered by key):
+
+    >>> dict = { "key3": "value3", "key1": "value1", "key2": "value2" }
+    >>> tf.nest.flatten(dict)
+    ['value1', 'value2', 'value3']
+
+  2. For a nested python tuple:
+
+    >>> tuple = ((1.0, 2.0), (3.0, 4.0, 5.0), 6.0)
+    >>> tf.nest.flatten(tuple)
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+
+  3. For a nested dictionary of dictionaries:
+
+    >>> dict = { "key3": {"c": (1.0, 2.0), "a": (3.0)},
+    ... "key1": {"m": "val1", "g": "val2"} }
+    >>> tf.nest.flatten(dict)
+    ['val2', 'val1', 3.0, 1.0, 2.0]
+
+  4. Numpy array (will not flatten):
+
+    >>> array = np.array([[1, 2], [3, 4]])
+    >>> tf.nest.flatten(array)
+        [array([[1, 2],
+                [3, 4]])]
+
+  5. `tf.Tensor` (will not flatten):
+
+    >>> tensor = tf.constant([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
+    >>> tf.nest.flatten(tensor)
+        [<tf.Tensor: shape=(3, 3), dtype=float32, numpy=
+          array([[1., 2., 3.],
+                 [4., 5., 6.],
+                 [7., 8., 9.]], dtype=float32)>]
+
+  6. `tf.RaggedTensor`: This is a composite tensor thats representation consists
+  of a flattened list of 'values' and a list of 'row_splits' which indicate how
+  to chop up the flattened list into different rows. For more details on
+  `tf.RaggedTensor`, please visit
+  https://www.tensorflow.org/api_docs/python/tf/RaggedTensor.
+
+  with `expand_composites=False`, we just return the RaggedTensor as is.
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=False)
+    [<tf.RaggedTensor [[3, 1, 4, 1], [], [5, 9, 2]]>]
+
+  with `expand_composites=True`, we return the component Tensors that make up
+  the RaggedTensor representation (the values and row_splits tensors)
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=True)
+    [<tf.Tensor: shape=(7,), dtype=int32, numpy=array([3, 1, 4, 1, 5, 9, 2],
+                                                      dtype=int32)>,
+     <tf.Tensor: shape=(4,), dtype=int64, numpy=array([0, 4, 4, 7])>]
+
+  Args:
+    structure: an atom or a nested structure. Note, numpy arrays are considered
+      atoms and are not flattened.
+    expand_composites: If true, then composite tensors such as
+      `tf.sparse.SparseTensor` and `tf.RaggedTensor` are expanded into their
+      component tensors.
+
+  Returns:
+    A Python list, the flattened version of the input.
+
+  Raises:
+    TypeError: The nest is or contains a dict with non-sortable keys.
+
+[Possible API Signatures]
+ - structure: list, expand_composites: boolean
+ - structure: tuple, expand_composites: boolean
+ - structure: tensor, expand_composites: boolean
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (tensor structure with expand_composites flag is always admissible)
+{v_1 : tensor, v_2 : bool} |= (v_2 = true ∨ v_2 = false) ∧ ndim(v_1) ≥ 0
+Token usage: input=2477, output=6430, total=8907
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nest.flatten API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a flat list from a given structure.
+
+  Refer to [tf.nest](https://www.tensorflow.org/api_docs/python/tf/nest)
+  for the definition of a structure.
+
+  If the structure is an atom, then returns a single-item list: [structure].
+
+  This is the inverse of the `nest.pack_sequence_as` method that takes in a
+  flattened list and re-packs it into the nested structure.
+
+  In the case of dict instances, the sequence consists of the values, sorted by
+  key to ensure deterministic behavior. This is true also for OrderedDict
+  instances: their sequence order is ignored, the sorting order of keys is used
+  instead. The same convention is followed in `nest.pack_sequence_as`. This
+  correctly repacks dicts and OrderedDicts after they have been flattened, and
+  also allows flattening an OrderedDict and then repacking it back using a
+  corresponding plain dict, or vice-versa. Dictionaries with non-sortable keys
+  cannot be flattened.
+
+  Users must not modify any collections used in nest while this function is
+  running.
+
+  Examples:
+
+  1. Python dict (ordered by key):
+
+    >>> dict = { "key3": "value3", "key1": "value1", "key2": "value2" }
+    >>> tf.nest.flatten(dict)
+    ['value1', 'value2', 'value3']
+
+  2. For a nested python tuple:
+
+    >>> tuple = ((1.0, 2.0), (3.0, 4.0, 5.0), 6.0)
+    >>> tf.nest.flatten(tuple)
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+
+  3. For a nested dictionary of dictionaries:
+
+    >>> dict = { "key3": {"c": (1.0, 2.0), "a": (3.0)},
+    ... "key1": {"m": "val1", "g": "val2"} }
+    >>> tf.nest.flatten(dict)
+    ['val2', 'val1', 3.0, 1.0, 2.0]
+
+  4. Numpy array (will not flatten):
+
+    >>> array = np.array([[1, 2], [3, 4]])
+    >>> tf.nest.flatten(array)
+        [array([[1, 2],
+                [3, 4]])]
+
+  5. `tf.Tensor` (will not flatten):
+
+    >>> tensor = tf.constant([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
+    >>> tf.nest.flatten(tensor)
+        [<tf.Tensor: shape=(3, 3), dtype=float32, numpy=
+          array([[1., 2., 3.],
+                 [4., 5., 6.],
+                 [7., 8., 9.]], dtype=float32)>]
+
+  6. `tf.RaggedTensor`: This is a composite tensor thats representation consists
+  of a flattened list of 'values' and a list of 'row_splits' which indicate how
+  to chop up the flattened list into different rows. For more details on
+  `tf.RaggedTensor`, please visit
+  https://www.tensorflow.org/api_docs/python/tf/RaggedTensor.
+
+  with `expand_composites=False`, we just return the RaggedTensor as is.
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=False)
+    [<tf.RaggedTensor [[3, 1, 4, 1], [], [5, 9, 2]]>]
+
+  with `expand_composites=True`, we return the component Tensors that make up
+  the RaggedTensor representation (the values and row_splits tensors)
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=True)
+    [<tf.Tensor: shape=(7,), dtype=int32, numpy=array([3, 1, 4, 1, 5, 9, 2],
+                                                      dtype=int32)>,
+     <tf.Tensor: shape=(4,), dtype=int64, numpy=array([0, 4, 4, 7])>]
+
+  Args:
+    structure: an atom or a nested structure. Note, numpy arrays are considered
+      atoms and are not flattened.
+    expand_composites: If true, then composite tensors such as
+      `tf.sparse.SparseTensor` and `tf.RaggedTensor` are expanded into their
+      component tensors.
+
+  Returns:
+    A Python list, the flattened version of the input.
+
+  Raises:
+    TypeError: The nest is or contains a dict with non-sortable keys.
+
+[Possible API Signatures]
+ - structure: list, expand_composites: boolean
+ - structure: tuple, expand_composites: boolean
+ - structure: tensor, expand_composites: boolean
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (nested structure: list of tuple of tensors with boolean flag)
+{v_1 : list(tuple(tensor)), v_2 : bool} |= (v_2 = true ∨ v_2 = false) ∧ v_1.len ≥ 0
+Token usage: input=2477, output=6430, total=8907
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nest.flatten API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a flat list from a given structure.
+
+  Refer to [tf.nest](https://www.tensorflow.org/api_docs/python/tf/nest)
+  for the definition of a structure.
+
+  If the structure is an atom, then returns a single-item list: [structure].
+
+  This is the inverse of the `nest.pack_sequence_as` method that takes in a
+  flattened list and re-packs it into the nested structure.
+
+  In the case of dict instances, the sequence consists of the values, sorted by
+  key to ensure deterministic behavior. This is true also for OrderedDict
+  instances: their sequence order is ignored, the sorting order of keys is used
+  instead. The same convention is followed in `nest.pack_sequence_as`. This
+  correctly repacks dicts and OrderedDicts after they have been flattened, and
+  also allows flattening an OrderedDict and then repacking it back using a
+  corresponding plain dict, or vice-versa. Dictionaries with non-sortable keys
+  cannot be flattened.
+
+  Users must not modify any collections used in nest while this function is
+  running.
+
+  Examples:
+
+  1. Python dict (ordered by key):
+
+    >>> dict = { "key3": "value3", "key1": "value1", "key2": "value2" }
+    >>> tf.nest.flatten(dict)
+    ['value1', 'value2', 'value3']
+
+  2. For a nested python tuple:
+
+    >>> tuple = ((1.0, 2.0), (3.0, 4.0, 5.0), 6.0)
+    >>> tf.nest.flatten(tuple)
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+
+  3. For a nested dictionary of dictionaries:
+
+    >>> dict = { "key3": {"c": (1.0, 2.0), "a": (3.0)},
+    ... "key1": {"m": "val1", "g": "val2"} }
+    >>> tf.nest.flatten(dict)
+    ['val2', 'val1', 3.0, 1.0, 2.0]
+
+  4. Numpy array (will not flatten):
+
+    >>> array = np.array([[1, 2], [3, 4]])
+    >>> tf.nest.flatten(array)
+        [array([[1, 2],
+                [3, 4]])]
+
+  5. `tf.Tensor` (will not flatten):
+
+    >>> tensor = tf.constant([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
+    >>> tf.nest.flatten(tensor)
+        [<tf.Tensor: shape=(3, 3), dtype=float32, numpy=
+          array([[1., 2., 3.],
+                 [4., 5., 6.],
+                 [7., 8., 9.]], dtype=float32)>]
+
+  6. `tf.RaggedTensor`: This is a composite tensor thats representation consists
+  of a flattened list of 'values' and a list of 'row_splits' which indicate how
+  to chop up the flattened list into different rows. For more details on
+  `tf.RaggedTensor`, please visit
+  https://www.tensorflow.org/api_docs/python/tf/RaggedTensor.
+
+  with `expand_composites=False`, we just return the RaggedTensor as is.
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=False)
+    [<tf.RaggedTensor [[3, 1, 4, 1], [], [5, 9, 2]]>]
+
+  with `expand_composites=True`, we return the component Tensors that make up
+  the RaggedTensor representation (the values and row_splits tensors)
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=True)
+    [<tf.Tensor: shape=(7,), dtype=int32, numpy=array([3, 1, 4, 1, 5, 9, 2],
+                                                      dtype=int32)>,
+     <tf.Tensor: shape=(4,), dtype=int64, numpy=array([0, 4, 4, 7])>]
+
+  Args:
+    structure: an atom or a nested structure. Note, numpy arrays are considered
+      atoms and are not flattened.
+    expand_composites: If true, then composite tensors such as
+      `tf.sparse.SparseTensor` and `tf.RaggedTensor` are expanded into their
+      component tensors.
+
+  Returns:
+    A Python list, the flattened version of the input.
+
+  Raises:
+    TypeError: The nest is or contains a dict with non-sortable keys.
+
+[Possible API Signatures]
+ - structure: list, expand_composites: boolean
+ - structure: tuple, expand_composites: boolean
+ - structure: tensor, expand_composites: boolean
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (nested structure: tuple of list of tensors with boolean flag)
+{v_1 : tuple(list(tensor)), v_2 : bool} |= (v_2 = true ∨ v_2 = false) ∧ v_1.len ≥ 0
+Token usage: input=2477, output=6430, total=8907
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nest.flatten API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a flat list from a given structure.
+
+  Refer to [tf.nest](https://www.tensorflow.org/api_docs/python/tf/nest)
+  for the definition of a structure.
+
+  If the structure is an atom, then returns a single-item list: [structure].
+
+  This is the inverse of the `nest.pack_sequence_as` method that takes in a
+  flattened list and re-packs it into the nested structure.
+
+  In the case of dict instances, the sequence consists of the values, sorted by
+  key to ensure deterministic behavior. This is true also for OrderedDict
+  instances: their sequence order is ignored, the sorting order of keys is used
+  instead. The same convention is followed in `nest.pack_sequence_as`. This
+  correctly repacks dicts and OrderedDicts after they have been flattened, and
+  also allows flattening an OrderedDict and then repacking it back using a
+  corresponding plain dict, or vice-versa. Dictionaries with non-sortable keys
+  cannot be flattened.
+
+  Users must not modify any collections used in nest while this function is
+  running.
+
+  Examples:
+
+  1. Python dict (ordered by key):
+
+    >>> dict = { "key3": "value3", "key1": "value1", "key2": "value2" }
+    >>> tf.nest.flatten(dict)
+    ['value1', 'value2', 'value3']
+
+  2. For a nested python tuple:
+
+    >>> tuple = ((1.0, 2.0), (3.0, 4.0, 5.0), 6.0)
+    >>> tf.nest.flatten(tuple)
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+
+  3. For a nested dictionary of dictionaries:
+
+    >>> dict = { "key3": {"c": (1.0, 2.0), "a": (3.0)},
+    ... "key1": {"m": "val1", "g": "val2"} }
+    >>> tf.nest.flatten(dict)
+    ['val2', 'val1', 3.0, 1.0, 2.0]
+
+  4. Numpy array (will not flatten):
+
+    >>> array = np.array([[1, 2], [3, 4]])
+    >>> tf.nest.flatten(array)
+        [array([[1, 2],
+                [3, 4]])]
+
+  5. `tf.Tensor` (will not flatten):
+
+    >>> tensor = tf.constant([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
+    >>> tf.nest.flatten(tensor)
+        [<tf.Tensor: shape=(3, 3), dtype=float32, numpy=
+          array([[1., 2., 3.],
+                 [4., 5., 6.],
+                 [7., 8., 9.]], dtype=float32)>]
+
+  6. `tf.RaggedTensor`: This is a composite tensor thats representation consists
+  of a flattened list of 'values' and a list of 'row_splits' which indicate how
+  to chop up the flattened list into different rows. For more details on
+  `tf.RaggedTensor`, please visit
+  https://www.tensorflow.org/api_docs/python/tf/RaggedTensor.
+
+  with `expand_composites=False`, we just return the RaggedTensor as is.
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=False)
+    [<tf.RaggedTensor [[3, 1, 4, 1], [], [5, 9, 2]]>]
+
+  with `expand_composites=True`, we return the component Tensors that make up
+  the RaggedTensor representation (the values and row_splits tensors)
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=True)
+    [<tf.Tensor: shape=(7,), dtype=int32, numpy=array([3, 1, 4, 1, 5, 9, 2],
+                                                      dtype=int32)>,
+     <tf.Tensor: shape=(4,), dtype=int64, numpy=array([0, 4, 4, 7])>]
+
+  Args:
+    structure: an atom or a nested structure. Note, numpy arrays are considered
+      atoms and are not flattened.
+    expand_composites: If true, then composite tensors such as
+      `tf.sparse.SparseTensor` and `tf.RaggedTensor` are expanded into their
+      component tensors.
+
+  Returns:
+    A Python list, the flattened version of the input.
+
+  Raises:
+    TypeError: The nest is or contains a dict with non-sortable keys.
+
+[Possible API Signatures]
+ - structure: list, expand_composites: boolean
+ - structure: tuple, expand_composites: boolean
+ - structure: tensor, expand_composites: boolean
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (sequence structure can be either list or tuple of tensors; length defined)
+{v_1 : list(tensor) ⊎ tuple(tensor)} |= v_1.len ≥ 0
+Token usage: input=2477, output=6430, total=8907
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nest.flatten API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a flat list from a given structure.
+
+  Refer to [tf.nest](https://www.tensorflow.org/api_docs/python/tf/nest)
+  for the definition of a structure.
+
+  If the structure is an atom, then returns a single-item list: [structure].
+
+  This is the inverse of the `nest.pack_sequence_as` method that takes in a
+  flattened list and re-packs it into the nested structure.
+
+  In the case of dict instances, the sequence consists of the values, sorted by
+  key to ensure deterministic behavior. This is true also for OrderedDict
+  instances: their sequence order is ignored, the sorting order of keys is used
+  instead. The same convention is followed in `nest.pack_sequence_as`. This
+  correctly repacks dicts and OrderedDicts after they have been flattened, and
+  also allows flattening an OrderedDict and then repacking it back using a
+  corresponding plain dict, or vice-versa. Dictionaries with non-sortable keys
+  cannot be flattened.
+
+  Users must not modify any collections used in nest while this function is
+  running.
+
+  Examples:
+
+  1. Python dict (ordered by key):
+
+    >>> dict = { "key3": "value3", "key1": "value1", "key2": "value2" }
+    >>> tf.nest.flatten(dict)
+    ['value1', 'value2', 'value3']
+
+  2. For a nested python tuple:
+
+    >>> tuple = ((1.0, 2.0), (3.0, 4.0, 5.0), 6.0)
+    >>> tf.nest.flatten(tuple)
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+
+  3. For a nested dictionary of dictionaries:
+
+    >>> dict = { "key3": {"c": (1.0, 2.0), "a": (3.0)},
+    ... "key1": {"m": "val1", "g": "val2"} }
+    >>> tf.nest.flatten(dict)
+    ['val2', 'val1', 3.0, 1.0, 2.0]
+
+  4. Numpy array (will not flatten):
+
+    >>> array = np.array([[1, 2], [3, 4]])
+    >>> tf.nest.flatten(array)
+        [array([[1, 2],
+                [3, 4]])]
+
+  5. `tf.Tensor` (will not flatten):
+
+    >>> tensor = tf.constant([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
+    >>> tf.nest.flatten(tensor)
+        [<tf.Tensor: shape=(3, 3), dtype=float32, numpy=
+          array([[1., 2., 3.],
+                 [4., 5., 6.],
+                 [7., 8., 9.]], dtype=float32)>]
+
+  6. `tf.RaggedTensor`: This is a composite tensor thats representation consists
+  of a flattened list of 'values' and a list of 'row_splits' which indicate how
+  to chop up the flattened list into different rows. For more details on
+  `tf.RaggedTensor`, please visit
+  https://www.tensorflow.org/api_docs/python/tf/RaggedTensor.
+
+  with `expand_composites=False`, we just return the RaggedTensor as is.
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=False)
+    [<tf.RaggedTensor [[3, 1, 4, 1], [], [5, 9, 2]]>]
+
+  with `expand_composites=True`, we return the component Tensors that make up
+  the RaggedTensor representation (the values and row_splits tensors)
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=True)
+    [<tf.Tensor: shape=(7,), dtype=int32, numpy=array([3, 1, 4, 1, 5, 9, 2],
+                                                      dtype=int32)>,
+     <tf.Tensor: shape=(4,), dtype=int64, numpy=array([0, 4, 4, 7])>]
+
+  Args:
+    structure: an atom or a nested structure. Note, numpy arrays are considered
+      atoms and are not flattened.
+    expand_composites: If true, then composite tensors such as
+      `tf.sparse.SparseTensor` and `tf.RaggedTensor` are expanded into their
+      component tensors.
+
+  Returns:
+    A Python list, the flattened version of the input.
+
+  Raises:
+    TypeError: The nest is or contains a dict with non-sortable keys.
+
+[Possible API Signatures]
+ - structure: list, expand_composites: boolean
+ - structure: tuple, expand_composites: boolean
+ - structure: tensor, expand_composites: boolean
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (tensor structure must have a supported dtype code)
+{v_1 : tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+Token usage: input=2581, output=7952, total=10533
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nest.flatten API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a flat list from a given structure.
+
+  Refer to [tf.nest](https://www.tensorflow.org/api_docs/python/tf/nest)
+  for the definition of a structure.
+
+  If the structure is an atom, then returns a single-item list: [structure].
+
+  This is the inverse of the `nest.pack_sequence_as` method that takes in a
+  flattened list and re-packs it into the nested structure.
+
+  In the case of dict instances, the sequence consists of the values, sorted by
+  key to ensure deterministic behavior. This is true also for OrderedDict
+  instances: their sequence order is ignored, the sorting order of keys is used
+  instead. The same convention is followed in `nest.pack_sequence_as`. This
+  correctly repacks dicts and OrderedDicts after they have been flattened, and
+  also allows flattening an OrderedDict and then repacking it back using a
+  corresponding plain dict, or vice-versa. Dictionaries with non-sortable keys
+  cannot be flattened.
+
+  Users must not modify any collections used in nest while this function is
+  running.
+
+  Examples:
+
+  1. Python dict (ordered by key):
+
+    >>> dict = { "key3": "value3", "key1": "value1", "key2": "value2" }
+    >>> tf.nest.flatten(dict)
+    ['value1', 'value2', 'value3']
+
+  2. For a nested python tuple:
+
+    >>> tuple = ((1.0, 2.0), (3.0, 4.0, 5.0), 6.0)
+    >>> tf.nest.flatten(tuple)
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+
+  3. For a nested dictionary of dictionaries:
+
+    >>> dict = { "key3": {"c": (1.0, 2.0), "a": (3.0)},
+    ... "key1": {"m": "val1", "g": "val2"} }
+    >>> tf.nest.flatten(dict)
+    ['val2', 'val1', 3.0, 1.0, 2.0]
+
+  4. Numpy array (will not flatten):
+
+    >>> array = np.array([[1, 2], [3, 4]])
+    >>> tf.nest.flatten(array)
+        [array([[1, 2],
+                [3, 4]])]
+
+  5. `tf.Tensor` (will not flatten):
+
+    >>> tensor = tf.constant([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
+    >>> tf.nest.flatten(tensor)
+        [<tf.Tensor: shape=(3, 3), dtype=float32, numpy=
+          array([[1., 2., 3.],
+                 [4., 5., 6.],
+                 [7., 8., 9.]], dtype=float32)>]
+
+  6. `tf.RaggedTensor`: This is a composite tensor thats representation consists
+  of a flattened list of 'values' and a list of 'row_splits' which indicate how
+  to chop up the flattened list into different rows. For more details on
+  `tf.RaggedTensor`, please visit
+  https://www.tensorflow.org/api_docs/python/tf/RaggedTensor.
+
+  with `expand_composites=False`, we just return the RaggedTensor as is.
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=False)
+    [<tf.RaggedTensor [[3, 1, 4, 1], [], [5, 9, 2]]>]
+
+  with `expand_composites=True`, we return the component Tensors that make up
+  the RaggedTensor representation (the values and row_splits tensors)
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=True)
+    [<tf.Tensor: shape=(7,), dtype=int32, numpy=array([3, 1, 4, 1, 5, 9, 2],
+                                                      dtype=int32)>,
+     <tf.Tensor: shape=(4,), dtype=int64, numpy=array([0, 4, 4, 7])>]
+
+  Args:
+    structure: an atom or a nested structure. Note, numpy arrays are considered
+      atoms and are not flattened.
+    expand_composites: If true, then composite tensors such as
+      `tf.sparse.SparseTensor` and `tf.RaggedTensor` are expanded into their
+      component tensors.
+
+  Returns:
+    A Python list, the flattened version of the input.
+
+  Raises:
+    TypeError: The nest is or contains a dict with non-sortable keys.
+
+[Possible API Signatures]
+ - structure: list, expand_composites: boolean
+ - structure: tuple, expand_composites: boolean
+ - structure: tensor, expand_composites: boolean
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (tensor atoms: either scalar or all dimensions strictly positive)
+{v_1 : tensor} |= ndim(v_1) = 0 ∨ (ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 1)
+Token usage: input=2581, output=7952, total=10533
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nest.flatten API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a flat list from a given structure.
+
+  Refer to [tf.nest](https://www.tensorflow.org/api_docs/python/tf/nest)
+  for the definition of a structure.
+
+  If the structure is an atom, then returns a single-item list: [structure].
+
+  This is the inverse of the `nest.pack_sequence_as` method that takes in a
+  flattened list and re-packs it into the nested structure.
+
+  In the case of dict instances, the sequence consists of the values, sorted by
+  key to ensure deterministic behavior. This is true also for OrderedDict
+  instances: their sequence order is ignored, the sorting order of keys is used
+  instead. The same convention is followed in `nest.pack_sequence_as`. This
+  correctly repacks dicts and OrderedDicts after they have been flattened, and
+  also allows flattening an OrderedDict and then repacking it back using a
+  corresponding plain dict, or vice-versa. Dictionaries with non-sortable keys
+  cannot be flattened.
+
+  Users must not modify any collections used in nest while this function is
+  running.
+
+  Examples:
+
+  1. Python dict (ordered by key):
+
+    >>> dict = { "key3": "value3", "key1": "value1", "key2": "value2" }
+    >>> tf.nest.flatten(dict)
+    ['value1', 'value2', 'value3']
+
+  2. For a nested python tuple:
+
+    >>> tuple = ((1.0, 2.0), (3.0, 4.0, 5.0), 6.0)
+    >>> tf.nest.flatten(tuple)
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+
+  3. For a nested dictionary of dictionaries:
+
+    >>> dict = { "key3": {"c": (1.0, 2.0), "a": (3.0)},
+    ... "key1": {"m": "val1", "g": "val2"} }
+    >>> tf.nest.flatten(dict)
+    ['val2', 'val1', 3.0, 1.0, 2.0]
+
+  4. Numpy array (will not flatten):
+
+    >>> array = np.array([[1, 2], [3, 4]])
+    >>> tf.nest.flatten(array)
+        [array([[1, 2],
+                [3, 4]])]
+
+  5. `tf.Tensor` (will not flatten):
+
+    >>> tensor = tf.constant([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
+    >>> tf.nest.flatten(tensor)
+        [<tf.Tensor: shape=(3, 3), dtype=float32, numpy=
+          array([[1., 2., 3.],
+                 [4., 5., 6.],
+                 [7., 8., 9.]], dtype=float32)>]
+
+  6. `tf.RaggedTensor`: This is a composite tensor thats representation consists
+  of a flattened list of 'values' and a list of 'row_splits' which indicate how
+  to chop up the flattened list into different rows. For more details on
+  `tf.RaggedTensor`, please visit
+  https://www.tensorflow.org/api_docs/python/tf/RaggedTensor.
+
+  with `expand_composites=False`, we just return the RaggedTensor as is.
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=False)
+    [<tf.RaggedTensor [[3, 1, 4, 1], [], [5, 9, 2]]>]
+
+  with `expand_composites=True`, we return the component Tensors that make up
+  the RaggedTensor representation (the values and row_splits tensors)
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=True)
+    [<tf.Tensor: shape=(7,), dtype=int32, numpy=array([3, 1, 4, 1, 5, 9, 2],
+                                                      dtype=int32)>,
+     <tf.Tensor: shape=(4,), dtype=int64, numpy=array([0, 4, 4, 7])>]
+
+  Args:
+    structure: an atom or a nested structure. Note, numpy arrays are considered
+      atoms and are not flattened.
+    expand_composites: If true, then composite tensors such as
+      `tf.sparse.SparseTensor` and `tf.RaggedTensor` are expanded into their
+      component tensors.
+
+  Returns:
+    A Python list, the flattened version of the input.
+
+  Raises:
+    TypeError: The nest is or contains a dict with non-sortable keys.
+
+[Possible API Signatures]
+ - structure: list, expand_composites: boolean
+ - structure: tuple, expand_composites: boolean
+ - structure: tensor, expand_composites: boolean
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (when expanding composites for a tensor, disallow complex dtypes)
+{v_1 : tensor, v_2 : bool} |= if v_2 then (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10)
+Token usage: input=2581, output=7952, total=10533
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nest.flatten API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a flat list from a given structure.
+
+  Refer to [tf.nest](https://www.tensorflow.org/api_docs/python/tf/nest)
+  for the definition of a structure.
+
+  If the structure is an atom, then returns a single-item list: [structure].
+
+  This is the inverse of the `nest.pack_sequence_as` method that takes in a
+  flattened list and re-packs it into the nested structure.
+
+  In the case of dict instances, the sequence consists of the values, sorted by
+  key to ensure deterministic behavior. This is true also for OrderedDict
+  instances: their sequence order is ignored, the sorting order of keys is used
+  instead. The same convention is followed in `nest.pack_sequence_as`. This
+  correctly repacks dicts and OrderedDicts after they have been flattened, and
+  also allows flattening an OrderedDict and then repacking it back using a
+  corresponding plain dict, or vice-versa. Dictionaries with non-sortable keys
+  cannot be flattened.
+
+  Users must not modify any collections used in nest while this function is
+  running.
+
+  Examples:
+
+  1. Python dict (ordered by key):
+
+    >>> dict = { "key3": "value3", "key1": "value1", "key2": "value2" }
+    >>> tf.nest.flatten(dict)
+    ['value1', 'value2', 'value3']
+
+  2. For a nested python tuple:
+
+    >>> tuple = ((1.0, 2.0), (3.0, 4.0, 5.0), 6.0)
+    >>> tf.nest.flatten(tuple)
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+
+  3. For a nested dictionary of dictionaries:
+
+    >>> dict = { "key3": {"c": (1.0, 2.0), "a": (3.0)},
+    ... "key1": {"m": "val1", "g": "val2"} }
+    >>> tf.nest.flatten(dict)
+    ['val2', 'val1', 3.0, 1.0, 2.0]
+
+  4. Numpy array (will not flatten):
+
+    >>> array = np.array([[1, 2], [3, 4]])
+    >>> tf.nest.flatten(array)
+        [array([[1, 2],
+                [3, 4]])]
+
+  5. `tf.Tensor` (will not flatten):
+
+    >>> tensor = tf.constant([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
+    >>> tf.nest.flatten(tensor)
+        [<tf.Tensor: shape=(3, 3), dtype=float32, numpy=
+          array([[1., 2., 3.],
+                 [4., 5., 6.],
+                 [7., 8., 9.]], dtype=float32)>]
+
+  6. `tf.RaggedTensor`: This is a composite tensor thats representation consists
+  of a flattened list of 'values' and a list of 'row_splits' which indicate how
+  to chop up the flattened list into different rows. For more details on
+  `tf.RaggedTensor`, please visit
+  https://www.tensorflow.org/api_docs/python/tf/RaggedTensor.
+
+  with `expand_composites=False`, we just return the RaggedTensor as is.
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=False)
+    [<tf.RaggedTensor [[3, 1, 4, 1], [], [5, 9, 2]]>]
+
+  with `expand_composites=True`, we return the component Tensors that make up
+  the RaggedTensor representation (the values and row_splits tensors)
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=True)
+    [<tf.Tensor: shape=(7,), dtype=int32, numpy=array([3, 1, 4, 1, 5, 9, 2],
+                                                      dtype=int32)>,
+     <tf.Tensor: shape=(4,), dtype=int64, numpy=array([0, 4, 4, 7])>]
+
+  Args:
+    structure: an atom or a nested structure. Note, numpy arrays are considered
+      atoms and are not flattened.
+    expand_composites: If true, then composite tensors such as
+      `tf.sparse.SparseTensor` and `tf.RaggedTensor` are expanded into their
+      component tensors.
+
+  Returns:
+    A Python list, the flattened version of the input.
+
+  Raises:
+    TypeError: The nest is or contains a dict with non-sortable keys.
+
+[Possible API Signatures]
+ - structure: list, expand_composites: boolean
+ - structure: tuple, expand_composites: boolean
+ - structure: tensor, expand_composites: boolean
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (tuple of floats used as structure must be non-empty and non-decreasing)
+{v_1 : tuple(float)} |= v_1.len ≥ 1 ∧ ∀i ∈ [0, v_1.len - 2] : v_1[i] ≤ v_1[i + 1]
+Token usage: input=2581, output=7952, total=10533
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nest.flatten API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a flat list from a given structure.
+
+  Refer to [tf.nest](https://www.tensorflow.org/api_docs/python/tf/nest)
+  for the definition of a structure.
+
+  If the structure is an atom, then returns a single-item list: [structure].
+
+  This is the inverse of the `nest.pack_sequence_as` method that takes in a
+  flattened list and re-packs it into the nested structure.
+
+  In the case of dict instances, the sequence consists of the values, sorted by
+  key to ensure deterministic behavior. This is true also for OrderedDict
+  instances: their sequence order is ignored, the sorting order of keys is used
+  instead. The same convention is followed in `nest.pack_sequence_as`. This
+  correctly repacks dicts and OrderedDicts after they have been flattened, and
+  also allows flattening an OrderedDict and then repacking it back using a
+  corresponding plain dict, or vice-versa. Dictionaries with non-sortable keys
+  cannot be flattened.
+
+  Users must not modify any collections used in nest while this function is
+  running.
+
+  Examples:
+
+  1. Python dict (ordered by key):
+
+    >>> dict = { "key3": "value3", "key1": "value1", "key2": "value2" }
+    >>> tf.nest.flatten(dict)
+    ['value1', 'value2', 'value3']
+
+  2. For a nested python tuple:
+
+    >>> tuple = ((1.0, 2.0), (3.0, 4.0, 5.0), 6.0)
+    >>> tf.nest.flatten(tuple)
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+
+  3. For a nested dictionary of dictionaries:
+
+    >>> dict = { "key3": {"c": (1.0, 2.0), "a": (3.0)},
+    ... "key1": {"m": "val1", "g": "val2"} }
+    >>> tf.nest.flatten(dict)
+    ['val2', 'val1', 3.0, 1.0, 2.0]
+
+  4. Numpy array (will not flatten):
+
+    >>> array = np.array([[1, 2], [3, 4]])
+    >>> tf.nest.flatten(array)
+        [array([[1, 2],
+                [3, 4]])]
+
+  5. `tf.Tensor` (will not flatten):
+
+    >>> tensor = tf.constant([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
+    >>> tf.nest.flatten(tensor)
+        [<tf.Tensor: shape=(3, 3), dtype=float32, numpy=
+          array([[1., 2., 3.],
+                 [4., 5., 6.],
+                 [7., 8., 9.]], dtype=float32)>]
+
+  6. `tf.RaggedTensor`: This is a composite tensor thats representation consists
+  of a flattened list of 'values' and a list of 'row_splits' which indicate how
+  to chop up the flattened list into different rows. For more details on
+  `tf.RaggedTensor`, please visit
+  https://www.tensorflow.org/api_docs/python/tf/RaggedTensor.
+
+  with `expand_composites=False`, we just return the RaggedTensor as is.
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=False)
+    [<tf.RaggedTensor [[3, 1, 4, 1], [], [5, 9, 2]]>]
+
+  with `expand_composites=True`, we return the component Tensors that make up
+  the RaggedTensor representation (the values and row_splits tensors)
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=True)
+    [<tf.Tensor: shape=(7,), dtype=int32, numpy=array([3, 1, 4, 1, 5, 9, 2],
+                                                      dtype=int32)>,
+     <tf.Tensor: shape=(4,), dtype=int64, numpy=array([0, 4, 4, 7])>]
+
+  Args:
+    structure: an atom or a nested structure. Note, numpy arrays are considered
+      atoms and are not flattened.
+    expand_composites: If true, then composite tensors such as
+      `tf.sparse.SparseTensor` and `tf.RaggedTensor` are expanded into their
+      component tensors.
+
+  Returns:
+    A Python list, the flattened version of the input.
+
+  Raises:
+    TypeError: The nest is or contains a dict with non-sortable keys.
+
+[Possible API Signatures]
+ - structure: list, expand_composites: boolean
+ - structure: tuple, expand_composites: boolean
+ - structure: tensor, expand_composites: boolean
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 14 (list of ints used as structure: elements must be non-negative)
+{v_1 : list(int)} |= if v_1.len = 0 then true else ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+Token usage: input=2581, output=7952, total=10533
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nest.flatten API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a flat list from a given structure.
+
+  Refer to [tf.nest](https://www.tensorflow.org/api_docs/python/tf/nest)
+  for the definition of a structure.
+
+  If the structure is an atom, then returns a single-item list: [structure].
+
+  This is the inverse of the `nest.pack_sequence_as` method that takes in a
+  flattened list and re-packs it into the nested structure.
+
+  In the case of dict instances, the sequence consists of the values, sorted by
+  key to ensure deterministic behavior. This is true also for OrderedDict
+  instances: their sequence order is ignored, the sorting order of keys is used
+  instead. The same convention is followed in `nest.pack_sequence_as`. This
+  correctly repacks dicts and OrderedDicts after they have been flattened, and
+  also allows flattening an OrderedDict and then repacking it back using a
+  corresponding plain dict, or vice-versa. Dictionaries with non-sortable keys
+  cannot be flattened.
+
+  Users must not modify any collections used in nest while this function is
+  running.
+
+  Examples:
+
+  1. Python dict (ordered by key):
+
+    >>> dict = { "key3": "value3", "key1": "value1", "key2": "value2" }
+    >>> tf.nest.flatten(dict)
+    ['value1', 'value2', 'value3']
+
+  2. For a nested python tuple:
+
+    >>> tuple = ((1.0, 2.0), (3.0, 4.0, 5.0), 6.0)
+    >>> tf.nest.flatten(tuple)
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+
+  3. For a nested dictionary of dictionaries:
+
+    >>> dict = { "key3": {"c": (1.0, 2.0), "a": (3.0)},
+    ... "key1": {"m": "val1", "g": "val2"} }
+    >>> tf.nest.flatten(dict)
+    ['val2', 'val1', 3.0, 1.0, 2.0]
+
+  4. Numpy array (will not flatten):
+
+    >>> array = np.array([[1, 2], [3, 4]])
+    >>> tf.nest.flatten(array)
+        [array([[1, 2],
+                [3, 4]])]
+
+  5. `tf.Tensor` (will not flatten):
+
+    >>> tensor = tf.constant([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
+    >>> tf.nest.flatten(tensor)
+        [<tf.Tensor: shape=(3, 3), dtype=float32, numpy=
+          array([[1., 2., 3.],
+                 [4., 5., 6.],
+                 [7., 8., 9.]], dtype=float32)>]
+
+  6. `tf.RaggedTensor`: This is a composite tensor thats representation consists
+  of a flattened list of 'values' and a list of 'row_splits' which indicate how
+  to chop up the flattened list into different rows. For more details on
+  `tf.RaggedTensor`, please visit
+  https://www.tensorflow.org/api_docs/python/tf/RaggedTensor.
+
+  with `expand_composites=False`, we just return the RaggedTensor as is.
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=False)
+    [<tf.RaggedTensor [[3, 1, 4, 1], [], [5, 9, 2]]>]
+
+  with `expand_composites=True`, we return the component Tensors that make up
+  the RaggedTensor representation (the values and row_splits tensors)
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=True)
+    [<tf.Tensor: shape=(7,), dtype=int32, numpy=array([3, 1, 4, 1, 5, 9, 2],
+                                                      dtype=int32)>,
+     <tf.Tensor: shape=(4,), dtype=int64, numpy=array([0, 4, 4, 7])>]
+
+  Args:
+    structure: an atom or a nested structure. Note, numpy arrays are considered
+      atoms and are not flattened.
+    expand_composites: If true, then composite tensors such as
+      `tf.sparse.SparseTensor` and `tf.RaggedTensor` are expanded into their
+      component tensors.
+
+  Returns:
+    A Python list, the flattened version of the input.
+
+  Raises:
+    TypeError: The nest is or contains a dict with non-sortable keys.
+
+[Possible API Signatures]
+ - structure: list, expand_composites: boolean
+ - structure: tuple, expand_composites: boolean
+ - structure: tensor, expand_composites: boolean
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 15 (nested tuple of floats: outer and all inner tuples must be non-empty)
+{v_1 : tuple(tuple(float))} |= v_1.len ≥ 1 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i].len ≥ 1
+Token usage: input=2581, output=7952, total=10533
+** PARSING ERROR ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nest.flatten API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a flat list from a given structure.
+
+  Refer to [tf.nest](https://www.tensorflow.org/api_docs/python/tf/nest)
+  for the definition of a structure.
+
+  If the structure is an atom, then returns a single-item list: [structure].
+
+  This is the inverse of the `nest.pack_sequence_as` method that takes in a
+  flattened list and re-packs it into the nested structure.
+
+  In the case of dict instances, the sequence consists of the values, sorted by
+  key to ensure deterministic behavior. This is true also for OrderedDict
+  instances: their sequence order is ignored, the sorting order of keys is used
+  instead. The same convention is followed in `nest.pack_sequence_as`. This
+  correctly repacks dicts and OrderedDicts after they have been flattened, and
+  also allows flattening an OrderedDict and then repacking it back using a
+  corresponding plain dict, or vice-versa. Dictionaries with non-sortable keys
+  cannot be flattened.
+
+  Users must not modify any collections used in nest while this function is
+  running.
+
+  Examples:
+
+  1. Python dict (ordered by key):
+
+    >>> dict = { "key3": "value3", "key1": "value1", "key2": "value2" }
+    >>> tf.nest.flatten(dict)
+    ['value1', 'value2', 'value3']
+
+  2. For a nested python tuple:
+
+    >>> tuple = ((1.0, 2.0), (3.0, 4.0, 5.0), 6.0)
+    >>> tf.nest.flatten(tuple)
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+
+  3. For a nested dictionary of dictionaries:
+
+    >>> dict = { "key3": {"c": (1.0, 2.0), "a": (3.0)},
+    ... "key1": {"m": "val1", "g": "val2"} }
+    >>> tf.nest.flatten(dict)
+    ['val2', 'val1', 3.0, 1.0, 2.0]
+
+  4. Numpy array (will not flatten):
+
+    >>> array = np.array([[1, 2], [3, 4]])
+    >>> tf.nest.flatten(array)
+        [array([[1, 2],
+                [3, 4]])]
+
+  5. `tf.Tensor` (will not flatten):
+
+    >>> tensor = tf.constant([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
+    >>> tf.nest.flatten(tensor)
+        [<tf.Tensor: shape=(3, 3), dtype=float32, numpy=
+          array([[1., 2., 3.],
+                 [4., 5., 6.],
+                 [7., 8., 9.]], dtype=float32)>]
+
+  6. `tf.RaggedTensor`: This is a composite tensor thats representation consists
+  of a flattened list of 'values' and a list of 'row_splits' which indicate how
+  to chop up the flattened list into different rows. For more details on
+  `tf.RaggedTensor`, please visit
+  https://www.tensorflow.org/api_docs/python/tf/RaggedTensor.
+
+  with `expand_composites=False`, we just return the RaggedTensor as is.
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=False)
+    [<tf.RaggedTensor [[3, 1, 4, 1], [], [5, 9, 2]]>]
+
+  with `expand_composites=True`, we return the component Tensors that make up
+  the RaggedTensor representation (the values and row_splits tensors)
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=True)
+    [<tf.Tensor: shape=(7,), dtype=int32, numpy=array([3, 1, 4, 1, 5, 9, 2],
+                                                      dtype=int32)>,
+     <tf.Tensor: shape=(4,), dtype=int64, numpy=array([0, 4, 4, 7])>]
+
+  Args:
+    structure: an atom or a nested structure. Note, numpy arrays are considered
+      atoms and are not flattened.
+    expand_composites: If true, then composite tensors such as
+      `tf.sparse.SparseTensor` and `tf.RaggedTensor` are expanded into their
+      component tensors.
+
+  Returns:
+    A Python list, the flattened version of the input.
+
+  Raises:
+    TypeError: The nest is or contains a dict with non-sortable keys.
+
+[Possible API Signatures]
+ - structure: list, expand_composites: boolean
+ - structure: tuple, expand_composites: boolean
+ - structure: tensor, expand_composites: boolean
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 16 (string sequences used as structure must use allowed tokens)
+{v_1 : list(str) ⊎ tuple(str)} |= if v_1.len = 0 then true else ∀i ∈ [0, v_1.len - 1] : (v_1[i] = "none" ∨ v_1[i] = "sum" ∨ v_1[i] = "max" ∨ v_1[i] = "min" ∨ v_1[i] = "prod")
+Token usage: input=2581, output=7952, total=10533
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nest.flatten API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns a flat list from a given structure.
+
+  Refer to [tf.nest](https://www.tensorflow.org/api_docs/python/tf/nest)
+  for the definition of a structure.
+
+  If the structure is an atom, then returns a single-item list: [structure].
+
+  This is the inverse of the `nest.pack_sequence_as` method that takes in a
+  flattened list and re-packs it into the nested structure.
+
+  In the case of dict instances, the sequence consists of the values, sorted by
+  key to ensure deterministic behavior. This is true also for OrderedDict
+  instances: their sequence order is ignored, the sorting order of keys is used
+  instead. The same convention is followed in `nest.pack_sequence_as`. This
+  correctly repacks dicts and OrderedDicts after they have been flattened, and
+  also allows flattening an OrderedDict and then repacking it back using a
+  corresponding plain dict, or vice-versa. Dictionaries with non-sortable keys
+  cannot be flattened.
+
+  Users must not modify any collections used in nest while this function is
+  running.
+
+  Examples:
+
+  1. Python dict (ordered by key):
+
+    >>> dict = { "key3": "value3", "key1": "value1", "key2": "value2" }
+    >>> tf.nest.flatten(dict)
+    ['value1', 'value2', 'value3']
+
+  2. For a nested python tuple:
+
+    >>> tuple = ((1.0, 2.0), (3.0, 4.0, 5.0), 6.0)
+    >>> tf.nest.flatten(tuple)
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+
+  3. For a nested dictionary of dictionaries:
+
+    >>> dict = { "key3": {"c": (1.0, 2.0), "a": (3.0)},
+    ... "key1": {"m": "val1", "g": "val2"} }
+    >>> tf.nest.flatten(dict)
+    ['val2', 'val1', 3.0, 1.0, 2.0]
+
+  4. Numpy array (will not flatten):
+
+    >>> array = np.array([[1, 2], [3, 4]])
+    >>> tf.nest.flatten(array)
+        [array([[1, 2],
+                [3, 4]])]
+
+  5. `tf.Tensor` (will not flatten):
+
+    >>> tensor = tf.constant([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
+    >>> tf.nest.flatten(tensor)
+        [<tf.Tensor: shape=(3, 3), dtype=float32, numpy=
+          array([[1., 2., 3.],
+                 [4., 5., 6.],
+                 [7., 8., 9.]], dtype=float32)>]
+
+  6. `tf.RaggedTensor`: This is a composite tensor thats representation consists
+  of a flattened list of 'values' and a list of 'row_splits' which indicate how
+  to chop up the flattened list into different rows. For more details on
+  `tf.RaggedTensor`, please visit
+  https://www.tensorflow.org/api_docs/python/tf/RaggedTensor.
+
+  with `expand_composites=False`, we just return the RaggedTensor as is.
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=False)
+    [<tf.RaggedTensor [[3, 1, 4, 1], [], [5, 9, 2]]>]
+
+  with `expand_composites=True`, we return the component Tensors that make up
+  the RaggedTensor representation (the values and row_splits tensors)
+
+    >>> tensor = tf.ragged.constant([[3, 1, 4, 1], [], [5, 9, 2]])
+    >>> tf.nest.flatten(tensor, expand_composites=True)
+    [<tf.Tensor: shape=(7,), dtype=int32, numpy=array([3, 1, 4, 1, 5, 9, 2],
+                                                      dtype=int32)>,
+     <tf.Tensor: shape=(4,), dtype=int64, numpy=array([0, 4, 4, 7])>]
+
+  Args:
+    structure: an atom or a nested structure. Note, numpy arrays are considered
+      atoms and are not flattened.
+    expand_composites: If true, then composite tensors such as
+      `tf.sparse.SparseTensor` and `tf.RaggedTensor` are expanded into their
+      component tensors.
+
+  Returns:
+    A Python list, the flattened version of the input.
+
+  Raises:
+    TypeError: The nest is or contains a dict with non-sortable keys.
+
+[Possible API Signatures]
+ - structure: list, expand_composites: boolean
+ - structure: tuple, expand_composites: boolean
+ - structure: tensor, expand_composites: boolean
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 17 (tuple of tensors: require at least two elements when expanding composites)
+{v_1 : tuple(tensor), v_2 : bool} |= if v_2 then v_1.len ≥ 2 else v_1.len ≥ 0
+Token usage: input=2581, output=7952, total=10533
+** SUCCESS **
+

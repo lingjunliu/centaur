@@ -1,0 +1,1085 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.cross API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+cross(input, other, dim=None, *, out=None) -> Tensor
+
+
+Returns the cross product of vectors in dimension :attr:`dim` of :attr:`input`
+and :attr:`other`.
+
+Supports input of float, double, cfloat and cdouble dtypes. Also supports batches
+of vectors, for which it computes the product along the dimension :attr:`dim`.
+In this case, the output has the same batch dimensions as the inputs.
+
+.. warning::
+    If :attr:`dim` is not given, it defaults to the first dimension found
+    with the size 3. Note that this might be unexpected.
+
+    This behavior is deprecated and will be changed to match that of :func:`torch.linalg.cross`
+    in a future release.
+
+.. seealso::
+        :func:`torch.linalg.cross` which has dim=-1 as default.
+
+
+Args:
+    input (Tensor): the input tensor.
+    other (Tensor): the second input tensor
+    dim  (int, optional): the dimension to take the cross-product in.
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(4, 3)
+    >>> a
+    tensor([[-0.3956,  1.1455,  1.6895],
+            [-0.5849,  1.3672,  0.3599],
+            [-1.1626,  0.7180, -0.0521],
+            [-0.1339,  0.9902, -2.0225]])
+    >>> b = torch.randn(4, 3)
+    >>> b
+    tensor([[-0.0257, -1.4725, -1.2251],
+            [-1.1479, -0.7005, -1.9757],
+            [-1.3904,  0.3726, -1.1836],
+            [-0.9688, -0.7153,  0.2159]])
+    >>> torch.cross(a, b, dim=1)
+    tensor([[ 1.0844, -0.5281,  0.6120],
+            [-2.4490, -1.5687,  1.9792],
+            [-0.8304, -1.3037,  0.5650],
+            [-1.2329,  1.9883,  1.0551]])
+    >>> torch.cross(a, b)
+    tensor([[ 1.0844, -0.5281,  0.6120],
+            [-2.4490, -1.5687,  1.9792],
+            [-0.8304, -1.3037,  0.5650],
+            [-1.2329,  1.9883,  1.0551]])
+
+[API Signature] input: tensor, other: tensor, dim: integer, out: tensor
+
+[Error Messages]
+RuntimeError: linalg.cross: inputs must have the same number of dimensions.
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: expected scalar type Half but found Float
+RuntimeError: linalg.cross: inputs dimension 0 must have length 3. Got 4 and 4
+TypeError: cross(): argument 'out' must be Tensor, not float
+RuntimeError: no dimension of size 3 in input
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got -357904761)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (inputs must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Token usage: input=2172, output=5672, total=7844
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.cross API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+cross(input, other, dim=None, *, out=None) -> Tensor
+
+
+Returns the cross product of vectors in dimension :attr:`dim` of :attr:`input`
+and :attr:`other`.
+
+Supports input of float, double, cfloat and cdouble dtypes. Also supports batches
+of vectors, for which it computes the product along the dimension :attr:`dim`.
+In this case, the output has the same batch dimensions as the inputs.
+
+.. warning::
+    If :attr:`dim` is not given, it defaults to the first dimension found
+    with the size 3. Note that this might be unexpected.
+
+    This behavior is deprecated and will be changed to match that of :func:`torch.linalg.cross`
+    in a future release.
+
+.. seealso::
+        :func:`torch.linalg.cross` which has dim=-1 as default.
+
+
+Args:
+    input (Tensor): the input tensor.
+    other (Tensor): the second input tensor
+    dim  (int, optional): the dimension to take the cross-product in.
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(4, 3)
+    >>> a
+    tensor([[-0.3956,  1.1455,  1.6895],
+            [-0.5849,  1.3672,  0.3599],
+            [-1.1626,  0.7180, -0.0521],
+            [-0.1339,  0.9902, -2.0225]])
+    >>> b = torch.randn(4, 3)
+    >>> b
+    tensor([[-0.0257, -1.4725, -1.2251],
+            [-1.1479, -0.7005, -1.9757],
+            [-1.3904,  0.3726, -1.1836],
+            [-0.9688, -0.7153,  0.2159]])
+    >>> torch.cross(a, b, dim=1)
+    tensor([[ 1.0844, -0.5281,  0.6120],
+            [-2.4490, -1.5687,  1.9792],
+            [-0.8304, -1.3037,  0.5650],
+            [-1.2329,  1.9883,  1.0551]])
+    >>> torch.cross(a, b)
+    tensor([[ 1.0844, -0.5281,  0.6120],
+            [-2.4490, -1.5687,  1.9792],
+            [-0.8304, -1.3037,  0.5650],
+            [-1.2329,  1.9883,  1.0551]])
+
+[API Signature] input: tensor, other: tensor, dim: integer, out: tensor
+
+[Error Messages]
+RuntimeError: linalg.cross: inputs must have the same number of dimensions.
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: expected scalar type Half but found Float
+RuntimeError: linalg.cross: inputs dimension 0 must have length 3. Got 4 and 4
+TypeError: cross(): argument 'out' must be Tensor, not float
+RuntimeError: no dimension of size 3 in input
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got -357904761)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (inputs must have identical shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Token usage: input=2172, output=5672, total=7844
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.cross API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+cross(input, other, dim=None, *, out=None) -> Tensor
+
+
+Returns the cross product of vectors in dimension :attr:`dim` of :attr:`input`
+and :attr:`other`.
+
+Supports input of float, double, cfloat and cdouble dtypes. Also supports batches
+of vectors, for which it computes the product along the dimension :attr:`dim`.
+In this case, the output has the same batch dimensions as the inputs.
+
+.. warning::
+    If :attr:`dim` is not given, it defaults to the first dimension found
+    with the size 3. Note that this might be unexpected.
+
+    This behavior is deprecated and will be changed to match that of :func:`torch.linalg.cross`
+    in a future release.
+
+.. seealso::
+        :func:`torch.linalg.cross` which has dim=-1 as default.
+
+
+Args:
+    input (Tensor): the input tensor.
+    other (Tensor): the second input tensor
+    dim  (int, optional): the dimension to take the cross-product in.
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(4, 3)
+    >>> a
+    tensor([[-0.3956,  1.1455,  1.6895],
+            [-0.5849,  1.3672,  0.3599],
+            [-1.1626,  0.7180, -0.0521],
+            [-0.1339,  0.9902, -2.0225]])
+    >>> b = torch.randn(4, 3)
+    >>> b
+    tensor([[-0.0257, -1.4725, -1.2251],
+            [-1.1479, -0.7005, -1.9757],
+            [-1.3904,  0.3726, -1.1836],
+            [-0.9688, -0.7153,  0.2159]])
+    >>> torch.cross(a, b, dim=1)
+    tensor([[ 1.0844, -0.5281,  0.6120],
+            [-2.4490, -1.5687,  1.9792],
+            [-0.8304, -1.3037,  0.5650],
+            [-1.2329,  1.9883,  1.0551]])
+    >>> torch.cross(a, b)
+    tensor([[ 1.0844, -0.5281,  0.6120],
+            [-2.4490, -1.5687,  1.9792],
+            [-0.8304, -1.3037,  0.5650],
+            [-1.2329,  1.9883,  1.0551]])
+
+[API Signature] input: tensor, other: tensor, dim: integer, out: tensor
+
+[Error Messages]
+RuntimeError: linalg.cross: inputs must have the same number of dimensions.
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: expected scalar type Half but found Float
+RuntimeError: linalg.cross: inputs dimension 0 must have length 3. Got 4 and 4
+TypeError: cross(): argument 'out' must be Tensor, not float
+RuntimeError: no dimension of size 3 in input
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got -357904761)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (dim must be within valid range)
+{v_1 : tensor, v_3 : int} |= ndim(v_1) > 0 ∧ v_3 ≥ -ndim(v_1) ∧ v_3 < ndim(v_1)
+Token usage: input=2172, output=5672, total=7844
+** PARSING ERROR ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.cross API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+cross(input, other, dim=None, *, out=None) -> Tensor
+
+
+Returns the cross product of vectors in dimension :attr:`dim` of :attr:`input`
+and :attr:`other`.
+
+Supports input of float, double, cfloat and cdouble dtypes. Also supports batches
+of vectors, for which it computes the product along the dimension :attr:`dim`.
+In this case, the output has the same batch dimensions as the inputs.
+
+.. warning::
+    If :attr:`dim` is not given, it defaults to the first dimension found
+    with the size 3. Note that this might be unexpected.
+
+    This behavior is deprecated and will be changed to match that of :func:`torch.linalg.cross`
+    in a future release.
+
+.. seealso::
+        :func:`torch.linalg.cross` which has dim=-1 as default.
+
+
+Args:
+    input (Tensor): the input tensor.
+    other (Tensor): the second input tensor
+    dim  (int, optional): the dimension to take the cross-product in.
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(4, 3)
+    >>> a
+    tensor([[-0.3956,  1.1455,  1.6895],
+            [-0.5849,  1.3672,  0.3599],
+            [-1.1626,  0.7180, -0.0521],
+            [-0.1339,  0.9902, -2.0225]])
+    >>> b = torch.randn(4, 3)
+    >>> b
+    tensor([[-0.0257, -1.4725, -1.2251],
+            [-1.1479, -0.7005, -1.9757],
+            [-1.3904,  0.3726, -1.1836],
+            [-0.9688, -0.7153,  0.2159]])
+    >>> torch.cross(a, b, dim=1)
+    tensor([[ 1.0844, -0.5281,  0.6120],
+            [-2.4490, -1.5687,  1.9792],
+            [-0.8304, -1.3037,  0.5650],
+            [-1.2329,  1.9883,  1.0551]])
+    >>> torch.cross(a, b)
+    tensor([[ 1.0844, -0.5281,  0.6120],
+            [-2.4490, -1.5687,  1.9792],
+            [-0.8304, -1.3037,  0.5650],
+            [-1.2329,  1.9883,  1.0551]])
+
+[API Signature] input: tensor, other: tensor, dim: integer, out: tensor
+
+[Error Messages]
+RuntimeError: linalg.cross: inputs must have the same number of dimensions.
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: expected scalar type Half but found Float
+RuntimeError: linalg.cross: inputs dimension 0 must have length 3. Got 4 and 4
+TypeError: cross(): argument 'out' must be Tensor, not float
+RuntimeError: no dimension of size 3 in input
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got -357904761)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (selected cross-product dimension must have length 3)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 ≥ 0 then (shape(v_1, v_3) = 3 ∧ shape(v_2, v_3) = 3) else (shape(v_1, v_3 + ndim(v_1)) = 3 ∧ shape(v_2, v_3 + ndim(v_2)) = 3)
+Token usage: input=2172, output=5672, total=7844
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.cross API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+cross(input, other, dim=None, *, out=None) -> Tensor
+
+
+Returns the cross product of vectors in dimension :attr:`dim` of :attr:`input`
+and :attr:`other`.
+
+Supports input of float, double, cfloat and cdouble dtypes. Also supports batches
+of vectors, for which it computes the product along the dimension :attr:`dim`.
+In this case, the output has the same batch dimensions as the inputs.
+
+.. warning::
+    If :attr:`dim` is not given, it defaults to the first dimension found
+    with the size 3. Note that this might be unexpected.
+
+    This behavior is deprecated and will be changed to match that of :func:`torch.linalg.cross`
+    in a future release.
+
+.. seealso::
+        :func:`torch.linalg.cross` which has dim=-1 as default.
+
+
+Args:
+    input (Tensor): the input tensor.
+    other (Tensor): the second input tensor
+    dim  (int, optional): the dimension to take the cross-product in.
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(4, 3)
+    >>> a
+    tensor([[-0.3956,  1.1455,  1.6895],
+            [-0.5849,  1.3672,  0.3599],
+            [-1.1626,  0.7180, -0.0521],
+            [-0.1339,  0.9902, -2.0225]])
+    >>> b = torch.randn(4, 3)
+    >>> b
+    tensor([[-0.0257, -1.4725, -1.2251],
+            [-1.1479, -0.7005, -1.9757],
+            [-1.3904,  0.3726, -1.1836],
+            [-0.9688, -0.7153,  0.2159]])
+    >>> torch.cross(a, b, dim=1)
+    tensor([[ 1.0844, -0.5281,  0.6120],
+            [-2.4490, -1.5687,  1.9792],
+            [-0.8304, -1.3037,  0.5650],
+            [-1.2329,  1.9883,  1.0551]])
+    >>> torch.cross(a, b)
+    tensor([[ 1.0844, -0.5281,  0.6120],
+            [-2.4490, -1.5687,  1.9792],
+            [-0.8304, -1.3037,  0.5650],
+            [-1.2329,  1.9883,  1.0551]])
+
+[API Signature] input: tensor, other: tensor, dim: integer, out: tensor
+
+[Error Messages]
+RuntimeError: linalg.cross: inputs must have the same number of dimensions.
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: expected scalar type Half but found Float
+RuntimeError: linalg.cross: inputs dimension 0 must have length 3. Got 4 and 4
+TypeError: cross(): argument 'out' must be Tensor, not float
+RuntimeError: no dimension of size 3 in input
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got -357904761)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (a dimension of size 3 must exist when using default dim)
+{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 3 ∧ shape(v_2, i) = 3
+Token usage: input=2172, output=5672, total=7844
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.cross API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+cross(input, other, dim=None, *, out=None) -> Tensor
+
+
+Returns the cross product of vectors in dimension :attr:`dim` of :attr:`input`
+and :attr:`other`.
+
+Supports input of float, double, cfloat and cdouble dtypes. Also supports batches
+of vectors, for which it computes the product along the dimension :attr:`dim`.
+In this case, the output has the same batch dimensions as the inputs.
+
+.. warning::
+    If :attr:`dim` is not given, it defaults to the first dimension found
+    with the size 3. Note that this might be unexpected.
+
+    This behavior is deprecated and will be changed to match that of :func:`torch.linalg.cross`
+    in a future release.
+
+.. seealso::
+        :func:`torch.linalg.cross` which has dim=-1 as default.
+
+
+Args:
+    input (Tensor): the input tensor.
+    other (Tensor): the second input tensor
+    dim  (int, optional): the dimension to take the cross-product in.
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(4, 3)
+    >>> a
+    tensor([[-0.3956,  1.1455,  1.6895],
+            [-0.5849,  1.3672,  0.3599],
+            [-1.1626,  0.7180, -0.0521],
+            [-0.1339,  0.9902, -2.0225]])
+    >>> b = torch.randn(4, 3)
+    >>> b
+    tensor([[-0.0257, -1.4725, -1.2251],
+            [-1.1479, -0.7005, -1.9757],
+            [-1.3904,  0.3726, -1.1836],
+            [-0.9688, -0.7153,  0.2159]])
+    >>> torch.cross(a, b, dim=1)
+    tensor([[ 1.0844, -0.5281,  0.6120],
+            [-2.4490, -1.5687,  1.9792],
+            [-0.8304, -1.3037,  0.5650],
+            [-1.2329,  1.9883,  1.0551]])
+    >>> torch.cross(a, b)
+    tensor([[ 1.0844, -0.5281,  0.6120],
+            [-2.4490, -1.5687,  1.9792],
+            [-0.8304, -1.3037,  0.5650],
+            [-1.2329,  1.9883,  1.0551]])
+
+[API Signature] input: tensor, other: tensor, dim: integer, out: tensor
+
+[Error Messages]
+RuntimeError: linalg.cross: inputs must have the same number of dimensions.
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: expected scalar type Half but found Float
+RuntimeError: linalg.cross: inputs dimension 0 must have length 3. Got 4 and 4
+TypeError: cross(): argument 'out' must be Tensor, not float
+RuntimeError: no dimension of size 3 in input
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got -357904761)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (inputs dtypes must be supported and identical)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ dtype_(v_2) = dtype_(v_1)
+Token usage: input=2172, output=5672, total=7844
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.cross API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "constant", "reflect", "replicate", "circular", "nearest", "bilinear", "bicubic", "trilinear", "area", "linear"]
+
+[API Documentation]
+cross(input, other, dim=None, *, out=None) -> Tensor
+
+
+Returns the cross product of vectors in dimension :attr:`dim` of :attr:`input`
+and :attr:`other`.
+
+Supports input of float, double, cfloat and cdouble dtypes. Also supports batches
+of vectors, for which it computes the product along the dimension :attr:`dim`.
+In this case, the output has the same batch dimensions as the inputs.
+
+.. warning::
+    If :attr:`dim` is not given, it defaults to the first dimension found
+    with the size 3. Note that this might be unexpected.
+
+    This behavior is deprecated and will be changed to match that of :func:`torch.linalg.cross`
+    in a future release.
+
+.. seealso::
+        :func:`torch.linalg.cross` which has dim=-1 as default.
+
+
+Args:
+    input (Tensor): the input tensor.
+    other (Tensor): the second input tensor
+    dim  (int, optional): the dimension to take the cross-product in.
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(4, 3)
+    >>> a
+    tensor([[-0.3956,  1.1455,  1.6895],
+            [-0.5849,  1.3672,  0.3599],
+            [-1.1626,  0.7180, -0.0521],
+            [-0.1339,  0.9902, -2.0225]])
+    >>> b = torch.randn(4, 3)
+    >>> b
+    tensor([[-0.0257, -1.4725, -1.2251],
+            [-1.1479, -0.7005, -1.9757],
+            [-1.3904,  0.3726, -1.1836],
+            [-0.9688, -0.7153,  0.2159]])
+    >>> torch.cross(a, b, dim=1)
+    tensor([[ 1.0844, -0.5281,  0.6120],
+            [-2.4490, -1.5687,  1.9792],
+            [-0.8304, -1.3037,  0.5650],
+            [-1.2329,  1.9883,  1.0551]])
+    >>> torch.cross(a, b)
+    tensor([[ 1.0844, -0.5281,  0.6120],
+            [-2.4490, -1.5687,  1.9792],
+            [-0.8304, -1.3037,  0.5650],
+            [-1.2329,  1.9883,  1.0551]])
+
+[API Signature] input: tensor, other: tensor, dim: integer, out: tensor
+
+[Error Messages]
+RuntimeError: linalg.cross: inputs must have the same number of dimensions.
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+RuntimeError: expected scalar type Half but found Float
+RuntimeError: linalg.cross: inputs dimension 0 must have length 3. Got 4 and 4
+TypeError: cross(): argument 'out' must be Tensor, not float
+RuntimeError: no dimension of size 3 in input
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got -357904761)
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (out must be a tensor matching result shape and dtype)
+{v_1 : tensor, v_2 : tensor, v_4 : tensor} |= ndim(v_4) = ndim(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_4, i) = shape(v_1, i) ∧ dtype_(v_4) = dtype_(v_1)
+Token usage: input=2172, output=5672, total=7844
+** REDUNDANT VARIABLES ** (num_failures: 2)
+

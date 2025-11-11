@@ -1,0 +1,45 @@
+>>
+Rule 1 (mask rank must not exceed data rank)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≤ ndim(v_1)
+>>
+Rule 2 (mask must be boolean)
+{v_2 : tensor} |= dtype_(v_2) = 0
+>>
+Rule 3 (mask shape must be a prefix of data shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≥ 1 ∧ ndim(v_2) ≤ ndim(v_1) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, i)
+>>
+Rule 4 (2D mask with 2D data: dimensions must match)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_2, 0) = shape(v_1, 0) ∧ shape(v_2, 1) = shape(v_1, 1)
+>>
+Rule 5 (4D mask with 4D data: all leading dimensions must match)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ ∀i ∈ [0, 3] : shape(v_2, i) = shape(v_1, i)
+>>
+Rule 6 (3D mask applied to 6D data must match leading dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 6 ∧ ndim(v_2) = 3 ∧ ∀i ∈ [0, 2] : shape(v_2, i) = shape(v_1, i)
+>>
+Rule 7 (row-wise mask for 2D data)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_1, 0)
+>>
+Rule 9 (mask shape must be a prefix of data shape — suppresses all “Shapes (…) and (…) are incompatible”)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then true else ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, i)
+>>
+Rule 10 (when ranks are equal, all dimensions must match — suppresses 2D/2D and 4D/4D incompatibilities)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = ndim(v_1) then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, i))
+>>
+Rule 11 (2D mask must match first two data dims — suppresses cases like (0,58) vs (73,78))
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 2 then (shape(v_2, 0) = shape(v_1, 0) ∧ shape(v_2, 1) = shape(v_1, 1))
+>>
+Rule 12 (4D mask must match first four data dims — suppresses cases like (21,20,15,95) vs (6,10,56,96))
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 4 then (shape(v_2, 0) = shape(v_1, 0) ∧ shape(v_2, 1) = shape(v_1, 1) ∧ shape(v_2, 2) = shape(v_1, 2) ∧ shape(v_2, 3) = shape(v_1, 3))
+>>
+Rule 13 (3D mask used with higher-rank data must match first three data dims — suppresses cases like (37,76,77) vs (67,39,69,34,15))
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_2) = 3 ∧ ndim(v_1) ≥ 5) then (shape(v_2, 0) = shape(v_1, 0) ∧ shape(v_2, 1) = shape(v_1, 1) ∧ shape(v_2, 2) = shape(v_1, 2))
+>>
+Rule 14 (zero-size leading dimension must agree — suppresses cases like (0,58) vs (73,78))
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) ≥ 1 then (if shape(v_2, 0) = 0 then shape(v_1, 0) = 0)
+>>
+Rule 15 (name is an arbitrary string; accept any provided name)
+{v_3 : str} |= v_3 = v_3
+>>
+Rule 16 (mask has a well-defined dtype; dtype function is applicable)
+{v_2 : tensor} |= dtype_(v_2) = dtype_(v_2)

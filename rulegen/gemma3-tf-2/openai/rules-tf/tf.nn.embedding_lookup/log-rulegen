@@ -1,0 +1,2880 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.embedding_lookup API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Looks up embeddings for the given `ids` from a list of tensors.
+
+  This function is used to perform parallel lookups on the list of tensors in
+  `params`.  It is a generalization of `tf.gather`, where `params` is
+  interpreted as a partitioning of a large embedding tensor.
+
+  If `len(params) > 1`, each element `id` of `ids` is partitioned between the
+  elements of `params` according to the "div" partition strategy, which means we
+  assign ids to partitions in a contiguous manner. For instance, 13 ids are
+  split across 5 partitions as:
+  `[[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10], [11, 12]]`.
+
+  If the id space does not evenly divide the number of partitions, each of the
+  first `(max_id + 1) % len(params)` partitions will be assigned one more id.
+
+  The results of the lookup are concatenated into a dense
+  tensor. The returned tensor has shape `shape(ids) + shape(params)[1:]`.
+
+  Args:
+    params: A single tensor representing the complete embedding tensor, or a
+      list of tensors all of same shape except for the first dimension,
+      representing sharded embedding tensors following "div" partition strategy.
+    ids: A `Tensor` with type `int32` or `int64` containing the ids to be looked
+      up in `params`.
+    max_norm: If not `None`, each embedding is clipped if its l2-norm is larger
+      than this value.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` with the same type as the tensors in `params`.
+
+    For instance, if `params` is a 5x2 matrix:
+
+    ```python
+    [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+    ```
+
+    or a list of matrices:
+
+    ```python
+    params[0]: [[1, 2], [3, 4]]
+    params[1]: [[5, 6], [7, 8]]
+    params[2]: [[9, 10]]
+    ```
+
+    and `ids` is:
+
+    ```python
+    [0, 3, 4]
+    ```
+
+    The output will be a 3x2 matrix:
+
+    ```python
+    [[1, 2], [7, 8], [9, 10]]
+    ```
+
+  Raises:
+    ValueError: If `params` is empty.
+
+[Possible API Signatures]
+ - params: tensor, ids: tensor, max_norm: float, name: string
+ - params: tensor_list, ids: tensor, max_norm: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of complex64 is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64 	; NodeDef: {{node Greater}}; Op<name=Greater; signature=x:T, y:T -> z:bool; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64]> [Op:Greater] name:
+InvalidArgumentError: Value for attr 'Tindices' of bool is not in the list of allowed values: int16, int32, int64 	; NodeDef: {{node GatherV2}}; Op<name=GatherV2; signature=params:Tparams, indices:Tindices, axis:Taxis -> output:Tparams; attr=batch_dims:int,default=0; attr=Tparams:type; attr=Tindices:type,allowed=[DT_INT16, DT_INT32, DT_INT64]; attr=Taxis:type,allowed=[DT_INT32, DT_INT64]> [Op:GatherV2] name:
+InvalidArgumentError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} indices[3,16,20,5,15] = 5878097349004437504 is not in [0, 61) [Op:GatherV2] name:
+ResourceExhaustedError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} OOM when allocating tensor with shape[16,39,93,93,47,51,46] and type half on /job:localhost/replica:0/task:0/device:CPU:0 by allocator mklcpu [Op:GatherV2] name:
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (ids must be 32- or 64-bit integers)
+{v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+Token usage: input=2346, output=7250, total=9596
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.embedding_lookup API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Looks up embeddings for the given `ids` from a list of tensors.
+
+  This function is used to perform parallel lookups on the list of tensors in
+  `params`.  It is a generalization of `tf.gather`, where `params` is
+  interpreted as a partitioning of a large embedding tensor.
+
+  If `len(params) > 1`, each element `id` of `ids` is partitioned between the
+  elements of `params` according to the "div" partition strategy, which means we
+  assign ids to partitions in a contiguous manner. For instance, 13 ids are
+  split across 5 partitions as:
+  `[[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10], [11, 12]]`.
+
+  If the id space does not evenly divide the number of partitions, each of the
+  first `(max_id + 1) % len(params)` partitions will be assigned one more id.
+
+  The results of the lookup are concatenated into a dense
+  tensor. The returned tensor has shape `shape(ids) + shape(params)[1:]`.
+
+  Args:
+    params: A single tensor representing the complete embedding tensor, or a
+      list of tensors all of same shape except for the first dimension,
+      representing sharded embedding tensors following "div" partition strategy.
+    ids: A `Tensor` with type `int32` or `int64` containing the ids to be looked
+      up in `params`.
+    max_norm: If not `None`, each embedding is clipped if its l2-norm is larger
+      than this value.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` with the same type as the tensors in `params`.
+
+    For instance, if `params` is a 5x2 matrix:
+
+    ```python
+    [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+    ```
+
+    or a list of matrices:
+
+    ```python
+    params[0]: [[1, 2], [3, 4]]
+    params[1]: [[5, 6], [7, 8]]
+    params[2]: [[9, 10]]
+    ```
+
+    and `ids` is:
+
+    ```python
+    [0, 3, 4]
+    ```
+
+    The output will be a 3x2 matrix:
+
+    ```python
+    [[1, 2], [7, 8], [9, 10]]
+    ```
+
+  Raises:
+    ValueError: If `params` is empty.
+
+[Possible API Signatures]
+ - params: tensor, ids: tensor, max_norm: float, name: string
+ - params: tensor_list, ids: tensor, max_norm: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of complex64 is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64 	; NodeDef: {{node Greater}}; Op<name=Greater; signature=x:T, y:T -> z:bool; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64]> [Op:Greater] name:
+InvalidArgumentError: Value for attr 'Tindices' of bool is not in the list of allowed values: int16, int32, int64 	; NodeDef: {{node GatherV2}}; Op<name=GatherV2; signature=params:Tparams, indices:Tindices, axis:Taxis -> output:Tparams; attr=batch_dims:int,default=0; attr=Tparams:type; attr=Tindices:type,allowed=[DT_INT16, DT_INT32, DT_INT64]; attr=Taxis:type,allowed=[DT_INT32, DT_INT64]> [Op:GatherV2] name:
+InvalidArgumentError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} indices[3,16,20,5,15] = 5878097349004437504 is not in [0, 61) [Op:GatherV2] name:
+ResourceExhaustedError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} OOM when allocating tensor with shape[16,39,93,93,47,51,46] and type half on /job:localhost/replica:0/task:0/device:CPU:0 by allocator mklcpu [Op:GatherV2] name:
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (embedding parameters must have a real, non-boolean, non-string, non-complex dtype)
+{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+Token usage: input=2346, output=7250, total=9596
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.embedding_lookup API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Looks up embeddings for the given `ids` from a list of tensors.
+
+  This function is used to perform parallel lookups on the list of tensors in
+  `params`.  It is a generalization of `tf.gather`, where `params` is
+  interpreted as a partitioning of a large embedding tensor.
+
+  If `len(params) > 1`, each element `id` of `ids` is partitioned between the
+  elements of `params` according to the "div" partition strategy, which means we
+  assign ids to partitions in a contiguous manner. For instance, 13 ids are
+  split across 5 partitions as:
+  `[[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10], [11, 12]]`.
+
+  If the id space does not evenly divide the number of partitions, each of the
+  first `(max_id + 1) % len(params)` partitions will be assigned one more id.
+
+  The results of the lookup are concatenated into a dense
+  tensor. The returned tensor has shape `shape(ids) + shape(params)[1:]`.
+
+  Args:
+    params: A single tensor representing the complete embedding tensor, or a
+      list of tensors all of same shape except for the first dimension,
+      representing sharded embedding tensors following "div" partition strategy.
+    ids: A `Tensor` with type `int32` or `int64` containing the ids to be looked
+      up in `params`.
+    max_norm: If not `None`, each embedding is clipped if its l2-norm is larger
+      than this value.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` with the same type as the tensors in `params`.
+
+    For instance, if `params` is a 5x2 matrix:
+
+    ```python
+    [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+    ```
+
+    or a list of matrices:
+
+    ```python
+    params[0]: [[1, 2], [3, 4]]
+    params[1]: [[5, 6], [7, 8]]
+    params[2]: [[9, 10]]
+    ```
+
+    and `ids` is:
+
+    ```python
+    [0, 3, 4]
+    ```
+
+    The output will be a 3x2 matrix:
+
+    ```python
+    [[1, 2], [7, 8], [9, 10]]
+    ```
+
+  Raises:
+    ValueError: If `params` is empty.
+
+[Possible API Signatures]
+ - params: tensor, ids: tensor, max_norm: float, name: string
+ - params: tensor_list, ids: tensor, max_norm: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of complex64 is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64 	; NodeDef: {{node Greater}}; Op<name=Greater; signature=x:T, y:T -> z:bool; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64]> [Op:Greater] name:
+InvalidArgumentError: Value for attr 'Tindices' of bool is not in the list of allowed values: int16, int32, int64 	; NodeDef: {{node GatherV2}}; Op<name=GatherV2; signature=params:Tparams, indices:Tindices, axis:Taxis -> output:Tparams; attr=batch_dims:int,default=0; attr=Tparams:type; attr=Tindices:type,allowed=[DT_INT16, DT_INT32, DT_INT64]; attr=Taxis:type,allowed=[DT_INT32, DT_INT64]> [Op:GatherV2] name:
+InvalidArgumentError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} indices[3,16,20,5,15] = 5878097349004437504 is not in [0, 61) [Op:GatherV2] name:
+ResourceExhaustedError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} OOM when allocating tensor with shape[16,39,93,93,47,51,46] and type half on /job:localhost/replica:0/task:0/device:CPU:0 by allocator mklcpu [Op:GatherV2] name:
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (ids must be within the valid row range of a single embedding tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ max(v_2) ≤ shape(v_1, 0) - 1
+Token usage: input=2346, output=7250, total=9596
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.embedding_lookup API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Looks up embeddings for the given `ids` from a list of tensors.
+
+  This function is used to perform parallel lookups on the list of tensors in
+  `params`.  It is a generalization of `tf.gather`, where `params` is
+  interpreted as a partitioning of a large embedding tensor.
+
+  If `len(params) > 1`, each element `id` of `ids` is partitioned between the
+  elements of `params` according to the "div" partition strategy, which means we
+  assign ids to partitions in a contiguous manner. For instance, 13 ids are
+  split across 5 partitions as:
+  `[[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10], [11, 12]]`.
+
+  If the id space does not evenly divide the number of partitions, each of the
+  first `(max_id + 1) % len(params)` partitions will be assigned one more id.
+
+  The results of the lookup are concatenated into a dense
+  tensor. The returned tensor has shape `shape(ids) + shape(params)[1:]`.
+
+  Args:
+    params: A single tensor representing the complete embedding tensor, or a
+      list of tensors all of same shape except for the first dimension,
+      representing sharded embedding tensors following "div" partition strategy.
+    ids: A `Tensor` with type `int32` or `int64` containing the ids to be looked
+      up in `params`.
+    max_norm: If not `None`, each embedding is clipped if its l2-norm is larger
+      than this value.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` with the same type as the tensors in `params`.
+
+    For instance, if `params` is a 5x2 matrix:
+
+    ```python
+    [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+    ```
+
+    or a list of matrices:
+
+    ```python
+    params[0]: [[1, 2], [3, 4]]
+    params[1]: [[5, 6], [7, 8]]
+    params[2]: [[9, 10]]
+    ```
+
+    and `ids` is:
+
+    ```python
+    [0, 3, 4]
+    ```
+
+    The output will be a 3x2 matrix:
+
+    ```python
+    [[1, 2], [7, 8], [9, 10]]
+    ```
+
+  Raises:
+    ValueError: If `params` is empty.
+
+[Possible API Signatures]
+ - params: tensor, ids: tensor, max_norm: float, name: string
+ - params: tensor_list, ids: tensor, max_norm: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of complex64 is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64 	; NodeDef: {{node Greater}}; Op<name=Greater; signature=x:T, y:T -> z:bool; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64]> [Op:Greater] name:
+InvalidArgumentError: Value for attr 'Tindices' of bool is not in the list of allowed values: int16, int32, int64 	; NodeDef: {{node GatherV2}}; Op<name=GatherV2; signature=params:Tparams, indices:Tindices, axis:Taxis -> output:Tparams; attr=batch_dims:int,default=0; attr=Tparams:type; attr=Tindices:type,allowed=[DT_INT16, DT_INT32, DT_INT64]; attr=Taxis:type,allowed=[DT_INT32, DT_INT64]> [Op:GatherV2] name:
+InvalidArgumentError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} indices[3,16,20,5,15] = 5878097349004437504 is not in [0, 61) [Op:GatherV2] name:
+ResourceExhaustedError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} OOM when allocating tensor with shape[16,39,93,93,47,51,46] and type half on /job:localhost/replica:0/task:0/device:CPU:0 by allocator mklcpu [Op:GatherV2] name:
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (sharded params (tuple of tensors) must be non-empty)
+{v_1 : tuple(tensor)} |= v_1.len > 0
+Token usage: input=2346, output=7250, total=9596
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.embedding_lookup API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Looks up embeddings for the given `ids` from a list of tensors.
+
+  This function is used to perform parallel lookups on the list of tensors in
+  `params`.  It is a generalization of `tf.gather`, where `params` is
+  interpreted as a partitioning of a large embedding tensor.
+
+  If `len(params) > 1`, each element `id` of `ids` is partitioned between the
+  elements of `params` according to the "div" partition strategy, which means we
+  assign ids to partitions in a contiguous manner. For instance, 13 ids are
+  split across 5 partitions as:
+  `[[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10], [11, 12]]`.
+
+  If the id space does not evenly divide the number of partitions, each of the
+  first `(max_id + 1) % len(params)` partitions will be assigned one more id.
+
+  The results of the lookup are concatenated into a dense
+  tensor. The returned tensor has shape `shape(ids) + shape(params)[1:]`.
+
+  Args:
+    params: A single tensor representing the complete embedding tensor, or a
+      list of tensors all of same shape except for the first dimension,
+      representing sharded embedding tensors following "div" partition strategy.
+    ids: A `Tensor` with type `int32` or `int64` containing the ids to be looked
+      up in `params`.
+    max_norm: If not `None`, each embedding is clipped if its l2-norm is larger
+      than this value.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` with the same type as the tensors in `params`.
+
+    For instance, if `params` is a 5x2 matrix:
+
+    ```python
+    [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+    ```
+
+    or a list of matrices:
+
+    ```python
+    params[0]: [[1, 2], [3, 4]]
+    params[1]: [[5, 6], [7, 8]]
+    params[2]: [[9, 10]]
+    ```
+
+    and `ids` is:
+
+    ```python
+    [0, 3, 4]
+    ```
+
+    The output will be a 3x2 matrix:
+
+    ```python
+    [[1, 2], [7, 8], [9, 10]]
+    ```
+
+  Raises:
+    ValueError: If `params` is empty.
+
+[Possible API Signatures]
+ - params: tensor, ids: tensor, max_norm: float, name: string
+ - params: tensor_list, ids: tensor, max_norm: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of complex64 is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64 	; NodeDef: {{node Greater}}; Op<name=Greater; signature=x:T, y:T -> z:bool; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64]> [Op:Greater] name:
+InvalidArgumentError: Value for attr 'Tindices' of bool is not in the list of allowed values: int16, int32, int64 	; NodeDef: {{node GatherV2}}; Op<name=GatherV2; signature=params:Tparams, indices:Tindices, axis:Taxis -> output:Tparams; attr=batch_dims:int,default=0; attr=Tparams:type; attr=Tindices:type,allowed=[DT_INT16, DT_INT32, DT_INT64]; attr=Taxis:type,allowed=[DT_INT32, DT_INT64]> [Op:GatherV2] name:
+InvalidArgumentError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} indices[3,16,20,5,15] = 5878097349004437504 is not in [0, 61) [Op:GatherV2] name:
+ResourceExhaustedError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} OOM when allocating tensor with shape[16,39,93,93,47,51,46] and type half on /job:localhost/replica:0/task:0/device:CPU:0 by allocator mklcpu [Op:GatherV2] name:
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (limit ids tensor size to mitigate OOM during gather)
+{v_2 : tensor} |= ndim(v_2) ≤ 4 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) ≤ 2048
+Token usage: input=2346, output=7250, total=9596
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.embedding_lookup API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Looks up embeddings for the given `ids` from a list of tensors.
+
+  This function is used to perform parallel lookups on the list of tensors in
+  `params`.  It is a generalization of `tf.gather`, where `params` is
+  interpreted as a partitioning of a large embedding tensor.
+
+  If `len(params) > 1`, each element `id` of `ids` is partitioned between the
+  elements of `params` according to the "div" partition strategy, which means we
+  assign ids to partitions in a contiguous manner. For instance, 13 ids are
+  split across 5 partitions as:
+  `[[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10], [11, 12]]`.
+
+  If the id space does not evenly divide the number of partitions, each of the
+  first `(max_id + 1) % len(params)` partitions will be assigned one more id.
+
+  The results of the lookup are concatenated into a dense
+  tensor. The returned tensor has shape `shape(ids) + shape(params)[1:]`.
+
+  Args:
+    params: A single tensor representing the complete embedding tensor, or a
+      list of tensors all of same shape except for the first dimension,
+      representing sharded embedding tensors following "div" partition strategy.
+    ids: A `Tensor` with type `int32` or `int64` containing the ids to be looked
+      up in `params`.
+    max_norm: If not `None`, each embedding is clipped if its l2-norm is larger
+      than this value.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` with the same type as the tensors in `params`.
+
+    For instance, if `params` is a 5x2 matrix:
+
+    ```python
+    [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+    ```
+
+    or a list of matrices:
+
+    ```python
+    params[0]: [[1, 2], [3, 4]]
+    params[1]: [[5, 6], [7, 8]]
+    params[2]: [[9, 10]]
+    ```
+
+    and `ids` is:
+
+    ```python
+    [0, 3, 4]
+    ```
+
+    The output will be a 3x2 matrix:
+
+    ```python
+    [[1, 2], [7, 8], [9, 10]]
+    ```
+
+  Raises:
+    ValueError: If `params` is empty.
+
+[Possible API Signatures]
+ - params: tensor, ids: tensor, max_norm: float, name: string
+ - params: tensor_list, ids: tensor, max_norm: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of complex64 is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64 	; NodeDef: {{node Greater}}; Op<name=Greater; signature=x:T, y:T -> z:bool; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64]> [Op:Greater] name:
+InvalidArgumentError: Value for attr 'Tindices' of bool is not in the list of allowed values: int16, int32, int64 	; NodeDef: {{node GatherV2}}; Op<name=GatherV2; signature=params:Tparams, indices:Tindices, axis:Taxis -> output:Tparams; attr=batch_dims:int,default=0; attr=Tparams:type; attr=Tindices:type,allowed=[DT_INT16, DT_INT32, DT_INT64]; attr=Taxis:type,allowed=[DT_INT32, DT_INT64]> [Op:GatherV2] name:
+InvalidArgumentError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} indices[3,16,20,5,15] = 5878097349004437504 is not in [0, 61) [Op:GatherV2] name:
+ResourceExhaustedError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} OOM when allocating tensor with shape[16,39,93,93,47,51,46] and type half on /job:localhost/replica:0/task:0/device:CPU:0 by allocator mklcpu [Op:GatherV2] name:
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (embedding tensor must be at least 1-D with a positive first dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 1 ∧ shape(v_1, 0) > 0
+Token usage: input=2346, output=7250, total=9596
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.embedding_lookup API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Looks up embeddings for the given `ids` from a list of tensors.
+
+  This function is used to perform parallel lookups on the list of tensors in
+  `params`.  It is a generalization of `tf.gather`, where `params` is
+  interpreted as a partitioning of a large embedding tensor.
+
+  If `len(params) > 1`, each element `id` of `ids` is partitioned between the
+  elements of `params` according to the "div" partition strategy, which means we
+  assign ids to partitions in a contiguous manner. For instance, 13 ids are
+  split across 5 partitions as:
+  `[[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10], [11, 12]]`.
+
+  If the id space does not evenly divide the number of partitions, each of the
+  first `(max_id + 1) % len(params)` partitions will be assigned one more id.
+
+  The results of the lookup are concatenated into a dense
+  tensor. The returned tensor has shape `shape(ids) + shape(params)[1:]`.
+
+  Args:
+    params: A single tensor representing the complete embedding tensor, or a
+      list of tensors all of same shape except for the first dimension,
+      representing sharded embedding tensors following "div" partition strategy.
+    ids: A `Tensor` with type `int32` or `int64` containing the ids to be looked
+      up in `params`.
+    max_norm: If not `None`, each embedding is clipped if its l2-norm is larger
+      than this value.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` with the same type as the tensors in `params`.
+
+    For instance, if `params` is a 5x2 matrix:
+
+    ```python
+    [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+    ```
+
+    or a list of matrices:
+
+    ```python
+    params[0]: [[1, 2], [3, 4]]
+    params[1]: [[5, 6], [7, 8]]
+    params[2]: [[9, 10]]
+    ```
+
+    and `ids` is:
+
+    ```python
+    [0, 3, 4]
+    ```
+
+    The output will be a 3x2 matrix:
+
+    ```python
+    [[1, 2], [7, 8], [9, 10]]
+    ```
+
+  Raises:
+    ValueError: If `params` is empty.
+
+[Possible API Signatures]
+ - params: tensor, ids: tensor, max_norm: float, name: string
+ - params: tensor_list, ids: tensor, max_norm: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of complex64 is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64 	; NodeDef: {{node Greater}}; Op<name=Greater; signature=x:T, y:T -> z:bool; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64]> [Op:Greater] name:
+InvalidArgumentError: Value for attr 'Tindices' of bool is not in the list of allowed values: int16, int32, int64 	; NodeDef: {{node GatherV2}}; Op<name=GatherV2; signature=params:Tparams, indices:Tindices, axis:Taxis -> output:Tparams; attr=batch_dims:int,default=0; attr=Tparams:type; attr=Tindices:type,allowed=[DT_INT16, DT_INT32, DT_INT64]; attr=Taxis:type,allowed=[DT_INT32, DT_INT64]> [Op:GatherV2] name:
+InvalidArgumentError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} indices[3,16,20,5,15] = 5878097349004437504 is not in [0, 61) [Op:GatherV2] name:
+ResourceExhaustedError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} OOM when allocating tensor with shape[16,39,93,93,47,51,46] and type half on /job:localhost/replica:0/task:0/device:CPU:0 by allocator mklcpu [Op:GatherV2] name:
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (max_norm must be non-negative)
+{v_3 : float} |= v_3 ≥ 0
+Token usage: input=2346, output=7250, total=9596
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.embedding_lookup API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Looks up embeddings for the given `ids` from a list of tensors.
+
+  This function is used to perform parallel lookups on the list of tensors in
+  `params`.  It is a generalization of `tf.gather`, where `params` is
+  interpreted as a partitioning of a large embedding tensor.
+
+  If `len(params) > 1`, each element `id` of `ids` is partitioned between the
+  elements of `params` according to the "div" partition strategy, which means we
+  assign ids to partitions in a contiguous manner. For instance, 13 ids are
+  split across 5 partitions as:
+  `[[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10], [11, 12]]`.
+
+  If the id space does not evenly divide the number of partitions, each of the
+  first `(max_id + 1) % len(params)` partitions will be assigned one more id.
+
+  The results of the lookup are concatenated into a dense
+  tensor. The returned tensor has shape `shape(ids) + shape(params)[1:]`.
+
+  Args:
+    params: A single tensor representing the complete embedding tensor, or a
+      list of tensors all of same shape except for the first dimension,
+      representing sharded embedding tensors following "div" partition strategy.
+    ids: A `Tensor` with type `int32` or `int64` containing the ids to be looked
+      up in `params`.
+    max_norm: If not `None`, each embedding is clipped if its l2-norm is larger
+      than this value.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` with the same type as the tensors in `params`.
+
+    For instance, if `params` is a 5x2 matrix:
+
+    ```python
+    [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+    ```
+
+    or a list of matrices:
+
+    ```python
+    params[0]: [[1, 2], [3, 4]]
+    params[1]: [[5, 6], [7, 8]]
+    params[2]: [[9, 10]]
+    ```
+
+    and `ids` is:
+
+    ```python
+    [0, 3, 4]
+    ```
+
+    The output will be a 3x2 matrix:
+
+    ```python
+    [[1, 2], [7, 8], [9, 10]]
+    ```
+
+  Raises:
+    ValueError: If `params` is empty.
+
+[Possible API Signatures]
+ - params: tensor, ids: tensor, max_norm: float, name: string
+ - params: tensor_list, ids: tensor, max_norm: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of complex64 is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64 	; NodeDef: {{node Greater}}; Op<name=Greater; signature=x:T, y:T -> z:bool; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64]> [Op:Greater] name:
+InvalidArgumentError: Value for attr 'Tindices' of bool is not in the list of allowed values: int16, int32, int64 	; NodeDef: {{node GatherV2}}; Op<name=GatherV2; signature=params:Tparams, indices:Tindices, axis:Taxis -> output:Tparams; attr=batch_dims:int,default=0; attr=Tparams:type; attr=Tindices:type,allowed=[DT_INT16, DT_INT32, DT_INT64]; attr=Taxis:type,allowed=[DT_INT32, DT_INT64]> [Op:GatherV2] name:
+InvalidArgumentError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} indices[3,16,20,5,15] = 5878097349004437504 is not in [0, 61) [Op:GatherV2] name:
+ResourceExhaustedError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} OOM when allocating tensor with shape[16,39,93,93,47,51,46] and type half on /job:localhost/replica:0/task:0/device:CPU:0 by allocator mklcpu [Op:GatherV2] name:
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (operation name should be a valid string literal)
+{v_4 : str} |= v_4 = "relu" ∨ v_4 = "tanh" ∨ v_4 = "sigmoid" ∨ v_4 = "softmax" ∨ v_4 = "elu" ∨ v_4 = "selu" ∨ v_4 = "gelu" ∨ v_4 = "swish" ∨ v_4 = "softplus" ∨ v_4 = "linear" ∨ v_4 = "none" ∨ v_4 = "sum" ∨ v_4 = "max" ∨ v_4 = "min" ∨ v_4 = "prod"
+Token usage: input=2346, output=7250, total=9596
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.embedding_lookup API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Looks up embeddings for the given `ids` from a list of tensors.
+
+  This function is used to perform parallel lookups on the list of tensors in
+  `params`.  It is a generalization of `tf.gather`, where `params` is
+  interpreted as a partitioning of a large embedding tensor.
+
+  If `len(params) > 1`, each element `id` of `ids` is partitioned between the
+  elements of `params` according to the "div" partition strategy, which means we
+  assign ids to partitions in a contiguous manner. For instance, 13 ids are
+  split across 5 partitions as:
+  `[[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10], [11, 12]]`.
+
+  If the id space does not evenly divide the number of partitions, each of the
+  first `(max_id + 1) % len(params)` partitions will be assigned one more id.
+
+  The results of the lookup are concatenated into a dense
+  tensor. The returned tensor has shape `shape(ids) + shape(params)[1:]`.
+
+  Args:
+    params: A single tensor representing the complete embedding tensor, or a
+      list of tensors all of same shape except for the first dimension,
+      representing sharded embedding tensors following "div" partition strategy.
+    ids: A `Tensor` with type `int32` or `int64` containing the ids to be looked
+      up in `params`.
+    max_norm: If not `None`, each embedding is clipped if its l2-norm is larger
+      than this value.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` with the same type as the tensors in `params`.
+
+    For instance, if `params` is a 5x2 matrix:
+
+    ```python
+    [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+    ```
+
+    or a list of matrices:
+
+    ```python
+    params[0]: [[1, 2], [3, 4]]
+    params[1]: [[5, 6], [7, 8]]
+    params[2]: [[9, 10]]
+    ```
+
+    and `ids` is:
+
+    ```python
+    [0, 3, 4]
+    ```
+
+    The output will be a 3x2 matrix:
+
+    ```python
+    [[1, 2], [7, 8], [9, 10]]
+    ```
+
+  Raises:
+    ValueError: If `params` is empty.
+
+[Possible API Signatures]
+ - params: tensor, ids: tensor, max_norm: float, name: string
+ - params: tensor_list, ids: tensor, max_norm: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of complex64 is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64 	; NodeDef: {{node Greater}}; Op<name=Greater; signature=x:T, y:T -> z:bool; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64]> [Op:Greater] name:
+InvalidArgumentError: Value for attr 'Tindices' of bool is not in the list of allowed values: int16, int32, int64 	; NodeDef: {{node GatherV2}}; Op<name=GatherV2; signature=params:Tparams, indices:Tindices, axis:Taxis -> output:Tparams; attr=batch_dims:int,default=0; attr=Tparams:type; attr=Tindices:type,allowed=[DT_INT16, DT_INT32, DT_INT64]; attr=Taxis:type,allowed=[DT_INT32, DT_INT64]> [Op:GatherV2] name:
+InvalidArgumentError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} indices[3,16,20,5,15] = 5878097349004437504 is not in [0, 61) [Op:GatherV2] name:
+ResourceExhaustedError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} OOM when allocating tensor with shape[16,39,93,93,47,51,46] and type half on /job:localhost/replica:0/task:0/device:CPU:0 by allocator mklcpu [Op:GatherV2] name:
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (ids must be non-negative for sharded lookups as well)
+{v_2 : tensor} |= min(v_2) ≥ 0
+Token usage: input=2346, output=7250, total=9596
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.embedding_lookup API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Looks up embeddings for the given `ids` from a list of tensors.
+
+  This function is used to perform parallel lookups on the list of tensors in
+  `params`.  It is a generalization of `tf.gather`, where `params` is
+  interpreted as a partitioning of a large embedding tensor.
+
+  If `len(params) > 1`, each element `id` of `ids` is partitioned between the
+  elements of `params` according to the "div" partition strategy, which means we
+  assign ids to partitions in a contiguous manner. For instance, 13 ids are
+  split across 5 partitions as:
+  `[[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10], [11, 12]]`.
+
+  If the id space does not evenly divide the number of partitions, each of the
+  first `(max_id + 1) % len(params)` partitions will be assigned one more id.
+
+  The results of the lookup are concatenated into a dense
+  tensor. The returned tensor has shape `shape(ids) + shape(params)[1:]`.
+
+  Args:
+    params: A single tensor representing the complete embedding tensor, or a
+      list of tensors all of same shape except for the first dimension,
+      representing sharded embedding tensors following "div" partition strategy.
+    ids: A `Tensor` with type `int32` or `int64` containing the ids to be looked
+      up in `params`.
+    max_norm: If not `None`, each embedding is clipped if its l2-norm is larger
+      than this value.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` with the same type as the tensors in `params`.
+
+    For instance, if `params` is a 5x2 matrix:
+
+    ```python
+    [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+    ```
+
+    or a list of matrices:
+
+    ```python
+    params[0]: [[1, 2], [3, 4]]
+    params[1]: [[5, 6], [7, 8]]
+    params[2]: [[9, 10]]
+    ```
+
+    and `ids` is:
+
+    ```python
+    [0, 3, 4]
+    ```
+
+    The output will be a 3x2 matrix:
+
+    ```python
+    [[1, 2], [7, 8], [9, 10]]
+    ```
+
+  Raises:
+    ValueError: If `params` is empty.
+
+[Possible API Signatures]
+ - params: tensor, ids: tensor, max_norm: float, name: string
+ - params: tensor_list, ids: tensor, max_norm: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of complex64 is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64 	; NodeDef: {{node Greater}}; Op<name=Greater; signature=x:T, y:T -> z:bool; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64]> [Op:Greater] name:
+InvalidArgumentError: Value for attr 'Tindices' of bool is not in the list of allowed values: int16, int32, int64 	; NodeDef: {{node GatherV2}}; Op<name=GatherV2; signature=params:Tparams, indices:Tindices, axis:Taxis -> output:Tparams; attr=batch_dims:int,default=0; attr=Tparams:type; attr=Tindices:type,allowed=[DT_INT16, DT_INT32, DT_INT64]; attr=Taxis:type,allowed=[DT_INT32, DT_INT64]> [Op:GatherV2] name:
+InvalidArgumentError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} indices[3,16,20,5,15] = 5878097349004437504 is not in [0, 61) [Op:GatherV2] name:
+ResourceExhaustedError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} OOM when allocating tensor with shape[16,39,93,93,47,51,46] and type half on /job:localhost/replica:0/task:0/device:CPU:0 by allocator mklcpu [Op:GatherV2] name:
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (ids tensor must have integer dtype: int32 or int64)
+{v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+Token usage: input=2350, output=8340, total=10690
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.embedding_lookup API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Looks up embeddings for the given `ids` from a list of tensors.
+
+  This function is used to perform parallel lookups on the list of tensors in
+  `params`.  It is a generalization of `tf.gather`, where `params` is
+  interpreted as a partitioning of a large embedding tensor.
+
+  If `len(params) > 1`, each element `id` of `ids` is partitioned between the
+  elements of `params` according to the "div" partition strategy, which means we
+  assign ids to partitions in a contiguous manner. For instance, 13 ids are
+  split across 5 partitions as:
+  `[[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10], [11, 12]]`.
+
+  If the id space does not evenly divide the number of partitions, each of the
+  first `(max_id + 1) % len(params)` partitions will be assigned one more id.
+
+  The results of the lookup are concatenated into a dense
+  tensor. The returned tensor has shape `shape(ids) + shape(params)[1:]`.
+
+  Args:
+    params: A single tensor representing the complete embedding tensor, or a
+      list of tensors all of same shape except for the first dimension,
+      representing sharded embedding tensors following "div" partition strategy.
+    ids: A `Tensor` with type `int32` or `int64` containing the ids to be looked
+      up in `params`.
+    max_norm: If not `None`, each embedding is clipped if its l2-norm is larger
+      than this value.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` with the same type as the tensors in `params`.
+
+    For instance, if `params` is a 5x2 matrix:
+
+    ```python
+    [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+    ```
+
+    or a list of matrices:
+
+    ```python
+    params[0]: [[1, 2], [3, 4]]
+    params[1]: [[5, 6], [7, 8]]
+    params[2]: [[9, 10]]
+    ```
+
+    and `ids` is:
+
+    ```python
+    [0, 3, 4]
+    ```
+
+    The output will be a 3x2 matrix:
+
+    ```python
+    [[1, 2], [7, 8], [9, 10]]
+    ```
+
+  Raises:
+    ValueError: If `params` is empty.
+
+[Possible API Signatures]
+ - params: tensor, ids: tensor, max_norm: float, name: string
+ - params: tensor_list, ids: tensor, max_norm: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of complex64 is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64 	; NodeDef: {{node Greater}}; Op<name=Greater; signature=x:T, y:T -> z:bool; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64]> [Op:Greater] name:
+InvalidArgumentError: Value for attr 'Tindices' of bool is not in the list of allowed values: int16, int32, int64 	; NodeDef: {{node GatherV2}}; Op<name=GatherV2; signature=params:Tparams, indices:Tindices, axis:Taxis -> output:Tparams; attr=batch_dims:int,default=0; attr=Tparams:type; attr=Tindices:type,allowed=[DT_INT16, DT_INT32, DT_INT64]; attr=Taxis:type,allowed=[DT_INT32, DT_INT64]> [Op:GatherV2] name:
+InvalidArgumentError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} indices[3,16,20,5,15] = 5878097349004437504 is not in [0, 61) [Op:GatherV2] name:
+ResourceExhaustedError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} OOM when allocating tensor with shape[16,39,93,93,47,51,46] and type half on /job:localhost/replica:0/task:0/device:CPU:0 by allocator mklcpu [Op:GatherV2] name:
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (ids values must be within the valid range of the embedding rows for single-tensor params)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ max(v_2) ≤ shape(v_1, 0) - 1
+Token usage: input=2350, output=8340, total=10690
+** DUPLICATED RULE ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.embedding_lookup API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Looks up embeddings for the given `ids` from a list of tensors.
+
+  This function is used to perform parallel lookups on the list of tensors in
+  `params`.  It is a generalization of `tf.gather`, where `params` is
+  interpreted as a partitioning of a large embedding tensor.
+
+  If `len(params) > 1`, each element `id` of `ids` is partitioned between the
+  elements of `params` according to the "div" partition strategy, which means we
+  assign ids to partitions in a contiguous manner. For instance, 13 ids are
+  split across 5 partitions as:
+  `[[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10], [11, 12]]`.
+
+  If the id space does not evenly divide the number of partitions, each of the
+  first `(max_id + 1) % len(params)` partitions will be assigned one more id.
+
+  The results of the lookup are concatenated into a dense
+  tensor. The returned tensor has shape `shape(ids) + shape(params)[1:]`.
+
+  Args:
+    params: A single tensor representing the complete embedding tensor, or a
+      list of tensors all of same shape except for the first dimension,
+      representing sharded embedding tensors following "div" partition strategy.
+    ids: A `Tensor` with type `int32` or `int64` containing the ids to be looked
+      up in `params`.
+    max_norm: If not `None`, each embedding is clipped if its l2-norm is larger
+      than this value.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` with the same type as the tensors in `params`.
+
+    For instance, if `params` is a 5x2 matrix:
+
+    ```python
+    [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+    ```
+
+    or a list of matrices:
+
+    ```python
+    params[0]: [[1, 2], [3, 4]]
+    params[1]: [[5, 6], [7, 8]]
+    params[2]: [[9, 10]]
+    ```
+
+    and `ids` is:
+
+    ```python
+    [0, 3, 4]
+    ```
+
+    The output will be a 3x2 matrix:
+
+    ```python
+    [[1, 2], [7, 8], [9, 10]]
+    ```
+
+  Raises:
+    ValueError: If `params` is empty.
+
+[Possible API Signatures]
+ - params: tensor, ids: tensor, max_norm: float, name: string
+ - params: tensor_list, ids: tensor, max_norm: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of complex64 is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64 	; NodeDef: {{node Greater}}; Op<name=Greater; signature=x:T, y:T -> z:bool; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64]> [Op:Greater] name:
+InvalidArgumentError: Value for attr 'Tindices' of bool is not in the list of allowed values: int16, int32, int64 	; NodeDef: {{node GatherV2}}; Op<name=GatherV2; signature=params:Tparams, indices:Tindices, axis:Taxis -> output:Tparams; attr=batch_dims:int,default=0; attr=Tparams:type; attr=Tindices:type,allowed=[DT_INT16, DT_INT32, DT_INT64]; attr=Taxis:type,allowed=[DT_INT32, DT_INT64]> [Op:GatherV2] name:
+InvalidArgumentError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} indices[3,16,20,5,15] = 5878097349004437504 is not in [0, 61) [Op:GatherV2] name:
+ResourceExhaustedError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} OOM when allocating tensor with shape[16,39,93,93,47,51,46] and type half on /job:localhost/replica:0/task:0/device:CPU:0 by allocator mklcpu [Op:GatherV2] name:
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (params list must be non-empty)
+{v_1 : list(tensor)} |= v_1.len > 0
+Token usage: input=2350, output=8340, total=10690
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.embedding_lookup API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Looks up embeddings for the given `ids` from a list of tensors.
+
+  This function is used to perform parallel lookups on the list of tensors in
+  `params`.  It is a generalization of `tf.gather`, where `params` is
+  interpreted as a partitioning of a large embedding tensor.
+
+  If `len(params) > 1`, each element `id` of `ids` is partitioned between the
+  elements of `params` according to the "div" partition strategy, which means we
+  assign ids to partitions in a contiguous manner. For instance, 13 ids are
+  split across 5 partitions as:
+  `[[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10], [11, 12]]`.
+
+  If the id space does not evenly divide the number of partitions, each of the
+  first `(max_id + 1) % len(params)` partitions will be assigned one more id.
+
+  The results of the lookup are concatenated into a dense
+  tensor. The returned tensor has shape `shape(ids) + shape(params)[1:]`.
+
+  Args:
+    params: A single tensor representing the complete embedding tensor, or a
+      list of tensors all of same shape except for the first dimension,
+      representing sharded embedding tensors following "div" partition strategy.
+    ids: A `Tensor` with type `int32` or `int64` containing the ids to be looked
+      up in `params`.
+    max_norm: If not `None`, each embedding is clipped if its l2-norm is larger
+      than this value.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` with the same type as the tensors in `params`.
+
+    For instance, if `params` is a 5x2 matrix:
+
+    ```python
+    [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+    ```
+
+    or a list of matrices:
+
+    ```python
+    params[0]: [[1, 2], [3, 4]]
+    params[1]: [[5, 6], [7, 8]]
+    params[2]: [[9, 10]]
+    ```
+
+    and `ids` is:
+
+    ```python
+    [0, 3, 4]
+    ```
+
+    The output will be a 3x2 matrix:
+
+    ```python
+    [[1, 2], [7, 8], [9, 10]]
+    ```
+
+  Raises:
+    ValueError: If `params` is empty.
+
+[Possible API Signatures]
+ - params: tensor, ids: tensor, max_norm: float, name: string
+ - params: tensor_list, ids: tensor, max_norm: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of complex64 is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64 	; NodeDef: {{node Greater}}; Op<name=Greater; signature=x:T, y:T -> z:bool; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64]> [Op:Greater] name:
+InvalidArgumentError: Value for attr 'Tindices' of bool is not in the list of allowed values: int16, int32, int64 	; NodeDef: {{node GatherV2}}; Op<name=GatherV2; signature=params:Tparams, indices:Tindices, axis:Taxis -> output:Tparams; attr=batch_dims:int,default=0; attr=Tparams:type; attr=Tindices:type,allowed=[DT_INT16, DT_INT32, DT_INT64]; attr=Taxis:type,allowed=[DT_INT32, DT_INT64]> [Op:GatherV2] name:
+InvalidArgumentError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} indices[3,16,20,5,15] = 5878097349004437504 is not in [0, 61) [Op:GatherV2] name:
+ResourceExhaustedError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} OOM when allocating tensor with shape[16,39,93,93,47,51,46] and type half on /job:localhost/replica:0/task:0/device:CPU:0 by allocator mklcpu [Op:GatherV2] name:
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (max_norm must be a non-negative number)
+{v_3 : int ⊎ float} |= v_3 ≥ 0
+Token usage: input=2350, output=8340, total=10690
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.embedding_lookup API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Looks up embeddings for the given `ids` from a list of tensors.
+
+  This function is used to perform parallel lookups on the list of tensors in
+  `params`.  It is a generalization of `tf.gather`, where `params` is
+  interpreted as a partitioning of a large embedding tensor.
+
+  If `len(params) > 1`, each element `id` of `ids` is partitioned between the
+  elements of `params` according to the "div" partition strategy, which means we
+  assign ids to partitions in a contiguous manner. For instance, 13 ids are
+  split across 5 partitions as:
+  `[[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10], [11, 12]]`.
+
+  If the id space does not evenly divide the number of partitions, each of the
+  first `(max_id + 1) % len(params)` partitions will be assigned one more id.
+
+  The results of the lookup are concatenated into a dense
+  tensor. The returned tensor has shape `shape(ids) + shape(params)[1:]`.
+
+  Args:
+    params: A single tensor representing the complete embedding tensor, or a
+      list of tensors all of same shape except for the first dimension,
+      representing sharded embedding tensors following "div" partition strategy.
+    ids: A `Tensor` with type `int32` or `int64` containing the ids to be looked
+      up in `params`.
+    max_norm: If not `None`, each embedding is clipped if its l2-norm is larger
+      than this value.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` with the same type as the tensors in `params`.
+
+    For instance, if `params` is a 5x2 matrix:
+
+    ```python
+    [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+    ```
+
+    or a list of matrices:
+
+    ```python
+    params[0]: [[1, 2], [3, 4]]
+    params[1]: [[5, 6], [7, 8]]
+    params[2]: [[9, 10]]
+    ```
+
+    and `ids` is:
+
+    ```python
+    [0, 3, 4]
+    ```
+
+    The output will be a 3x2 matrix:
+
+    ```python
+    [[1, 2], [7, 8], [9, 10]]
+    ```
+
+  Raises:
+    ValueError: If `params` is empty.
+
+[Possible API Signatures]
+ - params: tensor, ids: tensor, max_norm: float, name: string
+ - params: tensor_list, ids: tensor, max_norm: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of complex64 is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64 	; NodeDef: {{node Greater}}; Op<name=Greater; signature=x:T, y:T -> z:bool; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64]> [Op:Greater] name:
+InvalidArgumentError: Value for attr 'Tindices' of bool is not in the list of allowed values: int16, int32, int64 	; NodeDef: {{node GatherV2}}; Op<name=GatherV2; signature=params:Tparams, indices:Tindices, axis:Taxis -> output:Tparams; attr=batch_dims:int,default=0; attr=Tparams:type; attr=Tindices:type,allowed=[DT_INT16, DT_INT32, DT_INT64]; attr=Taxis:type,allowed=[DT_INT32, DT_INT64]> [Op:GatherV2] name:
+InvalidArgumentError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} indices[3,16,20,5,15] = 5878097349004437504 is not in [0, 61) [Op:GatherV2] name:
+ResourceExhaustedError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} OOM when allocating tensor with shape[16,39,93,93,47,51,46] and type half on /job:localhost/replica:0/task:0/device:CPU:0 by allocator mklcpu [Op:GatherV2] name:
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 14 (params tensor values should not have complex dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+Token usage: input=2350, output=8340, total=10690
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.embedding_lookup API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Looks up embeddings for the given `ids` from a list of tensors.
+
+  This function is used to perform parallel lookups on the list of tensors in
+  `params`.  It is a generalization of `tf.gather`, where `params` is
+  interpreted as a partitioning of a large embedding tensor.
+
+  If `len(params) > 1`, each element `id` of `ids` is partitioned between the
+  elements of `params` according to the "div" partition strategy, which means we
+  assign ids to partitions in a contiguous manner. For instance, 13 ids are
+  split across 5 partitions as:
+  `[[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10], [11, 12]]`.
+
+  If the id space does not evenly divide the number of partitions, each of the
+  first `(max_id + 1) % len(params)` partitions will be assigned one more id.
+
+  The results of the lookup are concatenated into a dense
+  tensor. The returned tensor has shape `shape(ids) + shape(params)[1:]`.
+
+  Args:
+    params: A single tensor representing the complete embedding tensor, or a
+      list of tensors all of same shape except for the first dimension,
+      representing sharded embedding tensors following "div" partition strategy.
+    ids: A `Tensor` with type `int32` or `int64` containing the ids to be looked
+      up in `params`.
+    max_norm: If not `None`, each embedding is clipped if its l2-norm is larger
+      than this value.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` with the same type as the tensors in `params`.
+
+    For instance, if `params` is a 5x2 matrix:
+
+    ```python
+    [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+    ```
+
+    or a list of matrices:
+
+    ```python
+    params[0]: [[1, 2], [3, 4]]
+    params[1]: [[5, 6], [7, 8]]
+    params[2]: [[9, 10]]
+    ```
+
+    and `ids` is:
+
+    ```python
+    [0, 3, 4]
+    ```
+
+    The output will be a 3x2 matrix:
+
+    ```python
+    [[1, 2], [7, 8], [9, 10]]
+    ```
+
+  Raises:
+    ValueError: If `params` is empty.
+
+[Possible API Signatures]
+ - params: tensor, ids: tensor, max_norm: float, name: string
+ - params: tensor_list, ids: tensor, max_norm: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of complex64 is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64 	; NodeDef: {{node Greater}}; Op<name=Greater; signature=x:T, y:T -> z:bool; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64]> [Op:Greater] name:
+InvalidArgumentError: Value for attr 'Tindices' of bool is not in the list of allowed values: int16, int32, int64 	; NodeDef: {{node GatherV2}}; Op<name=GatherV2; signature=params:Tparams, indices:Tindices, axis:Taxis -> output:Tparams; attr=batch_dims:int,default=0; attr=Tparams:type; attr=Tindices:type,allowed=[DT_INT16, DT_INT32, DT_INT64]; attr=Taxis:type,allowed=[DT_INT32, DT_INT64]> [Op:GatherV2] name:
+InvalidArgumentError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} indices[3,16,20,5,15] = 5878097349004437504 is not in [0, 61) [Op:GatherV2] name:
+ResourceExhaustedError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} OOM when allocating tensor with shape[16,39,93,93,47,51,46] and type half on /job:localhost/replica:0/task:0/device:CPU:0 by allocator mklcpu [Op:GatherV2] name:
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 15 (avoid OOM: bound the size of ids and the embedding width for single-tensor params)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) ≤ 100000) ∧ (∀j ∈ [1, ndim(v_1) - 1] : shape(v_1, j) ≤ 4096)
+Token usage: input=2350, output=8340, total=10690
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.embedding_lookup API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Looks up embeddings for the given `ids` from a list of tensors.
+
+  This function is used to perform parallel lookups on the list of tensors in
+  `params`.  It is a generalization of `tf.gather`, where `params` is
+  interpreted as a partitioning of a large embedding tensor.
+
+  If `len(params) > 1`, each element `id` of `ids` is partitioned between the
+  elements of `params` according to the "div" partition strategy, which means we
+  assign ids to partitions in a contiguous manner. For instance, 13 ids are
+  split across 5 partitions as:
+  `[[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10], [11, 12]]`.
+
+  If the id space does not evenly divide the number of partitions, each of the
+  first `(max_id + 1) % len(params)` partitions will be assigned one more id.
+
+  The results of the lookup are concatenated into a dense
+  tensor. The returned tensor has shape `shape(ids) + shape(params)[1:]`.
+
+  Args:
+    params: A single tensor representing the complete embedding tensor, or a
+      list of tensors all of same shape except for the first dimension,
+      representing sharded embedding tensors following "div" partition strategy.
+    ids: A `Tensor` with type `int32` or `int64` containing the ids to be looked
+      up in `params`.
+    max_norm: If not `None`, each embedding is clipped if its l2-norm is larger
+      than this value.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` with the same type as the tensors in `params`.
+
+    For instance, if `params` is a 5x2 matrix:
+
+    ```python
+    [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+    ```
+
+    or a list of matrices:
+
+    ```python
+    params[0]: [[1, 2], [3, 4]]
+    params[1]: [[5, 6], [7, 8]]
+    params[2]: [[9, 10]]
+    ```
+
+    and `ids` is:
+
+    ```python
+    [0, 3, 4]
+    ```
+
+    The output will be a 3x2 matrix:
+
+    ```python
+    [[1, 2], [7, 8], [9, 10]]
+    ```
+
+  Raises:
+    ValueError: If `params` is empty.
+
+[Possible API Signatures]
+ - params: tensor, ids: tensor, max_norm: float, name: string
+ - params: tensor_list, ids: tensor, max_norm: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of complex64 is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64 	; NodeDef: {{node Greater}}; Op<name=Greater; signature=x:T, y:T -> z:bool; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64]> [Op:Greater] name:
+InvalidArgumentError: Value for attr 'Tindices' of bool is not in the list of allowed values: int16, int32, int64 	; NodeDef: {{node GatherV2}}; Op<name=GatherV2; signature=params:Tparams, indices:Tindices, axis:Taxis -> output:Tparams; attr=batch_dims:int,default=0; attr=Tparams:type; attr=Tindices:type,allowed=[DT_INT16, DT_INT32, DT_INT64]; attr=Taxis:type,allowed=[DT_INT32, DT_INT64]> [Op:GatherV2] name:
+InvalidArgumentError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} indices[3,16,20,5,15] = 5878097349004437504 is not in [0, 61) [Op:GatherV2] name:
+ResourceExhaustedError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} OOM when allocating tensor with shape[16,39,93,93,47,51,46] and type half on /job:localhost/replica:0/task:0/device:CPU:0 by allocator mklcpu [Op:GatherV2] name:
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 16 (avoid OOM with sharded params: limit number of shards and ids size)
+{v_1 : list(tensor), v_2 : tensor} |= v_1.len ≤ 1024 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) ≤ 100000
+Token usage: input=2350, output=8340, total=10690
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.embedding_lookup API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Looks up embeddings for the given `ids` from a list of tensors.
+
+  This function is used to perform parallel lookups on the list of tensors in
+  `params`.  It is a generalization of `tf.gather`, where `params` is
+  interpreted as a partitioning of a large embedding tensor.
+
+  If `len(params) > 1`, each element `id` of `ids` is partitioned between the
+  elements of `params` according to the "div" partition strategy, which means we
+  assign ids to partitions in a contiguous manner. For instance, 13 ids are
+  split across 5 partitions as:
+  `[[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10], [11, 12]]`.
+
+  If the id space does not evenly divide the number of partitions, each of the
+  first `(max_id + 1) % len(params)` partitions will be assigned one more id.
+
+  The results of the lookup are concatenated into a dense
+  tensor. The returned tensor has shape `shape(ids) + shape(params)[1:]`.
+
+  Args:
+    params: A single tensor representing the complete embedding tensor, or a
+      list of tensors all of same shape except for the first dimension,
+      representing sharded embedding tensors following "div" partition strategy.
+    ids: A `Tensor` with type `int32` or `int64` containing the ids to be looked
+      up in `params`.
+    max_norm: If not `None`, each embedding is clipped if its l2-norm is larger
+      than this value.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` with the same type as the tensors in `params`.
+
+    For instance, if `params` is a 5x2 matrix:
+
+    ```python
+    [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+    ```
+
+    or a list of matrices:
+
+    ```python
+    params[0]: [[1, 2], [3, 4]]
+    params[1]: [[5, 6], [7, 8]]
+    params[2]: [[9, 10]]
+    ```
+
+    and `ids` is:
+
+    ```python
+    [0, 3, 4]
+    ```
+
+    The output will be a 3x2 matrix:
+
+    ```python
+    [[1, 2], [7, 8], [9, 10]]
+    ```
+
+  Raises:
+    ValueError: If `params` is empty.
+
+[Possible API Signatures]
+ - params: tensor, ids: tensor, max_norm: float, name: string
+ - params: tensor_list, ids: tensor, max_norm: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of complex64 is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64 	; NodeDef: {{node Greater}}; Op<name=Greater; signature=x:T, y:T -> z:bool; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64]> [Op:Greater] name:
+InvalidArgumentError: Value for attr 'Tindices' of bool is not in the list of allowed values: int16, int32, int64 	; NodeDef: {{node GatherV2}}; Op<name=GatherV2; signature=params:Tparams, indices:Tindices, axis:Taxis -> output:Tparams; attr=batch_dims:int,default=0; attr=Tparams:type; attr=Tindices:type,allowed=[DT_INT16, DT_INT32, DT_INT64]; attr=Taxis:type,allowed=[DT_INT32, DT_INT64]> [Op:GatherV2] name:
+InvalidArgumentError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} indices[3,16,20,5,15] = 5878097349004437504 is not in [0, 61) [Op:GatherV2] name:
+ResourceExhaustedError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} OOM when allocating tensor with shape[16,39,93,93,47,51,46] and type half on /job:localhost/replica:0/task:0/device:CPU:0 by allocator mklcpu [Op:GatherV2] name:
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 17 (name, if provided, should be a regular identifier rather than the sentinel "none")
+{v_4 : str} |= v_4 ≠ "none"
+Token usage: input=2350, output=8340, total=10690
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.nn.embedding_lookup API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Looks up embeddings for the given `ids` from a list of tensors.
+
+  This function is used to perform parallel lookups on the list of tensors in
+  `params`.  It is a generalization of `tf.gather`, where `params` is
+  interpreted as a partitioning of a large embedding tensor.
+
+  If `len(params) > 1`, each element `id` of `ids` is partitioned between the
+  elements of `params` according to the "div" partition strategy, which means we
+  assign ids to partitions in a contiguous manner. For instance, 13 ids are
+  split across 5 partitions as:
+  `[[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10], [11, 12]]`.
+
+  If the id space does not evenly divide the number of partitions, each of the
+  first `(max_id + 1) % len(params)` partitions will be assigned one more id.
+
+  The results of the lookup are concatenated into a dense
+  tensor. The returned tensor has shape `shape(ids) + shape(params)[1:]`.
+
+  Args:
+    params: A single tensor representing the complete embedding tensor, or a
+      list of tensors all of same shape except for the first dimension,
+      representing sharded embedding tensors following "div" partition strategy.
+    ids: A `Tensor` with type `int32` or `int64` containing the ids to be looked
+      up in `params`.
+    max_norm: If not `None`, each embedding is clipped if its l2-norm is larger
+      than this value.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` with the same type as the tensors in `params`.
+
+    For instance, if `params` is a 5x2 matrix:
+
+    ```python
+    [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+    ```
+
+    or a list of matrices:
+
+    ```python
+    params[0]: [[1, 2], [3, 4]]
+    params[1]: [[5, 6], [7, 8]]
+    params[2]: [[9, 10]]
+    ```
+
+    and `ids` is:
+
+    ```python
+    [0, 3, 4]
+    ```
+
+    The output will be a 3x2 matrix:
+
+    ```python
+    [[1, 2], [7, 8], [9, 10]]
+    ```
+
+  Raises:
+    ValueError: If `params` is empty.
+
+[Possible API Signatures]
+ - params: tensor, ids: tensor, max_norm: float, name: string
+ - params: tensor_list, ids: tensor, max_norm: float, name: string
+
+[Error Messages]
+InvalidArgumentError: Value for attr 'T' of complex64 is not in the list of allowed values: float, double, int32, uint8, int16, int8, int64, bfloat16, uint16, half, uint32, uint64 	; NodeDef: {{node Greater}}; Op<name=Greater; signature=x:T, y:T -> z:bool; attr=T:type,allowed=[DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_INT8, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_HALF, DT_UINT32, DT_UINT64]> [Op:Greater] name:
+InvalidArgumentError: Value for attr 'Tindices' of bool is not in the list of allowed values: int16, int32, int64 	; NodeDef: {{node GatherV2}}; Op<name=GatherV2; signature=params:Tparams, indices:Tindices, axis:Taxis -> output:Tparams; attr=batch_dims:int,default=0; attr=Tparams:type; attr=Tindices:type,allowed=[DT_INT16, DT_INT32, DT_INT64]; attr=Taxis:type,allowed=[DT_INT32, DT_INT64]> [Op:GatherV2] name:
+InvalidArgumentError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} indices[3,16,20,5,15] = 5878097349004437504 is not in [0, 61) [Op:GatherV2] name:
+ResourceExhaustedError: {{function_node __wrapped__GatherV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} OOM when allocating tensor with shape[16,39,93,93,47,51,46] and type half on /job:localhost/replica:0/task:0/device:CPU:0 by allocator mklcpu [Op:GatherV2] name:
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 18 (single-tensor params must be at least 1-D to index rows)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+Token usage: input=2350, output=8340, total=10690
+** SUCCESS **
+

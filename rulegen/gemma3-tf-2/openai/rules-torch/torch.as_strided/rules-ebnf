@@ -1,0 +1,18 @@
+>>
+Rule 1 (sizes and strides length must equal tensor ndim; avoids “mismatch in length of strides and shape”)
+{v_1: tensor, v_2: tuple(int), v_3: tuple(int)} |= v_2.len = v_3.len ∧ v_2.len = ndim(v_1)
+>>
+Rule 2 (strides must be non-negative; avoids “Negative strides are not supported”)
+{v_3: tuple(int)} |= ∀i ∈ [0, v_3.len - 1] : v_3[i] ≥ 0
+>>
+Rule 3 (sizes must be non-negative; avoids “Storage size calculation overflowed with sizes=[-5] and strides=[2]”)
+{v_2: tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+>>
+Rule 4 (storage_offset must be non-negative; avoids “Tensor: invalid storage offset -3”)
+{v_4: int} |= v_4 ≥ 0
+>>
+Rule 5 (empty-storage input may only produce an empty view; avoids “out of bounds for storage of size 0”)
+{v_1: tensor, v_2: tuple(int)} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then ∀j ∈ [0, v_2.len - 1] : v_2[j] = 0
+>>
+Rule 6 (requested per-dimension sizes should not exceed input shape; helps avoid storage overrun)
+{v_1: tensor, v_2: tuple(int)} |= v_2.len = ndim(v_1) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≤ shape(v_1, i)

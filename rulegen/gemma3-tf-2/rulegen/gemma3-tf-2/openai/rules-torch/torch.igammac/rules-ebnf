@@ -1,0 +1,15 @@
+>>
+Rule 1 (input and other are broadcastable with equal ranks; prevents size-mismatch errors)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i)) ∨ (shape(v_1, i) = 1) ∨ (shape(v_2, i) = 1)
+>>
+Rule 2 (out shape matches the broadcasted shape of input and other; prevents size-mismatch when writing to out)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_3) = ndim(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1] : if shape(v_1, i) = shape(v_2, i) then shape(v_3, i) = shape(v_1, i) else ((shape(v_1, i) = 1 ∧ shape(v_3, i) = shape(v_2, i)) ∨ (shape(v_2, i) = 1 ∧ shape(v_3, i) = shape(v_1, i)))
+>>
+Rule 3 (out dtype matches inputs’ dtype; avoids float-to-int cast error)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_3) = dtype_(v_1)
+>>
+Rule 4 (valid numeric domain for igammac/gammaincc: a > 0 and x ≥ 0)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) > 0 ∧ min(v_2) ≥ 0
+>>
+Rule 5 (no zero-sized dimensions in inputs; reduces shape-mismatch cases like 0 vs 3)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) > 0)

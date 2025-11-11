@@ -1,0 +1,2548 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.matvec API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Multiplies matrix `a` by vector `b`, producing `a` * `b`.
+
+  The matrix `a` must, following any transpositions, be a tensor of rank >= 2,
+  with `shape(a)[-1] == shape(b)[-1]`, and `shape(a)[:-2]` able to broadcast
+  with `shape(b)[:-1]`.
+
+  Both `a` and `b` must be of the same type. The supported types are:
+  `float16`, `float32`, `float64`, `int32`, `complex64`, `complex128`.
+
+  Matrix `a` can be transposed or adjointed (conjugated and transposed) on
+  the fly by setting one of the corresponding flag to `True`. These are `False`
+  by default.
+
+  If one or both of the inputs contain a lot of zeros, a more efficient
+  multiplication algorithm can be used by setting the corresponding
+  `a_is_sparse` or `b_is_sparse` flag to `True`. These are `False` by default.
+  This optimization is only available for plain matrices/vectors (rank-2/1
+  tensors) with datatypes `bfloat16` or `float32`.
+
+  For example:
+
+  ```python
+  # 2-D tensor `a`
+  # [[1, 2, 3],
+  #  [4, 5, 6]]
+  a = tf.constant([1, 2, 3, 4, 5, 6], shape=[2, 3])
+
+  # 1-D tensor `b`
+  # [7, 9, 11]
+  b = tf.constant([7, 9, 11], shape=[3])
+
+  # `a` * `b`
+  # [ 58,  139]
+  c = tf.linalg.matvec(a, b)
+
+
+  # 3-D tensor `a`
+  # [[[ 1,  2,  3],
+  #   [ 4,  5,  6]],
+  #  [[ 7,  8,  9],
+  #   [10, 11, 12]]]
+  a = tf.constant(np.arange(1, 13, dtype=np.int32),
+                  shape=[2, 2, 3])
+
+  # 2-D tensor `b`
+  # [[13, 14, 15],
+  #  [16, 17, 18]]
+  b = tf.constant(np.arange(13, 19, dtype=np.int32),
+                  shape=[2, 3])
+
+  # `a` * `b`
+  # [[ 86, 212],
+  #  [410, 563]]
+  c = tf.linalg.matvec(a, b)
+  ```
+
+  Args:
+    a: `Tensor` of type `float16`, `float32`, `float64`, `int32`, `complex64`,
+      `complex128` and rank > 1.
+    b: `Tensor` with same type as `a` and compatible dimensions.
+    transpose_a: If `True`, `a` is transposed before multiplication.
+    adjoint_a: If `True`, `a` is conjugated and transposed before
+      multiplication.
+    a_is_sparse: If `True`, `a` is treated as a sparse matrix.
+    b_is_sparse: If `True`, `b` is treated as a sparse matrix.
+    name: Name for the operation (optional).
+
+  Returns:
+    A `Tensor` of the same type as `a` and `b` where each inner-most vector is
+    the product of the corresponding matrices in `a` and vectors in `b`, e.g. if
+    all transpose or adjoint attributes are `False`:
+
+    `output`[..., i] = sum_k (`a`[..., i, k] * `b`[..., k]), for all indices i.
+
+    Note: This is matrix-vector product, not element-wise product.
+
+
+  Raises:
+    ValueError: If transpose_a and adjoint_a are both set to True.
+
+[API Signature] a: tensor, b: tensor, transpose_a: boolean, adjoint_a: boolean, a_is_sparse: boolean, b_is_sparse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: cannot compute _MklBatchMatMulV2 as input #1(zero-based) was expected to be a float tensor but is a complex128 tensor [Op:BatchMatMulV2] name:
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int16, int32, int64, uint8, uint16, uint32, uint64, complex64, complex128 	; NodeDef: {{node BatchMatMulV2}}; Op<name=BatchMatMulV2; signature=x:T, y:T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_COMPLEX64, DT_COMPLEX128]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=grad_x:bool,default=false; attr=grad_y:bool,default=false> [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__BatchMatMulV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] and In[1] must have compatible batch dimensions: [41,28,86,0] vs. [37,66,1] [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__SparseMatMul_device_/job:localhost/replica:0/task:0/device:CPU:0}} a is not a matrix [Op:SparseMatMul] name:
+NotFoundError: Could not find device for node: {{node BatchMatMulV2}} = BatchMatMulV2[T=DT_UINT8, adj_x=false, adj_y=false, grad_x=false, grad_y=false] All kernels registered for op BatchMatMulV2:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]  [Op:BatchMatMulV2] name:
+NotFoundError: Could not find device for node: {{node MatMul}} = MatMul[T=DT_UINT8, grad_a=false, grad_b=false, transpose_a=false, transpose_b=false] All kernels registered for op MatMul:   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]  [Op:MatMul] name:
+TypeError: Expected numeric or variant tensor, got dtype tf.bool.
+ValueError: Only one of `transpose_a` and `adjoint_a` can be True. Received `transpose_a`=True, `adjoint_a`=True.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 1 (supported and matching dtypes for a and b)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+Token usage: input=3441, output=7059, total=10500
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.matvec API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Multiplies matrix `a` by vector `b`, producing `a` * `b`.
+
+  The matrix `a` must, following any transpositions, be a tensor of rank >= 2,
+  with `shape(a)[-1] == shape(b)[-1]`, and `shape(a)[:-2]` able to broadcast
+  with `shape(b)[:-1]`.
+
+  Both `a` and `b` must be of the same type. The supported types are:
+  `float16`, `float32`, `float64`, `int32`, `complex64`, `complex128`.
+
+  Matrix `a` can be transposed or adjointed (conjugated and transposed) on
+  the fly by setting one of the corresponding flag to `True`. These are `False`
+  by default.
+
+  If one or both of the inputs contain a lot of zeros, a more efficient
+  multiplication algorithm can be used by setting the corresponding
+  `a_is_sparse` or `b_is_sparse` flag to `True`. These are `False` by default.
+  This optimization is only available for plain matrices/vectors (rank-2/1
+  tensors) with datatypes `bfloat16` or `float32`.
+
+  For example:
+
+  ```python
+  # 2-D tensor `a`
+  # [[1, 2, 3],
+  #  [4, 5, 6]]
+  a = tf.constant([1, 2, 3, 4, 5, 6], shape=[2, 3])
+
+  # 1-D tensor `b`
+  # [7, 9, 11]
+  b = tf.constant([7, 9, 11], shape=[3])
+
+  # `a` * `b`
+  # [ 58,  139]
+  c = tf.linalg.matvec(a, b)
+
+
+  # 3-D tensor `a`
+  # [[[ 1,  2,  3],
+  #   [ 4,  5,  6]],
+  #  [[ 7,  8,  9],
+  #   [10, 11, 12]]]
+  a = tf.constant(np.arange(1, 13, dtype=np.int32),
+                  shape=[2, 2, 3])
+
+  # 2-D tensor `b`
+  # [[13, 14, 15],
+  #  [16, 17, 18]]
+  b = tf.constant(np.arange(13, 19, dtype=np.int32),
+                  shape=[2, 3])
+
+  # `a` * `b`
+  # [[ 86, 212],
+  #  [410, 563]]
+  c = tf.linalg.matvec(a, b)
+  ```
+
+  Args:
+    a: `Tensor` of type `float16`, `float32`, `float64`, `int32`, `complex64`,
+      `complex128` and rank > 1.
+    b: `Tensor` with same type as `a` and compatible dimensions.
+    transpose_a: If `True`, `a` is transposed before multiplication.
+    adjoint_a: If `True`, `a` is conjugated and transposed before
+      multiplication.
+    a_is_sparse: If `True`, `a` is treated as a sparse matrix.
+    b_is_sparse: If `True`, `b` is treated as a sparse matrix.
+    name: Name for the operation (optional).
+
+  Returns:
+    A `Tensor` of the same type as `a` and `b` where each inner-most vector is
+    the product of the corresponding matrices in `a` and vectors in `b`, e.g. if
+    all transpose or adjoint attributes are `False`:
+
+    `output`[..., i] = sum_k (`a`[..., i, k] * `b`[..., k]), for all indices i.
+
+    Note: This is matrix-vector product, not element-wise product.
+
+
+  Raises:
+    ValueError: If transpose_a and adjoint_a are both set to True.
+
+[API Signature] a: tensor, b: tensor, transpose_a: boolean, adjoint_a: boolean, a_is_sparse: boolean, b_is_sparse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: cannot compute _MklBatchMatMulV2 as input #1(zero-based) was expected to be a float tensor but is a complex128 tensor [Op:BatchMatMulV2] name:
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int16, int32, int64, uint8, uint16, uint32, uint64, complex64, complex128 	; NodeDef: {{node BatchMatMulV2}}; Op<name=BatchMatMulV2; signature=x:T, y:T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_COMPLEX64, DT_COMPLEX128]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=grad_x:bool,default=false; attr=grad_y:bool,default=false> [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__BatchMatMulV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] and In[1] must have compatible batch dimensions: [41,28,86,0] vs. [37,66,1] [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__SparseMatMul_device_/job:localhost/replica:0/task:0/device:CPU:0}} a is not a matrix [Op:SparseMatMul] name:
+NotFoundError: Could not find device for node: {{node BatchMatMulV2}} = BatchMatMulV2[T=DT_UINT8, adj_x=false, adj_y=false, grad_x=false, grad_y=false] All kernels registered for op BatchMatMulV2:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]  [Op:BatchMatMulV2] name:
+NotFoundError: Could not find device for node: {{node MatMul}} = MatMul[T=DT_UINT8, grad_a=false, grad_b=false, transpose_a=false, transpose_b=false] All kernels registered for op MatMul:   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]  [Op:MatMul] name:
+TypeError: Expected numeric or variant tensor, got dtype tf.bool.
+ValueError: Only one of `transpose_a` and `adjoint_a` can be True. Received `transpose_a`=True, `adjoint_a`=True.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 2 (no boolean tensors for a or b)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0
+Token usage: input=3441, output=7059, total=10500
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.matvec API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Multiplies matrix `a` by vector `b`, producing `a` * `b`.
+
+  The matrix `a` must, following any transpositions, be a tensor of rank >= 2,
+  with `shape(a)[-1] == shape(b)[-1]`, and `shape(a)[:-2]` able to broadcast
+  with `shape(b)[:-1]`.
+
+  Both `a` and `b` must be of the same type. The supported types are:
+  `float16`, `float32`, `float64`, `int32`, `complex64`, `complex128`.
+
+  Matrix `a` can be transposed or adjointed (conjugated and transposed) on
+  the fly by setting one of the corresponding flag to `True`. These are `False`
+  by default.
+
+  If one or both of the inputs contain a lot of zeros, a more efficient
+  multiplication algorithm can be used by setting the corresponding
+  `a_is_sparse` or `b_is_sparse` flag to `True`. These are `False` by default.
+  This optimization is only available for plain matrices/vectors (rank-2/1
+  tensors) with datatypes `bfloat16` or `float32`.
+
+  For example:
+
+  ```python
+  # 2-D tensor `a`
+  # [[1, 2, 3],
+  #  [4, 5, 6]]
+  a = tf.constant([1, 2, 3, 4, 5, 6], shape=[2, 3])
+
+  # 1-D tensor `b`
+  # [7, 9, 11]
+  b = tf.constant([7, 9, 11], shape=[3])
+
+  # `a` * `b`
+  # [ 58,  139]
+  c = tf.linalg.matvec(a, b)
+
+
+  # 3-D tensor `a`
+  # [[[ 1,  2,  3],
+  #   [ 4,  5,  6]],
+  #  [[ 7,  8,  9],
+  #   [10, 11, 12]]]
+  a = tf.constant(np.arange(1, 13, dtype=np.int32),
+                  shape=[2, 2, 3])
+
+  # 2-D tensor `b`
+  # [[13, 14, 15],
+  #  [16, 17, 18]]
+  b = tf.constant(np.arange(13, 19, dtype=np.int32),
+                  shape=[2, 3])
+
+  # `a` * `b`
+  # [[ 86, 212],
+  #  [410, 563]]
+  c = tf.linalg.matvec(a, b)
+  ```
+
+  Args:
+    a: `Tensor` of type `float16`, `float32`, `float64`, `int32`, `complex64`,
+      `complex128` and rank > 1.
+    b: `Tensor` with same type as `a` and compatible dimensions.
+    transpose_a: If `True`, `a` is transposed before multiplication.
+    adjoint_a: If `True`, `a` is conjugated and transposed before
+      multiplication.
+    a_is_sparse: If `True`, `a` is treated as a sparse matrix.
+    b_is_sparse: If `True`, `b` is treated as a sparse matrix.
+    name: Name for the operation (optional).
+
+  Returns:
+    A `Tensor` of the same type as `a` and `b` where each inner-most vector is
+    the product of the corresponding matrices in `a` and vectors in `b`, e.g. if
+    all transpose or adjoint attributes are `False`:
+
+    `output`[..., i] = sum_k (`a`[..., i, k] * `b`[..., k]), for all indices i.
+
+    Note: This is matrix-vector product, not element-wise product.
+
+
+  Raises:
+    ValueError: If transpose_a and adjoint_a are both set to True.
+
+[API Signature] a: tensor, b: tensor, transpose_a: boolean, adjoint_a: boolean, a_is_sparse: boolean, b_is_sparse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: cannot compute _MklBatchMatMulV2 as input #1(zero-based) was expected to be a float tensor but is a complex128 tensor [Op:BatchMatMulV2] name:
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int16, int32, int64, uint8, uint16, uint32, uint64, complex64, complex128 	; NodeDef: {{node BatchMatMulV2}}; Op<name=BatchMatMulV2; signature=x:T, y:T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_COMPLEX64, DT_COMPLEX128]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=grad_x:bool,default=false; attr=grad_y:bool,default=false> [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__BatchMatMulV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] and In[1] must have compatible batch dimensions: [41,28,86,0] vs. [37,66,1] [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__SparseMatMul_device_/job:localhost/replica:0/task:0/device:CPU:0}} a is not a matrix [Op:SparseMatMul] name:
+NotFoundError: Could not find device for node: {{node BatchMatMulV2}} = BatchMatMulV2[T=DT_UINT8, adj_x=false, adj_y=false, grad_x=false, grad_y=false] All kernels registered for op BatchMatMulV2:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]  [Op:BatchMatMulV2] name:
+NotFoundError: Could not find device for node: {{node MatMul}} = MatMul[T=DT_UINT8, grad_a=false, grad_b=false, transpose_a=false, transpose_b=false] All kernels registered for op MatMul:   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]  [Op:MatMul] name:
+TypeError: Expected numeric or variant tensor, got dtype tf.bool.
+ValueError: Only one of `transpose_a` and `adjoint_a` can be True. Received `transpose_a`=True, `adjoint_a`=True.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 3 (rank requirements for matrix a and vector b)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 1
+Token usage: input=3441, output=7059, total=10500
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.matvec API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Multiplies matrix `a` by vector `b`, producing `a` * `b`.
+
+  The matrix `a` must, following any transpositions, be a tensor of rank >= 2,
+  with `shape(a)[-1] == shape(b)[-1]`, and `shape(a)[:-2]` able to broadcast
+  with `shape(b)[:-1]`.
+
+  Both `a` and `b` must be of the same type. The supported types are:
+  `float16`, `float32`, `float64`, `int32`, `complex64`, `complex128`.
+
+  Matrix `a` can be transposed or adjointed (conjugated and transposed) on
+  the fly by setting one of the corresponding flag to `True`. These are `False`
+  by default.
+
+  If one or both of the inputs contain a lot of zeros, a more efficient
+  multiplication algorithm can be used by setting the corresponding
+  `a_is_sparse` or `b_is_sparse` flag to `True`. These are `False` by default.
+  This optimization is only available for plain matrices/vectors (rank-2/1
+  tensors) with datatypes `bfloat16` or `float32`.
+
+  For example:
+
+  ```python
+  # 2-D tensor `a`
+  # [[1, 2, 3],
+  #  [4, 5, 6]]
+  a = tf.constant([1, 2, 3, 4, 5, 6], shape=[2, 3])
+
+  # 1-D tensor `b`
+  # [7, 9, 11]
+  b = tf.constant([7, 9, 11], shape=[3])
+
+  # `a` * `b`
+  # [ 58,  139]
+  c = tf.linalg.matvec(a, b)
+
+
+  # 3-D tensor `a`
+  # [[[ 1,  2,  3],
+  #   [ 4,  5,  6]],
+  #  [[ 7,  8,  9],
+  #   [10, 11, 12]]]
+  a = tf.constant(np.arange(1, 13, dtype=np.int32),
+                  shape=[2, 2, 3])
+
+  # 2-D tensor `b`
+  # [[13, 14, 15],
+  #  [16, 17, 18]]
+  b = tf.constant(np.arange(13, 19, dtype=np.int32),
+                  shape=[2, 3])
+
+  # `a` * `b`
+  # [[ 86, 212],
+  #  [410, 563]]
+  c = tf.linalg.matvec(a, b)
+  ```
+
+  Args:
+    a: `Tensor` of type `float16`, `float32`, `float64`, `int32`, `complex64`,
+      `complex128` and rank > 1.
+    b: `Tensor` with same type as `a` and compatible dimensions.
+    transpose_a: If `True`, `a` is transposed before multiplication.
+    adjoint_a: If `True`, `a` is conjugated and transposed before
+      multiplication.
+    a_is_sparse: If `True`, `a` is treated as a sparse matrix.
+    b_is_sparse: If `True`, `b` is treated as a sparse matrix.
+    name: Name for the operation (optional).
+
+  Returns:
+    A `Tensor` of the same type as `a` and `b` where each inner-most vector is
+    the product of the corresponding matrices in `a` and vectors in `b`, e.g. if
+    all transpose or adjoint attributes are `False`:
+
+    `output`[..., i] = sum_k (`a`[..., i, k] * `b`[..., k]), for all indices i.
+
+    Note: This is matrix-vector product, not element-wise product.
+
+
+  Raises:
+    ValueError: If transpose_a and adjoint_a are both set to True.
+
+[API Signature] a: tensor, b: tensor, transpose_a: boolean, adjoint_a: boolean, a_is_sparse: boolean, b_is_sparse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: cannot compute _MklBatchMatMulV2 as input #1(zero-based) was expected to be a float tensor but is a complex128 tensor [Op:BatchMatMulV2] name:
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int16, int32, int64, uint8, uint16, uint32, uint64, complex64, complex128 	; NodeDef: {{node BatchMatMulV2}}; Op<name=BatchMatMulV2; signature=x:T, y:T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_COMPLEX64, DT_COMPLEX128]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=grad_x:bool,default=false; attr=grad_y:bool,default=false> [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__BatchMatMulV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] and In[1] must have compatible batch dimensions: [41,28,86,0] vs. [37,66,1] [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__SparseMatMul_device_/job:localhost/replica:0/task:0/device:CPU:0}} a is not a matrix [Op:SparseMatMul] name:
+NotFoundError: Could not find device for node: {{node BatchMatMulV2}} = BatchMatMulV2[T=DT_UINT8, adj_x=false, adj_y=false, grad_x=false, grad_y=false] All kernels registered for op BatchMatMulV2:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]  [Op:BatchMatMulV2] name:
+NotFoundError: Could not find device for node: {{node MatMul}} = MatMul[T=DT_UINT8, grad_a=false, grad_b=false, transpose_a=false, transpose_b=false] All kernels registered for op MatMul:   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]  [Op:MatMul] name:
+TypeError: Expected numeric or variant tensor, got dtype tf.bool.
+ValueError: Only one of `transpose_a` and `adjoint_a` can be True. Received `transpose_a`=True, `adjoint_a`=True.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 4 (inner dimension alignment with transpose/adjoint of a)
+{v_1 : tensor, v_2 : tensor, v_3 : bool, v_4 : bool} |= if v_3 ∨ v_4 then shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 1) else shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 1)
+Token usage: input=3441, output=7059, total=10500
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.matvec API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Multiplies matrix `a` by vector `b`, producing `a` * `b`.
+
+  The matrix `a` must, following any transpositions, be a tensor of rank >= 2,
+  with `shape(a)[-1] == shape(b)[-1]`, and `shape(a)[:-2]` able to broadcast
+  with `shape(b)[:-1]`.
+
+  Both `a` and `b` must be of the same type. The supported types are:
+  `float16`, `float32`, `float64`, `int32`, `complex64`, `complex128`.
+
+  Matrix `a` can be transposed or adjointed (conjugated and transposed) on
+  the fly by setting one of the corresponding flag to `True`. These are `False`
+  by default.
+
+  If one or both of the inputs contain a lot of zeros, a more efficient
+  multiplication algorithm can be used by setting the corresponding
+  `a_is_sparse` or `b_is_sparse` flag to `True`. These are `False` by default.
+  This optimization is only available for plain matrices/vectors (rank-2/1
+  tensors) with datatypes `bfloat16` or `float32`.
+
+  For example:
+
+  ```python
+  # 2-D tensor `a`
+  # [[1, 2, 3],
+  #  [4, 5, 6]]
+  a = tf.constant([1, 2, 3, 4, 5, 6], shape=[2, 3])
+
+  # 1-D tensor `b`
+  # [7, 9, 11]
+  b = tf.constant([7, 9, 11], shape=[3])
+
+  # `a` * `b`
+  # [ 58,  139]
+  c = tf.linalg.matvec(a, b)
+
+
+  # 3-D tensor `a`
+  # [[[ 1,  2,  3],
+  #   [ 4,  5,  6]],
+  #  [[ 7,  8,  9],
+  #   [10, 11, 12]]]
+  a = tf.constant(np.arange(1, 13, dtype=np.int32),
+                  shape=[2, 2, 3])
+
+  # 2-D tensor `b`
+  # [[13, 14, 15],
+  #  [16, 17, 18]]
+  b = tf.constant(np.arange(13, 19, dtype=np.int32),
+                  shape=[2, 3])
+
+  # `a` * `b`
+  # [[ 86, 212],
+  #  [410, 563]]
+  c = tf.linalg.matvec(a, b)
+  ```
+
+  Args:
+    a: `Tensor` of type `float16`, `float32`, `float64`, `int32`, `complex64`,
+      `complex128` and rank > 1.
+    b: `Tensor` with same type as `a` and compatible dimensions.
+    transpose_a: If `True`, `a` is transposed before multiplication.
+    adjoint_a: If `True`, `a` is conjugated and transposed before
+      multiplication.
+    a_is_sparse: If `True`, `a` is treated as a sparse matrix.
+    b_is_sparse: If `True`, `b` is treated as a sparse matrix.
+    name: Name for the operation (optional).
+
+  Returns:
+    A `Tensor` of the same type as `a` and `b` where each inner-most vector is
+    the product of the corresponding matrices in `a` and vectors in `b`, e.g. if
+    all transpose or adjoint attributes are `False`:
+
+    `output`[..., i] = sum_k (`a`[..., i, k] * `b`[..., k]), for all indices i.
+
+    Note: This is matrix-vector product, not element-wise product.
+
+
+  Raises:
+    ValueError: If transpose_a and adjoint_a are both set to True.
+
+[API Signature] a: tensor, b: tensor, transpose_a: boolean, adjoint_a: boolean, a_is_sparse: boolean, b_is_sparse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: cannot compute _MklBatchMatMulV2 as input #1(zero-based) was expected to be a float tensor but is a complex128 tensor [Op:BatchMatMulV2] name:
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int16, int32, int64, uint8, uint16, uint32, uint64, complex64, complex128 	; NodeDef: {{node BatchMatMulV2}}; Op<name=BatchMatMulV2; signature=x:T, y:T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_COMPLEX64, DT_COMPLEX128]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=grad_x:bool,default=false; attr=grad_y:bool,default=false> [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__BatchMatMulV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] and In[1] must have compatible batch dimensions: [41,28,86,0] vs. [37,66,1] [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__SparseMatMul_device_/job:localhost/replica:0/task:0/device:CPU:0}} a is not a matrix [Op:SparseMatMul] name:
+NotFoundError: Could not find device for node: {{node BatchMatMulV2}} = BatchMatMulV2[T=DT_UINT8, adj_x=false, adj_y=false, grad_x=false, grad_y=false] All kernels registered for op BatchMatMulV2:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]  [Op:BatchMatMulV2] name:
+NotFoundError: Could not find device for node: {{node MatMul}} = MatMul[T=DT_UINT8, grad_a=false, grad_b=false, transpose_a=false, transpose_b=false] All kernels registered for op MatMul:   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]  [Op:MatMul] name:
+TypeError: Expected numeric or variant tensor, got dtype tf.bool.
+ValueError: Only one of `transpose_a` and `adjoint_a` can be True. Received `transpose_a`=True, `adjoint_a`=True.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 5 (batch dimensions of a and b must be compatible — enforced as equal)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = ndim(v_1) - 1 ∧ if ndim(v_2) ≥ 2 then ∀i ∈ [0, ndim(v_2) - 2] : shape(v_1, i) = shape(v_2, i)
+Token usage: input=3441, output=7059, total=10500
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.matvec API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Multiplies matrix `a` by vector `b`, producing `a` * `b`.
+
+  The matrix `a` must, following any transpositions, be a tensor of rank >= 2,
+  with `shape(a)[-1] == shape(b)[-1]`, and `shape(a)[:-2]` able to broadcast
+  with `shape(b)[:-1]`.
+
+  Both `a` and `b` must be of the same type. The supported types are:
+  `float16`, `float32`, `float64`, `int32`, `complex64`, `complex128`.
+
+  Matrix `a` can be transposed or adjointed (conjugated and transposed) on
+  the fly by setting one of the corresponding flag to `True`. These are `False`
+  by default.
+
+  If one or both of the inputs contain a lot of zeros, a more efficient
+  multiplication algorithm can be used by setting the corresponding
+  `a_is_sparse` or `b_is_sparse` flag to `True`. These are `False` by default.
+  This optimization is only available for plain matrices/vectors (rank-2/1
+  tensors) with datatypes `bfloat16` or `float32`.
+
+  For example:
+
+  ```python
+  # 2-D tensor `a`
+  # [[1, 2, 3],
+  #  [4, 5, 6]]
+  a = tf.constant([1, 2, 3, 4, 5, 6], shape=[2, 3])
+
+  # 1-D tensor `b`
+  # [7, 9, 11]
+  b = tf.constant([7, 9, 11], shape=[3])
+
+  # `a` * `b`
+  # [ 58,  139]
+  c = tf.linalg.matvec(a, b)
+
+
+  # 3-D tensor `a`
+  # [[[ 1,  2,  3],
+  #   [ 4,  5,  6]],
+  #  [[ 7,  8,  9],
+  #   [10, 11, 12]]]
+  a = tf.constant(np.arange(1, 13, dtype=np.int32),
+                  shape=[2, 2, 3])
+
+  # 2-D tensor `b`
+  # [[13, 14, 15],
+  #  [16, 17, 18]]
+  b = tf.constant(np.arange(13, 19, dtype=np.int32),
+                  shape=[2, 3])
+
+  # `a` * `b`
+  # [[ 86, 212],
+  #  [410, 563]]
+  c = tf.linalg.matvec(a, b)
+  ```
+
+  Args:
+    a: `Tensor` of type `float16`, `float32`, `float64`, `int32`, `complex64`,
+      `complex128` and rank > 1.
+    b: `Tensor` with same type as `a` and compatible dimensions.
+    transpose_a: If `True`, `a` is transposed before multiplication.
+    adjoint_a: If `True`, `a` is conjugated and transposed before
+      multiplication.
+    a_is_sparse: If `True`, `a` is treated as a sparse matrix.
+    b_is_sparse: If `True`, `b` is treated as a sparse matrix.
+    name: Name for the operation (optional).
+
+  Returns:
+    A `Tensor` of the same type as `a` and `b` where each inner-most vector is
+    the product of the corresponding matrices in `a` and vectors in `b`, e.g. if
+    all transpose or adjoint attributes are `False`:
+
+    `output`[..., i] = sum_k (`a`[..., i, k] * `b`[..., k]), for all indices i.
+
+    Note: This is matrix-vector product, not element-wise product.
+
+
+  Raises:
+    ValueError: If transpose_a and adjoint_a are both set to True.
+
+[API Signature] a: tensor, b: tensor, transpose_a: boolean, adjoint_a: boolean, a_is_sparse: boolean, b_is_sparse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: cannot compute _MklBatchMatMulV2 as input #1(zero-based) was expected to be a float tensor but is a complex128 tensor [Op:BatchMatMulV2] name:
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int16, int32, int64, uint8, uint16, uint32, uint64, complex64, complex128 	; NodeDef: {{node BatchMatMulV2}}; Op<name=BatchMatMulV2; signature=x:T, y:T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_COMPLEX64, DT_COMPLEX128]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=grad_x:bool,default=false; attr=grad_y:bool,default=false> [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__BatchMatMulV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] and In[1] must have compatible batch dimensions: [41,28,86,0] vs. [37,66,1] [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__SparseMatMul_device_/job:localhost/replica:0/task:0/device:CPU:0}} a is not a matrix [Op:SparseMatMul] name:
+NotFoundError: Could not find device for node: {{node BatchMatMulV2}} = BatchMatMulV2[T=DT_UINT8, adj_x=false, adj_y=false, grad_x=false, grad_y=false] All kernels registered for op BatchMatMulV2:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]  [Op:BatchMatMulV2] name:
+NotFoundError: Could not find device for node: {{node MatMul}} = MatMul[T=DT_UINT8, grad_a=false, grad_b=false, transpose_a=false, transpose_b=false] All kernels registered for op MatMul:   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]  [Op:MatMul] name:
+TypeError: Expected numeric or variant tensor, got dtype tf.bool.
+ValueError: Only one of `transpose_a` and `adjoint_a` can be True. Received `transpose_a`=True, `adjoint_a`=True.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 6 (only one of transpose_a and adjoint_a may be true)
+{v_3 : bool, v_4 : bool} |= (v_3 = false) ∨ (v_4 = false)
+Token usage: input=3441, output=7059, total=10500
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.matvec API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Multiplies matrix `a` by vector `b`, producing `a` * `b`.
+
+  The matrix `a` must, following any transpositions, be a tensor of rank >= 2,
+  with `shape(a)[-1] == shape(b)[-1]`, and `shape(a)[:-2]` able to broadcast
+  with `shape(b)[:-1]`.
+
+  Both `a` and `b` must be of the same type. The supported types are:
+  `float16`, `float32`, `float64`, `int32`, `complex64`, `complex128`.
+
+  Matrix `a` can be transposed or adjointed (conjugated and transposed) on
+  the fly by setting one of the corresponding flag to `True`. These are `False`
+  by default.
+
+  If one or both of the inputs contain a lot of zeros, a more efficient
+  multiplication algorithm can be used by setting the corresponding
+  `a_is_sparse` or `b_is_sparse` flag to `True`. These are `False` by default.
+  This optimization is only available for plain matrices/vectors (rank-2/1
+  tensors) with datatypes `bfloat16` or `float32`.
+
+  For example:
+
+  ```python
+  # 2-D tensor `a`
+  # [[1, 2, 3],
+  #  [4, 5, 6]]
+  a = tf.constant([1, 2, 3, 4, 5, 6], shape=[2, 3])
+
+  # 1-D tensor `b`
+  # [7, 9, 11]
+  b = tf.constant([7, 9, 11], shape=[3])
+
+  # `a` * `b`
+  # [ 58,  139]
+  c = tf.linalg.matvec(a, b)
+
+
+  # 3-D tensor `a`
+  # [[[ 1,  2,  3],
+  #   [ 4,  5,  6]],
+  #  [[ 7,  8,  9],
+  #   [10, 11, 12]]]
+  a = tf.constant(np.arange(1, 13, dtype=np.int32),
+                  shape=[2, 2, 3])
+
+  # 2-D tensor `b`
+  # [[13, 14, 15],
+  #  [16, 17, 18]]
+  b = tf.constant(np.arange(13, 19, dtype=np.int32),
+                  shape=[2, 3])
+
+  # `a` * `b`
+  # [[ 86, 212],
+  #  [410, 563]]
+  c = tf.linalg.matvec(a, b)
+  ```
+
+  Args:
+    a: `Tensor` of type `float16`, `float32`, `float64`, `int32`, `complex64`,
+      `complex128` and rank > 1.
+    b: `Tensor` with same type as `a` and compatible dimensions.
+    transpose_a: If `True`, `a` is transposed before multiplication.
+    adjoint_a: If `True`, `a` is conjugated and transposed before
+      multiplication.
+    a_is_sparse: If `True`, `a` is treated as a sparse matrix.
+    b_is_sparse: If `True`, `b` is treated as a sparse matrix.
+    name: Name for the operation (optional).
+
+  Returns:
+    A `Tensor` of the same type as `a` and `b` where each inner-most vector is
+    the product of the corresponding matrices in `a` and vectors in `b`, e.g. if
+    all transpose or adjoint attributes are `False`:
+
+    `output`[..., i] = sum_k (`a`[..., i, k] * `b`[..., k]), for all indices i.
+
+    Note: This is matrix-vector product, not element-wise product.
+
+
+  Raises:
+    ValueError: If transpose_a and adjoint_a are both set to True.
+
+[API Signature] a: tensor, b: tensor, transpose_a: boolean, adjoint_a: boolean, a_is_sparse: boolean, b_is_sparse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: cannot compute _MklBatchMatMulV2 as input #1(zero-based) was expected to be a float tensor but is a complex128 tensor [Op:BatchMatMulV2] name:
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int16, int32, int64, uint8, uint16, uint32, uint64, complex64, complex128 	; NodeDef: {{node BatchMatMulV2}}; Op<name=BatchMatMulV2; signature=x:T, y:T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_COMPLEX64, DT_COMPLEX128]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=grad_x:bool,default=false; attr=grad_y:bool,default=false> [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__BatchMatMulV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] and In[1] must have compatible batch dimensions: [41,28,86,0] vs. [37,66,1] [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__SparseMatMul_device_/job:localhost/replica:0/task:0/device:CPU:0}} a is not a matrix [Op:SparseMatMul] name:
+NotFoundError: Could not find device for node: {{node BatchMatMulV2}} = BatchMatMulV2[T=DT_UINT8, adj_x=false, adj_y=false, grad_x=false, grad_y=false] All kernels registered for op BatchMatMulV2:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]  [Op:BatchMatMulV2] name:
+NotFoundError: Could not find device for node: {{node MatMul}} = MatMul[T=DT_UINT8, grad_a=false, grad_b=false, transpose_a=false, transpose_b=false] All kernels registered for op MatMul:   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]  [Op:MatMul] name:
+TypeError: Expected numeric or variant tensor, got dtype tf.bool.
+ValueError: Only one of `transpose_a` and `adjoint_a` can be True. Received `transpose_a`=True, `adjoint_a`=True.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 7 (sparse optimization only for matrix–vector shapes)
+{v_1 : tensor, v_2 : tensor, v_5 : bool, v_6 : bool} |= if v_5 ∨ v_6 then ndim(v_1) = 2 ∧ ndim(v_2) = 1
+Token usage: input=3441, output=7059, total=10500
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.matvec API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Multiplies matrix `a` by vector `b`, producing `a` * `b`.
+
+  The matrix `a` must, following any transpositions, be a tensor of rank >= 2,
+  with `shape(a)[-1] == shape(b)[-1]`, and `shape(a)[:-2]` able to broadcast
+  with `shape(b)[:-1]`.
+
+  Both `a` and `b` must be of the same type. The supported types are:
+  `float16`, `float32`, `float64`, `int32`, `complex64`, `complex128`.
+
+  Matrix `a` can be transposed or adjointed (conjugated and transposed) on
+  the fly by setting one of the corresponding flag to `True`. These are `False`
+  by default.
+
+  If one or both of the inputs contain a lot of zeros, a more efficient
+  multiplication algorithm can be used by setting the corresponding
+  `a_is_sparse` or `b_is_sparse` flag to `True`. These are `False` by default.
+  This optimization is only available for plain matrices/vectors (rank-2/1
+  tensors) with datatypes `bfloat16` or `float32`.
+
+  For example:
+
+  ```python
+  # 2-D tensor `a`
+  # [[1, 2, 3],
+  #  [4, 5, 6]]
+  a = tf.constant([1, 2, 3, 4, 5, 6], shape=[2, 3])
+
+  # 1-D tensor `b`
+  # [7, 9, 11]
+  b = tf.constant([7, 9, 11], shape=[3])
+
+  # `a` * `b`
+  # [ 58,  139]
+  c = tf.linalg.matvec(a, b)
+
+
+  # 3-D tensor `a`
+  # [[[ 1,  2,  3],
+  #   [ 4,  5,  6]],
+  #  [[ 7,  8,  9],
+  #   [10, 11, 12]]]
+  a = tf.constant(np.arange(1, 13, dtype=np.int32),
+                  shape=[2, 2, 3])
+
+  # 2-D tensor `b`
+  # [[13, 14, 15],
+  #  [16, 17, 18]]
+  b = tf.constant(np.arange(13, 19, dtype=np.int32),
+                  shape=[2, 3])
+
+  # `a` * `b`
+  # [[ 86, 212],
+  #  [410, 563]]
+  c = tf.linalg.matvec(a, b)
+  ```
+
+  Args:
+    a: `Tensor` of type `float16`, `float32`, `float64`, `int32`, `complex64`,
+      `complex128` and rank > 1.
+    b: `Tensor` with same type as `a` and compatible dimensions.
+    transpose_a: If `True`, `a` is transposed before multiplication.
+    adjoint_a: If `True`, `a` is conjugated and transposed before
+      multiplication.
+    a_is_sparse: If `True`, `a` is treated as a sparse matrix.
+    b_is_sparse: If `True`, `b` is treated as a sparse matrix.
+    name: Name for the operation (optional).
+
+  Returns:
+    A `Tensor` of the same type as `a` and `b` where each inner-most vector is
+    the product of the corresponding matrices in `a` and vectors in `b`, e.g. if
+    all transpose or adjoint attributes are `False`:
+
+    `output`[..., i] = sum_k (`a`[..., i, k] * `b`[..., k]), for all indices i.
+
+    Note: This is matrix-vector product, not element-wise product.
+
+
+  Raises:
+    ValueError: If transpose_a and adjoint_a are both set to True.
+
+[API Signature] a: tensor, b: tensor, transpose_a: boolean, adjoint_a: boolean, a_is_sparse: boolean, b_is_sparse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: cannot compute _MklBatchMatMulV2 as input #1(zero-based) was expected to be a float tensor but is a complex128 tensor [Op:BatchMatMulV2] name:
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int16, int32, int64, uint8, uint16, uint32, uint64, complex64, complex128 	; NodeDef: {{node BatchMatMulV2}}; Op<name=BatchMatMulV2; signature=x:T, y:T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_COMPLEX64, DT_COMPLEX128]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=grad_x:bool,default=false; attr=grad_y:bool,default=false> [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__BatchMatMulV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] and In[1] must have compatible batch dimensions: [41,28,86,0] vs. [37,66,1] [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__SparseMatMul_device_/job:localhost/replica:0/task:0/device:CPU:0}} a is not a matrix [Op:SparseMatMul] name:
+NotFoundError: Could not find device for node: {{node BatchMatMulV2}} = BatchMatMulV2[T=DT_UINT8, adj_x=false, adj_y=false, grad_x=false, grad_y=false] All kernels registered for op BatchMatMulV2:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]  [Op:BatchMatMulV2] name:
+NotFoundError: Could not find device for node: {{node MatMul}} = MatMul[T=DT_UINT8, grad_a=false, grad_b=false, transpose_a=false, transpose_b=false] All kernels registered for op MatMul:   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]  [Op:MatMul] name:
+TypeError: Expected numeric or variant tensor, got dtype tf.bool.
+ValueError: Only one of `transpose_a` and `adjoint_a` can be True. Received `transpose_a`=True, `adjoint_a`=True.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 8 (Supported and matching dtypes for a and b)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+Token usage: input=3555, output=7563, total=11118
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.matvec API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Multiplies matrix `a` by vector `b`, producing `a` * `b`.
+
+  The matrix `a` must, following any transpositions, be a tensor of rank >= 2,
+  with `shape(a)[-1] == shape(b)[-1]`, and `shape(a)[:-2]` able to broadcast
+  with `shape(b)[:-1]`.
+
+  Both `a` and `b` must be of the same type. The supported types are:
+  `float16`, `float32`, `float64`, `int32`, `complex64`, `complex128`.
+
+  Matrix `a` can be transposed or adjointed (conjugated and transposed) on
+  the fly by setting one of the corresponding flag to `True`. These are `False`
+  by default.
+
+  If one or both of the inputs contain a lot of zeros, a more efficient
+  multiplication algorithm can be used by setting the corresponding
+  `a_is_sparse` or `b_is_sparse` flag to `True`. These are `False` by default.
+  This optimization is only available for plain matrices/vectors (rank-2/1
+  tensors) with datatypes `bfloat16` or `float32`.
+
+  For example:
+
+  ```python
+  # 2-D tensor `a`
+  # [[1, 2, 3],
+  #  [4, 5, 6]]
+  a = tf.constant([1, 2, 3, 4, 5, 6], shape=[2, 3])
+
+  # 1-D tensor `b`
+  # [7, 9, 11]
+  b = tf.constant([7, 9, 11], shape=[3])
+
+  # `a` * `b`
+  # [ 58,  139]
+  c = tf.linalg.matvec(a, b)
+
+
+  # 3-D tensor `a`
+  # [[[ 1,  2,  3],
+  #   [ 4,  5,  6]],
+  #  [[ 7,  8,  9],
+  #   [10, 11, 12]]]
+  a = tf.constant(np.arange(1, 13, dtype=np.int32),
+                  shape=[2, 2, 3])
+
+  # 2-D tensor `b`
+  # [[13, 14, 15],
+  #  [16, 17, 18]]
+  b = tf.constant(np.arange(13, 19, dtype=np.int32),
+                  shape=[2, 3])
+
+  # `a` * `b`
+  # [[ 86, 212],
+  #  [410, 563]]
+  c = tf.linalg.matvec(a, b)
+  ```
+
+  Args:
+    a: `Tensor` of type `float16`, `float32`, `float64`, `int32`, `complex64`,
+      `complex128` and rank > 1.
+    b: `Tensor` with same type as `a` and compatible dimensions.
+    transpose_a: If `True`, `a` is transposed before multiplication.
+    adjoint_a: If `True`, `a` is conjugated and transposed before
+      multiplication.
+    a_is_sparse: If `True`, `a` is treated as a sparse matrix.
+    b_is_sparse: If `True`, `b` is treated as a sparse matrix.
+    name: Name for the operation (optional).
+
+  Returns:
+    A `Tensor` of the same type as `a` and `b` where each inner-most vector is
+    the product of the corresponding matrices in `a` and vectors in `b`, e.g. if
+    all transpose or adjoint attributes are `False`:
+
+    `output`[..., i] = sum_k (`a`[..., i, k] * `b`[..., k]), for all indices i.
+
+    Note: This is matrix-vector product, not element-wise product.
+
+
+  Raises:
+    ValueError: If transpose_a and adjoint_a are both set to True.
+
+[API Signature] a: tensor, b: tensor, transpose_a: boolean, adjoint_a: boolean, a_is_sparse: boolean, b_is_sparse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: cannot compute _MklBatchMatMulV2 as input #1(zero-based) was expected to be a float tensor but is a complex128 tensor [Op:BatchMatMulV2] name:
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int16, int32, int64, uint8, uint16, uint32, uint64, complex64, complex128 	; NodeDef: {{node BatchMatMulV2}}; Op<name=BatchMatMulV2; signature=x:T, y:T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_COMPLEX64, DT_COMPLEX128]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=grad_x:bool,default=false; attr=grad_y:bool,default=false> [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__BatchMatMulV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] and In[1] must have compatible batch dimensions: [41,28,86,0] vs. [37,66,1] [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__SparseMatMul_device_/job:localhost/replica:0/task:0/device:CPU:0}} a is not a matrix [Op:SparseMatMul] name:
+NotFoundError: Could not find device for node: {{node BatchMatMulV2}} = BatchMatMulV2[T=DT_UINT8, adj_x=false, adj_y=false, grad_x=false, grad_y=false] All kernels registered for op BatchMatMulV2:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]  [Op:BatchMatMulV2] name:
+NotFoundError: Could not find device for node: {{node MatMul}} = MatMul[T=DT_UINT8, grad_a=false, grad_b=false, transpose_a=false, transpose_b=false] All kernels registered for op MatMul:   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]  [Op:MatMul] name:
+TypeError: Expected numeric or variant tensor, got dtype tf.bool.
+ValueError: Only one of `transpose_a` and `adjoint_a` can be True. Received `transpose_a`=True, `adjoint_a`=True.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 9 (Boolean dtype not allowed for inputs)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0
+Token usage: input=3555, output=7563, total=11118
+** DUPLICATED RULE ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.matvec API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Multiplies matrix `a` by vector `b`, producing `a` * `b`.
+
+  The matrix `a` must, following any transpositions, be a tensor of rank >= 2,
+  with `shape(a)[-1] == shape(b)[-1]`, and `shape(a)[:-2]` able to broadcast
+  with `shape(b)[:-1]`.
+
+  Both `a` and `b` must be of the same type. The supported types are:
+  `float16`, `float32`, `float64`, `int32`, `complex64`, `complex128`.
+
+  Matrix `a` can be transposed or adjointed (conjugated and transposed) on
+  the fly by setting one of the corresponding flag to `True`. These are `False`
+  by default.
+
+  If one or both of the inputs contain a lot of zeros, a more efficient
+  multiplication algorithm can be used by setting the corresponding
+  `a_is_sparse` or `b_is_sparse` flag to `True`. These are `False` by default.
+  This optimization is only available for plain matrices/vectors (rank-2/1
+  tensors) with datatypes `bfloat16` or `float32`.
+
+  For example:
+
+  ```python
+  # 2-D tensor `a`
+  # [[1, 2, 3],
+  #  [4, 5, 6]]
+  a = tf.constant([1, 2, 3, 4, 5, 6], shape=[2, 3])
+
+  # 1-D tensor `b`
+  # [7, 9, 11]
+  b = tf.constant([7, 9, 11], shape=[3])
+
+  # `a` * `b`
+  # [ 58,  139]
+  c = tf.linalg.matvec(a, b)
+
+
+  # 3-D tensor `a`
+  # [[[ 1,  2,  3],
+  #   [ 4,  5,  6]],
+  #  [[ 7,  8,  9],
+  #   [10, 11, 12]]]
+  a = tf.constant(np.arange(1, 13, dtype=np.int32),
+                  shape=[2, 2, 3])
+
+  # 2-D tensor `b`
+  # [[13, 14, 15],
+  #  [16, 17, 18]]
+  b = tf.constant(np.arange(13, 19, dtype=np.int32),
+                  shape=[2, 3])
+
+  # `a` * `b`
+  # [[ 86, 212],
+  #  [410, 563]]
+  c = tf.linalg.matvec(a, b)
+  ```
+
+  Args:
+    a: `Tensor` of type `float16`, `float32`, `float64`, `int32`, `complex64`,
+      `complex128` and rank > 1.
+    b: `Tensor` with same type as `a` and compatible dimensions.
+    transpose_a: If `True`, `a` is transposed before multiplication.
+    adjoint_a: If `True`, `a` is conjugated and transposed before
+      multiplication.
+    a_is_sparse: If `True`, `a` is treated as a sparse matrix.
+    b_is_sparse: If `True`, `b` is treated as a sparse matrix.
+    name: Name for the operation (optional).
+
+  Returns:
+    A `Tensor` of the same type as `a` and `b` where each inner-most vector is
+    the product of the corresponding matrices in `a` and vectors in `b`, e.g. if
+    all transpose or adjoint attributes are `False`:
+
+    `output`[..., i] = sum_k (`a`[..., i, k] * `b`[..., k]), for all indices i.
+
+    Note: This is matrix-vector product, not element-wise product.
+
+
+  Raises:
+    ValueError: If transpose_a and adjoint_a are both set to True.
+
+[API Signature] a: tensor, b: tensor, transpose_a: boolean, adjoint_a: boolean, a_is_sparse: boolean, b_is_sparse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: cannot compute _MklBatchMatMulV2 as input #1(zero-based) was expected to be a float tensor but is a complex128 tensor [Op:BatchMatMulV2] name:
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int16, int32, int64, uint8, uint16, uint32, uint64, complex64, complex128 	; NodeDef: {{node BatchMatMulV2}}; Op<name=BatchMatMulV2; signature=x:T, y:T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_COMPLEX64, DT_COMPLEX128]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=grad_x:bool,default=false; attr=grad_y:bool,default=false> [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__BatchMatMulV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] and In[1] must have compatible batch dimensions: [41,28,86,0] vs. [37,66,1] [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__SparseMatMul_device_/job:localhost/replica:0/task:0/device:CPU:0}} a is not a matrix [Op:SparseMatMul] name:
+NotFoundError: Could not find device for node: {{node BatchMatMulV2}} = BatchMatMulV2[T=DT_UINT8, adj_x=false, adj_y=false, grad_x=false, grad_y=false] All kernels registered for op BatchMatMulV2:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]  [Op:BatchMatMulV2] name:
+NotFoundError: Could not find device for node: {{node MatMul}} = MatMul[T=DT_UINT8, grad_a=false, grad_b=false, transpose_a=false, transpose_b=false] All kernels registered for op MatMul:   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]  [Op:MatMul] name:
+TypeError: Expected numeric or variant tensor, got dtype tf.bool.
+ValueError: Only one of `transpose_a` and `adjoint_a` can be True. Received `transpose_a`=True, `adjoint_a`=True.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 10 (Rank requirements for inputs)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 1
+Token usage: input=3555, output=7563, total=11118
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.matvec API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Multiplies matrix `a` by vector `b`, producing `a` * `b`.
+
+  The matrix `a` must, following any transpositions, be a tensor of rank >= 2,
+  with `shape(a)[-1] == shape(b)[-1]`, and `shape(a)[:-2]` able to broadcast
+  with `shape(b)[:-1]`.
+
+  Both `a` and `b` must be of the same type. The supported types are:
+  `float16`, `float32`, `float64`, `int32`, `complex64`, `complex128`.
+
+  Matrix `a` can be transposed or adjointed (conjugated and transposed) on
+  the fly by setting one of the corresponding flag to `True`. These are `False`
+  by default.
+
+  If one or both of the inputs contain a lot of zeros, a more efficient
+  multiplication algorithm can be used by setting the corresponding
+  `a_is_sparse` or `b_is_sparse` flag to `True`. These are `False` by default.
+  This optimization is only available for plain matrices/vectors (rank-2/1
+  tensors) with datatypes `bfloat16` or `float32`.
+
+  For example:
+
+  ```python
+  # 2-D tensor `a`
+  # [[1, 2, 3],
+  #  [4, 5, 6]]
+  a = tf.constant([1, 2, 3, 4, 5, 6], shape=[2, 3])
+
+  # 1-D tensor `b`
+  # [7, 9, 11]
+  b = tf.constant([7, 9, 11], shape=[3])
+
+  # `a` * `b`
+  # [ 58,  139]
+  c = tf.linalg.matvec(a, b)
+
+
+  # 3-D tensor `a`
+  # [[[ 1,  2,  3],
+  #   [ 4,  5,  6]],
+  #  [[ 7,  8,  9],
+  #   [10, 11, 12]]]
+  a = tf.constant(np.arange(1, 13, dtype=np.int32),
+                  shape=[2, 2, 3])
+
+  # 2-D tensor `b`
+  # [[13, 14, 15],
+  #  [16, 17, 18]]
+  b = tf.constant(np.arange(13, 19, dtype=np.int32),
+                  shape=[2, 3])
+
+  # `a` * `b`
+  # [[ 86, 212],
+  #  [410, 563]]
+  c = tf.linalg.matvec(a, b)
+  ```
+
+  Args:
+    a: `Tensor` of type `float16`, `float32`, `float64`, `int32`, `complex64`,
+      `complex128` and rank > 1.
+    b: `Tensor` with same type as `a` and compatible dimensions.
+    transpose_a: If `True`, `a` is transposed before multiplication.
+    adjoint_a: If `True`, `a` is conjugated and transposed before
+      multiplication.
+    a_is_sparse: If `True`, `a` is treated as a sparse matrix.
+    b_is_sparse: If `True`, `b` is treated as a sparse matrix.
+    name: Name for the operation (optional).
+
+  Returns:
+    A `Tensor` of the same type as `a` and `b` where each inner-most vector is
+    the product of the corresponding matrices in `a` and vectors in `b`, e.g. if
+    all transpose or adjoint attributes are `False`:
+
+    `output`[..., i] = sum_k (`a`[..., i, k] * `b`[..., k]), for all indices i.
+
+    Note: This is matrix-vector product, not element-wise product.
+
+
+  Raises:
+    ValueError: If transpose_a and adjoint_a are both set to True.
+
+[API Signature] a: tensor, b: tensor, transpose_a: boolean, adjoint_a: boolean, a_is_sparse: boolean, b_is_sparse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: cannot compute _MklBatchMatMulV2 as input #1(zero-based) was expected to be a float tensor but is a complex128 tensor [Op:BatchMatMulV2] name:
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int16, int32, int64, uint8, uint16, uint32, uint64, complex64, complex128 	; NodeDef: {{node BatchMatMulV2}}; Op<name=BatchMatMulV2; signature=x:T, y:T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_COMPLEX64, DT_COMPLEX128]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=grad_x:bool,default=false; attr=grad_y:bool,default=false> [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__BatchMatMulV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] and In[1] must have compatible batch dimensions: [41,28,86,0] vs. [37,66,1] [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__SparseMatMul_device_/job:localhost/replica:0/task:0/device:CPU:0}} a is not a matrix [Op:SparseMatMul] name:
+NotFoundError: Could not find device for node: {{node BatchMatMulV2}} = BatchMatMulV2[T=DT_UINT8, adj_x=false, adj_y=false, grad_x=false, grad_y=false] All kernels registered for op BatchMatMulV2:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]  [Op:BatchMatMulV2] name:
+NotFoundError: Could not find device for node: {{node MatMul}} = MatMul[T=DT_UINT8, grad_a=false, grad_b=false, transpose_a=false, transpose_b=false] All kernels registered for op MatMul:   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]  [Op:MatMul] name:
+TypeError: Expected numeric or variant tensor, got dtype tf.bool.
+ValueError: Only one of `transpose_a` and `adjoint_a` can be True. Received `transpose_a`=True, `adjoint_a`=True.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 11 (Contracting dimension matches after optional transpose/adjoint)
+{v_1 : tensor, v_2 : tensor, v_3 : bool, v_4 : bool} |= if v_3 ∨ v_4 then shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 1) else shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 1)
+Token usage: input=3555, output=7563, total=11118
+** DUPLICATED RULE ** (num_failures: 4)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.matvec API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Multiplies matrix `a` by vector `b`, producing `a` * `b`.
+
+  The matrix `a` must, following any transpositions, be a tensor of rank >= 2,
+  with `shape(a)[-1] == shape(b)[-1]`, and `shape(a)[:-2]` able to broadcast
+  with `shape(b)[:-1]`.
+
+  Both `a` and `b` must be of the same type. The supported types are:
+  `float16`, `float32`, `float64`, `int32`, `complex64`, `complex128`.
+
+  Matrix `a` can be transposed or adjointed (conjugated and transposed) on
+  the fly by setting one of the corresponding flag to `True`. These are `False`
+  by default.
+
+  If one or both of the inputs contain a lot of zeros, a more efficient
+  multiplication algorithm can be used by setting the corresponding
+  `a_is_sparse` or `b_is_sparse` flag to `True`. These are `False` by default.
+  This optimization is only available for plain matrices/vectors (rank-2/1
+  tensors) with datatypes `bfloat16` or `float32`.
+
+  For example:
+
+  ```python
+  # 2-D tensor `a`
+  # [[1, 2, 3],
+  #  [4, 5, 6]]
+  a = tf.constant([1, 2, 3, 4, 5, 6], shape=[2, 3])
+
+  # 1-D tensor `b`
+  # [7, 9, 11]
+  b = tf.constant([7, 9, 11], shape=[3])
+
+  # `a` * `b`
+  # [ 58,  139]
+  c = tf.linalg.matvec(a, b)
+
+
+  # 3-D tensor `a`
+  # [[[ 1,  2,  3],
+  #   [ 4,  5,  6]],
+  #  [[ 7,  8,  9],
+  #   [10, 11, 12]]]
+  a = tf.constant(np.arange(1, 13, dtype=np.int32),
+                  shape=[2, 2, 3])
+
+  # 2-D tensor `b`
+  # [[13, 14, 15],
+  #  [16, 17, 18]]
+  b = tf.constant(np.arange(13, 19, dtype=np.int32),
+                  shape=[2, 3])
+
+  # `a` * `b`
+  # [[ 86, 212],
+  #  [410, 563]]
+  c = tf.linalg.matvec(a, b)
+  ```
+
+  Args:
+    a: `Tensor` of type `float16`, `float32`, `float64`, `int32`, `complex64`,
+      `complex128` and rank > 1.
+    b: `Tensor` with same type as `a` and compatible dimensions.
+    transpose_a: If `True`, `a` is transposed before multiplication.
+    adjoint_a: If `True`, `a` is conjugated and transposed before
+      multiplication.
+    a_is_sparse: If `True`, `a` is treated as a sparse matrix.
+    b_is_sparse: If `True`, `b` is treated as a sparse matrix.
+    name: Name for the operation (optional).
+
+  Returns:
+    A `Tensor` of the same type as `a` and `b` where each inner-most vector is
+    the product of the corresponding matrices in `a` and vectors in `b`, e.g. if
+    all transpose or adjoint attributes are `False`:
+
+    `output`[..., i] = sum_k (`a`[..., i, k] * `b`[..., k]), for all indices i.
+
+    Note: This is matrix-vector product, not element-wise product.
+
+
+  Raises:
+    ValueError: If transpose_a and adjoint_a are both set to True.
+
+[API Signature] a: tensor, b: tensor, transpose_a: boolean, adjoint_a: boolean, a_is_sparse: boolean, b_is_sparse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: cannot compute _MklBatchMatMulV2 as input #1(zero-based) was expected to be a float tensor but is a complex128 tensor [Op:BatchMatMulV2] name:
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int16, int32, int64, uint8, uint16, uint32, uint64, complex64, complex128 	; NodeDef: {{node BatchMatMulV2}}; Op<name=BatchMatMulV2; signature=x:T, y:T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_COMPLEX64, DT_COMPLEX128]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=grad_x:bool,default=false; attr=grad_y:bool,default=false> [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__BatchMatMulV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] and In[1] must have compatible batch dimensions: [41,28,86,0] vs. [37,66,1] [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__SparseMatMul_device_/job:localhost/replica:0/task:0/device:CPU:0}} a is not a matrix [Op:SparseMatMul] name:
+NotFoundError: Could not find device for node: {{node BatchMatMulV2}} = BatchMatMulV2[T=DT_UINT8, adj_x=false, adj_y=false, grad_x=false, grad_y=false] All kernels registered for op BatchMatMulV2:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]  [Op:BatchMatMulV2] name:
+NotFoundError: Could not find device for node: {{node MatMul}} = MatMul[T=DT_UINT8, grad_a=false, grad_b=false, transpose_a=false, transpose_b=false] All kernels registered for op MatMul:   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]  [Op:MatMul] name:
+TypeError: Expected numeric or variant tensor, got dtype tf.bool.
+ValueError: Only one of `transpose_a` and `adjoint_a` can be True. Received `transpose_a`=True, `adjoint_a`=True.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 12 (Batch dimensions of a and b must be broadcast-compatible)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 1 ∧ ∀i ∈ [0, if ndim(v_1) - 2 ≥ ndim(v_2) - 1 then ndim(v_1) - 3 else ndim(v_2) - 2] : (ndim(v_1) - i - 3) < 0 ∨ (ndim(v_2) - i - 2) < 0 ∨ shape(v_1, ndim(v_1) - i - 3) = 1 ∨ shape(v_2, ndim(v_2) - i - 2) = 1 ∨ shape(v_1, ndim(v_1) - i - 3) = shape(v_2, ndim(v_2) - i - 2)
+Token usage: input=3555, output=7563, total=11118
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.matvec API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Multiplies matrix `a` by vector `b`, producing `a` * `b`.
+
+  The matrix `a` must, following any transpositions, be a tensor of rank >= 2,
+  with `shape(a)[-1] == shape(b)[-1]`, and `shape(a)[:-2]` able to broadcast
+  with `shape(b)[:-1]`.
+
+  Both `a` and `b` must be of the same type. The supported types are:
+  `float16`, `float32`, `float64`, `int32`, `complex64`, `complex128`.
+
+  Matrix `a` can be transposed or adjointed (conjugated and transposed) on
+  the fly by setting one of the corresponding flag to `True`. These are `False`
+  by default.
+
+  If one or both of the inputs contain a lot of zeros, a more efficient
+  multiplication algorithm can be used by setting the corresponding
+  `a_is_sparse` or `b_is_sparse` flag to `True`. These are `False` by default.
+  This optimization is only available for plain matrices/vectors (rank-2/1
+  tensors) with datatypes `bfloat16` or `float32`.
+
+  For example:
+
+  ```python
+  # 2-D tensor `a`
+  # [[1, 2, 3],
+  #  [4, 5, 6]]
+  a = tf.constant([1, 2, 3, 4, 5, 6], shape=[2, 3])
+
+  # 1-D tensor `b`
+  # [7, 9, 11]
+  b = tf.constant([7, 9, 11], shape=[3])
+
+  # `a` * `b`
+  # [ 58,  139]
+  c = tf.linalg.matvec(a, b)
+
+
+  # 3-D tensor `a`
+  # [[[ 1,  2,  3],
+  #   [ 4,  5,  6]],
+  #  [[ 7,  8,  9],
+  #   [10, 11, 12]]]
+  a = tf.constant(np.arange(1, 13, dtype=np.int32),
+                  shape=[2, 2, 3])
+
+  # 2-D tensor `b`
+  # [[13, 14, 15],
+  #  [16, 17, 18]]
+  b = tf.constant(np.arange(13, 19, dtype=np.int32),
+                  shape=[2, 3])
+
+  # `a` * `b`
+  # [[ 86, 212],
+  #  [410, 563]]
+  c = tf.linalg.matvec(a, b)
+  ```
+
+  Args:
+    a: `Tensor` of type `float16`, `float32`, `float64`, `int32`, `complex64`,
+      `complex128` and rank > 1.
+    b: `Tensor` with same type as `a` and compatible dimensions.
+    transpose_a: If `True`, `a` is transposed before multiplication.
+    adjoint_a: If `True`, `a` is conjugated and transposed before
+      multiplication.
+    a_is_sparse: If `True`, `a` is treated as a sparse matrix.
+    b_is_sparse: If `True`, `b` is treated as a sparse matrix.
+    name: Name for the operation (optional).
+
+  Returns:
+    A `Tensor` of the same type as `a` and `b` where each inner-most vector is
+    the product of the corresponding matrices in `a` and vectors in `b`, e.g. if
+    all transpose or adjoint attributes are `False`:
+
+    `output`[..., i] = sum_k (`a`[..., i, k] * `b`[..., k]), for all indices i.
+
+    Note: This is matrix-vector product, not element-wise product.
+
+
+  Raises:
+    ValueError: If transpose_a and adjoint_a are both set to True.
+
+[API Signature] a: tensor, b: tensor, transpose_a: boolean, adjoint_a: boolean, a_is_sparse: boolean, b_is_sparse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: cannot compute _MklBatchMatMulV2 as input #1(zero-based) was expected to be a float tensor but is a complex128 tensor [Op:BatchMatMulV2] name:
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int16, int32, int64, uint8, uint16, uint32, uint64, complex64, complex128 	; NodeDef: {{node BatchMatMulV2}}; Op<name=BatchMatMulV2; signature=x:T, y:T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_COMPLEX64, DT_COMPLEX128]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=grad_x:bool,default=false; attr=grad_y:bool,default=false> [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__BatchMatMulV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] and In[1] must have compatible batch dimensions: [41,28,86,0] vs. [37,66,1] [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__SparseMatMul_device_/job:localhost/replica:0/task:0/device:CPU:0}} a is not a matrix [Op:SparseMatMul] name:
+NotFoundError: Could not find device for node: {{node BatchMatMulV2}} = BatchMatMulV2[T=DT_UINT8, adj_x=false, adj_y=false, grad_x=false, grad_y=false] All kernels registered for op BatchMatMulV2:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]  [Op:BatchMatMulV2] name:
+NotFoundError: Could not find device for node: {{node MatMul}} = MatMul[T=DT_UINT8, grad_a=false, grad_b=false, transpose_a=false, transpose_b=false] All kernels registered for op MatMul:   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]  [Op:MatMul] name:
+TypeError: Expected numeric or variant tensor, got dtype tf.bool.
+ValueError: Only one of `transpose_a` and `adjoint_a` can be True. Received `transpose_a`=True, `adjoint_a`=True.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 13 (transpose_a and adjoint_a cannot both be True)
+{v_3 : bool, v_4 : bool} |= v_3 = false ∨ v_4 = false
+Token usage: input=3555, output=7563, total=11118
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.matvec API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Multiplies matrix `a` by vector `b`, producing `a` * `b`.
+
+  The matrix `a` must, following any transpositions, be a tensor of rank >= 2,
+  with `shape(a)[-1] == shape(b)[-1]`, and `shape(a)[:-2]` able to broadcast
+  with `shape(b)[:-1]`.
+
+  Both `a` and `b` must be of the same type. The supported types are:
+  `float16`, `float32`, `float64`, `int32`, `complex64`, `complex128`.
+
+  Matrix `a` can be transposed or adjointed (conjugated and transposed) on
+  the fly by setting one of the corresponding flag to `True`. These are `False`
+  by default.
+
+  If one or both of the inputs contain a lot of zeros, a more efficient
+  multiplication algorithm can be used by setting the corresponding
+  `a_is_sparse` or `b_is_sparse` flag to `True`. These are `False` by default.
+  This optimization is only available for plain matrices/vectors (rank-2/1
+  tensors) with datatypes `bfloat16` or `float32`.
+
+  For example:
+
+  ```python
+  # 2-D tensor `a`
+  # [[1, 2, 3],
+  #  [4, 5, 6]]
+  a = tf.constant([1, 2, 3, 4, 5, 6], shape=[2, 3])
+
+  # 1-D tensor `b`
+  # [7, 9, 11]
+  b = tf.constant([7, 9, 11], shape=[3])
+
+  # `a` * `b`
+  # [ 58,  139]
+  c = tf.linalg.matvec(a, b)
+
+
+  # 3-D tensor `a`
+  # [[[ 1,  2,  3],
+  #   [ 4,  5,  6]],
+  #  [[ 7,  8,  9],
+  #   [10, 11, 12]]]
+  a = tf.constant(np.arange(1, 13, dtype=np.int32),
+                  shape=[2, 2, 3])
+
+  # 2-D tensor `b`
+  # [[13, 14, 15],
+  #  [16, 17, 18]]
+  b = tf.constant(np.arange(13, 19, dtype=np.int32),
+                  shape=[2, 3])
+
+  # `a` * `b`
+  # [[ 86, 212],
+  #  [410, 563]]
+  c = tf.linalg.matvec(a, b)
+  ```
+
+  Args:
+    a: `Tensor` of type `float16`, `float32`, `float64`, `int32`, `complex64`,
+      `complex128` and rank > 1.
+    b: `Tensor` with same type as `a` and compatible dimensions.
+    transpose_a: If `True`, `a` is transposed before multiplication.
+    adjoint_a: If `True`, `a` is conjugated and transposed before
+      multiplication.
+    a_is_sparse: If `True`, `a` is treated as a sparse matrix.
+    b_is_sparse: If `True`, `b` is treated as a sparse matrix.
+    name: Name for the operation (optional).
+
+  Returns:
+    A `Tensor` of the same type as `a` and `b` where each inner-most vector is
+    the product of the corresponding matrices in `a` and vectors in `b`, e.g. if
+    all transpose or adjoint attributes are `False`:
+
+    `output`[..., i] = sum_k (`a`[..., i, k] * `b`[..., k]), for all indices i.
+
+    Note: This is matrix-vector product, not element-wise product.
+
+
+  Raises:
+    ValueError: If transpose_a and adjoint_a are both set to True.
+
+[API Signature] a: tensor, b: tensor, transpose_a: boolean, adjoint_a: boolean, a_is_sparse: boolean, b_is_sparse: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: cannot compute _MklBatchMatMulV2 as input #1(zero-based) was expected to be a float tensor but is a complex128 tensor [Op:BatchMatMulV2] name:
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int16, int32, int64, uint8, uint16, uint32, uint64, complex64, complex128 	; NodeDef: {{node BatchMatMulV2}}; Op<name=BatchMatMulV2; signature=x:T, y:T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_COMPLEX64, DT_COMPLEX128]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=grad_x:bool,default=false; attr=grad_y:bool,default=false> [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__BatchMatMulV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] and In[1] must have compatible batch dimensions: [41,28,86,0] vs. [37,66,1] [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__SparseMatMul_device_/job:localhost/replica:0/task:0/device:CPU:0}} a is not a matrix [Op:SparseMatMul] name:
+NotFoundError: Could not find device for node: {{node BatchMatMulV2}} = BatchMatMulV2[T=DT_UINT8, adj_x=false, adj_y=false, grad_x=false, grad_y=false] All kernels registered for op BatchMatMulV2:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]  [Op:BatchMatMulV2] name:
+NotFoundError: Could not find device for node: {{node MatMul}} = MatMul[T=DT_UINT8, grad_a=false, grad_b=false, transpose_a=false, transpose_b=false] All kernels registered for op MatMul:   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]  [Op:MatMul] name:
+TypeError: Expected numeric or variant tensor, got dtype tf.bool.
+ValueError: Only one of `transpose_a` and `adjoint_a` can be True. Received `transpose_a`=True, `adjoint_a`=True.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 14 (Constraints when using sparse optimization)
+{v_1 : tensor, v_2 : tensor, v_5 : bool, v_6 : bool} |= if v_5 ∨ v_6 then ndim(v_1) = 2 ∧ ndim(v_2) = 1 ∧ dtype_(v_1) = 7 ∧ dtype_(v_2) = 7
+Token usage: input=3555, output=7563, total=11118
+** SUCCESS **
+
