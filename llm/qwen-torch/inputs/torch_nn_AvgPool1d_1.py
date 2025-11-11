@@ -9,123 +9,113 @@ import torch, copy
 def avgpool1d_inputs():
     list_of_inputs = []
     
-    # Input 1, valid
+    # Input 1 - basic case with kernel_size=3, stride=2
     input = torch.tensor([[[1., 2., 3., 4., 5., 6., 7.]]]).numpy()
     input_dict = {
         "kernel_size": 3,
         "stride": 2,
         "padding": 0,
         "ceil_mode": False,
-        "count_include_pad": True,
-        "input": input
+        "count_include_pad": True
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 2, valid
+    # Input 2 - with padding
     input = torch.tensor([[[1., 2., 3., 4., 5., 6., 7., 8.]]]).numpy()
     input_dict = {
-        "kernel_size": 4,
+        "kernel_size": 3,
         "stride": 2,
         "padding": 1,
         "ceil_mode": False,
-        "count_include_pad": True,
-        "input": input
+        "count_include_pad": True
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 3, valid
-    input = torch.tensor([[[1., 2., 3., 4., 5., 6., 7., 8., 9.]]]).numpy()
+    # Input 3 - with ceil_mode=True
+    input = torch.tensor([[[1., 2., 3., 4., 5., 6., 7., 8.]]]).numpy()
     input_dict = {
         "kernel_size": 3,
-        "stride": 1,
+        "stride": 2,
         "padding": 0,
         "ceil_mode": True,
-        "count_include_pad": False,
-        "input": input
+        "count_include_pad": True
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 4, valid
+    # Input 4 - with count_include_pad=False
+    input = torch.tensor([[[1., 2., 3., 4., 5., 6., 7., 8.]]]).numpy()
+    input_dict = {
+        "kernel_size": 3,
+        "stride": 2,
+        "padding": 0,
+        "ceil_mode": False,
+        "count_include_pad": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5 - different kernel_size and stride
+    input = torch.tensor([[[1., 2., 3., 4., 5., 6., 7., 8., 9.]]]).numpy()
+    input_dict = {
+        "kernel_size": 4,
+        "stride": 3,
+        "padding": 0,
+        "ceil_mode": False,
+        "count_include_pad": True
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6 - negative values in input tensor
+    input = torch.tensor([[[1., -2., 3., -4., 5., -6., 7., -8.]]]).numpy()
+    input_dict = {
+        "kernel_size": 3,
+        "stride": 2,
+        "padding": 0,
+        "ceil_mode": False,
+        "count_include_pad": True
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7 - larger padding values
+    input = torch.tensor([[[1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]]]).numpy()
+    input_dict = {
+        "kernel_size": 3,
+        "stride": 2,
+        "padding": 2,
+        "ceil_mode": False,
+        "count_include_pad": True
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8 - different dimensions
+    input = torch.tensor([[[1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11.]]]).numpy()
+    input_dict = {
+        "kernel_size": 3,
+        "stride": 2,
+        "padding": 0,
+        "ceil_mode": False,
+        "count_include_pad": True
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9 - with different padding value
     input = torch.tensor([[[1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]]]).numpy()
     input_dict = {
         "kernel_size": 2,
-        "stride": 3,
+        "stride": 2,
         "padding": 1,
         "ceil_mode": False,
-        "count_include_pad": True,
-        "input": input
+        "count_include_pad": True
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 5, valid
-    input = torch.tensor([[[1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11.]]]).numpy()
-    input_dict = {
-        "kernel_size": 5,
-        "stride": 2,
-        "padding": 2,
-        "ceil_mode": True,
-        "count_include_pad": False,
-        "input": input
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6, valid
-    input = torch.tensor([[[1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12.]]]).numpy()
+    # Input 10 - with different stride value
+    input = torch.tensor([[[1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]]]).numpy()
     input_dict = {
         "kernel_size": 3,
-        "stride": 1,
-        "padding": 0,
-        "ceil_mode": False,
-        "count_include_pad": True,
-        "input": input
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7, valid
-    input = torch.tensor([[[1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13.]]]).numpy()
-    input_dict = {
-        "kernel_size": 4,
-        "stride": 2,
-        "padding": 1,
-        "ceil_mode": False,
-        "count_include_pad": False,
-        "input": input
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8, valid
-    input = torch.tensor([[[1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14.]]]).numpy()
-    input_dict = {
-        "kernel_size": 6,
         "stride": 3,
-        "padding": 2,
-        "ceil_mode": True,
-        "count_include_pad": True,
-        "input": input
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9, valid
-    input = torch.tensor([[[1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14., 15.]]]).numpy()
-    input_dict = {
-        "kernel_size": 3,
-        "stride": 1,
         "padding": 0,
         "ceil_mode": False,
-        "count_include_pad": True,
-        "input": input
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10, valid
-    input = torch.tensor([[[1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14., 15., 16.]]]).numpy()
-    input_dict = {
-        "kernel_size": 4,
-        "stride": 2,
-        "padding": 1,
-        "ceil_mode": True,
-        "count_include_pad": False,
-        "input": input
+        "count_include_pad": True
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     

@@ -10,7 +10,7 @@ def silu_inputs():
     list_of_inputs = []
     
     # Input 1, valid
-    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()   # tensor
     input_dict = {
         "input": input,
         "inplace": False
@@ -18,10 +18,10 @@ def silu_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.tensor([-1.0, -2.0, -3.0]).numpy()
+    input = torch.tensor([-1.0, -2.0, -3.0]).numpy()   # tensor
     input_dict = {
         "input": input,
-        "inplace": True
+        "inplace": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
@@ -34,15 +34,15 @@ def silu_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.randn(5).numpy()
+    input = torch.zeros((1, 4)).numpy()
     input_dict = {
         "input": input,
-        "inplace": True
+        "inplace": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    input = torch.tensor([0.0]).numpy()
     input_dict = {
         "input": input,
         "inplace": False
@@ -50,23 +50,23 @@ def silu_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.tensor([[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], [[7.0, 8.0, 9.0], [10.0, 11.0, 12.0]]]).numpy()
-    input_dict = {
-        "input": input,
-        "inplace": True
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7, valid
-    input = torch.zeros((3, 4, 5)).numpy()
+    input = torch.randn(5).numpy()
     input_dict = {
         "input": input,
         "inplace": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
+    # Input 7, valid
+    input = torch.tensor([1.5, 2.7, 3.9]).numpy()
+    input_dict = {
+        "input": input,
+        "inplace": True
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     # Input 8, valid
-    input = torch.tensor([0.0]).numpy()
+    input = torch.tensor([-0.5, -1.7, -2.9]).numpy()
     input_dict = {
         "input": input,
         "inplace": True
@@ -74,18 +74,18 @@ def silu_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.randn(2, 2, 2).numpy()
+    input = torch.ones((3, 2)).numpy()
     input_dict = {
         "input": input,
-        "inplace": False
+        "inplace": True
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([-1.5, -2.5, -3.5]).numpy()
+    input = torch.randn(4, 3).numpy()
     input_dict = {
         "input": input,
-        "inplace": True
+        "inplace": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

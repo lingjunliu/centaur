@@ -11,150 +11,110 @@ def diag_embed_inputs():
     
     # Input 1, valid
     input = torch.tensor([1.0, 2.0, 3.0]).numpy()   # tensor
-    offset = 0   # integer
-    dim1 = -1   # integer
-    dim2 = -1   # integer
+    k = 0   # integer
     
     input_dict = {
         "input": input,
-        "offset": offset,
-        "dim1": dim1,
-        "dim2": dim2
+        "k": k
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()   # tensor
-    offset = 1   # integer
-    dim1 = -1   # integer
-    dim2 = -1   # integer
+    input = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()   # tensor
+    k = 1   # integer
     
     input_dict = {
         "input": input,
-        "offset": offset,
-        "dim1": dim1,
-        "dim2": dim2
+        "k": k
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()   # tensor
-    offset = -1   # integer
-    dim1 = -1   # integer
-    dim2 = -1   # integer
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()   # tensor
+    k = -1   # integer
     
     input_dict = {
         "input": input,
-        "offset": offset,
-        "dim1": dim1,
-        "dim2": dim2
+        "k": k
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]).numpy()   # tensor
-    offset = 0   # integer
-    dim1 = -1   # integer
-    dim2 = -1   # integer
+    input = torch.ones((3, 4)).numpy()   # tensor
+    k = 0   # integer
     
     input_dict = {
         "input": input,
-        "offset": offset,
-        "dim1": dim1,
-        "dim2": dim2
+        "k": k
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]).numpy()   # tensor
-    offset = 1   # integer
-    dim1 = -1   # integer
-    dim2 = -1   # integer
+    input = torch.ones((2, 3)).numpy()   # tensor
+    k = 2   # integer
     
     input_dict = {
         "input": input,
-        "offset": offset,
-        "dim1": dim1,
-        "dim2": dim2
+        "k": k
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.tensor([1.0]).numpy()   # tensor
-    offset = 0   # integer
-    dim1 = -1   # integer
-    dim2 = -1   # integer
+    input = torch.tensor([1.0, 2.0]).numpy()   # tensor
+    k = -2   # integer
     
     input_dict = {
         "input": input,
-        "offset": offset,
-        "dim1": dim1,
-        "dim2": dim2
+        "k": k
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.tensor([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]).numpy()   # tensor
-    offset = -1   # integer
-    dim1 = -1   # integer
-    dim2 = -1   # integer
+    input = torch.ones((4, 5)).numpy()   # tensor
+    k = -1   # integer
     
     input_dict = {
         "input": input,
-        "offset": offset,
-        "dim1": dim1,
-        "dim2": dim2
+        "k": k
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]).numpy()   # tensor
-    offset = 0   # integer
-    dim1 = -1   # integer
-    dim2 = -1   # integer
+    input = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()   # tensor
+    k = 3   # integer
     
     input_dict = {
         "input": input,
-        "offset": offset,
-        "dim1": dim1,
-        "dim2": dim2
+        "k": k
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.tensor([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]).numpy()   # tensor
-    offset = 1   # integer
-    dim1 = -1   # integer
-    dim2 = -1   # integer
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()   # tensor
+    k = 2   # integer
     
     input_dict = {
         "input": input,
-        "offset": offset,
-        "dim1": dim1,
-        "dim2": dim2
+        "k": k
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]).numpy()   # tensor
-    offset = -1   # integer
-    dim1 = 1   # integer
-    dim2 = 1   # integer
+    input = torch.ones((1, 6)).numpy()   # tensor
+    k = -2   # integer
     
     input_dict = {
         "input": input,
-        "offset": offset,
-        "dim1": dim1,
-        "dim2": dim2
+        "k": k
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))

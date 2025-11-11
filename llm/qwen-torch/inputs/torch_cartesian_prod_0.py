@@ -9,54 +9,84 @@ import torch, copy
 def cartesian_prod_inputs():
     list_of_inputs = []
     
-    # Input 1, valid
-    tensor_list = [torch.tensor([1, 2]).numpy(), torch.tensor([3, 4]).numpy()]
-    input_dict = {"tensors": tensor_list}
+    # Input 1: 1D tensor
+    tensor1 = torch.tensor([1, 2, 3]).numpy()
+    tensor2 = torch.tensor([4, 5]).numpy()
+    input_dict = {
+        "tensors": [tensor1, tensor2]
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 2, valid
-    tensor_list = [torch.tensor([0.0, 1.0]).numpy(), torch.tensor([2.0, 3.0]).numpy()]
-    input_dict = {"tensors": tensor_list}
+    # Input 2: 2D tensors
+    tensor1 = torch.ones((2, 3)).numpy()
+    tensor2 = torch.zeros((3, 2)).numpy()
+    input_dict = {
+        "tensors": [tensor1, tensor2]
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 3, valid
-    tensor_list = [torch.tensor([1, 2, 3]).numpy(), torch.tensor([4, 5]).numpy()]
-    input_dict = {"tensors": tensor_list}
+    # Input 3: 3D tensors
+    tensor1 = torch.ones((2, 3, 4)).numpy()
+    tensor2 = torch.zeros((3, 2, 1)).numpy()
+    input_dict = {
+        "tensors": [tensor1, tensor2]
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 4, valid
-    tensor_list = [torch.tensor([1]).numpy(), torch.tensor([2, 3, 4]).numpy()]
-    input_dict = {"tensors": tensor_list}
+    # Input 4: 1D and 2D tensors
+    tensor1 = torch.tensor([1, 2]).numpy()
+    tensor2 = torch.ones((3, 4)).numpy()
+    input_dict = {
+        "tensors": [tensor1, tensor2]
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 5, valid
-    tensor_list = [torch.tensor([-1, 0, 1]).numpy(), torch.tensor([2, 3]).numpy()]
-    input_dict = {"tensors": tensor_list}
+    # Input 5: 1D tensors with negative values
+    tensor1 = torch.tensor([-1, 0, 1]).numpy()
+    tensor2 = torch.tensor([2, 3]).numpy()
+    input_dict = {
+        "tensors": [tensor1, tensor2]
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 6, valid
-    tensor_list = [torch.ones((2, 3)).numpy(), torch.ones((4, 5)).numpy()]
-    input_dict = {"tensors": tensor_list}
+    # Input 6: 2D tensors with negative values
+    tensor1 = torch.ones((2, 3)).numpy()
+    tensor2 = torch.zeros((3, 2)).numpy()
+    input_dict = {
+        "tensors": [tensor1, tensor2]
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 7, valid
-    tensor_list = [torch.tensor([[1, 2], [3, 4]]).numpy(), torch.tensor([[5, 6], [7, 8]]).numpy()]
-    input_dict = {"tensors": tensor_list}
+    # Input 7: 1D tensors with float values
+    tensor1 = torch.tensor([1.5, 2.0]).numpy()
+    tensor2 = torch.tensor([3.0, 4.5]).numpy()
+    input_dict = {
+        "tensors": [tensor1, tensor2]
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 8, valid
-    tensor_list = [torch.zeros((2, 3)).numpy(), torch.zeros((4, 5)).numpy()]
-    input_dict = {"tensors": tensor_list}
+    # Input 8: 3D tensors with different shapes
+    tensor1 = torch.ones((2, 3, 4)).numpy()
+    tensor2 = torch.zeros((3, 2, 1)).numpy()
+    input_dict = {
+        "tensors": [tensor1, tensor2]
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 9, valid
-    tensor_list = [torch.tensor([1.0]).numpy(), torch.tensor([2.0]).numpy()]
-    input_dict = {"tensors": tensor_list}
+    # Input 9: mixed dimensions
+    tensor1 = torch.tensor([1, 2, 3]).numpy()
+    tensor2 = torch.ones((3, 4)).numpy()
+    input_dict = {
+        "tensors": [tensor1, tensor2]
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 10, valid
-    tensor_list = [torch.tensor([1, 2, 3, 4]).numpy(), torch.tensor([5, 6]).numpy()]
-    input_dict = {"tensors": tensor_list}
+    # Input 10: 1D tensors with different dtypes
+    tensor1 = torch.tensor([1, 2, 3], dtype=torch.int32).numpy()
+    tensor2 = torch.tensor([4, 5], dtype=torch.float32).numpy()
+    input_dict = {
+        "tensors": [tensor1, tensor2]
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs

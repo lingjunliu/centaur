@@ -10,154 +10,144 @@ def gradient_inputs():
     list_of_inputs = []
     
     # Input 1 - 1D tensor with scalar spacing
-    input1d = torch.tensor([1.0, 4.0, 9.0, 16.0]).numpy()
-    spacing1d = [2.0]
-    dim1d = [0]
-    edge_order1d = 1
+    input = torch.tensor([4., 1., 1., 16.]).numpy()
+    spacing = torch.tensor([-2., -1., 1., 4.]).numpy()
+    dim = None
+    edge_order = 1
     
-    input_dict1 = {
-        "input": input1d,
-        "spacing": spacing1d,
-        "dim": dim1d,
-        "edge_order": edge_order1d
+    input_dict = {
+        "input": input,
+        "spacing": spacing,
+        "dim": dim,
+        "edge_order": edge_order
     }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2 - 2D tensor with scalar spacing
-    input2d = torch.tensor([[1.0, 4.0, 9.0], [16.0, 25.0, 36.0]]).numpy()
-    spacing2d = [2.0]
-    dim2d = [0]
-    edge_order2d = 1
+    input = torch.tensor([[1, 2, 4, 8], [10, 20, 40, 80]]).numpy()
+    spacing = torch.tensor([2.]).numpy()
+    dim = None
+    edge_order = 1
     
-    input_dict2 = {
-        "input": input2d,
-        "spacing": spacing2d,
-        "dim": dim2d,
-        "edge_order": edge_order2d
+    input_dict = {
+        "input": input,
+        "spacing": spacing,
+        "dim": dim,
+        "edge_order": edge_order
     }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3 - 2D tensor with list of scalars spacing
-    input2d_2 = torch.tensor([[1.0, 4.0, 9.0], [16.0, 25.0, 36.0]]).numpy()
-    spacing2d_2 = [3.0, 2.0]
-    dim2d_2 = [0, 1]
-    edge_order2d_2 = 2
+    input = torch.tensor([[1, 2, 4, 8], [10, 20, 40, 80]]).numpy()
+    spacing = torch.tensor([3., 2.]).numpy()
+    dim = None
+    edge_order = 1
     
-    input_dict3 = {
-        "input": input2d_2,
-        "spacing": spacing2d_2,
-        "dim": dim2d_2,
-        "edge_order": edge_order2d_2
+    input_dict = {
+        "input": input,
+        "spacing": spacing,
+        "dim": dim,
+        "edge_order": edge_order
     }
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    # Input 4 - 2D tensor with explicit coordinates spacing (both tensors)
+    input = torch.tensor([[1, 2, 4, 8], [10, 20, 40, 80]]).numpy()
+    spacing = torch.tensor([0, 2]).numpy()
+    dim = None
+    edge_order = 1
     
-    # Input 4 - 1D tensor with list of tensors spacing
-    input1d_2 = torch.tensor([1.0, 4.0, 9.0, 16.0]).numpy()
-    spacing1d_2 = [torch.tensor([0.0, 1.0, 2.0, 3.0])]
-    dim1d_2 = [0]
-    edge_order1d_2 = 2
-    
-    input_dict4 = {
-        "input": input1d_2,
-        "spacing": spacing1d_2,
-        "dim": dim1d_2,
-        "edge_order": edge_order1d_2
+    input_dict = {
+        "input": input,
+        "spacing": spacing,
+        "dim": dim,
+        "edge_order": edge_order
     }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict4))
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5 - 3D tensor with scalar spacing
-    input3d = torch.tensor([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]).numpy()
-    spacing3d = [2.0]
-    dim3d = [0]
-    edge_order3d = 1
+    input = torch.tensor([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]).numpy()
+    spacing = torch.tensor([2.]).numpy()
+    dim = None
+    edge_order = 1
     
-    input_dict5 = {
-        "input": input3d,
-        "spacing": spacing3d,
-        "dim": dim3d,
-        "edge_order": edge_order3d
+    input_dict = {
+        "input": input,
+        "spacing": spacing,
+        "dim": dim,
+        "edge_order": edge_order
     }
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
-    list_of_inputs.append(copy.deepcopy(input_dict5))
+    # Input 6 - 1D tensor with negative values
+    input = torch.tensor([-4., -1., 1., 16.]).numpy()
+    spacing = torch.tensor([-2., -1., 1., 4.]).numpy()
+    dim = None
+    edge_order = 1
     
-    # Input 6 - 1D tensor with negative values and scalar spacing
-    input1d_3 = torch.tensor([-1.0, 2.0, -3.0, 4.0]).numpy()
-    spacing1d_3 = [1.0]
-    dim1d_3 = [0]
-    edge_order1d_3 = 1
-    
-    input_dict6 = {
-        "input": input1d_3,
-        "spacing": spacing1d_3,
-        "dim": dim1d_3,
-        "edge_order": edge_order1d_3
+    input_dict = {
+        "input": input,
+        "spacing": spacing,
+        "dim": dim,
+        "edge_order": edge_order
     }
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
-    list_of_inputs.append(copy.deepcopy(input_dict6))
+    # Input 7 - 2D tensor with different dimensions
+    input = torch.tensor([[1, 2, 4, 8], [10, 20, 40, 80]]).numpy()
+    spacing = torch.tensor([2., 3.]).numpy()
+    dim = 1
+    edge_order = 1
     
-    # Input 7 - 2D tensor with negative values and scalar spacing
-    input2d_3 = torch.tensor([[-1.0, 2.0], [3.0, -4.0]]).numpy()
-    spacing2d_3 = [1.0]
-    dim2d_3 = [0]
-    edge_order2d_3 = 1
-    
-    input_dict7 = {
-        "input": input2d_3,
-        "spacing": spacing2d_3,
-        "dim": dim2d_3,
-        "edge_order": edge_order2d_3
+    input_dict = {
+        "input": input,
+        "spacing": spacing,
+        "dim": dim,
+        "edge_order": edge_order
     }
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
-    list_of_inputs.append(copy.deepcopy(input_dict7))
+    # Input 8 - 2D tensor with different dimensions and edge_order=2
+    input = torch.tensor([[1, 2, 4, 8], [10, 20, 40, 80]]).numpy()
+    spacing = torch.tensor([2., 3.]).numpy()
+    dim = 0
+    edge_order = 2
     
-    # Input 8 - 1D tensor with list of scalars spacing (non-uniform spacing)
-    input1d_4 = torch.tensor([1.0, 4.0, 9.0]).numpy()
-    spacing1d_4 = [3.0, 2.0]
-    dim1d_4 = [0]
-    edge_order1d_4 = 2
-    
-    input_dict8 = {
-        "input": input1d_4,
-        "spacing": spacing1d_4,
-        "dim": dim1d_4,
-        "edge_order": edge_order1d_4
+    input_dict = {
+        "input": input,
+        "spacing": spacing,
+        "dim": dim,
+        "edge_order": edge_order
     }
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
-    list_of_inputs.append(copy.deepcopy(input_dict8))
+    # Input 9 - 1D tensor with different spacing values
+    input = torch.tensor([1., 4., 9., 16.]).numpy()
+    spacing = torch.tensor([1., 2., 3., 4.]).numpy()
+    dim = None
+    edge_order = 2
     
-    # Input 9 - 2D tensor with different dimensions and scalar spacing
-    input2d_4 = torch.tensor([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]).numpy()
-    spacing2d_4 = [2.0]
-    dim2d_4 = [1]
-    edge_order2d_4 = 2
-    
-    input_dict9 = {
-        "input": input2d_4,
-        "spacing": spacing2d_4,
-        "dim": dim2d_4,
-        "edge_order": edge_order2d_4
+    input_dict = {
+        "input": input,
+        "spacing": spacing,
+        "dim": dim,
+        "edge_order": edge_order
     }
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
-    list_of_inputs.append(copy.deepcopy(input_dict9))
+    # Input 10 - 2D tensor with different spacing values and edge_order=2
+    input = torch.tensor([[1, 2, 4, 8], [10, 20, 40, 80]]).numpy()
+    spacing = torch.tensor([3., 2.]).numpy()
+    dim = None
+    edge_order = 2
     
-    # Input 10 - 3D tensor with scalar spacing and edge_order=2
-    input3d_2 = torch.tensor([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]).numpy()
-    spacing3d_2 = [2.0]
-    dim3d_2 = [0]
-    edge_order3d_2 = 2
-    
-    input_dict10 = {
-        "input": input3d_2,
-        "spacing": spacing3d_2,
-        "dim": dim3d_2,
-        "edge_order": edge_order3d_2
+    input_dict = {
+        "input": input,
+        "spacing": spacing,
+        "dim": dim,
+        "edge_order": edge_order
     }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict10))
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs
 

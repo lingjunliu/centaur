@@ -12,90 +12,90 @@ def featurealphadropout_inputs():
     # Input 1, valid
     input = torch.randn(20, 16, 4, 32, 32).numpy()
     input_dict = {
-        "input": input,
         "p": 0.2,
-        "inplace": False
+        "inplace": False,
+        "input": input
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
     input = torch.randn(10, 8, 16, 16).numpy()
     input_dict = {
-        "input": input,
         "p": 0.5,
-        "inplace": True
+        "inplace": True,
+        "input": input
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
     input = torch.randn(5, 32, 8, 8).numpy()
     input_dict = {
-        "input": input,
         "p": 0.7,
-        "inplace": False
+        "inplace": False,
+        "input": input
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.randn(1, 64, 32, 32).numpy()
+    input = torch.randn(1, 1, 32, 32).numpy()
     input_dict = {
-        "input": input,
         "p": 0.1,
-        "inplace": True
+        "inplace": True,
+        "input": input
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.randn(32, 1, 64, 64).numpy()
+    input = torch.randn(32, 16, 8).numpy()
     input_dict = {
-        "input": input,
         "p": 0.3,
-        "inplace": False
+        "inplace": False,
+        "input": input
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.randn(8, 128, 4, 4).numpy()
+    input = torch.randn(8, 4, 128, 128).numpy()
     input_dict = {
-        "input": input,
-        "p": 0.9,
-        "inplace": False
+        "p": 0.4,
+        "inplace": True,
+        "input": input
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.randn(16, 32, 8, 8).numpy()
+    input = torch.randn(16, 32, 32, 32).numpy()
     input_dict = {
-        "input": input,
-        "p": 0.4,
-        "inplace": True
+        "p": 0.6,
+        "inplace": False,
+        "input": input
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.randn(128, 16, 32, 32).numpy()
+    input = torch.randn(2, 1, 32, 32).numpy()
     input_dict = {
-        "input": input,
-        "p": 0.6,
-        "inplace": False
+        "p": 0.8,
+        "inplace": True,
+        "input": input
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.randn(10, 32, 8, 8).numpy()
+    input = torch.randn(16, 16, 4, 32).numpy()
     input_dict = {
-        "input": input,
-        "p": 0.2,
-        "inplace": True
+        "p": 0.9,
+        "inplace": False,
+        "input": input
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.randn(64, 8, 16, 16).numpy()
+    input = torch.randn(1, 32, 8, 8).numpy()
     input_dict = {
-        "input": input,
-        "p": 0.8,
-        "inplace": False
+        "p": 0.05,
+        "inplace": True,
+        "input": input
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     

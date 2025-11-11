@@ -11,72 +11,52 @@ def imag_inputs():
     
     # Input 1, valid
     input = torch.tensor([1+2j, 3+4j, 5+6j], dtype=torch.complex64).numpy()
-    input_dict = {
-        "input": input
-    }
+    input_dict = {"input": input}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.tensor([[1+2j, 3+4j], [5+6j, 7+8j]], dtype=torch.complex64).numpy()
-    input_dict = {
-        "input": input
-    }
+    input = torch.tensor([1.5+2.7j, 3.1+4.2j], dtype=torch.complex64).numpy()
+    input_dict = {"input": input}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.tensor([1+2j], dtype=torch.complex64).numpy()
-    input_dict = {
-        "input": input
-    }
+    input = torch.tensor([0+0j, 1+1j, 2+2j, 3+3j], dtype=torch.complex64).numpy()
+    input_dict = {"input": input}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.tensor([0+0j, 1+1j, 2+2j], dtype=torch.complex64).numpy()
-    input_dict = {
-        "input": input
-    }
+    input = torch.tensor([1+2j, 3+4j, 5+6j, 7+8j], dtype=torch.complex128).numpy()
+    input_dict = {"input": input}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([-1-1j, -2-2j, -3-3j], dtype=torch.complex64).numpy()
-    input_dict = {
-        "input": input
-    }
+    input = torch.tensor([0.5+0.5j, 1.5+1.5j], dtype=torch.complex128).numpy()
+    input_dict = {"input": input}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.tensor([0.5+0.5j, 1.5+1.5j], dtype=torch.complex64).numpy()
-    input_dict = {
-        "input": input
-    }
+    input = torch.ones((3, 4), dtype=torch.complex64).numpy()
+    input_dict = {"input": input}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.tensor([[0.1+0.2j, 0.3+0.4j], [0.5+0.6j, 0.7+0.8j]], dtype=torch.complex64).numpy()
-    input_dict = {
-        "input": input
-    }
+    input = torch.zeros((2, 2, 3), dtype=torch.complex64).numpy()
+    input_dict = {"input": input}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([1j, 2j, 3j, 4j], dtype=torch.complex64).numpy()
-    input_dict = {
-        "input": input
-    }
+    input = torch.randn((5, 1), dtype=torch.complex128).numpy()
+    input_dict = {"input": input}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.tensor([1+1j, 2+2j, 3+3j, 4+4j], dtype=torch.complex64).numpy()
-    input_dict = {
-        "input": input
-    }
+    input = torch.tensor([0.0+0.0j], dtype=torch.complex64).numpy()
+    input_dict = {"input": input}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([1.0+2j, 3.0+4j, 5.0+6j], dtype=torch.complex64).numpy()
-    input_dict = {
-        "input": input
-    }
+    input = torch.tensor([-1-2j, -3-4j, -5-6j], dtype=torch.complex64).numpy()
+    input_dict = {"input": input}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs

@@ -11,54 +11,74 @@ def i1e_inputs():
     
     # Input 1, valid
     input = torch.tensor([1.0, 2.0, 3.0]).numpy()
-    input_dict = {"x": input}
+    input_dict = {
+        "input": input
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
     input = torch.ones((2, 3)).numpy()
-    input_dict = {"x": input}
+    input_dict = {
+        "input": input
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
     input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    input_dict = {"x": input}
+    input_dict = {
+        "input": input
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
     input = torch.tensor([-1.0, -2.0, -3.0]).numpy()
-    input_dict = {"x": input}
+    input_dict = {
+        "input": input
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([-1.0]).numpy()
-    input_dict = {"x": input}
+    input = torch.zeros((3, 4)).numpy()
+    input_dict = {
+        "input": input
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.zeros((3, 4)).numpy()
-    input_dict = {"x": input}
+    input = torch.tensor([0.0]).numpy()
+    input_dict = {
+        "input": input
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.tensor([0.0]).numpy()
-    input_dict = {"x": input}
+    input = torch.tensor([1.5, 2.5, 3.5]).numpy()
+    input_dict = {
+        "input": input
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.ones((1, 2, 3)).numpy()
-    input_dict = {"x": input}
+    input = torch.tensor([0.1, 0.2, 0.3]).numpy()
+    input_dict = {
+        "input": input
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.tensor([0.5, 1.5, 2.5]).numpy()
-    input_dict = {"x": input}
+    input = torch.ones((4, 5)).numpy()
+    input_dict = {
+        "input": input
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([1e-6, 1e-5, 1e-4]).numpy()
-    input_dict = {"x": input}
+    input = torch.tensor([1.0]).numpy()
+    input_dict = {
+        "input": input
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     return list_of_inputs
 
 generated_inputs["torch.special.i1e"] = i1e_inputs()

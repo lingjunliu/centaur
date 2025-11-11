@@ -9,7 +9,7 @@ import torch, copy
 def nansum_inputs():
     list_of_inputs = []
     
-    # Input 1, valid
+    # Input 1 - valid
     input = torch.tensor([1.0, 2.0, float('nan'), 4.0]).numpy()
     dim = 0
     keepdim = False
@@ -24,8 +24,8 @@ def nansum_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 2, valid
-    input = torch.tensor([[1.0, 2.0], [3.0, float('nan')]]).numpy()
+    # Input 2 - valid
+    input = torch.tensor([[1, 2], [3, float('nan')]]).numpy()
     dim = 0
     keepdim = False
     dtype = None
@@ -39,8 +39,8 @@ def nansum_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 3, valid
-    input = torch.tensor([[1.0, float('nan')], [3.0, 4.0]]).numpy()
+    # Input 3 - valid
+    input = torch.tensor([[1, 2], [3, float('nan')]]).numpy()
     dim = 1
     keepdim = False
     dtype = None
@@ -54,8 +54,8 @@ def nansum_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 4, valid
-    input = torch.tensor([[[1.0, 2.0], [3.0, 4.0]], [[5.0, float('nan')], [7.0, 8.0]]]).numpy()
+    # Input 4 - valid
+    input = torch.tensor([1.0, float('nan'), 3.0]).numpy()
     dim = 0
     keepdim = True
     dtype = None
@@ -69,23 +69,23 @@ def nansum_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 5, valid
-    input = torch.tensor([[[1.0, float('nan')], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]).numpy()
-    dim = 1
-    keepdim = True
-    dtype = None
-    
-    input_dict = {
-        "input": input,
-        "dim": dim,
-        "keepdim": keepdim,
-        "dtype": dtype
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6, valid
+    # Input 5 - valid
     input = torch.tensor([1.0, 2.0, float('nan'), 4.0]).numpy()
+    dim = None
+    keepdim = False
+    dtype = None
+    
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "keepdim": keepdim,
+        "dtype": dtype
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6 - valid
+    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, float('nan')]]).numpy()
     dim = 0
     keepdim = True
     dtype = None
@@ -99,10 +99,10 @@ def nansum_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 7, valid
-    input = torch.tensor([[[1.0, float('nan')], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]).numpy()
-    dim = -1
-    keepdim = False
+    # Input 7 - valid
+    input = torch.tensor([[1.0, 2.0], [3.0, float('nan')], [4.0, 5.0]]).numpy()
+    dim = 1
+    keepdim = True
     dtype = None
     
     input_dict = {
@@ -114,24 +114,9 @@ def nansum_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 8, valid
-    input = torch.tensor([[[1.0, float('nan')], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]).numpy()
+    # Input 8 - valid
+    input = torch.tensor([1.0, float('nan'), 3.0]).numpy()
     dim = 0
-    keepdim = False
-    dtype = torch.float32
-    
-    input_dict = {
-        "input": input,
-        "dim": dim,
-        "keepdim": keepdim,
-        "dtype": dtype
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9, valid
-    input = torch.tensor([[[1.0, float('nan')], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]).numpy()
-    dim = 1
     keepdim = False
     dtype = torch.float64
     
@@ -144,9 +129,24 @@ def nansum_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 10, valid
-    input = torch.tensor([[[1.0, float('nan')], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]).numpy()
-    dim = 2
+    # Input 9 - valid
+    input = torch.tensor([[1, 2], [3, float('nan')]]).numpy()
+    dim = 0
+    keepdim = True
+    dtype = torch.float32
+    
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "keepdim": keepdim,
+        "dtype": dtype
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10 - valid
+    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, float('nan')], [6.0, 7.0, 8.0]]).numpy()
+    dim = 1
     keepdim = False
     dtype = None
     

@@ -11,122 +11,111 @@ def xlog1py_inputs():
     
     # Input 1, valid
     input = torch.tensor([1.0, 2.0, 3.0]).numpy()   # tensor
-    tensor1 = torch.tensor([0.1, 0.2, 0.3]).numpy() # tensor
-    tensor2 = torch.tensor([10.0, 20.0, 30.0]).numpy()  # tensor
+    other = torch.tensor([0.1, 0.2, 0.3]).numpy() # tensor
     
     input_dict = {
-        "x": input,
-        "y": tensor1
+        "input": input,
+        "other": other
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
     input = torch.ones((2, 3)).numpy()
-    tensor1 = torch.tensor([[1.0, 2.0, 3.0],
-                            [4.0, 5.0, 6.0]]).numpy()
-    tensor2 = torch.tensor([[0.1, 0.2, 0.3],
-                            [0.4, 0.5, 0.6]]).numpy()
+    other = torch.tensor([[1.0, 2.0, 3.0],
+                        [4.0, 5.0, 6.0]]).numpy()
     
     input_dict = {
-        "x": input,
-        "y": tensor1
+        "input": input,
+        "other": other
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
     input = torch.tensor([0.0]).numpy()
-    tensor1 = torch.tensor([0.0]).numpy()
-    tensor2 = torch.tensor([1.0]).numpy()
+    other = torch.tensor([1.0]).numpy()
     
     input_dict = {
-        "x": input,
-        "y": tensor1
+        "input": input,
+        "other": other
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
     input = torch.tensor([-1.0, -2.0]).numpy()
-    tensor1 = torch.tensor([0.5, 0.7]).numpy()
-    tensor2 = torch.tensor([2.0, 3.0]).numpy()
+    other = torch.tensor([0.5, 0.7]).numpy()
     
     input_dict = {
-        "x": input,
-        "y": tensor1
+        "input": input,
+        "other": other
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([1.0]).numpy()
-    tensor1 = torch.tensor([2.0]).numpy()
-    tensor2 = torch.tensor([3.0]).numpy()
+    input = torch.zeros((3, 4)).numpy()
+    other = torch.ones((3, 4)).numpy()
     
     input_dict = {
-        "x": input,
-        "y": tensor1
+        "input": input,
+        "other": other
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.ones((4, 5)).numpy()
-    tensor1 = torch.ones((4, 5)).numpy()
-    tensor2 = torch.ones((4, 5)).numpy()
+    input = torch.tensor([1.0]).numpy()
+    other = torch.tensor([0.0]).numpy()
     
     input_dict = {
-        "x": input,
-        "y": tensor1
+        "input": input,
+        "other": other
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()
-    tensor1 = torch.tensor([0.1, 0.2, 0.3, 0.4]).numpy()
-    tensor2 = torch.tensor([10.0, 20.0, 30.0, 40.0]).numpy()
+    input = torch.tensor([2.0, 3.0, 4.0]).numpy()
+    other = torch.tensor([1.0, 2.0, 3.0]).numpy()
     
     input_dict = {
-        "x": input,
-        "y": tensor1
+        "input": input,
+        "other": other
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([0.5]).numpy()
-    tensor1 = torch.tensor([0.5]).numpy()
-    tensor2 = torch.tensor([0.5]).numpy()
+    input = torch.tensor([-1.0]).numpy()
+    other = torch.tensor([-2.0]).numpy()
     
     input_dict = {
-        "x": input,
-        "y": tensor1
+        "input": input,
+        "other": other
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
-    tensor1 = torch.tensor([0.5, 0.7, 0.9]).numpy()
-    tensor2 = torch.tensor([0.1, 0.2, 0.3]).numpy()
+    input = torch.ones((1, 2, 3)).numpy()
+    other = torch.zeros((1, 2, 3)).numpy()
     
     input_dict = {
-        "x": input,
-        "y": tensor1
+        "input": input,
+        "other": other
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([-1.0, -2.0, -3.0]).numpy()
-    tensor1 = torch.tensor([1.0, 2.0, 3.0]).numpy()
-    tensor2 = torch.tensor([0.1, 0.2, 0.3]).numpy()
+    input = torch.tensor([0.5, 1.5]).numpy()
+    other = torch.tensor([0.2, 0.8]).numpy()
     
     input_dict = {
-        "x": input,
-        "y": tensor1
+        "input": input,
+        "other": other
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))

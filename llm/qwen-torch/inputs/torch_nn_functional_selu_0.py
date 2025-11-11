@@ -10,7 +10,7 @@ def selu_inputs():
     list_of_inputs = []
     
     # Input 1, valid
-    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()   # tensor
     input_dict = {
         "input": input,
         "inplace": False
@@ -18,7 +18,7 @@ def selu_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.ones((2, 3)).numpy()
+    input = torch.tensor([-1.0, -2.0, -3.0]).numpy()   # tensor
     input_dict = {
         "input": input,
         "inplace": False
@@ -26,8 +26,7 @@ def selu_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.tensor([[1.0, -2.0, 3.0],
-                         [4.0, -5.0, 6.0]]).numpy()
+    input = torch.ones((2, 3)).numpy()
     input_dict = {
         "input": input,
         "inplace": False
@@ -35,7 +34,7 @@ def selu_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.tensor([-1.0, -2.0, -3.0]).numpy()
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()   # tensor
     input_dict = {
         "input": input,
         "inplace": False
@@ -43,7 +42,7 @@ def selu_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.ones((1, 4)).numpy()
+    input = torch.tensor([[-1.0, -2.0, -3.0], [1.0, 2.0, 3.0]]).numpy()   # tensor
     input_dict = {
         "input": input,
         "inplace": False
@@ -51,16 +50,15 @@ def selu_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.tensor([0.0, 1.0, -1.0]).numpy()
+    input = torch.tensor([1.0]).numpy()   # tensor
     input_dict = {
         "input": input,
-        "inplace": True
+        "inplace": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.tensor([[0.0, 1.0],
-                         [2.0, 3.0]]).numpy()
+    input = torch.tensor([-1.0]).numpy()   # tensor
     input_dict = {
         "input": input,
         "inplace": False
@@ -68,7 +66,7 @@ def selu_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([1.5, -1.5, 2.5]).numpy()
+    input = torch.zeros((2, 3, 4)).numpy()
     input_dict = {
         "input": input,
         "inplace": False
@@ -76,7 +74,7 @@ def selu_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.ones((3, 2, 4)).numpy()
+    input = torch.tensor([0.0]).numpy()   # tensor
     input_dict = {
         "input": input,
         "inplace": False
@@ -84,10 +82,10 @@ def selu_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([-0.5, 0.5, -1.5]).numpy()
+    input = torch.tensor([-0.5]).numpy()   # tensor
     input_dict = {
         "input": input,
-        "inplace": True
+        "inplace": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

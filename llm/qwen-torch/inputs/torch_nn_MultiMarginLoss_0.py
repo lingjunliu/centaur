@@ -12,10 +12,11 @@ def multi_margin_loss_inputs():
     # Input 1, valid
     input = torch.tensor([[0.1, 0.2, 0.4, 0.8]]).numpy()
     target = torch.tensor([3]).numpy()
+    weight = torch.tensor([1.0, 1.0, 1.0, 1.0]).numpy()
     input_dict = {
         "p": 1,
         "margin": 1.0,
-        "weight": torch.ones(4).numpy(),
+        "weight": weight,
         "size_average": True,
         "reduce": True,
         "reduction": "mean",
@@ -27,10 +28,11 @@ def multi_margin_loss_inputs():
     # Input 2, valid
     input = torch.tensor([[0.1, 0.2, 0.4, 0.8]]).numpy()
     target = torch.tensor([3]).numpy()
+    weight = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()
     input_dict = {
         "p": 2,
-        "margin": 1.0,
-        "weight": torch.ones(4).numpy(),
+        "margin": 1.5,
+        "weight": weight,
         "size_average": False,
         "reduce": True,
         "reduction": "sum",
@@ -40,28 +42,15 @@ def multi_margin_loss_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.tensor([[0.1, 0.2, 0.4, 0.8], [0.5, 0.6, 0.7, 0.9]]).numpy()
-    target = torch.tensor([3, 2]).numpy()
+    input = torch.tensor([[0.1, 0.2, 0.4, 0.8],
+                         [0.5, 0.6, 0.7, 0.9]]).numpy()
+    target = torch.tensor([3, 1]).numpy()
+    weight = torch.tensor([1.0, 1.0, 1.0, 1.0]).numpy()
     input_dict = {
         "p": 1,
         "margin": 2.0,
-        "weight": torch.ones(4).numpy(),
+        "weight": weight,
         "size_average": True,
-        "reduce": True,
-        "reduction": "mean",
-        "input": input,
-        "target": target
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 4, valid
-    input = torch.tensor([[0.1, 0.2, 0.4, 0.8], [0.5, 0.6, 0.7, 0.9]]).numpy()
-    target = torch.tensor([3, 2]).numpy()
-    input_dict = {
-        "p": 2,
-        "margin": 1.0,
-        "weight": torch.ones(4).numpy(),
-        "size_average": False,
         "reduce": False,
         "reduction": "none",
         "input": input,
@@ -69,16 +58,34 @@ def multi_margin_loss_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 5, valid
+    # Input 4, valid
     input = torch.tensor([[0.1, 0.2, 0.4, 0.8]]).numpy()
     target = torch.tensor([3]).numpy()
+    weight = torch.tensor([1.0, 1.0, 1.0, 1.0]).numpy()
     input_dict = {
         "p": 1,
         "margin": 1.0,
-        "weight": torch.ones(4).numpy(),
-        "size_average": True,
+        "weight": weight,
+        "size_average": False,
         "reduce": True,
         "reduction": "mean",
+        "input": input,
+        "target": target
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5, valid
+    input = torch.tensor([[0.1, 0.2, 0.4, 0.8],
+                         [0.5, 0.6, 0.7, 0.9]]).numpy()
+    target = torch.tensor([3, 1]).numpy()
+    weight = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()
+    input_dict = {
+        "p": 2,
+        "margin": 1.5,
+        "weight": weight,
+        "size_average": True,
+        "reduce": False,
+        "reduction": "sum",
         "input": input,
         "target": target
     }
@@ -87,25 +94,45 @@ def multi_margin_loss_inputs():
     # Input 6, valid
     input = torch.tensor([[0.1, 0.2, 0.4, 0.8]]).numpy()
     target = torch.tensor([3]).numpy()
+    weight = torch.tensor([1.0, 1.0, 1.0, 1.0]).numpy()
     input_dict = {
         "p": 1,
-        "margin": 0.5,
-        "weight": torch.ones(4).numpy(),
-        "size_average": True,
+        "margin": 2.0,
+        "weight": weight,
+        "size_average": False,
         "reduce": True,
-        "reduction": "mean",
+        "reduction": "none",
         "input": input,
         "target": target
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.tensor([[0.1, 0.2, 0.4, 0.8]]).numpy()
-    target = torch.tensor([3]).numpy()
+    input = torch.tensor([[0.1, 0.2, 0.4, 0.8],
+                         [0.5, 0.6, 0.7, 0.9]]).numpy()
+    target = torch.tensor([3, 1]).numpy()
+    weight = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()
+    input_dict = {
+        "p": 2,
+        "margin": 1.5,
+        "weight": weight,
+        "size_average": True,
+        "reduce": False,
+        "reduction": "mean",
+        "input": input,
+        "target": target
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8, valid
+    input = torch.tensor([[0.1, 0.2, 0.4, 0.8],
+                         [0.5, 0.6, 0.7, 0.9]]).numpy()
+    target = torch.tensor([3, 1]).numpy()
+    weight = torch.tensor([1.0, 1.0, 1.0, 1.0]).numpy()
     input_dict = {
         "p": 1,
         "margin": 1.0,
-        "weight": torch.ones(4).numpy(),
+        "weight": weight,
         "size_average": False,
         "reduce": True,
         "reduction": "sum",
@@ -114,31 +141,17 @@ def multi_margin_loss_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 8, valid
-    input = torch.tensor([[0.1, 0.2, 0.4, 0.8], [0.5, 0.6, 0.7, 0.9]]).numpy()
-    target = torch.tensor([3, 2]).numpy()
-    input_dict = {
-        "p": 2,
-        "margin": 1.0,
-        "weight": torch.ones(4).numpy(),
-        "size_average": True,
-        "reduce": False,
-        "reduction": "none",
-        "input": input,
-        "target": target
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
     # Input 9, valid
     input = torch.tensor([[0.1, 0.2, 0.4, 0.8]]).numpy()
     target = torch.tensor([3]).numpy()
+    weight = torch.tensor([1.0, 1.0, 1.0, 1.0]).numpy()
     input_dict = {
         "p": 2,
         "margin": 2.0,
-        "weight": torch.ones(4).numpy(),
+        "weight": weight,
         "size_average": True,
-        "reduce": True,
-        "reduction": "mean",
+        "reduce": False,
+        "reduction": "none",
         "input": input,
         "target": target
     }
@@ -147,13 +160,14 @@ def multi_margin_loss_inputs():
     # Input 10, valid
     input = torch.tensor([[0.1, 0.2, 0.4, 0.8]]).numpy()
     target = torch.tensor([3]).numpy()
+    weight = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()
     input_dict = {
         "p": 1,
-        "margin": 1.0,
-        "weight": torch.ones(4).numpy(),
-        "size_average": True,
-        "reduce": False,
-        "reduction": "none",
+        "margin": 1.5,
+        "weight": weight,
+        "size_average": False,
+        "reduce": True,
+        "reduction": "mean",
         "input": input,
         "target": target
     }

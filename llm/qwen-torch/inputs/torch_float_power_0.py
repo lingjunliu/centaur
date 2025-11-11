@@ -11,130 +11,116 @@ def float_power_inputs():
     
     # Input 1, valid
     input = torch.tensor([2.0, 3.0, 4.0]).numpy()   # tensor
-    exponent = 2.0 # float
-    out = torch.zeros((3,)).numpy()    # tensor
-
+    exponent = torch.tensor([1.0, 2.0, 3.0]).numpy() # tensor
+    
     input_dict = {
         "input": input,
-        "exponent": exponent,
-        "out": out
+        "exponent": exponent
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.ones((3, 4)).numpy()
-    exponent = 0.5
-    out = torch.zeros((3, 4)).numpy()
-
+    input = torch.ones((2, 3)).numpy()
+    exponent = torch.tensor([[1.0, 2.0, 3.0],
+                            [4.0, 5.0, 6.0]]).numpy()
+    
     input_dict = {
         "input": input,
-        "exponent": exponent,
-        "out": out
+        "exponent": exponent
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    exponent = 3.0
-    out = torch.zeros((2, 2)).numpy()
-
+    input = torch.tensor([1.0]).numpy()   # tensor
+    exponent = torch.tensor([2.0]).numpy() # tensor
+    
     input_dict = {
         "input": input,
-        "exponent": exponent,
-        "out": out
+        "exponent": exponent
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.tensor([1.0]).numpy()
-    exponent = -1.0
-    out = torch.zeros((1,)).numpy()
-
+    input = torch.tensor([-2.0, -3.0, -4.0]).numpy()   # tensor
+    exponent = torch.tensor([1.0, 2.0, 3.0]).numpy() # tensor
+    
     input_dict = {
         "input": input,
-        "exponent": exponent,
-        "out": out
+        "exponent": exponent
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.ones((2, 2, 3)).numpy()
-    exponent = 1.5
-    out = torch.zeros((2, 2, 3)).numpy()
-
+    input = torch.ones((1, 4)).numpy()
+    exponent = torch.tensor([[0.1, 0.2, 0.3, 0.4]]).numpy()
+    
     input_dict = {
         "input": input,
-        "exponent": exponent,
-        "out": out
+        "exponent": exponent
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.tensor([0.1, 0.2]).numpy()
-    exponent = 0.0
-    out = torch.zeros((2,)).numpy()
-
+    input = torch.tensor([1.5, 2.5]).numpy()   # tensor
+    exponent = torch.tensor([0.5, 1.5]).numpy() # tensor
+    
     input_dict = {
         "input": input,
-        "exponent": exponent,
-        "out": out
+        "exponent": exponent
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.ones((1, 5)).numpy()
-    exponent = 2.0
-    out = torch.zeros((1, 5)).numpy()
-
+    input = torch.tensor([0.0]).numpy()   # tensor
+    exponent = torch.tensor([2.0]).numpy() # tensor
+    
     input_dict = {
         "input": input,
-        "exponent": exponent,
-        "out": out
+        "exponent": exponent
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([10.0, 20.0, 30.0]).numpy()
-    exponent = -2.0
-    out = torch.zeros((3,)).numpy()
-
+    input = torch.ones((3, 2)).numpy()
+    exponent = torch.tensor([[1.0, 2.0],
+                            [3.0, 4.0],
+                            [5.0, 6.0]]).numpy()
+    
     input_dict = {
         "input": input,
-        "exponent": exponent,
-        "out": out
+        "exponent": exponent
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.ones((4, 2)).numpy()
-    exponent = 0.3
-    out = torch.zeros((4, 2)).numpy()
-
+    input = torch.tensor([2.0, 3.0]).numpy()   # tensor
+    exponent = torch.tensor([1.0, 2.0]).numpy() # tensor
+    
     input_dict = {
         "input": input,
-        "exponent": exponent,
-        "out": out
+        "exponent": exponent
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([2.5, 3.5, 4.5, 5.5]).numpy()
-    exponent = 1.0
-    out = torch.zeros((4,)).numpy()
-
+    input = torch.ones((2, 2, 2)).numpy()
+    exponent = torch.tensor([[[1.0, 2.0],
+                             [3.0, 4.0]],
+                            [[5.0, 6.0],
+                             [7.0, 8.0]]]).numpy()
+    
     input_dict = {
         "input": input,
-        "exponent": exponent,
-        "out": out
+        "exponent": exponent
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))

@@ -6,7 +6,7 @@ generated_inputs = dict()
 
 import torch, copy
 
-def huberloss_inputs():
+def hubloss_inputs():
     list_of_inputs = []
     
     # Input 1, valid
@@ -14,154 +14,134 @@ def huberloss_inputs():
     target = torch.tensor([1.5, 2.5, 3.5]).numpy()
     reduction = 'mean'
     delta = 1.0
-    
     input_dict = {
         "input": input,
         "target": target,
         "reduction": reduction,
         "delta": delta
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.ones((2, 3)).numpy()
-    target = torch.ones((2, 3)).numpy()
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    target = torch.tensor([[0.5, 1.5], [2.5, 3.5]]).numpy()
     reduction = 'sum'
-    delta = 0.5
-    
+    delta = 2.0
     input_dict = {
         "input": input,
         "target": target,
         "reduction": reduction,
         "delta": delta
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    target = torch.tensor([[0.5, 1.5], [2.5, 3.5]]).numpy()
+    input = torch.tensor([-1.0, -2.0, -3.0]).numpy()
+    target = torch.tensor([-0.5, -1.5, -2.5]).numpy()
     reduction = 'none'
-    delta = 2.0
-    
+    delta = 1.5
     input_dict = {
         "input": input,
         "target": target,
         "reduction": reduction,
         "delta": delta
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()
-    target = torch.tensor([0.5, 1.5, 2.5, 3.5]).numpy()
+    input = torch.ones((3, 4)).numpy()
+    target = torch.ones((3, 4)).numpy()
     reduction = 'mean'
-    delta = 1.0
-    
+    delta = 0.5
     input_dict = {
         "input": input,
         "target": target,
         "reduction": reduction,
         "delta": delta
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([-1.0, -2.0, -3.0]).numpy()
-    target = torch.tensor([-1.5, -2.5, -3.5]).numpy()
+    input = torch.zeros((2, 2, 3)).numpy()
+    target = torch.ones((2, 2, 3)).numpy()
     reduction = 'sum'
     delta = 1.0
-    
     input_dict = {
         "input": input,
         "target": target,
         "reduction": reduction,
         "delta": delta
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.tensor([[-1.0, 2.0], [3.0, -4.0]]).numpy()
-    target = torch.tensor([[-1.5, 2.5], [3.5, -4.5]]).numpy()
+    input = torch.tensor([0.0]).numpy()
+    target = torch.tensor([0.5]).numpy()
     reduction = 'none'
-    delta = 1.5
-    
+    delta = 1.0
     input_dict = {
         "input": input,
         "target": target,
         "reduction": reduction,
         "delta": delta
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.tensor([0.0]).numpy()
-    target = torch.tensor([0.0]).numpy()
+    input = torch.tensor([1.0]).numpy()
+    target = torch.tensor([-1.0]).numpy()
     reduction = 'mean'
     delta = 1.0
-    
     input_dict = {
         "input": input,
         "target": target,
         "reduction": reduction,
         "delta": delta
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([2.0, 2.0]).numpy()
-    target = torch.tensor([1.0, 1.0]).numpy()
+    input = torch.tensor([1.5, 2.5, 3.5]).numpy()
+    target = torch.tensor([1.0, 2.0, 3.0]).numpy()
     reduction = 'sum'
-    delta = 0.5
-    
+    delta = 2.0
     input_dict = {
         "input": input,
         "target": target,
         "reduction": reduction,
         "delta": delta
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0]).numpy()
-    target = torch.tensor([0.5, 1.5, 2.5, 3.5, 4.5]).numpy()
-    reduction = 'mean'
-    delta = 2.0
-    
+    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]).numpy()
+    target = torch.tensor([[0.5, 1.5, 2.5], [3.5, 4.5, 5.5]]).numpy()
+    reduction = 'none'
+    delta = 1.0
     input_dict = {
         "input": input,
         "target": target,
         "reduction": reduction,
         "delta": delta
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([1.5, 2.5]).numpy()
-    target = torch.tensor([1.0, 2.0]).numpy()
-    reduction = 'none'
-    delta = 1.0
-    
+    input = torch.tensor([-1.0, -2.0]).numpy()
+    target = torch.tensor([-0.5, -1.5]).numpy()
+    reduction = 'mean'
+    delta = 0.5
     input_dict = {
         "input": input,
         "target": target,
         "reduction": reduction,
         "delta": delta
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     return list_of_inputs
 
-generated_inputs["torch.nn.HuberLoss"] = huberloss_inputs()
+generated_inputs["torch.nn.HuberLoss"] = hubloss_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

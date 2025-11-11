@@ -11,130 +11,110 @@ def lu_solve_inputs():
     
     # Input 1, valid
     b = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    LU_data = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    LU_pivots = torch.tensor([1, 2], dtype=torch.int32).numpy()
+    LU = torch.tensor([[1.0, 0.0], [3.0, 1.0]]).numpy()
     
     input_dict = {
         "b": b,
-        "LU_data": LU_data,
-        "LU_pivots": LU_pivots
+        "LU": LU
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    b = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    LU_data = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    LU_pivots = torch.tensor([1, 2], dtype=torch.int32).numpy()
+    b = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]).numpy()
+    LU = torch.tensor([[1.0, 0.0, 0.0], [4.0, 1.0, 0.0], [7.0, 8.0, 1.0]]).numpy()
     
     input_dict = {
         "b": b,
-        "LU_data": LU_data,
-        "LU_pivots": LU_pivots
+        "LU": LU
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    b = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    LU_data = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    LU_pivots = torch.tensor([2, 1], dtype=torch.int32).numpy()
+    b = torch.tensor([[-1.0, 2.0], [3.0, -4.0]]).numpy()
+    LU = torch.tensor([[1.0, 0.0], [3.0, 1.0]]).numpy()
     
     input_dict = {
         "b": b,
-        "LU_data": LU_data,
-        "LU_pivots": LU_pivots
+        "LU": LU
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    b = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    LU_data = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    LU_pivots = torch.tensor([1, 1], dtype=torch.int32).numpy()
+    b = torch.tensor([[0.5, 1.5], [2.5, 3.5]]).numpy()
+    LU = torch.tensor([[1.0, 0.0], [2.5, 1.0]]).numpy()
     
     input_dict = {
         "b": b,
-        "LU_data": LU_data,
-        "LU_pivots": LU_pivots
+        "LU": LU
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    b = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    LU_data = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    LU_pivots = torch.tensor([2, 2], dtype=torch.int32).numpy()
+    b = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]).numpy()
+    LU = torch.tensor([[1.0, 0.0, 0.0], [4.0, 1.0, 0.0], [7.0, 8.0, 1.0]]).numpy()
     
     input_dict = {
         "b": b,
-        "LU_data": LU_data,
-        "LU_pivots": LU_pivots
+        "LU": LU
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    b = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    LU_data = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    LU_pivots = torch.tensor([1, 2], dtype=torch.int32).numpy()
+    b = torch.tensor([[2.0, 3.0], [4.0, 5.0]]).numpy()
+    LU = torch.tensor([[1.0, 0.0], [4.0, 1.0]]).numpy()
     
     input_dict = {
         "b": b,
-        "LU_data": LU_data,
-        "LU_pivots": LU_pivots
+        "LU": LU
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    b = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    LU_data = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    LU_pivots = torch.tensor([2, 1], dtype=torch.int32).numpy()
+    b = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]).numpy()
+    LU = torch.tensor([[1.0, 0.0, 0.0], [4.0, 1.0, 0.0], [7.0, 8.0, 1.0]]).numpy()
     
     input_dict = {
         "b": b,
-        "LU_data": LU_data,
-        "LU_pivots": LU_pivots
+        "LU": LU
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    b = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    LU_data = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    LU_pivots = torch.tensor([1, 2], dtype=torch.int32).numpy()
+    b = torch.tensor([[2.0, 3.0], [4.0, 5.0]]).numpy()
+    LU = torch.tensor([[1.0, 0.0], [4.0, 1.0]]).numpy()
     
     input_dict = {
         "b": b,
-        "LU_data": LU_data,
-        "LU_pivots": LU_pivots
+        "LU": LU
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
     b = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    LU_data = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    LU_pivots = torch.tensor([2, 1], dtype=torch.int32).numpy()
+    LU = torch.tensor([[1.0, 0.0], [3.0, 1.0]]).numpy()
     
     input_dict = {
         "b": b,
-        "LU_data": LU_data,
-        "LU_pivots": LU_pivots
+        "LU": LU
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
     b = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    LU_data = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    LU_pivots = torch.tensor([1, 2], dtype=torch.int32).numpy()
+    LU = torch.tensor([[1.0, 0.0], [3.0, 1.0]]).numpy()
     
     input_dict = {
         "b": b,
-        "LU_data": LU_data,
-        "LU_pivots": LU_pivots
+        "LU": LU
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))

@@ -9,11 +9,11 @@ import torch, copy
 def any_inputs():
     list_of_inputs = []
     
-    # Input 1
-    input = torch.tensor([False, True, False]).numpy()
+    # Input 1, valid
+    input = torch.tensor([0, 1, 2], dtype=torch.int32).numpy()
     dim = 0
     keepdim = False
-    out = torch.tensor().numpy()
+    out = torch.empty(1, dtype=torch.bool).numpy()
     
     input_dict = {
         "input": input,
@@ -24,11 +24,41 @@ def any_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 2
-    input = torch.tensor([[True, False], [False, True]]).numpy()
+    # Input 2, valid
+    input = torch.tensor([[False, True], [True, False]], dtype=torch.bool).numpy()
+    dim = 0
+    keepdim = False
+    out = torch.empty(1, dtype=torch.bool).numpy()
+    
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "keepdim": keepdim,
+        "out": out
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 3, valid
+    input = torch.tensor([0, 0, 0], dtype=torch.int32).numpy()
+    dim = 0
+    keepdim = False
+    out = torch.empty(1, dtype=torch.bool).numpy()
+    
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "keepdim": keepdim,
+        "out": out
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4, valid
+    input = torch.tensor([[0, 1], [2, 3]], dtype=torch.int32).numpy()
     dim = 1
     keepdim = False
-    out = torch.tensor().numpy()
+    out = torch.empty(2, dtype=torch.bool).numpy()
     
     input_dict = {
         "input": input,
@@ -39,26 +69,11 @@ def any_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 3
-    input = torch.tensor([0, 1, 2]).numpy()
-    dim = 0
-    keepdim = False
-    out = torch.tensor().numpy()
-    
-    input_dict = {
-        "input": input,
-        "dim": dim,
-        "keepdim": keepdim,
-        "out": out
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 4
-    input = torch.tensor([[[False, True], [True, False]], [[True, True], [False, False]]]).numpy()
+    # Input 5, valid
+    input = torch.tensor([[True, False], [False, True]], dtype=torch.bool).numpy()
     dim = 1
     keepdim = True
-    out = torch.tensor().numpy()
+    out = torch.empty(1, 1, dtype=torch.bool).numpy()
     
     input_dict = {
         "input": input,
@@ -69,11 +84,41 @@ def any_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 5
-    input = torch.tensor([[-1, 0, 1]).numpy()
+    # Input 6, valid
+    input = torch.tensor([0, 1, 2], dtype=torch.int32).numpy()
+    dim = None
+    keepdim = False
+    out = torch.empty(1, dtype=torch.bool).numpy()
+    
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "keepdim": keepdim,
+        "out": out
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7, valid
+    input = torch.tensor([[0, 1], [2, 3]], dtype=torch.int32).numpy()
+    dim = None
+    keepdim = True
+    out = torch.empty(1, 1, dtype=torch.bool).numpy()
+    
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "keepdim": keepdim,
+        "out": out
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8, valid
+    input = torch.tensor([0, 0, 0], dtype=torch.int32).numpy()
     dim = 0
     keepdim = True
-    out = torch.tensor().numpy()
+    out = torch.empty(1, dtype=torch.bool).numpy()
     
     input_dict = {
         "input": input,
@@ -84,56 +129,11 @@ def any_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 6
-    input = torch.tensor([1, 2, 3]).numpy()
-    dim = 0
-    keepdim = False
-    out = torch.tensor().numpy()
-    
-    input_dict = {
-        "input": input,
-        "dim": dim,
-        "keepdim": keepdim,
-        "out": out
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7
-    input = torch.tensor([[[0, 1], [2, 3]], [[4, 5], [6, 7]]]).numpy()
-    dim = 0
-    keepdim = False
-    out = torch.tensor().numpy()
-    
-    input_dict = {
-        "input": input,
-        "dim": dim,
-        "keepdim": keepdim,
-        "out": out
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8
-    input = torch.tensor([[[False, False], [True, False]], [[False, True], [True, False]]]).numpy()
-    dim = 1
-    keepdim = False
-    out = torch.tensor().numpy()
-    
-    input_dict = {
-        "input": input,
-        "dim": dim,
-        "keepdim": keepdim,
-        "out": out
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9
-    input = torch.tensor([[-1, -2, -3]).numpy()
+    # Input 9, valid
+    input = torch.tensor([[False, False], [True, True]], dtype=torch.bool).numpy()
     dim = 0
     keepdim = True
-    out = torch.tensor().numpy()
+    out = torch.empty(1, 1, dtype=torch.bool).numpy()
     
     input_dict = {
         "input": input,
@@ -144,11 +144,11 @@ def any_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 10
-    input = torch.tensor([[[True, False], [False, True]], [[True, True], [False, False]]]).numpy()
-    dim = 0
+    # Input 10, valid
+    input = torch.tensor([1, 2, 3], dtype=torch.int32).numpy()
+    dim = None
     keepdim = False
-    out = torch.tensor().numpy()
+    out = torch.empty(1, dtype=torch.bool).numpy()
     
     input_dict = {
         "input": input,

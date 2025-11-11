@@ -9,94 +9,114 @@ import torch, copy
 def matrix_power_inputs():
     list_of_inputs = []
     
-    # Input 1
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    n = 2
+    # Input 1, valid
+    input = torch.tensor([[2.0, 3.0], [4.0, 5.0]]).numpy()  # tensor
+    n = -3  # integer
+    
     input_dict = {
         "input": input,
         "n": n
     }
+    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 2
-    input = torch.tensor([[1.0, 0.0], [0.0, 1.0]]).numpy()
-    n = 0
+    # Input 2, valid
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()  # tensor
+    n = 4  # integer
+    
     input_dict = {
         "input": input,
         "n": n
     }
+    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 3
-    input = torch.tensor([[2.0, 1.0], [1.0, 1.0]]).numpy()
-    n = 3
+    # Input 3, valid
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()  # tensor
+    n = -5  # integer
+    
     input_dict = {
         "input": input,
         "n": n
     }
+    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 4
-    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]).numpy()
-    n = -1
+    # Input 4, valid
+    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]).numpy()  # tensor
+    n = 1  # integer
+    
     input_dict = {
         "input": input,
         "n": n
     }
+    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 5
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    n = 4
+    # Input 5, valid
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()  # tensor
+    n = 2  # integer
+    
     input_dict = {
         "input": input,
         "n": n
     }
+    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 6
-    input = torch.ones((3, 3)).numpy()
-    n = 5
+    # Input 6, valid
+    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]).numpy()  # tensor
+    n = 3  # integer
+    
     input_dict = {
         "input": input,
         "n": n
     }
+    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 7
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    n = 0
+    # Input 7, valid
+    input = torch.tensor([[1.0, 0.0], [0.0, 1.0]]).numpy()  # tensor
+    n = 0  # integer
+    
     input_dict = {
         "input": input,
         "n": n
     }
+    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 8
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    n = 1
+    # Input 8, valid
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()  # tensor
+    n = -1  # integer
+    
     input_dict = {
         "input": input,
         "n": n
     }
+    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 9
-    input = torch.tensor([[2.0, 3.0], [1.0, 2.0]]).numpy()
-    n = 6
+    # Input 9, valid
+    input = torch.tensor([[2.0, 3.0], [4.0, 5.0]]).numpy()  # tensor
+    n = -2  # integer
+    
     input_dict = {
         "input": input,
         "n": n
     }
+    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 10
-    input = torch.tensor([[1.0, 0.0], [0.0, 1.0]]).numpy()
-    n = 7
+    # Input 10, valid
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()  # tensor
+    n = 5  # integer
+    
     input_dict = {
         "input": input,
         "n": n
     }
+    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs

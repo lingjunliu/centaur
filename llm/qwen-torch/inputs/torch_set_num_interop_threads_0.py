@@ -10,73 +10,93 @@ def set_num_interop_threads_inputs():
     list_of_inputs = []
     
     # Input 1, valid
-    input = torch.tensor(1).numpy()
+    input = numpy.array(42, dtype=numpy.int32)  # integer
+    
     input_dict = {
-        "num_threads": input.item()
+        "num_interop_threads": input
     }
+    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.tensor(5).numpy()
+    input = numpy.array(0, dtype=numpy.int32)  # integer
+    
     input_dict = {
-        "num_threads": input.item()
+        "num_interop_threads": input
     }
+    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.tensor(10).numpy()
+    input = numpy.array(-1, dtype=numpy.int32)  # integer
+    
     input_dict = {
-        "num_threads": input.item()
+        "num_interop_threads": input
     }
+    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.tensor(50).numpy()
+    input = numpy.array(100, dtype=numpy.int32)  # integer
+    
     input_dict = {
-        "num_threads": input.item()
+        "num_interop_threads": input
     }
+    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor(100).numpy()
+    input = numpy.array(1000, dtype=numpy.int32)  # integer
+    
     input_dict = {
-        "num_threads": input.item()
+        "num_interop_threads": input
     }
+    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.tensor(500).numpy()
+    input = numpy.array(999999, dtype=numpy.int32)  # integer
+    
     input_dict = {
-        "num_threads": input.item()
+        "num_interop_threads": input
     }
+    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.tensor(1000).numpy()
+    input = numpy.array(1000000, dtype=numpy.int32)  # integer
+    
     input_dict = {
-        "num_threads": input.item()
+        "num_interop_threads": input
     }
+    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor(5000).numpy()
+    input = numpy.array(500, dtype=numpy.int32)  # integer
+    
     input_dict = {
-        "num_threads": input.item()
+        "num_interop_threads": input
     }
+    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.tensor(10000).numpy()
+    input = numpy.array(256, dtype=numpy.int32)  # integer
+    
     input_dict = {
-        "num_threads": input.item()
+        "num_interop_threads": input
     }
+    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor(50000).numpy()
+    input = numpy.array(1024, dtype=numpy.int32)  # integer
+    
     input_dict = {
-        "num_threads": input.item()
+        "num_interop_threads": input
     }
+    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs

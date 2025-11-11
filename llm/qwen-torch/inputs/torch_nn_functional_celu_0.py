@@ -24,8 +24,8 @@ def celu_inputs():
     
     # Input 2, valid
     input = torch.ones((2, 3)).numpy()
-    alpha = 1.5 # float
-    inplace = True # boolean
+    alpha = 0.5
+    inplace = True
     
     input_dict = {
         "input": input,
@@ -36,20 +36,7 @@ def celu_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    alpha = 0.5 # float
-    inplace = False # boolean
-    
-    input_dict = {
-        "input": input,
-        "alpha": alpha,
-        "inplace": inplace
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 4, valid
-    input = torch.tensor([-1.0, -2.0, -3.0]).numpy()
+    input = torch.tensor([-1.0, -2.0, -3.0]).numpy()   # tensor
     alpha = 2.0 # float
     inplace = False # boolean
     
@@ -61,10 +48,23 @@ def celu_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
+    # Input 4, valid
+    input = torch.zeros((1, 4)).numpy()
+    alpha = 1.5
+    inplace = False
+    
+    input_dict = {
+        "input": input,
+        "alpha": alpha,
+        "inplace": inplace
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     # Input 5, valid
     input = torch.tensor([0.0]).numpy()
-    alpha = 1.0 # float
-    inplace = True # boolean
+    alpha = 1.0
+    inplace = True
     
     input_dict = {
         "input": input,
@@ -75,9 +75,9 @@ def celu_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.ones((1, 2, 3)).numpy()
-    alpha = 0.75 # float
-    inplace = False # boolean
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    alpha = 0.75
+    inplace = False
     
     input_dict = {
         "input": input,
@@ -88,9 +88,9 @@ def celu_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.tensor([[-1.0, 2.0, -3.0]]).numpy()
-    alpha = 1.0 # float
-    inplace = True # boolean
+    input = torch.tensor([-1.0, 0.0, 1.0]).numpy()
+    alpha = 2.5
+    inplace = True
     
     input_dict = {
         "input": input,
@@ -101,9 +101,9 @@ def celu_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([1.0, -2.0, 3.0]).numpy()
-    alpha = 2.5 # float
-    inplace = False # boolean
+    input = torch.tensor([1.0]).numpy()
+    alpha = 1.0
+    inplace = False
     
     input_dict = {
         "input": input,
@@ -114,9 +114,9 @@ def celu_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.ones((3, 2)).numpy()
-    alpha = 0.5 # float
-    inplace = True # boolean
+    input = torch.tensor([0.5, 1.5, 2.5]).numpy()
+    alpha = 1.2
+    inplace = False
     
     input_dict = {
         "input": input,
@@ -127,9 +127,9 @@ def celu_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([0.5, -0.5, 1.5]).numpy()
-    alpha = 1.0 # float
-    inplace = False # boolean
+    input = torch.tensor([-1.0, -2.0]).numpy()
+    alpha = 3.0
+    inplace = True
     
     input_dict = {
         "input": input,

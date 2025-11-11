@@ -9,7 +9,7 @@ import torch, copy
 def maxpool3d_inputs():
     list_of_inputs = []
     
-    # Input 1, valid
+    # Input 1 - Simple case with integer kernel_size
     input = torch.randn(20, 16, 50, 44, 31).numpy()
     input_dict = {
         "kernel_size": 3,
@@ -17,125 +17,115 @@ def maxpool3d_inputs():
         "padding": 0,
         "dilation": 1,
         "return_indices": False,
-        "ceil_mode": False,
-        "input": input
+        "ceil_mode": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 2, valid
-    input = torch.randn(10, 8, 30, 20, 15).numpy()
+    # Input 2 - Non-square window with tuple kernel_size
+    input = torch.randn(10, 8, 30, 25, 20).numpy()
     input_dict = {
         "kernel_size": (3, 2, 2),
         "stride": (2, 1, 2),
         "padding": 0,
         "dilation": 1,
         "return_indices": False,
-        "ceil_mode": False,
-        "input": input
+        "ceil_mode": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 3, valid
-    input = torch.randn(5, 4, 60, 50, 40).numpy()
+    # Input 3 - With padding
+    input = torch.randn(5, 4, 20, 15, 10).numpy()
+    input_dict = {
+        "kernel_size": 3,
+        "stride": 1,
+        "padding": 1,
+        "dilation": 1,
+        "return_indices": False,
+        "ceil_mode": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4 - With dilation
+    input = torch.randn(3, 2, 15, 10, 8).numpy()
+    input_dict = {
+        "kernel_size": 3,
+        "stride": 1,
+        "padding": 0,
+        "dilation": 2,
+        "return_indices": False,
+        "ceil_mode": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5 - With return_indices
+    input = torch.randn(2, 1, 10, 8, 6).numpy()
     input_dict = {
         "kernel_size": 2,
         "stride": 1,
-        "padding": 1,
+        "padding": 0,
         "dilation": 1,
-        "return_indices": False,
-        "ceil_mode": False,
-        "input": input
+        "return_indices": True,
+        "ceil_mode": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 4, valid
-    input = torch.randn(15, 10, 25, 35, 45).numpy()
+    # Input 6 - With ceil_mode
+    input = torch.randn(4, 3, 25, 20, 15).numpy()
     input_dict = {
         "kernel_size": 3,
+        "stride": 2,
+        "padding": 0,
+        "dilation": 1,
+        "return_indices": False,
+        "ceil_mode": True
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7 - Negative padding (invalid but valid for the purpose of testing)
+    input = torch.randn(6, 5, 30, 25, 20).numpy()
+    input_dict = {
+        "kernel_size": 3,
+        "stride": 1,
+        "padding": -1,
+        "dilation": 1,
+        "return_indices": False,
+        "ceil_mode": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8 - With all parameters including negative values
+    input = torch.randn(8, 7, 40, 35, 30).numpy()
+    input_dict = {
+        "kernel_size": 2,
+        "stride": 2,
+        "padding": 1,
+        "dilation": -1,
+        "return_indices": False,
+        "ceil_mode": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9 - Very large kernel size
+    input = torch.randn(1, 1, 100, 80, 60).numpy()
+    input_dict = {
+        "kernel_size": 5,
+        "stride": 2,
+        "padding": 0,
+        "dilation": 1,
+        "return_indices": False,
+        "ceil_mode": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10 - Different stride values
+    input = torch.randn(15, 10, 35, 30, 25).numpy()
+    input_dict = {
+        "kernel_size": 4,
         "stride": 3,
         "padding": 0,
         "dilation": 1,
-        "return_indices": True,
-        "ceil_mode": False,
-        "input": input
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 5, valid
-    input = torch.randn(8, 6, 40, 30, 25).numpy()
-    input_dict = {
-        "kernel_size": (4, 3, 2),
-        "stride": (1, 2, 1),
-        "padding": 0,
-        "dilation": 1,
-        "return_indices": True,
-        "ceil_mode": False,
-        "input": input
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6, valid
-    input = torch.randn(12, 8, 50, 45, 35).numpy()
-    input_dict = {
-        "kernel_size": 3,
-        "stride": 2,
-        "padding": 0,
-        "dilation": 1,
         "return_indices": False,
-        "ceil_mode": True,
-        "input": input
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7, valid
-    input = torch.randn(6, 5, 35, 25, 20).numpy()
-    input_dict = {
-        "kernel_size": (2, 2, 2),
-        "stride": (1, 1, 1),
-        "padding": 0,
-        "dilation": 1,
-        "return_indices": False,
-        "ceil_mode": True,
-        "input": input
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8, valid
-    input = torch.randn(3, 2, 60, 50, 40).numpy()
-    input_dict = {
-        "kernel_size": 4,
-        "stride": 1,
-        "padding": 1,
-        "dilation": 1,
-        "return_indices": False,
-        "ceil_mode": True,
-        "input": input
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9, valid
-    input = torch.randn(10, 7, 45, 35, 30).numpy()
-    input_dict = {
-        "kernel_size": (5, 4, 3),
-        "stride": (2, 1, 2),
-        "padding": 0,
-        "dilation": 1,
-        "return_indices": True,
-        "ceil_mode": True,
-        "input": input
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10, valid
-    input = torch.randn(5, 3, 30, 25, 20).numpy()
-    input_dict = {
-        "kernel_size": 3,
-        "stride": 2,
-        "padding": 0,
-        "dilation": 1,
-        "return_indices": False,
-        "ceil_mode": False,
-        "input": input
+        "ceil_mode": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     

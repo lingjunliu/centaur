@@ -6,122 +6,122 @@ generated_inputs = dict()
 
 import torch, copy
 
-def replication_pad3d_inputs():
+def replication_pad_3d_inputs():
     list_of_inputs = []
     
-    # Input 1, valid
+    # Input 1: 5D tensor with padding tuple (3, 3, 6, 6, 1, 1)
     input = torch.randn(16, 3, 8, 320, 480).numpy()
     padding = (3, 3, 6, 6, 1, 1)
     
     input_dict = {
-        "input": input,
-        "padding": padding
+        "padding": padding,
+        "input": input
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 2, valid
-    input = torch.ones((1, 1, 2, 3, 4)).numpy()
+    # Input 2: 5D tensor with padding tuple (1, 1, 1, 1, 1, 1)
+    input = torch.randn(16, 3, 8, 320, 480).numpy()
     padding = (1, 1, 1, 1, 1, 1)
     
     input_dict = {
-        "input": input,
-        "padding": padding
+        "padding": padding,
+        "input": input
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 3, valid
-    input = torch.zeros((2, 3, 5, 6, 7)).numpy()
+    # Input 3: 5D tensor with padding tuple (0, 0, 0, 0, 0, 0)
+    input = torch.randn(16, 3, 8, 320, 480).numpy()
     padding = (0, 0, 0, 0, 0, 0)
     
     input_dict = {
-        "input": input,
-        "padding": padding
+        "padding": padding,
+        "input": input
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 4, valid
-    input = torch.randn(1, 2, 3, 4, 5).numpy()
-    padding = (2, 3, 4, 5, 6, 7)
+    # Input 4: 5D tensor with padding tuple (2, 2, 3, 3, 4, 4)
+    input = torch.randn(16, 3, 8, 320, 480).numpy()
+    padding = (2, 2, 3, 3, 4, 4)
     
     input_dict = {
-        "input": input,
-        "padding": padding
+        "padding": padding,
+        "input": input
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 5, valid
-    input = torch.ones((10, 2, 3, 4, 5)).numpy()
+    # Input 5: 5D tensor with padding tuple (1, 1, 2, 2, 3, 3)
+    input = torch.randn(16, 3, 8, 320, 480).numpy()
+    padding = (1, 1, 2, 2, 3, 3)
+    
+    input_dict = {
+        "padding": padding,
+        "input": input
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6: 5D tensor with padding tuple (5, 5, 10, 10, 15, 15)
+    input = torch.randn(16, 3, 8, 320, 480).numpy()
+    padding = (5, 5, 10, 10, 15, 15)
+    
+    input_dict = {
+        "padding": padding,
+        "input": input
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: 5D tensor with padding tuple (1, 2, 3, 4, 5, 6)
+    input = torch.randn(16, 3, 8, 320, 480).numpy()
     padding = (1, 2, 3, 4, 5, 6)
     
     input_dict = {
-        "input": input,
-        "padding": padding
+        "padding": padding,
+        "input": input
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 6, valid
-    input = torch.randn(2, 1, 2, 3, 4).numpy()
+    # Input 8: 5D tensor with padding tuple (0, 1, 2, 3, 4, 5)
+    input = torch.randn(16, 3, 8, 320, 480).numpy()
     padding = (0, 1, 2, 3, 4, 5)
     
     input_dict = {
-        "input": input,
-        "padding": padding
+        "padding": padding,
+        "input": input
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 7, valid
-    input = torch.zeros((1, 1, 1, 2, 3)).numpy()
-    padding = (5, 4, 3, 2, 1, 0)
+    # Input 9: 5D tensor with padding tuple (3, 3, 0, 0, 0, 0)
+    input = torch.randn(16, 3, 8, 320, 480).numpy()
+    padding = (3, 3, 0, 0, 0, 0)
     
     input_dict = {
-        "input": input,
-        "padding": padding
+        "padding": padding,
+        "input": input
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 8, valid
-    input = torch.ones((3, 4, 5, 6, 7)).numpy()
+    # Input 10: 5D tensor with padding tuple (1, 2, 3, 4, 5, 6)
+    input = torch.randn(16, 3, 8, 320, 480).numpy()
     padding = (1, 2, 3, 4, 5, 6)
     
     input_dict = {
-        "input": input,
-        "padding": padding
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9, valid
-    input = torch.randn(5, 3, 2, 1, 0).numpy()
-    padding = (7, 8, 9, 10, 11, 12)
-    
-    input_dict = {
-        "input": input,
-        "padding": padding
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10, valid
-    input = torch.zeros((4, 2, 3, 4, 5)).numpy()
-    padding = (0, 0, 0, 0, 0, 0)
-    
-    input_dict = {
-        "input": input,
-        "padding": padding
+        "padding": padding,
+        "input": input
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs
 
-generated_inputs["torch.nn.ReplicationPad3d_2"] = replication_pad3d_inputs()
+generated_inputs["torch.nn.ReplicationPad3d_2"] = replication_pad_3d_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

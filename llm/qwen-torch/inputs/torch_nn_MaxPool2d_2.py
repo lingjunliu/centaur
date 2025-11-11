@@ -10,98 +10,67 @@ def maxpool2d_inputs():
     list_of_inputs = []
     
     # Input 1 - Basic case with square kernel and stride
-    input = torch.randn(20, 16, 50, 32).numpy()
+    input = torch.randn(1, 1, 4, 4).numpy()
     input_dict = {
-        "kernel_size": (3, 3),
+        "kernel_size": (2, 2),
         "stride": (2, 2),
         "padding": (0, 0),
         "dilation": (1, 1),
         "return_indices": False,
-        "ceil_mode": False,
-        "input": input
+        "ceil_mode": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2 - Non-square kernel and stride
-    input = torch.randn(10, 8, 64, 32).numpy()
+    input = torch.randn(2, 3, 5, 6).numpy()
     input_dict = {
         "kernel_size": (3, 2),
         "stride": (2, 1),
-        "padding": (0, 0),
-        "dilation": (1, 1),
-        "return_indices": False,
-        "ceil_mode": False,
-        "input": input
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 3 - With padding
-    input = torch.randn(5, 4, 100, 50).numpy()
-    input_dict = {
-        "kernel_size": (3, 3),
-        "stride": (1, 1),
         "padding": (1, 1),
         "dilation": (1, 1),
         "return_indices": False,
-        "ceil_mode": False,
-        "input": input
+        "ceil_mode": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 4 - With dilation
-    input = torch.randn(5, 4, 20, 20).numpy()
+    # Input 3 - With padding and dilation
+    input = torch.randn(1, 2, 7, 7).numpy()
     input_dict = {
         "kernel_size": (3, 3),
         "stride": (1, 1),
-        "padding": (0, 0),
+        "padding": (2, 2),
         "dilation": (2, 2),
         "return_indices": False,
-        "ceil_mode": False,
-        "input": input
+        "ceil_mode": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 5 - With return_indices True
-    input = torch.randn(1, 2, 10, 10).numpy()
+    # Input 4 - With return_indices=True
+    input = torch.randn(1, 1, 3, 3).numpy()
     input_dict = {
         "kernel_size": (2, 2),
         "stride": (1, 1),
         "padding": (0, 0),
         "dilation": (1, 1),
         "return_indices": True,
-        "ceil_mode": False,
-        "input": input
+        "ceil_mode": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 6 - With ceil_mode True
-    input = torch.randn(1, 1, 10, 10).numpy()
+    # Input 5 - With ceil_mode=True
+    input = torch.randn(1, 1, 5, 5).numpy()
     input_dict = {
-        "kernel_size": (3, 3),
-        "stride": (2, 2),
+        "kernel_size": (2, 2),
+        "stride": (1, 1),
         "padding": (0, 0),
         "dilation": (1, 1),
         "return_indices": False,
-        "ceil_mode": True,
-        "input": input
+        "ceil_mode": True
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 7 - Mixed parameters
-    input = torch.randn(3, 4, 256, 128).numpy()
-    input_dict = {
-        "kernel_size": (4, 4),
-        "stride": (2, 2),
-        "padding": (2, 2),
-        "dilation": (2, 2),
-        "return_indices": False,
-        "ceil_mode": True,
-        "input": input
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8 - Negative values in input tensor
-    input = torch.randn(1, 2, 10, 10).numpy()
+    # Input 6 - Negative values in input tensor
+    input = torch.randn(1, 1, 3, 3).numpy()
     input[0, 0, 0, 0] = -1.0
     input_dict = {
         "kernel_size": (2, 2),
@@ -109,34 +78,55 @@ def maxpool2d_inputs():
         "padding": (0, 0),
         "dilation": (1, 1),
         "return_indices": False,
-        "ceil_mode": False,
-        "input": input
+        "ceil_mode": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 9 - Different dimensions in input tensor
-    input = torch.randn(2, 4, 64, 32).numpy()
+    # Input 7 - Different dimensions for input tensor
+    input = torch.randn(2, 3, 4, 5).numpy()
     input_dict = {
         "kernel_size": (3, 3),
+        "stride": (2, 2),
+        "padding": (1, 1),
+        "dilation": (1, 1),
+        "return_indices": False,
+        "ceil_mode": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8 - Large kernel size
+    input = torch.randn(1, 1, 6, 6).numpy()
+    input_dict = {
+        "kernel_size": (4, 4),
         "stride": (1, 1),
         "padding": (0, 0),
         "dilation": (1, 1),
         "return_indices": False,
-        "ceil_mode": False,
-        "input": input
+        "ceil_mode": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 10 - Large input tensor
-    input = torch.randn(2, 8, 1024, 512).numpy()
+    # Input 9 - Multiple channels input
+    input = torch.randn(2, 5, 3, 3).numpy()
     input_dict = {
-        "kernel_size": (5, 5),
-        "stride": (3, 3),
-        "padding": (0, 0),
+        "kernel_size": (2, 2),
+        "stride": (2, 2),
+        "padding": (1, 1),
         "dilation": (1, 1),
         "return_indices": False,
-        "ceil_mode": False,
-        "input": input
+        "ceil_mode": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10 - With different padding values
+    input = torch.randn(1, 1, 5, 5).numpy()
+    input_dict = {
+        "kernel_size": (3, 3),
+        "stride": (2, 2),
+        "padding": (1, 2),
+        "dilation": (1, 1),
+        "return_indices": False,
+        "ceil_mode": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     

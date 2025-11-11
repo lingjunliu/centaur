@@ -19,8 +19,8 @@ def permute_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.randn(1, 4, 6).numpy()
-    dims = (2, 1, 0)
+    input = torch.randn(1, 4, 6, 8).numpy()
+    dims = (3, 2, 1, 0)
     input_dict = {
         "input": input,
         "dims": dims
@@ -28,8 +28,8 @@ def permute_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.randn(3, 2, 4, 5).numpy()
-    dims = (3, 0, 2, 1)
+    input = torch.randn(7, 9).numpy()
+    dims = (1, 0)
     input_dict = {
         "input": input,
         "dims": dims
@@ -47,24 +47,6 @@ def permute_inputs():
     
     # Input 5, valid
     input = torch.randn(1, 2, 3).numpy()
-    dims = (1, 0, 2)
-    input_dict = {
-        "input": input,
-        "dims": dims
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6, valid
-    input = torch.randn(4, 2, 3, 5).numpy()
-    dims = (0, 2, 1, 3)
-    input_dict = {
-        "input": input,
-        "dims": dims
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7, valid
-    input = torch.randn(5, 6, 7).numpy()
     dims = (2, 1, 0)
     input_dict = {
         "input": input,
@@ -72,9 +54,27 @@ def permute_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
+    # Input 6, valid
+    input = torch.randn(3, 4, 5, 6).numpy()
+    dims = (3, 2, 1, 0)
+    input_dict = {
+        "input": input,
+        "dims": dims
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7, valid
+    input = torch.randn(1, 2, 3, 4).numpy()
+    dims = (3, 2, 1, 0)
+    input_dict = {
+        "input": input,
+        "dims": dims
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     # Input 8, valid
-    input = torch.randn(2, 3, 4, 5, 6, 7).numpy()
-    dims = (5, 4, 3, 2, 1, 0)
+    input = torch.randn(5, 4, 3, 2, 1).numpy()
+    dims = (4, 3, 2, 1, 0)
     input_dict = {
         "input": input,
         "dims": dims
@@ -83,7 +83,7 @@ def permute_inputs():
     
     # Input 9, valid
     input = torch.randn(1, 1, 1).numpy()
-    dims = (0, 1, 2)
+    dims = (2, 1, 0)
     input_dict = {
         "input": input,
         "dims": dims
@@ -98,7 +98,7 @@ def permute_inputs():
         "dims": dims
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     return list_of_inputs
 
 generated_inputs["torch.permute"] = permute_inputs()

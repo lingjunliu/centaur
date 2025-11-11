@@ -23,9 +23,9 @@ def lcm_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.tensor([10, 20, 30]).numpy()   # tensor
-    other = torch.tensor([3, 4, 5]).numpy()     # tensor
-    out = torch.tensor([30, 20, 30]).numpy()     # tensor
+    input = torch.tensor([1, 2, 3]).numpy()    # tensor
+    other = torch.tensor([4, 5, 6]).numpy()    # tensor
+    out = torch.tensor([4, 10, 6]).numpy()     # tensor
     
     input_dict = {
         "input": input,
@@ -36,9 +36,9 @@ def lcm_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.tensor([1, 2, 3]).numpy()   # tensor
-    other = torch.tensor([4, 5, 6]).numpy()  # tensor
-    out = torch.tensor([4, 10, 6]).numpy()   # tensor
+    input = torch.tensor([0, 1, 2]).numpy()    # tensor
+    other = torch.tensor([3, 4, 5]).numpy()    # tensor
+    out = torch.tensor([0, 4, 10]).numpy()     # tensor
     
     input_dict = {
         "input": input,
@@ -49,9 +49,9 @@ def lcm_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.tensor([0, 1, 2]).numpy()   # tensor
-    other = torch.tensor([3, 4, 5]).numpy()  # tensor
-    out = torch.tensor([0, 4, 10]).numpy()   # tensor
+    input = torch.tensor([10, 20, 30]).numpy()   # tensor
+    other = torch.tensor([5, 6, 7]).numpy()      # tensor
+    out = torch.tensor([10, 60, 210]).numpy()    # tensor
     
     input_dict = {
         "input": input,
@@ -62,9 +62,9 @@ def lcm_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([0, 0, 0]).numpy()   # tensor
-    other = torch.tensor([1, 2, 3]).numpy()  # tensor
-    out = torch.tensor([0, 0, 0]).numpy()    # tensor
+    input = torch.tensor([3, 6, 9]).numpy()   # tensor
+    other = torch.tensor([2, 4, 8]).numpy()   # tensor
+    out = torch.tensor([6, 12, 72]).numpy()   # tensor
     
     input_dict = {
         "input": input,
@@ -75,9 +75,9 @@ def lcm_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.tensor([1, 2, 3]).numpy()   # tensor
-    other = torch.tensor([0, 0, 0]).numpy()  # tensor
-    out = torch.tensor([0, 0, 0]).numpy()    # tensor
+    input = torch.tensor([100, 200]).numpy()   # tensor
+    other = torch.tensor([150, 300]).numpy()   # tensor
+    out = torch.tensor([300, 600]).numpy()     # tensor
     
     input_dict = {
         "input": input,
@@ -88,9 +88,9 @@ def lcm_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.tensor([10, 20]).numpy()   # tensor
-    other = torch.tensor([5, 10]).numpy()   # tensor
-    out = torch.tensor([10, 20]).numpy()    # tensor
+    input = torch.tensor([1, 2, 3, 4]).numpy()   # tensor
+    other = torch.tensor([5, 6, 7, 8]).numpy()   # tensor
+    out = torch.tensor([5, 6, 21, 8]).numpy()    # tensor
     
     input_dict = {
         "input": input,
@@ -101,9 +101,9 @@ def lcm_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([5, 10, 15, 20]).numpy()   # tensor
-    other = torch.tensor([3, 4, 5, 6]).numpy()      # tensor
-    out = torch.tensor([15, 20, 15, 60]).numpy()    # tensor
+    input = torch.tensor([0, 1, 2]).numpy()   # tensor
+    other = torch.tensor([1, 0, 3]).numpy()   # tensor
+    out = torch.tensor([0, 0, 6]).numpy()     # tensor
     
     input_dict = {
         "input": input,
@@ -114,9 +114,9 @@ def lcm_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.tensor([2, 4, 6]).numpy()   # tensor
-    other = torch.tensor([3, 5, 7]).numpy()  # tensor
-    out = torch.tensor([6, 20, 42]).numpy()  # tensor
+    input = torch.tensor([-1, -2, -3]).numpy()   # tensor
+    other = torch.tensor([4, 5, 6]).numpy()      # tensor
+    out = torch.tensor([4, 10, 6]).numpy()       # tensor
     
     input_dict = {
         "input": input,
@@ -127,9 +127,9 @@ def lcm_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([-5, -10, -15]).numpy()   # tensor
-    other = torch.tensor([3, 4, 5]).numpy()         # tensor
-    out = torch.tensor([15, 20, 15]).numpy()        # tensor
+    input = torch.tensor([1, 2, 3]).numpy()   # tensor
+    other = torch.tensor([0, 1, 2]).numpy()   # tensor
+    out = torch.tensor([0, 2, 6]).numpy()     # tensor
     
     input_dict = {
         "input": input,
@@ -138,7 +138,7 @@ def lcm_inputs():
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     return list_of_inputs
 
 generated_inputs["torch.lcm"] = lcm_inputs()

@@ -12,7 +12,7 @@ def msort_inputs():
     # Input 1, valid
     input = torch.tensor([[-0.1321, 0.4370, -1.2631, -1.1289], [-2.0527, -1.1250, 0.2275, 0.3077], [-0.0881, -0.1259, -0.5495, 1.0284]]).numpy()
     out = torch.zeros_like(input).numpy()
-    
+
     input_dict = {
         "input": input,
         "out": out
@@ -23,7 +23,7 @@ def msort_inputs():
     # Input 2, valid
     input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
     out = torch.zeros_like(input).numpy()
-    
+
     input_dict = {
         "input": input,
         "out": out
@@ -32,9 +32,9 @@ def msort_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.tensor([[-1.0, -2.0, -3.0], [1.0, 2.0, 3.0]]).numpy()
+    input = torch.tensor([[-1.0, 0.0, 1.0], [-2.0, 3.0, 4.0], [5.0, 6.0, 7.0]]).numpy()
     out = torch.zeros_like(input).numpy()
-    
+
     input_dict = {
         "input": input,
         "out": out
@@ -43,9 +43,9 @@ def msort_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.randn(4, 2).numpy()
+    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]).numpy()
     out = torch.zeros_like(input).numpy()
-    
+
     input_dict = {
         "input": input,
         "out": out
@@ -54,9 +54,9 @@ def msort_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([1.0]).numpy()
+    input = torch.tensor([[-1.0, 0.0], [-2.0, 3.0], [4.0, 5.0]]).numpy()
     out = torch.zeros_like(input).numpy()
-    
+
     input_dict = {
         "input": input,
         "out": out
@@ -65,9 +65,9 @@ def msort_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]).numpy()
+    input = torch.tensor([[-1.0], [-2.0], [3.0]]).numpy()
     out = torch.zeros_like(input).numpy()
-    
+
     input_dict = {
         "input": input,
         "out": out
@@ -76,9 +76,9 @@ def msort_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]).numpy()
+    input = torch.tensor([[-1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]).numpy()
     out = torch.zeros_like(input).numpy()
-    
+
     input_dict = {
         "input": input,
         "out": out
@@ -87,9 +87,9 @@ def msort_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([[-1.0, -2.0], [1.0, 2.0]]).numpy()
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]).numpy()
     out = torch.zeros_like(input).numpy()
-    
+
     input_dict = {
         "input": input,
         "out": out
@@ -98,9 +98,9 @@ def msort_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.tensor([[1.0, -2.0], [3.0, -4.0]]).numpy()
+    input = torch.tensor([[-1.0, 2.0], [-3.0, 4.0]]).numpy()
     out = torch.zeros_like(input).numpy()
-    
+
     input_dict = {
         "input": input,
         "out": out
@@ -109,16 +109,16 @@ def msort_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([[-1.0, 2.0, -3.0], [1.0, -2.0, 3.0]]).numpy()
+    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]).numpy()
     out = torch.zeros_like(input).numpy()
-    
+
     input_dict = {
         "input": input,
         "out": out
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     return list_of_inputs
 
 generated_inputs["torch.msort"] = msort_inputs()

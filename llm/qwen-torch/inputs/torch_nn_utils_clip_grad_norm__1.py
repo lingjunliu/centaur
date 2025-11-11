@@ -6,20 +6,18 @@ generated_inputs = dict()
 
 import torch, copy
 
-def clip_grad_norm__inputs():
+def clip_grad_norm_inputs():
     list_of_inputs = []
     
     # Input 1, valid
     tensor_list = [torch.tensor([1.0, 2.0, 3.0]).numpy()]
     max_norm = 1.0
-    norm_type = 2.0
-    error_if_nonfinite = True
+    norm_type = 'l2'
     
     input_dict = {
         "parameters": tensor_list,
         "max_norm": max_norm,
-        "norm_type": norm_type,
-        "error_if_nonfinite": error_if_nonfinite
+        "norm_type": norm_type
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
@@ -27,141 +25,123 @@ def clip_grad_norm__inputs():
     # Input 2, valid
     tensor_list = [torch.tensor([0.1, 0.2, 0.3]).numpy()]
     max_norm = 0.5
-    norm_type = 1.0
-    error_if_nonfinite = False
+    norm_type = 'l1'
     
     input_dict = {
         "parameters": tensor_list,
         "max_norm": max_norm,
-        "norm_type": norm_type,
-        "error_if_nonfinite": error_if_nonfinite
+        "norm_type": norm_type
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    tensor_list = [torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()]
-    max_norm = 2.5
-    norm_type = 2.0
-    error_if_nonfinite = True
+    tensor_list = [torch.tensor([10.0, 20.0, 30.0]).numpy()]
+    max_norm = 2.0
+    norm_type = 'l2'
     
     input_dict = {
         "parameters": tensor_list,
         "max_norm": max_norm,
-        "norm_type": norm_type,
-        "error_if_nonfinite": error_if_nonfinite
+        "norm_type": norm_type
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    tensor_list = [torch.tensor([0.1, 0.2]).numpy()]
-    max_norm = 1.0
-    norm_type = 1.0
-    error_if_nonfinite = False
+    tensor_list = [torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()]
+    max_norm = 1.5
+    norm_type = 'l1'
     
     input_dict = {
         "parameters": tensor_list,
         "max_norm": max_norm,
-        "norm_type": norm_type,
-        "error_if_nonfinite": error_if_nonfinite
+        "norm_type": norm_type
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    tensor_list = [torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()]
-    max_norm = 1.5
-    norm_type = 2.0
-    error_if_nonfinite = True
+    tensor_list = [torch.tensor([1.0, 2.0, 3.0]).numpy(), torch.tensor([4.0, 5.0, 6.0]).numpy()]
+    max_norm = 1.0
+    norm_type = 'l2'
     
     input_dict = {
         "parameters": tensor_list,
         "max_norm": max_norm,
-        "norm_type": norm_type,
-        "error_if_nonfinite": error_if_nonfinite
+        "norm_type": norm_type
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    tensor_list = [torch.tensor([0.1, 0.2, 0.3]).numpy(), torch.tensor([1.0, 2.0, 3.0]).numpy()]
-    max_norm = 2.0
-    norm_type = 1.0
-    error_if_nonfinite = False
+    tensor_list = [torch.tensor([1.0]).numpy()]
+    max_norm = 0.0
+    norm_type = 'l2'
     
     input_dict = {
         "parameters": tensor_list,
         "max_norm": max_norm,
-        "norm_type": norm_type,
-        "error_if_nonfinite": error_if_nonfinite
+        "norm_type": norm_type
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    tensor_list = [torch.tensor([0.1]).numpy()]
-    max_norm = 0.5
-    norm_type = 2.0
-    error_if_nonfinite = True
+    tensor_list = [torch.tensor([-1.0, -2.0, -3.0]).numpy()]
+    max_norm = -1.0
+    norm_type = 'l2'
     
     input_dict = {
         "parameters": tensor_list,
         "max_norm": max_norm,
-        "norm_type": norm_type,
-        "error_if_nonfinite": error_if_nonfinite
+        "norm_type": norm_type
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    tensor_list = [torch.tensor([1.0, 2.0, 3.0]).numpy(), torch.tensor([4.0, 5.0, 6.0]).numpy()]
-    max_norm = 3.0
-    norm_type = 1.0
-    error_if_nonfinite = False
+    tensor_list = [torch.tensor([[0.1, 0.2], [0.3, 0.4]]).numpy()]
+    max_norm = 2.5
+    norm_type = 'l1'
     
     input_dict = {
         "parameters": tensor_list,
         "max_norm": max_norm,
-        "norm_type": norm_type,
-        "error_if_nonfinite": error_if_nonfinite
+        "norm_type": norm_type
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    tensor_list = [torch.tensor([0.1, 0.2]).numpy(), torch.tensor([1.0, 2.0]).numpy()]
-    max_norm = 1.0
-    norm_type = 2.0
-    error_if_nonfinite = True
+    tensor_list = [torch.tensor([1.0]).numpy(), torch.tensor([2.0]).numpy()]
+    max_norm = 3.0
+    norm_type = 'l2'
     
     input_dict = {
         "parameters": tensor_list,
         "max_norm": max_norm,
-        "norm_type": norm_type,
-        "error_if_nonfinite": error_if_nonfinite
+        "norm_type": norm_type
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    tensor_list = [torch.tensor([1.0]).numpy(), torch.tensor([2.0]).numpy()]
-    max_norm = 0.5
-    norm_type = 1.0
-    error_if_nonfinite = False
+    tensor_list = [torch.tensor([0.5]).numpy(), torch.tensor([0.6]).numpy()]
+    max_norm = 0.7
+    norm_type = 'l1'
     
     input_dict = {
         "parameters": tensor_list,
         "max_norm": max_norm,
-        "norm_type": norm_type,
-        "error_if_nonfinite": error_if_nonfinite
+        "norm_type": norm_type
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs
 
-generated_inputs["torch.nn.utils.clip_grad_norm__"] = clip_grad_norm__inputs()
+generated_inputs["torch.nn.utils.clip_grad_norm__"] = clip_grad_norm_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

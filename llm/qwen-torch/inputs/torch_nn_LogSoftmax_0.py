@@ -34,7 +34,7 @@ def logsoftmax_inputs():
     
     # Input 3, valid
     input = torch.tensor([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]).numpy()
-    dim = 1
+    dim = 2
     
     input_dict = {
         "input": input,
@@ -44,7 +44,7 @@ def logsoftmax_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.tensor([-1.0, -2.0, -3.0]).numpy()
+    input = torch.tensor([[-1.0, -2.0, -3.0]]).numpy()
     dim = 0
     
     input_dict = {
@@ -55,7 +55,8 @@ def logsoftmax_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]).numpy()
+    input = torch.tensor([[0.1, 0.2, 0.3],
+                         [0.4, 0.5, 0.6]]).numpy()
     dim = 1
     
     input_dict = {
@@ -66,8 +67,8 @@ def logsoftmax_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]).numpy()
-    dim = 0
+    input = torch.tensor([[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], [[7.0, 8.0, 9.0], [10.0, 11.0, 12.0]]]).numpy()
+    dim = 2
     
     input_dict = {
         "input": input,
@@ -77,7 +78,7 @@ def logsoftmax_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.tensor([-1.0, -2.0, -3.0, -4.0]).numpy()
+    input = torch.tensor([[-1.0, -2.0, -3.0]]).numpy()
     dim = 0
     
     input_dict = {
@@ -88,8 +89,8 @@ def logsoftmax_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]).numpy()
-    dim = 1
+    input = torch.tensor([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]).numpy()
+    dim = 2
     
     input_dict = {
         "input": input,
@@ -99,7 +100,7 @@ def logsoftmax_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.tensor([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]], [[9.0, 10.0], [11.0, 12.0]]]).numpy()
+    input = torch.tensor([[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], [[7.0, 8.0, 9.0], [10.0, 11.0, 12.0]]]).numpy()
     dim = 2
     
     input_dict = {
@@ -110,8 +111,8 @@ def logsoftmax_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([-1.0, -2.0, -3.0]).numpy()
-    dim = 1
+    input = torch.tensor([[-1.0, -2.0, -3.0]]).numpy()
+    dim = 0
     
     input_dict = {
         "input": input,

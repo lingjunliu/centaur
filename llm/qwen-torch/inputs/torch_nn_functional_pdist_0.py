@@ -10,113 +10,93 @@ def pdist_inputs():
     list_of_inputs = []
     
     # Input 1, valid
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()   # tensor
-    p = 2.0  # float
-    
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]).numpy()
+    p = 2.0
     input_dict = {
         "input": input,
         "p": p
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]).numpy()   # tensor
-    p = 1.0  # float
-    
+    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]).numpy()
+    p = 1.0
     input_dict = {
         "input": input,
         "p": p
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.tensor([[0.0, 0.0], [1.0, 1.0]]).numpy()   # tensor
-    p = 0.0  # float
-    
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]]).numpy()
+    p = 0.5
     input_dict = {
         "input": input,
         "p": p
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.tensor([[1.0], [2.0], [3.0]]).numpy()   # tensor
-    p = 3.0  # float
-    
+    input = torch.tensor([[1.0], [2.0], [3.0]]).numpy()
+    p = 2.0
     input_dict = {
         "input": input,
         "p": p
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]).numpy()   # tensor
-    p = 2.5  # float
-    
+    input = torch.tensor([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0], [9.0, 10.0, 11.0, 12.0]]).numpy()
+    p = 3.0
     input_dict = {
         "input": input,
         "p": p
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]).numpy()   # tensor
-    p = 0.5  # float
-    
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]).numpy()
+    p = 0.0
     input_dict = {
         "input": input,
         "p": p
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.tensor([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]).numpy()   # tensor
-    p = 1.5  # float
-    
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]).numpy()
+    p = 2.0
     input_dict = {
         "input": input,
         "p": p
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([[0.0, 0.0, 0.0], [1.0, 1.0, 1.0], [2.0, 2.0, 2.0]]).numpy()   # tensor
-    p = 2.0  # float
-    
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]).numpy()
+    p = 1.5
     input_dict = {
         "input": input,
         "p": p
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]]).numpy()   # tensor
-    p = 0.0  # float
-    
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]).numpy()
+    p = 2.0
     input_dict = {
         "input": input,
         "p": p
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0], [10.0, 11.0, 12.0]]).numpy()   # tensor
-    p = 1.0  # float
-    
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]).numpy()
+    p = 2.0
     input_dict = {
         "input": input,
         "p": p
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs

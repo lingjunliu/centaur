@@ -12,8 +12,8 @@ def ge_inputs():
     # Input 1, valid
     input = torch.tensor([[1, 2], [3, 4]]).numpy()
     other = torch.tensor([[1, 1], [4, 4]]).numpy()
-    out = torch.tensor([[True, True], [False, True]]).numpy()
-    
+    out = torch.zeros((2, 2)).numpy()
+
     input_dict = {
         "input": input,
         "other": other,
@@ -23,10 +23,10 @@ def ge_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.tensor([1, 2, 3]).numpy()
-    other = torch.tensor([0, 1, 2]).numpy()
-    out = torch.tensor([True, True, True]).numpy()
-    
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    other = torch.tensor([1.0, 1.0, 2.0]).numpy()
+    out = torch.zeros((3,)).numpy()
+
     input_dict = {
         "input": input,
         "other": other,
@@ -36,10 +36,10 @@ def ge_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.tensor([[1, 2, 3], [4, 5, 6]]).numpy()
-    other = torch.tensor([[1, 1, 1], [1, 1, 1]]).numpy()
-    out = torch.tensor([[True, True, True], [True, True, True]]).numpy()
-    
+    input = torch.ones((2, 3)).numpy()
+    other = torch.zeros((2, 3)).numpy()
+    out = torch.zeros((2, 3)).numpy()
+
     input_dict = {
         "input": input,
         "other": other,
@@ -49,10 +49,10 @@ def ge_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.tensor([[-1, -2, -3], [0, 1, 2]]).numpy()
-    other = torch.tensor([[0, 0, 0], [-1, -1, -1]]).numpy()
-    out = torch.tensor([[False, False, True], [True, True, True]]).numpy()
-    
+    input = torch.tensor([-1, 0, 1]).numpy()
+    other = torch.tensor([-1, -1, 0]).numpy()
+    out = torch.zeros((3,)).numpy()
+
     input_dict = {
         "input": input,
         "other": other,
@@ -62,10 +62,10 @@ def ge_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([1.0]).numpy()
-    other = torch.tensor([1.0]).numpy()
-    out = torch.tensor([True]).numpy()
-    
+    input = torch.tensor([1, 2, 3]).numpy()
+    other = torch.tensor([0, 1, 2]).numpy()
+    out = torch.zeros((3,)).numpy()
+
     input_dict = {
         "input": input,
         "other": other,
@@ -75,10 +75,10 @@ def ge_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.tensor([0, 1, 2, 3]).numpy()
-    other = torch.tensor([0, 1, 2, 3]).numpy()
-    out = torch.tensor([True, True, True, True]).numpy()
-    
+    input = torch.tensor([-10, -5]).numpy()
+    other = torch.tensor([-10, -5]).numpy()
+    out = torch.zeros((2,)).numpy()
+
     input_dict = {
         "input": input,
         "other": other,
@@ -89,9 +89,9 @@ def ge_inputs():
     
     # Input 7, valid
     input = torch.tensor([[0, 1], [2, 3]]).numpy()
-    other = torch.tensor([[0, 0], [2, 2]]).numpy()
-    out = torch.tensor([[True, True], [True, True]]).numpy()
-    
+    other = torch.tensor([[0, 1], [2, 3]]).numpy()
+    out = torch.zeros((2, 2)).numpy()
+
     input_dict = {
         "input": input,
         "other": other,
@@ -101,10 +101,10 @@ def ge_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([-10, -5, 0]).numpy()
-    other = torch.tensor([-10, -5, 0]).numpy()
-    out = torch.tensor([True, True, True]).numpy()
-    
+    input = torch.tensor([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]).numpy()
+    other = torch.tensor([[[1, 1], [4, 4]], [[0, 0], [7, 7]]]).numpy()
+    out = torch.zeros((2, 2, 2)).numpy()
+
     input_dict = {
         "input": input,
         "other": other,
@@ -114,10 +114,10 @@ def ge_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.tensor([[1, 2], [3, 4], [5, 6]]).numpy()
-    other = torch.tensor([[1, 1], [4, 4], [6, 6]]).numpy()
-    out = torch.tensor([[True, True], [False, True], [False, True]]).numpy()
-    
+    input = torch.tensor([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]).numpy()
+    other = torch.tensor([[0, 1], [2, 3]]).numpy()
+    out = torch.zeros((2, 2)).numpy()
+
     input_dict = {
         "input": input,
         "other": other,
@@ -128,9 +128,9 @@ def ge_inputs():
     
     # Input 10, valid
     input = torch.tensor([[1, 2, 3], [4, 5, 6]]).numpy()
-    other = torch.tensor([[1, 2, 3], [4, 5, 6]]).numpy()
-    out = torch.tensor([[True, True, True], [True, True, True]]).numpy()
-    
+    other = torch.tensor([[1, 1, 1], [1, 1, 1]]).numpy()
+    out = torch.zeros((2, 3)).numpy()
+
     input_dict = {
         "input": input,
         "other": other,

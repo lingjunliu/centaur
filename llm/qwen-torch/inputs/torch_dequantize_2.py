@@ -24,14 +24,14 @@ def dequantize_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    tensor = torch.tensor([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]).numpy()
+    tensor = torch.tensor([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]).numpy()
     input_dict = {
         "tensors": [tensor]
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    tensor = torch.tensor([0]).numpy()
+    tensor = torch.tensor([1.0, 2.0, 3.0]).numpy()
     input_dict = {
         "tensors": [tensor]
     }
@@ -45,35 +45,35 @@ def dequantize_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    tensor = torch.tensor([0.5, 1.5, 2.5]).numpy()
+    tensor = torch.tensor([0.0]).numpy()
     input_dict = {
         "tensors": [tensor]
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    tensor = torch.tensor([[-1, 2], [3, -4]]).numpy()
+    tensor = torch.tensor([1, 2, 3, 4, 5]).numpy()
     input_dict = {
         "tensors": [tensor]
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    tensor = torch.tensor([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]).numpy()
+    tensor = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
     input_dict = {
         "tensors": [tensor]
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    tensor = torch.tensor([[[1, 2], [3, 4], [5, 6]], [[7, 8], [9, 10], [11, 12]]]).numpy()
+    tensor = torch.tensor([[[1.0, 2.0, 3.0]], [[4.0, 5.0, 6.0]]]).numpy()
     input_dict = {
         "tensors": [tensor]
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    tensor = torch.tensor([[[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]]]).numpy()
+    tensor = torch.tensor([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]).numpy()
     input_dict = {
         "tensors": [tensor]
     }

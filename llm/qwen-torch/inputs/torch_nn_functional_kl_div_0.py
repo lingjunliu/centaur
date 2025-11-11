@@ -9,52 +9,7 @@ import torch, copy
 def kl_div_inputs():
     list_of_inputs = []
     
-    # Input 1
-    input = torch.tensor([0.1, 0.2, 0.3]).numpy()
-    target = torch.tensor([0.1, 0.2, 0.3]).numpy()
-    reduction = 'none'
-    log_target = False
-    
-    input_dict = {
-        "input": input,
-        "target": target,
-        "reduction": reduction,
-        "log_target": log_target
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 2
-    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
-    target = torch.tensor([0.1, 0.2, 0.3]).numpy()
-    reduction = 'none'
-    log_target = False
-    
-    input_dict = {
-        "input": input,
-        "target": target,
-        "reduction": reduction,
-        "log_target": log_target
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 3
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    target = torch.tensor([[0.1, 0.2], [0.3, 0.4]]).numpy()
-    reduction = 'none'
-    log_target = False
-    
-    input_dict = {
-        "input": input,
-        "target": target,
-        "reduction": reduction,
-        "log_target": log_target
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 4
+    # Input 1, valid
     input = torch.tensor([0.1, 0.2, 0.3]).numpy()
     target = torch.tensor([0.1, 0.2, 0.3]).numpy()
     reduction = 'mean'
@@ -69,25 +24,10 @@ def kl_div_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 5
-    input = torch.tensor([0.1, 0.2, 0.3]).numpy()
+    # Input 2, valid
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
     target = torch.tensor([0.1, 0.2, 0.3]).numpy()
     reduction = 'sum'
-    log_target = False
-    
-    input_dict = {
-        "input": input,
-        "target": target,
-        "reduction": reduction,
-        "log_target": log_target
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6
-    input = torch.tensor([0.1, 0.2, 0.3]).numpy()
-    target = torch.tensor([0.1, 0.2, 0.3]).numpy()
-    reduction = 'none'
     log_target = True
     
     input_dict = {
@@ -99,9 +39,25 @@ def kl_div_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 7
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    target = torch.tensor([[0.1, 0.2], [0.3, 0.4]]).numpy()
+    # Input 3, valid
+    input = torch.ones((2, 3)).numpy()
+    target = torch.tensor([[1.0, 2.0, 3.0],
+                          [4.0, 5.0, 6.0]]).numpy()
+    reduction = 'none'
+    log_target = False
+    
+    input_dict = {
+        "input": input,
+        "target": target,
+        "reduction": reduction,
+        "log_target": log_target
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4, valid
+    input = torch.tensor([0.1, 0.2]).numpy()
+    target = torch.tensor([0.1, 0.2]).numpy()
     reduction = 'mean'
     log_target = True
     
@@ -114,11 +70,12 @@ def kl_div_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 8
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    target = torch.tensor([[0.1, 0.2], [0.3, 0.4]]).numpy()
+    # Input 5, valid
+    input = torch.zeros((1, 4)).numpy()
+    target = torch.tensor([[0.1, 0.2, 0.3, 0.4],
+                          [0.5, 0.6, 0.7, 0.8]]).numpy()
     reduction = 'sum'
-    log_target = True
+    log_target = False
     
     input_dict = {
         "input": input,
@@ -129,9 +86,9 @@ def kl_div_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 9
-    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
-    target = torch.tensor([0.1, 0.2, 0.3]).numpy()
+    # Input 6, valid
+    input = torch.tensor([1.0, 2.0]).numpy()
+    target = torch.tensor([0.1, 0.2]).numpy()
     reduction = 'none'
     log_target = True
     
@@ -144,9 +101,56 @@ def kl_div_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 10
-    input = torch.tensor([0.1, 0.2, 0.3]).numpy()
-    target = torch.tensor([0.1, 0.2, 0.3]).numpy()
+    # Input 7, valid
+    input = torch.tensor([0.1, 0.2, 0.3, 0.4]).numpy()
+    target = torch.tensor([0.1, 0.2, 0.3, 0.4]).numpy()
+    reduction = 'mean'
+    log_target = False
+    
+    input_dict = {
+        "input": input,
+        "target": target,
+        "reduction": reduction,
+        "log_target": log_target
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8, valid
+    input = torch.tensor([-1.0, -2.0]).numpy()
+    target = torch.tensor([0.1, 0.2]).numpy()
+    reduction = 'sum'
+    log_target = True
+    
+    input_dict = {
+        "input": input,
+        "target": target,
+        "reduction": reduction,
+        "log_target": log_target
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9, valid
+    input = torch.ones((3, 2)).numpy()
+    target = torch.tensor([[0.1, 0.2],
+                          [0.3, 0.4],
+                          [0.5, 0.6]]).numpy()
+    reduction = 'none'
+    log_target = False
+    
+    input_dict = {
+        "input": input,
+        "target": target,
+        "reduction": reduction,
+        "log_target": log_target
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10, valid
+    input = torch.tensor([0.1]).numpy()
+    target = torch.tensor([0.1]).numpy()
     reduction = 'mean'
     log_target = True
     

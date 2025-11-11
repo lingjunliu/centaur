@@ -11,7 +11,7 @@ def argsort_inputs():
 
     
     # Input 1, valid
-    input = torch.tensor([[ 0.0785, 1.5267, -0.8521, 0.4065],
+    input = torch.tensor([[0.0785, 1.5267, -0.8521, 0.4065],
                         [ 0.1598, 0.0788, -0.0745, -1.2700],
                         [ 1.2208, 1.0722, -0.7064, 1.2564],
                         [ 0.0669, -0.2318, -0.8229, -0.9280]]).numpy()
@@ -29,10 +29,7 @@ def argsort_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.tensor([[-0.8521, 0.4065, 0.0785, 1.5267],
-                        [-1.2700, -0.0745, 0.0788, 0.1598],
-                        [-0.7064, 1.2564, 1.0722, 1.2208],
-                        [-0.9280, -0.8229, -0.2318, 0.0669]]).numpy()
+    input = torch.tensor([[-1, 2, 3, -4]]).numpy()
     dim = 0
     descending = True
     stable = False
@@ -47,7 +44,7 @@ def argsort_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()
+    input = torch.tensor([[1, 2], [3, 4]]).numpy()
     dim = 0
     descending = False
     stable = True
@@ -62,10 +59,10 @@ def argsort_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    dim = 1
+    input = torch.tensor([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]).numpy()
+    dim = 2
     descending = True
-    stable = True
+    stable = False
     
     input_dict = {
         "input": input,
@@ -77,10 +74,10 @@ def argsort_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([[1.0], [2.0], [3.0]]).numpy()
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
     dim = 0
     descending = False
-    stable = False
+    stable = True
     
     input_dict = {
         "input": input,
@@ -107,22 +104,7 @@ def argsort_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.tensor([-0.1, 0.2, -0.3, 0.4]).numpy()
-    dim = 0
-    descending = False
-    stable = True
-    
-    input_dict = {
-        "input": input,
-        "dim": dim,
-        "descending": descending,
-        "stable": stable
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8, valid
-    input = torch.tensor([[0.5, 0.6], [0.7, 0.8], [0.9, 1.0]]).numpy()
+    input = torch.tensor([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]]).numpy()
     dim = 1
     descending = False
     stable = True
@@ -136,7 +118,37 @@ def argsort_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
+    # Input 8, valid
+    input = torch.tensor([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]).numpy()
+    dim = 0
+    descending = True
+    stable = True
+    
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "descending": descending,
+        "stable": stable
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     # Input 9, valid
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    dim = 1
+    descending = False
+    stable = False
+    
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "descending": descending,
+        "stable": stable
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10, valid
     input = torch.tensor([-1.0, -2.0, -3.0]).numpy()
     dim = 0
     descending = True
@@ -151,21 +163,6 @@ def argsort_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 10, valid
-    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]).numpy()
-    dim = 0
-    descending = False
-    stable = False
-    
-    input_dict = {
-        "input": input,
-        "dim": dim,
-        "descending": descending,
-        "stable": stable
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
     return list_of_inputs
 
 generated_inputs["torch.argsort"] = argsort_inputs()

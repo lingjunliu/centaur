@@ -26,8 +26,8 @@ def rrelu_inputs():
     
     # Input 2, valid
     input = torch.tensor([-1.0, -2.0, -3.0]).numpy()
-    lower = 0.5
-    upper = 0.8
+    lower = 0.1
+    upper = 0.3
     inplace = True
     
     input_dict = {
@@ -55,10 +55,10 @@ def rrelu_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.randn((1, 2, 3)).numpy()
+    input = torch.tensor([[1.0, -2.0], [3.0, -4.0]]).numpy()
     lower = 0.1
     upper = 0.3
-    inplace = True
+    inplace = False
     
     input_dict = {
         "input": input,
@@ -70,9 +70,9 @@ def rrelu_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([0.0]).numpy()
-    lower = 0.2
-    upper = 0.4
+    input = torch.tensor([1.0]).numpy()
+    lower = 0.125
+    upper = 0.3333333333333333
     inplace = False
     
     input_dict = {
@@ -85,7 +85,7 @@ def rrelu_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.tensor([1.0, -1.0]).numpy()
+    input = torch.tensor([-1.0, -2.0, -3.0]).numpy()
     lower = 0.1
     upper = 0.3
     inplace = False
@@ -100,7 +100,37 @@ def rrelu_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.ones((3, 4)).numpy()
+    input = torch.ones((1, 2, 3)).numpy()
+    lower = 0.125
+    upper = 0.3333333333333333
+    inplace = True
+    
+    input_dict = {
+        "input": input,
+        "lower": lower,
+        "upper": upper,
+        "inplace": inplace
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8, valid
+    input = torch.tensor([0.0]).numpy()
+    lower = 0.1
+    upper = 0.3
+    inplace = False
+    
+    input_dict = {
+        "input": input,
+        "lower": lower,
+        "upper": upper,
+        "inplace": inplace
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9, valid
+    input = torch.tensor([1.0, -2.0, 3.0, -4.0]).numpy()
     lower = 0.125
     upper = 0.3333333333333333
     inplace = False
@@ -114,38 +144,8 @@ def rrelu_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 8, valid
-    input = torch.randn((4, 5)).numpy()
-    lower = 0.1
-    upper = 0.3
-    inplace = True
-    
-    input_dict = {
-        "input": input,
-        "lower": lower,
-        "upper": upper,
-        "inplace": inplace
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9, valid
-    input = torch.tensor([1.0, -2.0, 3.0, -4.0]).numpy()
-    lower = 0.2
-    upper = 0.4
-    inplace = False
-    
-    input_dict = {
-        "input": input,
-        "lower": lower,
-        "upper": upper,
-        "inplace": inplace
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
     # Input 10, valid
-    input = torch.tensor([0.0]).numpy()
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
     lower = 0.1
     upper = 0.3
     inplace = True

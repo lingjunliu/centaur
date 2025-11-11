@@ -10,115 +10,137 @@ def log1p_inputs():
     list_of_inputs = []
     
     # Input 1, valid
-    input = torch.tensor([1.0, 2.0, 3.0])   # tensor
-    out = torch.empty_like(input)    # tensor
-
+    input = torch.tensor([1.0, 2.0, 3.0])
+    out = torch.empty_like(input)
+    
     input_dict = {
-        "input": input,
-        "out": out
+        "input": input.numpy(),
+        "out": out.numpy()
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.ones((2, 3))   # tensor
+    input = torch.tensor([-0.5, 0.5, 1.0])
     out = torch.empty_like(input)
-
+    
     input_dict = {
-        "input": input,
-        "out": out
+        "input": input.numpy(),
+        "out": out.numpy()
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.randn(5)   # tensor
+    input = torch.ones((2, 3))
     out = torch.empty_like(input)
-
+    
     input_dict = {
-        "input": input,
-        "out": out
+        "input": input.numpy(),
+        "out": out.numpy()
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.tensor([-1.0, -0.5, 0.0])   # tensor
+    input = torch.randn(5)
     out = torch.empty_like(input)
-
+    
     input_dict = {
-        "input": input,
-        "out": out
+        "input": input.numpy(),
+        "out": out.numpy()
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([0.1, 0.2, 0.3])   # tensor
+    input = torch.tensor([0.1, 0.2, 0.3])
     out = torch.empty_like(input)
-
+    
     input_dict = {
-        "input": input,
-        "out": out
+        "input": input.numpy(),
+        "out": out.numpy()
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.ones((3, 4))   # tensor
+    input = torch.tensor([-1.0, -0.5, 0.0])
     out = torch.empty_like(input)
-
+    
     input_dict = {
-        "input": input,
-        "out": out
+        "input": input.numpy(),
+        "out": out.numpy()
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.randn(10)   # tensor
+    input = torch.ones((1, 4))
     out = torch.empty_like(input)
-
+    
     input_dict = {
-        "input": input,
-        "out": out
+        "input": input.numpy(),
+        "out": out.numpy()
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([2.0, 3.0, 4.0])   # tensor
+    input = torch.randn(3)
     out = torch.empty_like(input)
-
+    
     input_dict = {
-        "input": input,
-        "out": out
+        "input": input.numpy(),
+        "out": out.numpy()
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.tensor([-0.1, -0.2, -0.3])   # tensor
+    input = torch.tensor([0.0])
     out = torch.empty_like(input)
-
+    
     input_dict = {
-        "input": input,
-        "out": out
+        "input": input.numpy(),
+        "out": out.numpy()
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.ones((1, 2))   # tensor
+    input = torch.tensor([1.5, 2.5, 3.5])
     out = torch.empty_like(input)
-
+    
     input_dict = {
-        "input": input,
-        "out": out
+        "input": input.numpy(),
+        "out": out.numpy()
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
+    # Input 11, valid
+    input = torch.tensor([-0.9, -0.8, -0.7])
+    out = torch.empty_like(input)
+    
+    input_dict = {
+        "input": input.numpy(),
+        "out": out.numpy()
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12, valid
+    input = torch.ones((3, 2))
+    out = torch.empty_like(input)
+    
+    input_dict = {
+        "input": input.numpy(),
+        "out": out.numpy()
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs["torch.log1p"] = log1p_inputs()

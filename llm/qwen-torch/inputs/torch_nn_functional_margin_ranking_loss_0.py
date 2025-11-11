@@ -12,25 +12,8 @@ def margin_ranking_loss_inputs():
     # Input 1, valid
     input1 = torch.tensor([1.0, 2.0, 3.0]).numpy()
     input2 = torch.tensor([0.1, 0.2, 0.3]).numpy()
-    target = torch.tensor([1, -1, 1]).numpy()
+    target = torch.tensor([1.0, 1.0, 1.0]).numpy()
     margin = 0.5
-    reduction = 'none'
-    
-    input_dict = {
-        "input1": input1,
-        "input2": input2,
-        "target": target,
-        "margin": margin,
-        "reduction": reduction
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 2, valid
-    input1 = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
-    input2 = torch.tensor([[0.1, 0.2], [0.3, 0.4]]).numpy()
-    target = torch.tensor([[-1, 1], [1, -1]]).numpy()
-    margin = 0.0
     reduction = 'mean'
     
     input_dict = {
@@ -43,11 +26,30 @@ def margin_ranking_loss_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 3, valid
+    # Input 2, valid
     input1 = torch.ones((2, 3)).numpy()
-    input2 = torch.zeros((2, 3)).numpy()
-    target = torch.tensor([1, -1]).numpy()
-    margin = 1.0
+    input2 = torch.tensor([[1.0, 2.0, 3.0],
+                          [4.0, 5.0, 6.0]]).numpy()
+    target = torch.tensor([[0.1, 0.2, 0.3],
+                          [0.4, 0.5, 0.6]]).numpy()
+    margin = 0.0
+    reduction = 'none'
+    
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "target": target,
+        "margin": margin,
+        "reduction": reduction
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 3, valid
+    input1 = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    input2 = torch.tensor([0.1, 0.2, 0.3]).numpy()
+    target = torch.tensor([-1.0, -1.0, -1.0]).numpy()
+    margin = 0.0
     reduction = 'sum'
     
     input_dict = {
@@ -61,11 +63,15 @@ def margin_ranking_loss_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input1 = torch.tensor([1.0]).numpy()
-    input2 = torch.tensor([0.5]).numpy()
-    target = torch.tensor([1]).numpy()
-    margin = 0.1
-    reduction = 'none'
+    input1 = torch.ones((3, 3)).numpy()
+    input2 = torch.tensor([[1.0, 2.0, 3.0],
+                          [4.0, 5.0, 6.0],
+                          [7.0, 8.0, 9.0]]).numpy()
+    target = torch.tensor([[0.1, 0.2, 0.3],
+                          [0.4, 0.5, 0.6],
+                          [0.7, 0.8, 0.9]]).numpy()
+    margin = 0.0
+    reduction = 'sum'
     
     input_dict = {
         "input1": input1,
@@ -78,10 +84,10 @@ def margin_ranking_loss_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input1 = torch.tensor([-1.0, -2.0, -3.0]).numpy()
-    input2 = torch.tensor([-0.1, -0.2, -0.3]).numpy()
-    target = torch.tensor([-1, 1, -1]).numpy()
-    margin = -0.5
+    input1 = torch.tensor([1.0]).numpy()
+    input2 = torch.tensor([0.1]).numpy()
+    target = torch.tensor([1.0]).numpy()
+    margin = 0.1
     reduction = 'mean'
     
     input_dict = {
@@ -96,26 +102,9 @@ def margin_ranking_loss_inputs():
     
     # Input 6, valid
     input1 = torch.tensor([1.0, 2.0]).numpy()
-    input2 = torch.tensor([0.5, 0.3]).numpy()
-    target = torch.tensor([1, -1]).numpy()
-    margin = 0.0
-    reduction = 'sum'
-    
-    input_dict = {
-        "input1": input1,
-        "input2": input2,
-        "target": target,
-        "margin": margin,
-        "reduction": reduction
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7, valid
-    input1 = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()
-    input2 = torch.tensor([0.1, 0.2, 0.3, 0.4]).numpy()
-    target = torch.tensor([1, -1, 1, -1]).numpy()
-    margin = 0.5
+    input2 = torch.tensor([0.1, 0.2]).numpy()
+    target = torch.tensor([1.0, 1.0]).numpy()
+    margin = -0.5
     reduction = 'none'
     
     input_dict = {
@@ -128,10 +117,29 @@ def margin_ranking_loss_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
+    # Input 7, valid
+    input1 = torch.ones((2, 2)).numpy()
+    input2 = torch.tensor([[1.0, 2.0],
+                          [3.0, 4.0]]).numpy()
+    target = torch.tensor([[0.1, 0.2],
+                          [0.3, 0.4]]).numpy()
+    margin = 0.5
+    reduction = 'sum'
+    
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "target": target,
+        "margin": margin,
+        "reduction": reduction
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     # Input 8, valid
-    input1 = torch.tensor([[[1.0, 2.0], [3.0, 4.0]]]).numpy()
-    input2 = torch.tensor([[[0.1, 0.2], [0.3, 0.4]]]).numpy()
-    target = torch.tensor([[[1, -1], [1, -1]]]).numpy()
+    input1 = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()
+    input2 = torch.tensor([0.1, 0.2, 0.3, 0.4]).numpy()
+    target = torch.tensor([1.0, 1.0, 1.0, 1.0]).numpy()
     margin = 0.0
     reduction = 'mean'
     
@@ -146,11 +154,11 @@ def margin_ranking_loss_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input1 = torch.tensor([1.0]).numpy()
-    input2 = torch.tensor([0.5]).numpy()
-    target = torch.tensor([1]).numpy()
-    margin = 1.0
-    reduction = 'sum'
+    input1 = torch.tensor([1.0, 2.0]).numpy()
+    input2 = torch.tensor([0.1, 0.2]).numpy()
+    target = torch.tensor([1.0, 1.0]).numpy()
+    margin = 0.5
+    reduction = 'mean'
     
     input_dict = {
         "input1": input1,
@@ -163,10 +171,10 @@ def margin_ranking_loss_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input1 = torch.tensor([1.0, 2.0]).numpy()
-    input2 = torch.tensor([0.5, 0.3]).numpy()
-    target = torch.tensor([1, -1]).numpy()
-    margin = -0.5
+    input1 = torch.tensor([-1.0, -2.0]).numpy()
+    input2 = torch.tensor([1.0, 2.0]).numpy()
+    target = torch.tensor([1.0, 1.0]).numpy()
+    margin = 0.5
     reduction = 'none'
     
     input_dict = {

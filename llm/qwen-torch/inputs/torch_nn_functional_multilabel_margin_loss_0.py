@@ -10,170 +10,130 @@ def multilabel_margin_loss_inputs():
     list_of_inputs = []
     
     # Input 1, valid
-    input = torch.tensor([[1, -1, 1], [1, -1, 1]]).numpy()
-    target = torch.tensor([[1, 0, 1], [0, 1, 1]]).numpy()
-    size_average = True
-    reduce = True
-    reduction = 'mean'
+    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]).numpy()
+    target = torch.tensor([[0.0, 1.0, 0.0], [1.0, 0.0, 1.0]]).numpy()
+    reduction = 'none'
     
     input_dict = {
         "input": input,
         "target": target,
-        "size_average": size_average,
-        "reduce": reduce,
         "reduction": reduction
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.tensor([1, -1, 1]).numpy()
-    target = torch.tensor([1, 0, 1]).numpy()
-    size_average = False
-    reduce = True
-    reduction = 'none'
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    target = torch.tensor([0.0, 1.0, 0.0]).numpy()
+    reduction = 'mean'
     
     input_dict = {
         "input": input,
         "target": target,
-        "size_average": size_average,
-        "reduce": reduce,
         "reduction": reduction
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.ones((3, 4)).numpy()
-    target = torch.zeros((3, 4)).numpy()
-    size_average = True
-    reduce = False
+    input = torch.tensor([[1.0, -2.0], [-3.0, 4.0]]).numpy()
+    target = torch.tensor([[0.0, 1.0], [1.0, 0.0]]).numpy()
     reduction = 'sum'
     
     input_dict = {
         "input": input,
         "target": target,
-        "size_average": size_average,
-        "reduce": reduce,
         "reduction": reduction
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.tensor([[1, -1], [1, -1]]).numpy()
-    target = torch.tensor([[1, 0], [0, 1]]).numpy()
-    size_average = False
-    reduce = False
+    input = torch.ones((3, 2)).numpy()
+    target = torch.zeros((3, 2)).numpy()
     reduction = 'none'
     
     input_dict = {
         "input": input,
         "target": target,
-        "size_average": size_average,
-        "reduce": reduce,
         "reduction": reduction
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([-1, 1, -1]).numpy()
-    target = torch.tensor([0, 1, 0]).numpy()
-    size_average = True
-    reduce = True
+    input = torch.tensor([[0.0, 1.0], [1.0, 0.0]]).numpy()
+    target = torch.tensor([[0.0, 1.0], [1.0, 0.0]]).numpy()
     reduction = 'mean'
     
     input_dict = {
         "input": input,
         "target": target,
-        "size_average": size_average,
-        "reduce": reduce,
         "reduction": reduction
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.tensor([[1, -1, 1, -1], [1, -1, 1, -1]]).numpy()
-    target = torch.tensor([[1, 0, 1, 0], [0, 1, 0, 1]]).numpy()
-    size_average = False
-    reduce = True
+    input = torch.tensor([[1.0, 2.0, 3.0, 4.0]]).numpy()
+    target = torch.tensor([[0.0, 1.0, 0.0, 1.0]]).numpy()
     reduction = 'sum'
     
     input_dict = {
         "input": input,
         "target": target,
-        "size_average": size_average,
-        "reduce": reduce,
         "reduction": reduction
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.ones((2, 3, 4)).numpy()
-    target = torch.zeros((2, 3, 4)).numpy()
-    size_average = True
-    reduce = False
+    input = torch.tensor([[-1.0, -2.0, -3.0]]).numpy()
+    target = torch.tensor([[1.0, 0.0, 1.0]]).numpy()
     reduction = 'none'
     
     input_dict = {
         "input": input,
         "target": target,
-        "size_average": size_average,
-        "reduce": reduce,
         "reduction": reduction
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([[-1, 1], [-1, 1]]).numpy()
-    target = torch.tensor([[0, 1], [1, 0]]).numpy()
-    size_average = False
-    reduce = True
+    input = torch.tensor([[0.0, 1.0], [1.0, 0.0], [0.0, 1.0]]).numpy()
+    target = torch.tensor([[1.0, 0.0], [0.0, 1.0], [1.0, 0.0]]).numpy()
     reduction = 'mean'
     
     input_dict = {
         "input": input,
         "target": target,
-        "size_average": size_average,
-        "reduce": reduce,
         "reduction": reduction
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.tensor([[1, -1, 1], [1, -1, 1], [1, -1, 1]]).numpy()
-    target = torch.tensor([[1, 0, 1], [0, 1, 1], [1, 0, 1]]).numpy()
-    size_average = True
-    reduce = False
+    input = torch.tensor([1.0, 2.0]).numpy()
+    target = torch.tensor([0.0, 1.0]).numpy()
     reduction = 'sum'
     
     input_dict = {
         "input": input,
         "target": target,
-        "size_average": size_average,
-        "reduce": reduce,
         "reduction": reduction
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([[-1, 1, -1, 1]]).numpy()
-    target = torch.tensor([0, 1, 0, 1]).numpy()
-    size_average = False
-    reduce = True
+    input = torch.tensor([[0.0, 1.0], [1.0, 0.0]]).numpy()
+    target = torch.tensor([[1.0, 0.0], [0.0, 1.0]]).numpy()
     reduction = 'none'
     
     input_dict = {
         "input": input,
         "target": target,
-        "size_average": size_average,
-        "reduce": reduce,
         "reduction": reduction
     }
     

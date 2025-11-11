@@ -10,8 +10,8 @@ def hardshrink_inputs():
     list_of_inputs = []
     
     # Input 1, valid
-    input = torch.tensor([1.0, -2.0, 3.0]).numpy()   # tensor
-    lambd = 0.5 # float
+    input = torch.tensor([1.0, -2.0, 3.0]).numpy()
+    lambd = 0.5
     
     input_dict = {
         "input": input,
@@ -21,7 +21,7 @@ def hardshrink_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.ones((2, 3)).numpy()
+    input = torch.tensor([-1.0, 2.0, -3.0]).numpy()
     lambd = 0.5
     
     input_dict = {
@@ -32,7 +32,7 @@ def hardshrink_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.tensor([-1.0, -2.0, -3.0]).numpy()
+    input = torch.ones((2, 3)).numpy()
     lambd = 0.5
     
     input_dict = {
@@ -43,39 +43,6 @@ def hardshrink_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.tensor([0.0, 0.0, 0.0]).numpy()
-    lambd = 0.5
-    
-    input_dict = {
-        "input": input,
-        "lambd": lambd
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 5, valid
-    input = torch.tensor([1.0, 2.0, 3.0, -4.0]).numpy()
-    lambd = 0.5
-    
-    input_dict = {
-        "input": input,
-        "lambd": lambd
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6, valid
-    input = torch.tensor([1.5, -2.5, 3.5]).numpy()
-    lambd = 0.5
-    
-    input_dict = {
-        "input": input,
-        "lambd": lambd
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7, valid
     input = torch.tensor([[1.0, -2.0], [3.0, -4.0]]).numpy()
     lambd = 0.5
     
@@ -86,9 +53,42 @@ def hardshrink_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 8, valid
-    input = torch.tensor([1.0]).numpy()
+    # Input 5, valid
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    lambd = 0.7
+    
+    input_dict = {
+        "input": input,
+        "lambd": lambd
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6, valid
+    input = torch.tensor([-1.0, -2.0, -3.0]).numpy()
+    lambd = 0.7
+    
+    input_dict = {
+        "input": input,
+        "lambd": lambd
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7, valid
+    input = torch.ones((3, 2)).numpy()
     lambd = 0.5
+    
+    input_dict = {
+        "input": input,
+        "lambd": lambd
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8, valid
+    input = torch.tensor([1.0, -2.0, 3.0]).numpy()
+    lambd = 0.2
     
     input_dict = {
         "input": input,
@@ -98,8 +98,8 @@ def hardshrink_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.tensor([1.0, -2.0, 3.0, -4.0, 5.0]).numpy()
-    lambd = 0.5
+    input = torch.tensor([[-1.0, 2.0], [3.0, -4.0]]).numpy()
+    lambd = 0.2
     
     input_dict = {
         "input": input,
@@ -109,7 +109,7 @@ def hardshrink_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([-1.0, 2.0, -3.0]).numpy()
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
     lambd = 0.5
     
     input_dict = {

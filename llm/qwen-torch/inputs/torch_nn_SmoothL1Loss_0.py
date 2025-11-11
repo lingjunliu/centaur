@@ -6,203 +6,203 @@ generated_inputs = dict()
 
 import torch, copy
 
-def smoothl1loss_inputs():
+def smooth_l1_loss_inputs():
     list_of_inputs = []
+
     
-    # Input 1, valid
+    # Input 1, valid - basic case
     input = torch.tensor([1.0, 2.0, 3.0]).numpy()
-    target = torch.tensor([0.1, 0.2, 0.3]).numpy()
-    beta = 1.0
+    target = torch.tensor([1.5, 2.5, 3.5]).numpy()
     size_average = True
     reduce = True
     reduction = 'mean'
+    beta = 1.0
     
     input_dict = {
         "input": input,
         "target": target,
-        "beta": beta,
         "size_average": size_average,
         "reduce": reduce,
-        "reduction": reduction
+        "reduction": reduction,
+        "beta": beta
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 2, valid
+    # Input 2, valid - different beta value
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    target = torch.tensor([1.5, 2.5, 3.5]).numpy()
+    size_average = False
+    reduce = False
+    reduction = 'none'
+    beta = 0.5
+    
+    input_dict = {
+        "input": input,
+        "target": target,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction,
+        "beta": beta
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 3, valid - negative values
+    input = torch.tensor([-1.0, -2.0, -3.0]).numpy()
+    target = torch.tensor([-1.5, -2.5, -3.5]).numpy()
+    size_average = True
+    reduce = False
+    reduction = 'sum'
+    beta = 1.0
+    
+    input_dict = {
+        "input": input,
+        "target": target,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction,
+        "beta": beta
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4, valid - different dimensions
     input = torch.ones((2, 3)).numpy()
-    target = torch.tensor([[1.0, 2.0, 3.0],
-                          [4.0, 5.0, 6.0]]).numpy()
-    beta = 0.5
-    size_average = False
-    reduce = True
-    reduction = 'sum'
-    
-    input_dict = {
-        "input": input,
-        "target": target,
-        "beta": beta,
-        "size_average": size_average,
-        "reduce": reduce,
-        "reduction": reduction
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 3, valid
-    input = torch.tensor([-1.0, 0.0, 1.0]).numpy()
-    target = torch.tensor([-0.5, 0.0, 0.5]).numpy()
-    beta = 2.0
-    size_average = True
-    reduce = False
-    reduction = 'none'
-    
-    input_dict = {
-        "input": input,
-        "target": target,
-        "beta": beta,
-        "size_average": size_average,
-        "reduce": reduce,
-        "reduction": reduction
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 4, valid
-    input = torch.ones((3, 2, 2)).numpy()
-    target = torch.zeros((3, 2, 2)).numpy()
-    beta = 1.5
-    size_average = False
-    reduce = False
-    reduction = 'none'
-    
-    input_dict = {
-        "input": input,
-        "target": target,
-        "beta": beta,
-        "size_average": size_average,
-        "reduce": reduce,
-        "reduction": reduction
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 5, valid
-    input = torch.tensor([1.0]).numpy()
-    target = torch.tensor([2.0]).numpy()
-    beta = 0.0
+    target = torch.ones((2, 3)).numpy()
     size_average = True
     reduce = True
     reduction = 'mean'
+    beta = 0.5
     
     input_dict = {
         "input": input,
         "target": target,
-        "beta": beta,
         "size_average": size_average,
         "reduce": reduce,
-        "reduction": reduction
+        "reduction": reduction,
+        "beta": beta
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 6, valid
-    input = torch.tensor([0.5, 1.5, 2.5]).numpy()
-    target = torch.tensor([0.1, 0.2, 0.3]).numpy()
-    beta = 0.2
+    # Input 5, valid - large values
+    input = torch.tensor([100.0, 200.0, 300.0]).numpy()
+    target = torch.tensor([105.0, 205.0, 305.0]).numpy()
     size_average = False
     reduce = True
-    reduction = 'sum'
-    
-    input_dict = {
-        "input": input,
-        "target": target,
-        "beta": beta,
-        "size_average": size_average,
-        "reduce": reduce,
-        "reduction": reduction
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7, valid
-    input = torch.ones((2, 2)).numpy()
-    target = torch.zeros((2, 2)).numpy()
+    reduction = 'none'
     beta = 1.0
+    
+    input_dict = {
+        "input": input,
+        "target": target,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction,
+        "beta": beta
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6, valid - mixed values
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    target = torch.tensor([-1.5, -2.5, -3.5]).numpy()
     size_average = True
     reduce = False
-    reduction = 'none'
+    reduction = 'sum'
+    beta = 2.0
     
     input_dict = {
         "input": input,
         "target": target,
-        "beta": beta,
         "size_average": size_average,
         "reduce": reduce,
-        "reduction": reduction
+        "reduction": reduction,
+        "beta": beta
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 8, valid
-    input = torch.tensor([1.0, 2.0]).numpy()
-    target = torch.tensor([1.0, 2.0]).numpy()
-    beta = 3.0
-    size_average = True
-    reduce = True
-    reduction = 'mean'
-    
-    input_dict = {
-        "input": input,
-        "target": target,
-        "beta": beta,
-        "size_average": size_average,
-        "reduce": reduce,
-        "reduction": reduction
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9, valid
-    input = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()
-    target = torch.tensor([0.1, 0.2, 0.3, 0.4]).numpy()
-    beta = 0.5
+    # Input 7, valid - different reduction types
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    target = torch.tensor([1.5, 2.5, 3.5]).numpy()
     size_average = False
     reduce = True
     reduction = 'sum'
+    beta = 1.0
     
     input_dict = {
         "input": input,
         "target": target,
-        "beta": beta,
         "size_average": size_average,
         "reduce": reduce,
-        "reduction": reduction
+        "reduction": reduction,
+        "beta": beta
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 10, valid
-    input = torch.ones((4, 3)).numpy()
-    target = torch.zeros((4, 3)).numpy()
-    beta = 2.0
+    # Input 8, valid - small beta value
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    target = torch.tensor([1.5, 2.5, 3.5]).numpy()
     size_average = True
     reduce = False
     reduction = 'none'
+    beta = 0.1
     
     input_dict = {
         "input": input,
         "target": target,
-        "beta": beta,
         "size_average": size_average,
         "reduce": reduce,
-        "reduction": reduction
+        "reduction": reduction,
+        "beta": beta
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9, valid - very large beta value
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    target = torch.tensor([1.5, 2.5, 3.5]).numpy()
+    size_average = False
+    reduce = True
+    reduction = 'mean'
+    beta = 10.0
+    
+    input_dict = {
+        "input": input,
+        "target": target,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction,
+        "beta": beta
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10, valid - zero beta value
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    target = torch.tensor([1.5, 2.5, 3.5]).numpy()
+    size_average = True
+    reduce = False
+    reduction = 'sum'
+    beta = 0.0
+    
+    input_dict = {
+        "input": input,
+        "target": target,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction,
+        "beta": beta
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs
 
-generated_inputs["torch.nn.SmoothL1Loss"] = smoothl1loss_inputs()
+generated_inputs["torch.nn.SmoothL1Loss"] = smooth_l1_loss_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

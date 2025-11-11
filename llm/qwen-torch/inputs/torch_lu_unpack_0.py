@@ -8,174 +8,132 @@ import torch, copy
 
 def lu_unpack_inputs():
     list_of_inputs = []
+    
+    # Input 1, valid
+    LU = torch.tensor([[1.0, 2.0, 3.0],
+                      [4.0, 5.0, 6.0],
+                      [7.0, 8.0, 9.0]]).numpy()
+    Piv = torch.tensor([3, 2, 1], dtype=torch.int32).numpy()
+    
+    input_dict = {
+        "LU": LU,
+        "Piv": Piv
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 2, valid
+    LU = torch.tensor([[1.0, 2.0],
+                      [3.0, 4.0]]).numpy()
+    Piv = torch.tensor([2, 1], dtype=torch.int32).numpy()
+    
+    input_dict = {
+        "LU": LU,
+        "Piv": Piv
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 3, valid
+    LU = torch.tensor([[1.0, 2.0, 3.0, 4.0],
+                      [5.0, 6.0, 7.0, 8.0],
+                      [9.0, 10.0, 11.0, 12.0],
+                      [13.0, 14.0, 15.0, 16.0]]).numpy()
+    Piv = torch.tensor([4, 3, 2, 1], dtype=torch.int32).numpy()
+    
+    input_dict = {
+        "LU": LU,
+        "Piv": Piv
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4, valid
+    LU = torch.tensor([[1.0, 2.0],
+                      [3.0, 4.0],
+                      [5.0, 6.0]]).numpy()
+    Piv = torch.tensor([2, 1, 3], dtype=torch.int32).numpy()
+    
+    input_dict = {
+        "LU": LU,
+        "Piv": Piv
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5, valid
+    LU = torch.ones((4, 4)).numpy()
+    Piv = torch.tensor([1, 2, 3, 4], dtype=torch.int32).numpy()
+    
+    input_dict = {
+        "LU": LU,
+        "Piv": Piv
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6, valid
+    LU = torch.tensor([[0.0, 1.0],
+                      [2.0, 3.0]]).numpy()
+    Piv = torch.tensor([1, 2], dtype=torch.int32).numpy()
+    
+    input_dict = {
+        "LU": LU,
+        "Piv": Piv
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7, valid
+    LU = torch.tensor([[1.0, 2.0, 3.0],
+                      [4.0, 5.0, 6.0]]).numpy()
+    Piv = torch.tensor([1, 2], dtype=torch.int32).numpy()
+    
+    input_dict = {
+        "LU": LU,
+        "Piv": Piv
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8, valid
+    LU = torch.zeros((3, 3)).numpy()
+    Piv = torch.tensor([3, 2, 1], dtype=torch.int32).numpy()
+    
+    input_dict = {
+        "LU": LU,
+        "Piv": Piv
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9, valid
+    LU = torch.tensor([[1.0, 2.0],
+                      [3.0, 4.0],
+                      [5.0, 6.0],
+                      [7.0, 8.0]]).numpy()
+    Piv = torch.tensor([1, 2, 3, 4], dtype=torch.int32).numpy()
+    
+    input_dict = {
+        "LU": LU,
+        "Piv": Piv
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10, valid
+    LU = torch.tensor([[1.0, 2.0, 3.0],
+                      [4.0, 5.0, 6.0],
+                      [7.0, 8.0, 9.0]]).numpy()
+    Piv = torch.tensor([3, 2, 1], dtype=torch.int32).numpy()
+    
+    input_dict = {
+        "LU": LU,
+        "Piv": Piv
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    
-    # Input 1
-    LU_data = torch.tensor([[1.0, 2.0, 3.0],
-                            [4.0, 5.0, 6.0],
-                            [7.0, 8.0, 9.0]]).numpy()
-    LU_pivots = torch.tensor([0, 1, 2], dtype=torch.int32).numpy()
-    unpack_data = True
-    unpack_pivots = True
-    
-    input_dict = {
-        "LU_data": LU_data,
-        "LU_pivots": LU_pivots,
-        "unpack_data": unpack_data,
-        "unpack_pivots": unpack_pivots
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 2
-    LU_data = torch.tensor([[1.0, 2.0],
-                            [3.0, 4.0]]).numpy()
-    LU_pivots = torch.tensor([1, 0], dtype=torch.int32).numpy()
-    unpack_data = False
-    unpack_pivots = True
-    
-    input_dict = {
-        "LU_data": LU_data,
-        "LU_pivots": LU_pivots,
-        "unpack_data": unpack_data,
-        "unpack_pivots": unpack_pivots
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 3
-    LU_data = torch.tensor([[1.0, 2.0, 3.0],
-                            [4.0, 5.0, 6.0],
-                            [7.0, 8.0, 9.0]]).numpy()
-    LU_pivots = torch.tensor([2, 1, 0], dtype=torch.int32).numpy()
-    unpack_data = True
-    unpack_pivots = False
-    
-    input_dict = {
-        "LU_data": LU_data,
-        "LU_pivots": LU_pivots,
-        "unpack_data": unpack_data,
-        "unpack_pivots": unpack_pivots
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 4
-    LU_data = torch.tensor([[1.0, 2.0, 3.0],
-                            [4.0, 5.0, 6.0],
-                            [7.0, 8.0, 9.0]]).numpy()
-    LU_pivots = torch.tensor([0, 1, 2], dtype=torch.int32).numpy()
-    unpack_data = False
-    unpack_pivots = False
-    
-    input_dict = {
-        "LU_data": LU_data,
-        "LU_pivots": LU_pivots,
-        "unpack_data": unpack_data,
-        "unpack_pivots": unpack_pivots
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 5
-    LU_data = torch.tensor([[1.0, 2.0, 3.0],
-                            [4.0, 5.0, 6.0],
-                            [7.0, 8.0, 9.0]]).numpy()
-    LU_pivots = torch.tensor([2, 1, 0], dtype=torch.int32).numpy()
-    unpack_data = True
-    unpack_pivots = True
-    
-    input_dict = {
-        "LU_data": LU_data,
-        "LU_pivots": LU_pivots,
-        "unpack_data": unpack_data,
-        "unpack_pivots": unpack_pivots
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6
-    LU_data = torch.tensor([[1.0, 2.0],
-                            [3.0, 4.0]]).numpy()
-    LU_pivots = torch.tensor([1, 0], dtype=torch.int32).numpy()
-    unpack_data = True
-    unpack_pivots = False
-    
-    input_dict = {
-        "LU_data": LU_data,
-        "LU_pivots": LU_pivots,
-        "unpack_data": unpack_data,
-        "unpack_pivots": unpack_pivots
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7
-    LU_data = torch.tensor([[1.0, 2.0, 3.0],
-                            [4.0, 5.0, 6.0],
-                            [7.0, 8.0, 9.0]]).numpy()
-    LU_pivots = torch.tensor([0, 1, 2], dtype=torch.int32).numpy()
-    unpack_data = False
-    unpack_pivots = True
-    
-    input_dict = {
-        "LU_data": LU_data,
-        "LU_pivots": LU_pivots,
-        "unpack_data": unpack_data,
-        "unpack_pivots": unpack_pivots
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8
-    LU_data = torch.tensor([[1.0, 2.0],
-                            [3.0, 4.0]]).numpy()
-    LU_pivots = torch.tensor([0, 1], dtype=torch.int32).numpy()
-    unpack_data = True
-    unpack_pivots = True
-    
-    input_dict = {
-        "LU_data": LU_data,
-        "LU_pivots": LU_pivots,
-        "unpack_data": unpack_data,
-        "unpack_pivots": unpack_pivots
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9
-    LU_data = torch.tensor([[1.0, 2.0, 3.0],
-                            [4.0, 5.0, 6.0],
-                            [7.0, 8.0, 9.0]]).numpy()
-    LU_pivots = torch.tensor([2, 1, 0], dtype=torch.int32).numpy()
-    unpack_data = False
-    unpack_pivots = False
-    
-    input_dict = {
-        "LU_data": LU_data,
-        "LU_pivots": LU_pivots,
-        "unpack_data": unpack_data,
-        "unpack_pivots": unpack_pivots
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10
-    LU_data = torch.tensor([[1.0, 2.0],
-                            [3.0, 4.0]]).numpy()
-    LU_pivots = torch.tensor([0, 1], dtype=torch.int32).numpy()
-    unpack_data = False
-    unpack_pivots = True
-    
-    input_dict = {
-        "LU_data": LU_data,
-        "LU_pivots": LU_pivots,
-        "unpack_data": unpack_data,
-        "unpack_pivots": unpack_pivots
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
     return list_of_inputs
 
 generated_inputs["torch.lu_unpack"] = lu_unpack_inputs()

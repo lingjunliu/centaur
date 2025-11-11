@@ -10,9 +10,9 @@ def reciprocal_inputs():
     list_of_inputs = []
     
     # Input 1, valid
-    input = torch.tensor([1.0, 2.0, 3.0])
-    out = torch.empty_like(input)
-
+    input = torch.tensor([1.0, 2.0, 3.0])   # tensor
+    out = torch.empty_like(input)    # tensor
+    
     input_dict = {
         "input": input,
         "out": out
@@ -21,9 +21,9 @@ def reciprocal_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 2, valid
-    input = torch.tensor([-1.0, -2.0, -3.0])
+    input = torch.ones((2, 3))
     out = torch.empty_like(input)
-
+    
     input_dict = {
         "input": input,
         "out": out
@@ -32,9 +32,9 @@ def reciprocal_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.ones((2, 3))
-    out = torch.empty_like(input)
-
+    input = torch.randn(4)
+    out = torch.empty_like(input)    # tensor
+    
     input_dict = {
         "input": input,
         "out": out
@@ -43,9 +43,9 @@ def reciprocal_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.tensor([0.5, 1.5, 2.5])
-    out = torch.empty_like(input)
-
+    input = torch.tensor([-1.0, -2.0, -3.0])
+    out = torch.empty_like(input)    # tensor
+    
     input_dict = {
         "input": input,
         "out": out
@@ -54,9 +54,9 @@ def reciprocal_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.tensor([-0.5, -1.5, -2.5])
-    out = torch.empty_like(input)
-
+    input = torch.tensor([0.5, 1.5, 2.5])
+    out = torch.empty_like(input)    # tensor
+    
     input_dict = {
         "input": input,
         "out": out
@@ -65,9 +65,9 @@ def reciprocal_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.ones((3, 2))
+    input = torch.ones((3, 4))
     out = torch.empty_like(input)
-
+    
     input_dict = {
         "input": input,
         "out": out
@@ -77,8 +77,8 @@ def reciprocal_inputs():
     
     # Input 7, valid
     input = torch.tensor([1.0])
-    out = torch.empty_like(input)
-
+    out = torch.empty_like(input)    # tensor
+    
     input_dict = {
         "input": input,
         "out": out
@@ -87,9 +87,9 @@ def reciprocal_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.tensor([2.0, 3.0, 4.0])
-    out = torch.empty_like(input)
-
+    input = torch.tensor([0.1, 0.2, 0.3, 0.4])
+    out = torch.empty_like(input)    # tensor
+    
     input_dict = {
         "input": input,
         "out": out
@@ -98,9 +98,9 @@ def reciprocal_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.tensor([0.1, 0.2, 0.3])
-    out = torch.empty_like(input)
-
+    input = torch.tensor([-1.0, -2.0])
+    out = torch.empty_like(input)    # tensor
+    
     input_dict = {
         "input": input,
         "out": out
@@ -109,16 +109,16 @@ def reciprocal_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 10, valid
-    input = torch.tensor([-1.0, -2.0])
+    input = torch.ones((1, 2, 3))
     out = torch.empty_like(input)
-
+    
     input_dict = {
         "input": input,
         "out": out
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     return list_of_inputs
 
 generated_inputs["torch.reciprocal"] = reciprocal_inputs()

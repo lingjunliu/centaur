@@ -12,7 +12,7 @@ def signbit_inputs():
     # Input 1, valid
     input = torch.tensor([0.7, -1.2, 0., 2.3]).numpy()
     out = torch.tensor([False, True, False, False]).numpy()
-    
+
     input_dict = {
         "input": input,
         "out": out
@@ -23,7 +23,7 @@ def signbit_inputs():
     # Input 2, valid
     input = torch.tensor([-0.0, 0.0]).numpy()
     out = torch.tensor([True, False]).numpy()
-    
+
     input_dict = {
         "input": input,
         "out": out
@@ -32,9 +32,9 @@ def signbit_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 3, valid
-    input = torch.tensor([1.0]).numpy()
-    out = torch.tensor([False]).numpy()
-    
+    input = torch.tensor([1.0, -2.0, 3.0]).numpy()
+    out = torch.tensor([False, True, False]).numpy()
+
     input_dict = {
         "input": input,
         "out": out
@@ -43,9 +43,9 @@ def signbit_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4, valid
-    input = torch.tensor([-1.0]).numpy()
-    out = torch.tensor([True]).numpy()
-    
+    input = torch.tensor([-1.0, -2.0, -3.0]).numpy()
+    out = torch.tensor([True, True, True]).numpy()
+
     input_dict = {
         "input": input,
         "out": out
@@ -54,9 +54,9 @@ def signbit_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 5, valid
-    input = torch.ones((2, 3)).numpy()
-    out = torch.zeros((2, 3)).numpy()
-    
+    input = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    out = torch.tensor([False, False, False]).numpy()
+
     input_dict = {
         "input": input,
         "out": out
@@ -65,9 +65,9 @@ def signbit_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 6, valid
-    input = torch.tensor([0.0, 0.0, 0.0]).numpy()
-    out = torch.tensor([False, False, False]).numpy()
-    
+    input = torch.ones((2, 3)).numpy()
+    out = torch.ones((2, 3)).numpy()
+
     input_dict = {
         "input": input,
         "out": out
@@ -76,9 +76,9 @@ def signbit_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7, valid
-    input = torch.tensor([-1.0, -2.0, -3.0]).numpy()
-    out = torch.tensor([True, True, True]).numpy()
-    
+    input = torch.zeros((1, 4)).numpy()
+    out = torch.zeros((1, 4)).numpy()
+
     input_dict = {
         "input": input,
         "out": out
@@ -87,9 +87,9 @@ def signbit_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 8, valid
-    input = torch.zeros((3, 2)).numpy()
-    out = torch.zeros((3, 2)).numpy()
-    
+    input = torch.tensor([1.5, -2.5, 3.5]).numpy()
+    out = torch.tensor([False, True, False]).numpy()
+
     input_dict = {
         "input": input,
         "out": out
@@ -98,27 +98,16 @@ def signbit_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9, valid
-    input = torch.tensor([1.5, -1.5, 0.0]).numpy()
-    out = torch.tensor([False, True, False]).numpy()
-    
-    input_dict = {
-        "input": input,
-        "out": out
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10, valid
-    input = torch.tensor([-0.5, -1.5, -2.5]).numpy()
+    input = torch.tensor([-1.5, -2.5, -3.5]).numpy()
     out = torch.tensor([True, True, True]).numpy()
-    
+
     input_dict = {
         "input": input,
         "out": out
     }
     
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     return list_of_inputs
 
 generated_inputs["torch.signbit"] = signbit_inputs()
