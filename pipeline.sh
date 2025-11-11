@@ -13,16 +13,18 @@ lib=$1        # Library (torch or tf)
 retry=${2:-0} # Retry flag (0 means no retry, 1 means retry cancelled jobs)
 reduce=${3:-1} # 1 means reduce ruleset, 0 means do not reduce ruleset
 save_to=${4:-default} # Output directory for saving results
+regen=${5:-0}  # Regenerate invariants flag (0 means do not regenerate, 1 means regenerate)
+max_p=${6:-64} # Maximum number of parallel jobs for Slurm
 seed=200      # Seed for random number generation
 
 # Set environment variables for Slurm
-export max_parallel=64         # Maximum number of parallel jobs (set this based on the number of slurm jobs you want to spawn to run at the same time)
+export max_parallel=$max_p        # Maximum number of parallel jobs (set this based on the number of slurm jobs you want to spawn to run at the same time)
 export max_memory_usage=90      # Maximum memory usage in percentage (set this based on the percentage of memory you do not want to exceed)
 export max_memory_docker=400G   # Maximum memory for Docker container for TensorFlow Coverage (set this based on the memory you want to allocate for Docker)
 
 # Step 1: Infer invariants: <duration> <regen> <library> <reduce>
 # Note: Changes in <reduce> won't take effect if invariants are already generated and regen=0
-bash scripts/infer_invariants_with_slurm.sh 1200 0 $lib $reduce
+bash scripts/infer_invariants_with_slurm.sh 1200 $regen $lib $reduce
 if [ "$retry" -eq 1 ]; then
   # Cancelled jobs due to memory issues are retried
   python -m utils.parse_cancelled_jobs $lib
@@ -31,7 +33,7 @@ if [ "$retry" -eq 1 ]; then
   export elements_file=${lib}_variations.txt  # Restore elements file for the next steps
 fi
 # Step 2: Generate models: <duration> <n_models> <library> <seed> <regen>
-bash scripts/generate_models_with_slurm.sh 3600 0 $lib $seed 0
+bash scripts/generate_models_with_slurm.sh 3600 0 $lib $seed $regen
 if [ "$retry" -eq 1 ]; then
   # Cancelled jobs due to memory issues are retried
   python -m utils.parse_cancelled_jobs $lib
@@ -47,6 +49,8 @@ if [ "$lib" = "torch" ]; then
   bash scripts/coverage_with_slurm.sh 0 $lib html False
 elif [ "$lib" = "tf" ]; then
   # Step 4: Collect coverage using Docker (Put resource limits here)
+  # To monitor the progress, on a separate terminal, run:
+  # watch -n10 "docker exec tf_216_instr /workspace/repo/scripts/monitor_cov.sh"
   docker build -t tf_216_instr_im . -f instrumented_tf/Dockerfile
   docker run --memory=${max_memory_docker} --cpus=${max_parallel} --cpuset-cpus="0-$((${max_parallel}-1))" --name tf_216_instr tf_216_instr_im bash -c "cd /workspace/repo && bash scripts/coverage_parallel.sh 0 tf ${max_parallel} html False"
   docker cp tf_216_instr:/workspace/repo/.tmp/coverage_tf.csv .tmp/coverage_tf.csv

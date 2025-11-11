@@ -6,13 +6,16 @@ import sys
 from utils.misc import get_dir_in_root, read_file_in_root
 
 class ProcRunner:
-    def __init__(self, cmd, args, job_name):
+    def __init__(self, cmd, args, job_name, total_cp):
         self.cmd = cmd
         self.args = args
         self.job_name = job_name
+        self.cpu = 0
+        self.total_cpus = total_cp
 
     def run_proc(self, element):
-        cmd = f"{self.cmd} {element} {self.args}"
+        cmd = f"taskset -c {self.cpu} {self.cmd} {element} {self.args}"
+        self.cpu = (self.cpu + 1) % self.total_cpus
         return_object = subprocess.run(cmd.split(), capture_output=True)
         log_dir = get_dir_in_root("logs")
         with open(os.path.join(log_dir, f"{element}_{self.job_name}.out"), "w") as f:
@@ -56,7 +59,7 @@ def main():
     else:
         print(f"Found {len(elements)} elementss to process.")
         print(f"Starting parallel processing with {num_processes} workers...")
-        runner = ProcRunner(cmd, args, job_name)
+        runner = ProcRunner(cmd, args, job_name, num_processes)
 
         count = 0
         with Pool(processes=num_processes) as pool:

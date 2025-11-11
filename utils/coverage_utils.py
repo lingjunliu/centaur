@@ -111,7 +111,7 @@ def extract_coverage_data(html_content):
 
     return coverage_data, total_coverage
 
-def gen_cov(cmd_line, lib="torch", prefix="default", capture_output=True, gen_lcov=True, gen_html=False, gen_text=False, native_only=False):
+def gen_cov(cmd_line, lib="torch", prefix="default", capture_output=True, gen_lcov=True, gen_html=False, gen_text=False, native_only=False, timeout=None):
     """
     Generate coverage data after running a command. To differentiate the generated profraw and profdata files from other
     parallel executions, provide a prefix for the file names. The default is "default".
@@ -156,7 +156,10 @@ def gen_cov(cmd_line, lib="torch", prefix="default", capture_output=True, gen_lc
         custom_env = os.environ.copy()
         custom_env["LLVM_PROFILE_FILE"] = profraw_file
         
-        return_obj = subprocess.run(cmd_line.split(), capture_output=capture_output, env=custom_env)
+        if timeout is None:
+            return_obj = subprocess.run(cmd_line.split(), capture_output=capture_output, env=custom_env)
+        else:
+            return_obj = subprocess.run(cmd_line.split(), capture_output=capture_output, env=custom_env, timeout=timeout)
         # memory_error = monitor_memory(return_obj) # Use with subprocess.Popen if you want to monitor memory usage
     except subprocess.CalledProcessError as err:
         raise Exception(f"Could not run {cmd_line}. Error Code {err.returncode}: {err}")
@@ -285,7 +288,7 @@ def gen_cov(cmd_line, lib="torch", prefix="default", capture_output=True, gen_lc
     
     return return_code, lcov_data
 
-def get_coverage_numbers(cmd_line, lib="torch", prefix="default", capture_output=True, gen_lcov=True, gen_html=False, gen_text=False, save_lcov=False, native_only=False):
+def get_coverage_numbers(cmd_line, lib="torch", prefix="default", capture_output=True, gen_lcov=True, gen_html=False, gen_text=False, save_lcov=False, native_only=False, timeout=None):
     """
     Generate # of branches and # of lines covered in Pytorch after running a command.
     To differentiate the generated profraw and profdata files from other
@@ -296,7 +299,7 @@ def get_coverage_numbers(cmd_line, lib="torch", prefix="default", capture_output
     This will run "python -m eval.patched_drivers.GroupNorm_cov_in_loop" and calculate coverage. It will use "GroupNorm" as the names for the profraw and profdata files.
     It will return the num_branches, num_lines, return_code of executing cmd_line and a dict containing detailed information.
     """
-    return_code, lcov_data = gen_cov(cmd_line, lib=lib, prefix=prefix, capture_output=capture_output, gen_lcov=gen_lcov, gen_html=gen_html, gen_text=gen_text, native_only=native_only)
+    return_code, lcov_data = gen_cov(cmd_line, lib=lib, prefix=prefix, capture_output=capture_output, gen_lcov=gen_lcov, gen_html=gen_html, gen_text=gen_text, native_only=native_only, timeout=timeout)
 
     cov_dir = create_subdir(get_tmp_dir(), "coverage_raw_files")
     if save_lcov:
@@ -332,7 +335,8 @@ def main():
         gen_html = sys.argv[3].lower() == "html" if len(sys.argv) > 3 else False
         native_only = sys.argv[4].lower() == "true" if len(sys.argv) > 4 else False
         prefix = sys.argv[5] if len(sys.argv) > 5 else "default"
-        num_branches, num_lines, return_code, coverage_dict = get_coverage_numbers(cmd_line, lib=lib, prefix=prefix, gen_html=gen_html, gen_lcov=not gen_html, native_only=native_only)
+        timeout = int(sys.argv[6]) if len(sys.argv) > 6 else None
+        num_branches, num_lines, return_code, coverage_dict = get_coverage_numbers(cmd_line, lib=lib, prefix=prefix, gen_html=gen_html, gen_lcov=not gen_html, native_only=native_only, timeout=timeout)
 
         if return_code != 0:
             print(f"Executing {cmd_line} failed with return code {return_code}")
