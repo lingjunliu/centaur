@@ -175,7 +175,7 @@ def update_ruleset(api, input_dict, ruleset, lib="torch"):
         for param in optional_none_params:
             del input_dict[param]
 
-        if ruleset == -1:
+        if ruleset is None:
             ruleset = check_rules_z3(api, input_dict, lib=lib)
         elif ruleset:
             preserved = set()
@@ -231,7 +231,7 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
         else:   # Inference
             print(f"\nStarted invariant inference for {api} (suffix {suff})\n")
             
-            ruleset = -1
+            ruleset = None
             valid = 0
             invalid = 0
 
@@ -315,7 +315,7 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
             if print_details:
                 print_rules(variant, ruleset)
 
-            if len(ruleset) == 0:
+            if ruleset is None or len(ruleset) == 0:
                 continue
             
             if reduce_rules:
