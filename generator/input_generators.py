@@ -81,6 +81,11 @@ def get_abstract_input(concrete, signature):
         Given a concrete input and the signature, return a dictionary that
         contains the abstract input instead of concrete inputs
     '''
+    if 'args' in signature.keys() and 'kwargs' in signature.keys():
+        arg_part = get_abstract_input(concrete, signature['args'])
+        kwarg_part = get_abstract_input(concrete, signature['kwargs'])
+        abstract = {**arg_part, **kwarg_part}
+        return abstract
     abstract = {}
     for arg, domain in signature.items():
         abstract[arg] = get_ll(domain, concrete[arg])
@@ -159,6 +164,10 @@ def abstract_print(abstract, signature):
         Given an abstract input dictionary and the signature and get the
         abstract input in a human readable format.
     '''
+    if 'args' in signature.keys() and 'kwargs' in signature.keys():
+        arg_part = abstract_print(abstract, signature['args'])
+        kwarg_part = abstract_print(abstract, signature['kwargs'])
+        return arg_part + kwarg_part
     printable = ""
     i = 0
     for arg, domain in signature.items():

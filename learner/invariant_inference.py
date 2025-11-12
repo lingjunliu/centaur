@@ -271,27 +271,34 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
             else:
                 print(f"{bcolors.WARNING}Warning: {variant} not found in valid_inputs.generated_inputs{bcolors.ENDC}")
 
+            ruleset_emptied = False
             for llm_input in llm_inputs:
+                if ruleset_emptied:
+                    break
                 mutated_inputs = augment_one_input(llm_input, api_signature, lib=lib, rng=rng)
                 for mutated_input in mutated_inputs:
-                    old_ruleset_size = len(ruleset) if ruleset is not None else 0
                     ruleset, status, exception_message = update_ruleset(api, mutated_input, ruleset=ruleset, lib=lib)
-                    new_ruleset_size = len(ruleset) if ruleset is not None else 0
-                    if new_ruleset_size == 0 and old_ruleset_size > 0:
-                        print(f"WARNING: All rules have been invalidated by LLM generated input. exiting loop")
-                        print(f"[Valid: {valid}, Invalid: {invalid}, Total: {valid + invalid}]")
-                        try:
-                            cur_signature = get_signature_of_input(api, mutated_input, lib=lib)
-                            print(abstract_print(get_abstract_input(mutated_input, cur_signature), cur_signature))
-                        except Exception as e:
-                            print(f"{bcolors.WARNING}Error while printing abstract: {e}{bcolors.ENDC}")
+                    new_ruleset_size = len(ruleset) if ruleset is not None else 0                    
 
                     if status == "nominal":
                         valid += 1
+                        if new_ruleset_size == 0:
+                            print(f"WARNING: All rules have been invalidated by LLM generated input. exiting loop")
+                            print(f"[Valid: {valid}, Invalid: {invalid}, Total: {valid + invalid}, Ruleset size: {new_ruleset_size}]")
+                            
+                            try:
+                                cur_signature = get_signature_of_input(api, mutated_input, lib=lib)
+                                abs_i = get_abstract_input(mutated_input, cur_signature)
+                                print(abstract_print(abs_i, cur_signature))
+                            except Exception as e:
+                                print(f"Error while printing abstract: {e}")
+                        
+                            ruleset_emptied = True
+                            break
                     else:
                         invalid += 1
                         if print_details:
-                            print(f"[Valid: {valid}, Invalid: {invalid}, Total: {valid + invalid}]")
+                            print(f"[Valid: {valid}, Invalid: {invalid}, Total: {valid + invalid}, Ruleset size: {new_ruleset_size}]")
                             # try:
                             #     print(abstract_print(get_abstract_input(mutated_input, api_signature), api_signature))
                             # except Exception as e:
@@ -299,11 +306,11 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
                             print(f"{bcolors.FAIL}Input threw exception: {exception_message}{bcolors.ENDC}")
             ####
 
-            if valid < min_val_inp:
+            if valid < min_val_inp and not ruleset_emptied:
                 ### Generate and append new inputs (random)
                 print(f"\nGenerating inputs for {api} (suffix: {suffix}) with time budget {time_budget_learner} seconds and minimum valid inputs {min_val_inp}\n")
                         
-            while (time.time() - start_time < time_budget_learner) and (valid < min_val_inp):                
+            while (time.time() - start_time < time_budget_learner) and (valid < min_val_inp) and (not ruleset_emptied)  :                
                 input_dict, _ = get_random_input(api_signature, rng, lib=lib)                
                 
                 mutated_inputs = augment_one_input(input_dict, api_signature, lib=lib, rng=rng)
@@ -311,6 +318,19 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
                     ruleset, status, exception_message = update_ruleset(api, mutated_input, ruleset=ruleset, lib=lib)
                     if status == "nominal":
                         valid += 1
+                        if new_ruleset_size == 0:
+                            print(f"WARNING: All rules have been invalidated by LLM generated input. exiting loop")
+                            print(f"[Valid: {valid}, Invalid: {invalid}, Total: {valid + invalid}, Ruleset size: {new_ruleset_size}]")
+                            
+                            try:
+                                cur_signature = get_signature_of_input(api, mutated_input, lib=lib)
+                                abs_i = get_abstract_input(mutated_input, cur_signature)
+                                print(abstract_print(abs_i, cur_signature))
+                            except Exception as e:
+                                print(f"Error while printing abstract: {e}")
+                        
+                            ruleset_emptied = True
+                            break
                     else:
                         invalid += 1
                         if print_details:
