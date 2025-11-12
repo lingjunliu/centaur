@@ -8,6 +8,7 @@ run_llm() {
     # Inputs and signatures
     cp llm/${llm}-${lib}/valid_inputs_${lib}.py llm/
     cp llm/${llm}-${lib}/signatures.json .
+    cp llm/${llm}-${lib}/${lib}_variations.txt .
 
     # APIS
     cp ${lib}_ablation_apis.txt ${lib}_apis.txt
