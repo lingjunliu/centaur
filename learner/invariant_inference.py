@@ -274,7 +274,18 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
             for llm_input in llm_inputs:
                 mutated_inputs = augment_one_input(llm_input, api_signature, lib=lib, rng=rng)
                 for mutated_input in mutated_inputs:
+                    old_ruleset_size = len(ruleset) if ruleset is not None else 0
                     ruleset, status, exception_message = update_ruleset(api, mutated_input, ruleset=ruleset, lib=lib)
+                    new_ruleset_size = len(ruleset) if ruleset is not None else 0
+                    if new_ruleset_size == 0 and old_ruleset_size > 0:
+                        print(f"WARNING: All rules have been invalidated by LLM generated input. exiting loop")
+                        print(f"[Valid: {valid}, Invalid: {invalid}, Total: {valid + invalid}]")
+                        try:
+                            cur_signature = get_signature_of_input(api, mutated_input, lib=lib)
+                            print(abstract_print(get_abstract_input(mutated_input, cur_signature), cur_signature))
+                        except Exception as e:
+                            print(f"{bcolors.WARNING}Error while printing abstract: {e}{bcolors.ENDC}")
+
                     if status == "nominal":
                         valid += 1
                     else:
@@ -288,10 +299,10 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
                             print(f"{bcolors.FAIL}Input threw exception: {exception_message}{bcolors.ENDC}")
             ####
 
-            ### Generate and append new inputs (random)
-            print(f"\nGenerating inputs for {api} (suffix: {suffix}) with time budget {time_budget_learner} seconds and minimum valid inputs {min_val_inp}\n")
-            
-            start_time = time.time()
+            if valid < min_val_inp:
+                ### Generate and append new inputs (random)
+                print(f"\nGenerating inputs for {api} (suffix: {suffix}) with time budget {time_budget_learner} seconds and minimum valid inputs {min_val_inp}\n")
+                        
             while (time.time() - start_time < time_budget_learner) and (valid < min_val_inp):                
                 input_dict, _ = get_random_input(api_signature, rng, lib=lib)                
                 
