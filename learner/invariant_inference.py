@@ -316,6 +316,7 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
                 mutated_inputs = augment_one_input(input_dict, api_signature, lib=lib, rng=rng)
                 for mutated_input in mutated_inputs:
                     ruleset, status, exception_message = update_ruleset(api, mutated_input, ruleset=ruleset, lib=lib)
+                    new_ruleset_size = len(ruleset) if ruleset is not None else 0 
                     if status == "nominal":
                         valid += 1
                         if new_ruleset_size == 0:
