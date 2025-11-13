@@ -43,3 +43,27 @@ Rule 17 (cap total output elements to mitigate OOM)
 >>
 Rule 18 (avoid overflow in padding/multiplication)
 {v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 3 then v_2 ≤ 9223372036854775807 / (v_3 * shape(v_1, 2)) else v_2 ≤ 9223372036854775807 / (v_3 * shape(v_1, 0) * shape(v_1, 3))
+>>
+Rule 23 (avoid integer overflow during internal padding/cropping size calculations)
+{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 ≤ 1000000 ∧ v_3 ≤ 1000000 ∧ (if ndim(v_1) = 3 then v_2 * v_3 * shape(v_1, 2) ≤ 900000000000 else if ndim(v_1) = 4 then shape(v_1, 0) * v_2 * v_3 * shape(v_1, 3) ≤ 900000000000)
+>>
+Rule 24 (avoid OOM by bounding output tensor size)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 3 then v_2 * v_3 * shape(v_1, 2) ≤ 250000000 else if ndim(v_1) = 4 then shape(v_1, 0) * v_2 * v_3 * shape(v_1, 3) ≤ 250000000
+>>
+Rule 25 (image rank must be 3 or 4)
+{v_1 : tensor} |= 3 ≤ ndim(v_1) ∧ ndim(v_1) ≤ 4
+>>
+Rule 26 (positive spatial and channel sizes of image)
+{v_1 : tensor} |= if ndim(v_1) = 3 then ∀i ∈ [0, 2] : shape(v_1, i) > 0 else if ndim(v_1) = 4 then ∀i ∈ [1, 3] : shape(v_1, i) > 0
+>>
+Rule 27 (target_height must be at least 1)
+{v_2 : int} |= v_2 ≥ 1
+>>
+Rule 28 (target_width must be at least 1)
+{v_3 : int} |= v_3 ≥ 1
+>>
+Rule 29 (bound output tensor size to avoid OOM)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 3 then v_2 * v_3 * shape(v_1, 2) ≤ 100000000 else if ndim(v_1) = 4 then shape(v_1, 0) * v_2 * v_3 * shape(v_1, 3) ≤ 100000000
+>>
+Rule 30 (prevent overflow in internal padding computations)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 3 then v_2 ≤ 100000000 ∧ v_3 ≤ 100000000 ∧ v_2 * v_3 ≤ 10000000000000000 else if ndim(v_1) = 4 then shape(v_1, 0) ≤ 1000000 ∧ v_2 ≤ 100000000 ∧ v_3 ≤ 100000000 ∧ shape(v_1, 0) * v_2 * v_3 ≤ 10000000000000000

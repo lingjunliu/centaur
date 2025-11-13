@@ -3760,3 +3760,1542 @@ Rule 22 (name is a valid string)
 Token usage: input=2439, output=10118, total=12557
 ** SUCCESS **
 
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.stateless_gamma API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs deterministic pseudorandom values from a gamma distribution.
+
+  The generated values follow a gamma distribution with specified concentration
+  (`alpha`) and inverse scale (`beta`) parameters.
+
+  This is a stateless version of `tf.random.gamma`: if run twice with the same
+  seeds and shapes, it will produce the same pseudorandom numbers. The output is
+  consistent across multiple runs on the same hardware (and between CPU and
+  GPU),
+  but may change between versions of TensorFlow or on non-CPU/GPU hardware.
+
+  A slight difference exists in the interpretation of the `shape` parameter
+  between `stateless_gamma` and `gamma`: in `gamma`, the `shape` is always
+  prepended to the shape of the broadcast of `alpha` with `beta`; whereas in
+  `stateless_gamma` the `shape` parameter must always encompass the shapes of
+  each of `alpha` and `beta` (which must broadcast together to match the
+  trailing dimensions of `shape`).
+
+  Note: Because internal calculations are done using `float64` and casting has
+  `floor` semantics, we must manually map zero outcomes to the smallest
+  possible positive floating-point value, i.e., `np.finfo(dtype).tiny`.  This
+  means that `np.finfo(dtype).tiny` occurs more frequently than it otherwise
+  should.  This bias can only happen for small values of `alpha`, i.e.,
+  `alpha << 1` or large values of `beta`, i.e., `beta >> 1`.
+
+  The samples are differentiable w.r.t. alpha and beta.
+  The derivatives are computed using the approach described in
+  (Figurnov et al., 2018).
+
+  Example:
+
+  ```python
+  samples = tf.random.stateless_gamma([10, 2], seed=[12, 34], alpha=[0.5, 1.5])
+  # samples has shape [10, 2], where each slice [:, 0] and [:, 1] represents
+  # the samples drawn from each distribution
+
+  samples = tf.random.stateless_gamma([7, 5, 2], seed=[12, 34], alpha=[.5, 1.5])
+  # samples has shape [7, 5, 2], where each slice [:, :, 0] and [:, :, 1]
+  # represents the 7x5 samples drawn from each of the two distributions
+
+  alpha = tf.constant([[1.], [3.], [5.]])
+  beta = tf.constant([[3., 4.]])
+  samples = tf.random.stateless_gamma(
+      [30, 3, 2], seed=[12, 34], alpha=alpha, beta=beta)
+  # samples has shape [30, 3, 2], with 30 samples each of 3x2 distributions.
+
+  with tf.GradientTape() as tape:
+    tape.watch([alpha, beta])
+    loss = tf.reduce_mean(tf.square(tf.random.stateless_gamma(
+        [30, 3, 2], seed=[12, 34], alpha=alpha, beta=beta)))
+  dloss_dalpha, dloss_dbeta = tape.gradient(loss, [alpha, beta])
+  # unbiased stochastic derivatives of the loss function
+  alpha.shape == dloss_dalpha.shape  # True
+  beta.shape == dloss_dbeta.shape  # True
+  ```
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    seed: A shape [2] Tensor, the seed to the random number generator. Must have
+      dtype `int32` or `int64`. (When using XLA, only `int32` is allowed.)
+    alpha: Tensor. The concentration parameter of the gamma distribution. Must
+      be broadcastable with `beta`, and broadcastable with the rightmost
+      dimensions of `shape`.
+    beta: Tensor. The inverse scale parameter of the gamma distribution. Must be
+      broadcastable with `alpha` and broadcastable with the rightmost dimensions
+      of `shape`.
+    dtype: Floating point dtype of `alpha`, `beta`, and the output.
+    name: A name for the operation (optional).
+
+  Returns:
+    samples: A Tensor of the specified shape filled with random gamma values.
+      For each i, each `samples[..., i] is an independent draw from the gamma
+      distribution with concentration alpha[i] and scale beta[i].
+
+[Possible API Signatures]
+ - shape: tensor, seed: tensor, alpha: tensor, beta: tensor, dtype: dtype, name: string
+ - shape: list, seed: list, alpha: list, beta: list, dtype: dtype, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 23 (dtype must be floating-point for stateless_gamma)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+Token usage: input=2490, output=10367, total=12857
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.stateless_gamma API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs deterministic pseudorandom values from a gamma distribution.
+
+  The generated values follow a gamma distribution with specified concentration
+  (`alpha`) and inverse scale (`beta`) parameters.
+
+  This is a stateless version of `tf.random.gamma`: if run twice with the same
+  seeds and shapes, it will produce the same pseudorandom numbers. The output is
+  consistent across multiple runs on the same hardware (and between CPU and
+  GPU),
+  but may change between versions of TensorFlow or on non-CPU/GPU hardware.
+
+  A slight difference exists in the interpretation of the `shape` parameter
+  between `stateless_gamma` and `gamma`: in `gamma`, the `shape` is always
+  prepended to the shape of the broadcast of `alpha` with `beta`; whereas in
+  `stateless_gamma` the `shape` parameter must always encompass the shapes of
+  each of `alpha` and `beta` (which must broadcast together to match the
+  trailing dimensions of `shape`).
+
+  Note: Because internal calculations are done using `float64` and casting has
+  `floor` semantics, we must manually map zero outcomes to the smallest
+  possible positive floating-point value, i.e., `np.finfo(dtype).tiny`.  This
+  means that `np.finfo(dtype).tiny` occurs more frequently than it otherwise
+  should.  This bias can only happen for small values of `alpha`, i.e.,
+  `alpha << 1` or large values of `beta`, i.e., `beta >> 1`.
+
+  The samples are differentiable w.r.t. alpha and beta.
+  The derivatives are computed using the approach described in
+  (Figurnov et al., 2018).
+
+  Example:
+
+  ```python
+  samples = tf.random.stateless_gamma([10, 2], seed=[12, 34], alpha=[0.5, 1.5])
+  # samples has shape [10, 2], where each slice [:, 0] and [:, 1] represents
+  # the samples drawn from each distribution
+
+  samples = tf.random.stateless_gamma([7, 5, 2], seed=[12, 34], alpha=[.5, 1.5])
+  # samples has shape [7, 5, 2], where each slice [:, :, 0] and [:, :, 1]
+  # represents the 7x5 samples drawn from each of the two distributions
+
+  alpha = tf.constant([[1.], [3.], [5.]])
+  beta = tf.constant([[3., 4.]])
+  samples = tf.random.stateless_gamma(
+      [30, 3, 2], seed=[12, 34], alpha=alpha, beta=beta)
+  # samples has shape [30, 3, 2], with 30 samples each of 3x2 distributions.
+
+  with tf.GradientTape() as tape:
+    tape.watch([alpha, beta])
+    loss = tf.reduce_mean(tf.square(tf.random.stateless_gamma(
+        [30, 3, 2], seed=[12, 34], alpha=alpha, beta=beta)))
+  dloss_dalpha, dloss_dbeta = tape.gradient(loss, [alpha, beta])
+  # unbiased stochastic derivatives of the loss function
+  alpha.shape == dloss_dalpha.shape  # True
+  beta.shape == dloss_dbeta.shape  # True
+  ```
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    seed: A shape [2] Tensor, the seed to the random number generator. Must have
+      dtype `int32` or `int64`. (When using XLA, only `int32` is allowed.)
+    alpha: Tensor. The concentration parameter of the gamma distribution. Must
+      be broadcastable with `beta`, and broadcastable with the rightmost
+      dimensions of `shape`.
+    beta: Tensor. The inverse scale parameter of the gamma distribution. Must be
+      broadcastable with `alpha` and broadcastable with the rightmost dimensions
+      of `shape`.
+    dtype: Floating point dtype of `alpha`, `beta`, and the output.
+    name: A name for the operation (optional).
+
+  Returns:
+    samples: A Tensor of the specified shape filled with random gamma values.
+      For each i, each `samples[..., i] is an independent draw from the gamma
+      distribution with concentration alpha[i] and scale beta[i].
+
+[Possible API Signatures]
+ - shape: tensor, seed: tensor, alpha: tensor, beta: tensor, dtype: dtype, name: string
+ - shape: list, seed: list, alpha: list, beta: list, dtype: dtype, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 24 (seed tensor must be 1-D, integer, and length 2)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ shape(v_1, 0) = 2
+Token usage: input=2490, output=10367, total=12857
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.stateless_gamma API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs deterministic pseudorandom values from a gamma distribution.
+
+  The generated values follow a gamma distribution with specified concentration
+  (`alpha`) and inverse scale (`beta`) parameters.
+
+  This is a stateless version of `tf.random.gamma`: if run twice with the same
+  seeds and shapes, it will produce the same pseudorandom numbers. The output is
+  consistent across multiple runs on the same hardware (and between CPU and
+  GPU),
+  but may change between versions of TensorFlow or on non-CPU/GPU hardware.
+
+  A slight difference exists in the interpretation of the `shape` parameter
+  between `stateless_gamma` and `gamma`: in `gamma`, the `shape` is always
+  prepended to the shape of the broadcast of `alpha` with `beta`; whereas in
+  `stateless_gamma` the `shape` parameter must always encompass the shapes of
+  each of `alpha` and `beta` (which must broadcast together to match the
+  trailing dimensions of `shape`).
+
+  Note: Because internal calculations are done using `float64` and casting has
+  `floor` semantics, we must manually map zero outcomes to the smallest
+  possible positive floating-point value, i.e., `np.finfo(dtype).tiny`.  This
+  means that `np.finfo(dtype).tiny` occurs more frequently than it otherwise
+  should.  This bias can only happen for small values of `alpha`, i.e.,
+  `alpha << 1` or large values of `beta`, i.e., `beta >> 1`.
+
+  The samples are differentiable w.r.t. alpha and beta.
+  The derivatives are computed using the approach described in
+  (Figurnov et al., 2018).
+
+  Example:
+
+  ```python
+  samples = tf.random.stateless_gamma([10, 2], seed=[12, 34], alpha=[0.5, 1.5])
+  # samples has shape [10, 2], where each slice [:, 0] and [:, 1] represents
+  # the samples drawn from each distribution
+
+  samples = tf.random.stateless_gamma([7, 5, 2], seed=[12, 34], alpha=[.5, 1.5])
+  # samples has shape [7, 5, 2], where each slice [:, :, 0] and [:, :, 1]
+  # represents the 7x5 samples drawn from each of the two distributions
+
+  alpha = tf.constant([[1.], [3.], [5.]])
+  beta = tf.constant([[3., 4.]])
+  samples = tf.random.stateless_gamma(
+      [30, 3, 2], seed=[12, 34], alpha=alpha, beta=beta)
+  # samples has shape [30, 3, 2], with 30 samples each of 3x2 distributions.
+
+  with tf.GradientTape() as tape:
+    tape.watch([alpha, beta])
+    loss = tf.reduce_mean(tf.square(tf.random.stateless_gamma(
+        [30, 3, 2], seed=[12, 34], alpha=alpha, beta=beta)))
+  dloss_dalpha, dloss_dbeta = tape.gradient(loss, [alpha, beta])
+  # unbiased stochastic derivatives of the loss function
+  alpha.shape == dloss_dalpha.shape  # True
+  beta.shape == dloss_dbeta.shape  # True
+  ```
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    seed: A shape [2] Tensor, the seed to the random number generator. Must have
+      dtype `int32` or `int64`. (When using XLA, only `int32` is allowed.)
+    alpha: Tensor. The concentration parameter of the gamma distribution. Must
+      be broadcastable with `beta`, and broadcastable with the rightmost
+      dimensions of `shape`.
+    beta: Tensor. The inverse scale parameter of the gamma distribution. Must be
+      broadcastable with `alpha` and broadcastable with the rightmost dimensions
+      of `shape`.
+    dtype: Floating point dtype of `alpha`, `beta`, and the output.
+    name: A name for the operation (optional).
+
+  Returns:
+    samples: A Tensor of the specified shape filled with random gamma values.
+      For each i, each `samples[..., i] is an independent draw from the gamma
+      distribution with concentration alpha[i] and scale beta[i].
+
+[Possible API Signatures]
+ - shape: tensor, seed: tensor, alpha: tensor, beta: tensor, dtype: dtype, name: string
+ - shape: list, seed: list, alpha: list, beta: list, dtype: dtype, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 25 (shape tensor must be a 1-D integer vector)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)
+Token usage: input=2490, output=10367, total=12857
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.stateless_gamma API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs deterministic pseudorandom values from a gamma distribution.
+
+  The generated values follow a gamma distribution with specified concentration
+  (`alpha`) and inverse scale (`beta`) parameters.
+
+  This is a stateless version of `tf.random.gamma`: if run twice with the same
+  seeds and shapes, it will produce the same pseudorandom numbers. The output is
+  consistent across multiple runs on the same hardware (and between CPU and
+  GPU),
+  but may change between versions of TensorFlow or on non-CPU/GPU hardware.
+
+  A slight difference exists in the interpretation of the `shape` parameter
+  between `stateless_gamma` and `gamma`: in `gamma`, the `shape` is always
+  prepended to the shape of the broadcast of `alpha` with `beta`; whereas in
+  `stateless_gamma` the `shape` parameter must always encompass the shapes of
+  each of `alpha` and `beta` (which must broadcast together to match the
+  trailing dimensions of `shape`).
+
+  Note: Because internal calculations are done using `float64` and casting has
+  `floor` semantics, we must manually map zero outcomes to the smallest
+  possible positive floating-point value, i.e., `np.finfo(dtype).tiny`.  This
+  means that `np.finfo(dtype).tiny` occurs more frequently than it otherwise
+  should.  This bias can only happen for small values of `alpha`, i.e.,
+  `alpha << 1` or large values of `beta`, i.e., `beta >> 1`.
+
+  The samples are differentiable w.r.t. alpha and beta.
+  The derivatives are computed using the approach described in
+  (Figurnov et al., 2018).
+
+  Example:
+
+  ```python
+  samples = tf.random.stateless_gamma([10, 2], seed=[12, 34], alpha=[0.5, 1.5])
+  # samples has shape [10, 2], where each slice [:, 0] and [:, 1] represents
+  # the samples drawn from each distribution
+
+  samples = tf.random.stateless_gamma([7, 5, 2], seed=[12, 34], alpha=[.5, 1.5])
+  # samples has shape [7, 5, 2], where each slice [:, :, 0] and [:, :, 1]
+  # represents the 7x5 samples drawn from each of the two distributions
+
+  alpha = tf.constant([[1.], [3.], [5.]])
+  beta = tf.constant([[3., 4.]])
+  samples = tf.random.stateless_gamma(
+      [30, 3, 2], seed=[12, 34], alpha=alpha, beta=beta)
+  # samples has shape [30, 3, 2], with 30 samples each of 3x2 distributions.
+
+  with tf.GradientTape() as tape:
+    tape.watch([alpha, beta])
+    loss = tf.reduce_mean(tf.square(tf.random.stateless_gamma(
+        [30, 3, 2], seed=[12, 34], alpha=alpha, beta=beta)))
+  dloss_dalpha, dloss_dbeta = tape.gradient(loss, [alpha, beta])
+  # unbiased stochastic derivatives of the loss function
+  alpha.shape == dloss_dalpha.shape  # True
+  beta.shape == dloss_dbeta.shape  # True
+  ```
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    seed: A shape [2] Tensor, the seed to the random number generator. Must have
+      dtype `int32` or `int64`. (When using XLA, only `int32` is allowed.)
+    alpha: Tensor. The concentration parameter of the gamma distribution. Must
+      be broadcastable with `beta`, and broadcastable with the rightmost
+      dimensions of `shape`.
+    beta: Tensor. The inverse scale parameter of the gamma distribution. Must be
+      broadcastable with `alpha` and broadcastable with the rightmost dimensions
+      of `shape`.
+    dtype: Floating point dtype of `alpha`, `beta`, and the output.
+    name: A name for the operation (optional).
+
+  Returns:
+    samples: A Tensor of the specified shape filled with random gamma values.
+      For each i, each `samples[..., i] is an independent draw from the gamma
+      distribution with concentration alpha[i] and scale beta[i].
+
+[Possible API Signatures]
+ - shape: tensor, seed: tensor, alpha: tensor, beta: tensor, dtype: dtype, name: string
+ - shape: list, seed: list, alpha: list, beta: list, dtype: dtype, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 26 (alpha and beta must use the provided floating-point dtype)
+{v_1 : tensor, v_2 : tensor, v_3 : dtype} |= (v_3 = 6 ∨ v_3 = 7 ∨ v_3 = 8) ∧ dtype_(v_1) = v_3 ∧ dtype_(v_2) = v_3
+Token usage: input=2490, output=10367, total=12857
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.stateless_gamma API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs deterministic pseudorandom values from a gamma distribution.
+
+  The generated values follow a gamma distribution with specified concentration
+  (`alpha`) and inverse scale (`beta`) parameters.
+
+  This is a stateless version of `tf.random.gamma`: if run twice with the same
+  seeds and shapes, it will produce the same pseudorandom numbers. The output is
+  consistent across multiple runs on the same hardware (and between CPU and
+  GPU),
+  but may change between versions of TensorFlow or on non-CPU/GPU hardware.
+
+  A slight difference exists in the interpretation of the `shape` parameter
+  between `stateless_gamma` and `gamma`: in `gamma`, the `shape` is always
+  prepended to the shape of the broadcast of `alpha` with `beta`; whereas in
+  `stateless_gamma` the `shape` parameter must always encompass the shapes of
+  each of `alpha` and `beta` (which must broadcast together to match the
+  trailing dimensions of `shape`).
+
+  Note: Because internal calculations are done using `float64` and casting has
+  `floor` semantics, we must manually map zero outcomes to the smallest
+  possible positive floating-point value, i.e., `np.finfo(dtype).tiny`.  This
+  means that `np.finfo(dtype).tiny` occurs more frequently than it otherwise
+  should.  This bias can only happen for small values of `alpha`, i.e.,
+  `alpha << 1` or large values of `beta`, i.e., `beta >> 1`.
+
+  The samples are differentiable w.r.t. alpha and beta.
+  The derivatives are computed using the approach described in
+  (Figurnov et al., 2018).
+
+  Example:
+
+  ```python
+  samples = tf.random.stateless_gamma([10, 2], seed=[12, 34], alpha=[0.5, 1.5])
+  # samples has shape [10, 2], where each slice [:, 0] and [:, 1] represents
+  # the samples drawn from each distribution
+
+  samples = tf.random.stateless_gamma([7, 5, 2], seed=[12, 34], alpha=[.5, 1.5])
+  # samples has shape [7, 5, 2], where each slice [:, :, 0] and [:, :, 1]
+  # represents the 7x5 samples drawn from each of the two distributions
+
+  alpha = tf.constant([[1.], [3.], [5.]])
+  beta = tf.constant([[3., 4.]])
+  samples = tf.random.stateless_gamma(
+      [30, 3, 2], seed=[12, 34], alpha=alpha, beta=beta)
+  # samples has shape [30, 3, 2], with 30 samples each of 3x2 distributions.
+
+  with tf.GradientTape() as tape:
+    tape.watch([alpha, beta])
+    loss = tf.reduce_mean(tf.square(tf.random.stateless_gamma(
+        [30, 3, 2], seed=[12, 34], alpha=alpha, beta=beta)))
+  dloss_dalpha, dloss_dbeta = tape.gradient(loss, [alpha, beta])
+  # unbiased stochastic derivatives of the loss function
+  alpha.shape == dloss_dalpha.shape  # True
+  beta.shape == dloss_dbeta.shape  # True
+  ```
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    seed: A shape [2] Tensor, the seed to the random number generator. Must have
+      dtype `int32` or `int64`. (When using XLA, only `int32` is allowed.)
+    alpha: Tensor. The concentration parameter of the gamma distribution. Must
+      be broadcastable with `beta`, and broadcastable with the rightmost
+      dimensions of `shape`.
+    beta: Tensor. The inverse scale parameter of the gamma distribution. Must be
+      broadcastable with `alpha` and broadcastable with the rightmost dimensions
+      of `shape`.
+    dtype: Floating point dtype of `alpha`, `beta`, and the output.
+    name: A name for the operation (optional).
+
+  Returns:
+    samples: A Tensor of the specified shape filled with random gamma values.
+      For each i, each `samples[..., i] is an independent draw from the gamma
+      distribution with concentration alpha[i] and scale beta[i].
+
+[Possible API Signatures]
+ - shape: tensor, seed: tensor, alpha: tensor, beta: tensor, dtype: dtype, name: string
+ - shape: list, seed: list, alpha: list, beta: list, dtype: dtype, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 27 (alpha and beta must be broadcast-compatible on trailing dims)
+{v_1 : tensor, v_2 : tensor} |= if (if ndim(v_1) ≤ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1) ≥ 0 then ∀i ∈ [0, if ndim(v_1) ≤ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i) ∨ shape(v_1, ndim(v_1) - 1 - i) = 1 ∨ shape(v_2, ndim(v_2) - 1 - i) = 1
+Token usage: input=2490, output=10367, total=12857
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.stateless_gamma API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs deterministic pseudorandom values from a gamma distribution.
+
+  The generated values follow a gamma distribution with specified concentration
+  (`alpha`) and inverse scale (`beta`) parameters.
+
+  This is a stateless version of `tf.random.gamma`: if run twice with the same
+  seeds and shapes, it will produce the same pseudorandom numbers. The output is
+  consistent across multiple runs on the same hardware (and between CPU and
+  GPU),
+  but may change between versions of TensorFlow or on non-CPU/GPU hardware.
+
+  A slight difference exists in the interpretation of the `shape` parameter
+  between `stateless_gamma` and `gamma`: in `gamma`, the `shape` is always
+  prepended to the shape of the broadcast of `alpha` with `beta`; whereas in
+  `stateless_gamma` the `shape` parameter must always encompass the shapes of
+  each of `alpha` and `beta` (which must broadcast together to match the
+  trailing dimensions of `shape`).
+
+  Note: Because internal calculations are done using `float64` and casting has
+  `floor` semantics, we must manually map zero outcomes to the smallest
+  possible positive floating-point value, i.e., `np.finfo(dtype).tiny`.  This
+  means that `np.finfo(dtype).tiny` occurs more frequently than it otherwise
+  should.  This bias can only happen for small values of `alpha`, i.e.,
+  `alpha << 1` or large values of `beta`, i.e., `beta >> 1`.
+
+  The samples are differentiable w.r.t. alpha and beta.
+  The derivatives are computed using the approach described in
+  (Figurnov et al., 2018).
+
+  Example:
+
+  ```python
+  samples = tf.random.stateless_gamma([10, 2], seed=[12, 34], alpha=[0.5, 1.5])
+  # samples has shape [10, 2], where each slice [:, 0] and [:, 1] represents
+  # the samples drawn from each distribution
+
+  samples = tf.random.stateless_gamma([7, 5, 2], seed=[12, 34], alpha=[.5, 1.5])
+  # samples has shape [7, 5, 2], where each slice [:, :, 0] and [:, :, 1]
+  # represents the 7x5 samples drawn from each of the two distributions
+
+  alpha = tf.constant([[1.], [3.], [5.]])
+  beta = tf.constant([[3., 4.]])
+  samples = tf.random.stateless_gamma(
+      [30, 3, 2], seed=[12, 34], alpha=alpha, beta=beta)
+  # samples has shape [30, 3, 2], with 30 samples each of 3x2 distributions.
+
+  with tf.GradientTape() as tape:
+    tape.watch([alpha, beta])
+    loss = tf.reduce_mean(tf.square(tf.random.stateless_gamma(
+        [30, 3, 2], seed=[12, 34], alpha=alpha, beta=beta)))
+  dloss_dalpha, dloss_dbeta = tape.gradient(loss, [alpha, beta])
+  # unbiased stochastic derivatives of the loss function
+  alpha.shape == dloss_dalpha.shape  # True
+  beta.shape == dloss_dbeta.shape  # True
+  ```
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    seed: A shape [2] Tensor, the seed to the random number generator. Must have
+      dtype `int32` or `int64`. (When using XLA, only `int32` is allowed.)
+    alpha: Tensor. The concentration parameter of the gamma distribution. Must
+      be broadcastable with `beta`, and broadcastable with the rightmost
+      dimensions of `shape`.
+    beta: Tensor. The inverse scale parameter of the gamma distribution. Must be
+      broadcastable with `alpha` and broadcastable with the rightmost dimensions
+      of `shape`.
+    dtype: Floating point dtype of `alpha`, `beta`, and the output.
+    name: A name for the operation (optional).
+
+  Returns:
+    samples: A Tensor of the specified shape filled with random gamma values.
+      For each i, each `samples[..., i] is an independent draw from the gamma
+      distribution with concentration alpha[i] and scale beta[i].
+
+[Possible API Signatures]
+ - shape: tensor, seed: tensor, alpha: tensor, beta: tensor, dtype: dtype, name: string
+ - shape: list, seed: list, alpha: list, beta: list, dtype: dtype, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 28 (Python array shape must be long enough to encompass alpha and beta ranks)
+{v_1 : tuple(int), v_2 : tensor, v_3 : tensor} |= v_1.len ≥ ndim(v_2) ∧ v_1.len ≥ ndim(v_3)
+Token usage: input=2490, output=10367, total=12857
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.stateless_gamma API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs deterministic pseudorandom values from a gamma distribution.
+
+  The generated values follow a gamma distribution with specified concentration
+  (`alpha`) and inverse scale (`beta`) parameters.
+
+  This is a stateless version of `tf.random.gamma`: if run twice with the same
+  seeds and shapes, it will produce the same pseudorandom numbers. The output is
+  consistent across multiple runs on the same hardware (and between CPU and
+  GPU),
+  but may change between versions of TensorFlow or on non-CPU/GPU hardware.
+
+  A slight difference exists in the interpretation of the `shape` parameter
+  between `stateless_gamma` and `gamma`: in `gamma`, the `shape` is always
+  prepended to the shape of the broadcast of `alpha` with `beta`; whereas in
+  `stateless_gamma` the `shape` parameter must always encompass the shapes of
+  each of `alpha` and `beta` (which must broadcast together to match the
+  trailing dimensions of `shape`).
+
+  Note: Because internal calculations are done using `float64` and casting has
+  `floor` semantics, we must manually map zero outcomes to the smallest
+  possible positive floating-point value, i.e., `np.finfo(dtype).tiny`.  This
+  means that `np.finfo(dtype).tiny` occurs more frequently than it otherwise
+  should.  This bias can only happen for small values of `alpha`, i.e.,
+  `alpha << 1` or large values of `beta`, i.e., `beta >> 1`.
+
+  The samples are differentiable w.r.t. alpha and beta.
+  The derivatives are computed using the approach described in
+  (Figurnov et al., 2018).
+
+  Example:
+
+  ```python
+  samples = tf.random.stateless_gamma([10, 2], seed=[12, 34], alpha=[0.5, 1.5])
+  # samples has shape [10, 2], where each slice [:, 0] and [:, 1] represents
+  # the samples drawn from each distribution
+
+  samples = tf.random.stateless_gamma([7, 5, 2], seed=[12, 34], alpha=[.5, 1.5])
+  # samples has shape [7, 5, 2], where each slice [:, :, 0] and [:, :, 1]
+  # represents the 7x5 samples drawn from each of the two distributions
+
+  alpha = tf.constant([[1.], [3.], [5.]])
+  beta = tf.constant([[3., 4.]])
+  samples = tf.random.stateless_gamma(
+      [30, 3, 2], seed=[12, 34], alpha=alpha, beta=beta)
+  # samples has shape [30, 3, 2], with 30 samples each of 3x2 distributions.
+
+  with tf.GradientTape() as tape:
+    tape.watch([alpha, beta])
+    loss = tf.reduce_mean(tf.square(tf.random.stateless_gamma(
+        [30, 3, 2], seed=[12, 34], alpha=alpha, beta=beta)))
+  dloss_dalpha, dloss_dbeta = tape.gradient(loss, [alpha, beta])
+  # unbiased stochastic derivatives of the loss function
+  alpha.shape == dloss_dalpha.shape  # True
+  beta.shape == dloss_dbeta.shape  # True
+  ```
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    seed: A shape [2] Tensor, the seed to the random number generator. Must have
+      dtype `int32` or `int64`. (When using XLA, only `int32` is allowed.)
+    alpha: Tensor. The concentration parameter of the gamma distribution. Must
+      be broadcastable with `beta`, and broadcastable with the rightmost
+      dimensions of `shape`.
+    beta: Tensor. The inverse scale parameter of the gamma distribution. Must be
+      broadcastable with `alpha` and broadcastable with the rightmost dimensions
+      of `shape`.
+    dtype: Floating point dtype of `alpha`, `beta`, and the output.
+    name: A name for the operation (optional).
+
+  Returns:
+    samples: A Tensor of the specified shape filled with random gamma values.
+      For each i, each `samples[..., i] is an independent draw from the gamma
+      distribution with concentration alpha[i] and scale beta[i].
+
+[Possible API Signatures]
+ - shape: tensor, seed: tensor, alpha: tensor, beta: tensor, dtype: dtype, name: string
+ - shape: list, seed: list, alpha: list, beta: list, dtype: dtype, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 29 (seed as Python array must have exactly two elements)
+{v_1 : tuple(int)} |= v_1.len = 2
+Token usage: input=2490, output=10367, total=12857
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.stateless_gamma API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs deterministic pseudorandom values from a gamma distribution.
+
+  The generated values follow a gamma distribution with specified concentration
+  (`alpha`) and inverse scale (`beta`) parameters.
+
+  This is a stateless version of `tf.random.gamma`: if run twice with the same
+  seeds and shapes, it will produce the same pseudorandom numbers. The output is
+  consistent across multiple runs on the same hardware (and between CPU and
+  GPU),
+  but may change between versions of TensorFlow or on non-CPU/GPU hardware.
+
+  A slight difference exists in the interpretation of the `shape` parameter
+  between `stateless_gamma` and `gamma`: in `gamma`, the `shape` is always
+  prepended to the shape of the broadcast of `alpha` with `beta`; whereas in
+  `stateless_gamma` the `shape` parameter must always encompass the shapes of
+  each of `alpha` and `beta` (which must broadcast together to match the
+  trailing dimensions of `shape`).
+
+  Note: Because internal calculations are done using `float64` and casting has
+  `floor` semantics, we must manually map zero outcomes to the smallest
+  possible positive floating-point value, i.e., `np.finfo(dtype).tiny`.  This
+  means that `np.finfo(dtype).tiny` occurs more frequently than it otherwise
+  should.  This bias can only happen for small values of `alpha`, i.e.,
+  `alpha << 1` or large values of `beta`, i.e., `beta >> 1`.
+
+  The samples are differentiable w.r.t. alpha and beta.
+  The derivatives are computed using the approach described in
+  (Figurnov et al., 2018).
+
+  Example:
+
+  ```python
+  samples = tf.random.stateless_gamma([10, 2], seed=[12, 34], alpha=[0.5, 1.5])
+  # samples has shape [10, 2], where each slice [:, 0] and [:, 1] represents
+  # the samples drawn from each distribution
+
+  samples = tf.random.stateless_gamma([7, 5, 2], seed=[12, 34], alpha=[.5, 1.5])
+  # samples has shape [7, 5, 2], where each slice [:, :, 0] and [:, :, 1]
+  # represents the 7x5 samples drawn from each of the two distributions
+
+  alpha = tf.constant([[1.], [3.], [5.]])
+  beta = tf.constant([[3., 4.]])
+  samples = tf.random.stateless_gamma(
+      [30, 3, 2], seed=[12, 34], alpha=alpha, beta=beta)
+  # samples has shape [30, 3, 2], with 30 samples each of 3x2 distributions.
+
+  with tf.GradientTape() as tape:
+    tape.watch([alpha, beta])
+    loss = tf.reduce_mean(tf.square(tf.random.stateless_gamma(
+        [30, 3, 2], seed=[12, 34], alpha=alpha, beta=beta)))
+  dloss_dalpha, dloss_dbeta = tape.gradient(loss, [alpha, beta])
+  # unbiased stochastic derivatives of the loss function
+  alpha.shape == dloss_dalpha.shape  # True
+  beta.shape == dloss_dbeta.shape  # True
+  ```
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    seed: A shape [2] Tensor, the seed to the random number generator. Must have
+      dtype `int32` or `int64`. (When using XLA, only `int32` is allowed.)
+    alpha: Tensor. The concentration parameter of the gamma distribution. Must
+      be broadcastable with `beta`, and broadcastable with the rightmost
+      dimensions of `shape`.
+    beta: Tensor. The inverse scale parameter of the gamma distribution. Must be
+      broadcastable with `alpha` and broadcastable with the rightmost dimensions
+      of `shape`.
+    dtype: Floating point dtype of `alpha`, `beta`, and the output.
+    name: A name for the operation (optional).
+
+  Returns:
+    samples: A Tensor of the specified shape filled with random gamma values.
+      For each i, each `samples[..., i] is an independent draw from the gamma
+      distribution with concentration alpha[i] and scale beta[i].
+
+[Possible API Signatures]
+ - shape: tensor, seed: tensor, alpha: tensor, beta: tensor, dtype: dtype, name: string
+ - shape: list, seed: list, alpha: list, beta: list, dtype: dtype, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 30 (if beta is scalar, trailing dims of shape equal alpha’s shape)
+{v_1 : tuple(int), v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 ∧ ndim(v_2) ≥ 1 then ∀i ∈ [0, ndim(v_2) - 1] : v_1[v_1.len - ndim(v_2) + i] = shape(v_2, i)
+Token usage: input=2490, output=10367, total=12857
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.random.stateless_gamma API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Outputs deterministic pseudorandom values from a gamma distribution.
+
+  The generated values follow a gamma distribution with specified concentration
+  (`alpha`) and inverse scale (`beta`) parameters.
+
+  This is a stateless version of `tf.random.gamma`: if run twice with the same
+  seeds and shapes, it will produce the same pseudorandom numbers. The output is
+  consistent across multiple runs on the same hardware (and between CPU and
+  GPU),
+  but may change between versions of TensorFlow or on non-CPU/GPU hardware.
+
+  A slight difference exists in the interpretation of the `shape` parameter
+  between `stateless_gamma` and `gamma`: in `gamma`, the `shape` is always
+  prepended to the shape of the broadcast of `alpha` with `beta`; whereas in
+  `stateless_gamma` the `shape` parameter must always encompass the shapes of
+  each of `alpha` and `beta` (which must broadcast together to match the
+  trailing dimensions of `shape`).
+
+  Note: Because internal calculations are done using `float64` and casting has
+  `floor` semantics, we must manually map zero outcomes to the smallest
+  possible positive floating-point value, i.e., `np.finfo(dtype).tiny`.  This
+  means that `np.finfo(dtype).tiny` occurs more frequently than it otherwise
+  should.  This bias can only happen for small values of `alpha`, i.e.,
+  `alpha << 1` or large values of `beta`, i.e., `beta >> 1`.
+
+  The samples are differentiable w.r.t. alpha and beta.
+  The derivatives are computed using the approach described in
+  (Figurnov et al., 2018).
+
+  Example:
+
+  ```python
+  samples = tf.random.stateless_gamma([10, 2], seed=[12, 34], alpha=[0.5, 1.5])
+  # samples has shape [10, 2], where each slice [:, 0] and [:, 1] represents
+  # the samples drawn from each distribution
+
+  samples = tf.random.stateless_gamma([7, 5, 2], seed=[12, 34], alpha=[.5, 1.5])
+  # samples has shape [7, 5, 2], where each slice [:, :, 0] and [:, :, 1]
+  # represents the 7x5 samples drawn from each of the two distributions
+
+  alpha = tf.constant([[1.], [3.], [5.]])
+  beta = tf.constant([[3., 4.]])
+  samples = tf.random.stateless_gamma(
+      [30, 3, 2], seed=[12, 34], alpha=alpha, beta=beta)
+  # samples has shape [30, 3, 2], with 30 samples each of 3x2 distributions.
+
+  with tf.GradientTape() as tape:
+    tape.watch([alpha, beta])
+    loss = tf.reduce_mean(tf.square(tf.random.stateless_gamma(
+        [30, 3, 2], seed=[12, 34], alpha=alpha, beta=beta)))
+  dloss_dalpha, dloss_dbeta = tape.gradient(loss, [alpha, beta])
+  # unbiased stochastic derivatives of the loss function
+  alpha.shape == dloss_dalpha.shape  # True
+  beta.shape == dloss_dbeta.shape  # True
+  ```
+
+  Args:
+    shape: A 1-D integer Tensor or Python array. The shape of the output tensor.
+    seed: A shape [2] Tensor, the seed to the random number generator. Must have
+      dtype `int32` or `int64`. (When using XLA, only `int32` is allowed.)
+    alpha: Tensor. The concentration parameter of the gamma distribution. Must
+      be broadcastable with `beta`, and broadcastable with the rightmost
+      dimensions of `shape`.
+    beta: Tensor. The inverse scale parameter of the gamma distribution. Must be
+      broadcastable with `alpha` and broadcastable with the rightmost dimensions
+      of `shape`.
+    dtype: Floating point dtype of `alpha`, `beta`, and the output.
+    name: A name for the operation (optional).
+
+  Returns:
+    samples: A Tensor of the specified shape filled with random gamma values.
+      For each i, each `samples[..., i] is an independent draw from the gamma
+      distribution with concentration alpha[i] and scale beta[i].
+
+[Possible API Signatures]
+ - shape: tensor, seed: tensor, alpha: tensor, beta: tensor, dtype: dtype, name: string
+ - shape: list, seed: list, alpha: list, beta: list, dtype: dtype, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 31 (if alpha is scalar, trailing dims of shape equal beta’s shape)
+{v_1 : tuple(int), v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 0 ∧ ndim(v_3) ≥ 1 then ∀i ∈ [0, ndim(v_3) - 1] : v_1[v_1.len - ndim(v_3) + i] = shape(v_3, i)
+Token usage: input=2490, output=10367, total=12857
+** SUCCESS **
+

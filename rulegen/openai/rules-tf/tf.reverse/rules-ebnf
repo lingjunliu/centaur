@@ -28,3 +28,18 @@ Rule 10 (name is an unconstrained optional string)
 >>
 Rule 17 (scalar tensor: tensor-form axis must be empty and 1-D)
 {v_1 : tensor, v_2 : tensor} |= (ndim(v_2) = 1) ∧ (if ndim(v_1) = 0 then shape(v_2, 0) = 0)
+>>
+Rule 21 (axis tensor values must lie in [-rank(tensor), rank(tensor)), allowing empty)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 1 then if shape(v_2, 0) = 0 then true else min(v_2) ≥ 0 - ndim(v_1) ∧ max(v_2) < ndim(v_1) else false
+>>
+Rule 22 (axis given as list/tuple must have each index within [-rank, rank))
+{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 - ndim(v_1) ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+>>
+Rule 23 (axis given as list/tuple must not repeat any dimension after normalization)
+{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i + 1, v_2.len - 1] : if v_2[i] ≥ 0 ∧ v_2[j] ≥ 0 then v_2[i] ≠ v_2[j] else if v_2[i] ≥ 0 ∧ v_2[j] < 0 then v_2[i] ≠ v_2[j] + ndim(v_1) else if v_2[i] < 0 ∧ v_2[j] ≥ 0 then v_2[i] + ndim(v_1) ≠ v_2[j] else v_2[i] + ndim(v_1) ≠ v_2[j] + ndim(v_1)
+>>
+Rule 24 (axis list/tuple length cannot exceed the input tensor rank)
+{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= v_2.len ≤ ndim(v_1)
+>>
+Rule 25 (axis tensor length cannot exceed the input tensor rank)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 1 then shape(v_2, 0) ≤ ndim(v_1) else false

@@ -2788,3 +2788,1243 @@ Rule 18 (signature with name: well-typed name and valid axis-list range)
 Token usage: input=2272, output=7501, total=9773
 ** PARSING ERROR ** (num_failures: 7)
 
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.reverse API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Reverses specific dimensions of a tensor.
+
+  Given a `tensor`, and a `int32` tensor `axis` representing the set of
+  dimensions of `tensor` to reverse. This operation reverses each dimension
+  `i` for which there exists `j` s.t. `axis[j] == i`.
+
+  `tensor` can have up to 8 dimensions. The number of dimensions specified
+  in `axis` may be 0 or more entries. If an index is specified more than
+  once, a InvalidArgument error is raised.
+
+  For example:
+
+  ```
+  # tensor 't' is [[[[ 0,  1,  2,  3],
+  #                  [ 4,  5,  6,  7],
+  #                  [ 8,  9, 10, 11]],
+  #                 [[12, 13, 14, 15],
+  #                  [16, 17, 18, 19],
+  #                  [20, 21, 22, 23]]]]
+  # tensor 't' shape is [1, 2, 3, 4]
+
+  # 'dims' is [3] or 'dims' is [-1]
+  reverse(t, dims) ==> [[[[ 3,  2,  1,  0],
+                          [ 7,  6,  5,  4],
+                          [ 11, 10, 9, 8]],
+                         [[15, 14, 13, 12],
+                          [19, 18, 17, 16],
+                          [23, 22, 21, 20]]]]
+
+  # 'dims' is '[1]' (or 'dims' is '[-3]')
+  reverse(t, dims) ==> [[[[12, 13, 14, 15],
+                          [16, 17, 18, 19],
+                          [20, 21, 22, 23]
+                         [[ 0,  1,  2,  3],
+                          [ 4,  5,  6,  7],
+                          [ 8,  9, 10, 11]]]]
+
+  # 'dims' is '[2]' (or 'dims' is '[-2]')
+  reverse(t, dims) ==> [[[[8, 9, 10, 11],
+                          [4, 5, 6, 7],
+                          [0, 1, 2, 3]]
+                         [[20, 21, 22, 23],
+                          [16, 17, 18, 19],
+                          [12, 13, 14, 15]]]]
+  ```
+
+  Args:
+    tensor: A `Tensor`. Must be one of the following types: `uint8`, `int8`, `uint16`, `int16`, `int32`, `uint32`, `int64`, `uint64`, `bool`, `bfloat16`, `half`, `float32`, `float64`, `complex64`, `complex128`, `string`.
+      Up to 8-D.
+    axis: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      1-D. The indices of the dimensions to reverse. Must be in the range
+      `[-rank(tensor), rank(tensor))`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `tensor`.
+
+[Possible API Signatures]
+ - tensor: tensor, axis: tensor, name: string
+ - tensor: tensor, axis: list, name: string
+ - tensor: tensor, axis: tuple, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__ReverseV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} 'axis'[0] = -2147483648 is out of valid range [0, 0 [Op:ReverseV2]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 18 (input tensor must have rank between 0 and 8)
+{v_1 : tensor} |= 0 ≤ ndim(v_1) ∧ ndim(v_1) ≤ 8
+Token usage: input=2124, output=8124, total=10248
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.reverse API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Reverses specific dimensions of a tensor.
+
+  Given a `tensor`, and a `int32` tensor `axis` representing the set of
+  dimensions of `tensor` to reverse. This operation reverses each dimension
+  `i` for which there exists `j` s.t. `axis[j] == i`.
+
+  `tensor` can have up to 8 dimensions. The number of dimensions specified
+  in `axis` may be 0 or more entries. If an index is specified more than
+  once, a InvalidArgument error is raised.
+
+  For example:
+
+  ```
+  # tensor 't' is [[[[ 0,  1,  2,  3],
+  #                  [ 4,  5,  6,  7],
+  #                  [ 8,  9, 10, 11]],
+  #                 [[12, 13, 14, 15],
+  #                  [16, 17, 18, 19],
+  #                  [20, 21, 22, 23]]]]
+  # tensor 't' shape is [1, 2, 3, 4]
+
+  # 'dims' is [3] or 'dims' is [-1]
+  reverse(t, dims) ==> [[[[ 3,  2,  1,  0],
+                          [ 7,  6,  5,  4],
+                          [ 11, 10, 9, 8]],
+                         [[15, 14, 13, 12],
+                          [19, 18, 17, 16],
+                          [23, 22, 21, 20]]]]
+
+  # 'dims' is '[1]' (or 'dims' is '[-3]')
+  reverse(t, dims) ==> [[[[12, 13, 14, 15],
+                          [16, 17, 18, 19],
+                          [20, 21, 22, 23]
+                         [[ 0,  1,  2,  3],
+                          [ 4,  5,  6,  7],
+                          [ 8,  9, 10, 11]]]]
+
+  # 'dims' is '[2]' (or 'dims' is '[-2]')
+  reverse(t, dims) ==> [[[[8, 9, 10, 11],
+                          [4, 5, 6, 7],
+                          [0, 1, 2, 3]]
+                         [[20, 21, 22, 23],
+                          [16, 17, 18, 19],
+                          [12, 13, 14, 15]]]]
+  ```
+
+  Args:
+    tensor: A `Tensor`. Must be one of the following types: `uint8`, `int8`, `uint16`, `int16`, `int32`, `uint32`, `int64`, `uint64`, `bool`, `bfloat16`, `half`, `float32`, `float64`, `complex64`, `complex128`, `string`.
+      Up to 8-D.
+    axis: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      1-D. The indices of the dimensions to reverse. Must be in the range
+      `[-rank(tensor), rank(tensor))`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `tensor`.
+
+[Possible API Signatures]
+ - tensor: tensor, axis: tensor, name: string
+ - tensor: tensor, axis: list, name: string
+ - tensor: tensor, axis: tuple, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__ReverseV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} 'axis'[0] = -2147483648 is out of valid range [0, 0 [Op:ReverseV2]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 19 (input tensor dtype must be supported: indices 0–11)
+{v_1 : tensor} |= 0 ≤ dtype(v_1) ∧ dtype(v_1) ≤ 11
+Token usage: input=2124, output=8124, total=10248
+** PARSING ERROR ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.reverse API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Reverses specific dimensions of a tensor.
+
+  Given a `tensor`, and a `int32` tensor `axis` representing the set of
+  dimensions of `tensor` to reverse. This operation reverses each dimension
+  `i` for which there exists `j` s.t. `axis[j] == i`.
+
+  `tensor` can have up to 8 dimensions. The number of dimensions specified
+  in `axis` may be 0 or more entries. If an index is specified more than
+  once, a InvalidArgument error is raised.
+
+  For example:
+
+  ```
+  # tensor 't' is [[[[ 0,  1,  2,  3],
+  #                  [ 4,  5,  6,  7],
+  #                  [ 8,  9, 10, 11]],
+  #                 [[12, 13, 14, 15],
+  #                  [16, 17, 18, 19],
+  #                  [20, 21, 22, 23]]]]
+  # tensor 't' shape is [1, 2, 3, 4]
+
+  # 'dims' is [3] or 'dims' is [-1]
+  reverse(t, dims) ==> [[[[ 3,  2,  1,  0],
+                          [ 7,  6,  5,  4],
+                          [ 11, 10, 9, 8]],
+                         [[15, 14, 13, 12],
+                          [19, 18, 17, 16],
+                          [23, 22, 21, 20]]]]
+
+  # 'dims' is '[1]' (or 'dims' is '[-3]')
+  reverse(t, dims) ==> [[[[12, 13, 14, 15],
+                          [16, 17, 18, 19],
+                          [20, 21, 22, 23]
+                         [[ 0,  1,  2,  3],
+                          [ 4,  5,  6,  7],
+                          [ 8,  9, 10, 11]]]]
+
+  # 'dims' is '[2]' (or 'dims' is '[-2]')
+  reverse(t, dims) ==> [[[[8, 9, 10, 11],
+                          [4, 5, 6, 7],
+                          [0, 1, 2, 3]]
+                         [[20, 21, 22, 23],
+                          [16, 17, 18, 19],
+                          [12, 13, 14, 15]]]]
+  ```
+
+  Args:
+    tensor: A `Tensor`. Must be one of the following types: `uint8`, `int8`, `uint16`, `int16`, `int32`, `uint32`, `int64`, `uint64`, `bool`, `bfloat16`, `half`, `float32`, `float64`, `complex64`, `complex128`, `string`.
+      Up to 8-D.
+    axis: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      1-D. The indices of the dimensions to reverse. Must be in the range
+      `[-rank(tensor), rank(tensor))`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `tensor`.
+
+[Possible API Signatures]
+ - tensor: tensor, axis: tensor, name: string
+ - tensor: tensor, axis: list, name: string
+ - tensor: tensor, axis: tuple, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__ReverseV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} 'axis'[0] = -2147483648 is out of valid range [0, 0 [Op:ReverseV2]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 20 (axis as a tensor must be 1-D and integer typed)
+{v_2 : tensor} |= ndim(v_2) = 1 ∧ (dtype(v_2) = 3 ∨ dtype(v_2) = 4)
+Token usage: input=2124, output=8124, total=10248
+** PARSING ERROR ** (num_failures: 3)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.reverse API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Reverses specific dimensions of a tensor.
+
+  Given a `tensor`, and a `int32` tensor `axis` representing the set of
+  dimensions of `tensor` to reverse. This operation reverses each dimension
+  `i` for which there exists `j` s.t. `axis[j] == i`.
+
+  `tensor` can have up to 8 dimensions. The number of dimensions specified
+  in `axis` may be 0 or more entries. If an index is specified more than
+  once, a InvalidArgument error is raised.
+
+  For example:
+
+  ```
+  # tensor 't' is [[[[ 0,  1,  2,  3],
+  #                  [ 4,  5,  6,  7],
+  #                  [ 8,  9, 10, 11]],
+  #                 [[12, 13, 14, 15],
+  #                  [16, 17, 18, 19],
+  #                  [20, 21, 22, 23]]]]
+  # tensor 't' shape is [1, 2, 3, 4]
+
+  # 'dims' is [3] or 'dims' is [-1]
+  reverse(t, dims) ==> [[[[ 3,  2,  1,  0],
+                          [ 7,  6,  5,  4],
+                          [ 11, 10, 9, 8]],
+                         [[15, 14, 13, 12],
+                          [19, 18, 17, 16],
+                          [23, 22, 21, 20]]]]
+
+  # 'dims' is '[1]' (or 'dims' is '[-3]')
+  reverse(t, dims) ==> [[[[12, 13, 14, 15],
+                          [16, 17, 18, 19],
+                          [20, 21, 22, 23]
+                         [[ 0,  1,  2,  3],
+                          [ 4,  5,  6,  7],
+                          [ 8,  9, 10, 11]]]]
+
+  # 'dims' is '[2]' (or 'dims' is '[-2]')
+  reverse(t, dims) ==> [[[[8, 9, 10, 11],
+                          [4, 5, 6, 7],
+                          [0, 1, 2, 3]]
+                         [[20, 21, 22, 23],
+                          [16, 17, 18, 19],
+                          [12, 13, 14, 15]]]]
+  ```
+
+  Args:
+    tensor: A `Tensor`. Must be one of the following types: `uint8`, `int8`, `uint16`, `int16`, `int32`, `uint32`, `int64`, `uint64`, `bool`, `bfloat16`, `half`, `float32`, `float64`, `complex64`, `complex128`, `string`.
+      Up to 8-D.
+    axis: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      1-D. The indices of the dimensions to reverse. Must be in the range
+      `[-rank(tensor), rank(tensor))`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `tensor`.
+
+[Possible API Signatures]
+ - tensor: tensor, axis: tensor, name: string
+ - tensor: tensor, axis: list, name: string
+ - tensor: tensor, axis: tuple, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__ReverseV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} 'axis'[0] = -2147483648 is out of valid range [0, 0 [Op:ReverseV2]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 21 (axis tensor values must lie in [-rank(tensor), rank(tensor)), allowing empty)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 1 then if shape(v_2, 0) = 0 then true else min(v_2) ≥ 0 - ndim(v_1) ∧ max(v_2) < ndim(v_1) else false
+Token usage: input=2124, output=8124, total=10248
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.reverse API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Reverses specific dimensions of a tensor.
+
+  Given a `tensor`, and a `int32` tensor `axis` representing the set of
+  dimensions of `tensor` to reverse. This operation reverses each dimension
+  `i` for which there exists `j` s.t. `axis[j] == i`.
+
+  `tensor` can have up to 8 dimensions. The number of dimensions specified
+  in `axis` may be 0 or more entries. If an index is specified more than
+  once, a InvalidArgument error is raised.
+
+  For example:
+
+  ```
+  # tensor 't' is [[[[ 0,  1,  2,  3],
+  #                  [ 4,  5,  6,  7],
+  #                  [ 8,  9, 10, 11]],
+  #                 [[12, 13, 14, 15],
+  #                  [16, 17, 18, 19],
+  #                  [20, 21, 22, 23]]]]
+  # tensor 't' shape is [1, 2, 3, 4]
+
+  # 'dims' is [3] or 'dims' is [-1]
+  reverse(t, dims) ==> [[[[ 3,  2,  1,  0],
+                          [ 7,  6,  5,  4],
+                          [ 11, 10, 9, 8]],
+                         [[15, 14, 13, 12],
+                          [19, 18, 17, 16],
+                          [23, 22, 21, 20]]]]
+
+  # 'dims' is '[1]' (or 'dims' is '[-3]')
+  reverse(t, dims) ==> [[[[12, 13, 14, 15],
+                          [16, 17, 18, 19],
+                          [20, 21, 22, 23]
+                         [[ 0,  1,  2,  3],
+                          [ 4,  5,  6,  7],
+                          [ 8,  9, 10, 11]]]]
+
+  # 'dims' is '[2]' (or 'dims' is '[-2]')
+  reverse(t, dims) ==> [[[[8, 9, 10, 11],
+                          [4, 5, 6, 7],
+                          [0, 1, 2, 3]]
+                         [[20, 21, 22, 23],
+                          [16, 17, 18, 19],
+                          [12, 13, 14, 15]]]]
+  ```
+
+  Args:
+    tensor: A `Tensor`. Must be one of the following types: `uint8`, `int8`, `uint16`, `int16`, `int32`, `uint32`, `int64`, `uint64`, `bool`, `bfloat16`, `half`, `float32`, `float64`, `complex64`, `complex128`, `string`.
+      Up to 8-D.
+    axis: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      1-D. The indices of the dimensions to reverse. Must be in the range
+      `[-rank(tensor), rank(tensor))`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `tensor`.
+
+[Possible API Signatures]
+ - tensor: tensor, axis: tensor, name: string
+ - tensor: tensor, axis: list, name: string
+ - tensor: tensor, axis: tuple, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__ReverseV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} 'axis'[0] = -2147483648 is out of valid range [0, 0 [Op:ReverseV2]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 22 (axis given as list/tuple must have each index within [-rank, rank))
+{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 - ndim(v_1) ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+Token usage: input=2124, output=8124, total=10248
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.reverse API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Reverses specific dimensions of a tensor.
+
+  Given a `tensor`, and a `int32` tensor `axis` representing the set of
+  dimensions of `tensor` to reverse. This operation reverses each dimension
+  `i` for which there exists `j` s.t. `axis[j] == i`.
+
+  `tensor` can have up to 8 dimensions. The number of dimensions specified
+  in `axis` may be 0 or more entries. If an index is specified more than
+  once, a InvalidArgument error is raised.
+
+  For example:
+
+  ```
+  # tensor 't' is [[[[ 0,  1,  2,  3],
+  #                  [ 4,  5,  6,  7],
+  #                  [ 8,  9, 10, 11]],
+  #                 [[12, 13, 14, 15],
+  #                  [16, 17, 18, 19],
+  #                  [20, 21, 22, 23]]]]
+  # tensor 't' shape is [1, 2, 3, 4]
+
+  # 'dims' is [3] or 'dims' is [-1]
+  reverse(t, dims) ==> [[[[ 3,  2,  1,  0],
+                          [ 7,  6,  5,  4],
+                          [ 11, 10, 9, 8]],
+                         [[15, 14, 13, 12],
+                          [19, 18, 17, 16],
+                          [23, 22, 21, 20]]]]
+
+  # 'dims' is '[1]' (or 'dims' is '[-3]')
+  reverse(t, dims) ==> [[[[12, 13, 14, 15],
+                          [16, 17, 18, 19],
+                          [20, 21, 22, 23]
+                         [[ 0,  1,  2,  3],
+                          [ 4,  5,  6,  7],
+                          [ 8,  9, 10, 11]]]]
+
+  # 'dims' is '[2]' (or 'dims' is '[-2]')
+  reverse(t, dims) ==> [[[[8, 9, 10, 11],
+                          [4, 5, 6, 7],
+                          [0, 1, 2, 3]]
+                         [[20, 21, 22, 23],
+                          [16, 17, 18, 19],
+                          [12, 13, 14, 15]]]]
+  ```
+
+  Args:
+    tensor: A `Tensor`. Must be one of the following types: `uint8`, `int8`, `uint16`, `int16`, `int32`, `uint32`, `int64`, `uint64`, `bool`, `bfloat16`, `half`, `float32`, `float64`, `complex64`, `complex128`, `string`.
+      Up to 8-D.
+    axis: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      1-D. The indices of the dimensions to reverse. Must be in the range
+      `[-rank(tensor), rank(tensor))`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `tensor`.
+
+[Possible API Signatures]
+ - tensor: tensor, axis: tensor, name: string
+ - tensor: tensor, axis: list, name: string
+ - tensor: tensor, axis: tuple, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__ReverseV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} 'axis'[0] = -2147483648 is out of valid range [0, 0 [Op:ReverseV2]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 23 (axis given as list/tuple must not repeat any dimension after normalization)
+{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i + 1, v_2.len - 1] : if v_2[i] ≥ 0 ∧ v_2[j] ≥ 0 then v_2[i] ≠ v_2[j] else if v_2[i] ≥ 0 ∧ v_2[j] < 0 then v_2[i] ≠ v_2[j] + ndim(v_1) else if v_2[i] < 0 ∧ v_2[j] ≥ 0 then v_2[i] + ndim(v_1) ≠ v_2[j] else v_2[i] + ndim(v_1) ≠ v_2[j] + ndim(v_1)
+Token usage: input=2124, output=8124, total=10248
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.reverse API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Reverses specific dimensions of a tensor.
+
+  Given a `tensor`, and a `int32` tensor `axis` representing the set of
+  dimensions of `tensor` to reverse. This operation reverses each dimension
+  `i` for which there exists `j` s.t. `axis[j] == i`.
+
+  `tensor` can have up to 8 dimensions. The number of dimensions specified
+  in `axis` may be 0 or more entries. If an index is specified more than
+  once, a InvalidArgument error is raised.
+
+  For example:
+
+  ```
+  # tensor 't' is [[[[ 0,  1,  2,  3],
+  #                  [ 4,  5,  6,  7],
+  #                  [ 8,  9, 10, 11]],
+  #                 [[12, 13, 14, 15],
+  #                  [16, 17, 18, 19],
+  #                  [20, 21, 22, 23]]]]
+  # tensor 't' shape is [1, 2, 3, 4]
+
+  # 'dims' is [3] or 'dims' is [-1]
+  reverse(t, dims) ==> [[[[ 3,  2,  1,  0],
+                          [ 7,  6,  5,  4],
+                          [ 11, 10, 9, 8]],
+                         [[15, 14, 13, 12],
+                          [19, 18, 17, 16],
+                          [23, 22, 21, 20]]]]
+
+  # 'dims' is '[1]' (or 'dims' is '[-3]')
+  reverse(t, dims) ==> [[[[12, 13, 14, 15],
+                          [16, 17, 18, 19],
+                          [20, 21, 22, 23]
+                         [[ 0,  1,  2,  3],
+                          [ 4,  5,  6,  7],
+                          [ 8,  9, 10, 11]]]]
+
+  # 'dims' is '[2]' (or 'dims' is '[-2]')
+  reverse(t, dims) ==> [[[[8, 9, 10, 11],
+                          [4, 5, 6, 7],
+                          [0, 1, 2, 3]]
+                         [[20, 21, 22, 23],
+                          [16, 17, 18, 19],
+                          [12, 13, 14, 15]]]]
+  ```
+
+  Args:
+    tensor: A `Tensor`. Must be one of the following types: `uint8`, `int8`, `uint16`, `int16`, `int32`, `uint32`, `int64`, `uint64`, `bool`, `bfloat16`, `half`, `float32`, `float64`, `complex64`, `complex128`, `string`.
+      Up to 8-D.
+    axis: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      1-D. The indices of the dimensions to reverse. Must be in the range
+      `[-rank(tensor), rank(tensor))`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `tensor`.
+
+[Possible API Signatures]
+ - tensor: tensor, axis: tensor, name: string
+ - tensor: tensor, axis: list, name: string
+ - tensor: tensor, axis: tuple, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__ReverseV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} 'axis'[0] = -2147483648 is out of valid range [0, 0 [Op:ReverseV2]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 24 (axis list/tuple length cannot exceed the input tensor rank)
+{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= v_2.len ≤ ndim(v_1)
+Token usage: input=2124, output=8124, total=10248
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.reverse API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Reverses specific dimensions of a tensor.
+
+  Given a `tensor`, and a `int32` tensor `axis` representing the set of
+  dimensions of `tensor` to reverse. This operation reverses each dimension
+  `i` for which there exists `j` s.t. `axis[j] == i`.
+
+  `tensor` can have up to 8 dimensions. The number of dimensions specified
+  in `axis` may be 0 or more entries. If an index is specified more than
+  once, a InvalidArgument error is raised.
+
+  For example:
+
+  ```
+  # tensor 't' is [[[[ 0,  1,  2,  3],
+  #                  [ 4,  5,  6,  7],
+  #                  [ 8,  9, 10, 11]],
+  #                 [[12, 13, 14, 15],
+  #                  [16, 17, 18, 19],
+  #                  [20, 21, 22, 23]]]]
+  # tensor 't' shape is [1, 2, 3, 4]
+
+  # 'dims' is [3] or 'dims' is [-1]
+  reverse(t, dims) ==> [[[[ 3,  2,  1,  0],
+                          [ 7,  6,  5,  4],
+                          [ 11, 10, 9, 8]],
+                         [[15, 14, 13, 12],
+                          [19, 18, 17, 16],
+                          [23, 22, 21, 20]]]]
+
+  # 'dims' is '[1]' (or 'dims' is '[-3]')
+  reverse(t, dims) ==> [[[[12, 13, 14, 15],
+                          [16, 17, 18, 19],
+                          [20, 21, 22, 23]
+                         [[ 0,  1,  2,  3],
+                          [ 4,  5,  6,  7],
+                          [ 8,  9, 10, 11]]]]
+
+  # 'dims' is '[2]' (or 'dims' is '[-2]')
+  reverse(t, dims) ==> [[[[8, 9, 10, 11],
+                          [4, 5, 6, 7],
+                          [0, 1, 2, 3]]
+                         [[20, 21, 22, 23],
+                          [16, 17, 18, 19],
+                          [12, 13, 14, 15]]]]
+  ```
+
+  Args:
+    tensor: A `Tensor`. Must be one of the following types: `uint8`, `int8`, `uint16`, `int16`, `int32`, `uint32`, `int64`, `uint64`, `bool`, `bfloat16`, `half`, `float32`, `float64`, `complex64`, `complex128`, `string`.
+      Up to 8-D.
+    axis: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      1-D. The indices of the dimensions to reverse. Must be in the range
+      `[-rank(tensor), rank(tensor))`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `tensor`.
+
+[Possible API Signatures]
+ - tensor: tensor, axis: tensor, name: string
+ - tensor: tensor, axis: list, name: string
+ - tensor: tensor, axis: tuple, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__ReverseV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} 'axis'[0] = -2147483648 is out of valid range [0, 0 [Op:ReverseV2]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 25 (axis tensor length cannot exceed the input tensor rank)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 1 then shape(v_2, 0) ≤ ndim(v_1) else false
+Token usage: input=2124, output=8124, total=10248
+** SUCCESS **
+

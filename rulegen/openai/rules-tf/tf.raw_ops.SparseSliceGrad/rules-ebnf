@@ -58,3 +58,24 @@ Rule 21 (index matrices have non-negative row count and positive column count)
 >>
 Rule 22 (name must be one of the allowed strings)
 {v_1 : str} |= v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "linear" ∨ v_1 = "valid" ∨ v_1 = "same" ∨ v_1 = "channels_last" ∨ v_1 = "channels_first"
+>>
+Rule 23 (rank requirements for all tensors)
+{backprop_val_grad : tensor, input_indices : tensor, input_start : tensor, output_indices : tensor} |= ndim(backprop_val_grad) = 1 ∧ ndim(input_indices) = 2 ∧ ndim(input_start) = 1 ∧ ndim(output_indices) = 2
+>>
+Rule 24 (consistent dimensionality across indices and slice start)
+{input_indices : tensor, input_start : tensor, output_indices : tensor} |= shape(input_indices, 1) = shape(input_start, 0) ∧ shape(output_indices, 1) = shape(input_start, 0) ∧ shape(input_start, 0) > 0
+>>
+Rule 25 (gradient length matches number of sliced non-empty values and cannot exceed input nnz)
+{backprop_val_grad : tensor, input_indices : tensor, output_indices : tensor} |= shape(backprop_val_grad, 0) = shape(output_indices, 0) ∧ shape(output_indices, 0) ≤ shape(input_indices, 0)
+>>
+Rule 26 (index-related tensors share the same dtype)
+{input_indices : tensor, input_start : tensor, output_indices : tensor} |= dtype_(input_indices) = dtype_(input_start) ∧ dtype_(input_start) = dtype_(output_indices)
+>>
+Rule 27 (non-negative indices and slice starts)
+{input_indices : tensor, input_start : tensor, output_indices : tensor} |= min(input_indices) ≥ 0 ∧ min(output_indices) ≥ 0 ∧ min(input_start) ≥ 0
+>>
+Rule 28 (empty input implies empty sliced output and empty upstream grad)
+{backprop_val_grad : tensor, input_indices : tensor, output_indices : tensor} |= if shape(input_indices, 0) = 0 then shape(output_indices, 0) = 0 ∧ shape(backprop_val_grad, 0) = 0
+>>
+Rule 29 (sliced indices are a subset of input indices in value range)
+{input_indices : tensor, output_indices : tensor} |= max(output_indices) ≤ max(input_indices)

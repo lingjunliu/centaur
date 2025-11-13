@@ -5368,3 +5368,2688 @@ Rule 30 (batch_shape may be list or tuple)
 Token usage: input=2314, output=7664, total=9978
 ** SUCCESS **
 
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.LinearOperatorZeros API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+`LinearOperator` acting like a [batch] zero matrix.
+
+  This operator acts like a [batch] zero matrix `A` with shape
+  `[B1,...,Bb, N, M]` for some `b >= 0`.  The first `b` indices index a
+  batch member.  For every batch index `(i1,...,ib)`, `A[i1,...,ib, : :]` is
+  an `N x M` matrix.  This matrix `A` is not materialized, but for
+  purposes of broadcasting this shape will be relevant.
+
+  `LinearOperatorZeros` is initialized with `num_rows`, and optionally
+  `num_columns, `batch_shape`, and `dtype` arguments.  If `num_columns` is
+  `None`, then this operator will be initialized as a square matrix. If
+  `batch_shape` is `None`, this operator efficiently passes through all
+  arguments.  If `batch_shape` is provided, broadcasting may occur, which will
+  require making copies.
+
+  ```python
+  # Create a 2 x 2 zero matrix.
+  operator = LinearOperatorZero(num_rows=2, dtype=tf.float32)
+
+  operator.to_dense()
+  ==> [[0., 0.]
+       [0., 0.]]
+
+  operator.shape
+  ==> [2, 2]
+
+  operator.determinant()
+  ==> 0.
+
+  x = ... Shape [2, 4] Tensor
+  operator.matmul(x)
+  ==> Shape [2, 4] Tensor, same as x.
+
+  # Create a 2-batch of 2x2 zero matrices
+  operator = LinearOperatorZeros(num_rows=2, batch_shape=[2])
+  operator.to_dense()
+  ==> [[[0., 0.]
+        [0., 0.]],
+       [[0., 0.]
+        [0., 0.]]]
+
+  # Here, even though the operator has a batch shape, the input is the same as
+  # the output, so x can be passed through without a copy.  The operator is able
+  # to detect that no broadcast is necessary because both x and the operator
+  # have statically defined shape.
+  x = ... Shape [2, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, same as tf.zeros_like(x)
+
+  # Here the operator and x have different batch_shape, and are broadcast.
+  # This requires a copy, since the output is different size than the input.
+  x = ... Shape [1, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, equal to tf.zeros_like([x, x])
+  ```
+
+  ### Shape compatibility
+
+  This operator acts on [batch] matrix with compatible shape.
+  `x` is a batch matrix with compatible shape for `matmul` and `solve` if
+
+  ```
+  operator.shape = [B1,...,Bb] + [N, M],  with b >= 0
+  x.shape =   [C1,...,Cc] + [M, R],
+  and [C1,...,Cc] broadcasts with [B1,...,Bb] to [D1,...,Dd]
+  ```
+
+  #### Matrix property hints
+
+  This `LinearOperator` is initialized with boolean flags of the form `is_X`,
+  for `X = non_singular, self_adjoint, positive_definite, square`.
+  These have the following meaning:
+
+  * If `is_X == True`, callers should expect the operator to have the
+    property `X`.  This is a promise that should be fulfilled, but is *not* a
+    runtime assert.  For example, finite floating point precision may result
+    in these promises being violated.
+  * If `is_X == False`, callers should expect the operator to not have `X`.
+  * If `is_X == None` (the default), callers should have no expectation either
+    way.
+
+[Possible API Signatures]
+ - num_rows: integer, num_columns: integer, batch_shape: list, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: tensor, num_columns: tensor, batch_shape: tensor, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: integer, num_columns: integer, batch_shape: tuple, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 31 (num_rows as integer must be positive)
+{v_1 : int} |= v_1 > 0
+Token usage: input=2402, output=6850, total=9252
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.LinearOperatorZeros API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+`LinearOperator` acting like a [batch] zero matrix.
+
+  This operator acts like a [batch] zero matrix `A` with shape
+  `[B1,...,Bb, N, M]` for some `b >= 0`.  The first `b` indices index a
+  batch member.  For every batch index `(i1,...,ib)`, `A[i1,...,ib, : :]` is
+  an `N x M` matrix.  This matrix `A` is not materialized, but for
+  purposes of broadcasting this shape will be relevant.
+
+  `LinearOperatorZeros` is initialized with `num_rows`, and optionally
+  `num_columns, `batch_shape`, and `dtype` arguments.  If `num_columns` is
+  `None`, then this operator will be initialized as a square matrix. If
+  `batch_shape` is `None`, this operator efficiently passes through all
+  arguments.  If `batch_shape` is provided, broadcasting may occur, which will
+  require making copies.
+
+  ```python
+  # Create a 2 x 2 zero matrix.
+  operator = LinearOperatorZero(num_rows=2, dtype=tf.float32)
+
+  operator.to_dense()
+  ==> [[0., 0.]
+       [0., 0.]]
+
+  operator.shape
+  ==> [2, 2]
+
+  operator.determinant()
+  ==> 0.
+
+  x = ... Shape [2, 4] Tensor
+  operator.matmul(x)
+  ==> Shape [2, 4] Tensor, same as x.
+
+  # Create a 2-batch of 2x2 zero matrices
+  operator = LinearOperatorZeros(num_rows=2, batch_shape=[2])
+  operator.to_dense()
+  ==> [[[0., 0.]
+        [0., 0.]],
+       [[0., 0.]
+        [0., 0.]]]
+
+  # Here, even though the operator has a batch shape, the input is the same as
+  # the output, so x can be passed through without a copy.  The operator is able
+  # to detect that no broadcast is necessary because both x and the operator
+  # have statically defined shape.
+  x = ... Shape [2, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, same as tf.zeros_like(x)
+
+  # Here the operator and x have different batch_shape, and are broadcast.
+  # This requires a copy, since the output is different size than the input.
+  x = ... Shape [1, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, equal to tf.zeros_like([x, x])
+  ```
+
+  ### Shape compatibility
+
+  This operator acts on [batch] matrix with compatible shape.
+  `x` is a batch matrix with compatible shape for `matmul` and `solve` if
+
+  ```
+  operator.shape = [B1,...,Bb] + [N, M],  with b >= 0
+  x.shape =   [C1,...,Cc] + [M, R],
+  and [C1,...,Cc] broadcasts with [B1,...,Bb] to [D1,...,Dd]
+  ```
+
+  #### Matrix property hints
+
+  This `LinearOperator` is initialized with boolean flags of the form `is_X`,
+  for `X = non_singular, self_adjoint, positive_definite, square`.
+  These have the following meaning:
+
+  * If `is_X == True`, callers should expect the operator to have the
+    property `X`.  This is a promise that should be fulfilled, but is *not* a
+    runtime assert.  For example, finite floating point precision may result
+    in these promises being violated.
+  * If `is_X == False`, callers should expect the operator to not have `X`.
+  * If `is_X == None` (the default), callers should have no expectation either
+    way.
+
+[Possible API Signatures]
+ - num_rows: integer, num_columns: integer, batch_shape: list, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: tensor, num_columns: tensor, batch_shape: tensor, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: integer, num_columns: integer, batch_shape: tuple, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 32 (num_rows as tensor must be scalar int32/int64 and positive)
+{v_1 : tensor} |= ndim(v_1) = 0 ∧ 3 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 4 ∧ min(v_1) ≥ 1
+Token usage: input=2402, output=6850, total=9252
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.LinearOperatorZeros API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+`LinearOperator` acting like a [batch] zero matrix.
+
+  This operator acts like a [batch] zero matrix `A` with shape
+  `[B1,...,Bb, N, M]` for some `b >= 0`.  The first `b` indices index a
+  batch member.  For every batch index `(i1,...,ib)`, `A[i1,...,ib, : :]` is
+  an `N x M` matrix.  This matrix `A` is not materialized, but for
+  purposes of broadcasting this shape will be relevant.
+
+  `LinearOperatorZeros` is initialized with `num_rows`, and optionally
+  `num_columns, `batch_shape`, and `dtype` arguments.  If `num_columns` is
+  `None`, then this operator will be initialized as a square matrix. If
+  `batch_shape` is `None`, this operator efficiently passes through all
+  arguments.  If `batch_shape` is provided, broadcasting may occur, which will
+  require making copies.
+
+  ```python
+  # Create a 2 x 2 zero matrix.
+  operator = LinearOperatorZero(num_rows=2, dtype=tf.float32)
+
+  operator.to_dense()
+  ==> [[0., 0.]
+       [0., 0.]]
+
+  operator.shape
+  ==> [2, 2]
+
+  operator.determinant()
+  ==> 0.
+
+  x = ... Shape [2, 4] Tensor
+  operator.matmul(x)
+  ==> Shape [2, 4] Tensor, same as x.
+
+  # Create a 2-batch of 2x2 zero matrices
+  operator = LinearOperatorZeros(num_rows=2, batch_shape=[2])
+  operator.to_dense()
+  ==> [[[0., 0.]
+        [0., 0.]],
+       [[0., 0.]
+        [0., 0.]]]
+
+  # Here, even though the operator has a batch shape, the input is the same as
+  # the output, so x can be passed through without a copy.  The operator is able
+  # to detect that no broadcast is necessary because both x and the operator
+  # have statically defined shape.
+  x = ... Shape [2, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, same as tf.zeros_like(x)
+
+  # Here the operator and x have different batch_shape, and are broadcast.
+  # This requires a copy, since the output is different size than the input.
+  x = ... Shape [1, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, equal to tf.zeros_like([x, x])
+  ```
+
+  ### Shape compatibility
+
+  This operator acts on [batch] matrix with compatible shape.
+  `x` is a batch matrix with compatible shape for `matmul` and `solve` if
+
+  ```
+  operator.shape = [B1,...,Bb] + [N, M],  with b >= 0
+  x.shape =   [C1,...,Cc] + [M, R],
+  and [C1,...,Cc] broadcasts with [B1,...,Bb] to [D1,...,Dd]
+  ```
+
+  #### Matrix property hints
+
+  This `LinearOperator` is initialized with boolean flags of the form `is_X`,
+  for `X = non_singular, self_adjoint, positive_definite, square`.
+  These have the following meaning:
+
+  * If `is_X == True`, callers should expect the operator to have the
+    property `X`.  This is a promise that should be fulfilled, but is *not* a
+    runtime assert.  For example, finite floating point precision may result
+    in these promises being violated.
+  * If `is_X == False`, callers should expect the operator to not have `X`.
+  * If `is_X == None` (the default), callers should have no expectation either
+    way.
+
+[Possible API Signatures]
+ - num_rows: integer, num_columns: integer, batch_shape: list, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: tensor, num_columns: tensor, batch_shape: tensor, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: integer, num_columns: integer, batch_shape: tuple, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 33 (num_columns as integer, when provided, must be positive)
+{v_1 : int} |= v_1 > 0
+Token usage: input=2402, output=6850, total=9252
+** DUPLICATED RULE ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.LinearOperatorZeros API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+`LinearOperator` acting like a [batch] zero matrix.
+
+  This operator acts like a [batch] zero matrix `A` with shape
+  `[B1,...,Bb, N, M]` for some `b >= 0`.  The first `b` indices index a
+  batch member.  For every batch index `(i1,...,ib)`, `A[i1,...,ib, : :]` is
+  an `N x M` matrix.  This matrix `A` is not materialized, but for
+  purposes of broadcasting this shape will be relevant.
+
+  `LinearOperatorZeros` is initialized with `num_rows`, and optionally
+  `num_columns, `batch_shape`, and `dtype` arguments.  If `num_columns` is
+  `None`, then this operator will be initialized as a square matrix. If
+  `batch_shape` is `None`, this operator efficiently passes through all
+  arguments.  If `batch_shape` is provided, broadcasting may occur, which will
+  require making copies.
+
+  ```python
+  # Create a 2 x 2 zero matrix.
+  operator = LinearOperatorZero(num_rows=2, dtype=tf.float32)
+
+  operator.to_dense()
+  ==> [[0., 0.]
+       [0., 0.]]
+
+  operator.shape
+  ==> [2, 2]
+
+  operator.determinant()
+  ==> 0.
+
+  x = ... Shape [2, 4] Tensor
+  operator.matmul(x)
+  ==> Shape [2, 4] Tensor, same as x.
+
+  # Create a 2-batch of 2x2 zero matrices
+  operator = LinearOperatorZeros(num_rows=2, batch_shape=[2])
+  operator.to_dense()
+  ==> [[[0., 0.]
+        [0., 0.]],
+       [[0., 0.]
+        [0., 0.]]]
+
+  # Here, even though the operator has a batch shape, the input is the same as
+  # the output, so x can be passed through without a copy.  The operator is able
+  # to detect that no broadcast is necessary because both x and the operator
+  # have statically defined shape.
+  x = ... Shape [2, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, same as tf.zeros_like(x)
+
+  # Here the operator and x have different batch_shape, and are broadcast.
+  # This requires a copy, since the output is different size than the input.
+  x = ... Shape [1, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, equal to tf.zeros_like([x, x])
+  ```
+
+  ### Shape compatibility
+
+  This operator acts on [batch] matrix with compatible shape.
+  `x` is a batch matrix with compatible shape for `matmul` and `solve` if
+
+  ```
+  operator.shape = [B1,...,Bb] + [N, M],  with b >= 0
+  x.shape =   [C1,...,Cc] + [M, R],
+  and [C1,...,Cc] broadcasts with [B1,...,Bb] to [D1,...,Dd]
+  ```
+
+  #### Matrix property hints
+
+  This `LinearOperator` is initialized with boolean flags of the form `is_X`,
+  for `X = non_singular, self_adjoint, positive_definite, square`.
+  These have the following meaning:
+
+  * If `is_X == True`, callers should expect the operator to have the
+    property `X`.  This is a promise that should be fulfilled, but is *not* a
+    runtime assert.  For example, finite floating point precision may result
+    in these promises being violated.
+  * If `is_X == False`, callers should expect the operator to not have `X`.
+  * If `is_X == None` (the default), callers should have no expectation either
+    way.
+
+[Possible API Signatures]
+ - num_rows: integer, num_columns: integer, batch_shape: list, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: tensor, num_columns: tensor, batch_shape: tensor, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: integer, num_columns: integer, batch_shape: tuple, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 34 (num_columns as tensor, when provided, must be scalar int32/int64 and positive)
+{v_1 : tensor} |= ndim(v_1) = 0 ∧ 3 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 4 ∧ min(v_1) ≥ 1
+Token usage: input=2402, output=6850, total=9252
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.LinearOperatorZeros API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+`LinearOperator` acting like a [batch] zero matrix.
+
+  This operator acts like a [batch] zero matrix `A` with shape
+  `[B1,...,Bb, N, M]` for some `b >= 0`.  The first `b` indices index a
+  batch member.  For every batch index `(i1,...,ib)`, `A[i1,...,ib, : :]` is
+  an `N x M` matrix.  This matrix `A` is not materialized, but for
+  purposes of broadcasting this shape will be relevant.
+
+  `LinearOperatorZeros` is initialized with `num_rows`, and optionally
+  `num_columns, `batch_shape`, and `dtype` arguments.  If `num_columns` is
+  `None`, then this operator will be initialized as a square matrix. If
+  `batch_shape` is `None`, this operator efficiently passes through all
+  arguments.  If `batch_shape` is provided, broadcasting may occur, which will
+  require making copies.
+
+  ```python
+  # Create a 2 x 2 zero matrix.
+  operator = LinearOperatorZero(num_rows=2, dtype=tf.float32)
+
+  operator.to_dense()
+  ==> [[0., 0.]
+       [0., 0.]]
+
+  operator.shape
+  ==> [2, 2]
+
+  operator.determinant()
+  ==> 0.
+
+  x = ... Shape [2, 4] Tensor
+  operator.matmul(x)
+  ==> Shape [2, 4] Tensor, same as x.
+
+  # Create a 2-batch of 2x2 zero matrices
+  operator = LinearOperatorZeros(num_rows=2, batch_shape=[2])
+  operator.to_dense()
+  ==> [[[0., 0.]
+        [0., 0.]],
+       [[0., 0.]
+        [0., 0.]]]
+
+  # Here, even though the operator has a batch shape, the input is the same as
+  # the output, so x can be passed through without a copy.  The operator is able
+  # to detect that no broadcast is necessary because both x and the operator
+  # have statically defined shape.
+  x = ... Shape [2, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, same as tf.zeros_like(x)
+
+  # Here the operator and x have different batch_shape, and are broadcast.
+  # This requires a copy, since the output is different size than the input.
+  x = ... Shape [1, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, equal to tf.zeros_like([x, x])
+  ```
+
+  ### Shape compatibility
+
+  This operator acts on [batch] matrix with compatible shape.
+  `x` is a batch matrix with compatible shape for `matmul` and `solve` if
+
+  ```
+  operator.shape = [B1,...,Bb] + [N, M],  with b >= 0
+  x.shape =   [C1,...,Cc] + [M, R],
+  and [C1,...,Cc] broadcasts with [B1,...,Bb] to [D1,...,Dd]
+  ```
+
+  #### Matrix property hints
+
+  This `LinearOperator` is initialized with boolean flags of the form `is_X`,
+  for `X = non_singular, self_adjoint, positive_definite, square`.
+  These have the following meaning:
+
+  * If `is_X == True`, callers should expect the operator to have the
+    property `X`.  This is a promise that should be fulfilled, but is *not* a
+    runtime assert.  For example, finite floating point precision may result
+    in these promises being violated.
+  * If `is_X == False`, callers should expect the operator to not have `X`.
+  * If `is_X == None` (the default), callers should have no expectation either
+    way.
+
+[Possible API Signatures]
+ - num_rows: integer, num_columns: integer, batch_shape: list, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: tensor, num_columns: tensor, batch_shape: tensor, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: integer, num_columns: integer, batch_shape: tuple, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 35 (batch_shape as tuple of ints has non-negative dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+Token usage: input=2402, output=6850, total=9252
+** DUPLICATED RULE ** (num_failures: 4)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.LinearOperatorZeros API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+`LinearOperator` acting like a [batch] zero matrix.
+
+  This operator acts like a [batch] zero matrix `A` with shape
+  `[B1,...,Bb, N, M]` for some `b >= 0`.  The first `b` indices index a
+  batch member.  For every batch index `(i1,...,ib)`, `A[i1,...,ib, : :]` is
+  an `N x M` matrix.  This matrix `A` is not materialized, but for
+  purposes of broadcasting this shape will be relevant.
+
+  `LinearOperatorZeros` is initialized with `num_rows`, and optionally
+  `num_columns, `batch_shape`, and `dtype` arguments.  If `num_columns` is
+  `None`, then this operator will be initialized as a square matrix. If
+  `batch_shape` is `None`, this operator efficiently passes through all
+  arguments.  If `batch_shape` is provided, broadcasting may occur, which will
+  require making copies.
+
+  ```python
+  # Create a 2 x 2 zero matrix.
+  operator = LinearOperatorZero(num_rows=2, dtype=tf.float32)
+
+  operator.to_dense()
+  ==> [[0., 0.]
+       [0., 0.]]
+
+  operator.shape
+  ==> [2, 2]
+
+  operator.determinant()
+  ==> 0.
+
+  x = ... Shape [2, 4] Tensor
+  operator.matmul(x)
+  ==> Shape [2, 4] Tensor, same as x.
+
+  # Create a 2-batch of 2x2 zero matrices
+  operator = LinearOperatorZeros(num_rows=2, batch_shape=[2])
+  operator.to_dense()
+  ==> [[[0., 0.]
+        [0., 0.]],
+       [[0., 0.]
+        [0., 0.]]]
+
+  # Here, even though the operator has a batch shape, the input is the same as
+  # the output, so x can be passed through without a copy.  The operator is able
+  # to detect that no broadcast is necessary because both x and the operator
+  # have statically defined shape.
+  x = ... Shape [2, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, same as tf.zeros_like(x)
+
+  # Here the operator and x have different batch_shape, and are broadcast.
+  # This requires a copy, since the output is different size than the input.
+  x = ... Shape [1, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, equal to tf.zeros_like([x, x])
+  ```
+
+  ### Shape compatibility
+
+  This operator acts on [batch] matrix with compatible shape.
+  `x` is a batch matrix with compatible shape for `matmul` and `solve` if
+
+  ```
+  operator.shape = [B1,...,Bb] + [N, M],  with b >= 0
+  x.shape =   [C1,...,Cc] + [M, R],
+  and [C1,...,Cc] broadcasts with [B1,...,Bb] to [D1,...,Dd]
+  ```
+
+  #### Matrix property hints
+
+  This `LinearOperator` is initialized with boolean flags of the form `is_X`,
+  for `X = non_singular, self_adjoint, positive_definite, square`.
+  These have the following meaning:
+
+  * If `is_X == True`, callers should expect the operator to have the
+    property `X`.  This is a promise that should be fulfilled, but is *not* a
+    runtime assert.  For example, finite floating point precision may result
+    in these promises being violated.
+  * If `is_X == False`, callers should expect the operator to not have `X`.
+  * If `is_X == None` (the default), callers should have no expectation either
+    way.
+
+[Possible API Signatures]
+ - num_rows: integer, num_columns: integer, batch_shape: list, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: tensor, num_columns: tensor, batch_shape: tensor, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: integer, num_columns: integer, batch_shape: tuple, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 36 (batch_shape as tensor is 1-D integer with non-negative entries)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 ∧ min(v_1) ≥ 0
+Token usage: input=2402, output=6850, total=9252
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.LinearOperatorZeros API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+`LinearOperator` acting like a [batch] zero matrix.
+
+  This operator acts like a [batch] zero matrix `A` with shape
+  `[B1,...,Bb, N, M]` for some `b >= 0`.  The first `b` indices index a
+  batch member.  For every batch index `(i1,...,ib)`, `A[i1,...,ib, : :]` is
+  an `N x M` matrix.  This matrix `A` is not materialized, but for
+  purposes of broadcasting this shape will be relevant.
+
+  `LinearOperatorZeros` is initialized with `num_rows`, and optionally
+  `num_columns, `batch_shape`, and `dtype` arguments.  If `num_columns` is
+  `None`, then this operator will be initialized as a square matrix. If
+  `batch_shape` is `None`, this operator efficiently passes through all
+  arguments.  If `batch_shape` is provided, broadcasting may occur, which will
+  require making copies.
+
+  ```python
+  # Create a 2 x 2 zero matrix.
+  operator = LinearOperatorZero(num_rows=2, dtype=tf.float32)
+
+  operator.to_dense()
+  ==> [[0., 0.]
+       [0., 0.]]
+
+  operator.shape
+  ==> [2, 2]
+
+  operator.determinant()
+  ==> 0.
+
+  x = ... Shape [2, 4] Tensor
+  operator.matmul(x)
+  ==> Shape [2, 4] Tensor, same as x.
+
+  # Create a 2-batch of 2x2 zero matrices
+  operator = LinearOperatorZeros(num_rows=2, batch_shape=[2])
+  operator.to_dense()
+  ==> [[[0., 0.]
+        [0., 0.]],
+       [[0., 0.]
+        [0., 0.]]]
+
+  # Here, even though the operator has a batch shape, the input is the same as
+  # the output, so x can be passed through without a copy.  The operator is able
+  # to detect that no broadcast is necessary because both x and the operator
+  # have statically defined shape.
+  x = ... Shape [2, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, same as tf.zeros_like(x)
+
+  # Here the operator and x have different batch_shape, and are broadcast.
+  # This requires a copy, since the output is different size than the input.
+  x = ... Shape [1, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, equal to tf.zeros_like([x, x])
+  ```
+
+  ### Shape compatibility
+
+  This operator acts on [batch] matrix with compatible shape.
+  `x` is a batch matrix with compatible shape for `matmul` and `solve` if
+
+  ```
+  operator.shape = [B1,...,Bb] + [N, M],  with b >= 0
+  x.shape =   [C1,...,Cc] + [M, R],
+  and [C1,...,Cc] broadcasts with [B1,...,Bb] to [D1,...,Dd]
+  ```
+
+  #### Matrix property hints
+
+  This `LinearOperator` is initialized with boolean flags of the form `is_X`,
+  for `X = non_singular, self_adjoint, positive_definite, square`.
+  These have the following meaning:
+
+  * If `is_X == True`, callers should expect the operator to have the
+    property `X`.  This is a promise that should be fulfilled, but is *not* a
+    runtime assert.  For example, finite floating point precision may result
+    in these promises being violated.
+  * If `is_X == False`, callers should expect the operator to not have `X`.
+  * If `is_X == None` (the default), callers should have no expectation either
+    way.
+
+[Possible API Signatures]
+ - num_rows: integer, num_columns: integer, batch_shape: list, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: tensor, num_columns: tensor, batch_shape: tensor, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: integer, num_columns: integer, batch_shape: tuple, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 37 (dtype must be a TensorFlow dtype object; suppresses TypeError about torch dtype)
+{v_1 : dtype} |= v_1 = v_1
+Token usage: input=2402, output=6850, total=9252
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.LinearOperatorZeros API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+`LinearOperator` acting like a [batch] zero matrix.
+
+  This operator acts like a [batch] zero matrix `A` with shape
+  `[B1,...,Bb, N, M]` for some `b >= 0`.  The first `b` indices index a
+  batch member.  For every batch index `(i1,...,ib)`, `A[i1,...,ib, : :]` is
+  an `N x M` matrix.  This matrix `A` is not materialized, but for
+  purposes of broadcasting this shape will be relevant.
+
+  `LinearOperatorZeros` is initialized with `num_rows`, and optionally
+  `num_columns, `batch_shape`, and `dtype` arguments.  If `num_columns` is
+  `None`, then this operator will be initialized as a square matrix. If
+  `batch_shape` is `None`, this operator efficiently passes through all
+  arguments.  If `batch_shape` is provided, broadcasting may occur, which will
+  require making copies.
+
+  ```python
+  # Create a 2 x 2 zero matrix.
+  operator = LinearOperatorZero(num_rows=2, dtype=tf.float32)
+
+  operator.to_dense()
+  ==> [[0., 0.]
+       [0., 0.]]
+
+  operator.shape
+  ==> [2, 2]
+
+  operator.determinant()
+  ==> 0.
+
+  x = ... Shape [2, 4] Tensor
+  operator.matmul(x)
+  ==> Shape [2, 4] Tensor, same as x.
+
+  # Create a 2-batch of 2x2 zero matrices
+  operator = LinearOperatorZeros(num_rows=2, batch_shape=[2])
+  operator.to_dense()
+  ==> [[[0., 0.]
+        [0., 0.]],
+       [[0., 0.]
+        [0., 0.]]]
+
+  # Here, even though the operator has a batch shape, the input is the same as
+  # the output, so x can be passed through without a copy.  The operator is able
+  # to detect that no broadcast is necessary because both x and the operator
+  # have statically defined shape.
+  x = ... Shape [2, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, same as tf.zeros_like(x)
+
+  # Here the operator and x have different batch_shape, and are broadcast.
+  # This requires a copy, since the output is different size than the input.
+  x = ... Shape [1, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, equal to tf.zeros_like([x, x])
+  ```
+
+  ### Shape compatibility
+
+  This operator acts on [batch] matrix with compatible shape.
+  `x` is a batch matrix with compatible shape for `matmul` and `solve` if
+
+  ```
+  operator.shape = [B1,...,Bb] + [N, M],  with b >= 0
+  x.shape =   [C1,...,Cc] + [M, R],
+  and [C1,...,Cc] broadcasts with [B1,...,Bb] to [D1,...,Dd]
+  ```
+
+  #### Matrix property hints
+
+  This `LinearOperator` is initialized with boolean flags of the form `is_X`,
+  for `X = non_singular, self_adjoint, positive_definite, square`.
+  These have the following meaning:
+
+  * If `is_X == True`, callers should expect the operator to have the
+    property `X`.  This is a promise that should be fulfilled, but is *not* a
+    runtime assert.  For example, finite floating point precision may result
+    in these promises being violated.
+  * If `is_X == False`, callers should expect the operator to not have `X`.
+  * If `is_X == None` (the default), callers should have no expectation either
+    way.
+
+[Possible API Signatures]
+ - num_rows: integer, num_columns: integer, batch_shape: list, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: tensor, num_columns: tensor, batch_shape: tensor, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: integer, num_columns: integer, batch_shape: tuple, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 38 (Zero operator is singular: is_non_singular must be false if provided)
+{v_1 : bool} |= v_1 = false
+Token usage: input=2402, output=6850, total=9252
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.LinearOperatorZeros API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+`LinearOperator` acting like a [batch] zero matrix.
+
+  This operator acts like a [batch] zero matrix `A` with shape
+  `[B1,...,Bb, N, M]` for some `b >= 0`.  The first `b` indices index a
+  batch member.  For every batch index `(i1,...,ib)`, `A[i1,...,ib, : :]` is
+  an `N x M` matrix.  This matrix `A` is not materialized, but for
+  purposes of broadcasting this shape will be relevant.
+
+  `LinearOperatorZeros` is initialized with `num_rows`, and optionally
+  `num_columns, `batch_shape`, and `dtype` arguments.  If `num_columns` is
+  `None`, then this operator will be initialized as a square matrix. If
+  `batch_shape` is `None`, this operator efficiently passes through all
+  arguments.  If `batch_shape` is provided, broadcasting may occur, which will
+  require making copies.
+
+  ```python
+  # Create a 2 x 2 zero matrix.
+  operator = LinearOperatorZero(num_rows=2, dtype=tf.float32)
+
+  operator.to_dense()
+  ==> [[0., 0.]
+       [0., 0.]]
+
+  operator.shape
+  ==> [2, 2]
+
+  operator.determinant()
+  ==> 0.
+
+  x = ... Shape [2, 4] Tensor
+  operator.matmul(x)
+  ==> Shape [2, 4] Tensor, same as x.
+
+  # Create a 2-batch of 2x2 zero matrices
+  operator = LinearOperatorZeros(num_rows=2, batch_shape=[2])
+  operator.to_dense()
+  ==> [[[0., 0.]
+        [0., 0.]],
+       [[0., 0.]
+        [0., 0.]]]
+
+  # Here, even though the operator has a batch shape, the input is the same as
+  # the output, so x can be passed through without a copy.  The operator is able
+  # to detect that no broadcast is necessary because both x and the operator
+  # have statically defined shape.
+  x = ... Shape [2, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, same as tf.zeros_like(x)
+
+  # Here the operator and x have different batch_shape, and are broadcast.
+  # This requires a copy, since the output is different size than the input.
+  x = ... Shape [1, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, equal to tf.zeros_like([x, x])
+  ```
+
+  ### Shape compatibility
+
+  This operator acts on [batch] matrix with compatible shape.
+  `x` is a batch matrix with compatible shape for `matmul` and `solve` if
+
+  ```
+  operator.shape = [B1,...,Bb] + [N, M],  with b >= 0
+  x.shape =   [C1,...,Cc] + [M, R],
+  and [C1,...,Cc] broadcasts with [B1,...,Bb] to [D1,...,Dd]
+  ```
+
+  #### Matrix property hints
+
+  This `LinearOperator` is initialized with boolean flags of the form `is_X`,
+  for `X = non_singular, self_adjoint, positive_definite, square`.
+  These have the following meaning:
+
+  * If `is_X == True`, callers should expect the operator to have the
+    property `X`.  This is a promise that should be fulfilled, but is *not* a
+    runtime assert.  For example, finite floating point precision may result
+    in these promises being violated.
+  * If `is_X == False`, callers should expect the operator to not have `X`.
+  * If `is_X == None` (the default), callers should have no expectation either
+    way.
+
+[Possible API Signatures]
+ - num_rows: integer, num_columns: integer, batch_shape: list, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: tensor, num_columns: tensor, batch_shape: tensor, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: integer, num_columns: integer, batch_shape: tuple, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 39 (Zero operator is not positive-definite: is_positive_definite must be false if provided)
+{v_1 : bool} |= v_1 = false
+Token usage: input=2402, output=6850, total=9252
+** DUPLICATED RULE ** (num_failures: 5)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.LinearOperatorZeros API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+`LinearOperator` acting like a [batch] zero matrix.
+
+  This operator acts like a [batch] zero matrix `A` with shape
+  `[B1,...,Bb, N, M]` for some `b >= 0`.  The first `b` indices index a
+  batch member.  For every batch index `(i1,...,ib)`, `A[i1,...,ib, : :]` is
+  an `N x M` matrix.  This matrix `A` is not materialized, but for
+  purposes of broadcasting this shape will be relevant.
+
+  `LinearOperatorZeros` is initialized with `num_rows`, and optionally
+  `num_columns, `batch_shape`, and `dtype` arguments.  If `num_columns` is
+  `None`, then this operator will be initialized as a square matrix. If
+  `batch_shape` is `None`, this operator efficiently passes through all
+  arguments.  If `batch_shape` is provided, broadcasting may occur, which will
+  require making copies.
+
+  ```python
+  # Create a 2 x 2 zero matrix.
+  operator = LinearOperatorZero(num_rows=2, dtype=tf.float32)
+
+  operator.to_dense()
+  ==> [[0., 0.]
+       [0., 0.]]
+
+  operator.shape
+  ==> [2, 2]
+
+  operator.determinant()
+  ==> 0.
+
+  x = ... Shape [2, 4] Tensor
+  operator.matmul(x)
+  ==> Shape [2, 4] Tensor, same as x.
+
+  # Create a 2-batch of 2x2 zero matrices
+  operator = LinearOperatorZeros(num_rows=2, batch_shape=[2])
+  operator.to_dense()
+  ==> [[[0., 0.]
+        [0., 0.]],
+       [[0., 0.]
+        [0., 0.]]]
+
+  # Here, even though the operator has a batch shape, the input is the same as
+  # the output, so x can be passed through without a copy.  The operator is able
+  # to detect that no broadcast is necessary because both x and the operator
+  # have statically defined shape.
+  x = ... Shape [2, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, same as tf.zeros_like(x)
+
+  # Here the operator and x have different batch_shape, and are broadcast.
+  # This requires a copy, since the output is different size than the input.
+  x = ... Shape [1, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, equal to tf.zeros_like([x, x])
+  ```
+
+  ### Shape compatibility
+
+  This operator acts on [batch] matrix with compatible shape.
+  `x` is a batch matrix with compatible shape for `matmul` and `solve` if
+
+  ```
+  operator.shape = [B1,...,Bb] + [N, M],  with b >= 0
+  x.shape =   [C1,...,Cc] + [M, R],
+  and [C1,...,Cc] broadcasts with [B1,...,Bb] to [D1,...,Dd]
+  ```
+
+  #### Matrix property hints
+
+  This `LinearOperator` is initialized with boolean flags of the form `is_X`,
+  for `X = non_singular, self_adjoint, positive_definite, square`.
+  These have the following meaning:
+
+  * If `is_X == True`, callers should expect the operator to have the
+    property `X`.  This is a promise that should be fulfilled, but is *not* a
+    runtime assert.  For example, finite floating point precision may result
+    in these promises being violated.
+  * If `is_X == False`, callers should expect the operator to not have `X`.
+  * If `is_X == None` (the default), callers should have no expectation either
+    way.
+
+[Possible API Signatures]
+ - num_rows: integer, num_columns: integer, batch_shape: list, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: tensor, num_columns: tensor, batch_shape: tensor, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: integer, num_columns: integer, batch_shape: tuple, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 40 (If is_square is true, integer num_rows and num_columns must match)
+{v_1 : int, v_2 : int, v_3 : bool} |= if v_3 then v_1 = v_2
+Token usage: input=2402, output=6850, total=9252
+** DUPLICATED RULE ** (num_failures: 6)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.LinearOperatorZeros API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+`LinearOperator` acting like a [batch] zero matrix.
+
+  This operator acts like a [batch] zero matrix `A` with shape
+  `[B1,...,Bb, N, M]` for some `b >= 0`.  The first `b` indices index a
+  batch member.  For every batch index `(i1,...,ib)`, `A[i1,...,ib, : :]` is
+  an `N x M` matrix.  This matrix `A` is not materialized, but for
+  purposes of broadcasting this shape will be relevant.
+
+  `LinearOperatorZeros` is initialized with `num_rows`, and optionally
+  `num_columns, `batch_shape`, and `dtype` arguments.  If `num_columns` is
+  `None`, then this operator will be initialized as a square matrix. If
+  `batch_shape` is `None`, this operator efficiently passes through all
+  arguments.  If `batch_shape` is provided, broadcasting may occur, which will
+  require making copies.
+
+  ```python
+  # Create a 2 x 2 zero matrix.
+  operator = LinearOperatorZero(num_rows=2, dtype=tf.float32)
+
+  operator.to_dense()
+  ==> [[0., 0.]
+       [0., 0.]]
+
+  operator.shape
+  ==> [2, 2]
+
+  operator.determinant()
+  ==> 0.
+
+  x = ... Shape [2, 4] Tensor
+  operator.matmul(x)
+  ==> Shape [2, 4] Tensor, same as x.
+
+  # Create a 2-batch of 2x2 zero matrices
+  operator = LinearOperatorZeros(num_rows=2, batch_shape=[2])
+  operator.to_dense()
+  ==> [[[0., 0.]
+        [0., 0.]],
+       [[0., 0.]
+        [0., 0.]]]
+
+  # Here, even though the operator has a batch shape, the input is the same as
+  # the output, so x can be passed through without a copy.  The operator is able
+  # to detect that no broadcast is necessary because both x and the operator
+  # have statically defined shape.
+  x = ... Shape [2, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, same as tf.zeros_like(x)
+
+  # Here the operator and x have different batch_shape, and are broadcast.
+  # This requires a copy, since the output is different size than the input.
+  x = ... Shape [1, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, equal to tf.zeros_like([x, x])
+  ```
+
+  ### Shape compatibility
+
+  This operator acts on [batch] matrix with compatible shape.
+  `x` is a batch matrix with compatible shape for `matmul` and `solve` if
+
+  ```
+  operator.shape = [B1,...,Bb] + [N, M],  with b >= 0
+  x.shape =   [C1,...,Cc] + [M, R],
+  and [C1,...,Cc] broadcasts with [B1,...,Bb] to [D1,...,Dd]
+  ```
+
+  #### Matrix property hints
+
+  This `LinearOperator` is initialized with boolean flags of the form `is_X`,
+  for `X = non_singular, self_adjoint, positive_definite, square`.
+  These have the following meaning:
+
+  * If `is_X == True`, callers should expect the operator to have the
+    property `X`.  This is a promise that should be fulfilled, but is *not* a
+    runtime assert.  For example, finite floating point precision may result
+    in these promises being violated.
+  * If `is_X == False`, callers should expect the operator to not have `X`.
+  * If `is_X == None` (the default), callers should have no expectation either
+    way.
+
+[Possible API Signatures]
+ - num_rows: integer, num_columns: integer, batch_shape: list, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: tensor, num_columns: tensor, batch_shape: tensor, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: integer, num_columns: integer, batch_shape: tuple, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 41 (If is_self_adjoint is true, integer num_rows and num_columns must match)
+{v_1 : int, v_2 : int, v_3 : bool} |= if v_3 then v_1 = v_2
+Token usage: input=2402, output=6850, total=9252
+** DUPLICATED RULE ** (num_failures: 7)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.LinearOperatorZeros API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+`LinearOperator` acting like a [batch] zero matrix.
+
+  This operator acts like a [batch] zero matrix `A` with shape
+  `[B1,...,Bb, N, M]` for some `b >= 0`.  The first `b` indices index a
+  batch member.  For every batch index `(i1,...,ib)`, `A[i1,...,ib, : :]` is
+  an `N x M` matrix.  This matrix `A` is not materialized, but for
+  purposes of broadcasting this shape will be relevant.
+
+  `LinearOperatorZeros` is initialized with `num_rows`, and optionally
+  `num_columns, `batch_shape`, and `dtype` arguments.  If `num_columns` is
+  `None`, then this operator will be initialized as a square matrix. If
+  `batch_shape` is `None`, this operator efficiently passes through all
+  arguments.  If `batch_shape` is provided, broadcasting may occur, which will
+  require making copies.
+
+  ```python
+  # Create a 2 x 2 zero matrix.
+  operator = LinearOperatorZero(num_rows=2, dtype=tf.float32)
+
+  operator.to_dense()
+  ==> [[0., 0.]
+       [0., 0.]]
+
+  operator.shape
+  ==> [2, 2]
+
+  operator.determinant()
+  ==> 0.
+
+  x = ... Shape [2, 4] Tensor
+  operator.matmul(x)
+  ==> Shape [2, 4] Tensor, same as x.
+
+  # Create a 2-batch of 2x2 zero matrices
+  operator = LinearOperatorZeros(num_rows=2, batch_shape=[2])
+  operator.to_dense()
+  ==> [[[0., 0.]
+        [0., 0.]],
+       [[0., 0.]
+        [0., 0.]]]
+
+  # Here, even though the operator has a batch shape, the input is the same as
+  # the output, so x can be passed through without a copy.  The operator is able
+  # to detect that no broadcast is necessary because both x and the operator
+  # have statically defined shape.
+  x = ... Shape [2, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, same as tf.zeros_like(x)
+
+  # Here the operator and x have different batch_shape, and are broadcast.
+  # This requires a copy, since the output is different size than the input.
+  x = ... Shape [1, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, equal to tf.zeros_like([x, x])
+  ```
+
+  ### Shape compatibility
+
+  This operator acts on [batch] matrix with compatible shape.
+  `x` is a batch matrix with compatible shape for `matmul` and `solve` if
+
+  ```
+  operator.shape = [B1,...,Bb] + [N, M],  with b >= 0
+  x.shape =   [C1,...,Cc] + [M, R],
+  and [C1,...,Cc] broadcasts with [B1,...,Bb] to [D1,...,Dd]
+  ```
+
+  #### Matrix property hints
+
+  This `LinearOperator` is initialized with boolean flags of the form `is_X`,
+  for `X = non_singular, self_adjoint, positive_definite, square`.
+  These have the following meaning:
+
+  * If `is_X == True`, callers should expect the operator to have the
+    property `X`.  This is a promise that should be fulfilled, but is *not* a
+    runtime assert.  For example, finite floating point precision may result
+    in these promises being violated.
+  * If `is_X == False`, callers should expect the operator to not have `X`.
+  * If `is_X == None` (the default), callers should have no expectation either
+    way.
+
+[Possible API Signatures]
+ - num_rows: integer, num_columns: integer, batch_shape: list, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: tensor, num_columns: tensor, batch_shape: tensor, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: integer, num_columns: integer, batch_shape: tuple, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 42 (If is_square is true, tensor num_rows and num_columns must be equal scalar int32/int64)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 then (ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ 3 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 4 ∧ 3 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 4 ∧ min(v_1) = min(v_2))
+Token usage: input=2402, output=6850, total=9252
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.LinearOperatorZeros API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+`LinearOperator` acting like a [batch] zero matrix.
+
+  This operator acts like a [batch] zero matrix `A` with shape
+  `[B1,...,Bb, N, M]` for some `b >= 0`.  The first `b` indices index a
+  batch member.  For every batch index `(i1,...,ib)`, `A[i1,...,ib, : :]` is
+  an `N x M` matrix.  This matrix `A` is not materialized, but for
+  purposes of broadcasting this shape will be relevant.
+
+  `LinearOperatorZeros` is initialized with `num_rows`, and optionally
+  `num_columns, `batch_shape`, and `dtype` arguments.  If `num_columns` is
+  `None`, then this operator will be initialized as a square matrix. If
+  `batch_shape` is `None`, this operator efficiently passes through all
+  arguments.  If `batch_shape` is provided, broadcasting may occur, which will
+  require making copies.
+
+  ```python
+  # Create a 2 x 2 zero matrix.
+  operator = LinearOperatorZero(num_rows=2, dtype=tf.float32)
+
+  operator.to_dense()
+  ==> [[0., 0.]
+       [0., 0.]]
+
+  operator.shape
+  ==> [2, 2]
+
+  operator.determinant()
+  ==> 0.
+
+  x = ... Shape [2, 4] Tensor
+  operator.matmul(x)
+  ==> Shape [2, 4] Tensor, same as x.
+
+  # Create a 2-batch of 2x2 zero matrices
+  operator = LinearOperatorZeros(num_rows=2, batch_shape=[2])
+  operator.to_dense()
+  ==> [[[0., 0.]
+        [0., 0.]],
+       [[0., 0.]
+        [0., 0.]]]
+
+  # Here, even though the operator has a batch shape, the input is the same as
+  # the output, so x can be passed through without a copy.  The operator is able
+  # to detect that no broadcast is necessary because both x and the operator
+  # have statically defined shape.
+  x = ... Shape [2, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, same as tf.zeros_like(x)
+
+  # Here the operator and x have different batch_shape, and are broadcast.
+  # This requires a copy, since the output is different size than the input.
+  x = ... Shape [1, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, equal to tf.zeros_like([x, x])
+  ```
+
+  ### Shape compatibility
+
+  This operator acts on [batch] matrix with compatible shape.
+  `x` is a batch matrix with compatible shape for `matmul` and `solve` if
+
+  ```
+  operator.shape = [B1,...,Bb] + [N, M],  with b >= 0
+  x.shape =   [C1,...,Cc] + [M, R],
+  and [C1,...,Cc] broadcasts with [B1,...,Bb] to [D1,...,Dd]
+  ```
+
+  #### Matrix property hints
+
+  This `LinearOperator` is initialized with boolean flags of the form `is_X`,
+  for `X = non_singular, self_adjoint, positive_definite, square`.
+  These have the following meaning:
+
+  * If `is_X == True`, callers should expect the operator to have the
+    property `X`.  This is a promise that should be fulfilled, but is *not* a
+    runtime assert.  For example, finite floating point precision may result
+    in these promises being violated.
+  * If `is_X == False`, callers should expect the operator to not have `X`.
+  * If `is_X == None` (the default), callers should have no expectation either
+    way.
+
+[Possible API Signatures]
+ - num_rows: integer, num_columns: integer, batch_shape: list, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: tensor, num_columns: tensor, batch_shape: tensor, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: integer, num_columns: integer, batch_shape: tuple, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 43 (batch_shape may be provided as a list of ints)
+{v_1 : list(int)} |= v_1 = v_1
+Token usage: input=2402, output=6850, total=9252
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.LinearOperatorZeros API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+`LinearOperator` acting like a [batch] zero matrix.
+
+  This operator acts like a [batch] zero matrix `A` with shape
+  `[B1,...,Bb, N, M]` for some `b >= 0`.  The first `b` indices index a
+  batch member.  For every batch index `(i1,...,ib)`, `A[i1,...,ib, : :]` is
+  an `N x M` matrix.  This matrix `A` is not materialized, but for
+  purposes of broadcasting this shape will be relevant.
+
+  `LinearOperatorZeros` is initialized with `num_rows`, and optionally
+  `num_columns, `batch_shape`, and `dtype` arguments.  If `num_columns` is
+  `None`, then this operator will be initialized as a square matrix. If
+  `batch_shape` is `None`, this operator efficiently passes through all
+  arguments.  If `batch_shape` is provided, broadcasting may occur, which will
+  require making copies.
+
+  ```python
+  # Create a 2 x 2 zero matrix.
+  operator = LinearOperatorZero(num_rows=2, dtype=tf.float32)
+
+  operator.to_dense()
+  ==> [[0., 0.]
+       [0., 0.]]
+
+  operator.shape
+  ==> [2, 2]
+
+  operator.determinant()
+  ==> 0.
+
+  x = ... Shape [2, 4] Tensor
+  operator.matmul(x)
+  ==> Shape [2, 4] Tensor, same as x.
+
+  # Create a 2-batch of 2x2 zero matrices
+  operator = LinearOperatorZeros(num_rows=2, batch_shape=[2])
+  operator.to_dense()
+  ==> [[[0., 0.]
+        [0., 0.]],
+       [[0., 0.]
+        [0., 0.]]]
+
+  # Here, even though the operator has a batch shape, the input is the same as
+  # the output, so x can be passed through without a copy.  The operator is able
+  # to detect that no broadcast is necessary because both x and the operator
+  # have statically defined shape.
+  x = ... Shape [2, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, same as tf.zeros_like(x)
+
+  # Here the operator and x have different batch_shape, and are broadcast.
+  # This requires a copy, since the output is different size than the input.
+  x = ... Shape [1, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, equal to tf.zeros_like([x, x])
+  ```
+
+  ### Shape compatibility
+
+  This operator acts on [batch] matrix with compatible shape.
+  `x` is a batch matrix with compatible shape for `matmul` and `solve` if
+
+  ```
+  operator.shape = [B1,...,Bb] + [N, M],  with b >= 0
+  x.shape =   [C1,...,Cc] + [M, R],
+  and [C1,...,Cc] broadcasts with [B1,...,Bb] to [D1,...,Dd]
+  ```
+
+  #### Matrix property hints
+
+  This `LinearOperator` is initialized with boolean flags of the form `is_X`,
+  for `X = non_singular, self_adjoint, positive_definite, square`.
+  These have the following meaning:
+
+  * If `is_X == True`, callers should expect the operator to have the
+    property `X`.  This is a promise that should be fulfilled, but is *not* a
+    runtime assert.  For example, finite floating point precision may result
+    in these promises being violated.
+  * If `is_X == False`, callers should expect the operator to not have `X`.
+  * If `is_X == None` (the default), callers should have no expectation either
+    way.
+
+[Possible API Signatures]
+ - num_rows: integer, num_columns: integer, batch_shape: list, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: tensor, num_columns: tensor, batch_shape: tensor, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: integer, num_columns: integer, batch_shape: tuple, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 44 (assert_proper_shapes, when provided, is a boolean flag)
+{v_1 : bool} |= v_1 = v_1
+Token usage: input=2402, output=6850, total=9252
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.LinearOperatorZeros API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+`LinearOperator` acting like a [batch] zero matrix.
+
+  This operator acts like a [batch] zero matrix `A` with shape
+  `[B1,...,Bb, N, M]` for some `b >= 0`.  The first `b` indices index a
+  batch member.  For every batch index `(i1,...,ib)`, `A[i1,...,ib, : :]` is
+  an `N x M` matrix.  This matrix `A` is not materialized, but for
+  purposes of broadcasting this shape will be relevant.
+
+  `LinearOperatorZeros` is initialized with `num_rows`, and optionally
+  `num_columns, `batch_shape`, and `dtype` arguments.  If `num_columns` is
+  `None`, then this operator will be initialized as a square matrix. If
+  `batch_shape` is `None`, this operator efficiently passes through all
+  arguments.  If `batch_shape` is provided, broadcasting may occur, which will
+  require making copies.
+
+  ```python
+  # Create a 2 x 2 zero matrix.
+  operator = LinearOperatorZero(num_rows=2, dtype=tf.float32)
+
+  operator.to_dense()
+  ==> [[0., 0.]
+       [0., 0.]]
+
+  operator.shape
+  ==> [2, 2]
+
+  operator.determinant()
+  ==> 0.
+
+  x = ... Shape [2, 4] Tensor
+  operator.matmul(x)
+  ==> Shape [2, 4] Tensor, same as x.
+
+  # Create a 2-batch of 2x2 zero matrices
+  operator = LinearOperatorZeros(num_rows=2, batch_shape=[2])
+  operator.to_dense()
+  ==> [[[0., 0.]
+        [0., 0.]],
+       [[0., 0.]
+        [0., 0.]]]
+
+  # Here, even though the operator has a batch shape, the input is the same as
+  # the output, so x can be passed through without a copy.  The operator is able
+  # to detect that no broadcast is necessary because both x and the operator
+  # have statically defined shape.
+  x = ... Shape [2, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, same as tf.zeros_like(x)
+
+  # Here the operator and x have different batch_shape, and are broadcast.
+  # This requires a copy, since the output is different size than the input.
+  x = ... Shape [1, 2, 3]
+  operator.matmul(x)
+  ==> Shape [2, 2, 3] Tensor, equal to tf.zeros_like([x, x])
+  ```
+
+  ### Shape compatibility
+
+  This operator acts on [batch] matrix with compatible shape.
+  `x` is a batch matrix with compatible shape for `matmul` and `solve` if
+
+  ```
+  operator.shape = [B1,...,Bb] + [N, M],  with b >= 0
+  x.shape =   [C1,...,Cc] + [M, R],
+  and [C1,...,Cc] broadcasts with [B1,...,Bb] to [D1,...,Dd]
+  ```
+
+  #### Matrix property hints
+
+  This `LinearOperator` is initialized with boolean flags of the form `is_X`,
+  for `X = non_singular, self_adjoint, positive_definite, square`.
+  These have the following meaning:
+
+  * If `is_X == True`, callers should expect the operator to have the
+    property `X`.  This is a promise that should be fulfilled, but is *not* a
+    runtime assert.  For example, finite floating point precision may result
+    in these promises being violated.
+  * If `is_X == False`, callers should expect the operator to not have `X`.
+  * If `is_X == None` (the default), callers should have no expectation either
+    way.
+
+[Possible API Signatures]
+ - num_rows: integer, num_columns: integer, batch_shape: list, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: tensor, num_columns: tensor, batch_shape: tensor, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+ - num_rows: integer, num_columns: integer, batch_shape: tuple, dtype: dtype, is_non_singular: boolean, is_self_adjoint: boolean, is_positive_definite: boolean, is_square: boolean, assert_proper_shapes: boolean, name: string
+
+[Error Messages]
+TypeError: Cannot convert the argument `type_value`: torch.int64 to a TensorFlow DType.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 45 (batch_shape can be provided as either tuple(int) or list(int))
+{v_1 : tuple(int) ⊎ list(int)} |= v_1 = v_1
+Token usage: input=2402, output=6850, total=9252
+** SUCCESS **
+

@@ -52,3 +52,27 @@ Rule 21 (ranks of matrix and rhs must be equal to avoid size-incompatible matmul
 >>
 Rule 22 (name is a valid string identifier)
 {v_5 : str} |= v_5 = "none" ∨ v_5 = "linear" ∨ v_5 = "sum" ∨ v_5 = "max" ∨ v_5 = "min"
+>>
+Rule 24 (inner M-dimensions must match: matrix[..., M, N] vs rhs[..., M, K])
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 2)
+>>
+Rule 25 (batch/outer dimensions must match for all pairs)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = ndim(v_2) ∧ ndim(v_1) ≥ 3) then ∀i ∈ [0, ndim(v_1) - 3] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 26 (inputs must not be boolean tensors)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0
+>>
+Rule 28 (disallow uint8 to avoid missing MatMul kernels)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 5 ∧ dtype_(v_2) ≠ 5
+>>
+Rule 29 (fast path: avoid float16 to prevent missing Cholesky kernels)
+{v_1 : tensor, v_4 : bool} |= if v_4 then dtype_(v_1) ≠ 6
+>>
+Rule 30 (slow path: avoid float16 to prevent missing MatrixSolveLs kernels)
+{v_1 : tensor, v_4 : bool} |= if (v_4 = false) then dtype_(v_1) ≠ 6
+>>
+Rule 32 (complex128 inputs require zero l2_regularizer for float signature)
+{v_1 : tensor, v_2 : tensor, v_3 : float} |= if (dtype_(v_1) = 10 ∨ dtype_(v_2) = 10) then v_3 = 0
+>>
+Rule 33 (complex128 inputs require zero l2_regularizer for tensor signature)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 10 ∨ dtype_(v_2) = 10) then (ndim(v_3) = 0 ∧ v_3 = 0)

@@ -43,3 +43,18 @@ Rule 17 (all non-class dimensions of logits match labels)
 >>
 Rule 23 (name is chosen from predefined strings)
 {v_3 : str} |= v_3 = "none" ∨ v_3 = "sum" ∨ v_3 = "max" ∨ v_3 = "min" ∨ v_3 = "prod"
+>>
+Rule 24 (rank consistency: labels.rank = logits.rank - 1; suppresses “labels.shape.rank must equal logits.shape.rank - 1”)
+{v_1: tensor, v_2: tensor} |= ndim(v_2) ≥ 1 ∧ ndim(v_1) = ndim(v_2) - 1
+>>
+Rule 25 (leading dimensions match: labels.shape = logits.shape except last; suppresses “labels.shape must equal logits.shape except for the last dimension”)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 26 (valid dtypes: logits in {float16, float32, float64}, labels in {int32, int64})
+{v_1: tensor, v_2: tensor} |= (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)
+>>
+Rule 27 (label indices are within [0, num_classes))
+{v_1: tensor, v_2: tensor} |= ndim(v_2) ≥ 1 ∧ min(v_1) ≥ 0 ∧ max(v_1) ≤ shape(v_2, ndim(v_2) - 1) - 1
+>>
+Rule 28 (logits must be non-scalar; suppresses “logits are scalars (need to have rank >= 1)”)
+{v_2: tensor} |= ndim(v_2) ≥ 1

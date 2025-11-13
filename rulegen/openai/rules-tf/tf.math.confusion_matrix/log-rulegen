@@ -3886,3 +3886,1299 @@ Rule 24 (optional: name is a string from the allowed set)
 Token usage: input=2878, output=5586, total=8464
 ** SUCCESS **
 
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.confusion_matrix API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the confusion matrix from predictions and labels.
+
+  The matrix columns represent the prediction labels and the rows represent the
+  real labels. The confusion matrix is always a 2-D array of shape `[n, n]`,
+  where `n` is the number of valid labels for a given classification task. Both
+  prediction and labels must be 1-D arrays of the same shape in order for this
+  function to work.
+
+  If `num_classes` is `None`, then `num_classes` will be set to one plus the
+  maximum value in either predictions or labels. Class labels are expected to
+  start at 0. For example, if `num_classes` is 3, then the possible labels
+  would be `[0, 1, 2]`.
+
+  If `weights` is not `None`, then each prediction contributes its
+  corresponding weight to the total value of the confusion matrix cell.
+
+  For example:
+
+  ```python
+    tf.math.confusion_matrix([1, 2, 4], [2, 2, 4]) ==>
+        [[0 0 0 0 0]
+         [0 0 1 0 0]
+         [0 0 1 0 0]
+         [0 0 0 0 0]
+         [0 0 0 0 1]]
+  ```
+
+  Note that the possible labels are assumed to be `[0, 1, 2, 3, 4]`,
+  resulting in a 5x5 confusion matrix.
+
+  Args:
+    labels: 1-D `Tensor` of real labels for the classification task.
+    predictions: 1-D `Tensor` of predictions for a given classification.
+    num_classes: The possible number of labels the classification task can
+                 have. If this value is not provided, it will be calculated
+                 using both predictions and labels array.
+    weights: An optional `Tensor` whose shape matches `predictions`.
+    dtype: Data type of the confusion matrix.
+    name: Scope name.
+
+  Returns:
+    A `Tensor` of type `dtype` with shape `[n, n]` representing the confusion
+    matrix, where `n` is the number of possible labels in the classification
+    task.
+
+  Raises:
+    ValueError: If both predictions and labels are not 1-D vectors and have
+      mismatched shapes, or if `weights` is not `None` and its shape doesn't
+      match `predictions`.
+
+[Possible API Signatures]
+ - labels: tensor, predictions: tensor, num_classes: integer, weights: tensor, dtype: dtype, name: string
+ - labels: tensor, predictions: tensor, num_classes: tensor, weights: tensor, dtype: dtype, name: string
+
+[Error Messages]
+InvalidArgumentError: `labels` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(1, 25, 24, 22, 72) dtype=int64) =  ['-9223372036854775808', '-9223372036854775808', '-9223372036854775808', '...']
+InvalidArgumentError: `labels` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(100,) dtype=int64) =  ['-5914487188049732608', '-5961771404630411264', '-5717681332644853760', '...']
+InvalidArgumentError: `labels` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(67, 70, 62, 99) dtype=int64) =  ['-1167426399439421440', '-1802084439639982080', '-3561593315151314944', '...']
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [0 0 0] First 1 elements of y: [-1027091214]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [1511156536463247616 2881773673737977856 4437535727143441408] First 1 elements of y: [6648536403287812776]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [1599631480310685184 2834224192789851136 2011098783312504064] First 1 elements of y: [642303562494498059]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [2152964215451422464  378095312567176000 1829487204532300800] First 1 elements of y: [219]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [3920896672678281216 6542460872395063296 5904553912773378048] First 1 elements of y: [1745765237]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [4600814779121365504 4238557564288370176 4476437716915209728] First 1 elements of y: [1584794563108848651]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [8376044396025479168 8386613451547475968 8351846893877198848] First 1 elements of y: [6204534987018563752]
+InvalidArgumentError: `predictions` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(1, 55, 37) dtype=int64) =  ['4987483149882621952', '4053034605714866176', '-6075701143973920768', '...']
+InvalidArgumentError: `predictions` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(3, 86, 92, 84) dtype=int64) =  ['1406852203213225984', '261178352839163904', '2309834236422520832', '...']
+InvalidArgumentError: `predictions` out of bound Condition x < y did not hold. First 3 elements of x: [1697817131437267456 1531751478796877824 4600194018355879936] First 1 elements of y: [75]
+ValueError: Shapes (21, 22, 6) and (70, 27) are incompatible
+ValueError: Shapes (49, 29, 81, 15, 52) and (56, 12, 96, 44, 12) are incompatible
+ValueError: Shapes (55, 66, 41, 29) and (28, 85, 35, 66) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 25 (labels and predictions must be 1-D and of equal length)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0)
+Token usage: input=2812, output=5971, total=8783
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.confusion_matrix API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the confusion matrix from predictions and labels.
+
+  The matrix columns represent the prediction labels and the rows represent the
+  real labels. The confusion matrix is always a 2-D array of shape `[n, n]`,
+  where `n` is the number of valid labels for a given classification task. Both
+  prediction and labels must be 1-D arrays of the same shape in order for this
+  function to work.
+
+  If `num_classes` is `None`, then `num_classes` will be set to one plus the
+  maximum value in either predictions or labels. Class labels are expected to
+  start at 0. For example, if `num_classes` is 3, then the possible labels
+  would be `[0, 1, 2]`.
+
+  If `weights` is not `None`, then each prediction contributes its
+  corresponding weight to the total value of the confusion matrix cell.
+
+  For example:
+
+  ```python
+    tf.math.confusion_matrix([1, 2, 4], [2, 2, 4]) ==>
+        [[0 0 0 0 0]
+         [0 0 1 0 0]
+         [0 0 1 0 0]
+         [0 0 0 0 0]
+         [0 0 0 0 1]]
+  ```
+
+  Note that the possible labels are assumed to be `[0, 1, 2, 3, 4]`,
+  resulting in a 5x5 confusion matrix.
+
+  Args:
+    labels: 1-D `Tensor` of real labels for the classification task.
+    predictions: 1-D `Tensor` of predictions for a given classification.
+    num_classes: The possible number of labels the classification task can
+                 have. If this value is not provided, it will be calculated
+                 using both predictions and labels array.
+    weights: An optional `Tensor` whose shape matches `predictions`.
+    dtype: Data type of the confusion matrix.
+    name: Scope name.
+
+  Returns:
+    A `Tensor` of type `dtype` with shape `[n, n]` representing the confusion
+    matrix, where `n` is the number of possible labels in the classification
+    task.
+
+  Raises:
+    ValueError: If both predictions and labels are not 1-D vectors and have
+      mismatched shapes, or if `weights` is not `None` and its shape doesn't
+      match `predictions`.
+
+[Possible API Signatures]
+ - labels: tensor, predictions: tensor, num_classes: integer, weights: tensor, dtype: dtype, name: string
+ - labels: tensor, predictions: tensor, num_classes: tensor, weights: tensor, dtype: dtype, name: string
+
+[Error Messages]
+InvalidArgumentError: `labels` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(1, 25, 24, 22, 72) dtype=int64) =  ['-9223372036854775808', '-9223372036854775808', '-9223372036854775808', '...']
+InvalidArgumentError: `labels` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(100,) dtype=int64) =  ['-5914487188049732608', '-5961771404630411264', '-5717681332644853760', '...']
+InvalidArgumentError: `labels` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(67, 70, 62, 99) dtype=int64) =  ['-1167426399439421440', '-1802084439639982080', '-3561593315151314944', '...']
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [0 0 0] First 1 elements of y: [-1027091214]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [1511156536463247616 2881773673737977856 4437535727143441408] First 1 elements of y: [6648536403287812776]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [1599631480310685184 2834224192789851136 2011098783312504064] First 1 elements of y: [642303562494498059]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [2152964215451422464  378095312567176000 1829487204532300800] First 1 elements of y: [219]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [3920896672678281216 6542460872395063296 5904553912773378048] First 1 elements of y: [1745765237]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [4600814779121365504 4238557564288370176 4476437716915209728] First 1 elements of y: [1584794563108848651]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [8376044396025479168 8386613451547475968 8351846893877198848] First 1 elements of y: [6204534987018563752]
+InvalidArgumentError: `predictions` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(1, 55, 37) dtype=int64) =  ['4987483149882621952', '4053034605714866176', '-6075701143973920768', '...']
+InvalidArgumentError: `predictions` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(3, 86, 92, 84) dtype=int64) =  ['1406852203213225984', '261178352839163904', '2309834236422520832', '...']
+InvalidArgumentError: `predictions` out of bound Condition x < y did not hold. First 3 elements of x: [1697817131437267456 1531751478796877824 4600194018355879936] First 1 elements of y: [75]
+ValueError: Shapes (21, 22, 6) and (70, 27) are incompatible
+ValueError: Shapes (49, 29, 81, 15, 52) and (56, 12, 96, 44, 12) are incompatible
+ValueError: Shapes (55, 66, 41, 29) and (28, 85, 35, 66) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 26 (weights must be 1-D and match predictions’ length)
+{v_2 : tensor, v_4 : tensor} |= ndim(v_4) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_4, 0) = shape(v_2, 0)
+Token usage: input=2812, output=5971, total=8783
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.confusion_matrix API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the confusion matrix from predictions and labels.
+
+  The matrix columns represent the prediction labels and the rows represent the
+  real labels. The confusion matrix is always a 2-D array of shape `[n, n]`,
+  where `n` is the number of valid labels for a given classification task. Both
+  prediction and labels must be 1-D arrays of the same shape in order for this
+  function to work.
+
+  If `num_classes` is `None`, then `num_classes` will be set to one plus the
+  maximum value in either predictions or labels. Class labels are expected to
+  start at 0. For example, if `num_classes` is 3, then the possible labels
+  would be `[0, 1, 2]`.
+
+  If `weights` is not `None`, then each prediction contributes its
+  corresponding weight to the total value of the confusion matrix cell.
+
+  For example:
+
+  ```python
+    tf.math.confusion_matrix([1, 2, 4], [2, 2, 4]) ==>
+        [[0 0 0 0 0]
+         [0 0 1 0 0]
+         [0 0 1 0 0]
+         [0 0 0 0 0]
+         [0 0 0 0 1]]
+  ```
+
+  Note that the possible labels are assumed to be `[0, 1, 2, 3, 4]`,
+  resulting in a 5x5 confusion matrix.
+
+  Args:
+    labels: 1-D `Tensor` of real labels for the classification task.
+    predictions: 1-D `Tensor` of predictions for a given classification.
+    num_classes: The possible number of labels the classification task can
+                 have. If this value is not provided, it will be calculated
+                 using both predictions and labels array.
+    weights: An optional `Tensor` whose shape matches `predictions`.
+    dtype: Data type of the confusion matrix.
+    name: Scope name.
+
+  Returns:
+    A `Tensor` of type `dtype` with shape `[n, n]` representing the confusion
+    matrix, where `n` is the number of possible labels in the classification
+    task.
+
+  Raises:
+    ValueError: If both predictions and labels are not 1-D vectors and have
+      mismatched shapes, or if `weights` is not `None` and its shape doesn't
+      match `predictions`.
+
+[Possible API Signatures]
+ - labels: tensor, predictions: tensor, num_classes: integer, weights: tensor, dtype: dtype, name: string
+ - labels: tensor, predictions: tensor, num_classes: tensor, weights: tensor, dtype: dtype, name: string
+
+[Error Messages]
+InvalidArgumentError: `labels` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(1, 25, 24, 22, 72) dtype=int64) =  ['-9223372036854775808', '-9223372036854775808', '-9223372036854775808', '...']
+InvalidArgumentError: `labels` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(100,) dtype=int64) =  ['-5914487188049732608', '-5961771404630411264', '-5717681332644853760', '...']
+InvalidArgumentError: `labels` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(67, 70, 62, 99) dtype=int64) =  ['-1167426399439421440', '-1802084439639982080', '-3561593315151314944', '...']
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [0 0 0] First 1 elements of y: [-1027091214]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [1511156536463247616 2881773673737977856 4437535727143441408] First 1 elements of y: [6648536403287812776]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [1599631480310685184 2834224192789851136 2011098783312504064] First 1 elements of y: [642303562494498059]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [2152964215451422464  378095312567176000 1829487204532300800] First 1 elements of y: [219]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [3920896672678281216 6542460872395063296 5904553912773378048] First 1 elements of y: [1745765237]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [4600814779121365504 4238557564288370176 4476437716915209728] First 1 elements of y: [1584794563108848651]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [8376044396025479168 8386613451547475968 8351846893877198848] First 1 elements of y: [6204534987018563752]
+InvalidArgumentError: `predictions` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(1, 55, 37) dtype=int64) =  ['4987483149882621952', '4053034605714866176', '-6075701143973920768', '...']
+InvalidArgumentError: `predictions` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(3, 86, 92, 84) dtype=int64) =  ['1406852203213225984', '261178352839163904', '2309834236422520832', '...']
+InvalidArgumentError: `predictions` out of bound Condition x < y did not hold. First 3 elements of x: [1697817131437267456 1531751478796877824 4600194018355879936] First 1 elements of y: [75]
+ValueError: Shapes (21, 22, 6) and (70, 27) are incompatible
+ValueError: Shapes (49, 29, 81, 15, 52) and (56, 12, 96, 44, 12) are incompatible
+ValueError: Shapes (55, 66, 41, 29) and (28, 85, 35, 66) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 27 (labels must be non-negative)
+{v_1 : tensor} |= min(v_1) ≥ 0
+Token usage: input=2812, output=5971, total=8783
+** DUPLICATED RULE ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.confusion_matrix API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the confusion matrix from predictions and labels.
+
+  The matrix columns represent the prediction labels and the rows represent the
+  real labels. The confusion matrix is always a 2-D array of shape `[n, n]`,
+  where `n` is the number of valid labels for a given classification task. Both
+  prediction and labels must be 1-D arrays of the same shape in order for this
+  function to work.
+
+  If `num_classes` is `None`, then `num_classes` will be set to one plus the
+  maximum value in either predictions or labels. Class labels are expected to
+  start at 0. For example, if `num_classes` is 3, then the possible labels
+  would be `[0, 1, 2]`.
+
+  If `weights` is not `None`, then each prediction contributes its
+  corresponding weight to the total value of the confusion matrix cell.
+
+  For example:
+
+  ```python
+    tf.math.confusion_matrix([1, 2, 4], [2, 2, 4]) ==>
+        [[0 0 0 0 0]
+         [0 0 1 0 0]
+         [0 0 1 0 0]
+         [0 0 0 0 0]
+         [0 0 0 0 1]]
+  ```
+
+  Note that the possible labels are assumed to be `[0, 1, 2, 3, 4]`,
+  resulting in a 5x5 confusion matrix.
+
+  Args:
+    labels: 1-D `Tensor` of real labels for the classification task.
+    predictions: 1-D `Tensor` of predictions for a given classification.
+    num_classes: The possible number of labels the classification task can
+                 have. If this value is not provided, it will be calculated
+                 using both predictions and labels array.
+    weights: An optional `Tensor` whose shape matches `predictions`.
+    dtype: Data type of the confusion matrix.
+    name: Scope name.
+
+  Returns:
+    A `Tensor` of type `dtype` with shape `[n, n]` representing the confusion
+    matrix, where `n` is the number of possible labels in the classification
+    task.
+
+  Raises:
+    ValueError: If both predictions and labels are not 1-D vectors and have
+      mismatched shapes, or if `weights` is not `None` and its shape doesn't
+      match `predictions`.
+
+[Possible API Signatures]
+ - labels: tensor, predictions: tensor, num_classes: integer, weights: tensor, dtype: dtype, name: string
+ - labels: tensor, predictions: tensor, num_classes: tensor, weights: tensor, dtype: dtype, name: string
+
+[Error Messages]
+InvalidArgumentError: `labels` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(1, 25, 24, 22, 72) dtype=int64) =  ['-9223372036854775808', '-9223372036854775808', '-9223372036854775808', '...']
+InvalidArgumentError: `labels` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(100,) dtype=int64) =  ['-5914487188049732608', '-5961771404630411264', '-5717681332644853760', '...']
+InvalidArgumentError: `labels` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(67, 70, 62, 99) dtype=int64) =  ['-1167426399439421440', '-1802084439639982080', '-3561593315151314944', '...']
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [0 0 0] First 1 elements of y: [-1027091214]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [1511156536463247616 2881773673737977856 4437535727143441408] First 1 elements of y: [6648536403287812776]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [1599631480310685184 2834224192789851136 2011098783312504064] First 1 elements of y: [642303562494498059]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [2152964215451422464  378095312567176000 1829487204532300800] First 1 elements of y: [219]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [3920896672678281216 6542460872395063296 5904553912773378048] First 1 elements of y: [1745765237]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [4600814779121365504 4238557564288370176 4476437716915209728] First 1 elements of y: [1584794563108848651]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [8376044396025479168 8386613451547475968 8351846893877198848] First 1 elements of y: [6204534987018563752]
+InvalidArgumentError: `predictions` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(1, 55, 37) dtype=int64) =  ['4987483149882621952', '4053034605714866176', '-6075701143973920768', '...']
+InvalidArgumentError: `predictions` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(3, 86, 92, 84) dtype=int64) =  ['1406852203213225984', '261178352839163904', '2309834236422520832', '...']
+InvalidArgumentError: `predictions` out of bound Condition x < y did not hold. First 3 elements of x: [1697817131437267456 1531751478796877824 4600194018355879936] First 1 elements of y: [75]
+ValueError: Shapes (21, 22, 6) and (70, 27) are incompatible
+ValueError: Shapes (49, 29, 81, 15, 52) and (56, 12, 96, 44, 12) are incompatible
+ValueError: Shapes (55, 66, 41, 29) and (28, 85, 35, 66) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 28 (predictions must be non-negative)
+{v_2 : tensor} |= min(v_2) ≥ 0
+Token usage: input=2812, output=5971, total=8783
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.confusion_matrix API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the confusion matrix from predictions and labels.
+
+  The matrix columns represent the prediction labels and the rows represent the
+  real labels. The confusion matrix is always a 2-D array of shape `[n, n]`,
+  where `n` is the number of valid labels for a given classification task. Both
+  prediction and labels must be 1-D arrays of the same shape in order for this
+  function to work.
+
+  If `num_classes` is `None`, then `num_classes` will be set to one plus the
+  maximum value in either predictions or labels. Class labels are expected to
+  start at 0. For example, if `num_classes` is 3, then the possible labels
+  would be `[0, 1, 2]`.
+
+  If `weights` is not `None`, then each prediction contributes its
+  corresponding weight to the total value of the confusion matrix cell.
+
+  For example:
+
+  ```python
+    tf.math.confusion_matrix([1, 2, 4], [2, 2, 4]) ==>
+        [[0 0 0 0 0]
+         [0 0 1 0 0]
+         [0 0 1 0 0]
+         [0 0 0 0 0]
+         [0 0 0 0 1]]
+  ```
+
+  Note that the possible labels are assumed to be `[0, 1, 2, 3, 4]`,
+  resulting in a 5x5 confusion matrix.
+
+  Args:
+    labels: 1-D `Tensor` of real labels for the classification task.
+    predictions: 1-D `Tensor` of predictions for a given classification.
+    num_classes: The possible number of labels the classification task can
+                 have. If this value is not provided, it will be calculated
+                 using both predictions and labels array.
+    weights: An optional `Tensor` whose shape matches `predictions`.
+    dtype: Data type of the confusion matrix.
+    name: Scope name.
+
+  Returns:
+    A `Tensor` of type `dtype` with shape `[n, n]` representing the confusion
+    matrix, where `n` is the number of possible labels in the classification
+    task.
+
+  Raises:
+    ValueError: If both predictions and labels are not 1-D vectors and have
+      mismatched shapes, or if `weights` is not `None` and its shape doesn't
+      match `predictions`.
+
+[Possible API Signatures]
+ - labels: tensor, predictions: tensor, num_classes: integer, weights: tensor, dtype: dtype, name: string
+ - labels: tensor, predictions: tensor, num_classes: tensor, weights: tensor, dtype: dtype, name: string
+
+[Error Messages]
+InvalidArgumentError: `labels` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(1, 25, 24, 22, 72) dtype=int64) =  ['-9223372036854775808', '-9223372036854775808', '-9223372036854775808', '...']
+InvalidArgumentError: `labels` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(100,) dtype=int64) =  ['-5914487188049732608', '-5961771404630411264', '-5717681332644853760', '...']
+InvalidArgumentError: `labels` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(67, 70, 62, 99) dtype=int64) =  ['-1167426399439421440', '-1802084439639982080', '-3561593315151314944', '...']
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [0 0 0] First 1 elements of y: [-1027091214]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [1511156536463247616 2881773673737977856 4437535727143441408] First 1 elements of y: [6648536403287812776]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [1599631480310685184 2834224192789851136 2011098783312504064] First 1 elements of y: [642303562494498059]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [2152964215451422464  378095312567176000 1829487204532300800] First 1 elements of y: [219]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [3920896672678281216 6542460872395063296 5904553912773378048] First 1 elements of y: [1745765237]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [4600814779121365504 4238557564288370176 4476437716915209728] First 1 elements of y: [1584794563108848651]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [8376044396025479168 8386613451547475968 8351846893877198848] First 1 elements of y: [6204534987018563752]
+InvalidArgumentError: `predictions` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(1, 55, 37) dtype=int64) =  ['4987483149882621952', '4053034605714866176', '-6075701143973920768', '...']
+InvalidArgumentError: `predictions` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(3, 86, 92, 84) dtype=int64) =  ['1406852203213225984', '261178352839163904', '2309834236422520832', '...']
+InvalidArgumentError: `predictions` out of bound Condition x < y did not hold. First 3 elements of x: [1697817131437267456 1531751478796877824 4600194018355879936] First 1 elements of y: [75]
+ValueError: Shapes (21, 22, 6) and (70, 27) are incompatible
+ValueError: Shapes (49, 29, 81, 15, 52) and (56, 12, 96, 44, 12) are incompatible
+ValueError: Shapes (55, 66, 41, 29) and (28, 85, 35, 66) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 29 (labels and predictions are within [0, num_classes) when num_classes is an integer)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= v_3 ≥ 1 ∧ max(v_1) < v_3 ∧ max(v_2) < v_3
+Token usage: input=2812, output=5971, total=8783
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.confusion_matrix API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the confusion matrix from predictions and labels.
+
+  The matrix columns represent the prediction labels and the rows represent the
+  real labels. The confusion matrix is always a 2-D array of shape `[n, n]`,
+  where `n` is the number of valid labels for a given classification task. Both
+  prediction and labels must be 1-D arrays of the same shape in order for this
+  function to work.
+
+  If `num_classes` is `None`, then `num_classes` will be set to one plus the
+  maximum value in either predictions or labels. Class labels are expected to
+  start at 0. For example, if `num_classes` is 3, then the possible labels
+  would be `[0, 1, 2]`.
+
+  If `weights` is not `None`, then each prediction contributes its
+  corresponding weight to the total value of the confusion matrix cell.
+
+  For example:
+
+  ```python
+    tf.math.confusion_matrix([1, 2, 4], [2, 2, 4]) ==>
+        [[0 0 0 0 0]
+         [0 0 1 0 0]
+         [0 0 1 0 0]
+         [0 0 0 0 0]
+         [0 0 0 0 1]]
+  ```
+
+  Note that the possible labels are assumed to be `[0, 1, 2, 3, 4]`,
+  resulting in a 5x5 confusion matrix.
+
+  Args:
+    labels: 1-D `Tensor` of real labels for the classification task.
+    predictions: 1-D `Tensor` of predictions for a given classification.
+    num_classes: The possible number of labels the classification task can
+                 have. If this value is not provided, it will be calculated
+                 using both predictions and labels array.
+    weights: An optional `Tensor` whose shape matches `predictions`.
+    dtype: Data type of the confusion matrix.
+    name: Scope name.
+
+  Returns:
+    A `Tensor` of type `dtype` with shape `[n, n]` representing the confusion
+    matrix, where `n` is the number of possible labels in the classification
+    task.
+
+  Raises:
+    ValueError: If both predictions and labels are not 1-D vectors and have
+      mismatched shapes, or if `weights` is not `None` and its shape doesn't
+      match `predictions`.
+
+[Possible API Signatures]
+ - labels: tensor, predictions: tensor, num_classes: integer, weights: tensor, dtype: dtype, name: string
+ - labels: tensor, predictions: tensor, num_classes: tensor, weights: tensor, dtype: dtype, name: string
+
+[Error Messages]
+InvalidArgumentError: `labels` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(1, 25, 24, 22, 72) dtype=int64) =  ['-9223372036854775808', '-9223372036854775808', '-9223372036854775808', '...']
+InvalidArgumentError: `labels` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(100,) dtype=int64) =  ['-5914487188049732608', '-5961771404630411264', '-5717681332644853760', '...']
+InvalidArgumentError: `labels` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(67, 70, 62, 99) dtype=int64) =  ['-1167426399439421440', '-1802084439639982080', '-3561593315151314944', '...']
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [0 0 0] First 1 elements of y: [-1027091214]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [1511156536463247616 2881773673737977856 4437535727143441408] First 1 elements of y: [6648536403287812776]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [1599631480310685184 2834224192789851136 2011098783312504064] First 1 elements of y: [642303562494498059]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [2152964215451422464  378095312567176000 1829487204532300800] First 1 elements of y: [219]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [3920896672678281216 6542460872395063296 5904553912773378048] First 1 elements of y: [1745765237]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [4600814779121365504 4238557564288370176 4476437716915209728] First 1 elements of y: [1584794563108848651]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [8376044396025479168 8386613451547475968 8351846893877198848] First 1 elements of y: [6204534987018563752]
+InvalidArgumentError: `predictions` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(1, 55, 37) dtype=int64) =  ['4987483149882621952', '4053034605714866176', '-6075701143973920768', '...']
+InvalidArgumentError: `predictions` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(3, 86, 92, 84) dtype=int64) =  ['1406852203213225984', '261178352839163904', '2309834236422520832', '...']
+InvalidArgumentError: `predictions` out of bound Condition x < y did not hold. First 3 elements of x: [1697817131437267456 1531751478796877824 4600194018355879936] First 1 elements of y: [75]
+ValueError: Shapes (21, 22, 6) and (70, 27) are incompatible
+ValueError: Shapes (49, 29, 81, 15, 52) and (56, 12, 96, 44, 12) are incompatible
+ValueError: Shapes (55, 66, 41, 29) and (28, 85, 35, 66) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 30 (labels and predictions are within [0, num_classes) when num_classes is a scalar tensor)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_3) = 0 ∧ v_3 ≥ 1 ∧ max(v_1) < v_3 ∧ max(v_2) < v_3
+Token usage: input=2812, output=5971, total=8783
+** DUPLICATED RULE ** (num_failures: 4)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.confusion_matrix API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the confusion matrix from predictions and labels.
+
+  The matrix columns represent the prediction labels and the rows represent the
+  real labels. The confusion matrix is always a 2-D array of shape `[n, n]`,
+  where `n` is the number of valid labels for a given classification task. Both
+  prediction and labels must be 1-D arrays of the same shape in order for this
+  function to work.
+
+  If `num_classes` is `None`, then `num_classes` will be set to one plus the
+  maximum value in either predictions or labels. Class labels are expected to
+  start at 0. For example, if `num_classes` is 3, then the possible labels
+  would be `[0, 1, 2]`.
+
+  If `weights` is not `None`, then each prediction contributes its
+  corresponding weight to the total value of the confusion matrix cell.
+
+  For example:
+
+  ```python
+    tf.math.confusion_matrix([1, 2, 4], [2, 2, 4]) ==>
+        [[0 0 0 0 0]
+         [0 0 1 0 0]
+         [0 0 1 0 0]
+         [0 0 0 0 0]
+         [0 0 0 0 1]]
+  ```
+
+  Note that the possible labels are assumed to be `[0, 1, 2, 3, 4]`,
+  resulting in a 5x5 confusion matrix.
+
+  Args:
+    labels: 1-D `Tensor` of real labels for the classification task.
+    predictions: 1-D `Tensor` of predictions for a given classification.
+    num_classes: The possible number of labels the classification task can
+                 have. If this value is not provided, it will be calculated
+                 using both predictions and labels array.
+    weights: An optional `Tensor` whose shape matches `predictions`.
+    dtype: Data type of the confusion matrix.
+    name: Scope name.
+
+  Returns:
+    A `Tensor` of type `dtype` with shape `[n, n]` representing the confusion
+    matrix, where `n` is the number of possible labels in the classification
+    task.
+
+  Raises:
+    ValueError: If both predictions and labels are not 1-D vectors and have
+      mismatched shapes, or if `weights` is not `None` and its shape doesn't
+      match `predictions`.
+
+[Possible API Signatures]
+ - labels: tensor, predictions: tensor, num_classes: integer, weights: tensor, dtype: dtype, name: string
+ - labels: tensor, predictions: tensor, num_classes: tensor, weights: tensor, dtype: dtype, name: string
+
+[Error Messages]
+InvalidArgumentError: `labels` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(1, 25, 24, 22, 72) dtype=int64) =  ['-9223372036854775808', '-9223372036854775808', '-9223372036854775808', '...']
+InvalidArgumentError: `labels` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(100,) dtype=int64) =  ['-5914487188049732608', '-5961771404630411264', '-5717681332644853760', '...']
+InvalidArgumentError: `labels` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(67, 70, 62, 99) dtype=int64) =  ['-1167426399439421440', '-1802084439639982080', '-3561593315151314944', '...']
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [0 0 0] First 1 elements of y: [-1027091214]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [1511156536463247616 2881773673737977856 4437535727143441408] First 1 elements of y: [6648536403287812776]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [1599631480310685184 2834224192789851136 2011098783312504064] First 1 elements of y: [642303562494498059]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [2152964215451422464  378095312567176000 1829487204532300800] First 1 elements of y: [219]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [3920896672678281216 6542460872395063296 5904553912773378048] First 1 elements of y: [1745765237]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [4600814779121365504 4238557564288370176 4476437716915209728] First 1 elements of y: [1584794563108848651]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [8376044396025479168 8386613451547475968 8351846893877198848] First 1 elements of y: [6204534987018563752]
+InvalidArgumentError: `predictions` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(1, 55, 37) dtype=int64) =  ['4987483149882621952', '4053034605714866176', '-6075701143973920768', '...']
+InvalidArgumentError: `predictions` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(3, 86, 92, 84) dtype=int64) =  ['1406852203213225984', '261178352839163904', '2309834236422520832', '...']
+InvalidArgumentError: `predictions` out of bound Condition x < y did not hold. First 3 elements of x: [1697817131437267456 1531751478796877824 4600194018355879936] First 1 elements of y: [75]
+ValueError: Shapes (21, 22, 6) and (70, 27) are incompatible
+ValueError: Shapes (49, 29, 81, 15, 52) and (56, 12, 96, 44, 12) are incompatible
+ValueError: Shapes (55, 66, 41, 29) and (28, 85, 35, 66) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 31 (name is a string parameter)
+{v_6 : str} |= v_6 = v_6
+Token usage: input=2812, output=5971, total=8783
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.confusion_matrix API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Computes the confusion matrix from predictions and labels.
+
+  The matrix columns represent the prediction labels and the rows represent the
+  real labels. The confusion matrix is always a 2-D array of shape `[n, n]`,
+  where `n` is the number of valid labels for a given classification task. Both
+  prediction and labels must be 1-D arrays of the same shape in order for this
+  function to work.
+
+  If `num_classes` is `None`, then `num_classes` will be set to one plus the
+  maximum value in either predictions or labels. Class labels are expected to
+  start at 0. For example, if `num_classes` is 3, then the possible labels
+  would be `[0, 1, 2]`.
+
+  If `weights` is not `None`, then each prediction contributes its
+  corresponding weight to the total value of the confusion matrix cell.
+
+  For example:
+
+  ```python
+    tf.math.confusion_matrix([1, 2, 4], [2, 2, 4]) ==>
+        [[0 0 0 0 0]
+         [0 0 1 0 0]
+         [0 0 1 0 0]
+         [0 0 0 0 0]
+         [0 0 0 0 1]]
+  ```
+
+  Note that the possible labels are assumed to be `[0, 1, 2, 3, 4]`,
+  resulting in a 5x5 confusion matrix.
+
+  Args:
+    labels: 1-D `Tensor` of real labels for the classification task.
+    predictions: 1-D `Tensor` of predictions for a given classification.
+    num_classes: The possible number of labels the classification task can
+                 have. If this value is not provided, it will be calculated
+                 using both predictions and labels array.
+    weights: An optional `Tensor` whose shape matches `predictions`.
+    dtype: Data type of the confusion matrix.
+    name: Scope name.
+
+  Returns:
+    A `Tensor` of type `dtype` with shape `[n, n]` representing the confusion
+    matrix, where `n` is the number of possible labels in the classification
+    task.
+
+  Raises:
+    ValueError: If both predictions and labels are not 1-D vectors and have
+      mismatched shapes, or if `weights` is not `None` and its shape doesn't
+      match `predictions`.
+
+[Possible API Signatures]
+ - labels: tensor, predictions: tensor, num_classes: integer, weights: tensor, dtype: dtype, name: string
+ - labels: tensor, predictions: tensor, num_classes: tensor, weights: tensor, dtype: dtype, name: string
+
+[Error Messages]
+InvalidArgumentError: `labels` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(1, 25, 24, 22, 72) dtype=int64) =  ['-9223372036854775808', '-9223372036854775808', '-9223372036854775808', '...']
+InvalidArgumentError: `labels` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(100,) dtype=int64) =  ['-5914487188049732608', '-5961771404630411264', '-5717681332644853760', '...']
+InvalidArgumentError: `labels` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(67, 70, 62, 99) dtype=int64) =  ['-1167426399439421440', '-1802084439639982080', '-3561593315151314944', '...']
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [0 0 0] First 1 elements of y: [-1027091214]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [1511156536463247616 2881773673737977856 4437535727143441408] First 1 elements of y: [6648536403287812776]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [1599631480310685184 2834224192789851136 2011098783312504064] First 1 elements of y: [642303562494498059]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [2152964215451422464  378095312567176000 1829487204532300800] First 1 elements of y: [219]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [3920896672678281216 6542460872395063296 5904553912773378048] First 1 elements of y: [1745765237]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [4600814779121365504 4238557564288370176 4476437716915209728] First 1 elements of y: [1584794563108848651]
+InvalidArgumentError: `labels` out of bound Condition x < y did not hold. First 3 elements of x: [8376044396025479168 8386613451547475968 8351846893877198848] First 1 elements of y: [6204534987018563752]
+InvalidArgumentError: `predictions` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(1, 55, 37) dtype=int64) =  ['4987483149882621952', '4053034605714866176', '-6075701143973920768', '...']
+InvalidArgumentError: `predictions` contains negative values.   Condition x >= 0 did not hold element-wise: x (shape=(3, 86, 92, 84) dtype=int64) =  ['1406852203213225984', '261178352839163904', '2309834236422520832', '...']
+InvalidArgumentError: `predictions` out of bound Condition x < y did not hold. First 3 elements of x: [1697817131437267456 1531751478796877824 4600194018355879936] First 1 elements of y: [75]
+ValueError: Shapes (21, 22, 6) and (70, 27) are incompatible
+ValueError: Shapes (49, 29, 81, 15, 52) and (56, 12, 96, 44, 12) are incompatible
+ValueError: Shapes (55, 66, 41, 29) and (28, 85, 35, 66) are incompatible
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 32 (result dtype is provided as a dtype parameter)
+{v_5 : dtype} |= v_5 = v_5
+Token usage: input=2812, output=5971, total=8783
+** DUPLICATED RULE ** (num_failures: 5)
+

@@ -52,3 +52,30 @@ Rule 19 (scalar alpha/beta tensors allowed; output shape dims must be non-negati
 >>
 Rule 22 (name is a valid string)
 {v_6 : str} |= v_6 = "none" ∨ v_6 = "relu" ∨ v_6 = "linear"
+>>
+Rule 23 (dtype must be floating-point for stateless_gamma)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+>>
+Rule 24 (seed tensor must be 1-D, integer, and length 2)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ shape(v_1, 0) = 2
+>>
+Rule 25 (shape tensor must be a 1-D integer vector)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)
+>>
+Rule 26 (alpha and beta must use the provided floating-point dtype)
+{v_1 : tensor, v_2 : tensor, v_3 : dtype} |= (v_3 = 6 ∨ v_3 = 7 ∨ v_3 = 8) ∧ dtype_(v_1) = v_3 ∧ dtype_(v_2) = v_3
+>>
+Rule 27 (alpha and beta must be broadcast-compatible on trailing dims)
+{v_1 : tensor, v_2 : tensor} |= if (if ndim(v_1) ≤ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1) ≥ 0 then ∀i ∈ [0, if ndim(v_1) ≤ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i) ∨ shape(v_1, ndim(v_1) - 1 - i) = 1 ∨ shape(v_2, ndim(v_2) - 1 - i) = 1
+>>
+Rule 28 (Python array shape must be long enough to encompass alpha and beta ranks)
+{v_1 : tuple(int), v_2 : tensor, v_3 : tensor} |= v_1.len ≥ ndim(v_2) ∧ v_1.len ≥ ndim(v_3)
+>>
+Rule 29 (seed as Python array must have exactly two elements)
+{v_1 : tuple(int)} |= v_1.len = 2
+>>
+Rule 30 (if beta is scalar, trailing dims of shape equal alpha’s shape)
+{v_1 : tuple(int), v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 ∧ ndim(v_2) ≥ 1 then ∀i ∈ [0, ndim(v_2) - 1] : v_1[v_1.len - ndim(v_2) + i] = shape(v_2, i)
+>>
+Rule 31 (if alpha is scalar, trailing dims of shape equal beta’s shape)
+{v_1 : tuple(int), v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 0 ∧ ndim(v_3) ≥ 1 then ∀i ∈ [0, ndim(v_3) - 1] : v_1[v_1.len - ndim(v_3) + i] = shape(v_3, i)

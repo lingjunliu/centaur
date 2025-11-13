@@ -22,3 +22,24 @@ Rule 9 (logits_time_major is a primitive boolean; avoids ambiguous Tensor truth 
 >>
 Rule 10 (name is a simple allowed string token; uses a union type)
 {v_8 : str ⊎ list(str)} |= v_8 = "none" ∨ v_8 = "linear"
+>>
+Rule 11 (logits must be rank-3 floating-point tensor; avoids Transpose/IndexError on dims)
+{v_2 : tensor} |= ndim(v_2) = 3 ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 12 (dense labels must be rank-2 int tensor; avoids StridedSlice index errors and bool Less)
+{v_1 : tensor} |= ndim(v_1) = 2 ∧ (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)
+>>
+Rule 13 (length vectors are 1D and match batch dimension depending on logits_time_major; avoids Transpose/shape errors)
+{v_2 : tensor, v_3 : tensor, v_4 : tensor, v_5 : bool} |= ndim(v_3) = 1 ∧ ndim(v_4) = 1 ∧ if v_5 then shape(v_2, 1) = shape(v_3, 0) ∧ shape(v_2, 1) = shape(v_4, 0) else shape(v_2, 0) = shape(v_3, 0) ∧ shape(v_2, 0) = shape(v_4, 0)
+>>
+Rule 14 (dtype consistency for labels, label_length, and logit_length; avoids Less int32/int64 mismatch and bool dtype)
+{v_1 : tensor, v_3 : tensor, v_4 : tensor} |= (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ dtype_(v_3) = dtype_(v_1) ∧ dtype_(v_4) = dtype_(v_1)
+>>
+Rule 15 (blank_index must select a valid class; supports negative indexing)
+{v_2 : tensor, v_7 : int} |= ndim(v_2) = 3 ∧ if v_7 ≥ 0 then v_7 < shape(v_2, ndim(v_2) - 1) else v_7 ≥ 0 - shape(v_2, ndim(v_2) - 1) ∧ v_7 ≤ -1
+>>
+Rule 18 (all logits dimensions strictly positive; avoids shape-related indexing issues)
+{v_2 : tensor} |= ndim(v_2) = 3 ∧ shape(v_2, 0) > 0 ∧ shape(v_2, 1) > 0 ∧ shape(v_2, 2) > 0
+>>
+Rule 19 (name is a string parameter)
+{v_8 : str} |= v_8 = v_8

@@ -46,3 +46,18 @@ Rule 17 (name, if provided, should be a regular identifier rather than the senti
 >>
 Rule 18 (single-tensor params must be at least 1-D to index rows)
 {v_1 : tensor} |= ndim(v_1) ≥ 1
+>>
+Rule 21 (no complex params when clipping with max_norm — prevents Greater with complex types)
+{v_1 : tensor, v_3 : int ⊎ float} |= if v_3 > 0 then dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+>>
+Rule 22 (ids are within the valid embedding row range — prevents out-of-range gather indices)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ min(v_2) ≥ 0 ∧ max(v_2) < shape(v_1, 0)
+>>
+Rule 23 (embedding tensor has rank ≥ 1 and all positive dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 1 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 24 (limit tensor sizes to reduce OOM risk — prevents ResourceExhaustedError)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≤ 6 ∧ ndim(v_2) ≤ 6 ∧ (if ndim(v_1) > 1 then ∀i ∈ [1, ndim(v_1) - 1] : shape(v_1, i) ≤ 2048) ∧ (if ndim(v_2) > 0 then ∀j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) ≤ 1000000)
+>>
+Rule 25 (max_norm, when provided, must be positive)
+{v_3 : int ⊎ float} |= v_3 > 0

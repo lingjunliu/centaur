@@ -40,3 +40,18 @@ Rule 14 (if segment_ids is non-empty, its max is at least its min)
 >>
 Rule 15 (all dimensions of data are non-negative)
 {v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+>>
+Rule 16 (segment_ids is 1-D and length matches data’s first dimension; v_1=data, v_2=segment_ids)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = 1 ∧ ndim(v_1) ≥ 1 ∧ shape(v_2, 0) = shape(v_1, 0)
+>>
+Rule 17 (segment_ids dtype must be int32 or int64; v_2=segment_ids)
+{v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+>>
+Rule 19 (segment_ids values are non-negative and within row-index range of data, with empty-case guard; v_1=data, v_2=segment_ids)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_2, 0) = 0 then shape(v_1, 0) = 0 else min(v_2) ≥ 0 ∧ max(v_2) ≤ shape(v_1, 0) - 1
+>>
+Rule 20 (name must be chosen from the allowed string set; v_3=name)
+{v_3 : str} |= v_3 = "none" ∨ v_3 = "sum" ∨ v_3 = "max" ∨ v_3 = "min" ∨ v_3 = "linear"
+>>
+Rule 22 (non-empty data along the first axis implies non-empty segment_ids; v_1=data, v_2=segment_ids)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ (if shape(v_1, 0) > 0 then shape(v_2, 0) > 0)

@@ -3388,3 +3388,1227 @@ Rule 22 (name is chosen from supported strings)
 Token usage: input=4647, output=4790, total=9437
 ** SUCCESS **
 
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.quantization.fake_quant_with_min_max_args API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Fake-quantize the 'inputs' tensor, type float to 'outputs' tensor of same shape and type.
+
+  
+    Quantization is called fake since the output is still in floating point.
+    The API converts inputs into values within the range [min and max] and returns
+    as output.
+
+  Attributes
+
+  *   `[min; max]` define the clamping range for the `inputs` data.
+  *   `inputs` values are quantized into the quantization range (
+  `[0; 2^num_bits - 1]` when `narrow_range` is false and `[1; 2^num_bits - 1]`
+  when it is true) and then de-quantized and output as floats in `[min; max]`
+  interval.
+  *   `num_bits` is the bitwidth of the quantization; between 2 and 16, inclusive.
+
+  Before quantization, `min` and `max` values are adjusted with the following
+  logic.
+  It is suggested to have `min <= 0 <= max`. If `0` is not in the range of values,
+  the behavior can be unexpected:
+
+  *   If `0 < min < max`: `min_adj = 0` and `max_adj = max - min`.
+  *   If `min < max < 0`: `min_adj = min - max` and `max_adj = 0`.
+  *   If `min <= 0 <= max`: `scale = (max - min) / (2^num_bits - 1) `,
+  `min_adj = scale * round(min / scale)` and `max_adj = max + min_adj - min`.
+
+
+  Examples
+
+  ```python
+
+  inp = tf.constant ([10.03, -10.23, 3])
+  out = tf.quantization.fake_quant_with_min_max_args(inp, min=-5, max=5,
+                                                     num_bits=16)
+  print(out)
+
+  #  Output:
+  #  tf.Tensor([ 4.9999237 -5.0000763  3.0000763], shape=(3,), dtype=float32)
+  ```
+
+  Raises:
+    * InvalidArgumentError:
+      - If num_bits are outside of range [2, 16].
+      - If min >= max.
+    * ValueError: If `inputs` are of any other type than float32.
+
+  Args:
+    inputs: A `Tensor` of type `float32`.
+    min: An optional `float`. Defaults to `-6`.
+    max: An optional `float`. Defaults to `6`.
+    num_bits: An optional `int`. Defaults to `8`.
+    narrow_range: An optional `bool`. Defaults to `False`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `float32`.
+
+[API Signature] inputs: tensor, min: float, max: float, num_bits: integer, narrow_range: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__FakeQuantWithMinMaxArgs_device_/job:localhost/replica:0/task:0/device:CPU:0}} Attr num_bits has value -2054771615259587660 out of range for an int32 [Op:FakeQuantWithMinMaxArgs]
+InvalidArgumentError: {{function_node __wrapped__FakeQuantWithMinMaxArgs_device_/job:localhost/replica:0/task:0/device:CPU:0}} min has to be smaller than max, was: -1.61611596e+17 >= -7.26936065e+18 [Op:FakeQuantWithMinMaxArgs]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 23 (inputs must be float32 tensor)
+{v_1 : tensor} |= dtype_(v_1) = 7
+Token usage: input=2194, output=5422, total=7616
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.quantization.fake_quant_with_min_max_args API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Fake-quantize the 'inputs' tensor, type float to 'outputs' tensor of same shape and type.
+
+  
+    Quantization is called fake since the output is still in floating point.
+    The API converts inputs into values within the range [min and max] and returns
+    as output.
+
+  Attributes
+
+  *   `[min; max]` define the clamping range for the `inputs` data.
+  *   `inputs` values are quantized into the quantization range (
+  `[0; 2^num_bits - 1]` when `narrow_range` is false and `[1; 2^num_bits - 1]`
+  when it is true) and then de-quantized and output as floats in `[min; max]`
+  interval.
+  *   `num_bits` is the bitwidth of the quantization; between 2 and 16, inclusive.
+
+  Before quantization, `min` and `max` values are adjusted with the following
+  logic.
+  It is suggested to have `min <= 0 <= max`. If `0` is not in the range of values,
+  the behavior can be unexpected:
+
+  *   If `0 < min < max`: `min_adj = 0` and `max_adj = max - min`.
+  *   If `min < max < 0`: `min_adj = min - max` and `max_adj = 0`.
+  *   If `min <= 0 <= max`: `scale = (max - min) / (2^num_bits - 1) `,
+  `min_adj = scale * round(min / scale)` and `max_adj = max + min_adj - min`.
+
+
+  Examples
+
+  ```python
+
+  inp = tf.constant ([10.03, -10.23, 3])
+  out = tf.quantization.fake_quant_with_min_max_args(inp, min=-5, max=5,
+                                                     num_bits=16)
+  print(out)
+
+  #  Output:
+  #  tf.Tensor([ 4.9999237 -5.0000763  3.0000763], shape=(3,), dtype=float32)
+  ```
+
+  Raises:
+    * InvalidArgumentError:
+      - If num_bits are outside of range [2, 16].
+      - If min >= max.
+    * ValueError: If `inputs` are of any other type than float32.
+
+  Args:
+    inputs: A `Tensor` of type `float32`.
+    min: An optional `float`. Defaults to `-6`.
+    max: An optional `float`. Defaults to `6`.
+    num_bits: An optional `int`. Defaults to `8`.
+    narrow_range: An optional `bool`. Defaults to `False`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `float32`.
+
+[API Signature] inputs: tensor, min: float, max: float, num_bits: integer, narrow_range: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__FakeQuantWithMinMaxArgs_device_/job:localhost/replica:0/task:0/device:CPU:0}} Attr num_bits has value -2054771615259587660 out of range for an int32 [Op:FakeQuantWithMinMaxArgs]
+InvalidArgumentError: {{function_node __wrapped__FakeQuantWithMinMaxArgs_device_/job:localhost/replica:0/task:0/device:CPU:0}} min has to be smaller than max, was: -1.61611596e+17 >= -7.26936065e+18 [Op:FakeQuantWithMinMaxArgs]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 24 (min must be strictly less than max)
+{v_2 : float, v_3 : float} |= v_2 < v_3
+Token usage: input=2194, output=5422, total=7616
+** DUPLICATED RULE ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.quantization.fake_quant_with_min_max_args API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Fake-quantize the 'inputs' tensor, type float to 'outputs' tensor of same shape and type.
+
+  
+    Quantization is called fake since the output is still in floating point.
+    The API converts inputs into values within the range [min and max] and returns
+    as output.
+
+  Attributes
+
+  *   `[min; max]` define the clamping range for the `inputs` data.
+  *   `inputs` values are quantized into the quantization range (
+  `[0; 2^num_bits - 1]` when `narrow_range` is false and `[1; 2^num_bits - 1]`
+  when it is true) and then de-quantized and output as floats in `[min; max]`
+  interval.
+  *   `num_bits` is the bitwidth of the quantization; between 2 and 16, inclusive.
+
+  Before quantization, `min` and `max` values are adjusted with the following
+  logic.
+  It is suggested to have `min <= 0 <= max`. If `0` is not in the range of values,
+  the behavior can be unexpected:
+
+  *   If `0 < min < max`: `min_adj = 0` and `max_adj = max - min`.
+  *   If `min < max < 0`: `min_adj = min - max` and `max_adj = 0`.
+  *   If `min <= 0 <= max`: `scale = (max - min) / (2^num_bits - 1) `,
+  `min_adj = scale * round(min / scale)` and `max_adj = max + min_adj - min`.
+
+
+  Examples
+
+  ```python
+
+  inp = tf.constant ([10.03, -10.23, 3])
+  out = tf.quantization.fake_quant_with_min_max_args(inp, min=-5, max=5,
+                                                     num_bits=16)
+  print(out)
+
+  #  Output:
+  #  tf.Tensor([ 4.9999237 -5.0000763  3.0000763], shape=(3,), dtype=float32)
+  ```
+
+  Raises:
+    * InvalidArgumentError:
+      - If num_bits are outside of range [2, 16].
+      - If min >= max.
+    * ValueError: If `inputs` are of any other type than float32.
+
+  Args:
+    inputs: A `Tensor` of type `float32`.
+    min: An optional `float`. Defaults to `-6`.
+    max: An optional `float`. Defaults to `6`.
+    num_bits: An optional `int`. Defaults to `8`.
+    narrow_range: An optional `bool`. Defaults to `False`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `float32`.
+
+[API Signature] inputs: tensor, min: float, max: float, num_bits: integer, narrow_range: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__FakeQuantWithMinMaxArgs_device_/job:localhost/replica:0/task:0/device:CPU:0}} Attr num_bits has value -2054771615259587660 out of range for an int32 [Op:FakeQuantWithMinMaxArgs]
+InvalidArgumentError: {{function_node __wrapped__FakeQuantWithMinMaxArgs_device_/job:localhost/replica:0/task:0/device:CPU:0}} min has to be smaller than max, was: -1.61611596e+17 >= -7.26936065e+18 [Op:FakeQuantWithMinMaxArgs]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 25 (num_bits within supported quantization bitwidth)
+{v_4 : int} |= 2 ≤ v_4 ∧ v_4 ≤ 16
+Token usage: input=2194, output=5422, total=7616
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.quantization.fake_quant_with_min_max_args API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Fake-quantize the 'inputs' tensor, type float to 'outputs' tensor of same shape and type.
+
+  
+    Quantization is called fake since the output is still in floating point.
+    The API converts inputs into values within the range [min and max] and returns
+    as output.
+
+  Attributes
+
+  *   `[min; max]` define the clamping range for the `inputs` data.
+  *   `inputs` values are quantized into the quantization range (
+  `[0; 2^num_bits - 1]` when `narrow_range` is false and `[1; 2^num_bits - 1]`
+  when it is true) and then de-quantized and output as floats in `[min; max]`
+  interval.
+  *   `num_bits` is the bitwidth of the quantization; between 2 and 16, inclusive.
+
+  Before quantization, `min` and `max` values are adjusted with the following
+  logic.
+  It is suggested to have `min <= 0 <= max`. If `0` is not in the range of values,
+  the behavior can be unexpected:
+
+  *   If `0 < min < max`: `min_adj = 0` and `max_adj = max - min`.
+  *   If `min < max < 0`: `min_adj = min - max` and `max_adj = 0`.
+  *   If `min <= 0 <= max`: `scale = (max - min) / (2^num_bits - 1) `,
+  `min_adj = scale * round(min / scale)` and `max_adj = max + min_adj - min`.
+
+
+  Examples
+
+  ```python
+
+  inp = tf.constant ([10.03, -10.23, 3])
+  out = tf.quantization.fake_quant_with_min_max_args(inp, min=-5, max=5,
+                                                     num_bits=16)
+  print(out)
+
+  #  Output:
+  #  tf.Tensor([ 4.9999237 -5.0000763  3.0000763], shape=(3,), dtype=float32)
+  ```
+
+  Raises:
+    * InvalidArgumentError:
+      - If num_bits are outside of range [2, 16].
+      - If min >= max.
+    * ValueError: If `inputs` are of any other type than float32.
+
+  Args:
+    inputs: A `Tensor` of type `float32`.
+    min: An optional `float`. Defaults to `-6`.
+    max: An optional `float`. Defaults to `6`.
+    num_bits: An optional `int`. Defaults to `8`.
+    narrow_range: An optional `bool`. Defaults to `False`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `float32`.
+
+[API Signature] inputs: tensor, min: float, max: float, num_bits: integer, narrow_range: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__FakeQuantWithMinMaxArgs_device_/job:localhost/replica:0/task:0/device:CPU:0}} Attr num_bits has value -2054771615259587660 out of range for an int32 [Op:FakeQuantWithMinMaxArgs]
+InvalidArgumentError: {{function_node __wrapped__FakeQuantWithMinMaxArgs_device_/job:localhost/replica:0/task:0/device:CPU:0}} min has to be smaller than max, was: -1.61611596e+17 >= -7.26936065e+18 [Op:FakeQuantWithMinMaxArgs]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 26 (num_bits must fit in int32 to avoid attribute out-of-range)
+{v_4 : int} |= -2147483648 ≤ v_4 ∧ v_4 ≤ 2147483647
+Token usage: input=2194, output=5422, total=7616
+** DUPLICATED RULE ** (num_failures: 4)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.quantization.fake_quant_with_min_max_args API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Fake-quantize the 'inputs' tensor, type float to 'outputs' tensor of same shape and type.
+
+  
+    Quantization is called fake since the output is still in floating point.
+    The API converts inputs into values within the range [min and max] and returns
+    as output.
+
+  Attributes
+
+  *   `[min; max]` define the clamping range for the `inputs` data.
+  *   `inputs` values are quantized into the quantization range (
+  `[0; 2^num_bits - 1]` when `narrow_range` is false and `[1; 2^num_bits - 1]`
+  when it is true) and then de-quantized and output as floats in `[min; max]`
+  interval.
+  *   `num_bits` is the bitwidth of the quantization; between 2 and 16, inclusive.
+
+  Before quantization, `min` and `max` values are adjusted with the following
+  logic.
+  It is suggested to have `min <= 0 <= max`. If `0` is not in the range of values,
+  the behavior can be unexpected:
+
+  *   If `0 < min < max`: `min_adj = 0` and `max_adj = max - min`.
+  *   If `min < max < 0`: `min_adj = min - max` and `max_adj = 0`.
+  *   If `min <= 0 <= max`: `scale = (max - min) / (2^num_bits - 1) `,
+  `min_adj = scale * round(min / scale)` and `max_adj = max + min_adj - min`.
+
+
+  Examples
+
+  ```python
+
+  inp = tf.constant ([10.03, -10.23, 3])
+  out = tf.quantization.fake_quant_with_min_max_args(inp, min=-5, max=5,
+                                                     num_bits=16)
+  print(out)
+
+  #  Output:
+  #  tf.Tensor([ 4.9999237 -5.0000763  3.0000763], shape=(3,), dtype=float32)
+  ```
+
+  Raises:
+    * InvalidArgumentError:
+      - If num_bits are outside of range [2, 16].
+      - If min >= max.
+    * ValueError: If `inputs` are of any other type than float32.
+
+  Args:
+    inputs: A `Tensor` of type `float32`.
+    min: An optional `float`. Defaults to `-6`.
+    max: An optional `float`. Defaults to `6`.
+    num_bits: An optional `int`. Defaults to `8`.
+    narrow_range: An optional `bool`. Defaults to `False`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `float32`.
+
+[API Signature] inputs: tensor, min: float, max: float, num_bits: integer, narrow_range: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__FakeQuantWithMinMaxArgs_device_/job:localhost/replica:0/task:0/device:CPU:0}} Attr num_bits has value -2054771615259587660 out of range for an int32 [Op:FakeQuantWithMinMaxArgs]
+InvalidArgumentError: {{function_node __wrapped__FakeQuantWithMinMaxArgs_device_/job:localhost/replica:0/task:0/device:CPU:0}} min has to be smaller than max, was: -1.61611596e+17 >= -7.26936065e+18 [Op:FakeQuantWithMinMaxArgs]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 27 (recommended clamping range includes zero)
+{v_2 : float, v_3 : float} |= v_2 ≤ 0 ∧ 0 ≤ v_3
+Token usage: input=2194, output=5422, total=7616
+** DUPLICATED RULE ** (num_failures: 5)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.quantization.fake_quant_with_min_max_args API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Fake-quantize the 'inputs' tensor, type float to 'outputs' tensor of same shape and type.
+
+  
+    Quantization is called fake since the output is still in floating point.
+    The API converts inputs into values within the range [min and max] and returns
+    as output.
+
+  Attributes
+
+  *   `[min; max]` define the clamping range for the `inputs` data.
+  *   `inputs` values are quantized into the quantization range (
+  `[0; 2^num_bits - 1]` when `narrow_range` is false and `[1; 2^num_bits - 1]`
+  when it is true) and then de-quantized and output as floats in `[min; max]`
+  interval.
+  *   `num_bits` is the bitwidth of the quantization; between 2 and 16, inclusive.
+
+  Before quantization, `min` and `max` values are adjusted with the following
+  logic.
+  It is suggested to have `min <= 0 <= max`. If `0` is not in the range of values,
+  the behavior can be unexpected:
+
+  *   If `0 < min < max`: `min_adj = 0` and `max_adj = max - min`.
+  *   If `min < max < 0`: `min_adj = min - max` and `max_adj = 0`.
+  *   If `min <= 0 <= max`: `scale = (max - min) / (2^num_bits - 1) `,
+  `min_adj = scale * round(min / scale)` and `max_adj = max + min_adj - min`.
+
+
+  Examples
+
+  ```python
+
+  inp = tf.constant ([10.03, -10.23, 3])
+  out = tf.quantization.fake_quant_with_min_max_args(inp, min=-5, max=5,
+                                                     num_bits=16)
+  print(out)
+
+  #  Output:
+  #  tf.Tensor([ 4.9999237 -5.0000763  3.0000763], shape=(3,), dtype=float32)
+  ```
+
+  Raises:
+    * InvalidArgumentError:
+      - If num_bits are outside of range [2, 16].
+      - If min >= max.
+    * ValueError: If `inputs` are of any other type than float32.
+
+  Args:
+    inputs: A `Tensor` of type `float32`.
+    min: An optional `float`. Defaults to `-6`.
+    max: An optional `float`. Defaults to `6`.
+    num_bits: An optional `int`. Defaults to `8`.
+    narrow_range: An optional `bool`. Defaults to `False`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `float32`.
+
+[API Signature] inputs: tensor, min: float, max: float, num_bits: integer, narrow_range: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__FakeQuantWithMinMaxArgs_device_/job:localhost/replica:0/task:0/device:CPU:0}} Attr num_bits has value -2054771615259587660 out of range for an int32 [Op:FakeQuantWithMinMaxArgs]
+InvalidArgumentError: {{function_node __wrapped__FakeQuantWithMinMaxArgs_device_/job:localhost/replica:0/task:0/device:CPU:0}} min has to be smaller than max, was: -1.61611596e+17 >= -7.26936065e+18 [Op:FakeQuantWithMinMaxArgs]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 28 (when narrow_range is used, the adjusted range should straddle or touch zero)
+{v_2 : float, v_3 : float, v_5 : bool} |= if v_5 then (v_2 < 0 ∨ v_3 > 0)
+Token usage: input=2194, output=5422, total=7616
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.quantization.fake_quant_with_min_max_args API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Fake-quantize the 'inputs' tensor, type float to 'outputs' tensor of same shape and type.
+
+  
+    Quantization is called fake since the output is still in floating point.
+    The API converts inputs into values within the range [min and max] and returns
+    as output.
+
+  Attributes
+
+  *   `[min; max]` define the clamping range for the `inputs` data.
+  *   `inputs` values are quantized into the quantization range (
+  `[0; 2^num_bits - 1]` when `narrow_range` is false and `[1; 2^num_bits - 1]`
+  when it is true) and then de-quantized and output as floats in `[min; max]`
+  interval.
+  *   `num_bits` is the bitwidth of the quantization; between 2 and 16, inclusive.
+
+  Before quantization, `min` and `max` values are adjusted with the following
+  logic.
+  It is suggested to have `min <= 0 <= max`. If `0` is not in the range of values,
+  the behavior can be unexpected:
+
+  *   If `0 < min < max`: `min_adj = 0` and `max_adj = max - min`.
+  *   If `min < max < 0`: `min_adj = min - max` and `max_adj = 0`.
+  *   If `min <= 0 <= max`: `scale = (max - min) / (2^num_bits - 1) `,
+  `min_adj = scale * round(min / scale)` and `max_adj = max + min_adj - min`.
+
+
+  Examples
+
+  ```python
+
+  inp = tf.constant ([10.03, -10.23, 3])
+  out = tf.quantization.fake_quant_with_min_max_args(inp, min=-5, max=5,
+                                                     num_bits=16)
+  print(out)
+
+  #  Output:
+  #  tf.Tensor([ 4.9999237 -5.0000763  3.0000763], shape=(3,), dtype=float32)
+  ```
+
+  Raises:
+    * InvalidArgumentError:
+      - If num_bits are outside of range [2, 16].
+      - If min >= max.
+    * ValueError: If `inputs` are of any other type than float32.
+
+  Args:
+    inputs: A `Tensor` of type `float32`.
+    min: An optional `float`. Defaults to `-6`.
+    max: An optional `float`. Defaults to `6`.
+    num_bits: An optional `int`. Defaults to `8`.
+    narrow_range: An optional `bool`. Defaults to `False`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `float32`.
+
+[API Signature] inputs: tensor, min: float, max: float, num_bits: integer, narrow_range: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__FakeQuantWithMinMaxArgs_device_/job:localhost/replica:0/task:0/device:CPU:0}} Attr num_bits has value -2054771615259587660 out of range for an int32 [Op:FakeQuantWithMinMaxArgs]
+InvalidArgumentError: {{function_node __wrapped__FakeQuantWithMinMaxArgs_device_/job:localhost/replica:0/task:0/device:CPU:0}} min has to be smaller than max, was: -1.61611596e+17 >= -7.26936065e+18 [Op:FakeQuantWithMinMaxArgs]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 29 (name chosen from allowed string set)
+{v_6 : str} |= v_6 = "none" ∨ v_6 = "linear" ∨ v_6 = "relu" ∨ v_6 = "sigmoid"
+Token usage: input=2194, output=5422, total=7616
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.quantization.fake_quant_with_min_max_args API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Fake-quantize the 'inputs' tensor, type float to 'outputs' tensor of same shape and type.
+
+  
+    Quantization is called fake since the output is still in floating point.
+    The API converts inputs into values within the range [min and max] and returns
+    as output.
+
+  Attributes
+
+  *   `[min; max]` define the clamping range for the `inputs` data.
+  *   `inputs` values are quantized into the quantization range (
+  `[0; 2^num_bits - 1]` when `narrow_range` is false and `[1; 2^num_bits - 1]`
+  when it is true) and then de-quantized and output as floats in `[min; max]`
+  interval.
+  *   `num_bits` is the bitwidth of the quantization; between 2 and 16, inclusive.
+
+  Before quantization, `min` and `max` values are adjusted with the following
+  logic.
+  It is suggested to have `min <= 0 <= max`. If `0` is not in the range of values,
+  the behavior can be unexpected:
+
+  *   If `0 < min < max`: `min_adj = 0` and `max_adj = max - min`.
+  *   If `min < max < 0`: `min_adj = min - max` and `max_adj = 0`.
+  *   If `min <= 0 <= max`: `scale = (max - min) / (2^num_bits - 1) `,
+  `min_adj = scale * round(min / scale)` and `max_adj = max + min_adj - min`.
+
+
+  Examples
+
+  ```python
+
+  inp = tf.constant ([10.03, -10.23, 3])
+  out = tf.quantization.fake_quant_with_min_max_args(inp, min=-5, max=5,
+                                                     num_bits=16)
+  print(out)
+
+  #  Output:
+  #  tf.Tensor([ 4.9999237 -5.0000763  3.0000763], shape=(3,), dtype=float32)
+  ```
+
+  Raises:
+    * InvalidArgumentError:
+      - If num_bits are outside of range [2, 16].
+      - If min >= max.
+    * ValueError: If `inputs` are of any other type than float32.
+
+  Args:
+    inputs: A `Tensor` of type `float32`.
+    min: An optional `float`. Defaults to `-6`.
+    max: An optional `float`. Defaults to `6`.
+    num_bits: An optional `int`. Defaults to `8`.
+    narrow_range: An optional `bool`. Defaults to `False`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `float32`.
+
+[API Signature] inputs: tensor, min: float, max: float, num_bits: integer, narrow_range: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__FakeQuantWithMinMaxArgs_device_/job:localhost/replica:0/task:0/device:CPU:0}} Attr num_bits has value -2054771615259587660 out of range for an int32 [Op:FakeQuantWithMinMaxArgs]
+InvalidArgumentError: {{function_node __wrapped__FakeQuantWithMinMaxArgs_device_/job:localhost/replica:0/task:0/device:CPU:0}} min has to be smaller than max, was: -1.61611596e+17 >= -7.26936065e+18 [Op:FakeQuantWithMinMaxArgs]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 30 (inputs already lie within the clamping range to avoid saturation)
+{v_1 : tensor, v_2 : float, v_3 : float} |= min(v_1) ≥ v_2 ∧ max(v_1) ≤ v_3
+Token usage: input=2194, output=5422, total=7616
+** SUCCESS **
+

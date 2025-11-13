@@ -3562,3 +3562,1947 @@ Rule 22 (name is a valid string identifier)
 Token usage: input=3892, output=10783, total=14675
 ** SUCCESS **
 
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.lstsq API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Solves one or more linear least-squares problems.
+
+  `matrix` is a tensor of shape `[..., M, N]` whose inner-most 2 dimensions
+  form `M`-by-`N` matrices. Rhs is a tensor of shape `[..., M, K]` whose
+  inner-most 2 dimensions form `M`-by-`K` matrices.  The computed output is a
+  `Tensor` of shape `[..., N, K]` whose inner-most 2 dimensions form `M`-by-`K`
+  matrices that solve the equations
+  `matrix[..., :, :] * output[..., :, :] = rhs[..., :, :]` in the least squares
+  sense.
+
+  Below we will use the following notation for each pair of matrix and
+  right-hand sides in the batch:
+
+  `matrix`=\\(A \in \Re^{m \times n}\\),
+  `rhs`=\\(B  \in \Re^{m \times k}\\),
+  `output`=\\(X  \in \Re^{n \times k}\\),
+  `l2_regularizer`=\\(\lambda\\).
+
+  If `fast` is `True`, then the solution is computed by solving the normal
+  equations using Cholesky decomposition. Specifically, if \\(m \ge n\\) then
+  \\(X = (A^T A + \lambda I)^{-1} A^T B\\), which solves the least-squares
+  problem \\(X = \mathrm{argmin}_{Z \in \Re^{n \times k}} ||A Z - B||_F^2 +
+  \lambda ||Z||_F^2\\). If \\(m \lt n\\) then `output` is computed as
+  \\(X = A^T (A A^T + \lambda I)^{-1} B\\), which (for \\(\lambda = 0\\)) is
+  the minimum-norm solution to the under-determined linear system, i.e.
+  \\(X = \mathrm{argmin}_{Z \in \Re^{n \times k}} ||Z||_F^2 \\), subject to
+  \\(A Z = B\\). Notice that the fast path is only numerically stable when
+  \\(A\\) is numerically full rank and has a condition number
+  \\(\mathrm{cond}(A) \lt \frac{1}{\sqrt{\epsilon_{mach}}}\\) or\\(\lambda\\)
+  is sufficiently large.
+
+  If `fast` is `False` an algorithm based on the numerically robust complete
+  orthogonal decomposition is used. This computes the minimum-norm
+  least-squares solution, even when \\(A\\) is rank deficient. This path is
+  typically 6-7 times slower than the fast path. If `fast` is `False` then
+  `l2_regularizer` is ignored.
+
+  Args:
+    matrix: `Tensor` of shape `[..., M, N]`.
+    rhs: `Tensor` of shape `[..., M, K]`.
+    l2_regularizer: 0-D `double` `Tensor`. Ignored if `fast=False`.
+    fast: bool. Defaults to `True`.
+    name: string, optional name of the operation.
+
+  Returns:
+    output: `Tensor` of shape `[..., N, K]` whose inner-most 2 dimensions form
+      `M`-by-`K` matrices that solve the equations
+      `matrix[..., :, :] * output[..., :, :] = rhs[..., :, :]` in the least
+      squares sense.
+
+  Raises:
+    NotImplementedError: linalg.lstsq is currently disabled for complex128
+    and l2_regularizer != 0 due to poor accuracy.
+
+[Possible API Signatures]
+ - matrix: tensor, rhs: tensor, l2_regularizer: float, fast: boolean, name: string
+ - matrix: tensor, rhs: tensor, l2_regularizer: tensor, fast: boolean, name: string
+
+[Error Messages]
+IndexError: tuple index out of range
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int16, int32, int64, uint8, uint16, uint32, uint64, complex64, complex128 	; NodeDef: {{node BatchMatMulV2}}; Op<name=BatchMatMulV2; signature=x:T, y:T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_COMPLEX64, DT_COMPLEX128]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=grad_x:bool,default=false; attr=grad_y:bool,default=false> [Op:BatchMatMulV2] name:
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: double, float, half, complex64, complex128 	; NodeDef: {{node MatrixSolveLs}}; Op<name=MatrixSolveLs; signature=matrix:T, rhs:T, l2_regularizer:double -> output:T; attr=T:type,allowed=[DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]; attr=fast:bool,default=true> [Op:MatrixSolveLs]
+InvalidArgumentError: {{function_node __wrapped____MklBatchMatMulV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} Matrix size-incompatible: In[0]: [58,57], In[1]: [31,27,28] 1 0 [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__MatrixSolveLs_device_/job:localhost/replica:0/task:0/device:CPU:0}} All input tensors must have the same outer dimensions. [Op:MatrixSolveLs]
+InvalidArgumentError: {{function_node __wrapped__MatrixTriangularSolve_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] mismatch In[1] shape: 31 vs. 74: [31,31] [12,5,74,41] 1 0 [Op:MatrixTriangularSolve]
+NotFoundError: Could not find device for node: {{node BatchMatMulV2}} = BatchMatMulV2[T=DT_UINT8, adj_x=false, adj_y=true, grad_x=false, grad_y=false] All kernels registered for op BatchMatMulV2:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]  [Op:BatchMatMulV2] name:
+NotFoundError: Could not find device for node: {{node Cholesky}} = Cholesky[T=DT_HALF] All kernels registered for op Cholesky:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]  [Op:Cholesky] name:
+NotFoundError: Could not find device for node: {{node MatMul}} = MatMul[T=DT_UINT8, grad_a=false, grad_b=false, transpose_a=false, transpose_b=true] All kernels registered for op MatMul:   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]  [Op:MatMul] name:
+NotFoundError: Could not find device for node: {{node MatrixSolveLs}} = MatrixSolveLs[T=DT_HALF, fast=false] All kernels registered for op MatrixSolveLs:   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_COMPLEX128]  [Op:MatrixSolveLs]
+NotImplementedError: matrix_solve_ls is currently disabled for complex128 and l2_regularizer != 0 due to poor accuracy.
+TypeError: Expected numeric or variant tensor, got dtype tf.bool.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 23 (matrix and rhs must be at least 2-D to be treated as matrices)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2
+Token usage: input=3800, output=10985, total=14785
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.lstsq API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Solves one or more linear least-squares problems.
+
+  `matrix` is a tensor of shape `[..., M, N]` whose inner-most 2 dimensions
+  form `M`-by-`N` matrices. Rhs is a tensor of shape `[..., M, K]` whose
+  inner-most 2 dimensions form `M`-by-`K` matrices.  The computed output is a
+  `Tensor` of shape `[..., N, K]` whose inner-most 2 dimensions form `M`-by-`K`
+  matrices that solve the equations
+  `matrix[..., :, :] * output[..., :, :] = rhs[..., :, :]` in the least squares
+  sense.
+
+  Below we will use the following notation for each pair of matrix and
+  right-hand sides in the batch:
+
+  `matrix`=\\(A \in \Re^{m \times n}\\),
+  `rhs`=\\(B  \in \Re^{m \times k}\\),
+  `output`=\\(X  \in \Re^{n \times k}\\),
+  `l2_regularizer`=\\(\lambda\\).
+
+  If `fast` is `True`, then the solution is computed by solving the normal
+  equations using Cholesky decomposition. Specifically, if \\(m \ge n\\) then
+  \\(X = (A^T A + \lambda I)^{-1} A^T B\\), which solves the least-squares
+  problem \\(X = \mathrm{argmin}_{Z \in \Re^{n \times k}} ||A Z - B||_F^2 +
+  \lambda ||Z||_F^2\\). If \\(m \lt n\\) then `output` is computed as
+  \\(X = A^T (A A^T + \lambda I)^{-1} B\\), which (for \\(\lambda = 0\\)) is
+  the minimum-norm solution to the under-determined linear system, i.e.
+  \\(X = \mathrm{argmin}_{Z \in \Re^{n \times k}} ||Z||_F^2 \\), subject to
+  \\(A Z = B\\). Notice that the fast path is only numerically stable when
+  \\(A\\) is numerically full rank and has a condition number
+  \\(\mathrm{cond}(A) \lt \frac{1}{\sqrt{\epsilon_{mach}}}\\) or\\(\lambda\\)
+  is sufficiently large.
+
+  If `fast` is `False` an algorithm based on the numerically robust complete
+  orthogonal decomposition is used. This computes the minimum-norm
+  least-squares solution, even when \\(A\\) is rank deficient. This path is
+  typically 6-7 times slower than the fast path. If `fast` is `False` then
+  `l2_regularizer` is ignored.
+
+  Args:
+    matrix: `Tensor` of shape `[..., M, N]`.
+    rhs: `Tensor` of shape `[..., M, K]`.
+    l2_regularizer: 0-D `double` `Tensor`. Ignored if `fast=False`.
+    fast: bool. Defaults to `True`.
+    name: string, optional name of the operation.
+
+  Returns:
+    output: `Tensor` of shape `[..., N, K]` whose inner-most 2 dimensions form
+      `M`-by-`K` matrices that solve the equations
+      `matrix[..., :, :] * output[..., :, :] = rhs[..., :, :]` in the least
+      squares sense.
+
+  Raises:
+    NotImplementedError: linalg.lstsq is currently disabled for complex128
+    and l2_regularizer != 0 due to poor accuracy.
+
+[Possible API Signatures]
+ - matrix: tensor, rhs: tensor, l2_regularizer: float, fast: boolean, name: string
+ - matrix: tensor, rhs: tensor, l2_regularizer: tensor, fast: boolean, name: string
+
+[Error Messages]
+IndexError: tuple index out of range
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int16, int32, int64, uint8, uint16, uint32, uint64, complex64, complex128 	; NodeDef: {{node BatchMatMulV2}}; Op<name=BatchMatMulV2; signature=x:T, y:T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_COMPLEX64, DT_COMPLEX128]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=grad_x:bool,default=false; attr=grad_y:bool,default=false> [Op:BatchMatMulV2] name:
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: double, float, half, complex64, complex128 	; NodeDef: {{node MatrixSolveLs}}; Op<name=MatrixSolveLs; signature=matrix:T, rhs:T, l2_regularizer:double -> output:T; attr=T:type,allowed=[DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]; attr=fast:bool,default=true> [Op:MatrixSolveLs]
+InvalidArgumentError: {{function_node __wrapped____MklBatchMatMulV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} Matrix size-incompatible: In[0]: [58,57], In[1]: [31,27,28] 1 0 [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__MatrixSolveLs_device_/job:localhost/replica:0/task:0/device:CPU:0}} All input tensors must have the same outer dimensions. [Op:MatrixSolveLs]
+InvalidArgumentError: {{function_node __wrapped__MatrixTriangularSolve_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] mismatch In[1] shape: 31 vs. 74: [31,31] [12,5,74,41] 1 0 [Op:MatrixTriangularSolve]
+NotFoundError: Could not find device for node: {{node BatchMatMulV2}} = BatchMatMulV2[T=DT_UINT8, adj_x=false, adj_y=true, grad_x=false, grad_y=false] All kernels registered for op BatchMatMulV2:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]  [Op:BatchMatMulV2] name:
+NotFoundError: Could not find device for node: {{node Cholesky}} = Cholesky[T=DT_HALF] All kernels registered for op Cholesky:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]  [Op:Cholesky] name:
+NotFoundError: Could not find device for node: {{node MatMul}} = MatMul[T=DT_UINT8, grad_a=false, grad_b=false, transpose_a=false, transpose_b=true] All kernels registered for op MatMul:   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]  [Op:MatMul] name:
+NotFoundError: Could not find device for node: {{node MatrixSolveLs}} = MatrixSolveLs[T=DT_HALF, fast=false] All kernels registered for op MatrixSolveLs:   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_COMPLEX128]  [Op:MatrixSolveLs]
+NotImplementedError: matrix_solve_ls is currently disabled for complex128 and l2_regularizer != 0 due to poor accuracy.
+TypeError: Expected numeric or variant tensor, got dtype tf.bool.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 24 (inner M-dimensions must match: matrix[..., M, N] vs rhs[..., M, K])
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 2)
+Token usage: input=3800, output=10985, total=14785
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.lstsq API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Solves one or more linear least-squares problems.
+
+  `matrix` is a tensor of shape `[..., M, N]` whose inner-most 2 dimensions
+  form `M`-by-`N` matrices. Rhs is a tensor of shape `[..., M, K]` whose
+  inner-most 2 dimensions form `M`-by-`K` matrices.  The computed output is a
+  `Tensor` of shape `[..., N, K]` whose inner-most 2 dimensions form `M`-by-`K`
+  matrices that solve the equations
+  `matrix[..., :, :] * output[..., :, :] = rhs[..., :, :]` in the least squares
+  sense.
+
+  Below we will use the following notation for each pair of matrix and
+  right-hand sides in the batch:
+
+  `matrix`=\\(A \in \Re^{m \times n}\\),
+  `rhs`=\\(B  \in \Re^{m \times k}\\),
+  `output`=\\(X  \in \Re^{n \times k}\\),
+  `l2_regularizer`=\\(\lambda\\).
+
+  If `fast` is `True`, then the solution is computed by solving the normal
+  equations using Cholesky decomposition. Specifically, if \\(m \ge n\\) then
+  \\(X = (A^T A + \lambda I)^{-1} A^T B\\), which solves the least-squares
+  problem \\(X = \mathrm{argmin}_{Z \in \Re^{n \times k}} ||A Z - B||_F^2 +
+  \lambda ||Z||_F^2\\). If \\(m \lt n\\) then `output` is computed as
+  \\(X = A^T (A A^T + \lambda I)^{-1} B\\), which (for \\(\lambda = 0\\)) is
+  the minimum-norm solution to the under-determined linear system, i.e.
+  \\(X = \mathrm{argmin}_{Z \in \Re^{n \times k}} ||Z||_F^2 \\), subject to
+  \\(A Z = B\\). Notice that the fast path is only numerically stable when
+  \\(A\\) is numerically full rank and has a condition number
+  \\(\mathrm{cond}(A) \lt \frac{1}{\sqrt{\epsilon_{mach}}}\\) or\\(\lambda\\)
+  is sufficiently large.
+
+  If `fast` is `False` an algorithm based on the numerically robust complete
+  orthogonal decomposition is used. This computes the minimum-norm
+  least-squares solution, even when \\(A\\) is rank deficient. This path is
+  typically 6-7 times slower than the fast path. If `fast` is `False` then
+  `l2_regularizer` is ignored.
+
+  Args:
+    matrix: `Tensor` of shape `[..., M, N]`.
+    rhs: `Tensor` of shape `[..., M, K]`.
+    l2_regularizer: 0-D `double` `Tensor`. Ignored if `fast=False`.
+    fast: bool. Defaults to `True`.
+    name: string, optional name of the operation.
+
+  Returns:
+    output: `Tensor` of shape `[..., N, K]` whose inner-most 2 dimensions form
+      `M`-by-`K` matrices that solve the equations
+      `matrix[..., :, :] * output[..., :, :] = rhs[..., :, :]` in the least
+      squares sense.
+
+  Raises:
+    NotImplementedError: linalg.lstsq is currently disabled for complex128
+    and l2_regularizer != 0 due to poor accuracy.
+
+[Possible API Signatures]
+ - matrix: tensor, rhs: tensor, l2_regularizer: float, fast: boolean, name: string
+ - matrix: tensor, rhs: tensor, l2_regularizer: tensor, fast: boolean, name: string
+
+[Error Messages]
+IndexError: tuple index out of range
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int16, int32, int64, uint8, uint16, uint32, uint64, complex64, complex128 	; NodeDef: {{node BatchMatMulV2}}; Op<name=BatchMatMulV2; signature=x:T, y:T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_COMPLEX64, DT_COMPLEX128]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=grad_x:bool,default=false; attr=grad_y:bool,default=false> [Op:BatchMatMulV2] name:
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: double, float, half, complex64, complex128 	; NodeDef: {{node MatrixSolveLs}}; Op<name=MatrixSolveLs; signature=matrix:T, rhs:T, l2_regularizer:double -> output:T; attr=T:type,allowed=[DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]; attr=fast:bool,default=true> [Op:MatrixSolveLs]
+InvalidArgumentError: {{function_node __wrapped____MklBatchMatMulV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} Matrix size-incompatible: In[0]: [58,57], In[1]: [31,27,28] 1 0 [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__MatrixSolveLs_device_/job:localhost/replica:0/task:0/device:CPU:0}} All input tensors must have the same outer dimensions. [Op:MatrixSolveLs]
+InvalidArgumentError: {{function_node __wrapped__MatrixTriangularSolve_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] mismatch In[1] shape: 31 vs. 74: [31,31] [12,5,74,41] 1 0 [Op:MatrixTriangularSolve]
+NotFoundError: Could not find device for node: {{node BatchMatMulV2}} = BatchMatMulV2[T=DT_UINT8, adj_x=false, adj_y=true, grad_x=false, grad_y=false] All kernels registered for op BatchMatMulV2:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]  [Op:BatchMatMulV2] name:
+NotFoundError: Could not find device for node: {{node Cholesky}} = Cholesky[T=DT_HALF] All kernels registered for op Cholesky:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]  [Op:Cholesky] name:
+NotFoundError: Could not find device for node: {{node MatMul}} = MatMul[T=DT_UINT8, grad_a=false, grad_b=false, transpose_a=false, transpose_b=true] All kernels registered for op MatMul:   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]  [Op:MatMul] name:
+NotFoundError: Could not find device for node: {{node MatrixSolveLs}} = MatrixSolveLs[T=DT_HALF, fast=false] All kernels registered for op MatrixSolveLs:   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_COMPLEX128]  [Op:MatrixSolveLs]
+NotImplementedError: matrix_solve_ls is currently disabled for complex128 and l2_regularizer != 0 due to poor accuracy.
+TypeError: Expected numeric or variant tensor, got dtype tf.bool.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 25 (batch/outer dimensions must match for all pairs)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = ndim(v_2) ∧ ndim(v_1) ≥ 3) then ∀i ∈ [0, ndim(v_1) - 3] : shape(v_1, i) = shape(v_2, i)
+Token usage: input=3800, output=10985, total=14785
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.lstsq API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Solves one or more linear least-squares problems.
+
+  `matrix` is a tensor of shape `[..., M, N]` whose inner-most 2 dimensions
+  form `M`-by-`N` matrices. Rhs is a tensor of shape `[..., M, K]` whose
+  inner-most 2 dimensions form `M`-by-`K` matrices.  The computed output is a
+  `Tensor` of shape `[..., N, K]` whose inner-most 2 dimensions form `M`-by-`K`
+  matrices that solve the equations
+  `matrix[..., :, :] * output[..., :, :] = rhs[..., :, :]` in the least squares
+  sense.
+
+  Below we will use the following notation for each pair of matrix and
+  right-hand sides in the batch:
+
+  `matrix`=\\(A \in \Re^{m \times n}\\),
+  `rhs`=\\(B  \in \Re^{m \times k}\\),
+  `output`=\\(X  \in \Re^{n \times k}\\),
+  `l2_regularizer`=\\(\lambda\\).
+
+  If `fast` is `True`, then the solution is computed by solving the normal
+  equations using Cholesky decomposition. Specifically, if \\(m \ge n\\) then
+  \\(X = (A^T A + \lambda I)^{-1} A^T B\\), which solves the least-squares
+  problem \\(X = \mathrm{argmin}_{Z \in \Re^{n \times k}} ||A Z - B||_F^2 +
+  \lambda ||Z||_F^2\\). If \\(m \lt n\\) then `output` is computed as
+  \\(X = A^T (A A^T + \lambda I)^{-1} B\\), which (for \\(\lambda = 0\\)) is
+  the minimum-norm solution to the under-determined linear system, i.e.
+  \\(X = \mathrm{argmin}_{Z \in \Re^{n \times k}} ||Z||_F^2 \\), subject to
+  \\(A Z = B\\). Notice that the fast path is only numerically stable when
+  \\(A\\) is numerically full rank and has a condition number
+  \\(\mathrm{cond}(A) \lt \frac{1}{\sqrt{\epsilon_{mach}}}\\) or\\(\lambda\\)
+  is sufficiently large.
+
+  If `fast` is `False` an algorithm based on the numerically robust complete
+  orthogonal decomposition is used. This computes the minimum-norm
+  least-squares solution, even when \\(A\\) is rank deficient. This path is
+  typically 6-7 times slower than the fast path. If `fast` is `False` then
+  `l2_regularizer` is ignored.
+
+  Args:
+    matrix: `Tensor` of shape `[..., M, N]`.
+    rhs: `Tensor` of shape `[..., M, K]`.
+    l2_regularizer: 0-D `double` `Tensor`. Ignored if `fast=False`.
+    fast: bool. Defaults to `True`.
+    name: string, optional name of the operation.
+
+  Returns:
+    output: `Tensor` of shape `[..., N, K]` whose inner-most 2 dimensions form
+      `M`-by-`K` matrices that solve the equations
+      `matrix[..., :, :] * output[..., :, :] = rhs[..., :, :]` in the least
+      squares sense.
+
+  Raises:
+    NotImplementedError: linalg.lstsq is currently disabled for complex128
+    and l2_regularizer != 0 due to poor accuracy.
+
+[Possible API Signatures]
+ - matrix: tensor, rhs: tensor, l2_regularizer: float, fast: boolean, name: string
+ - matrix: tensor, rhs: tensor, l2_regularizer: tensor, fast: boolean, name: string
+
+[Error Messages]
+IndexError: tuple index out of range
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int16, int32, int64, uint8, uint16, uint32, uint64, complex64, complex128 	; NodeDef: {{node BatchMatMulV2}}; Op<name=BatchMatMulV2; signature=x:T, y:T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_COMPLEX64, DT_COMPLEX128]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=grad_x:bool,default=false; attr=grad_y:bool,default=false> [Op:BatchMatMulV2] name:
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: double, float, half, complex64, complex128 	; NodeDef: {{node MatrixSolveLs}}; Op<name=MatrixSolveLs; signature=matrix:T, rhs:T, l2_regularizer:double -> output:T; attr=T:type,allowed=[DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]; attr=fast:bool,default=true> [Op:MatrixSolveLs]
+InvalidArgumentError: {{function_node __wrapped____MklBatchMatMulV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} Matrix size-incompatible: In[0]: [58,57], In[1]: [31,27,28] 1 0 [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__MatrixSolveLs_device_/job:localhost/replica:0/task:0/device:CPU:0}} All input tensors must have the same outer dimensions. [Op:MatrixSolveLs]
+InvalidArgumentError: {{function_node __wrapped__MatrixTriangularSolve_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] mismatch In[1] shape: 31 vs. 74: [31,31] [12,5,74,41] 1 0 [Op:MatrixTriangularSolve]
+NotFoundError: Could not find device for node: {{node BatchMatMulV2}} = BatchMatMulV2[T=DT_UINT8, adj_x=false, adj_y=true, grad_x=false, grad_y=false] All kernels registered for op BatchMatMulV2:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]  [Op:BatchMatMulV2] name:
+NotFoundError: Could not find device for node: {{node Cholesky}} = Cholesky[T=DT_HALF] All kernels registered for op Cholesky:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]  [Op:Cholesky] name:
+NotFoundError: Could not find device for node: {{node MatMul}} = MatMul[T=DT_UINT8, grad_a=false, grad_b=false, transpose_a=false, transpose_b=true] All kernels registered for op MatMul:   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]  [Op:MatMul] name:
+NotFoundError: Could not find device for node: {{node MatrixSolveLs}} = MatrixSolveLs[T=DT_HALF, fast=false] All kernels registered for op MatrixSolveLs:   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_COMPLEX128]  [Op:MatrixSolveLs]
+NotImplementedError: matrix_solve_ls is currently disabled for complex128 and l2_regularizer != 0 due to poor accuracy.
+TypeError: Expected numeric or variant tensor, got dtype tf.bool.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 26 (inputs must not be boolean tensors)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0
+Token usage: input=3800, output=10985, total=14785
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.lstsq API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Solves one or more linear least-squares problems.
+
+  `matrix` is a tensor of shape `[..., M, N]` whose inner-most 2 dimensions
+  form `M`-by-`N` matrices. Rhs is a tensor of shape `[..., M, K]` whose
+  inner-most 2 dimensions form `M`-by-`K` matrices.  The computed output is a
+  `Tensor` of shape `[..., N, K]` whose inner-most 2 dimensions form `M`-by-`K`
+  matrices that solve the equations
+  `matrix[..., :, :] * output[..., :, :] = rhs[..., :, :]` in the least squares
+  sense.
+
+  Below we will use the following notation for each pair of matrix and
+  right-hand sides in the batch:
+
+  `matrix`=\\(A \in \Re^{m \times n}\\),
+  `rhs`=\\(B  \in \Re^{m \times k}\\),
+  `output`=\\(X  \in \Re^{n \times k}\\),
+  `l2_regularizer`=\\(\lambda\\).
+
+  If `fast` is `True`, then the solution is computed by solving the normal
+  equations using Cholesky decomposition. Specifically, if \\(m \ge n\\) then
+  \\(X = (A^T A + \lambda I)^{-1} A^T B\\), which solves the least-squares
+  problem \\(X = \mathrm{argmin}_{Z \in \Re^{n \times k}} ||A Z - B||_F^2 +
+  \lambda ||Z||_F^2\\). If \\(m \lt n\\) then `output` is computed as
+  \\(X = A^T (A A^T + \lambda I)^{-1} B\\), which (for \\(\lambda = 0\\)) is
+  the minimum-norm solution to the under-determined linear system, i.e.
+  \\(X = \mathrm{argmin}_{Z \in \Re^{n \times k}} ||Z||_F^2 \\), subject to
+  \\(A Z = B\\). Notice that the fast path is only numerically stable when
+  \\(A\\) is numerically full rank and has a condition number
+  \\(\mathrm{cond}(A) \lt \frac{1}{\sqrt{\epsilon_{mach}}}\\) or\\(\lambda\\)
+  is sufficiently large.
+
+  If `fast` is `False` an algorithm based on the numerically robust complete
+  orthogonal decomposition is used. This computes the minimum-norm
+  least-squares solution, even when \\(A\\) is rank deficient. This path is
+  typically 6-7 times slower than the fast path. If `fast` is `False` then
+  `l2_regularizer` is ignored.
+
+  Args:
+    matrix: `Tensor` of shape `[..., M, N]`.
+    rhs: `Tensor` of shape `[..., M, K]`.
+    l2_regularizer: 0-D `double` `Tensor`. Ignored if `fast=False`.
+    fast: bool. Defaults to `True`.
+    name: string, optional name of the operation.
+
+  Returns:
+    output: `Tensor` of shape `[..., N, K]` whose inner-most 2 dimensions form
+      `M`-by-`K` matrices that solve the equations
+      `matrix[..., :, :] * output[..., :, :] = rhs[..., :, :]` in the least
+      squares sense.
+
+  Raises:
+    NotImplementedError: linalg.lstsq is currently disabled for complex128
+    and l2_regularizer != 0 due to poor accuracy.
+
+[Possible API Signatures]
+ - matrix: tensor, rhs: tensor, l2_regularizer: float, fast: boolean, name: string
+ - matrix: tensor, rhs: tensor, l2_regularizer: tensor, fast: boolean, name: string
+
+[Error Messages]
+IndexError: tuple index out of range
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int16, int32, int64, uint8, uint16, uint32, uint64, complex64, complex128 	; NodeDef: {{node BatchMatMulV2}}; Op<name=BatchMatMulV2; signature=x:T, y:T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_COMPLEX64, DT_COMPLEX128]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=grad_x:bool,default=false; attr=grad_y:bool,default=false> [Op:BatchMatMulV2] name:
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: double, float, half, complex64, complex128 	; NodeDef: {{node MatrixSolveLs}}; Op<name=MatrixSolveLs; signature=matrix:T, rhs:T, l2_regularizer:double -> output:T; attr=T:type,allowed=[DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]; attr=fast:bool,default=true> [Op:MatrixSolveLs]
+InvalidArgumentError: {{function_node __wrapped____MklBatchMatMulV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} Matrix size-incompatible: In[0]: [58,57], In[1]: [31,27,28] 1 0 [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__MatrixSolveLs_device_/job:localhost/replica:0/task:0/device:CPU:0}} All input tensors must have the same outer dimensions. [Op:MatrixSolveLs]
+InvalidArgumentError: {{function_node __wrapped__MatrixTriangularSolve_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] mismatch In[1] shape: 31 vs. 74: [31,31] [12,5,74,41] 1 0 [Op:MatrixTriangularSolve]
+NotFoundError: Could not find device for node: {{node BatchMatMulV2}} = BatchMatMulV2[T=DT_UINT8, adj_x=false, adj_y=true, grad_x=false, grad_y=false] All kernels registered for op BatchMatMulV2:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]  [Op:BatchMatMulV2] name:
+NotFoundError: Could not find device for node: {{node Cholesky}} = Cholesky[T=DT_HALF] All kernels registered for op Cholesky:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]  [Op:Cholesky] name:
+NotFoundError: Could not find device for node: {{node MatMul}} = MatMul[T=DT_UINT8, grad_a=false, grad_b=false, transpose_a=false, transpose_b=true] All kernels registered for op MatMul:   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]  [Op:MatMul] name:
+NotFoundError: Could not find device for node: {{node MatrixSolveLs}} = MatrixSolveLs[T=DT_HALF, fast=false] All kernels registered for op MatrixSolveLs:   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_COMPLEX128]  [Op:MatrixSolveLs]
+NotImplementedError: matrix_solve_ls is currently disabled for complex128 and l2_regularizer != 0 due to poor accuracy.
+TypeError: Expected numeric or variant tensor, got dtype tf.bool.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 27 (inputs must be floating-point or complex types supported by MatrixSolveLs)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+Token usage: input=3800, output=10985, total=14785
+** DUPLICATED RULE ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.lstsq API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Solves one or more linear least-squares problems.
+
+  `matrix` is a tensor of shape `[..., M, N]` whose inner-most 2 dimensions
+  form `M`-by-`N` matrices. Rhs is a tensor of shape `[..., M, K]` whose
+  inner-most 2 dimensions form `M`-by-`K` matrices.  The computed output is a
+  `Tensor` of shape `[..., N, K]` whose inner-most 2 dimensions form `M`-by-`K`
+  matrices that solve the equations
+  `matrix[..., :, :] * output[..., :, :] = rhs[..., :, :]` in the least squares
+  sense.
+
+  Below we will use the following notation for each pair of matrix and
+  right-hand sides in the batch:
+
+  `matrix`=\\(A \in \Re^{m \times n}\\),
+  `rhs`=\\(B  \in \Re^{m \times k}\\),
+  `output`=\\(X  \in \Re^{n \times k}\\),
+  `l2_regularizer`=\\(\lambda\\).
+
+  If `fast` is `True`, then the solution is computed by solving the normal
+  equations using Cholesky decomposition. Specifically, if \\(m \ge n\\) then
+  \\(X = (A^T A + \lambda I)^{-1} A^T B\\), which solves the least-squares
+  problem \\(X = \mathrm{argmin}_{Z \in \Re^{n \times k}} ||A Z - B||_F^2 +
+  \lambda ||Z||_F^2\\). If \\(m \lt n\\) then `output` is computed as
+  \\(X = A^T (A A^T + \lambda I)^{-1} B\\), which (for \\(\lambda = 0\\)) is
+  the minimum-norm solution to the under-determined linear system, i.e.
+  \\(X = \mathrm{argmin}_{Z \in \Re^{n \times k}} ||Z||_F^2 \\), subject to
+  \\(A Z = B\\). Notice that the fast path is only numerically stable when
+  \\(A\\) is numerically full rank and has a condition number
+  \\(\mathrm{cond}(A) \lt \frac{1}{\sqrt{\epsilon_{mach}}}\\) or\\(\lambda\\)
+  is sufficiently large.
+
+  If `fast` is `False` an algorithm based on the numerically robust complete
+  orthogonal decomposition is used. This computes the minimum-norm
+  least-squares solution, even when \\(A\\) is rank deficient. This path is
+  typically 6-7 times slower than the fast path. If `fast` is `False` then
+  `l2_regularizer` is ignored.
+
+  Args:
+    matrix: `Tensor` of shape `[..., M, N]`.
+    rhs: `Tensor` of shape `[..., M, K]`.
+    l2_regularizer: 0-D `double` `Tensor`. Ignored if `fast=False`.
+    fast: bool. Defaults to `True`.
+    name: string, optional name of the operation.
+
+  Returns:
+    output: `Tensor` of shape `[..., N, K]` whose inner-most 2 dimensions form
+      `M`-by-`K` matrices that solve the equations
+      `matrix[..., :, :] * output[..., :, :] = rhs[..., :, :]` in the least
+      squares sense.
+
+  Raises:
+    NotImplementedError: linalg.lstsq is currently disabled for complex128
+    and l2_regularizer != 0 due to poor accuracy.
+
+[Possible API Signatures]
+ - matrix: tensor, rhs: tensor, l2_regularizer: float, fast: boolean, name: string
+ - matrix: tensor, rhs: tensor, l2_regularizer: tensor, fast: boolean, name: string
+
+[Error Messages]
+IndexError: tuple index out of range
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int16, int32, int64, uint8, uint16, uint32, uint64, complex64, complex128 	; NodeDef: {{node BatchMatMulV2}}; Op<name=BatchMatMulV2; signature=x:T, y:T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_COMPLEX64, DT_COMPLEX128]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=grad_x:bool,default=false; attr=grad_y:bool,default=false> [Op:BatchMatMulV2] name:
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: double, float, half, complex64, complex128 	; NodeDef: {{node MatrixSolveLs}}; Op<name=MatrixSolveLs; signature=matrix:T, rhs:T, l2_regularizer:double -> output:T; attr=T:type,allowed=[DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]; attr=fast:bool,default=true> [Op:MatrixSolveLs]
+InvalidArgumentError: {{function_node __wrapped____MklBatchMatMulV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} Matrix size-incompatible: In[0]: [58,57], In[1]: [31,27,28] 1 0 [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__MatrixSolveLs_device_/job:localhost/replica:0/task:0/device:CPU:0}} All input tensors must have the same outer dimensions. [Op:MatrixSolveLs]
+InvalidArgumentError: {{function_node __wrapped__MatrixTriangularSolve_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] mismatch In[1] shape: 31 vs. 74: [31,31] [12,5,74,41] 1 0 [Op:MatrixTriangularSolve]
+NotFoundError: Could not find device for node: {{node BatchMatMulV2}} = BatchMatMulV2[T=DT_UINT8, adj_x=false, adj_y=true, grad_x=false, grad_y=false] All kernels registered for op BatchMatMulV2:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]  [Op:BatchMatMulV2] name:
+NotFoundError: Could not find device for node: {{node Cholesky}} = Cholesky[T=DT_HALF] All kernels registered for op Cholesky:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]  [Op:Cholesky] name:
+NotFoundError: Could not find device for node: {{node MatMul}} = MatMul[T=DT_UINT8, grad_a=false, grad_b=false, transpose_a=false, transpose_b=true] All kernels registered for op MatMul:   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]  [Op:MatMul] name:
+NotFoundError: Could not find device for node: {{node MatrixSolveLs}} = MatrixSolveLs[T=DT_HALF, fast=false] All kernels registered for op MatrixSolveLs:   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_COMPLEX128]  [Op:MatrixSolveLs]
+NotImplementedError: matrix_solve_ls is currently disabled for complex128 and l2_regularizer != 0 due to poor accuracy.
+TypeError: Expected numeric or variant tensor, got dtype tf.bool.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 28 (disallow uint8 to avoid missing MatMul kernels)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 5 ∧ dtype_(v_2) ≠ 5
+Token usage: input=3800, output=10985, total=14785
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.lstsq API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Solves one or more linear least-squares problems.
+
+  `matrix` is a tensor of shape `[..., M, N]` whose inner-most 2 dimensions
+  form `M`-by-`N` matrices. Rhs is a tensor of shape `[..., M, K]` whose
+  inner-most 2 dimensions form `M`-by-`K` matrices.  The computed output is a
+  `Tensor` of shape `[..., N, K]` whose inner-most 2 dimensions form `M`-by-`K`
+  matrices that solve the equations
+  `matrix[..., :, :] * output[..., :, :] = rhs[..., :, :]` in the least squares
+  sense.
+
+  Below we will use the following notation for each pair of matrix and
+  right-hand sides in the batch:
+
+  `matrix`=\\(A \in \Re^{m \times n}\\),
+  `rhs`=\\(B  \in \Re^{m \times k}\\),
+  `output`=\\(X  \in \Re^{n \times k}\\),
+  `l2_regularizer`=\\(\lambda\\).
+
+  If `fast` is `True`, then the solution is computed by solving the normal
+  equations using Cholesky decomposition. Specifically, if \\(m \ge n\\) then
+  \\(X = (A^T A + \lambda I)^{-1} A^T B\\), which solves the least-squares
+  problem \\(X = \mathrm{argmin}_{Z \in \Re^{n \times k}} ||A Z - B||_F^2 +
+  \lambda ||Z||_F^2\\). If \\(m \lt n\\) then `output` is computed as
+  \\(X = A^T (A A^T + \lambda I)^{-1} B\\), which (for \\(\lambda = 0\\)) is
+  the minimum-norm solution to the under-determined linear system, i.e.
+  \\(X = \mathrm{argmin}_{Z \in \Re^{n \times k}} ||Z||_F^2 \\), subject to
+  \\(A Z = B\\). Notice that the fast path is only numerically stable when
+  \\(A\\) is numerically full rank and has a condition number
+  \\(\mathrm{cond}(A) \lt \frac{1}{\sqrt{\epsilon_{mach}}}\\) or\\(\lambda\\)
+  is sufficiently large.
+
+  If `fast` is `False` an algorithm based on the numerically robust complete
+  orthogonal decomposition is used. This computes the minimum-norm
+  least-squares solution, even when \\(A\\) is rank deficient. This path is
+  typically 6-7 times slower than the fast path. If `fast` is `False` then
+  `l2_regularizer` is ignored.
+
+  Args:
+    matrix: `Tensor` of shape `[..., M, N]`.
+    rhs: `Tensor` of shape `[..., M, K]`.
+    l2_regularizer: 0-D `double` `Tensor`. Ignored if `fast=False`.
+    fast: bool. Defaults to `True`.
+    name: string, optional name of the operation.
+
+  Returns:
+    output: `Tensor` of shape `[..., N, K]` whose inner-most 2 dimensions form
+      `M`-by-`K` matrices that solve the equations
+      `matrix[..., :, :] * output[..., :, :] = rhs[..., :, :]` in the least
+      squares sense.
+
+  Raises:
+    NotImplementedError: linalg.lstsq is currently disabled for complex128
+    and l2_regularizer != 0 due to poor accuracy.
+
+[Possible API Signatures]
+ - matrix: tensor, rhs: tensor, l2_regularizer: float, fast: boolean, name: string
+ - matrix: tensor, rhs: tensor, l2_regularizer: tensor, fast: boolean, name: string
+
+[Error Messages]
+IndexError: tuple index out of range
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int16, int32, int64, uint8, uint16, uint32, uint64, complex64, complex128 	; NodeDef: {{node BatchMatMulV2}}; Op<name=BatchMatMulV2; signature=x:T, y:T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_COMPLEX64, DT_COMPLEX128]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=grad_x:bool,default=false; attr=grad_y:bool,default=false> [Op:BatchMatMulV2] name:
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: double, float, half, complex64, complex128 	; NodeDef: {{node MatrixSolveLs}}; Op<name=MatrixSolveLs; signature=matrix:T, rhs:T, l2_regularizer:double -> output:T; attr=T:type,allowed=[DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]; attr=fast:bool,default=true> [Op:MatrixSolveLs]
+InvalidArgumentError: {{function_node __wrapped____MklBatchMatMulV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} Matrix size-incompatible: In[0]: [58,57], In[1]: [31,27,28] 1 0 [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__MatrixSolveLs_device_/job:localhost/replica:0/task:0/device:CPU:0}} All input tensors must have the same outer dimensions. [Op:MatrixSolveLs]
+InvalidArgumentError: {{function_node __wrapped__MatrixTriangularSolve_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] mismatch In[1] shape: 31 vs. 74: [31,31] [12,5,74,41] 1 0 [Op:MatrixTriangularSolve]
+NotFoundError: Could not find device for node: {{node BatchMatMulV2}} = BatchMatMulV2[T=DT_UINT8, adj_x=false, adj_y=true, grad_x=false, grad_y=false] All kernels registered for op BatchMatMulV2:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]  [Op:BatchMatMulV2] name:
+NotFoundError: Could not find device for node: {{node Cholesky}} = Cholesky[T=DT_HALF] All kernels registered for op Cholesky:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]  [Op:Cholesky] name:
+NotFoundError: Could not find device for node: {{node MatMul}} = MatMul[T=DT_UINT8, grad_a=false, grad_b=false, transpose_a=false, transpose_b=true] All kernels registered for op MatMul:   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]  [Op:MatMul] name:
+NotFoundError: Could not find device for node: {{node MatrixSolveLs}} = MatrixSolveLs[T=DT_HALF, fast=false] All kernels registered for op MatrixSolveLs:   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_COMPLEX128]  [Op:MatrixSolveLs]
+NotImplementedError: matrix_solve_ls is currently disabled for complex128 and l2_regularizer != 0 due to poor accuracy.
+TypeError: Expected numeric or variant tensor, got dtype tf.bool.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 29 (fast path: avoid float16 to prevent missing Cholesky kernels)
+{v_1 : tensor, v_4 : bool} |= if v_4 then dtype_(v_1) ≠ 6
+Token usage: input=3800, output=10985, total=14785
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.lstsq API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Solves one or more linear least-squares problems.
+
+  `matrix` is a tensor of shape `[..., M, N]` whose inner-most 2 dimensions
+  form `M`-by-`N` matrices. Rhs is a tensor of shape `[..., M, K]` whose
+  inner-most 2 dimensions form `M`-by-`K` matrices.  The computed output is a
+  `Tensor` of shape `[..., N, K]` whose inner-most 2 dimensions form `M`-by-`K`
+  matrices that solve the equations
+  `matrix[..., :, :] * output[..., :, :] = rhs[..., :, :]` in the least squares
+  sense.
+
+  Below we will use the following notation for each pair of matrix and
+  right-hand sides in the batch:
+
+  `matrix`=\\(A \in \Re^{m \times n}\\),
+  `rhs`=\\(B  \in \Re^{m \times k}\\),
+  `output`=\\(X  \in \Re^{n \times k}\\),
+  `l2_regularizer`=\\(\lambda\\).
+
+  If `fast` is `True`, then the solution is computed by solving the normal
+  equations using Cholesky decomposition. Specifically, if \\(m \ge n\\) then
+  \\(X = (A^T A + \lambda I)^{-1} A^T B\\), which solves the least-squares
+  problem \\(X = \mathrm{argmin}_{Z \in \Re^{n \times k}} ||A Z - B||_F^2 +
+  \lambda ||Z||_F^2\\). If \\(m \lt n\\) then `output` is computed as
+  \\(X = A^T (A A^T + \lambda I)^{-1} B\\), which (for \\(\lambda = 0\\)) is
+  the minimum-norm solution to the under-determined linear system, i.e.
+  \\(X = \mathrm{argmin}_{Z \in \Re^{n \times k}} ||Z||_F^2 \\), subject to
+  \\(A Z = B\\). Notice that the fast path is only numerically stable when
+  \\(A\\) is numerically full rank and has a condition number
+  \\(\mathrm{cond}(A) \lt \frac{1}{\sqrt{\epsilon_{mach}}}\\) or\\(\lambda\\)
+  is sufficiently large.
+
+  If `fast` is `False` an algorithm based on the numerically robust complete
+  orthogonal decomposition is used. This computes the minimum-norm
+  least-squares solution, even when \\(A\\) is rank deficient. This path is
+  typically 6-7 times slower than the fast path. If `fast` is `False` then
+  `l2_regularizer` is ignored.
+
+  Args:
+    matrix: `Tensor` of shape `[..., M, N]`.
+    rhs: `Tensor` of shape `[..., M, K]`.
+    l2_regularizer: 0-D `double` `Tensor`. Ignored if `fast=False`.
+    fast: bool. Defaults to `True`.
+    name: string, optional name of the operation.
+
+  Returns:
+    output: `Tensor` of shape `[..., N, K]` whose inner-most 2 dimensions form
+      `M`-by-`K` matrices that solve the equations
+      `matrix[..., :, :] * output[..., :, :] = rhs[..., :, :]` in the least
+      squares sense.
+
+  Raises:
+    NotImplementedError: linalg.lstsq is currently disabled for complex128
+    and l2_regularizer != 0 due to poor accuracy.
+
+[Possible API Signatures]
+ - matrix: tensor, rhs: tensor, l2_regularizer: float, fast: boolean, name: string
+ - matrix: tensor, rhs: tensor, l2_regularizer: tensor, fast: boolean, name: string
+
+[Error Messages]
+IndexError: tuple index out of range
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int16, int32, int64, uint8, uint16, uint32, uint64, complex64, complex128 	; NodeDef: {{node BatchMatMulV2}}; Op<name=BatchMatMulV2; signature=x:T, y:T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_COMPLEX64, DT_COMPLEX128]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=grad_x:bool,default=false; attr=grad_y:bool,default=false> [Op:BatchMatMulV2] name:
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: double, float, half, complex64, complex128 	; NodeDef: {{node MatrixSolveLs}}; Op<name=MatrixSolveLs; signature=matrix:T, rhs:T, l2_regularizer:double -> output:T; attr=T:type,allowed=[DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]; attr=fast:bool,default=true> [Op:MatrixSolveLs]
+InvalidArgumentError: {{function_node __wrapped____MklBatchMatMulV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} Matrix size-incompatible: In[0]: [58,57], In[1]: [31,27,28] 1 0 [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__MatrixSolveLs_device_/job:localhost/replica:0/task:0/device:CPU:0}} All input tensors must have the same outer dimensions. [Op:MatrixSolveLs]
+InvalidArgumentError: {{function_node __wrapped__MatrixTriangularSolve_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] mismatch In[1] shape: 31 vs. 74: [31,31] [12,5,74,41] 1 0 [Op:MatrixTriangularSolve]
+NotFoundError: Could not find device for node: {{node BatchMatMulV2}} = BatchMatMulV2[T=DT_UINT8, adj_x=false, adj_y=true, grad_x=false, grad_y=false] All kernels registered for op BatchMatMulV2:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]  [Op:BatchMatMulV2] name:
+NotFoundError: Could not find device for node: {{node Cholesky}} = Cholesky[T=DT_HALF] All kernels registered for op Cholesky:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]  [Op:Cholesky] name:
+NotFoundError: Could not find device for node: {{node MatMul}} = MatMul[T=DT_UINT8, grad_a=false, grad_b=false, transpose_a=false, transpose_b=true] All kernels registered for op MatMul:   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]  [Op:MatMul] name:
+NotFoundError: Could not find device for node: {{node MatrixSolveLs}} = MatrixSolveLs[T=DT_HALF, fast=false] All kernels registered for op MatrixSolveLs:   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_COMPLEX128]  [Op:MatrixSolveLs]
+NotImplementedError: matrix_solve_ls is currently disabled for complex128 and l2_regularizer != 0 due to poor accuracy.
+TypeError: Expected numeric or variant tensor, got dtype tf.bool.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 30 (slow path: avoid float16 to prevent missing MatrixSolveLs kernels)
+{v_1 : tensor, v_4 : bool} |= if (v_4 = false) then dtype_(v_1) ≠ 6
+Token usage: input=3800, output=10985, total=14785
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.lstsq API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Solves one or more linear least-squares problems.
+
+  `matrix` is a tensor of shape `[..., M, N]` whose inner-most 2 dimensions
+  form `M`-by-`N` matrices. Rhs is a tensor of shape `[..., M, K]` whose
+  inner-most 2 dimensions form `M`-by-`K` matrices.  The computed output is a
+  `Tensor` of shape `[..., N, K]` whose inner-most 2 dimensions form `M`-by-`K`
+  matrices that solve the equations
+  `matrix[..., :, :] * output[..., :, :] = rhs[..., :, :]` in the least squares
+  sense.
+
+  Below we will use the following notation for each pair of matrix and
+  right-hand sides in the batch:
+
+  `matrix`=\\(A \in \Re^{m \times n}\\),
+  `rhs`=\\(B  \in \Re^{m \times k}\\),
+  `output`=\\(X  \in \Re^{n \times k}\\),
+  `l2_regularizer`=\\(\lambda\\).
+
+  If `fast` is `True`, then the solution is computed by solving the normal
+  equations using Cholesky decomposition. Specifically, if \\(m \ge n\\) then
+  \\(X = (A^T A + \lambda I)^{-1} A^T B\\), which solves the least-squares
+  problem \\(X = \mathrm{argmin}_{Z \in \Re^{n \times k}} ||A Z - B||_F^2 +
+  \lambda ||Z||_F^2\\). If \\(m \lt n\\) then `output` is computed as
+  \\(X = A^T (A A^T + \lambda I)^{-1} B\\), which (for \\(\lambda = 0\\)) is
+  the minimum-norm solution to the under-determined linear system, i.e.
+  \\(X = \mathrm{argmin}_{Z \in \Re^{n \times k}} ||Z||_F^2 \\), subject to
+  \\(A Z = B\\). Notice that the fast path is only numerically stable when
+  \\(A\\) is numerically full rank and has a condition number
+  \\(\mathrm{cond}(A) \lt \frac{1}{\sqrt{\epsilon_{mach}}}\\) or\\(\lambda\\)
+  is sufficiently large.
+
+  If `fast` is `False` an algorithm based on the numerically robust complete
+  orthogonal decomposition is used. This computes the minimum-norm
+  least-squares solution, even when \\(A\\) is rank deficient. This path is
+  typically 6-7 times slower than the fast path. If `fast` is `False` then
+  `l2_regularizer` is ignored.
+
+  Args:
+    matrix: `Tensor` of shape `[..., M, N]`.
+    rhs: `Tensor` of shape `[..., M, K]`.
+    l2_regularizer: 0-D `double` `Tensor`. Ignored if `fast=False`.
+    fast: bool. Defaults to `True`.
+    name: string, optional name of the operation.
+
+  Returns:
+    output: `Tensor` of shape `[..., N, K]` whose inner-most 2 dimensions form
+      `M`-by-`K` matrices that solve the equations
+      `matrix[..., :, :] * output[..., :, :] = rhs[..., :, :]` in the least
+      squares sense.
+
+  Raises:
+    NotImplementedError: linalg.lstsq is currently disabled for complex128
+    and l2_regularizer != 0 due to poor accuracy.
+
+[Possible API Signatures]
+ - matrix: tensor, rhs: tensor, l2_regularizer: float, fast: boolean, name: string
+ - matrix: tensor, rhs: tensor, l2_regularizer: tensor, fast: boolean, name: string
+
+[Error Messages]
+IndexError: tuple index out of range
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int16, int32, int64, uint8, uint16, uint32, uint64, complex64, complex128 	; NodeDef: {{node BatchMatMulV2}}; Op<name=BatchMatMulV2; signature=x:T, y:T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_COMPLEX64, DT_COMPLEX128]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=grad_x:bool,default=false; attr=grad_y:bool,default=false> [Op:BatchMatMulV2] name:
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: double, float, half, complex64, complex128 	; NodeDef: {{node MatrixSolveLs}}; Op<name=MatrixSolveLs; signature=matrix:T, rhs:T, l2_regularizer:double -> output:T; attr=T:type,allowed=[DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]; attr=fast:bool,default=true> [Op:MatrixSolveLs]
+InvalidArgumentError: {{function_node __wrapped____MklBatchMatMulV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} Matrix size-incompatible: In[0]: [58,57], In[1]: [31,27,28] 1 0 [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__MatrixSolveLs_device_/job:localhost/replica:0/task:0/device:CPU:0}} All input tensors must have the same outer dimensions. [Op:MatrixSolveLs]
+InvalidArgumentError: {{function_node __wrapped__MatrixTriangularSolve_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] mismatch In[1] shape: 31 vs. 74: [31,31] [12,5,74,41] 1 0 [Op:MatrixTriangularSolve]
+NotFoundError: Could not find device for node: {{node BatchMatMulV2}} = BatchMatMulV2[T=DT_UINT8, adj_x=false, adj_y=true, grad_x=false, grad_y=false] All kernels registered for op BatchMatMulV2:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]  [Op:BatchMatMulV2] name:
+NotFoundError: Could not find device for node: {{node Cholesky}} = Cholesky[T=DT_HALF] All kernels registered for op Cholesky:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]  [Op:Cholesky] name:
+NotFoundError: Could not find device for node: {{node MatMul}} = MatMul[T=DT_UINT8, grad_a=false, grad_b=false, transpose_a=false, transpose_b=true] All kernels registered for op MatMul:   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]  [Op:MatMul] name:
+NotFoundError: Could not find device for node: {{node MatrixSolveLs}} = MatrixSolveLs[T=DT_HALF, fast=false] All kernels registered for op MatrixSolveLs:   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_COMPLEX128]  [Op:MatrixSolveLs]
+NotImplementedError: matrix_solve_ls is currently disabled for complex128 and l2_regularizer != 0 due to poor accuracy.
+TypeError: Expected numeric or variant tensor, got dtype tf.bool.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 31 (l2_regularizer as tensor must be a 0-D double tensor)
+{v_3 : tensor} |= ndim(v_3) = 0 ∧ dtype_(v_3) = 8
+Token usage: input=3800, output=10985, total=14785
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.lstsq API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Solves one or more linear least-squares problems.
+
+  `matrix` is a tensor of shape `[..., M, N]` whose inner-most 2 dimensions
+  form `M`-by-`N` matrices. Rhs is a tensor of shape `[..., M, K]` whose
+  inner-most 2 dimensions form `M`-by-`K` matrices.  The computed output is a
+  `Tensor` of shape `[..., N, K]` whose inner-most 2 dimensions form `M`-by-`K`
+  matrices that solve the equations
+  `matrix[..., :, :] * output[..., :, :] = rhs[..., :, :]` in the least squares
+  sense.
+
+  Below we will use the following notation for each pair of matrix and
+  right-hand sides in the batch:
+
+  `matrix`=\\(A \in \Re^{m \times n}\\),
+  `rhs`=\\(B  \in \Re^{m \times k}\\),
+  `output`=\\(X  \in \Re^{n \times k}\\),
+  `l2_regularizer`=\\(\lambda\\).
+
+  If `fast` is `True`, then the solution is computed by solving the normal
+  equations using Cholesky decomposition. Specifically, if \\(m \ge n\\) then
+  \\(X = (A^T A + \lambda I)^{-1} A^T B\\), which solves the least-squares
+  problem \\(X = \mathrm{argmin}_{Z \in \Re^{n \times k}} ||A Z - B||_F^2 +
+  \lambda ||Z||_F^2\\). If \\(m \lt n\\) then `output` is computed as
+  \\(X = A^T (A A^T + \lambda I)^{-1} B\\), which (for \\(\lambda = 0\\)) is
+  the minimum-norm solution to the under-determined linear system, i.e.
+  \\(X = \mathrm{argmin}_{Z \in \Re^{n \times k}} ||Z||_F^2 \\), subject to
+  \\(A Z = B\\). Notice that the fast path is only numerically stable when
+  \\(A\\) is numerically full rank and has a condition number
+  \\(\mathrm{cond}(A) \lt \frac{1}{\sqrt{\epsilon_{mach}}}\\) or\\(\lambda\\)
+  is sufficiently large.
+
+  If `fast` is `False` an algorithm based on the numerically robust complete
+  orthogonal decomposition is used. This computes the minimum-norm
+  least-squares solution, even when \\(A\\) is rank deficient. This path is
+  typically 6-7 times slower than the fast path. If `fast` is `False` then
+  `l2_regularizer` is ignored.
+
+  Args:
+    matrix: `Tensor` of shape `[..., M, N]`.
+    rhs: `Tensor` of shape `[..., M, K]`.
+    l2_regularizer: 0-D `double` `Tensor`. Ignored if `fast=False`.
+    fast: bool. Defaults to `True`.
+    name: string, optional name of the operation.
+
+  Returns:
+    output: `Tensor` of shape `[..., N, K]` whose inner-most 2 dimensions form
+      `M`-by-`K` matrices that solve the equations
+      `matrix[..., :, :] * output[..., :, :] = rhs[..., :, :]` in the least
+      squares sense.
+
+  Raises:
+    NotImplementedError: linalg.lstsq is currently disabled for complex128
+    and l2_regularizer != 0 due to poor accuracy.
+
+[Possible API Signatures]
+ - matrix: tensor, rhs: tensor, l2_regularizer: float, fast: boolean, name: string
+ - matrix: tensor, rhs: tensor, l2_regularizer: tensor, fast: boolean, name: string
+
+[Error Messages]
+IndexError: tuple index out of range
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int16, int32, int64, uint8, uint16, uint32, uint64, complex64, complex128 	; NodeDef: {{node BatchMatMulV2}}; Op<name=BatchMatMulV2; signature=x:T, y:T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_COMPLEX64, DT_COMPLEX128]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=grad_x:bool,default=false; attr=grad_y:bool,default=false> [Op:BatchMatMulV2] name:
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: double, float, half, complex64, complex128 	; NodeDef: {{node MatrixSolveLs}}; Op<name=MatrixSolveLs; signature=matrix:T, rhs:T, l2_regularizer:double -> output:T; attr=T:type,allowed=[DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]; attr=fast:bool,default=true> [Op:MatrixSolveLs]
+InvalidArgumentError: {{function_node __wrapped____MklBatchMatMulV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} Matrix size-incompatible: In[0]: [58,57], In[1]: [31,27,28] 1 0 [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__MatrixSolveLs_device_/job:localhost/replica:0/task:0/device:CPU:0}} All input tensors must have the same outer dimensions. [Op:MatrixSolveLs]
+InvalidArgumentError: {{function_node __wrapped__MatrixTriangularSolve_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] mismatch In[1] shape: 31 vs. 74: [31,31] [12,5,74,41] 1 0 [Op:MatrixTriangularSolve]
+NotFoundError: Could not find device for node: {{node BatchMatMulV2}} = BatchMatMulV2[T=DT_UINT8, adj_x=false, adj_y=true, grad_x=false, grad_y=false] All kernels registered for op BatchMatMulV2:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]  [Op:BatchMatMulV2] name:
+NotFoundError: Could not find device for node: {{node Cholesky}} = Cholesky[T=DT_HALF] All kernels registered for op Cholesky:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]  [Op:Cholesky] name:
+NotFoundError: Could not find device for node: {{node MatMul}} = MatMul[T=DT_UINT8, grad_a=false, grad_b=false, transpose_a=false, transpose_b=true] All kernels registered for op MatMul:   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]  [Op:MatMul] name:
+NotFoundError: Could not find device for node: {{node MatrixSolveLs}} = MatrixSolveLs[T=DT_HALF, fast=false] All kernels registered for op MatrixSolveLs:   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_COMPLEX128]  [Op:MatrixSolveLs]
+NotImplementedError: matrix_solve_ls is currently disabled for complex128 and l2_regularizer != 0 due to poor accuracy.
+TypeError: Expected numeric or variant tensor, got dtype tf.bool.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 32 (complex128 inputs require zero l2_regularizer for float signature)
+{v_1 : tensor, v_2 : tensor, v_3 : float} |= if (dtype_(v_1) = 10 ∨ dtype_(v_2) = 10) then v_3 = 0
+Token usage: input=3800, output=10985, total=14785
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.lstsq API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Solves one or more linear least-squares problems.
+
+  `matrix` is a tensor of shape `[..., M, N]` whose inner-most 2 dimensions
+  form `M`-by-`N` matrices. Rhs is a tensor of shape `[..., M, K]` whose
+  inner-most 2 dimensions form `M`-by-`K` matrices.  The computed output is a
+  `Tensor` of shape `[..., N, K]` whose inner-most 2 dimensions form `M`-by-`K`
+  matrices that solve the equations
+  `matrix[..., :, :] * output[..., :, :] = rhs[..., :, :]` in the least squares
+  sense.
+
+  Below we will use the following notation for each pair of matrix and
+  right-hand sides in the batch:
+
+  `matrix`=\\(A \in \Re^{m \times n}\\),
+  `rhs`=\\(B  \in \Re^{m \times k}\\),
+  `output`=\\(X  \in \Re^{n \times k}\\),
+  `l2_regularizer`=\\(\lambda\\).
+
+  If `fast` is `True`, then the solution is computed by solving the normal
+  equations using Cholesky decomposition. Specifically, if \\(m \ge n\\) then
+  \\(X = (A^T A + \lambda I)^{-1} A^T B\\), which solves the least-squares
+  problem \\(X = \mathrm{argmin}_{Z \in \Re^{n \times k}} ||A Z - B||_F^2 +
+  \lambda ||Z||_F^2\\). If \\(m \lt n\\) then `output` is computed as
+  \\(X = A^T (A A^T + \lambda I)^{-1} B\\), which (for \\(\lambda = 0\\)) is
+  the minimum-norm solution to the under-determined linear system, i.e.
+  \\(X = \mathrm{argmin}_{Z \in \Re^{n \times k}} ||Z||_F^2 \\), subject to
+  \\(A Z = B\\). Notice that the fast path is only numerically stable when
+  \\(A\\) is numerically full rank and has a condition number
+  \\(\mathrm{cond}(A) \lt \frac{1}{\sqrt{\epsilon_{mach}}}\\) or\\(\lambda\\)
+  is sufficiently large.
+
+  If `fast` is `False` an algorithm based on the numerically robust complete
+  orthogonal decomposition is used. This computes the minimum-norm
+  least-squares solution, even when \\(A\\) is rank deficient. This path is
+  typically 6-7 times slower than the fast path. If `fast` is `False` then
+  `l2_regularizer` is ignored.
+
+  Args:
+    matrix: `Tensor` of shape `[..., M, N]`.
+    rhs: `Tensor` of shape `[..., M, K]`.
+    l2_regularizer: 0-D `double` `Tensor`. Ignored if `fast=False`.
+    fast: bool. Defaults to `True`.
+    name: string, optional name of the operation.
+
+  Returns:
+    output: `Tensor` of shape `[..., N, K]` whose inner-most 2 dimensions form
+      `M`-by-`K` matrices that solve the equations
+      `matrix[..., :, :] * output[..., :, :] = rhs[..., :, :]` in the least
+      squares sense.
+
+  Raises:
+    NotImplementedError: linalg.lstsq is currently disabled for complex128
+    and l2_regularizer != 0 due to poor accuracy.
+
+[Possible API Signatures]
+ - matrix: tensor, rhs: tensor, l2_regularizer: float, fast: boolean, name: string
+ - matrix: tensor, rhs: tensor, l2_regularizer: tensor, fast: boolean, name: string
+
+[Error Messages]
+IndexError: tuple index out of range
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int16, int32, int64, uint8, uint16, uint32, uint64, complex64, complex128 	; NodeDef: {{node BatchMatMulV2}}; Op<name=BatchMatMulV2; signature=x:T, y:T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_COMPLEX64, DT_COMPLEX128]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=grad_x:bool,default=false; attr=grad_y:bool,default=false> [Op:BatchMatMulV2] name:
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: double, float, half, complex64, complex128 	; NodeDef: {{node MatrixSolveLs}}; Op<name=MatrixSolveLs; signature=matrix:T, rhs:T, l2_regularizer:double -> output:T; attr=T:type,allowed=[DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]; attr=fast:bool,default=true> [Op:MatrixSolveLs]
+InvalidArgumentError: {{function_node __wrapped____MklBatchMatMulV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} Matrix size-incompatible: In[0]: [58,57], In[1]: [31,27,28] 1 0 [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__MatrixSolveLs_device_/job:localhost/replica:0/task:0/device:CPU:0}} All input tensors must have the same outer dimensions. [Op:MatrixSolveLs]
+InvalidArgumentError: {{function_node __wrapped__MatrixTriangularSolve_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] mismatch In[1] shape: 31 vs. 74: [31,31] [12,5,74,41] 1 0 [Op:MatrixTriangularSolve]
+NotFoundError: Could not find device for node: {{node BatchMatMulV2}} = BatchMatMulV2[T=DT_UINT8, adj_x=false, adj_y=true, grad_x=false, grad_y=false] All kernels registered for op BatchMatMulV2:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]  [Op:BatchMatMulV2] name:
+NotFoundError: Could not find device for node: {{node Cholesky}} = Cholesky[T=DT_HALF] All kernels registered for op Cholesky:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]  [Op:Cholesky] name:
+NotFoundError: Could not find device for node: {{node MatMul}} = MatMul[T=DT_UINT8, grad_a=false, grad_b=false, transpose_a=false, transpose_b=true] All kernels registered for op MatMul:   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]  [Op:MatMul] name:
+NotFoundError: Could not find device for node: {{node MatrixSolveLs}} = MatrixSolveLs[T=DT_HALF, fast=false] All kernels registered for op MatrixSolveLs:   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_COMPLEX128]  [Op:MatrixSolveLs]
+NotImplementedError: matrix_solve_ls is currently disabled for complex128 and l2_regularizer != 0 due to poor accuracy.
+TypeError: Expected numeric or variant tensor, got dtype tf.bool.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 33 (complex128 inputs require zero l2_regularizer for tensor signature)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 10 ∨ dtype_(v_2) = 10) then (ndim(v_3) = 0 ∧ v_3 = 0)
+Token usage: input=3800, output=10985, total=14785
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.linalg.lstsq API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Solves one or more linear least-squares problems.
+
+  `matrix` is a tensor of shape `[..., M, N]` whose inner-most 2 dimensions
+  form `M`-by-`N` matrices. Rhs is a tensor of shape `[..., M, K]` whose
+  inner-most 2 dimensions form `M`-by-`K` matrices.  The computed output is a
+  `Tensor` of shape `[..., N, K]` whose inner-most 2 dimensions form `M`-by-`K`
+  matrices that solve the equations
+  `matrix[..., :, :] * output[..., :, :] = rhs[..., :, :]` in the least squares
+  sense.
+
+  Below we will use the following notation for each pair of matrix and
+  right-hand sides in the batch:
+
+  `matrix`=\\(A \in \Re^{m \times n}\\),
+  `rhs`=\\(B  \in \Re^{m \times k}\\),
+  `output`=\\(X  \in \Re^{n \times k}\\),
+  `l2_regularizer`=\\(\lambda\\).
+
+  If `fast` is `True`, then the solution is computed by solving the normal
+  equations using Cholesky decomposition. Specifically, if \\(m \ge n\\) then
+  \\(X = (A^T A + \lambda I)^{-1} A^T B\\), which solves the least-squares
+  problem \\(X = \mathrm{argmin}_{Z \in \Re^{n \times k}} ||A Z - B||_F^2 +
+  \lambda ||Z||_F^2\\). If \\(m \lt n\\) then `output` is computed as
+  \\(X = A^T (A A^T + \lambda I)^{-1} B\\), which (for \\(\lambda = 0\\)) is
+  the minimum-norm solution to the under-determined linear system, i.e.
+  \\(X = \mathrm{argmin}_{Z \in \Re^{n \times k}} ||Z||_F^2 \\), subject to
+  \\(A Z = B\\). Notice that the fast path is only numerically stable when
+  \\(A\\) is numerically full rank and has a condition number
+  \\(\mathrm{cond}(A) \lt \frac{1}{\sqrt{\epsilon_{mach}}}\\) or\\(\lambda\\)
+  is sufficiently large.
+
+  If `fast` is `False` an algorithm based on the numerically robust complete
+  orthogonal decomposition is used. This computes the minimum-norm
+  least-squares solution, even when \\(A\\) is rank deficient. This path is
+  typically 6-7 times slower than the fast path. If `fast` is `False` then
+  `l2_regularizer` is ignored.
+
+  Args:
+    matrix: `Tensor` of shape `[..., M, N]`.
+    rhs: `Tensor` of shape `[..., M, K]`.
+    l2_regularizer: 0-D `double` `Tensor`. Ignored if `fast=False`.
+    fast: bool. Defaults to `True`.
+    name: string, optional name of the operation.
+
+  Returns:
+    output: `Tensor` of shape `[..., N, K]` whose inner-most 2 dimensions form
+      `M`-by-`K` matrices that solve the equations
+      `matrix[..., :, :] * output[..., :, :] = rhs[..., :, :]` in the least
+      squares sense.
+
+  Raises:
+    NotImplementedError: linalg.lstsq is currently disabled for complex128
+    and l2_regularizer != 0 due to poor accuracy.
+
+[Possible API Signatures]
+ - matrix: tensor, rhs: tensor, l2_regularizer: float, fast: boolean, name: string
+ - matrix: tensor, rhs: tensor, l2_regularizer: tensor, fast: boolean, name: string
+
+[Error Messages]
+IndexError: tuple index out of range
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: bfloat16, half, float, double, int16, int32, int64, uint8, uint16, uint32, uint64, complex64, complex128 	; NodeDef: {{node BatchMatMulV2}}; Op<name=BatchMatMulV2; signature=x:T, y:T -> output:T; attr=T:type,allowed=[DT_BFLOAT16, DT_HALF, DT_FLOAT, DT_DOUBLE, DT_INT16, DT_INT32, DT_INT64, DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64, DT_COMPLEX64, DT_COMPLEX128]; attr=adj_x:bool,default=false; attr=adj_y:bool,default=false; attr=grad_x:bool,default=false; attr=grad_y:bool,default=false> [Op:BatchMatMulV2] name:
+InvalidArgumentError: Value for attr 'T' of bool is not in the list of allowed values: double, float, half, complex64, complex128 	; NodeDef: {{node MatrixSolveLs}}; Op<name=MatrixSolveLs; signature=matrix:T, rhs:T, l2_regularizer:double -> output:T; attr=T:type,allowed=[DT_DOUBLE, DT_FLOAT, DT_HALF, DT_COMPLEX64, DT_COMPLEX128]; attr=fast:bool,default=true> [Op:MatrixSolveLs]
+InvalidArgumentError: {{function_node __wrapped____MklBatchMatMulV2_device_/job:localhost/replica:0/task:0/device:CPU:0}} Matrix size-incompatible: In[0]: [58,57], In[1]: [31,27,28] 1 0 [Op:BatchMatMulV2] name:
+InvalidArgumentError: {{function_node __wrapped__MatrixSolveLs_device_/job:localhost/replica:0/task:0/device:CPU:0}} All input tensors must have the same outer dimensions. [Op:MatrixSolveLs]
+InvalidArgumentError: {{function_node __wrapped__MatrixTriangularSolve_device_/job:localhost/replica:0/task:0/device:CPU:0}} In[0] mismatch In[1] shape: 31 vs. 74: [31,31] [12,5,74,41] 1 0 [Op:MatrixTriangularSolve]
+NotFoundError: Could not find device for node: {{node BatchMatMulV2}} = BatchMatMulV2[T=DT_UINT8, adj_x=false, adj_y=true, grad_x=false, grad_y=false] All kernels registered for op BatchMatMulV2:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_UINT8, DT_INT16, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_UINT16, DT_COMPLEX128, DT_HALF, DT_UINT32, DT_UINT64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]  [Op:BatchMatMulV2] name:
+NotFoundError: Could not find device for node: {{node Cholesky}} = Cholesky[T=DT_HALF] All kernels registered for op Cholesky:   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_HALF]   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_COMPLEX64, DT_COMPLEX128, DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]  [Op:Cholesky] name:
+NotFoundError: Could not find device for node: {{node MatMul}} = MatMul[T=DT_UINT8, grad_a=false, grad_b=false, transpose_a=false, transpose_b=true] All kernels registered for op MatMul:   device='XLA_GPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]   device='CPU'; T in [DT_INT64]   device='CPU'; T in [DT_INT32]   device='CPU'; T in [DT_INT16]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_BFLOAT16]   device='CPU'; T in [DT_HALF]   device='CPU'; T in [DT_COMPLEX128]   device='CPU'; T in [DT_COMPLEX64]   device='GPU'; T in [DT_DOUBLE]   device='GPU'; T in [DT_FLOAT]   device='GPU'; T in [DT_BFLOAT16]   device='GPU'; T in [DT_HALF]   device='GPU'; T in [DT_COMPLEX128]   device='GPU'; T in [DT_COMPLEX64]   device='XLA_CPU_JIT'; T in [DT_FLOAT, DT_DOUBLE, DT_INT32, DT_COMPLEX64, DT_INT64, DT_BFLOAT16, DT_COMPLEX128, DT_HALF]  [Op:MatMul] name:
+NotFoundError: Could not find device for node: {{node MatrixSolveLs}} = MatrixSolveLs[T=DT_HALF, fast=false] All kernels registered for op MatrixSolveLs:   device='CPU'; T in [DT_FLOAT]   device='CPU'; T in [DT_DOUBLE]   device='CPU'; T in [DT_COMPLEX64]   device='CPU'; T in [DT_COMPLEX128]  [Op:MatrixSolveLs]
+NotImplementedError: matrix_solve_ls is currently disabled for complex128 and l2_regularizer != 0 due to poor accuracy.
+TypeError: Expected numeric or variant tensor, got dtype tf.bool.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 34 (matrix and rhs must have the same rank to be batch-multiplied internally)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Token usage: input=3800, output=10985, total=14785
+** DUPLICATED RULE ** (num_failures: 4)
+

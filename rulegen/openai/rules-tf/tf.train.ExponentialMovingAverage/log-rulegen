@@ -4696,3 +4696,1823 @@ Rule 18 (name must be one of the allowed predefined strings)
 Token usage: input=6607, output=4374, total=10981
 ** DUPLICATED RULE ** (num_failures: 4)
 
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.train.ExponentialMovingAverage API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Maintains moving averages of variables by employing an exponential decay.
+
+  When training a model, it is often beneficial to maintain moving averages of
+  the trained parameters.  Evaluations that use averaged parameters sometimes
+  produce significantly better results than the final trained values.
+
+  The `apply()` method adds shadow copies of trained variables the first time
+  it is called, and maintains a moving average of the trained variables in
+  their shadow copies at every additional invocation.
+  It should generally be called immediately after creating the model weights,
+  and then after each training step.
+
+  The `average()` method gives access to the shadow variables.
+  It allows you to use the moving averages in place of the last trained values
+  for evaluations, by loading the moving averages into your model via
+  `var.assign(ema.average(var))`.
+  Additionally, although `ExponentialMovingAverage`
+  objects are not directly trackable by checkpoints,
+  `average()` returns the moving average variables for your model weights,
+  which you can then checkpoint. (There is an example
+  of this near the bottom of this docstring).
+  So, `average()` is useful when
+  building an evaluation model, or when restoring a model from a checkpoint
+  file.
+
+  The moving averages are computed using exponential decay.  You specify the
+  decay value (as a scalar float value, `Tensor`, or `Variable`) when creating
+  the `ExponentialMovingAverage` object.  The shadow variables are initialized
+  with the same initial values as the trained variables.  When you run `apply`
+  to update the moving averages, each shadow variable is updated with the
+  formula:
+
+    `shadow_variable -= (1 - decay) * (shadow_variable - variable)`
+
+  This is mathematically equivalent to the classic formula below, but the use
+  of an `assign_sub` op (the `"-="` in the formula) allows concurrent lockless
+  updates to the variables:
+
+    `shadow_variable = decay * shadow_variable + (1 - decay) * variable`
+
+  Reasonable values for `decay` are close to 1.0, typically in the
+  multiple-nines range: 0.999, 0.9999, etc.
+
+  To have fine-grained control over the value of the decay parameter during
+  training, pass a scalar `tf.Variable` as the `decay` value to the constructor,
+  and update the variable as needed.
+
+  Example usage when creating a training model:
+
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create an ExponentialMovingAverage object
+  ema = tf.train.ExponentialMovingAverage(decay=0.9999)
+
+  # The first `apply` creates the shadow variables that hold the moving averages
+  ema.apply([var0, var1])
+
+  # grab the moving averages for checkpointing purposes or to be able to
+  # load the moving averages into the model weights
+  averages = [ema.average(var0), ema.average(var1)]
+
+  ...
+  def train_step(...):
+  ...
+    # Apply the optimizer.
+    opt.minimize(my_loss, [var0, var1])
+
+    # Update the moving averages
+    # of var0 and var1 with additional calls to `apply`
+    ema.apply([var0, var1])
+
+  ...train the model by running train_step multiple times...
+  ```
+
+  There are several ways to use the moving averages for evaluations:
+
+  1. Assign the values of the shadow variables to your model variables with
+     `Variable.assign(...)` before evaluating your
+     model. You can use the `average()`
+     method to get the shadow variable for a given variable. To continue
+     training after using this approach, make sure to record the unaveraged
+     weights and restore them before continuing to train. You can see the
+     tensorflow-addons' MovingAverage optimizer's `swap_weights` method for
+     one example of how to swap variables efficiently in distributed settings:
+     https://github.com/tensorflow/addons/blob/v0.13.0/tensorflow_addons/optimizers/moving_average.py#L151
+  2. Make sure to checkpoint out your moving average variables in your
+     `tf.train.Checkpoint`. At evaluation time, create your shadow variables and
+     use `tf.train.Checkpoint` to restore the moving averages into the shadow
+     variables. Then, load the moving averages into the actual model weights via
+     `var.assign(moving_avg)`.
+  3. Checkpoint out your moving average variables in your `tf.train.Checkpoint`.
+     For evaluation, restore your model weights directly from the moving
+     averages instead of from the non-averaged weights.
+     Caution: If you choose this approach, include only the object-graph paths
+     to the averaged path in your checkpoint restore.
+     If you point both the unaveraged and averaged paths in a checkpoint
+     restore to the same variables, it is hard to reason about whether your
+     model will restore the averaged or non-averaged variables.
+
+  Example of saving out then restoring the shadow variable values:
+
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create an ExponentialMovingAverage object, create the shadow variables,
+  # and grab the moving averages for checkpointing purposes.
+  # (The ExponentialMovingAverage object itself is not checkpointable)
+  ema = tf.train.ExponentialMovingAverage(decay=0.9999)
+  ema.apply([var0, var1])
+  avg_var0 = ema.average(var0)
+  avg_var1 = ema.average(var1)
+
+  # Create a Checkpoint that will manage the model weights and the averages,
+  checkpoint = tf.train.Checkpoint(model_weights=[var0, var1],
+                                   averaged_weights=[avg_var0, avg_var1])
+  ... # Do training
+
+  # Save out the checkpoint including the model weights and the moving averages
+  checkpoint.save(...)
+  ```
+
+  Restore option: restore all averaged & non-averaged weights, then load
+  moving averages into the model via `var.assign()`
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create an ExponentialMovingAverage object, create the shadow variables,
+  # and grab the moving averages for checkpoint restore purposes.
+  # (The ExponentialMovingAverage object itself is not checkpointable)
+  ema = tf.train.ExponentialMovingAverage(decay=0.9999)
+  ema.apply([var0, var1])
+  avg_var0 = ema.average(var0)
+  avg_var1 = ema.average(var1)
+
+  # Create a Checkpoint that will manage the model weights and the averages,
+  checkpoint = tf.train.Checkpoint(model_weights=[var0, var1],
+                                   averaged_weights=[avg_var0, avg_var1])
+  checkpoint.restore(...)
+  var0.assign(avg_var0)
+  var1.assign(avg_var1)
+  # var0 and var1 now hold the moving average values
+  ```
+
+  Restore option: Directly restore the moving averages into the model weights.
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create a Checkpoint that will manage two objects with trackable state,
+  checkpoint = tf.train.Checkpoint(averaged_weights=[var0, var1])
+  checkpoint.restore(...)
+  # var0 and var1 now hold the moving average values
+  ```
+
+[Possible API Signatures]
+ - decay: float, num_updates: tensor, zero_debias: boolean, name: string
+ - decay: tensor, num_updates: tensor, zero_debias: boolean, name: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 17 (decay as scalar float must be in (0, 1))
+{v_1 : float} |= 0 < v_1 ∧ v_1 < 1
+Token usage: input=3009, output=6520, total=9529
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.train.ExponentialMovingAverage API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Maintains moving averages of variables by employing an exponential decay.
+
+  When training a model, it is often beneficial to maintain moving averages of
+  the trained parameters.  Evaluations that use averaged parameters sometimes
+  produce significantly better results than the final trained values.
+
+  The `apply()` method adds shadow copies of trained variables the first time
+  it is called, and maintains a moving average of the trained variables in
+  their shadow copies at every additional invocation.
+  It should generally be called immediately after creating the model weights,
+  and then after each training step.
+
+  The `average()` method gives access to the shadow variables.
+  It allows you to use the moving averages in place of the last trained values
+  for evaluations, by loading the moving averages into your model via
+  `var.assign(ema.average(var))`.
+  Additionally, although `ExponentialMovingAverage`
+  objects are not directly trackable by checkpoints,
+  `average()` returns the moving average variables for your model weights,
+  which you can then checkpoint. (There is an example
+  of this near the bottom of this docstring).
+  So, `average()` is useful when
+  building an evaluation model, or when restoring a model from a checkpoint
+  file.
+
+  The moving averages are computed using exponential decay.  You specify the
+  decay value (as a scalar float value, `Tensor`, or `Variable`) when creating
+  the `ExponentialMovingAverage` object.  The shadow variables are initialized
+  with the same initial values as the trained variables.  When you run `apply`
+  to update the moving averages, each shadow variable is updated with the
+  formula:
+
+    `shadow_variable -= (1 - decay) * (shadow_variable - variable)`
+
+  This is mathematically equivalent to the classic formula below, but the use
+  of an `assign_sub` op (the `"-="` in the formula) allows concurrent lockless
+  updates to the variables:
+
+    `shadow_variable = decay * shadow_variable + (1 - decay) * variable`
+
+  Reasonable values for `decay` are close to 1.0, typically in the
+  multiple-nines range: 0.999, 0.9999, etc.
+
+  To have fine-grained control over the value of the decay parameter during
+  training, pass a scalar `tf.Variable` as the `decay` value to the constructor,
+  and update the variable as needed.
+
+  Example usage when creating a training model:
+
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create an ExponentialMovingAverage object
+  ema = tf.train.ExponentialMovingAverage(decay=0.9999)
+
+  # The first `apply` creates the shadow variables that hold the moving averages
+  ema.apply([var0, var1])
+
+  # grab the moving averages for checkpointing purposes or to be able to
+  # load the moving averages into the model weights
+  averages = [ema.average(var0), ema.average(var1)]
+
+  ...
+  def train_step(...):
+  ...
+    # Apply the optimizer.
+    opt.minimize(my_loss, [var0, var1])
+
+    # Update the moving averages
+    # of var0 and var1 with additional calls to `apply`
+    ema.apply([var0, var1])
+
+  ...train the model by running train_step multiple times...
+  ```
+
+  There are several ways to use the moving averages for evaluations:
+
+  1. Assign the values of the shadow variables to your model variables with
+     `Variable.assign(...)` before evaluating your
+     model. You can use the `average()`
+     method to get the shadow variable for a given variable. To continue
+     training after using this approach, make sure to record the unaveraged
+     weights and restore them before continuing to train. You can see the
+     tensorflow-addons' MovingAverage optimizer's `swap_weights` method for
+     one example of how to swap variables efficiently in distributed settings:
+     https://github.com/tensorflow/addons/blob/v0.13.0/tensorflow_addons/optimizers/moving_average.py#L151
+  2. Make sure to checkpoint out your moving average variables in your
+     `tf.train.Checkpoint`. At evaluation time, create your shadow variables and
+     use `tf.train.Checkpoint` to restore the moving averages into the shadow
+     variables. Then, load the moving averages into the actual model weights via
+     `var.assign(moving_avg)`.
+  3. Checkpoint out your moving average variables in your `tf.train.Checkpoint`.
+     For evaluation, restore your model weights directly from the moving
+     averages instead of from the non-averaged weights.
+     Caution: If you choose this approach, include only the object-graph paths
+     to the averaged path in your checkpoint restore.
+     If you point both the unaveraged and averaged paths in a checkpoint
+     restore to the same variables, it is hard to reason about whether your
+     model will restore the averaged or non-averaged variables.
+
+  Example of saving out then restoring the shadow variable values:
+
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create an ExponentialMovingAverage object, create the shadow variables,
+  # and grab the moving averages for checkpointing purposes.
+  # (The ExponentialMovingAverage object itself is not checkpointable)
+  ema = tf.train.ExponentialMovingAverage(decay=0.9999)
+  ema.apply([var0, var1])
+  avg_var0 = ema.average(var0)
+  avg_var1 = ema.average(var1)
+
+  # Create a Checkpoint that will manage the model weights and the averages,
+  checkpoint = tf.train.Checkpoint(model_weights=[var0, var1],
+                                   averaged_weights=[avg_var0, avg_var1])
+  ... # Do training
+
+  # Save out the checkpoint including the model weights and the moving averages
+  checkpoint.save(...)
+  ```
+
+  Restore option: restore all averaged & non-averaged weights, then load
+  moving averages into the model via `var.assign()`
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create an ExponentialMovingAverage object, create the shadow variables,
+  # and grab the moving averages for checkpoint restore purposes.
+  # (The ExponentialMovingAverage object itself is not checkpointable)
+  ema = tf.train.ExponentialMovingAverage(decay=0.9999)
+  ema.apply([var0, var1])
+  avg_var0 = ema.average(var0)
+  avg_var1 = ema.average(var1)
+
+  # Create a Checkpoint that will manage the model weights and the averages,
+  checkpoint = tf.train.Checkpoint(model_weights=[var0, var1],
+                                   averaged_weights=[avg_var0, avg_var1])
+  checkpoint.restore(...)
+  var0.assign(avg_var0)
+  var1.assign(avg_var1)
+  # var0 and var1 now hold the moving average values
+  ```
+
+  Restore option: Directly restore the moving averages into the model weights.
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create a Checkpoint that will manage two objects with trackable state,
+  checkpoint = tf.train.Checkpoint(averaged_weights=[var0, var1])
+  checkpoint.restore(...)
+  # var0 and var1 now hold the moving average values
+  ```
+
+[Possible API Signatures]
+ - decay: float, num_updates: tensor, zero_debias: boolean, name: string
+ - decay: tensor, num_updates: tensor, zero_debias: boolean, name: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 18 (decay as tensor must be a 0-D floating tensor)
+{v_1 : tensor} |= ndim(v_1) = 0 ∧ 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+Token usage: input=3009, output=6520, total=9529
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.train.ExponentialMovingAverage API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Maintains moving averages of variables by employing an exponential decay.
+
+  When training a model, it is often beneficial to maintain moving averages of
+  the trained parameters.  Evaluations that use averaged parameters sometimes
+  produce significantly better results than the final trained values.
+
+  The `apply()` method adds shadow copies of trained variables the first time
+  it is called, and maintains a moving average of the trained variables in
+  their shadow copies at every additional invocation.
+  It should generally be called immediately after creating the model weights,
+  and then after each training step.
+
+  The `average()` method gives access to the shadow variables.
+  It allows you to use the moving averages in place of the last trained values
+  for evaluations, by loading the moving averages into your model via
+  `var.assign(ema.average(var))`.
+  Additionally, although `ExponentialMovingAverage`
+  objects are not directly trackable by checkpoints,
+  `average()` returns the moving average variables for your model weights,
+  which you can then checkpoint. (There is an example
+  of this near the bottom of this docstring).
+  So, `average()` is useful when
+  building an evaluation model, or when restoring a model from a checkpoint
+  file.
+
+  The moving averages are computed using exponential decay.  You specify the
+  decay value (as a scalar float value, `Tensor`, or `Variable`) when creating
+  the `ExponentialMovingAverage` object.  The shadow variables are initialized
+  with the same initial values as the trained variables.  When you run `apply`
+  to update the moving averages, each shadow variable is updated with the
+  formula:
+
+    `shadow_variable -= (1 - decay) * (shadow_variable - variable)`
+
+  This is mathematically equivalent to the classic formula below, but the use
+  of an `assign_sub` op (the `"-="` in the formula) allows concurrent lockless
+  updates to the variables:
+
+    `shadow_variable = decay * shadow_variable + (1 - decay) * variable`
+
+  Reasonable values for `decay` are close to 1.0, typically in the
+  multiple-nines range: 0.999, 0.9999, etc.
+
+  To have fine-grained control over the value of the decay parameter during
+  training, pass a scalar `tf.Variable` as the `decay` value to the constructor,
+  and update the variable as needed.
+
+  Example usage when creating a training model:
+
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create an ExponentialMovingAverage object
+  ema = tf.train.ExponentialMovingAverage(decay=0.9999)
+
+  # The first `apply` creates the shadow variables that hold the moving averages
+  ema.apply([var0, var1])
+
+  # grab the moving averages for checkpointing purposes or to be able to
+  # load the moving averages into the model weights
+  averages = [ema.average(var0), ema.average(var1)]
+
+  ...
+  def train_step(...):
+  ...
+    # Apply the optimizer.
+    opt.minimize(my_loss, [var0, var1])
+
+    # Update the moving averages
+    # of var0 and var1 with additional calls to `apply`
+    ema.apply([var0, var1])
+
+  ...train the model by running train_step multiple times...
+  ```
+
+  There are several ways to use the moving averages for evaluations:
+
+  1. Assign the values of the shadow variables to your model variables with
+     `Variable.assign(...)` before evaluating your
+     model. You can use the `average()`
+     method to get the shadow variable for a given variable. To continue
+     training after using this approach, make sure to record the unaveraged
+     weights and restore them before continuing to train. You can see the
+     tensorflow-addons' MovingAverage optimizer's `swap_weights` method for
+     one example of how to swap variables efficiently in distributed settings:
+     https://github.com/tensorflow/addons/blob/v0.13.0/tensorflow_addons/optimizers/moving_average.py#L151
+  2. Make sure to checkpoint out your moving average variables in your
+     `tf.train.Checkpoint`. At evaluation time, create your shadow variables and
+     use `tf.train.Checkpoint` to restore the moving averages into the shadow
+     variables. Then, load the moving averages into the actual model weights via
+     `var.assign(moving_avg)`.
+  3. Checkpoint out your moving average variables in your `tf.train.Checkpoint`.
+     For evaluation, restore your model weights directly from the moving
+     averages instead of from the non-averaged weights.
+     Caution: If you choose this approach, include only the object-graph paths
+     to the averaged path in your checkpoint restore.
+     If you point both the unaveraged and averaged paths in a checkpoint
+     restore to the same variables, it is hard to reason about whether your
+     model will restore the averaged or non-averaged variables.
+
+  Example of saving out then restoring the shadow variable values:
+
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create an ExponentialMovingAverage object, create the shadow variables,
+  # and grab the moving averages for checkpointing purposes.
+  # (The ExponentialMovingAverage object itself is not checkpointable)
+  ema = tf.train.ExponentialMovingAverage(decay=0.9999)
+  ema.apply([var0, var1])
+  avg_var0 = ema.average(var0)
+  avg_var1 = ema.average(var1)
+
+  # Create a Checkpoint that will manage the model weights and the averages,
+  checkpoint = tf.train.Checkpoint(model_weights=[var0, var1],
+                                   averaged_weights=[avg_var0, avg_var1])
+  ... # Do training
+
+  # Save out the checkpoint including the model weights and the moving averages
+  checkpoint.save(...)
+  ```
+
+  Restore option: restore all averaged & non-averaged weights, then load
+  moving averages into the model via `var.assign()`
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create an ExponentialMovingAverage object, create the shadow variables,
+  # and grab the moving averages for checkpoint restore purposes.
+  # (The ExponentialMovingAverage object itself is not checkpointable)
+  ema = tf.train.ExponentialMovingAverage(decay=0.9999)
+  ema.apply([var0, var1])
+  avg_var0 = ema.average(var0)
+  avg_var1 = ema.average(var1)
+
+  # Create a Checkpoint that will manage the model weights and the averages,
+  checkpoint = tf.train.Checkpoint(model_weights=[var0, var1],
+                                   averaged_weights=[avg_var0, avg_var1])
+  checkpoint.restore(...)
+  var0.assign(avg_var0)
+  var1.assign(avg_var1)
+  # var0 and var1 now hold the moving average values
+  ```
+
+  Restore option: Directly restore the moving averages into the model weights.
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create a Checkpoint that will manage two objects with trackable state,
+  checkpoint = tf.train.Checkpoint(averaged_weights=[var0, var1])
+  checkpoint.restore(...)
+  # var0 and var1 now hold the moving average values
+  ```
+
+[Possible API Signatures]
+ - decay: float, num_updates: tensor, zero_debias: boolean, name: string
+ - decay: tensor, num_updates: tensor, zero_debias: boolean, name: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 19 (num_updates must be a 0-D integer tensor)
+{v_1 : tensor} |= ndim(v_1) = 0 ∧ 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5
+Token usage: input=3009, output=6520, total=9529
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.train.ExponentialMovingAverage API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Maintains moving averages of variables by employing an exponential decay.
+
+  When training a model, it is often beneficial to maintain moving averages of
+  the trained parameters.  Evaluations that use averaged parameters sometimes
+  produce significantly better results than the final trained values.
+
+  The `apply()` method adds shadow copies of trained variables the first time
+  it is called, and maintains a moving average of the trained variables in
+  their shadow copies at every additional invocation.
+  It should generally be called immediately after creating the model weights,
+  and then after each training step.
+
+  The `average()` method gives access to the shadow variables.
+  It allows you to use the moving averages in place of the last trained values
+  for evaluations, by loading the moving averages into your model via
+  `var.assign(ema.average(var))`.
+  Additionally, although `ExponentialMovingAverage`
+  objects are not directly trackable by checkpoints,
+  `average()` returns the moving average variables for your model weights,
+  which you can then checkpoint. (There is an example
+  of this near the bottom of this docstring).
+  So, `average()` is useful when
+  building an evaluation model, or when restoring a model from a checkpoint
+  file.
+
+  The moving averages are computed using exponential decay.  You specify the
+  decay value (as a scalar float value, `Tensor`, or `Variable`) when creating
+  the `ExponentialMovingAverage` object.  The shadow variables are initialized
+  with the same initial values as the trained variables.  When you run `apply`
+  to update the moving averages, each shadow variable is updated with the
+  formula:
+
+    `shadow_variable -= (1 - decay) * (shadow_variable - variable)`
+
+  This is mathematically equivalent to the classic formula below, but the use
+  of an `assign_sub` op (the `"-="` in the formula) allows concurrent lockless
+  updates to the variables:
+
+    `shadow_variable = decay * shadow_variable + (1 - decay) * variable`
+
+  Reasonable values for `decay` are close to 1.0, typically in the
+  multiple-nines range: 0.999, 0.9999, etc.
+
+  To have fine-grained control over the value of the decay parameter during
+  training, pass a scalar `tf.Variable` as the `decay` value to the constructor,
+  and update the variable as needed.
+
+  Example usage when creating a training model:
+
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create an ExponentialMovingAverage object
+  ema = tf.train.ExponentialMovingAverage(decay=0.9999)
+
+  # The first `apply` creates the shadow variables that hold the moving averages
+  ema.apply([var0, var1])
+
+  # grab the moving averages for checkpointing purposes or to be able to
+  # load the moving averages into the model weights
+  averages = [ema.average(var0), ema.average(var1)]
+
+  ...
+  def train_step(...):
+  ...
+    # Apply the optimizer.
+    opt.minimize(my_loss, [var0, var1])
+
+    # Update the moving averages
+    # of var0 and var1 with additional calls to `apply`
+    ema.apply([var0, var1])
+
+  ...train the model by running train_step multiple times...
+  ```
+
+  There are several ways to use the moving averages for evaluations:
+
+  1. Assign the values of the shadow variables to your model variables with
+     `Variable.assign(...)` before evaluating your
+     model. You can use the `average()`
+     method to get the shadow variable for a given variable. To continue
+     training after using this approach, make sure to record the unaveraged
+     weights and restore them before continuing to train. You can see the
+     tensorflow-addons' MovingAverage optimizer's `swap_weights` method for
+     one example of how to swap variables efficiently in distributed settings:
+     https://github.com/tensorflow/addons/blob/v0.13.0/tensorflow_addons/optimizers/moving_average.py#L151
+  2. Make sure to checkpoint out your moving average variables in your
+     `tf.train.Checkpoint`. At evaluation time, create your shadow variables and
+     use `tf.train.Checkpoint` to restore the moving averages into the shadow
+     variables. Then, load the moving averages into the actual model weights via
+     `var.assign(moving_avg)`.
+  3. Checkpoint out your moving average variables in your `tf.train.Checkpoint`.
+     For evaluation, restore your model weights directly from the moving
+     averages instead of from the non-averaged weights.
+     Caution: If you choose this approach, include only the object-graph paths
+     to the averaged path in your checkpoint restore.
+     If you point both the unaveraged and averaged paths in a checkpoint
+     restore to the same variables, it is hard to reason about whether your
+     model will restore the averaged or non-averaged variables.
+
+  Example of saving out then restoring the shadow variable values:
+
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create an ExponentialMovingAverage object, create the shadow variables,
+  # and grab the moving averages for checkpointing purposes.
+  # (The ExponentialMovingAverage object itself is not checkpointable)
+  ema = tf.train.ExponentialMovingAverage(decay=0.9999)
+  ema.apply([var0, var1])
+  avg_var0 = ema.average(var0)
+  avg_var1 = ema.average(var1)
+
+  # Create a Checkpoint that will manage the model weights and the averages,
+  checkpoint = tf.train.Checkpoint(model_weights=[var0, var1],
+                                   averaged_weights=[avg_var0, avg_var1])
+  ... # Do training
+
+  # Save out the checkpoint including the model weights and the moving averages
+  checkpoint.save(...)
+  ```
+
+  Restore option: restore all averaged & non-averaged weights, then load
+  moving averages into the model via `var.assign()`
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create an ExponentialMovingAverage object, create the shadow variables,
+  # and grab the moving averages for checkpoint restore purposes.
+  # (The ExponentialMovingAverage object itself is not checkpointable)
+  ema = tf.train.ExponentialMovingAverage(decay=0.9999)
+  ema.apply([var0, var1])
+  avg_var0 = ema.average(var0)
+  avg_var1 = ema.average(var1)
+
+  # Create a Checkpoint that will manage the model weights and the averages,
+  checkpoint = tf.train.Checkpoint(model_weights=[var0, var1],
+                                   averaged_weights=[avg_var0, avg_var1])
+  checkpoint.restore(...)
+  var0.assign(avg_var0)
+  var1.assign(avg_var1)
+  # var0 and var1 now hold the moving average values
+  ```
+
+  Restore option: Directly restore the moving averages into the model weights.
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create a Checkpoint that will manage two objects with trackable state,
+  checkpoint = tf.train.Checkpoint(averaged_weights=[var0, var1])
+  checkpoint.restore(...)
+  # var0 and var1 now hold the moving average values
+  ```
+
+[Possible API Signatures]
+ - decay: float, num_updates: tensor, zero_debias: boolean, name: string
+ - decay: tensor, num_updates: tensor, zero_debias: boolean, name: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 20 (if zero_debias is enabled, num_updates must be a 0-D integer tensor)
+{v_1 : tensor, v_2 : bool} |= if v_2 then (ndim(v_1) = 0 ∧ 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5)
+Token usage: input=3009, output=6520, total=9529
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.train.ExponentialMovingAverage API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Maintains moving averages of variables by employing an exponential decay.
+
+  When training a model, it is often beneficial to maintain moving averages of
+  the trained parameters.  Evaluations that use averaged parameters sometimes
+  produce significantly better results than the final trained values.
+
+  The `apply()` method adds shadow copies of trained variables the first time
+  it is called, and maintains a moving average of the trained variables in
+  their shadow copies at every additional invocation.
+  It should generally be called immediately after creating the model weights,
+  and then after each training step.
+
+  The `average()` method gives access to the shadow variables.
+  It allows you to use the moving averages in place of the last trained values
+  for evaluations, by loading the moving averages into your model via
+  `var.assign(ema.average(var))`.
+  Additionally, although `ExponentialMovingAverage`
+  objects are not directly trackable by checkpoints,
+  `average()` returns the moving average variables for your model weights,
+  which you can then checkpoint. (There is an example
+  of this near the bottom of this docstring).
+  So, `average()` is useful when
+  building an evaluation model, or when restoring a model from a checkpoint
+  file.
+
+  The moving averages are computed using exponential decay.  You specify the
+  decay value (as a scalar float value, `Tensor`, or `Variable`) when creating
+  the `ExponentialMovingAverage` object.  The shadow variables are initialized
+  with the same initial values as the trained variables.  When you run `apply`
+  to update the moving averages, each shadow variable is updated with the
+  formula:
+
+    `shadow_variable -= (1 - decay) * (shadow_variable - variable)`
+
+  This is mathematically equivalent to the classic formula below, but the use
+  of an `assign_sub` op (the `"-="` in the formula) allows concurrent lockless
+  updates to the variables:
+
+    `shadow_variable = decay * shadow_variable + (1 - decay) * variable`
+
+  Reasonable values for `decay` are close to 1.0, typically in the
+  multiple-nines range: 0.999, 0.9999, etc.
+
+  To have fine-grained control over the value of the decay parameter during
+  training, pass a scalar `tf.Variable` as the `decay` value to the constructor,
+  and update the variable as needed.
+
+  Example usage when creating a training model:
+
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create an ExponentialMovingAverage object
+  ema = tf.train.ExponentialMovingAverage(decay=0.9999)
+
+  # The first `apply` creates the shadow variables that hold the moving averages
+  ema.apply([var0, var1])
+
+  # grab the moving averages for checkpointing purposes or to be able to
+  # load the moving averages into the model weights
+  averages = [ema.average(var0), ema.average(var1)]
+
+  ...
+  def train_step(...):
+  ...
+    # Apply the optimizer.
+    opt.minimize(my_loss, [var0, var1])
+
+    # Update the moving averages
+    # of var0 and var1 with additional calls to `apply`
+    ema.apply([var0, var1])
+
+  ...train the model by running train_step multiple times...
+  ```
+
+  There are several ways to use the moving averages for evaluations:
+
+  1. Assign the values of the shadow variables to your model variables with
+     `Variable.assign(...)` before evaluating your
+     model. You can use the `average()`
+     method to get the shadow variable for a given variable. To continue
+     training after using this approach, make sure to record the unaveraged
+     weights and restore them before continuing to train. You can see the
+     tensorflow-addons' MovingAverage optimizer's `swap_weights` method for
+     one example of how to swap variables efficiently in distributed settings:
+     https://github.com/tensorflow/addons/blob/v0.13.0/tensorflow_addons/optimizers/moving_average.py#L151
+  2. Make sure to checkpoint out your moving average variables in your
+     `tf.train.Checkpoint`. At evaluation time, create your shadow variables and
+     use `tf.train.Checkpoint` to restore the moving averages into the shadow
+     variables. Then, load the moving averages into the actual model weights via
+     `var.assign(moving_avg)`.
+  3. Checkpoint out your moving average variables in your `tf.train.Checkpoint`.
+     For evaluation, restore your model weights directly from the moving
+     averages instead of from the non-averaged weights.
+     Caution: If you choose this approach, include only the object-graph paths
+     to the averaged path in your checkpoint restore.
+     If you point both the unaveraged and averaged paths in a checkpoint
+     restore to the same variables, it is hard to reason about whether your
+     model will restore the averaged or non-averaged variables.
+
+  Example of saving out then restoring the shadow variable values:
+
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create an ExponentialMovingAverage object, create the shadow variables,
+  # and grab the moving averages for checkpointing purposes.
+  # (The ExponentialMovingAverage object itself is not checkpointable)
+  ema = tf.train.ExponentialMovingAverage(decay=0.9999)
+  ema.apply([var0, var1])
+  avg_var0 = ema.average(var0)
+  avg_var1 = ema.average(var1)
+
+  # Create a Checkpoint that will manage the model weights and the averages,
+  checkpoint = tf.train.Checkpoint(model_weights=[var0, var1],
+                                   averaged_weights=[avg_var0, avg_var1])
+  ... # Do training
+
+  # Save out the checkpoint including the model weights and the moving averages
+  checkpoint.save(...)
+  ```
+
+  Restore option: restore all averaged & non-averaged weights, then load
+  moving averages into the model via `var.assign()`
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create an ExponentialMovingAverage object, create the shadow variables,
+  # and grab the moving averages for checkpoint restore purposes.
+  # (The ExponentialMovingAverage object itself is not checkpointable)
+  ema = tf.train.ExponentialMovingAverage(decay=0.9999)
+  ema.apply([var0, var1])
+  avg_var0 = ema.average(var0)
+  avg_var1 = ema.average(var1)
+
+  # Create a Checkpoint that will manage the model weights and the averages,
+  checkpoint = tf.train.Checkpoint(model_weights=[var0, var1],
+                                   averaged_weights=[avg_var0, avg_var1])
+  checkpoint.restore(...)
+  var0.assign(avg_var0)
+  var1.assign(avg_var1)
+  # var0 and var1 now hold the moving average values
+  ```
+
+  Restore option: Directly restore the moving averages into the model weights.
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create a Checkpoint that will manage two objects with trackable state,
+  checkpoint = tf.train.Checkpoint(averaged_weights=[var0, var1])
+  checkpoint.restore(...)
+  # var0 and var1 now hold the moving average values
+  ```
+
+[Possible API Signatures]
+ - decay: float, num_updates: tensor, zero_debias: boolean, name: string
+ - decay: tensor, num_updates: tensor, zero_debias: boolean, name: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 21 (name must be one of the allowed strings)
+{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "min" ∨ v_1 = "prod" ∨ v_1 = "relu" ∨ v_1 = "tanh" ∨ v_1 = "sigmoid" ∨ v_1 = "softmax" ∨ v_1 = "elu" ∨ v_1 = "selu" ∨ v_1 = "gelu" ∨ v_1 = "swish" ∨ v_1 = "softplus" ∨ v_1 = "linear" ∨ v_1 = "valid" ∨ v_1 = "same" ∨ v_1 = "causal" ∨ v_1 = "channels_last" ∨ v_1 = "channels_first"
+Token usage: input=3009, output=6520, total=9529
+** DUPLICATED RULE ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.train.ExponentialMovingAverage API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Maintains moving averages of variables by employing an exponential decay.
+
+  When training a model, it is often beneficial to maintain moving averages of
+  the trained parameters.  Evaluations that use averaged parameters sometimes
+  produce significantly better results than the final trained values.
+
+  The `apply()` method adds shadow copies of trained variables the first time
+  it is called, and maintains a moving average of the trained variables in
+  their shadow copies at every additional invocation.
+  It should generally be called immediately after creating the model weights,
+  and then after each training step.
+
+  The `average()` method gives access to the shadow variables.
+  It allows you to use the moving averages in place of the last trained values
+  for evaluations, by loading the moving averages into your model via
+  `var.assign(ema.average(var))`.
+  Additionally, although `ExponentialMovingAverage`
+  objects are not directly trackable by checkpoints,
+  `average()` returns the moving average variables for your model weights,
+  which you can then checkpoint. (There is an example
+  of this near the bottom of this docstring).
+  So, `average()` is useful when
+  building an evaluation model, or when restoring a model from a checkpoint
+  file.
+
+  The moving averages are computed using exponential decay.  You specify the
+  decay value (as a scalar float value, `Tensor`, or `Variable`) when creating
+  the `ExponentialMovingAverage` object.  The shadow variables are initialized
+  with the same initial values as the trained variables.  When you run `apply`
+  to update the moving averages, each shadow variable is updated with the
+  formula:
+
+    `shadow_variable -= (1 - decay) * (shadow_variable - variable)`
+
+  This is mathematically equivalent to the classic formula below, but the use
+  of an `assign_sub` op (the `"-="` in the formula) allows concurrent lockless
+  updates to the variables:
+
+    `shadow_variable = decay * shadow_variable + (1 - decay) * variable`
+
+  Reasonable values for `decay` are close to 1.0, typically in the
+  multiple-nines range: 0.999, 0.9999, etc.
+
+  To have fine-grained control over the value of the decay parameter during
+  training, pass a scalar `tf.Variable` as the `decay` value to the constructor,
+  and update the variable as needed.
+
+  Example usage when creating a training model:
+
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create an ExponentialMovingAverage object
+  ema = tf.train.ExponentialMovingAverage(decay=0.9999)
+
+  # The first `apply` creates the shadow variables that hold the moving averages
+  ema.apply([var0, var1])
+
+  # grab the moving averages for checkpointing purposes or to be able to
+  # load the moving averages into the model weights
+  averages = [ema.average(var0), ema.average(var1)]
+
+  ...
+  def train_step(...):
+  ...
+    # Apply the optimizer.
+    opt.minimize(my_loss, [var0, var1])
+
+    # Update the moving averages
+    # of var0 and var1 with additional calls to `apply`
+    ema.apply([var0, var1])
+
+  ...train the model by running train_step multiple times...
+  ```
+
+  There are several ways to use the moving averages for evaluations:
+
+  1. Assign the values of the shadow variables to your model variables with
+     `Variable.assign(...)` before evaluating your
+     model. You can use the `average()`
+     method to get the shadow variable for a given variable. To continue
+     training after using this approach, make sure to record the unaveraged
+     weights and restore them before continuing to train. You can see the
+     tensorflow-addons' MovingAverage optimizer's `swap_weights` method for
+     one example of how to swap variables efficiently in distributed settings:
+     https://github.com/tensorflow/addons/blob/v0.13.0/tensorflow_addons/optimizers/moving_average.py#L151
+  2. Make sure to checkpoint out your moving average variables in your
+     `tf.train.Checkpoint`. At evaluation time, create your shadow variables and
+     use `tf.train.Checkpoint` to restore the moving averages into the shadow
+     variables. Then, load the moving averages into the actual model weights via
+     `var.assign(moving_avg)`.
+  3. Checkpoint out your moving average variables in your `tf.train.Checkpoint`.
+     For evaluation, restore your model weights directly from the moving
+     averages instead of from the non-averaged weights.
+     Caution: If you choose this approach, include only the object-graph paths
+     to the averaged path in your checkpoint restore.
+     If you point both the unaveraged and averaged paths in a checkpoint
+     restore to the same variables, it is hard to reason about whether your
+     model will restore the averaged or non-averaged variables.
+
+  Example of saving out then restoring the shadow variable values:
+
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create an ExponentialMovingAverage object, create the shadow variables,
+  # and grab the moving averages for checkpointing purposes.
+  # (The ExponentialMovingAverage object itself is not checkpointable)
+  ema = tf.train.ExponentialMovingAverage(decay=0.9999)
+  ema.apply([var0, var1])
+  avg_var0 = ema.average(var0)
+  avg_var1 = ema.average(var1)
+
+  # Create a Checkpoint that will manage the model weights and the averages,
+  checkpoint = tf.train.Checkpoint(model_weights=[var0, var1],
+                                   averaged_weights=[avg_var0, avg_var1])
+  ... # Do training
+
+  # Save out the checkpoint including the model weights and the moving averages
+  checkpoint.save(...)
+  ```
+
+  Restore option: restore all averaged & non-averaged weights, then load
+  moving averages into the model via `var.assign()`
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create an ExponentialMovingAverage object, create the shadow variables,
+  # and grab the moving averages for checkpoint restore purposes.
+  # (The ExponentialMovingAverage object itself is not checkpointable)
+  ema = tf.train.ExponentialMovingAverage(decay=0.9999)
+  ema.apply([var0, var1])
+  avg_var0 = ema.average(var0)
+  avg_var1 = ema.average(var1)
+
+  # Create a Checkpoint that will manage the model weights and the averages,
+  checkpoint = tf.train.Checkpoint(model_weights=[var0, var1],
+                                   averaged_weights=[avg_var0, avg_var1])
+  checkpoint.restore(...)
+  var0.assign(avg_var0)
+  var1.assign(avg_var1)
+  # var0 and var1 now hold the moving average values
+  ```
+
+  Restore option: Directly restore the moving averages into the model weights.
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create a Checkpoint that will manage two objects with trackable state,
+  checkpoint = tf.train.Checkpoint(averaged_weights=[var0, var1])
+  checkpoint.restore(...)
+  # var0 and var1 now hold the moving average values
+  ```
+
+[Possible API Signatures]
+ - decay: float, num_updates: tensor, zero_debias: boolean, name: string
+ - decay: tensor, num_updates: tensor, zero_debias: boolean, name: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 22 (full parameter check for float-decay signature)
+{v_1 : float, v_2 : tensor, v_3 : bool, v_4 : str} |= (0 < v_1 ∧ v_1 < 1) ∧ (ndim(v_2) = 0 ∧ 1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5) ∧ (v_3 = true ∨ v_3 = false) ∧ (v_4 = "ii" ∨ v_4 = "ii->i" ∨ v_4 = "i,j->ij" ∨ v_4 = "bij,bjk->bik" ∨ v_4 = "...ij->...ji" ∨ v_4 = "bn,anm,bm->ba" ∨ v_4 = "none" ∨ v_4 = "sum" ∨ v_4 = "max" ∨ v_4 = "min" ∨ v_4 = "prod" ∨ v_4 = "relu" ∨ v_4 = "tanh" ∨ v_4 = "sigmoid" ∨ v_4 = "softmax" ∨ v_4 = "elu" ∨ v_4 = "selu" ∨ v_4 = "gelu" ∨ v_4 = "swish" ∨ v_4 = "softplus" ∨ v_4 = "linear" ∨ v_4 = "valid" ∨ v_4 = "same" ∨ v_4 = "causal" ∨ v_4 = "channels_last" ∨ v_4 = "channels_first")
+Token usage: input=3009, output=6520, total=9529
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.train.ExponentialMovingAverage API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Maintains moving averages of variables by employing an exponential decay.
+
+  When training a model, it is often beneficial to maintain moving averages of
+  the trained parameters.  Evaluations that use averaged parameters sometimes
+  produce significantly better results than the final trained values.
+
+  The `apply()` method adds shadow copies of trained variables the first time
+  it is called, and maintains a moving average of the trained variables in
+  their shadow copies at every additional invocation.
+  It should generally be called immediately after creating the model weights,
+  and then after each training step.
+
+  The `average()` method gives access to the shadow variables.
+  It allows you to use the moving averages in place of the last trained values
+  for evaluations, by loading the moving averages into your model via
+  `var.assign(ema.average(var))`.
+  Additionally, although `ExponentialMovingAverage`
+  objects are not directly trackable by checkpoints,
+  `average()` returns the moving average variables for your model weights,
+  which you can then checkpoint. (There is an example
+  of this near the bottom of this docstring).
+  So, `average()` is useful when
+  building an evaluation model, or when restoring a model from a checkpoint
+  file.
+
+  The moving averages are computed using exponential decay.  You specify the
+  decay value (as a scalar float value, `Tensor`, or `Variable`) when creating
+  the `ExponentialMovingAverage` object.  The shadow variables are initialized
+  with the same initial values as the trained variables.  When you run `apply`
+  to update the moving averages, each shadow variable is updated with the
+  formula:
+
+    `shadow_variable -= (1 - decay) * (shadow_variable - variable)`
+
+  This is mathematically equivalent to the classic formula below, but the use
+  of an `assign_sub` op (the `"-="` in the formula) allows concurrent lockless
+  updates to the variables:
+
+    `shadow_variable = decay * shadow_variable + (1 - decay) * variable`
+
+  Reasonable values for `decay` are close to 1.0, typically in the
+  multiple-nines range: 0.999, 0.9999, etc.
+
+  To have fine-grained control over the value of the decay parameter during
+  training, pass a scalar `tf.Variable` as the `decay` value to the constructor,
+  and update the variable as needed.
+
+  Example usage when creating a training model:
+
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create an ExponentialMovingAverage object
+  ema = tf.train.ExponentialMovingAverage(decay=0.9999)
+
+  # The first `apply` creates the shadow variables that hold the moving averages
+  ema.apply([var0, var1])
+
+  # grab the moving averages for checkpointing purposes or to be able to
+  # load the moving averages into the model weights
+  averages = [ema.average(var0), ema.average(var1)]
+
+  ...
+  def train_step(...):
+  ...
+    # Apply the optimizer.
+    opt.minimize(my_loss, [var0, var1])
+
+    # Update the moving averages
+    # of var0 and var1 with additional calls to `apply`
+    ema.apply([var0, var1])
+
+  ...train the model by running train_step multiple times...
+  ```
+
+  There are several ways to use the moving averages for evaluations:
+
+  1. Assign the values of the shadow variables to your model variables with
+     `Variable.assign(...)` before evaluating your
+     model. You can use the `average()`
+     method to get the shadow variable for a given variable. To continue
+     training after using this approach, make sure to record the unaveraged
+     weights and restore them before continuing to train. You can see the
+     tensorflow-addons' MovingAverage optimizer's `swap_weights` method for
+     one example of how to swap variables efficiently in distributed settings:
+     https://github.com/tensorflow/addons/blob/v0.13.0/tensorflow_addons/optimizers/moving_average.py#L151
+  2. Make sure to checkpoint out your moving average variables in your
+     `tf.train.Checkpoint`. At evaluation time, create your shadow variables and
+     use `tf.train.Checkpoint` to restore the moving averages into the shadow
+     variables. Then, load the moving averages into the actual model weights via
+     `var.assign(moving_avg)`.
+  3. Checkpoint out your moving average variables in your `tf.train.Checkpoint`.
+     For evaluation, restore your model weights directly from the moving
+     averages instead of from the non-averaged weights.
+     Caution: If you choose this approach, include only the object-graph paths
+     to the averaged path in your checkpoint restore.
+     If you point both the unaveraged and averaged paths in a checkpoint
+     restore to the same variables, it is hard to reason about whether your
+     model will restore the averaged or non-averaged variables.
+
+  Example of saving out then restoring the shadow variable values:
+
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create an ExponentialMovingAverage object, create the shadow variables,
+  # and grab the moving averages for checkpointing purposes.
+  # (The ExponentialMovingAverage object itself is not checkpointable)
+  ema = tf.train.ExponentialMovingAverage(decay=0.9999)
+  ema.apply([var0, var1])
+  avg_var0 = ema.average(var0)
+  avg_var1 = ema.average(var1)
+
+  # Create a Checkpoint that will manage the model weights and the averages,
+  checkpoint = tf.train.Checkpoint(model_weights=[var0, var1],
+                                   averaged_weights=[avg_var0, avg_var1])
+  ... # Do training
+
+  # Save out the checkpoint including the model weights and the moving averages
+  checkpoint.save(...)
+  ```
+
+  Restore option: restore all averaged & non-averaged weights, then load
+  moving averages into the model via `var.assign()`
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create an ExponentialMovingAverage object, create the shadow variables,
+  # and grab the moving averages for checkpoint restore purposes.
+  # (The ExponentialMovingAverage object itself is not checkpointable)
+  ema = tf.train.ExponentialMovingAverage(decay=0.9999)
+  ema.apply([var0, var1])
+  avg_var0 = ema.average(var0)
+  avg_var1 = ema.average(var1)
+
+  # Create a Checkpoint that will manage the model weights and the averages,
+  checkpoint = tf.train.Checkpoint(model_weights=[var0, var1],
+                                   averaged_weights=[avg_var0, avg_var1])
+  checkpoint.restore(...)
+  var0.assign(avg_var0)
+  var1.assign(avg_var1)
+  # var0 and var1 now hold the moving average values
+  ```
+
+  Restore option: Directly restore the moving averages into the model weights.
+  ```python
+  # Create variables.
+  var0 = tf.Variable(...)
+  var1 = tf.Variable(...)
+  # ... use the variables to build a training model...
+
+  # Create a Checkpoint that will manage two objects with trackable state,
+  checkpoint = tf.train.Checkpoint(averaged_weights=[var0, var1])
+  checkpoint.restore(...)
+  # var0 and var1 now hold the moving average values
+  ```
+
+[Possible API Signatures]
+ - decay: float, num_updates: tensor, zero_debias: boolean, name: string
+ - decay: tensor, num_updates: tensor, zero_debias: boolean, name: string
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 23 (full parameter check for tensor-decay signature)
+{v_1 : tensor, v_2 : tensor, v_3 : bool, v_4 : str} |= (ndim(v_1) = 0 ∧ 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (ndim(v_2) = 0 ∧ 1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5) ∧ (v_3 = true ∨ v_3 = false) ∧ (v_4 = "ii" ∨ v_4 = "ii->i" ∨ v_4 = "i,j->ij" ∨ v_4 = "bij,bjk->bik" ∨ v_4 = "...ij->...ji" ∨ v_4 = "bn,anm,bm->ba" ∨ v_4 = "none" ∨ v_4 = "sum" ∨ v_4 = "max" ∨ v_4 = "min" ∨ v_4 = "prod" ∨ v_4 = "relu" ∨ v_4 = "tanh" ∨ v_4 = "sigmoid" ∨ v_4 = "softmax" ∨ v_4 = "elu" ∨ v_4 = "selu" ∨ v_4 = "gelu" ∨ v_4 = "swish" ∨ v_4 = "softplus" ∨ v_4 = "linear" ∨ v_4 = "valid" ∨ v_4 = "same" ∨ v_4 = "causal" ∨ v_4 = "channels_last" ∨ v_4 = "channels_first")
+Token usage: input=3009, output=6520, total=9529
+** SUCCESS **
+

@@ -2294,3 +2294,987 @@ Rule 14 (optional name is a valid string literal from the allowed set)
 Token usage: input=2109, output=5227, total=7336
 ** SUCCESS **
 
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.logical_and API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns the truth value of x AND y element-wise.
+
+  Logical AND function.
+
+  Requires that `x` and `y` have the same shape or have
+  [broadcast-compatible](http://docs.scipy.org/doc/numpy/user/basics.broadcasting.html)
+  shapes. For example, `x` and `y` can be:
+
+    - Two single elements of type `bool`.
+    - One `tf.Tensor` of type `bool` and one single `bool`, where the result will
+      be calculated by applying logical AND with the single element to each
+      element in the larger Tensor.
+    - Two `tf.Tensor` objects of type `bool` of the same shape. In this case,
+      the result will be the element-wise logical AND of the two input tensors.
+
+  You can also use the `&` operator instead.
+
+  Usage:
+
+    >>> a = tf.constant([True])
+    >>> b = tf.constant([False])
+    >>> tf.math.logical_and(a, b)
+    <tf.Tensor: shape=(1,), dtype=bool, numpy=array([False])>
+    >>> a & b
+    <tf.Tensor: shape=(1,), dtype=bool, numpy=array([False])>
+
+    >>> c = tf.constant([True])
+    >>> x = tf.constant([False, True, True, False])
+    >>> tf.math.logical_and(c, x)
+    <tf.Tensor: shape=(4,), dtype=bool, numpy=array([False,  True,  True, False])>
+    >>> c & x
+    <tf.Tensor: shape=(4,), dtype=bool, numpy=array([False,  True,  True, False])>
+
+    >>> y = tf.constant([False, False, True, True])
+    >>> z = tf.constant([False, True, False, True])
+    >>> tf.math.logical_and(y, z)
+    <tf.Tensor: shape=(4,), dtype=bool, numpy=array([False, False, False, True])>
+    >>> y & z
+    <tf.Tensor: shape=(4,), dtype=bool, numpy=array([False, False, False, True])>
+
+    This op also supports broadcasting
+
+    >>> tf.logical_and([[True, False]], [[True], [False]])
+    <tf.Tensor: shape=(2, 2), dtype=bool, numpy=
+      array([[ True, False],
+             [False, False]])>
+
+  The reduction version of this elementwise operation is `tf.math.reduce_all`.
+
+  Args:
+      x: A `tf.Tensor` of type bool.
+      y: A `tf.Tensor` of type bool.
+      name: A name for the operation (optional).
+
+  Returns:
+    A `tf.Tensor` of type bool with the shape that `x` and `y` broadcast to.
+
+  Args:
+    x: A `Tensor` of type `bool`.
+    y: A `Tensor` of type `bool`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `bool`.
+
+[Possible API Signatures]
+ - x: tensor, y: tensor, name: string
+ - x: tensor, y: boolean, name: string
+ - x: boolean, y: tensor, name: string
+ - x: boolean, y: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__LogicalAnd_device_/job:localhost/replica:0/task:0/device:CPU:0}} Incompatible shapes: [0,58,94,19] vs. [73,78] [Op:LogicalAnd]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 15 (tensor-tensor inputs must be broadcast compatible)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : if i ≥ (ndim(v_1) - ndim(v_2)) then (shape(v_1, i) = shape(v_2, i - (ndim(v_1) - ndim(v_2))) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i - (ndim(v_1) - ndim(v_2))) = 1) else shape(v_1, i) = 1) ∧ (∀j ∈ [0, ndim(v_2) - 1] : if j ≥ (ndim(v_2) - ndim(v_1)) then (shape(v_2, j) = shape(v_1, j - (ndim(v_2) - ndim(v_1))) ∨ shape(v_2, j) = 1 ∨ shape(v_1, j - (ndim(v_2) - ndim(v_1))) = 1) else shape(v_2, j) = 1)
+Token usage: input=2083, output=6232, total=8315
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.logical_and API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns the truth value of x AND y element-wise.
+
+  Logical AND function.
+
+  Requires that `x` and `y` have the same shape or have
+  [broadcast-compatible](http://docs.scipy.org/doc/numpy/user/basics.broadcasting.html)
+  shapes. For example, `x` and `y` can be:
+
+    - Two single elements of type `bool`.
+    - One `tf.Tensor` of type `bool` and one single `bool`, where the result will
+      be calculated by applying logical AND with the single element to each
+      element in the larger Tensor.
+    - Two `tf.Tensor` objects of type `bool` of the same shape. In this case,
+      the result will be the element-wise logical AND of the two input tensors.
+
+  You can also use the `&` operator instead.
+
+  Usage:
+
+    >>> a = tf.constant([True])
+    >>> b = tf.constant([False])
+    >>> tf.math.logical_and(a, b)
+    <tf.Tensor: shape=(1,), dtype=bool, numpy=array([False])>
+    >>> a & b
+    <tf.Tensor: shape=(1,), dtype=bool, numpy=array([False])>
+
+    >>> c = tf.constant([True])
+    >>> x = tf.constant([False, True, True, False])
+    >>> tf.math.logical_and(c, x)
+    <tf.Tensor: shape=(4,), dtype=bool, numpy=array([False,  True,  True, False])>
+    >>> c & x
+    <tf.Tensor: shape=(4,), dtype=bool, numpy=array([False,  True,  True, False])>
+
+    >>> y = tf.constant([False, False, True, True])
+    >>> z = tf.constant([False, True, False, True])
+    >>> tf.math.logical_and(y, z)
+    <tf.Tensor: shape=(4,), dtype=bool, numpy=array([False, False, False, True])>
+    >>> y & z
+    <tf.Tensor: shape=(4,), dtype=bool, numpy=array([False, False, False, True])>
+
+    This op also supports broadcasting
+
+    >>> tf.logical_and([[True, False]], [[True], [False]])
+    <tf.Tensor: shape=(2, 2), dtype=bool, numpy=
+      array([[ True, False],
+             [False, False]])>
+
+  The reduction version of this elementwise operation is `tf.math.reduce_all`.
+
+  Args:
+      x: A `tf.Tensor` of type bool.
+      y: A `tf.Tensor` of type bool.
+      name: A name for the operation (optional).
+
+  Returns:
+    A `tf.Tensor` of type bool with the shape that `x` and `y` broadcast to.
+
+  Args:
+    x: A `Tensor` of type `bool`.
+    y: A `Tensor` of type `bool`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `bool`.
+
+[Possible API Signatures]
+ - x: tensor, y: tensor, name: string
+ - x: tensor, y: boolean, name: string
+ - x: boolean, y: tensor, name: string
+ - x: boolean, y: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__LogicalAnd_device_/job:localhost/replica:0/task:0/device:CPU:0}} Incompatible shapes: [0,58,94,19] vs. [73,78] [Op:LogicalAnd]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 16 (tensor-tensor inputs must share the same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Token usage: input=2083, output=6232, total=8315
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.logical_and API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns the truth value of x AND y element-wise.
+
+  Logical AND function.
+
+  Requires that `x` and `y` have the same shape or have
+  [broadcast-compatible](http://docs.scipy.org/doc/numpy/user/basics.broadcasting.html)
+  shapes. For example, `x` and `y` can be:
+
+    - Two single elements of type `bool`.
+    - One `tf.Tensor` of type `bool` and one single `bool`, where the result will
+      be calculated by applying logical AND with the single element to each
+      element in the larger Tensor.
+    - Two `tf.Tensor` objects of type `bool` of the same shape. In this case,
+      the result will be the element-wise logical AND of the two input tensors.
+
+  You can also use the `&` operator instead.
+
+  Usage:
+
+    >>> a = tf.constant([True])
+    >>> b = tf.constant([False])
+    >>> tf.math.logical_and(a, b)
+    <tf.Tensor: shape=(1,), dtype=bool, numpy=array([False])>
+    >>> a & b
+    <tf.Tensor: shape=(1,), dtype=bool, numpy=array([False])>
+
+    >>> c = tf.constant([True])
+    >>> x = tf.constant([False, True, True, False])
+    >>> tf.math.logical_and(c, x)
+    <tf.Tensor: shape=(4,), dtype=bool, numpy=array([False,  True,  True, False])>
+    >>> c & x
+    <tf.Tensor: shape=(4,), dtype=bool, numpy=array([False,  True,  True, False])>
+
+    >>> y = tf.constant([False, False, True, True])
+    >>> z = tf.constant([False, True, False, True])
+    >>> tf.math.logical_and(y, z)
+    <tf.Tensor: shape=(4,), dtype=bool, numpy=array([False, False, False, True])>
+    >>> y & z
+    <tf.Tensor: shape=(4,), dtype=bool, numpy=array([False, False, False, True])>
+
+    This op also supports broadcasting
+
+    >>> tf.logical_and([[True, False]], [[True], [False]])
+    <tf.Tensor: shape=(2, 2), dtype=bool, numpy=
+      array([[ True, False],
+             [False, False]])>
+
+  The reduction version of this elementwise operation is `tf.math.reduce_all`.
+
+  Args:
+      x: A `tf.Tensor` of type bool.
+      y: A `tf.Tensor` of type bool.
+      name: A name for the operation (optional).
+
+  Returns:
+    A `tf.Tensor` of type bool with the shape that `x` and `y` broadcast to.
+
+  Args:
+    x: A `Tensor` of type `bool`.
+    y: A `Tensor` of type `bool`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `bool`.
+
+[Possible API Signatures]
+ - x: tensor, y: tensor, name: string
+ - x: tensor, y: boolean, name: string
+ - x: boolean, y: tensor, name: string
+ - x: boolean, y: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__LogicalAnd_device_/job:localhost/replica:0/task:0/device:CPU:0}} Incompatible shapes: [0,58,94,19] vs. [73,78] [Op:LogicalAnd]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 17 (tensor input with a boolean scalar must be boolean-like)
+{v_1 : tensor, v_2 : bool} |= min(v_1) ≥ 0 ∧ max(v_1) ≤ 1
+Token usage: input=2083, output=6232, total=8315
+** REDUNDANT VARIABLES ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.logical_and API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns the truth value of x AND y element-wise.
+
+  Logical AND function.
+
+  Requires that `x` and `y` have the same shape or have
+  [broadcast-compatible](http://docs.scipy.org/doc/numpy/user/basics.broadcasting.html)
+  shapes. For example, `x` and `y` can be:
+
+    - Two single elements of type `bool`.
+    - One `tf.Tensor` of type `bool` and one single `bool`, where the result will
+      be calculated by applying logical AND with the single element to each
+      element in the larger Tensor.
+    - Two `tf.Tensor` objects of type `bool` of the same shape. In this case,
+      the result will be the element-wise logical AND of the two input tensors.
+
+  You can also use the `&` operator instead.
+
+  Usage:
+
+    >>> a = tf.constant([True])
+    >>> b = tf.constant([False])
+    >>> tf.math.logical_and(a, b)
+    <tf.Tensor: shape=(1,), dtype=bool, numpy=array([False])>
+    >>> a & b
+    <tf.Tensor: shape=(1,), dtype=bool, numpy=array([False])>
+
+    >>> c = tf.constant([True])
+    >>> x = tf.constant([False, True, True, False])
+    >>> tf.math.logical_and(c, x)
+    <tf.Tensor: shape=(4,), dtype=bool, numpy=array([False,  True,  True, False])>
+    >>> c & x
+    <tf.Tensor: shape=(4,), dtype=bool, numpy=array([False,  True,  True, False])>
+
+    >>> y = tf.constant([False, False, True, True])
+    >>> z = tf.constant([False, True, False, True])
+    >>> tf.math.logical_and(y, z)
+    <tf.Tensor: shape=(4,), dtype=bool, numpy=array([False, False, False, True])>
+    >>> y & z
+    <tf.Tensor: shape=(4,), dtype=bool, numpy=array([False, False, False, True])>
+
+    This op also supports broadcasting
+
+    >>> tf.logical_and([[True, False]], [[True], [False]])
+    <tf.Tensor: shape=(2, 2), dtype=bool, numpy=
+      array([[ True, False],
+             [False, False]])>
+
+  The reduction version of this elementwise operation is `tf.math.reduce_all`.
+
+  Args:
+      x: A `tf.Tensor` of type bool.
+      y: A `tf.Tensor` of type bool.
+      name: A name for the operation (optional).
+
+  Returns:
+    A `tf.Tensor` of type bool with the shape that `x` and `y` broadcast to.
+
+  Args:
+    x: A `Tensor` of type `bool`.
+    y: A `Tensor` of type `bool`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `bool`.
+
+[Possible API Signatures]
+ - x: tensor, y: tensor, name: string
+ - x: tensor, y: boolean, name: string
+ - x: boolean, y: tensor, name: string
+ - x: boolean, y: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__LogicalAnd_device_/job:localhost/replica:0/task:0/device:CPU:0}} Incompatible shapes: [0,58,94,19] vs. [73,78] [Op:LogicalAnd]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 18 (boolean scalar with a tensor input must be boolean-like)
+{v_1 : bool, v_2 : tensor} |= min(v_2) ≥ 0 ∧ max(v_2) ≤ 1
+Token usage: input=2083, output=6232, total=8315
+** REDUNDANT VARIABLES ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.logical_and API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns the truth value of x AND y element-wise.
+
+  Logical AND function.
+
+  Requires that `x` and `y` have the same shape or have
+  [broadcast-compatible](http://docs.scipy.org/doc/numpy/user/basics.broadcasting.html)
+  shapes. For example, `x` and `y` can be:
+
+    - Two single elements of type `bool`.
+    - One `tf.Tensor` of type `bool` and one single `bool`, where the result will
+      be calculated by applying logical AND with the single element to each
+      element in the larger Tensor.
+    - Two `tf.Tensor` objects of type `bool` of the same shape. In this case,
+      the result will be the element-wise logical AND of the two input tensors.
+
+  You can also use the `&` operator instead.
+
+  Usage:
+
+    >>> a = tf.constant([True])
+    >>> b = tf.constant([False])
+    >>> tf.math.logical_and(a, b)
+    <tf.Tensor: shape=(1,), dtype=bool, numpy=array([False])>
+    >>> a & b
+    <tf.Tensor: shape=(1,), dtype=bool, numpy=array([False])>
+
+    >>> c = tf.constant([True])
+    >>> x = tf.constant([False, True, True, False])
+    >>> tf.math.logical_and(c, x)
+    <tf.Tensor: shape=(4,), dtype=bool, numpy=array([False,  True,  True, False])>
+    >>> c & x
+    <tf.Tensor: shape=(4,), dtype=bool, numpy=array([False,  True,  True, False])>
+
+    >>> y = tf.constant([False, False, True, True])
+    >>> z = tf.constant([False, True, False, True])
+    >>> tf.math.logical_and(y, z)
+    <tf.Tensor: shape=(4,), dtype=bool, numpy=array([False, False, False, True])>
+    >>> y & z
+    <tf.Tensor: shape=(4,), dtype=bool, numpy=array([False, False, False, True])>
+
+    This op also supports broadcasting
+
+    >>> tf.logical_and([[True, False]], [[True], [False]])
+    <tf.Tensor: shape=(2, 2), dtype=bool, numpy=
+      array([[ True, False],
+             [False, False]])>
+
+  The reduction version of this elementwise operation is `tf.math.reduce_all`.
+
+  Args:
+      x: A `tf.Tensor` of type bool.
+      y: A `tf.Tensor` of type bool.
+      name: A name for the operation (optional).
+
+  Returns:
+    A `tf.Tensor` of type bool with the shape that `x` and `y` broadcast to.
+
+  Args:
+    x: A `Tensor` of type `bool`.
+    y: A `Tensor` of type `bool`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `bool`.
+
+[Possible API Signatures]
+ - x: tensor, y: tensor, name: string
+ - x: tensor, y: boolean, name: string
+ - x: boolean, y: tensor, name: string
+ - x: boolean, y: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__LogicalAnd_device_/job:localhost/replica:0/task:0/device:CPU:0}} Incompatible shapes: [0,58,94,19] vs. [73,78] [Op:LogicalAnd]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 19 (both boolean-scalar inputs are valid booleans)
+{v_1 : bool, v_2 : bool} |= v_1 = v_1 ∧ v_2 = v_2
+Token usage: input=2083, output=6232, total=8315
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.math.logical_and API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "softplus", "linear", "valid", "same", "causal", "channels_last", "channels_first"]
+
+[API Documentation]
+Returns the truth value of x AND y element-wise.
+
+  Logical AND function.
+
+  Requires that `x` and `y` have the same shape or have
+  [broadcast-compatible](http://docs.scipy.org/doc/numpy/user/basics.broadcasting.html)
+  shapes. For example, `x` and `y` can be:
+
+    - Two single elements of type `bool`.
+    - One `tf.Tensor` of type `bool` and one single `bool`, where the result will
+      be calculated by applying logical AND with the single element to each
+      element in the larger Tensor.
+    - Two `tf.Tensor` objects of type `bool` of the same shape. In this case,
+      the result will be the element-wise logical AND of the two input tensors.
+
+  You can also use the `&` operator instead.
+
+  Usage:
+
+    >>> a = tf.constant([True])
+    >>> b = tf.constant([False])
+    >>> tf.math.logical_and(a, b)
+    <tf.Tensor: shape=(1,), dtype=bool, numpy=array([False])>
+    >>> a & b
+    <tf.Tensor: shape=(1,), dtype=bool, numpy=array([False])>
+
+    >>> c = tf.constant([True])
+    >>> x = tf.constant([False, True, True, False])
+    >>> tf.math.logical_and(c, x)
+    <tf.Tensor: shape=(4,), dtype=bool, numpy=array([False,  True,  True, False])>
+    >>> c & x
+    <tf.Tensor: shape=(4,), dtype=bool, numpy=array([False,  True,  True, False])>
+
+    >>> y = tf.constant([False, False, True, True])
+    >>> z = tf.constant([False, True, False, True])
+    >>> tf.math.logical_and(y, z)
+    <tf.Tensor: shape=(4,), dtype=bool, numpy=array([False, False, False, True])>
+    >>> y & z
+    <tf.Tensor: shape=(4,), dtype=bool, numpy=array([False, False, False, True])>
+
+    This op also supports broadcasting
+
+    >>> tf.logical_and([[True, False]], [[True], [False]])
+    <tf.Tensor: shape=(2, 2), dtype=bool, numpy=
+      array([[ True, False],
+             [False, False]])>
+
+  The reduction version of this elementwise operation is `tf.math.reduce_all`.
+
+  Args:
+      x: A `tf.Tensor` of type bool.
+      y: A `tf.Tensor` of type bool.
+      name: A name for the operation (optional).
+
+  Returns:
+    A `tf.Tensor` of type bool with the shape that `x` and `y` broadcast to.
+
+  Args:
+    x: A `Tensor` of type `bool`.
+    y: A `Tensor` of type `bool`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `bool`.
+
+[Possible API Signatures]
+ - x: tensor, y: tensor, name: string
+ - x: tensor, y: boolean, name: string
+ - x: boolean, y: tensor, name: string
+ - x: boolean, y: boolean, name: string
+
+[Error Messages]
+InvalidArgumentError: {{function_node __wrapped__LogicalAnd_device_/job:localhost/replica:0/task:0/device:CPU:0}} Incompatible shapes: [0,58,94,19] vs. [73,78] [Op:LogicalAnd]
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+** IMPORTANT: Rules should comply with API signature(s). If there are multiple, cover all signatures with diverse rules. **
+** IMPORTANT: For module classes returning instances, include rules for their parameters. **
+
+<<< RESPONSE
+Rule 20 (optional operation name is a string)
+{v_1 : str} |= v_1 = v_1
+Token usage: input=2083, output=6232, total=8315
+** SUCCESS **
+

@@ -37,3 +37,30 @@ Rule 19 (optimize parameter restricted to known placeholders from the available 
 >>
 Rule 20 (operation name, if provided, should not be the reserved literal "none")
 {v_4 : str} |= v_4 ≠ "none"
+>>
+Rule 21 (equation string must be a valid einsum subscript)
+{v_1 : str} |= (v_1 = "ii") ∨ (v_1 = "ii->i") ∨ (v_1 = "i,j->ij") ∨ (v_1 = "bij,bjk->bik") ∨ (v_1 = "...ij->...ji") ∨ (v_1 = "bn,anm,bm->ba")
+>>
+Rule 22 (shapes for outer product equation "i,j->ij")
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "i,j->ij" then (ndim(v_2) = 1 ∧ ndim(v_3) = 1)
+>>
+Rule 23 (dtype consistency for two-input equations)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if (v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik") then dtype_(v_2) = dtype_(v_3)
+>>
+Rule 24 (trace equation "ii" requires square matrix)
+{v_1 : str, v_2 : tensor} |= if v_1 = "ii" then (ndim(v_2) = 2 ∧ shape(v_2, 0) = shape(v_2, 1))
+>>
+Rule 25 (diag extraction equation "ii->i" requires square matrix)
+{v_1 : str, v_2 : tensor} |= if v_1 = "ii->i" then (ndim(v_2) = 2 ∧ shape(v_2, 0) = shape(v_2, 1))
+>>
+Rule 26 (batch matmul equation "bij,bjk->bik" shape alignment)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "bij,bjk->bik" then (ndim(v_2) = 3 ∧ ndim(v_3) = 3 ∧ shape(v_2, 0) = shape(v_3, 0) ∧ shape(v_2, 2) = shape(v_3, 1))
+>>
+Rule 27 (ellipsis transpose "...ij->...ji" requires at least 2 dims)
+{v_1 : str, v_2 : tensor} |= if v_1 = "...ij->...ji" then ndim(v_2) ≥ 2
+>>
+Rule 28 (three-input contraction "bn,anm,bm->ba" shape alignment)
+{v_1 : str, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= if v_1 = "bn,anm,bm->ba" then (ndim(v_2) = 2 ∧ ndim(v_3) = 3 ∧ ndim(v_4) = 2 ∧ shape(v_2, 0) = shape(v_4, 0) ∧ shape(v_2, 1) = shape(v_3, 1) ∧ shape(v_4, 1) = shape(v_3, 2))
+>>
+Rule 29 (dtype consistency for three-input equation)
+{v_1 : str, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= if v_1 = "bn,anm,bm->ba" then (dtype_(v_2) = dtype_(v_3) ∧ dtype_(v_3) = dtype_(v_4))

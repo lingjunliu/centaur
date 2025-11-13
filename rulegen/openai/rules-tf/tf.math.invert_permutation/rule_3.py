@@ -32,9 +32,9 @@ def rule_3_func(arg1, solver=None, neg=False):
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 3
-        rule_3(solver, {'arg1_range': arg1_range, 'arg1_shape': arg1_shape})
+        rule_3(solver, {'arg1_shape': arg1_shape, 'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_3(solver, {'arg1_range': arg1['range'], 'arg1_shape': arg1['shape']}, neg)
+        rule_3(solver, {'arg1_shape': arg1['shape'], 'arg1_range': arg1['range']}, neg)

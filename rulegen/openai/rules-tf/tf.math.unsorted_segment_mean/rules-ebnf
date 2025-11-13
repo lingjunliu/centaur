@@ -22,3 +22,27 @@ Rule 7 (segment_ids must be integral-valued)
 >>
 Rule 8 (name should be a simple valid identifier string)
 {v_4 : str} |= v_4 = "none" ∨ v_4 = "linear" ∨ v_4 = "sum"
+>>
+Rule 9 (data must have a floating-point dtype: 6–8)
+{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+>>
+Rule 10 (segment_ids must be an integer tensor of type int16/int32/int64)
+{v_2 : tensor} |= dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+>>
+Rule 11 (segment_ids.shape must be a prefix of data.shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≤ ndim(v_1) ∧ if ndim(v_2) = 0 then true else ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, i)
+>>
+Rule 12 (num_segments must be non-negative and reasonably bounded)
+{v_3 : int} |= v_3 ≥ 0 ∧ v_3 ≤ 1000000
+>>
+Rule 14 (all data dimensions are positive and bounded to avoid OOM)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true else ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ shape(v_1, i) ≤ 100000
+>>
+Rule 15 (all segment_ids dimensions are positive and bounded)
+{v_2 : tensor} |= if ndim(v_2) = 0 then true else ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0 ∧ shape(v_2, i) ≤ 100000
+>>
+Rule 16 (if num_segments is 0, there must be no nonnegative segment IDs)
+{v_2 : tensor, v_3 : int} |= if v_3 = 0 then max(v_2) < 0
+>>
+Rule 17 (name is a benign literal)
+{v_4 : str} |= v_4 = "none" ∨ v_4 = "linear"

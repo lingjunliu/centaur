@@ -31,9 +31,9 @@ def rule_20_func(arg1, solver=None, neg=False):
             arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 20
-        rule_20(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length})
+        rule_20(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_20(solver, {'arg1_values': arg1['values'], 'arg1_length': arg1['length']}, neg)
+        rule_20(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values']}, neg)
