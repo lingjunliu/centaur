@@ -39,6 +39,8 @@ def main():
     fuzz_1 = pd.read_csv(os.path.join(dir_1, fuzz_filename))
     fuzz_2 = pd.read_csv(os.path.join(dir_2, fuzz_filename))
 
+    print(f"\\multirow{{3}}{{*}}{{{text_map.get(suffix_2, suffix_2)}}},# APIs,{fuzz_1.shape[0]}/100,{fuzz_2.shape[0]}/100,{'+' if fuzz_1.shape[0] - fuzz_2.shape[0] <=0 else '-'}{abs(fuzz_1.shape[0] - fuzz_2.shape[0])}")
+
     # Only keep the columns 'api', 'n_models', 'total', 'valid_prcnt'
     fuzz_1 = fuzz_1[['api', 'n_models', 'total', 'valid_prcnt']]
     fuzz_2 = fuzz_2[['api', 'n_models', 'total', 'valid_prcnt']]
@@ -56,7 +58,7 @@ def main():
     avg_row_cov = avg_row_cov.round(2)
     avg_row_cov['api'] = 'average'
     merged_cov = pd.concat([merged_cov, avg_row_cov], ignore_index=True)
-    print(f"\\multirow{{2}}{{*}}{{{text_map.get(suffix_2, suffix_2)}}},Coverage (Avg),{avg_row_cov[f'cov_{suffix_1}'].values[0]},{avg_row_cov[f'cov_{suffix_2}'].values[0]},{'+' if avg_row_cov['diff'].values[0] <=0 else '-'}{abs(avg_row_cov['diff'].values[0])}")
+    print(f",Coverage (Avg),{avg_row_cov[f'cov_{suffix_1}'].values[0]},{avg_row_cov[f'cov_{suffix_2}'].values[0]},{'+' if avg_row_cov['diff'].values[0] <=0 else '-'}{abs(avg_row_cov['diff'].values[0])}")
     # Add a new row at the end of merged_fuzz with the average of each column
     avg_row_fuzz = pd.DataFrame(merged_fuzz.mean(numeric_only=True)).T
     avg_row_fuzz = avg_row_fuzz.round(2)

@@ -23,17 +23,16 @@ def main():
     if len(sys.argv) < 4:
         print("Missing argument: dir, api, output file")
 
-    dir = sys.argv[1]
-    api = sys.argv[2]
-    out_file = sys.argv[3]
-
-    lib = "torch"
+    api = sys.argv[1]
+    dir = sys.argv[2]
+    lib = sys.argv[3]
+    out_file = sys.argv[4] if len(sys.argv) > 4 else f".tmp/titanfuzz_coverage/{api}.csv"
 
     print(f"dir: {dir}, api: {api}, out_file: {out_file}")
     
     limit = 0
-    if len(sys.argv) > 4:
-        limit = int(sys.argv[4])
+    if len(sys.argv) > 5:
+        limit = int(sys.argv[5])
 
     dir = f"{dir}/{api}"
     n_inputs = retain_limited_files(dir, retain_count=limit, ext='.pkl')

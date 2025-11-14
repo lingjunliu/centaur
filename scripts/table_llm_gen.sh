@@ -11,5 +11,8 @@ call torch claude
 call torch gemma
 call torch qwen
 call tf openai
+call tf claude
 call tf gemma
 call tf qwen
+
+echo "Results saved to .tmp/result.csv"

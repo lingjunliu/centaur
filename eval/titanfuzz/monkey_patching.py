@@ -1,24 +1,24 @@
 import re, os, sys
-from utils.misc import map_torch_to_driver, generate_executible_snippet_from_str
+from utils.misc import generate_executible_snippet_from_str
 
 # TODO: import from oracle
-list_of_exceptions = [
-    "Segmentation fault",
-    "Aborted",
-    "Illegal instruction",
-    "Floating point exception",
-    "Bus error",
-    "Killed",
-    "Abort trap",
-    "Process killed",
-    "MemoryError",
-    "INTERNAL ASSERT ERROR",
-    "please report a bug",
-    "CUDA out of memory",
-    "CUDA error"
-    "Timeout"
-    # Add more crash-related strings as needed
-]
+# list_of_exceptions = [
+#     "Segmentation fault",
+#     "Aborted",
+#     "Illegal instruction",
+#     "Floating point exception",
+#     "Bus error",
+#     "Killed",
+#     "Abort trap",
+#     "Process killed",
+#     "MemoryError",
+#     "INTERNAL ASSERT ERROR",
+#     "please report a bug",
+#     "CUDA out of memory",
+#     "CUDA error"
+#     "Timeout"
+#     # Add more crash-related strings as needed
+# ]
 
 def replace_function_invocation(script, old_function_name, new_function_name):
     pattern = rf"{old_function_name}\((.*?)\)"
@@ -55,18 +55,16 @@ a_monke = monke()
 
 """
 
-def get_driver(api, driver):
+def get_driver(api, lib):
     # valid,invalid,crash,exception,total,valid_prcnt
     return f"""
-import sys, os, pickle, torch
+import sys, os, pickle
+{'import torch' if lib == 'torch' else 'import tensorflow as tf'}
 
-dir = sys.argv[1]
-list_of_exceptions = {list_of_exceptions}
+total = 0
 valid = 0
 invalid = 0
-excp = 0
-total = 0
-csv_file = os.path.join(dir, 'validity.csv')
+dir = sys.argv[1]
 for file in os.listdir(dir):
     if not file.endswith('.pkl'):
         continue
@@ -76,20 +74,13 @@ for file in os.listdir(dir):
         try:
             output = {api}(*input_dict['{api}']['args'], **input_dict['{api}']['kwargs'])
             valid += 1
-        except Exception as e:
-            exception_msg = e.__class__.__name__ + ": " + str(e)
-            exp = False
-            for msg in list_of_exceptions:
-                if msg in exception_msg:
-                    exp = True
-                    break
-            if exp:
-                excp += 1
-            else:
-                invalid += 1
+        except Exception as e:            
+            invalid += 1
         total += 1
-        with open(csv_file, 'w') as f:
-            f.write('{driver},' + str(valid) + ',' + str(invalid) + ',0,' + str(excp) + ',' + str(total) + ',' + str((total-invalid)*100/total if total > 0 else 0) + '\\n')
+
+print('Total inputs: ', total)
+print('Valid inputs: ', valid)
+print('Invalid inputs: ', invalid)
 """
 
 def monkey_patch(code, apis):
@@ -106,16 +97,14 @@ def main():
     input_file = sys.argv[1]
     apis_file = sys.argv[2]
     out_dir = sys.argv[3]
-    apis = []
-    torch_to_driver, driver_to_torch = map_torch_to_driver()
-    with open(apis_file, "r") as f_api:
-        for line in f_api.readlines():
-            apis.append(driver_to_torch[line.strip()])
+    lib = sys.argv[4]
+    with open(apis_file, "r") as f:
+        apis = [line.strip() for line in f.readlines() if line.strip()]
     
     for api in apis:
         os.makedirs(f"{out_dir}/{api}", exist_ok=True)
         with open(f"{out_dir}/{api}/driver.py", "w") as f_driver:
-            f_driver.write(get_driver(api, torch_to_driver[api]))
+            f_driver.write(get_driver(api, lib))
     
     with open(input_file, "r") as f:
         modified_input = monkey_patch(f.read(), apis)

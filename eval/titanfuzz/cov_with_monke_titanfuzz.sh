@@ -30,14 +30,24 @@ wait_for_slurm(){
 ##################################################################################
 
 DIR=${1:-$root_dir/eval/titanfuzz/titanfuzz_inputs/Results_180s_1/torch/valid} # Default directory for inputs
-MAX_INPUTS=${2:-0}
-APPLY_MONKE=${3:-1}
-RUN_MOD=${4:-1}
-COMPUTE_COV=${5:-1}
+lib=${2:-torch}
+MAX_INPUTS=${3:-0}
+APPLY_MONKE=${4:-1}
+RUN_MOD=${5:-1}
+COMPUTE_COV=${6:-1}
 
-out_dir=${root_dir}/eval/titanfuzz/modified_inputs
+if [ "$lib" = "torch" ]; then
+  lib_v=2.2.0
+  lib_ins="torch==${lib_v}"
+elif [ "$lib" = "tf" ]; then
+  lib_v=2.16.1
+  lib_ins="tensorflow==${lib_v}"
+  COMPUTE_COV=0
+fi
 
-apisFile=${root_dir}/torch_apis.txt
+out_dir=${root_dir}/.tmp/modified_inputs
+
+apisFile=${root_dir}/${lib}_apis.txt
 declare -a apis
 apis=(`cat "$apisFile"`)
 
@@ -60,7 +70,7 @@ mkdir -p ${outputs}
 result_file=${outputs}/coverage.csv
 
 source ${root_dir}/venv/bin/activate
-pip install torch==2.2.0
+pip install ${lib_ins} --force-reinstall
 
 total_files=$(find ${DIR} -name "*.py" -type f | wc -l)
 inputs_per_proc=$(((total_files + n_procs - 1) / n_procs))
@@ -74,7 +84,7 @@ if [ ${APPLY_MONKE} -eq 1 ]; then
         log_file=${logs}/monke_${input_file}.log
         err_file=${logs}/monke_${input_file}.error
 
-        sbatch -c 1 --mem-per-cpu 1G -t 2:00:00 -J $sota --wrap "bash ${root_dir}/eval/titanfuzz/batch_monkey_patching.sh ${input_file} ${out_dir}" --output ${log_file} --error ${err_file}
+        sbatch -c 1 --mem-per-cpu 1G -t 2:00:00 -J $sota --wrap "bash ${root_dir}/eval/titanfuzz/batch_monkey_patching.sh ${input_file} ${lib} ${out_dir}" --output ${log_file} --error ${err_file}
     done
 
     wait_for_slurm ${time_interval} ${sota} "monkey patching"
@@ -115,7 +125,7 @@ if [ ${COMPUTE_COV} -eq 1 ]; then
         err_file=${logs}/cov_${api}.error
         out_file=${outputs}/${api}.txt
 
-        sbatch -c 1 --mem-per-cpu 1G -t 2:00:00 -J $sota --wrap "python -m eval.titanfuzz.compute_coverage_titanfuzz ${out_dir} ${api} ${out_file} ${MAX_INPUTS}" --output ${log_file} --error ${err_file}
+        sbatch -c 1 --mem-per-cpu 1G -t 2:00:00 -J $sota --wrap "python -m eval.titanfuzz.compute_coverage_titanfuzz ${api} ${out_dir} ${lib} ${out_file} ${MAX_INPUTS}" --output ${log_file} --error ${err_file}
     done
 
     wait_for_slurm ${time_interval} ${sota} "computing coverage"
@@ -132,16 +142,21 @@ if [ ${COMPUTE_COV} -eq 1 ]; then
     done
 fi
 
-pip install torch==2.2.0
+if [ "$lib" = "torch" ]; then
+    pip install ${lib_ins} --force-reinstall
 
-echo "Results are saved in ${result_file}"
+    echo "Results are saved in ${result_file}"
 
-# Aggregating and saving results: validity
-result=${outputs}/validity.csv
-echo "api,valid,invalid,crash,exception,total,valid_prcnt" > ${result}
-for filename in ${out_dir}/*/*.csv
-do
-    cat ${filename} >> ${result}
-done
+    # Aggregating and saving results: validity
+    result=${outputs}/validity.csv
+    echo "api,valid,invalid,crash,exception,total,valid_prcnt" > ${result}
+    for filename in ${out_dir}/*/*.csv
+    do
+        cat ${filename} >> ${result}
+    done
 
-echo "Validity results saved in ${result}"
+    echo "Validity results saved in ${result}"
+elif [ "$lib" = "tf" ]; then
+    echo "TensorFlow modified inputs are saved in ${out_dir}"
+    echo "Build the tensorflow docker, copy the modified inputs and run the coverage script separately."
+fi
