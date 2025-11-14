@@ -9,6 +9,13 @@ def main():
     lib = sys.argv[5] if len(sys.argv) > 5 else "torch"
     output_dir = sys.argv[6] if len(sys.argv) > 6 else ".tmp"
 
+    text_map = {
+        "openai": "GPT-5",
+        "claude": "Claude Sonnet 4.5",
+        "gemma": "Gemma 3 27B",
+        "qwen": "Qwen3-Coder-30B"
+    }
+
     target_apis_file = f"{lib}_apis.txt"
     with open(target_apis_file, 'r') as f:
         target_apis = set([line.strip() for line in f.readlines()])
@@ -49,12 +56,13 @@ def main():
     avg_row_cov = avg_row_cov.round(2)
     avg_row_cov['api'] = 'average'
     merged_cov = pd.concat([merged_cov, avg_row_cov], ignore_index=True)
+    print(f"\\multirow{{2}}{{*}}{{{text_map.get(suffix_2, suffix_2)}}},Coverage (Avg),{avg_row_cov[f'cov_{suffix_1}'].values[0]},{avg_row_cov[f'cov_{suffix_2}'].values[0]},{'+' if avg_row_cov['diff'].values[0] <=0 else '-'}{abs(avg_row_cov['diff'].values[0])}")
     # Add a new row at the end of merged_fuzz with the average of each column
     avg_row_fuzz = pd.DataFrame(merged_fuzz.mean(numeric_only=True)).T
     avg_row_fuzz = avg_row_fuzz.round(2)
     avg_row_fuzz['api'] = 'average'
     merged_fuzz = pd.concat([merged_fuzz, avg_row_fuzz], ignore_index=True)
-
+    print(f",Validity Ratio (Avg),{avg_row_fuzz[f'valid_prcnt_{suffix_1}'].values[0]}%,{avg_row_fuzz[f'valid_prcnt_{suffix_2}'].values[0]}%,{'+' if avg_row_fuzz['diff'].values[0] <=0 else '-'}{abs(avg_row_fuzz['diff'].values[0])}%")
     # Get a list of apis that are in cov_1 but not in cov_2 and vice versa
     apis_only_in_1 = set(cov_1['api']) - set(cov_2['api'])
     apis_only_in_2 = set(cov_2['api']) - set(cov_1['api'])
