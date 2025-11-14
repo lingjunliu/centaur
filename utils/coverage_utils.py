@@ -159,7 +159,11 @@ def gen_cov(cmd_line, lib="torch", prefix="default", capture_output=True, gen_lc
         if timeout is None:
             return_obj = subprocess.run(cmd_line.split(), capture_output=capture_output, env=custom_env)
         else:
-            return_obj = subprocess.run(cmd_line.split(), capture_output=capture_output, env=custom_env, timeout=timeout)
+            try:
+                return_obj = subprocess.run(cmd_line.split(), capture_output=capture_output, env=custom_env, timeout=timeout)
+            except subprocess.TimeoutExpired:
+                print(f"Process timed out after {timeout} seconds")
+                return_obj = subprocess.CompletedProcess(cmd_line.split(), returncode=-1, stdout=b"", stderr=b"Process timed out")
         # memory_error = monitor_memory(return_obj) # Use with subprocess.Popen if you want to monitor memory usage
     except subprocess.CalledProcessError as err:
         raise Exception(f"Could not run {cmd_line}. Error Code {err.returncode}: {err}")
