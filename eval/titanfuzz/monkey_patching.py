@@ -30,20 +30,21 @@ def replace_function_invocation(script, old_function_name, new_function_name):
     
     return script
 
-def get_prefix():
-    return """
-import os, pickle, torch
+def get_prefix(lib):
+    return f"""
+import os, pickle
+{'import torch' if lib == 'torch' else 'import tensorflow as tf'}
 import numpy as np
 
 class monke:
     ind = 0
     def monkey_patcher(self, func, func_str, *args, **kwargs):
-        arg_dict = {
-            func_str: {
+        arg_dict = {{
+            func_str: {{
                 'args': args,
                 'kwargs': kwargs
-            }
-        }
+            }}
+        }}
         pkl_filename = func_str + '_' + str(self.ind) + '_' + os.path.basename(__file__)[:-2] + 'pkl'
         with open(func_str + '/' + pkl_filename, 'wb') as f:
             pickle.dump(arg_dict, f)
@@ -83,8 +84,8 @@ print('Valid inputs: ', valid)
 print('Invalid inputs: ', invalid)
 """
 
-def monkey_patch(code, apis):
-    prefix = get_prefix()
+def monkey_patch(code, apis, lib):
+    prefix = get_prefix(lib)
     for api in apis:
         code = replace_function_invocation(code, api, "a_monke.monkey_patcher")
     
@@ -107,7 +108,7 @@ def main():
             f_driver.write(get_driver(api, lib))
     
     with open(input_file, "r") as f:
-        modified_input = monkey_patch(f.read(), apis)
+        modified_input = monkey_patch(f.read(), apis, lib)
 
     with open(f"{out_dir}/{os.path.basename(input_file)}", "w") as f_m:
         f_m.write(modified_input)
