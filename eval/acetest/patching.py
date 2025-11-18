@@ -1,4 +1,4 @@
-import sys, os, subprocess, re
+import sys, os, subprocess, re, time
 from utils.new_api_utils import get_lib_version
 from utils.misc import get_tmp_dir
 
@@ -81,6 +81,8 @@ def main():
     dir = sys.argv[2]
     lib = sys.argv[3] if len(sys.argv) > 3 else "torch"
 
+    timeout = 7200
+
     if not os.path.exists(dir):
         print(f"{dir} does not exist")
         return
@@ -97,10 +99,19 @@ def main():
         if not os.path.exists(result_dir):
             continue
         
+        driver_file = os.path.join(output_dir, "driver.py")
+        driver_code = driver(api, output_dir, lib=lib)
+        with open(driver_file, 'w') as f:
+            f.write(driver_code)
+
         files = os.listdir(result_dir)
+        start_time = time.time()
         for i, file in enumerate(files):
             if not file.endswith('.py'):
                 continue
+            if time.time() - start_time > timeout:
+                print(f"\nTimeout reached after {timeout} seconds. Stopping patching.")
+                break
             
             file_path = os.path.join(result_dir, file)
             with open(file_path, 'r') as f:
@@ -121,12 +132,7 @@ def main():
                 if len(return_obj.stderr.decode()) > 0:
                     print(f"Error faced while running patched code: {return_obj.stderr.decode()}")
                     
-                print(f"Patched {i+1}/{len(files)} files        ", end='\r', flush=True)
-                    
-        driver_file = os.path.join(output_dir, "driver.py")
-        driver_code = driver(api, output_dir, lib=lib)
-        with open(driver_file, 'w') as f:
-            f.write(driver_code)
+                print(f"Patched {i+1}/{len(files)} files        ", end='\r', flush=True)        
 
 if __name__ == "__main__":
     main()
