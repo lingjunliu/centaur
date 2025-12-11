@@ -34,9 +34,9 @@ def get_signature(api, lib="torch", suffix=0):
 def main():
     dir = sys.argv[1] if len(sys.argv) > 1 else ".tmp"
     lib = sys.argv[2] if len(sys.argv) > 2 else "torch"
-    duration = int(sys.argv[3]) if len(sys.argv) > 3 else 600
-    interval = int(sys.argv[4]) if len(sys.argv) > 4 else 60
-    out_dir = sys.argv[5] if len(sys.argv) > 5 else ".tmp/centaur"
+    out_dir = sys.argv[3] if len(sys.argv) > 3 else f".tmp/centaur_{lib}"
+    duration = int(sys.argv[4]) if len(sys.argv) > 4 else 600
+    interval = int(sys.argv[5]) if len(sys.argv) > 5 else 60    
 
     os.makedirs(out_dir, exist_ok=True)
     
