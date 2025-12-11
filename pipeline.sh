@@ -15,6 +15,7 @@ reduce=${3:-1} # 1 means reduce ruleset, 0 means do not reduce ruleset
 save_to=${4:-default} # Output directory for saving results
 regen=${5:-0}  # Regenerate invariants flag (0 means do not regenerate, 1 means regenerate)
 max_p=${6:-64} # Maximum number of parallel jobs for Slurm
+compute_cov=${7:-1} # Compute coverage flag (1 means compute coverage, 0 means skip coverage computation)
 seed=200      # Seed for random number generation
 
 # Set environment variables for Slurm
@@ -44,20 +45,24 @@ fi
 # Step 3: Fuzz with the generated models: <duration> <n_inputs> <library> <seed>
 bash scripts/fuzz_with_slurm.sh 180 0 $lib $seed
 # Step 4: Collect coverage
-if [ "$lib" = "torch" ]; then
-  # Step 4: Collect coverage: <n_inputs> <library> <html/lcov> <native_only>
-  bash scripts/coverage_with_slurm.sh 0 $lib html False
-elif [ "$lib" = "tf" ]; then
-  # Step 4: Collect coverage using Docker (Put resource limits here)
-  # To monitor the progress, on a separate terminal, run:
-  # watch -n10 "docker exec tf_216_instr /workspace/repo/scripts/monitor_cov.sh"
-  docker build -t tf_216_instr_im . -f instrumented_tf/Dockerfile
-  docker run --memory=${max_memory_docker} --cpus=${max_parallel} --cpuset-cpus="0-$((${max_parallel}-1))" --name tf_216_instr tf_216_instr_im bash -c "cd /workspace/repo && bash scripts/coverage_parallel.sh 0 tf ${max_parallel} html False"
-  docker cp tf_216_instr:/workspace/repo/.tmp/coverage_tf.csv .tmp/coverage_tf.csv
-  docker rm -f tf_216_instr
+if [ "$compute_cov" -eq 1 ]; then
+  if [ "$lib" = "torch" ]; then
+    # Step 4: Collect coverage: <n_inputs> <library> <html/lcov> <native_only>
+    bash scripts/coverage_with_slurm.sh 0 $lib html False
+  elif [ "$lib" = "tf" ]; then
+    # Step 4: Collect coverage using Docker (Put resource limits here)
+    # To monitor the progress, on a separate terminal, run:
+    # watch -n10 "docker exec tf_216_instr /workspace/repo/scripts/monitor_cov.sh"
+    docker build -t tf_216_instr_im . -f instrumented_tf/Dockerfile
+    docker run --memory=${max_memory_docker} --cpus=${max_parallel} --cpuset-cpus="0-$((${max_parallel}-1))" --name tf_216_instr tf_216_instr_im bash -c "cd /workspace/repo && bash scripts/coverage_parallel.sh 0 tf ${max_parallel} html False"
+    docker cp tf_216_instr:/workspace/repo/.tmp/coverage_tf.csv .tmp/coverage_tf.csv
+    docker rm -f tf_216_instr
+  else
+    echo "Error: Unsupported library '$lib'. Supported libraries are 'torch' and 'tf'."
+    exit 1
+  fi
 else
-  echo "Error: Unsupported library '$lib'. Supported libraries are 'torch' and 'tf'."
-  exit 1
+  echo "Skipping coverage computation."
 fi
 
 # Save the results
