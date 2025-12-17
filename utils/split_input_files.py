@@ -41,7 +41,7 @@ def main():
     os.makedirs(out_dir, exist_ok=True)
     
     cur_dir = os.path.dirname(os.path.abspath(__file__))
-    with open(os.path.join(cur_dir, "template.py"), "r") as f:
+    with open(os.path.join(cur_dir, f"template_{lib}.py"), "r") as f:
         template_code = f.read()
     with open(os.path.join(cur_dir, "../signatures.json"), "r") as f:
         signatures = json.load(f)
@@ -66,8 +66,16 @@ def main():
             print(f"File {file_path} does not exist, skipping.")
             continue
 
+        if os.path.getsize(file_path) == 0:
+            print(f"File {file_path} is empty, skipping.")
+            continue
+
         with open(file_path, "rb") as f:
-            inputs = pickle.load(f)
+            try:
+                inputs = pickle.load(f)
+            except Exception as e:
+                print(f"Error loading {file_path}: {e}, skipping.")
+                continue
 
         base_timestamp = float(inputs[0][0])
         split_inputs = {subdir: [] for _, _, subdir in subdirs}

@@ -1,7 +1,6 @@
 import os, sys, pickle, json
 import numpy as np
 import torch
-import tensorflow as tf
 
 def to_torch(x, device="cpu"):
     # tensor
@@ -9,9 +8,6 @@ def to_torch(x, device="cpu"):
         return torch.tensor(x).to(device)
     elif isinstance(x, torch.Tensor):
         return x.to(device)
-    elif isinstance(x, tf.Tensor):
-        # Convert TensorFlow tensor to PyTorch tensor
-        return torch.from_numpy(x.numpy()).to(device)
     # dtype
     elif isinstance(x, np.dtype):
         return torch.tensor(np.array([], dtype=x)).dtype
@@ -25,29 +21,6 @@ def to_torch(x, device="cpu"):
         return tuple(to_torch(list(x), device=device))
     
     return x
-
-def to_tf(x, device="cpu"):
-    device = "/cpu:0" if device == "cpu" else "/gpu:0"
-    with tf.device(device):
-        # tensor
-        if isinstance(x, torch.Tensor):
-            return tf.constant(x.cpu().numpy())
-        elif isinstance(x, np.ndarray):
-            return tf.constant(x)
-        # dtype
-        elif isinstance(x, np.dtype):
-            # Convert numpy dtype to tensorflow dtype using TensorFlow's built-in conversion
-            return tf.dtypes.as_dtype(x)
-        # tensor_list
-        elif isinstance(x, list):
-            ret_x = []
-            for elem in x:
-                ret_x.append(to_tf(elem))
-            return ret_x
-        elif isinstance(x, tuple):
-            return tuple(to_tf(list(x)))
-        
-        return x
 
 def get_signature(api, signatures, suffix=0):
     if suffix > 0:
@@ -107,8 +80,7 @@ def gen_concrete_input(domain, ll, arg="", rng=np.random.default_rng(42)):
     else:
         raise NotImplementedError(f"Not implemented for {domain} yet")
 
-def concretize_input(abstract, signature, rng, lib="torch", device="cpu"):
-    to_lib = to_torch if lib == "torch" else to_tf
+def concretize_input(abstract, signature, rng, device="cpu"):
     concrete = {
         "args": [],
         "kwargs": {},
@@ -116,12 +88,11 @@ def concretize_input(abstract, signature, rng, lib="torch", device="cpu"):
     }
     # args
     for arg, domain in signature["args"].items():
-        concrete["args"].append(to_lib(gen_concrete_input(domain, abstract[arg], arg=arg, rng=rng), device=device))
+        concrete["args"].append(to_torch(gen_concrete_input(domain, abstract[arg], arg=arg, rng=rng), device=device))
     
     # kwargs
     for arg, domain in signature["kwargs"].items():
-        concrete["kwargs"][arg] = to_lib(gen_concrete_input(domain, abstract[arg], arg=arg, rng=rng), device=device)
-
+        concrete["kwargs"][arg] = to_torch(gen_concrete_input(domain, abstract[arg], arg=arg, rng=rng), device=device)
     # inner if available
     if len(signature["inner"].keys()) > 0:
         concrete["inner"] = {
@@ -130,11 +101,11 @@ def concretize_input(abstract, signature, rng, lib="torch", device="cpu"):
         }
         # args
         for arg, domain in signature["inner"]["args"].items():
-            concrete["inner"]["args"].append(to_lib(gen_concrete_input(domain, abstract[arg], arg=arg, rng=rng), device=device))
+            concrete["inner"]["args"].append(to_torch(gen_concrete_input(domain, abstract[arg], arg=arg, rng=rng), device=device))
 
         # kwargs
         for arg, domain in signature["inner"]["kwargs"].items():
-            concrete["inner"]["kwargs"][arg] = to_lib(gen_concrete_input(domain, abstract[arg], arg=arg, rng=rng), device=device)
+            concrete["inner"]["kwargs"][arg] = to_torch(gen_concrete_input(domain, abstract[arg], arg=arg, rng=rng), device=device)
         
     return concrete
 
@@ -143,9 +114,7 @@ def main():
 
     cur_dir = os.path.dirname(os.path.abspath(__file__))
 
-    lib = api.split(".")[0]
-    if lib == "tensorflow":
-        lib = "tf"
+    lib = "torch"
 
     print(f"Using library: {lib}")
     inputs_file = os.path.join(cur_dir, f"{api}_{lib}_inputs.pkl")
@@ -168,14 +137,10 @@ def main():
 
         sig = get_signature(api, original_signatures, suffix=suffix)
         rng = np.random.default_rng(seed)
-        inp = concretize_input(abs_inp, sig, rng, lib=lib, device="cpu")
+        inp = concretize_input(abs_inp, sig, rng, device="cpu")
         
-        if lib == "torch":            
-            torch.use_deterministic_algorithms(True)
-            torch.utils.deterministic.fill_uninitialized_memory = True
-        elif lib == "tf":
-            tf.config.experimental.enable_op_determinism()
-            tf.random.set_seed(42)
+        torch.use_deterministic_algorithms(True)
+        torch.utils.deterministic.fill_uninitialized_memory = True
 
         # API Call
         try:
