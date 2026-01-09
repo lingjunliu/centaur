@@ -35,6 +35,7 @@ MAX_INPUTS=${3:-0}
 APPLY_MONKE=${4:-1}
 RUN_MOD=${5:-1}
 COMPUTE_COV=${6:-0}
+merged=${7:-False}
 
 if [ "$lib" = "torch" ]; then
   lib_v=2.2.0
@@ -125,21 +126,25 @@ if [ ${COMPUTE_COV} -eq 1 ]; then
         err_file=${logs}/cov_${api}.error
         out_file=${outputs}/${api}.txt
 
-        sbatch -c 1 --mem-per-cpu 1G -t 2:00:00 -J $sota --wrap "python -m eval.titanfuzz.compute_coverage_titanfuzz ${api} ${out_dir} ${lib} ${out_file} ${MAX_INPUTS}" --output ${log_file} --error ${err_file}
+        sbatch -c 1 --mem-per-cpu 1G -t 2:00:00 -J $sota --wrap "python -m eval.titanfuzz.compute_coverage_titanfuzz ${api} ${out_dir} ${lib} ${out_file} ${MAX_INPUTS} ${merged}" --output ${log_file} --error ${err_file}
     done
 
     wait_for_slurm ${time_interval} ${sota} "computing coverage"
 
-    rm ${result_file}
-    printf "api,coverage,line_coverage,n_inputs,return_code\n" >> ${result_file}
-    for api in "${apis[@]}"
-    do
-        api_out=${outputs}/${api}.txt
-        if [ -f $api_out ]; then
-            cat $api_out >> ${result_file}
-            rm $api_out
-        fi
-    done
+    if [ "$merged" = "True" ] || [ "$merged" = "true" ]; then
+        python -m utils.merge_profdata .tmp/titanfuzz_${lib}.csv
+    else
+        rm ${result_file}
+        printf "api,coverage,line_coverage,n_inputs,return_code\n" >> ${result_file}
+        for api in "${apis[@]}"
+        do
+            api_out=${outputs}/${api}.txt
+            if [ -f $api_out ]; then
+                cat $api_out >> ${result_file}
+                rm $api_out
+            fi
+        done
+    fi
 fi
 
 if [ "$lib" = "torch" ]; then
