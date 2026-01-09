@@ -381,7 +381,7 @@ def run_model_gen(variant, duration, n_max, lib, seed, regen, use_reference=Fals
     corpus_dir = "corpus_tf" if lib == "tf" else "corpus_torch"
     corpus_dir = os.path.join(get_dir_in_root(corpus_dir), f"{api}_{suffix}" if suffix > 0 else api)
     z3_args = create_z3_args(definition["signature"])
-    if os.path.exists(corpus_dir) and not regen:
+    if os.path.exists(f"{corpus_dir}/abstract_inputs.jsonl") and not regen:
         print("Model generation skipped since existing corpus found. Use regen=1 to regenerate models.")
     else:
         if os.path.exists(corpus_dir):
