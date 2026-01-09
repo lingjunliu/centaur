@@ -111,7 +111,7 @@ def extract_coverage_data(html_content):
 
     return coverage_data, total_coverage
 
-def gen_cov(cmd_line, lib="torch", prefix="default", capture_output=True, gen_lcov=True, gen_html=False, gen_text=False, native_only=False, timeout=None):
+def gen_cov(cmd_line, lib="torch", prefix="default", capture_output=True, gen_lcov=True, gen_html=False, gen_text=False, native_only=False, timeout=None, skip_merge=False):
     """
     Generate coverage data after running a command. To differentiate the generated profraw and profdata files from other
     parallel executions, provide a prefix for the file names. The default is "default".
@@ -199,6 +199,11 @@ def gen_cov(cmd_line, lib="torch", prefix="default", capture_output=True, gen_lc
     
     if len(return_obj.stderr.decode()) > 0:
         print(f"Error faced while running llvm-profdata: {return_obj.stderr.decode()}")
+
+    if skip_merge:
+        if os.path.isfile(profraw_file):
+            os.remove(profraw_file)
+        return return_code, {}
 
     if gen_lcov:
         try:
@@ -292,7 +297,7 @@ def gen_cov(cmd_line, lib="torch", prefix="default", capture_output=True, gen_lc
     
     return return_code, lcov_data
 
-def get_coverage_numbers(cmd_line, lib="torch", prefix="default", capture_output=True, gen_lcov=True, gen_html=False, gen_text=False, save_lcov=False, native_only=False, timeout=None):
+def get_coverage_numbers(cmd_line, lib="torch", prefix="default", capture_output=True, gen_lcov=True, gen_html=False, gen_text=False, save_lcov=False, native_only=False, timeout=None, skip_merge=False):
     """
     Generate # of branches and # of lines covered in Pytorch after running a command.
     To differentiate the generated profraw and profdata files from other
@@ -303,7 +308,10 @@ def get_coverage_numbers(cmd_line, lib="torch", prefix="default", capture_output
     This will run "python -m eval.patched_drivers.GroupNorm_cov_in_loop" and calculate coverage. It will use "GroupNorm" as the names for the profraw and profdata files.
     It will return the num_branches, num_lines, return_code of executing cmd_line and a dict containing detailed information.
     """
-    return_code, lcov_data = gen_cov(cmd_line, lib=lib, prefix=prefix, capture_output=capture_output, gen_lcov=gen_lcov, gen_html=gen_html, gen_text=gen_text, native_only=native_only, timeout=timeout)
+    return_code, lcov_data = gen_cov(cmd_line, lib=lib, prefix=prefix, capture_output=capture_output, gen_lcov=gen_lcov, gen_html=gen_html, gen_text=gen_text, native_only=native_only, timeout=timeout, skip_merge=skip_merge)
+
+    if skip_merge:
+        return 0, 0, return_code, {}
 
     cov_dir = create_subdir(get_tmp_dir(), "coverage_raw_files")
     if save_lcov:

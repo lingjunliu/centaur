@@ -6,6 +6,7 @@ export slurm_time="24:00:00" # Time limit is 24 hours
 export max_parallel=130   # Fix number of slurm jobs to 690
 
 dir=$1
+merged=${2:-False}      # Whether to merge all api coverage (True) or keep them separate (False)
 
 PROJECT_DIR=`dirname "$(realpath "$0")"`/..
 slurm_sh=`dirname "$(realpath "$0")"`/slurm_base.sh # base script for slurm
@@ -41,21 +42,25 @@ export OMP_NUM_THREADS=1    # To prevent issues with coverage collection due to 
 
 job_name=acov
 echo "Running coverage script"
-bash $slurm_sh "python -m eval.acetest.coverage" ${job_name}
+bash $slurm_sh "python -m eval.acetest.coverage" ${job_name} ${lib} ${merged}
 
 # Re-install vanilla pytorch
 pip install torch==2.2.0
 
-# Aggregating and saving results: coverage
-cov_results=$PROJECT_DIR/.tmp/acetest_coverage
-result=$PROJECT_DIR/.tmp/acetest_coverage.csv
-echo "api,ACETest,line_ACETest" > ${result}
-for filename in ${cov_results}/*.csv
-do
-    cat ${filename} >> ${result}
-done
+if [ "$merged" = "True" ] || [ "$merged" = "true" ]; then
+    python -m utils.merge_profdata .tmp/acetest_${lib}.csv
+else
+    # Aggregating and saving results: coverage
+    cov_results=$PROJECT_DIR/.tmp/acetest_coverage
+    result=$PROJECT_DIR/.tmp/acetest_coverage.csv
+    echo "api,ACETest,line_ACETest" > ${result}
+    for filename in ${cov_results}/*.csv
+    do
+        cat ${filename} >> ${result}
+    done
 
-echo "Coverage results saved in ${result}"
+    echo "Coverage results saved in ${result}"
+fi
 
 echo "Cleaning up temporary files"
 rm -r .tmp/coverage_raw_files

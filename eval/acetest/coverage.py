@@ -6,6 +6,7 @@ from eval.coverage import compute_coverage
 def main():
     api = sys.argv[1]
     lib = sys.argv[2] if len(sys.argv) > 2 else "torch"
+    skip_merge = sys.argv[3].lower() == 'true' if len(sys.argv) > 3 else False
 
     # Debugging flags
     gen_html = True
@@ -21,7 +22,7 @@ def main():
         print(f"{driver_file} does not exist")
         return
     
-    compute_coverage(api, cov_results, driver_file, lib=lib, save_lcov=save_lcov, gen_html=gen_html)
+    compute_coverage(api, cov_results, driver_file, lib=lib, save_lcov=save_lcov, gen_html=gen_html, skip_merge=skip_merge)
 
 if __name__ == "__main__":
     main()

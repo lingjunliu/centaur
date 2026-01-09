@@ -3,6 +3,7 @@
 dir=$1                  # Directory containing results for each API
 lib=${2:-tf}            # Lib: torch or tf
 n_proc=${3:-100}        # Number of parallel processes
+merged=${4:-False}      # Whether to merge all api coverage (True) or keep them separate (False)
 
 export max_parallel=${n_proc}     # Fix number of jobs to run at a time
 export elements_file=${lib}_apis.txt
@@ -69,7 +70,11 @@ job_name=cov
 echo "Running coverage script"
 result=$PROJECT_DIR/.tmp/acetest_coverage_${lib}.csv
 echo "api,SLATE,line_cov_SLATE" > ${result}
-python -m utils.run_parallel "python -m eval.acetest.coverage" "${lib}" "$PROJECT_DIR/.tmp/acetest_coverage" ${result} ${job_name} ${max_parallel}
+python -m utils.run_parallel "python -m eval.acetest.coverage" "${lib} ${merged}" "$PROJECT_DIR/.tmp/acetest_coverage" ${result} ${job_name} ${max_parallel}
+
+if [ "$merged" = "True" ] || [ "$merged" = "true" ]; then
+    python -m utils.merge_profdata .tmp/acetest_${lib}.csv
+fi
 
 # Re-install vanilla library
 pip install ${lib_ins} --force-reinstall

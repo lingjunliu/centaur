@@ -3,6 +3,7 @@
 dir=$1                  # Directory containing modified inputs each API
 lib=${2:-tf}            # Lib: torch or tf
 n_proc=${3:-100}        # Number of parallel processes
+merged=${4:-False}      # Whether to merge all api coverage (True) or keep them separate (False)
 
 export max_parallel=${n_proc}     # Fix number of jobs to run at a time
 export elements_file=${lib}_apis.txt
@@ -68,7 +69,11 @@ result=$PROJECT_DIR/.tmp/titanfuzz_coverage_${lib}.csv
 # {api},{num_branches},{num_lines},{n_inputs},{return_code}
 printf "api,titanfuzz,line_cov_titanfuzz,n_inputs,return_code\n" > ${result}
 # python -m eval.titanfuzz.compute_coverage_titanfuzz ${api} ${out_dir} ${lib} ${out_file} ${MAX_INPUTS}
-python -m utils.run_parallel "python -m eval.titanfuzz.compute_coverage_titanfuzz" "${dir} ${lib}" "$PROJECT_DIR/.tmp/titanfuzz_coverage" ${result} ${job_name} ${max_parallel}
+python -m utils.run_parallel "python -m eval.titanfuzz.compute_coverage_titanfuzz" "${dir} ${lib}" "$PROJECT_DIR/.tmp/titanfuzz_coverage 0 ${merged}" ${result} ${job_name} ${max_parallel}
+
+if [ "$merged" = "True" ] || [ "$merged" = "true" ]; then
+    python -m utils.merge_profdata .tmp/titanfuzz_${lib}.csv
+fi
 
 # Re-install vanilla library
 pip install ${lib_ins} --force-reinstall

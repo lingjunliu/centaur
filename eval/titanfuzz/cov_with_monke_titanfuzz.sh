@@ -29,12 +29,12 @@ wait_for_slurm(){
 
 ##################################################################################
 
-DIR=${1:-$root_dir/eval/titanfuzz/titanfuzz_inputs/Results_180s_1/torch/valid} # Default directory for inputs
-lib=${2:-torch}
+DIR=${1:-/home/mnaziri/Documents/DL_Testing/Universal-DLL-Coverage-Collector/_result_titanfuzz_tf/titanfuzz/0-60} # Default directory for inputs
+lib=${2:-tf}
 MAX_INPUTS=${3:-0}
 APPLY_MONKE=${4:-1}
 RUN_MOD=${5:-1}
-COMPUTE_COV=${6:-1}
+COMPUTE_COV=${6:-0}
 
 if [ "$lib" = "torch" ]; then
   lib_v=2.2.0
