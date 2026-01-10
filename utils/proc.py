@@ -9,20 +9,31 @@ def get_system_memory_usage():
     '''
     return psutil.virtual_memory().percent
 
-def get_memory_usage_by_pid(pid):
+def get_memory_usage_by_pid(pid, include_children=True):
     '''
     Get the memory usage of a process by its PID in megabytes.
     '''
     if not psutil.pid_exists(pid):
-        return -1
+        return 0
     
-    process = psutil.Process(pid)
+    try:
+        process = psutil.Process(pid)
+    except psutil.NoSuchProcess:
+        return 0
 
     # Get memory information (Resident Set Size in bytes)
     memory_info = process.memory_info()
     rss_bytes = memory_info.rss
 
     memory_mb = rss_bytes / (1024 ** 2) # Convert bytes to megabytes
+
+    if include_children:
+        try:
+            for child in process.children(recursive=True):
+                memory_mb += get_memory_usage_by_pid(child.pid, include_children=False)
+        except Exception as e:
+            pass
+
     return memory_mb
 
 def worker(func, return_dict, *args, **kwargs):

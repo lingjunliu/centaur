@@ -92,7 +92,7 @@ def main():
             if not pid.isdigit():
                 continue
             mem_usage = get_memory_usage_by_pid(int(pid))
-            if mem_usage < 0:
+            if mem_usage <= 0:
                 continue
             max_memory = max(max_memory, mem_usage)
             max_mem_job_name = job_name if mem_usage == max_memory else max_mem_job_name
@@ -101,7 +101,7 @@ def main():
 
     system_memory_usage = get_system_memory_usage()
     if system_memory_usage > threshold:
-        print(f"System memory usage is high: {system_memory_usage}%")
+        print(f"\nSystem memory usage is high: {system_memory_usage}%")
         print(f"Cancelling job with maximum memory usage: {max_mem_job_name} ({max_memory:.8f} MB)")
         cancel_slurm_job(jobname_jobid[max_mem_job_name])
         logger.info(f"Cancelled job {max_mem_job_name} with memory usage {max_memory:.8f} MB due to high system memory usage ({system_memory_usage}%)")

@@ -39,7 +39,7 @@ def main():
     dir = f"{dir}/{api}"
     n_inputs = retain_limited_files(dir, retain_count=limit, ext='.pkl')
 
-    if n_inputs == 0:
+    if n_inputs == 0 and skip_merge == False:
         print(f"No input files were generated for {api}")
         return
     
