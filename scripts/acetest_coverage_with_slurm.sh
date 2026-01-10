@@ -48,7 +48,10 @@ bash $slurm_sh "python -m eval.acetest.coverage" ${job_name} ${lib} ${merged}
 pip install torch==2.2.0
 
 if [ "$merged" = "True" ] || [ "$merged" = "true" ]; then
-    python -m utils.merge_profdata .tmp/acetest_${lib}.csv
+    python -m utils.merge_profdata .tmp/acetest_${lib}.csv ${lib}
+    echo "Coverage ------------------------"
+    cat .tmp/acetest_${lib}.csv
+    echo "---------------------------------"
 else
     # Aggregating and saving results: coverage
     cov_results=$PROJECT_DIR/.tmp/acetest_coverage

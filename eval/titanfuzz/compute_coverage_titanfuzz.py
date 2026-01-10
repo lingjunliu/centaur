@@ -35,6 +35,10 @@ def main():
         limit = int(sys.argv[5])
     
     skip_merge = sys.argv[6].lower() == 'true' if len(sys.argv) > 6 else False
+    timeout = int(sys.argv[7]) if len(sys.argv) > 7 else 7200
+
+    if skip_merge:
+        timeout = 2400
 
     dir = f"{dir}/{api}"
     n_inputs = retain_limited_files(dir, retain_count=limit, ext='.pkl')
@@ -45,7 +49,7 @@ def main():
     
     print(f"{dir}/driver.py")
     prefix = api.replace(".", "_")
-    num_branches, num_lines, return_code, coverage_dict = get_coverage_numbers(f"python {dir}/driver.py {dir}", lib=lib, prefix=prefix, capture_output=True, gen_html=True, skip_merge=skip_merge)
+    num_branches, num_lines, return_code, coverage_dict = get_coverage_numbers(f"python {dir}/driver.py {dir}", lib=lib, prefix=prefix, capture_output=True, gen_html=True, skip_merge=skip_merge, timeout=timeout)
 
     if return_code != 0:
         print(f"ERROR: Execution for {api} failed and returned {return_code}")

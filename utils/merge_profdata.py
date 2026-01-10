@@ -7,11 +7,7 @@ def merge_profdata(dir, out_dir):
     profdata_files = [os.path.join(dir, f) for f in os.listdir(dir) if f.endswith('.profdata')]
     if not profdata_files:
         print(f"No .profdata files found in {dir} to merge.")
-        return False, _
-    if profdata_files[0].startswith("torch"):
-        lib = "torch"
-    else:
-        lib = "tf"
+        return False
 
     merged_profdata_files = [os.path.join(out_dir, f) for f in os.listdir(out_dir) if f.endswith('.profdata')]
     idx = len(merged_profdata_files)
@@ -25,13 +21,13 @@ def merge_profdata(dir, out_dir):
 
     if return_obj.returncode != 0:
         print(f"Error merging profdata files: {return_obj.stderr.decode()}")
-        return False, _
+        return False
     
     print(f"Merged profdata files into {merged_profdata}")
     for f in profdata_files:
         os.remove(f)
 
-    return merged_profdata, lib
+    return merged_profdata
 
 def gen_html(profdata_file, out_dir, lib):
     print("Generating HTML coverage report...")
@@ -92,11 +88,12 @@ def gen_html(profdata_file, out_dir, lib):
 
 def main():
     csv_file = sys.argv[1] if len(sys.argv) > 1 else None
-    dir = sys.argv[2] if len(sys.argv) > 2 else os.path.join(get_tmp_dir(), "coverage_raw_files")
+    lib = sys.argv[2] if len(sys.argv) > 2 else "torch"
+    dir = sys.argv[3] if len(sys.argv) > 3 else os.path.join(get_tmp_dir(), "coverage_raw_files")
     out_dir = os.path.join(get_tmp_dir(), "merged_coverage")
     os.makedirs(out_dir, exist_ok=True)
 
-    merged_profdata, lib = merge_profdata(dir, out_dir)
+    merged_profdata = merge_profdata(dir, out_dir)
     if merged_profdata:
         _, num_branches = gen_html(merged_profdata, out_dir, lib)
 

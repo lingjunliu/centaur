@@ -73,13 +73,20 @@ echo "api,SLATE,line_cov_SLATE" > ${result}
 python -m utils.run_parallel "python -m eval.acetest.coverage" "${lib} ${merged}" "$PROJECT_DIR/.tmp/acetest_coverage" ${result} ${job_name} ${max_parallel}
 
 if [ "$merged" = "True" ] || [ "$merged" = "true" ]; then
-    python -m utils.merge_profdata .tmp/acetest_${lib}.csv
+    python -m utils.merge_profdata .tmp/acetest_${lib}.csv ${lib}
 fi
 
 # Re-install vanilla library
 pip install ${lib_ins} --force-reinstall
 
-echo "Coverage results saved in ${result}"
+if [ "$merged" = "True" ] || [ "$merged" = "true" ]; then
+    mv .tmp/merged_coverage .tmp/acetest_${lib}_profdata
+    echo "Coverage ------------------------"
+    cat .tmp/acetest_${lib}.csv
+    echo "---------------------------------"
+else
+    echo "Coverage results saved in ${result}"
+fi
 
 # Clean up temporary files
 echo "Cleaning up temporary files"

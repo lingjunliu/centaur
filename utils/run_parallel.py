@@ -25,6 +25,8 @@ class ProcRunner:
         return return_object.returncode
 
 def summarize_results(result_dir, result_file):
+    if not os.path.isdir(result_dir):
+        return
     files = os.listdir(result_dir)
     result_str = ""
     for file in files:

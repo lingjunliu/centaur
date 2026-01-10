@@ -8,6 +8,12 @@ merged=${4:-False}      # Whether to merge all api coverage (True) or keep them 
 export max_parallel=${n_proc}     # Fix number of jobs to run at a time
 export elements_file=${lib}_apis.txt
 
+if [ "$merged" = "True" ] || [ "$merged" = "true" ]; then
+    timeout=2400
+else
+    timeout=7200
+fi
+
 # alias
 if [ "$lib" = "pytorch" ]; then
     lib=torch
@@ -69,16 +75,23 @@ result=$PROJECT_DIR/.tmp/titanfuzz_coverage_${lib}.csv
 # {api},{num_branches},{num_lines},{n_inputs},{return_code}
 printf "api,titanfuzz,line_cov_titanfuzz,n_inputs,return_code\n" > ${result}
 # python -m eval.titanfuzz.compute_coverage_titanfuzz ${api} ${out_dir} ${lib} ${out_file} ${MAX_INPUTS}
-python -m utils.run_parallel "python -m eval.titanfuzz.compute_coverage_titanfuzz" "${dir} ${lib}" "$PROJECT_DIR/.tmp/titanfuzz_coverage 0 ${merged}" ${result} ${job_name} ${max_parallel}
+python -m utils.run_parallel "python -m eval.titanfuzz.compute_coverage_titanfuzz" "${dir} ${lib}" "$PROJECT_DIR/.tmp/titanfuzz_coverage 0 ${merged} ${timeout}" ${result} ${job_name} ${max_parallel}
 
 if [ "$merged" = "True" ] || [ "$merged" = "true" ]; then
-    python -m utils.merge_profdata .tmp/titanfuzz_${lib}.csv
+    python -m utils.merge_profdata .tmp/titanfuzz_${lib}.csv ${lib}
 fi
 
 # Re-install vanilla library
 pip install ${lib_ins} --force-reinstall
 
-echo "Coverage results saved in ${result}"
+if [ "$merged" = "True" ] || [ "$merged" = "true" ]; then
+    mv .tmp/merged_coverage .tmp/titanfuzz_${lib}_profdata
+    echo "Coverage ------------------------"
+    cat .tmp/titanfuzz_${lib}.csv
+    echo "---------------------------------"
+else
+    echo "Coverage results saved in ${result}"
+fi
 
 # Clean up temporary files
 echo "Cleaning up temporary files"

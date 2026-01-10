@@ -132,7 +132,7 @@ if [ ${COMPUTE_COV} -eq 1 ]; then
     wait_for_slurm ${time_interval} ${sota} "computing coverage"
 
     if [ "$merged" = "True" ] || [ "$merged" = "true" ]; then
-        python -m utils.merge_profdata .tmp/titanfuzz_${lib}.csv
+        python -m utils.merge_profdata .tmp/titanfuzz_${lib}.csv ${lib}
     else
         rm ${result_file}
         printf "api,coverage,line_coverage,n_inputs,return_code\n" >> ${result_file}
@@ -150,17 +150,24 @@ fi
 if [ "$lib" = "torch" ]; then
     pip install ${lib_ins} --force-reinstall
 
-    echo "Results are saved in ${result_file}"
+    if [ "$merged" = "True" ] || [ "$merged" = "true" ]; then
+        mv .tmp/merged_coverage .tmp/titanfuzz_${lib}_profdata
+        echo "Coverage ------------------------"
+        cat .tmp/titanfuzz_${lib}.csv
+        echo "---------------------------------"
+    else
+        echo "Results are saved in ${result_file}"
 
-    # Aggregating and saving results: validity
-    result=${outputs}/validity.csv
-    echo "api,valid,invalid,crash,exception,total,valid_prcnt" > ${result}
-    for filename in ${out_dir}/*/*.csv
-    do
-        cat ${filename} >> ${result}
-    done
+        # Aggregating and saving results: validity
+        result=${outputs}/validity.csv
+        echo "api,valid,invalid,crash,exception,total,valid_prcnt" > ${result}
+        for filename in ${out_dir}/*/*.csv
+        do
+            cat ${filename} >> ${result}
+        done
 
-    echo "Validity results saved in ${result}"
+        echo "Validity results saved in ${result}"
+    fi
 elif [ "$lib" = "tf" ]; then
     echo "TensorFlow modified inputs are saved in ${out_dir}"
     echo "Build the tensorflow docker, copy the modified inputs and run the coverage script separately."
