@@ -103,7 +103,7 @@ def main():
         print(f"Creating new result file at {result_file}")
 
     with open(result_file, "a") as f:
-        f.write('\n'+str(num_branches))
+        f.write(str(num_branches)+'\n')
 
 if __name__ == "__main__":
     main()
