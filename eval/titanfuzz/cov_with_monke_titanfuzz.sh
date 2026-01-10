@@ -151,10 +151,7 @@ if [ "$lib" = "torch" ]; then
     pip install ${lib_ins} --force-reinstall
 
     if [ "$merged" = "True" ] || [ "$merged" = "true" ]; then
-        mv .tmp/merged_coverage .tmp/titanfuzz_${lib}_profdata
-        echo "Coverage ------------------------"
-        cat .tmp/titanfuzz_${lib}.csv
-        echo "---------------------------------"
+        echo "Results are saved in .tmp/titanfuzz_${lib}.csv"
     else
         echo "Results are saved in ${result_file}"
 

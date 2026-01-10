@@ -80,10 +80,7 @@ fi
 pip install ${lib_ins} --force-reinstall
 
 if [ "$merged" = "True" ] || [ "$merged" = "true" ]; then
-    mv .tmp/merged_coverage .tmp/acetest_${lib}_profdata
-    echo "Coverage ------------------------"
-    cat .tmp/acetest_${lib}.csv
-    echo "---------------------------------"
+    echo "Coverage results saved in .tmp/acetest_${lib}.csv"
 else
     echo "Coverage results saved in ${result}"
 fi

@@ -56,6 +56,7 @@ def main():
     api = sys.argv[1]
     n_inputs = int(sys.argv[2]) if len(sys.argv) > 2 else 0
     lib = sys.argv[3] if len(sys.argv) > 3 else "torch"
+    manual_dir = sys.argv[4] if len(sys.argv) > 4 else None
 
     print_details = True
     cur_seed = 19
@@ -63,7 +64,11 @@ def main():
 
     api = get_lib_version(api, lib=lib)
 
-    input_dir = os.path.join(get_tmp_dir(), "fuzz_inputs")
+    if manual_dir:
+        input_dir = os.path.join(manual_dir, api)
+    else:
+        input_dir = os.path.join(get_tmp_dir(), "fuzz_inputs")
+    
     input_file = os.path.join(input_dir, f"{api}_{lib}_inputs.pkl")
     
     if not os.path.exists(input_file):

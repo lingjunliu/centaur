@@ -7,6 +7,8 @@ lib=${2:-torch}        # Lib: torch or tf
 method=${3:-html}     # Method to run, default is html (supports lcov too)
 native=${4:-False}    # Limit the coverage to the native folder only (only applicable to the html method)
 debug=${5:-0}         # To debug coverage difference with titanfuzz, pass 1
+merged=${6:-False}    # To merge coverage data from multiple runs, pass True
+manual_dir=${7:-""}  # To provide a manual directory for inputs, pass the path
 
 export elements_file=${lib}_apis.txt
 
@@ -57,7 +59,14 @@ pip install -r $PROJECT_DIR/requirements.txt
 pip install ${lib_ins} --force-reinstall
 job_name=pat
 echo "Patching code before running coverage script"
-bash $slurm_sh "python -m eval.patching" ${job_name} ${n_inputs} ${lib}
+if [ "$merged" = "True" ] || [ "$merged" = "true" ]; then
+    export slurm_time="0:40:00"
+    timeout=2400  # 40 minutes
+    bash $slurm_sh "python -m eval.patching" ${job_name} ${n_inputs} ${lib} ${manual_dir}
+else
+    timeout=7200  # 2 hours
+    bash $slurm_sh "python -m eval.patching" ${job_name} ${n_inputs} ${lib}
+fi
 
 if [ "$lib" = "torch" ]; then
     # Install instrumented pytorch
@@ -80,7 +89,11 @@ fi
 
 job_name=cov
 echo "Running coverage script"
-bash $slurm_sh "python -m eval.coverage" ${job_name} ${lib} ${method} ${native} ${debug}
+bash $slurm_sh "python -m eval.coverage" ${job_name} ${lib} ${method} ${native} ${debug} ${timeout} ${merged}
+
+if [ "$merged" = "True" ] || [ "$merged" = "true" ]; then
+    python -m utils.merge_profdata .tmp/centaur_${lib}.csv ${lib}
+fi
 
 # DEBUG ################################
 
@@ -114,15 +127,19 @@ fi
 # END DEBUG ############################
 
 # Aggregating and saving results: coverage
-cov_results=$PROJECT_DIR/.tmp/coverage_results
-result=$PROJECT_DIR/.tmp/coverage_${lib}.csv
-echo "api,SLATE,line_cov_SLATE" > ${result}
-for filename in ${cov_results}/*_${lib}.csv
-do
-    cat ${filename} >> ${result}
-done
+if [ "$merged" = "True" ] || [ "$merged" = "true" ]; then
+    echo "Coverage results saved in .tmp/centaur_${lib}.csv"
+else
+    cov_results=$PROJECT_DIR/.tmp/coverage_results
+    result=$PROJECT_DIR/.tmp/coverage_${lib}.csv
+    echo "api,SLATE,line_cov_SLATE" > ${result}
+    for filename in ${cov_results}/*_${lib}.csv
+    do
+        cat ${filename} >> ${result}
+    done
 
-echo "Coverage results saved in ${result}"
+    echo "Coverage results saved in ${result}"
+fi
 
 # Clean up temporary files
 echo "Cleaning up temporary files"

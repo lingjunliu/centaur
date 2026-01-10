@@ -85,10 +85,7 @@ fi
 pip install ${lib_ins} --force-reinstall
 
 if [ "$merged" = "True" ] || [ "$merged" = "true" ]; then
-    mv .tmp/merged_coverage .tmp/titanfuzz_${lib}_profdata
-    echo "Coverage ------------------------"
-    cat .tmp/titanfuzz_${lib}.csv
-    echo "---------------------------------"
+    echo "Coverage results saved in .tmp/titanfuzz_${lib}.csv"
 else
     echo "Coverage results saved in ${result}"
 fi

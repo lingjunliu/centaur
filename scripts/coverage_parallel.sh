@@ -5,6 +5,8 @@ lib=${2:-tf}       # Lib: torch or tf
 n_proc=${3:-100}      # Number of processes to run in parallel
 method=${4:-html}     # Method to run, default is html (supports lcov too)
 native=${5:-False}    # Limit the coverage to the native folder only (only applicable to the html method)
+merged=${6:-False}    # To merge coverage data from multiple runs, pass True
+manual_dir=${7:-""}  # To provide a manual directory for inputs, pass the path
 
 # Preset params
 save_lcov=0     # Whether to save lcov files or not
@@ -65,7 +67,12 @@ pip install -r $PROJECT_DIR/requirements_coverage.txt
 
 job_name=pat
 echo "Patching code before running coverage script"
-python -m utils.run_parallel "python -m eval.patching" "${n_inputs} ${lib}" "" "" ${job_name} ${max_parallel}
+if [ "$merged" = "True" ] || [ "$merged" = "true" ]; then
+    python -m utils.run_parallel "python -m eval.patching" "${n_inputs} ${lib} ${manual_dir}" "" "" ${job_name} ${max_parallel}
+    timeout=2400
+else
+    python -m utils.run_parallel "python -m eval.patching" "${n_inputs} ${lib}" "" "" ${job_name} ${max_parallel}
+fi
 
 if [ "$lib" = "torch" ]; then
     # Install instrumented pytorch
@@ -88,12 +95,20 @@ job_name=cov
 echo "Running coverage script"
 result=$PROJECT_DIR/.tmp/coverage_${lib}.csv
 echo "api,SLATE,line_cov_SLATE" > ${result}
-python -m utils.run_parallel "python -m eval.coverage" "${lib} ${method} ${native} ${save_lcov} ${timeout}" "$PROJECT_DIR/.tmp/coverage_results" ${result} ${job_name} ${max_parallel}
+python -m utils.run_parallel "python -m eval.coverage" "${lib} ${method} ${native} ${save_lcov} ${timeout} ${merged}" "$PROJECT_DIR/.tmp/coverage_results" ${result} ${job_name} ${max_parallel}
+
+if [ "$merged" = "True" ] || [ "$merged" = "true" ]; then
+    python -m utils.merge_profdata .tmp/centaur_${lib}.csv ${lib}
+fi
 
 # Re-install vanilla library
 pip install ${lib_ins} --force-reinstall
 
-echo "Coverage results saved in ${result}"
+if [ "$merged" = "True" ] || [ "$merged" = "true" ]; then
+    echo "Coverage results saved in .tmp/centaur_${lib}.csv"
+else
+    echo "Coverage results saved in ${result}"
+fi
 
 # Clean up temporary files
 echo "Cleaning up temporary files"

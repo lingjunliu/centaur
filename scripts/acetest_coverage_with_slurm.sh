@@ -44,14 +44,15 @@ job_name=acov
 echo "Running coverage script"
 bash $slurm_sh "python -m eval.acetest.coverage" ${job_name} ${lib} ${merged}
 
+if [ "$merged" = "True" ] || [ "$merged" = "true" ]; then
+    python -m utils.merge_profdata .tmp/acetest_${lib}.csv ${lib}
+fi
+
 # Re-install vanilla pytorch
 pip install torch==2.2.0
 
 if [ "$merged" = "True" ] || [ "$merged" = "true" ]; then
-    python -m utils.merge_profdata .tmp/acetest_${lib}.csv ${lib}
-    echo "Coverage ------------------------"
-    cat .tmp/acetest_${lib}.csv
-    echo "---------------------------------"
+    echo "Coverage results saved in .tmp/acetest_${lib}.csv"
 else
     # Aggregating and saving results: coverage
     cov_results=$PROJECT_DIR/.tmp/acetest_coverage

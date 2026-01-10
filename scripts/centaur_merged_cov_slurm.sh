@@ -9,9 +9,9 @@ subdirs=( "0-60" "60-120" "120-180" "180-240" "240-300" "300-360" "360-420" "420
 for subdir in "${subdirs[@]}"; do
     if [ -d "${dir}/${subdir}" ]; then
         echo "Processing directory: $subdir"
-        bash scripts/titanfuzz_coverage_parallel.sh "${dir}/${subdir}" $lib $n_procs True
+        bash scripts/coverage_with_slurm.sh 0 $lib html False 0 True "${dir}/${subdir}"
     fi
 done
 
-cat .tmp/titanfuzz_${lib}.csv
-mv .tmp/merged_coverage .tmp/titanfuzz_${lib}_profdata
+cat .tmp/centaur_${lib}.csv
+mv .tmp/merged_coverage .tmp/centaur_${lib}_profdata
