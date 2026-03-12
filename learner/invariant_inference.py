@@ -58,7 +58,7 @@ def reduce_ruleset(ruleset, signature, api, z3_args, max_trial=30, time_budget=3
         perma_block = set()
 
         start_time = time.time()
-        while time.time() - start_time < time_budget_per_rule and trial < max_trial:
+        while time.time() - start_time < time_budget_per_rule or trial < max_trial:
             block_one = []
             remaining_ruleset = set(ruleset)
             if rule is not None: 
