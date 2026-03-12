@@ -375,13 +375,14 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
     return list_of_rulesets
 
 def main():
-    # Usage: python -m learner.invariant_inference <variant> <time budget> <1 to regenerate invariants 0 otherwise> <library> <1 to reduce rules 0 otherwise>
+    # Usage: python -m learner.invariant_inference <variant> <time budget> <1 to regenerate invariants 0 otherwise> <library> <1 to reduce rules 0 otherwise> <seed>
     variant = sys.argv[1] if len(sys.argv) > 1 else "scatter"
     budget = int(sys.argv[2]) if len(sys.argv) > 2 else 30  # seconds
     regen = int(sys.argv[3]) == 1 if len(sys.argv) > 3 else False
     lib = sys.argv[4] if len(sys.argv) > 4 else "torch"
     reduce = int(sys.argv[5]) == 1 if len(sys.argv) > 5 else True
-    
+    seed = int(sys.argv[6]) if len(sys.argv) > 6 else 42
+
     api, suffix = get_api_suffix(variant)
     
     ## Since we already have true invariants for some APIs, we skip random generation
@@ -406,7 +407,7 @@ def main():
             os.remove(invariant_file)
         return
 
-    list_of_rulesets = infer_invariants(api, print_details=True, regen=regen, time_budget=budget, z3=True, lib=lib, suffix=suffix, reduce_rules=reduce)
+    list_of_rulesets = infer_invariants(api, print_details=True, regen=regen, time_budget=budget, z3=True, lib=lib, suffix=suffix, reduce_rules=reduce, seed=seed)
 
 if __name__ == "__main__":
     main()

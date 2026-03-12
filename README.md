@@ -56,13 +56,13 @@ Folders generated during execution:
  To run invariant inference for all variants (variations of the apis from `torch_variations.txt` for PyTorch and `tf_variations.txt` for Tensorflow.), run the following. **Be sure to install and configure slurm before running this.**
  
  ```bash
- (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/infer_invariants_with_slurm.sh <duration> <regen> <lib>
+ (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/infer_invariants_with_slurm.sh <duration> <regen> <lib> <reduce> <seed>
  ```
 
  Example:
 
  ```bash
- (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/infer_invariants_with_slurm.sh 300 1 torch
+ (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/infer_invariants_with_slurm.sh 300 1 torch 1 42
  ```
 
  This will generate (regenerate if already exists since `1` is passed as `regen`) the invariants for the variations of apis and it will use a time budget of `300` seconds to do so.
@@ -70,12 +70,14 @@ Folders generated during execution:
  - `duration`: Max time budget per variation to learn invariants
  - `regen`: 1 to regenerate invariants, 0 to learn invariants only if they do not exist
  - `lib`: `torch` or `tf`
+ - `reduce`: 1 to perform rule reduction, 0 otherwise
+ - `seed`: default `42`
  
  <h3> Without slurm (one variant) </h3>
  To run invariant inference for a single variant, run the following *(under the venv)*:
 
  ```bash
- (venv) ~/dll-fuzzing-with-input-invariants$ python -m learner.invariant_inference <variant> <time budget> <1 to regenerate invariants 0 otherwise>
+ (venv) ~/dll-fuzzing-with-input-invariants$ python -m learner.invariant_inference <variant> <time budget> <1 to regenerate invariants 0 otherwise> <lib: torch/tf> <1 to enable rule-reduction 0 otherwise> <seed>
  ```
 
 <h2> 2. Generate models (offline) </h2>
