@@ -25,12 +25,20 @@ def introduce_float_types(input_dict, signature, lib="torch", rng=np.random.defa
             if domain in ["tensor", "tensor_list"]:
                 new_input = copy.deepcopy(input_dict)
                 if isinstance(new_input[arg], np.ndarray):
-                    new_input[arg] = new_input[arg].astype(float_types[index%len(float_types)])
+                    try:
+                        new_input[arg] = new_input[arg].astype(float_types[index%len(float_types)])
+                    except Exception as e:
+                        print(f"{bcolors.WARNING}Warning: Could not convert tensor to {float_types[index%len(float_types)]} for argument {arg} with domain {domain} | {e.__class__.__name__}: {e}{bcolors.ENDC}")
+                        continue
                 elif isinstance(new_input[arg], list):
                     for i, _ in enumerate(new_input[arg]):
                         new_input[arg][i] = new_input[arg][i].astype(float_types[index%len(float_types)])
                 else:
-                    new_input[arg] = float_types[index%len(float_types)](new_input[arg])                
+                    try:
+                        new_input[arg] = float_types[index%len(float_types)](new_input[arg])
+                    except Exception as e:
+                        print(f"{bcolors.WARNING}Warning: Could not convert {new_input[arg]} to {float_types[index%len(float_types)]} for argument {arg} with domain {domain} | {e.__class__.__name__}: {e}{bcolors.ENDC}")
+                        continue
                 mutated_inputs.append(new_input)
     
     return mutated_inputs
@@ -49,7 +57,11 @@ def introduce_complex_types(input_dict, signature, lib="torch", rng=np.random.de
             if domain in ["tensor", "tensor_list"]:
                 new_input = copy.deepcopy(input_dict)
                 if isinstance(new_input[arg], np.ndarray):
-                    new_input[arg] = new_input[arg].astype(complex_types[index%len(complex_types)])
+                    try:
+                        new_input[arg] = new_input[arg].astype(complex_types[index%len(complex_types)])
+                    except Exception as e:
+                        print(f"{bcolors.WARNING}Warning: Could not convert tensor to {complex_types[index%len(complex_types)]} for argument {arg} with domain {domain} | {e.__class__.__name__}: {e}{bcolors.ENDC}")
+                        continue
                 elif isinstance(new_input[arg], list):
                     for i, _ in enumerate(new_input[arg]):
                         new_input[arg][i] = new_input[arg][i].astype(complex_types[index%len(complex_types)])
@@ -124,7 +136,11 @@ def introduce_integer_types(input_dict, signature, lib="torch", rng=np.random.de
             if domain in ["tensor", "tensor_list"]:
                 new_input = copy.deepcopy(input_dict)
                 if isinstance(new_input[arg], np.ndarray):
-                    new_input[arg] = new_input[arg].astype(int_types[index%len(int_types)])
+                    try:
+                        new_input[arg] = new_input[arg].astype(int_types[index%len(int_types)])
+                    except Exception as e:
+                        print(f"{bcolors.WARNING}Warning: Could not convert tensor to {int_types[index%len(int_types)]} for argument {arg} with domain {domain} | {e.__class__.__name__}: {e}{bcolors.ENDC}")
+                        continue
                 elif isinstance(new_input[arg], list):
                     for i, _ in enumerate(new_input[arg]):
                         new_input[arg][i] = new_input[arg][i].astype(int_types[index%len(int_types)])
