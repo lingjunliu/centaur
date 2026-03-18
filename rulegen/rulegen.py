@@ -1,6 +1,6 @@
 from lark import Lark
 import os, re, time, random, json, sys
-from google import genai
+import google.generativeai as genai
 import torch, inspect, pkgutil, types, inspect
 import tensorflow as tf
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
