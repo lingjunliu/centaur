@@ -97,7 +97,7 @@ def generate_rules(api, lib, max_failures=100, timeout=60, llm="gemini"):
     rule_defs = set()
 
     if llm == "gemini":
-        dir_path = os.path.join("../rules-torch" if lib == "torch" else "../rules-tf", api)
+        dir_path = os.path.join("gemini/rules-torch" if lib == "torch" else "gemini/rules-tf", api)
     else:
         dir_path = os.path.join(f"{llm}/rules-torch" if lib == "torch" else f"{llm}/rules-tf", api)
 
@@ -122,7 +122,7 @@ def generate_rules(api, lib, max_failures=100, timeout=60, llm="gemini"):
 
     if llm == "gemini":
         genai.configure(api_key=os.getenv("gemini_key"))
-        model = genai.GenerativeModel(model_name="gemini-2.0-flash")
+        model = genai.GenerativeModel(model_name="gemini-3.0-flash-preview")
         chat = model.start_chat(history=[])
     elif llm == "openai":
         chat = OAChatWrapper()
