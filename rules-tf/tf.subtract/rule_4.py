@@ -1,0 +1,121 @@
+import numpy as np
+import torch 
+import tensorflow as tf
+
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
+from z3 import *
+# Rule 4: x and y must be broadcast-compatible
+
+def broadcastable(x_ndim, x_shape, y_ndim, y_shape):
+    constraints = []
+    for i in range(MAX_N_DIM):
+        xi = If(i < x_ndim, Select(x_shape, x_ndim - 1 - i), 1)
+        yi = If(i < y_ndim, Select(y_shape, y_ndim - 1 - i), 1)
+
+        constraints.append(
+            Or(
+                xi == yi,
+                xi == 1,
+                yi == 1
+            )
+        )
+    return And(constraints)
+
+
+rule_4 = lambda s, v, n=False: (
+    s.add(
+        Not(
+            And(
+                v["x_ndim"] >= 0,
+                v["y_ndim"] >= 0,
+                v["x_dtype_valid"],
+                v["y_dtype_valid"],
+                broadcastable(
+                    v["x_ndim"], v["x_shape"],
+                    v["y_ndim"], v["y_shape"]
+                )
+            )
+        )
+    ) if n else
+    s.add(
+        And(
+            v["x_ndim"] >= 0,
+            v["y_ndim"] >= 0,
+            v["x_dtype_valid"],
+            v["y_dtype_valid"],
+            broadcastable(
+                v["x_ndim"], v["x_shape"],
+                v["y_ndim"], v["y_shape"]
+            )
+        )
+    )
+)
+def rule_4_func(arg1, arg2, solver=None, neg=False):
+    x = next(iter(arg1.values()))
+    y = next(iter(arg2.values()))
+
+    if not solver:
+        if not isinstance(x, np.ndarray):
+            return False
+        if not isinstance(y, np.ndarray):
+            return False
+
+        numeric_types = [
+            np.int8, np.int16, np.int32, np.int64,
+            np.float16, np.float32, np.float64,
+            np.complex64, np.complex128
+        ]
+
+        if x.dtype.type not in numeric_types:
+            return False
+        if y.dtype.type not in numeric_types:
+            return False
+
+        try:
+            np.broadcast_shapes(x.shape, y.shape)
+        except:
+            return False
+
+        solver = Solver()
+
+        x_ndim = Int('x_ndim')
+        y_ndim = Int('y_ndim')
+        x_shape = Array('x_shape', IntSort(), IntSort())
+        y_shape = Array('y_shape', IntSort(), IntSort())
+        x_dtype_valid = Bool('x_dtype_valid')
+        y_dtype_valid = Bool('y_dtype_valid')
+
+        solver.add(x_ndim == x.ndim)
+        solver.add(y_ndim == y.ndim)
+        solver.add(x_dtype_valid == True)
+        solver.add(y_dtype_valid == True)
+
+        for i in range(x.ndim):
+            solver.add(Select(x_shape, i) == x.shape[i])
+        for i in range(y.ndim):
+            solver.add(Select(y_shape, i) == y.shape[i])
+
+        rule_4(solver, {
+            "x_ndim": x_ndim,
+            "y_ndim": y_ndim,
+            "x_shape": x_shape,
+            "y_shape": y_shape,
+            "x_dtype_valid": x_dtype_valid,
+            "y_dtype_valid": y_dtype_valid
+        })
+
+        return solver.check() == sat
+
+    else:
+        rule_4(
+            solver,
+            {
+                "x_ndim": x["ndim"],
+                "y_ndim": y["ndim"],
+                "x_shape": x["shape"],
+                "y_shape": y["shape"],
+                "x_dtype_valid": x["dtype_valid"],
+                "y_dtype_valid": y["dtype_valid"]
+            },
+            neg
+        )
