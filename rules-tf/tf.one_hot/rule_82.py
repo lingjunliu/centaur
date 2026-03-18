@@ -1,0 +1,54 @@
+import numpy as np
+import torch 
+import tensorflow as tf
+
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
+from z3 import *
+
+# axis must be -1 or in [0, ndim(indices)] (one_hot axis rule)
+# {v_1 : tensor, v_2 : int} |= v_2 = -1 ∨ (0 <= v_2 <= ndim(v_1))
+
+rule_82 = lambda s, v, n=False: (
+    s.add(Not(Or(
+        v["arg2_val"] == -1,
+        And(
+            v["arg2_val"] >= 0,
+            v["arg2_val"] <= v["arg1_ndim"]
+        )
+    )) if n else
+    Or(
+        v["arg2_val"] == -1,
+        And(
+            v["arg2_val"] >= 0,
+            v["arg2_val"] <= v["arg1_ndim"]
+        )
+    ))
+)
+
+def rule_82_func(arg1, arg2, solver=None, neg=False):
+    arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+
+    # Invariant learning phase
+    if not solver:
+        if not isinstance(arg1, np.ndarray):
+            return False
+        if not isinstance(arg2, (int, np.integer)):
+            return False
+
+        # Variable declarations
+        solver = Solver()
+        arg1_ndim = Int('arg1_ndim')
+        arg2_val = Int('arg2_val')
+
+        # Value assignments
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_val == int(arg2))
+
+        # Constraints for one_hot axis rule
+        rule_82(solver, {'arg1_ndim': arg1_ndim, 'arg2_val': arg2_val})
+        return solver.check() == sat
+
+    # Fuzz input generation phase
+    else:
+        rule_82(solver, {'arg1_ndim': arg1['ndim'], 'arg2_val': arg2['val']}, neg)
