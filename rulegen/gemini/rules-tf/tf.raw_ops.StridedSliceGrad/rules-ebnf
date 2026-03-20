@@ -1,0 +1,171 @@
+>>
+Rule 1 (shape, begin, end and strides must have the same type)
+{shape : tensor, begin : tensor, end : tensor, strides : tensor} |= dtype_(shape) = dtype_(begin) ∧ dtype_(begin) = dtype_(end) ∧ dtype_(end) = dtype_(strides)
+>>
+Rule 2 (shape must be int32 or int64, indices 3 and 4 respectively)
+{shape : tensor} |= dtype_(shape) = 3 ∨ dtype_(shape) = 4
+>>
+Rule 3 (dy must be a tensor)
+{dy : tensor} |= ndim(dy) ≥ 0
+>>
+Rule 4 (begin_mask, end_mask, ellipsis_mask, new_axis_mask, shrink_axis_mask should be non-negative)
+{begin_mask : int, end_mask : int, ellipsis_mask : int, new_axis_mask : int, shrink_axis_mask : int} |= begin_mask ≥ 0 ∧ end_mask ≥ 0 ∧ ellipsis_mask ≥ 0 ∧ new_axis_mask ≥ 0 ∧ shrink_axis_mask ≥ 0
+>>
+Rule 5 (Shape must have at least one dimension)
+{shape : tensor} |= ndim(shape) > 0
+>>
+Rule 6 (The number of elements in shape, begin, end and strides must be the same)
+{shape : tensor, begin : tensor, end : tensor, strides : tensor} |= shape(shape,0) = shape(begin, 0) ∧ shape(begin, 0) = shape(end, 0) ∧ shape(end, 0) = shape(strides, 0)
+>>
+Rule 7 (dy's shape length must be equal to shape's dimension.)
+{dy : tensor, shape : tensor} |= ndim(dy) = shape(shape, 0)
+>>
+Rule 8 (the values of masks must be boolean i.e., either 0 or 1)
+{begin_mask : int, end_mask : int, ellipsis_mask : int, new_axis_mask : int, shrink_axis_mask : int} |= (begin_mask = 0 ∨ begin_mask = 1) ∧ (end_mask = 0 ∨ end_mask = 1) ∧ (ellipsis_mask = 0 ∨ ellipsis_mask = 1) ∧ (new_axis_mask = 0 ∨ new_axis_mask = 1) ∧ (shrink_axis_mask = 0 ∨ shrink_axis_mask = 1)
+>>
+Rule 9 (shape's elements must be positive)
+{shape : tensor} |= ∀i ∈ [0, shape(shape, 0) - 1] : shape(shape, i) > 0
+>>
+Rule 10 (dy must have the same dtype as the output gradient.)
+{dy : tensor} |= dtype_(dy) ≥ 0
+>>
+Rule 11 (begin, end, and strides must have at least one dimension)
+{begin : tensor, end : tensor, strides : tensor} |= ndim(begin) > 0 ∧ ndim(end) > 0 ∧ ndim(strides) > 0
+>>
+Rule 12 (shape must be a vector)
+{shape : tensor} |= ndim(shape) = 1
+>>
+Rule 13 (If new_axis_mask is set, then shape must have smaller dimension than dy)
+{shape : tensor, dy : tensor, new_axis_mask : int} |= if new_axis_mask = 1 then shape(shape, 0) < ndim(dy)
+>>
+Rule 14 (If ellipsis_mask is set, then shape must have smaller dimension than dy)
+{shape : tensor, dy : tensor, ellipsis_mask : int} |= if ellipsis_mask = 1 then shape(shape, 0) < ndim(dy)
+>>
+Rule 15 (If shrink_axis_mask is set, the corresponding dimension in dy must be 1)
+{shape : tensor, dy : tensor, shrink_axis_mask : int} |= if shrink_axis_mask = 1 then shape(dy, shape(shape, 0) -1) = 1
+>>
+Rule 16 (shape cannot be empty)
+{shape : tensor} |= shape(shape,0) > 0
+>>
+Rule 18 (if begin_mask is 1, then begin should not be considered)
+{shape : tensor, begin : tensor, begin_mask : int} |= if begin_mask = 1 then true else shape(begin,0) = shape(shape, 0)
+>>
+Rule 19 (if end_mask is 1, then end should not be considered)
+{shape : tensor, end : tensor, end_mask : int} |= if end_mask = 1 then true else shape(end,0) = shape(shape, 0)
+>>
+Rule 20 (if ellipsis_mask is set to 1, then begin_mask, end_mask, new_axis_mask, shrink_axis_mask must be 0)
+{ellipsis_mask : int, begin_mask : int, end_mask : int, new_axis_mask : int, shrink_axis_mask : int} |= if ellipsis_mask = 1 then begin_mask = 0 ∧ end_mask = 0 ∧ new_axis_mask = 0 ∧ shrink_axis_mask = 0
+>>
+Rule 21 (strides cannot contain zero if shrink_axis_mask is not set)
+{strides : tensor, shrink_axis_mask : int} |= if shrink_axis_mask = 0 then ∀i ∈ [0, shape(strides, 0) - 1] : strides[i] ≠ 0
+>>
+Rule 22 (If shape is empty, then dy must also be empty.)
+{shape : tensor, dy : tensor} |= if shape(shape, 0) = 0 then ndim(dy) = 0
+>>
+Rule 23 (begin, end, strides can only contain positive or negative values)
+{begin : tensor, end : tensor, strides : tensor} |= (∀i ∈ [0, shape(begin, 0) - 1] : begin[i] ≥ 0 ∨ begin[i] < 0) ∧ (∀i ∈ [0, shape(end, 0) - 1] : end[i] ≥ 0 ∨ end[i] < 0) ∧ (∀i ∈ [0, shape(strides, 0) - 1] : strides[i] ≥ 0 ∨ strides[i] < 0)
+>>
+Rule 24 (if ellipsis_mask is set, then the sum of new_axis_mask and shrink_axis_mask must be less than or equal to ndim(dy) - shape(shape, 0) - 1)
+{ellipsis_mask : int, new_axis_mask : int, shrink_axis_mask : int, dy : tensor, shape : tensor} |= if ellipsis_mask = 1 then new_axis_mask + shrink_axis_mask ≤ ndim(dy) - shape(shape, 0) - 1
+>>
+Rule 25 (If dy is empty and shrink_axis_mask, new_axis_mask, ellipsis_mask are zero, then shape can be arbitrary)
+{dy : tensor, shape: tensor, shrink_axis_mask: int, new_axis_mask: int, ellipsis_mask : int} |= if ndim(dy) = 0 ∧ shrink_axis_mask = 0 ∧ new_axis_mask = 0 ∧ ellipsis_mask = 0 then true else ndim(shape) > 0
+>>
+Rule 26 (If shrink axis mask is set to 1, then corresponding dimension in shape must be 1)
+{dy: tensor, shape: tensor, shrink_axis_mask: int} |= if shrink_axis_mask = 1 then shape(dy, shape(shape, 0)-1) = 1
+>>
+Rule 27 (If new_axis_mask is set, its value must be less than ndim(dy))
+{new_axis_mask: int, dy: tensor} |= if new_axis_mask = 1 then new_axis_mask < ndim(dy)
+>>
+Rule 28 (If begin_mask is set, its value must be less than or equal to the maximum value that int can hold)
+{begin_mask: int} |= begin_mask ≥ 0
+>>
+Rule 29 (If end_mask is set, its value must be less than or equal to the maximum value that int can hold)
+{end_mask: int} |= end_mask ≥ 0
+>>
+Rule 30 (If ellipsis_mask is set, its value must be less than or equal to the maximum value that int can hold)
+{ellipsis_mask: int} |= ellipsis_mask ≥ 0
+>>
+Rule 31 (If shrink_axis_mask is set, its value must be less than or equal to the maximum value that int can hold)
+{shrink_axis_mask: int} |= shrink_axis_mask ≥ 0
+>>
+Rule 32 (new_axis_mask should be less than or equal to 2^32-1)
+{new_axis_mask : int} |= new_axis_mask ≥ 0
+>>
+Rule 33 (Sum of ellipsis, new_axis and shrink axis mask must be less than or equal to the rank of dy)
+{ellipsis_mask: int, new_axis_mask: int, shrink_axis_mask: int, dy: tensor} |= ellipsis_mask + new_axis_mask + shrink_axis_mask ≤ ndim(dy)
+>>
+Rule 34 (If shape, begin, end, and strides are int32, their values should be in the range of int32)
+{shape : tensor, begin : tensor, end : tensor, strides : tensor} |= if dtype_(shape) = 3 then (∀i ∈ [0, shape(shape, 0) - 1] : shape[i] ≥ -2147483648 ∧ shape[i] ≤ 2147483647) ∧ (∀i ∈ [0, shape(begin, 0) - 1] : begin[i] ≥ -2147483648 ∧ begin[i] ≤ 2147483647) ∧ (∀i ∈ [0, shape(end, 0) - 1] : end[i] ≥ -2147483648 ∧ end[i] ≤ 2147483647) ∧ (∀i ∈ [0, shape(strides, 0) - 1] : strides[i] ≥ -2147483648 ∧ strides[i] ≤ 2147483647)
+>>
+Rule 35 (If shape, begin, end, and strides are int64, their values should be in the range of int64)
+{shape : tensor, begin : tensor, end : tensor, strides : tensor} |= if dtype_(shape) = 4 then (∀i ∈ [0, shape(shape, 0) - 1] : shape[i] ≥ -9223372036854775808 ∧ shape[i] ≤ 9223372036854775807) ∧ (∀i ∈ [0, shape(begin, 0) - 1] : begin[i] ≥ -9223372036854775808 ∧ begin[i] ≤ 9223372036854775807) ∧ (∀i ∈ [0, shape(end, 0) - 1] : end[i] ≥ -9223372036854775808 ∧ end[i] ≤ 9223372036854775807) ∧ (∀i ∈ [0, shape(strides, 0) - 1] : strides[i] ≥ -9223372036854775808 ∧ strides[i] ≤ 9223372036854775807)
+>>
+Rule 37 (if shrink axis mask is 1, then dy rank can not be greater than shape length)
+{dy: tensor, shape: tensor, shrink_axis_mask: int} |= if shrink_axis_mask = 1 then ndim(dy) ≤ shape(shape, 0)
+>>
+Rule 38 (If shrink_axis_mask is set to 1, then the corresponding strides value must be 1.)
+{shape: tensor, shrink_axis_mask: int, strides: tensor} |= if shrink_axis_mask = 1 then strides[shape(shape, 0)-1] = 1
+>>
+Rule 40 (If shrink_axis_mask is set to 1, and shape[i] isn't 1, then return false.)
+{shrink_axis_mask: int, shape:tensor} |= if shrink_axis_mask = 1 then (∀i ∈ [0, shape(shape,0) -1] : shape[i] = 1)
+>>
+Rule 41 (If shape's size is greater than the rank of dy, then return false)
+{shape:tensor, dy: tensor} |= shape(shape, 0) ≤ ndim(dy)
+>>
+Rule 42 (If shape's size is not equal to the rank of begin and begin_mask is not set, return false.)
+{shape:tensor, begin: tensor, begin_mask: int} |= if begin_mask = 0 then shape(shape, 0) = ndim(begin)
+>>
+Rule 43 (If shape's size is not equal to the rank of end and end_mask is not set, return false.)
+{shape:tensor, end: tensor, end_mask: int} |= if end_mask = 0 then shape(shape, 0) = ndim(end)
+>>
+Rule 44 (If shape's size is not equal to the rank of strides, return false.)
+{shape:tensor, strides: tensor} |= shape(shape, 0) = ndim(strides)
+>>
+Rule 45 (begin, end, and strides tensors must be vectors)
+{begin : tensor, end : tensor, strides : tensor} |= ndim(begin) = 1 ∧ ndim(end) = 1 ∧ ndim(strides) = 1
+>>
+Rule 46 (If ellipsis_mask is not zero, then begin_mask, end_mask, new_axis_mask and shrink_axis_mask are zero.)
+{ellipsis_mask: int, begin_mask: int, end_mask: int, new_axis_mask: int, shrink_axis_mask: int} |= if ellipsis_mask ≠ 0 then begin_mask = 0 ∧ end_mask = 0 ∧ new_axis_mask = 0 ∧ shrink_axis_mask = 0
+>>
+Rule 48 (If shrink_axis_mask is set, the corresponding stride must be positive)
+{strides: tensor, shrink_axis_mask: int, shape: tensor} |= if shrink_axis_mask = 1 then strides[shape(shape, 0)-1] > 0
+>>
+Rule 49 (If shrink_axis_mask is set to 1, begin, end should be equal to zero.)
+{shape: tensor, begin: tensor, end: tensor, shrink_axis_mask: int} |= if shrink_axis_mask = 1 then begin[shape(shape,0) -1] = 0 ∧ end[shape(shape,0) - 1] = 0
+>>
+Rule 50 (If the ellipsis mask is set, then the shape can at most has one element less than the rank of dy)
+{ellipsis_mask: int, shape: tensor, dy: tensor} |= if ellipsis_mask = 1 then shape(shape, 0) ≤ (ndim(dy) -1)
+>>
+Rule 51 (If new_axis_mask is set to 1, shape of dy should be equal to shape length + new_axis_mask)
+{new_axis_mask: int, shape: tensor, dy: tensor} |= if new_axis_mask = 1 then ndim(dy) = shape(shape,0) + new_axis_mask
+>>
+Rule 52 (If end_mask is set to 1, then end doesn't need to match size of shape)
+{shape:tensor, end:tensor, end_mask: int} |= if end_mask = 1 then true else shape(end, 0) = shape(shape, 0)
+>>
+Rule 53 (If begin_mask is set to 1, then begin doesn't need to match size of shape)
+{shape:tensor, begin:tensor, begin_mask: int} |= if begin_mask = 1 then true else shape(begin, 0) = shape(shape, 0)
+>>
+Rule 54 (shape of dy tensor has to be one less than the size of shape tensor if ellipsis mask is set)
+{ellipsis_mask: int, dy: tensor, shape: tensor} |= if ellipsis_mask = 1 then ndim(dy) = shape(shape, 0) -1
+>>
+Rule 55 (If ellipsis_mask, new_axis_mask, and shrink_axis_mask are zero, then the size of the shape tensor has to be equal to the rank of dy)
+{ellipsis_mask: int, new_axis_mask: int, shrink_axis_mask: int, dy: tensor, shape: tensor} |= if ellipsis_mask = 0 ∧ new_axis_mask = 0 ∧ shrink_axis_mask = 0 then shape(shape,0) = ndim(dy)
+>>
+Rule 56 (If shape is int32 and begin_mask is set, begin's values should be in int32 range)
+{shape: tensor, begin: tensor, begin_mask: int} |= if dtype_(shape) = 3 ∧ begin_mask = 1 then (∀i ∈ [0, shape(begin, 0) - 1] : begin[i] ≥ -2147483648 ∧ begin[i] ≤ 2147483647)
+>>
+Rule 57 (If shape is int64 and begin_mask is set, begin's values should be in int64 range)
+{shape: tensor, begin: tensor, begin_mask: int} |= if dtype_(shape) = 4 ∧ begin_mask = 1 then (∀i ∈ [0, shape(begin, 0) - 1] : begin[i] ≥ -9223372036854775808 ∧ begin[i] ≤ 9223372036854775807)
+>>
+Rule 58 (If shape is int32 and end_mask is set, end's values should be in int32 range)
+{shape: tensor, end: tensor, end_mask: int} |= if dtype_(shape) = 3 ∧ end_mask = 1 then (∀i ∈ [0, shape(end, 0) - 1] : end[i] ≥ -2147483648 ∧ end[i] ≤ 2147483647)
+>>
+Rule 59 (If shape is int64 and end_mask is set, end's values should be in int64 range)
+{shape: tensor, end: tensor, end_mask: int} |= if dtype_(shape) = 4 ∧ end_mask = 1 then (∀i ∈ [0, shape(end, 0) - 1] : end[i] ≥ -9223372036854775808 ∧ end[i] ≤ 9223372036854775807)
+>>
+Rule 60 (If shape is int32 and strides is used, strides's values should be in int32 range)
+{shape: tensor, strides: tensor} |= if dtype_(shape) = 3 then (∀i ∈ [0, shape(strides, 0) - 1] : strides[i] ≥ -2147483648 ∧ strides[i] ≤ 2147483647)
+>>
+Rule 61 (If shape is int64 and strides is used, strides's values should be in int64 range)
+{shape: tensor, strides: tensor} |= if dtype_(shape) = 4 then (∀i ∈ [0, shape(strides, 0) - 1] : strides[i] ≥ -9223372036854775808 ∧ strides[i] ≤ 9223372036854775807)

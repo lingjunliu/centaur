@@ -1,0 +1,141 @@
+>>
+Rule 3 (indices.shape[-1] <= tensor.shape.rank)
+{tensor : tensor, indices : tensor} |= shape(indices, ndim(indices) - 1) ≤ ndim(tensor)
+>>
+Rule 4 (bad_indices_policy must be a valid string)
+{bad_indices_policy : str} |= bad_indices_policy = "" ∨ bad_indices_policy = "DEFAULT" ∨ bad_indices_policy = "ERROR" ∨ bad_indices_policy = "IGNORE"
+>>
+Rule 6 (updates shape check, continued)
+{tensor : tensor, indices : tensor, updates : tensor} |= ∀i ∈ [shape(indices, ndim(indices) - 1), ndim(tensor) - 1] : shape(tensor, i) = shape(updates, ndim(indices) - 1 + (i - shape(indices, ndim(indices) - 1)))
+>>
+Rule 7 (tensor must have a valid number of dimensions)
+{tensor: tensor} |= ndim(tensor) > 0
+>>
+Rule 8 (indices must be int32 or int64 represented by their enum index)
+{indices : tensor} |= dtype_(indices) = 3 ∨ dtype_(indices) = 4
+>>
+Rule 9 (tensor and updates must have the same type represented by their enum index)
+{tensor : tensor, updates : tensor} |= dtype_(tensor) = dtype_(updates)
+>>
+Rule 12 (updates shape check)
+{indices : tensor, updates : tensor} |= ∀i ∈ [0, ndim(indices) - 1 - 1] : shape(indices, i) = shape(updates, i)
+>>
+Rule 13 (updates shape check, continued)
+{tensor : tensor, indices : tensor, updates : tensor} |= if ndim(indices) > 0 then ∀i ∈ [shape(indices, ndim(indices) - 1), ndim(tensor) - 1] : shape(tensor, i) = shape(updates, ndim(indices) - 1 + (i - shape(indices, ndim(indices) - 1)))
+>>
+Rule 17 (updates shape check)
+{indices : tensor, updates : tensor} |= ∀i ∈ [0, if ndim(indices) > 1 then ndim(indices) - 1 - 1 else 0] : shape(indices, i) = shape(updates, i)
+>>
+Rule 20 (tensor must have more than zero elements)
+{tensor: tensor} |= shape(tensor, 0) > 0
+>>
+Rule 22 (indices must be a tensor of rank at least 1)
+{indices: tensor} |= ndim(indices) ≥ 1
+>>
+Rule 23 (Ensure tensor and updates have compatible shapes considering broadcasting)
+{tensor : tensor, updates : tensor} |= if ndim(tensor) < ndim(updates) then false else ∀i ∈ [0, ndim(updates) - 1] : shape(tensor, ndim(tensor) - ndim(updates) + i) = shape(updates, i) ∨ shape(updates, i) = 1
+>>
+Rule 25 (If bad_indices_policy is specified as ERROR, operation should not be on GPU)
+{bad_indices_policy: str} |= if bad_indices_policy = "ERROR" then false
+>>
+Rule 26 (Ensure tensor and updates have compatible shapes considering broadcasting and scalar updates)
+{tensor : tensor, updates : tensor} |= if ndim(tensor) < ndim(updates) then false else if ndim(updates) = 0 then true else ∀i ∈ [0, ndim(updates) - 1] : shape(tensor, ndim(tensor) - ndim(updates) + i) = shape(updates, i) ∨ shape(updates, i) = 1
+>>
+Rule 27 (Ensure indices are not empty if tensor is not a scalar)
+{tensor: tensor, indices: tensor} |= if ndim(tensor) > 0 then ndim(indices) > 0
+>>
+Rule 30 (Data types of tensor and updates should be compatible, not necessarily the same if casting is possible)
+{tensor: tensor, updates: tensor} |= (dtype_(tensor) = 0 ∧ dtype_(updates) = 0) ∨ (1 ≤ dtype_(tensor) ∧ dtype_(tensor) ≤ 5 ∧ 1 ≤ dtype_(updates) ∧ dtype_(updates) ≤ 5) ∨ (6 ≤ dtype_(tensor) ∧ dtype_(tensor) ≤ 8 ∧ 6 ≤ dtype_(updates) ∧ dtype_(updates) ≤ 8) ∨ (9 ≤ dtype_(tensor) ∧ dtype_(tensor) ≤ 10 ∧ 9 ≤ dtype_(updates) ∧ dtype_(updates) ≤ 10)
+>>
+Rule 31 (Ensure tensor and updates have compatible shapes considering broadcasting and scalar updates, and rank)
+{tensor : tensor, updates : tensor} |= if ndim(tensor) < ndim(updates) then false else if ndim(updates) = 0 then true else ∀i ∈ [0, ndim(updates) - 1] : (shape(tensor, ndim(tensor) - ndim(updates) + i) = shape(updates, i) ∨ shape(updates, i) = 1) ∧ ndim(tensor) > 0 ∧ ndim(updates) > 0
+>>
+Rule 34 (If indices' rank is greater than 1, its shape should be well-formed )
+{indices: tensor} |= if ndim(indices) > 1 then ∀ i ∈ [0, ndim(indices) - 1] : shape(indices, i) > 0
+>>
+Rule 35 (If tensor's dtype is bool, then updates' dtype should be bool.)
+{tensor: tensor, updates: tensor} |= if dtype_(tensor) = 0 then dtype_(updates) = 0
+>>
+Rule 36 (Ensure tensor and updates have compatible shapes considering broadcasting and scalar updates, and rank, non-empty)
+{tensor : tensor, updates : tensor} |= if ndim(tensor) < ndim(updates) then false else if ndim(updates) = 0 then true else ∀i ∈ [0, ndim(updates) - 1] : (shape(tensor, ndim(tensor) - ndim(updates) + i) = shape(updates, i) ∨ shape(updates, i) = 1) ∧ ndim(tensor) > 0 ∧ ndim(updates) > 0 ∧ shape(tensor, 0) > 0 ∧ shape(updates, 0) > 0
+>>
+Rule 37 (Indices must be int32 or int64 and of valid rank)
+{indices : tensor} |= (dtype_(indices) = 3 ∨ dtype_(indices) = 4) ∧ ndim(indices) ≥ 1
+>>
+Rule 38 (If bad_indices_policy is specified as ERROR, the shape of indices should be valid regarding tensor shape)
+{tensor: tensor, indices: tensor, bad_indices_policy: str} |= if bad_indices_policy = "ERROR" then shape(indices, ndim(indices)-1) <= ndim(tensor)
+>>
+Rule 40 (The bad_indices_policy should be a valid string)
+{bad_indices_policy: str} |= bad_indices_policy = "" ∨ bad_indices_policy = "DEFAULT" ∨ bad_indices_policy = "ERROR" ∨ bad_indices_policy = "IGNORE"
+>>
+Rule 42 (Indices must be int32 or int64 and of valid rank, non-empty shape.)
+{indices : tensor} |= (dtype_(indices) = 3 ∨ dtype_(indices) = 4) ∧ ndim(indices) ≥ 1 ∧ shape(indices, 0) > 0
+>>
+Rule 43 (If bad_indices_policy is specified as ERROR, tensor dimension must be valid given indices rank)
+{tensor: tensor, indices: tensor, bad_indices_policy: str} |= if bad_indices_policy = "ERROR" then shape(indices, ndim(indices)-1) ≤ ndim(tensor)
+>>
+Rule 44 (Tensor and Updates should have compatible dtypes)
+{tensor: tensor, updates: tensor} |= (dtype_(tensor) = 0 ∧ dtype_(updates) = 0) ∨ (dtype_(tensor) ≠ 0 ∧ dtype_(updates) ≠ 0)
+>>
+Rule 49 (If tensor is of type T, updates must be of type T)
+{tensor: tensor, updates: tensor} |= if dtype_(tensor) ≠ 0 then dtype_(tensor) = dtype_(updates) else dtype_(tensor) = dtype_(updates)
+>>
+Rule 50 (If indices is of type int32, tensor and updates must have compatible types for int32 index)
+{tensor: tensor, updates: tensor, indices:tensor} |= if dtype_(indices) = 3 then (dtype_(tensor) = 1 ∨ dtype_(tensor) = 2 ∨ dtype_(tensor) = 3) ∧ (dtype_(updates) = 1 ∨ dtype_(updates) = 2 ∨ dtype_(updates) = 3)
+>>
+Rule 53 (If bad_indices_policy is specified as ERROR, indices last dim <= tensor ndim.)
+{tensor: tensor, indices: tensor} |= if shape(indices, ndim(indices)-1) > ndim(tensor) then false
+>>
+Rule 56 (Ensure that the 'updates' tensor has the expected shape prefix, matching 'indices' except for the last dimension.)
+{tensor : tensor, indices : tensor, updates : tensor} |= if ndim(tensor) < 1 ∨ ndim(indices) < 1 then false else ∀i ∈ [0, ndim(indices) - 1] : shape(indices, i) = shape(updates, i)
+>>
+Rule 59 (Tensor and Updates should have same dtype)
+{tensor: tensor, updates: tensor} |= dtype_(tensor) = dtype_(updates)
+>>
+Rule 61 (Ensure that the 'updates' tensor has the expected shape prefix, matching 'indices' except for the last dimension. Check ndim > 0)
+{tensor : tensor, indices : tensor, updates : tensor} |= if ndim(tensor) < 1 ∨ ndim(indices) < 1 ∨ ndim(updates) < 1 then false else ∀i ∈ [0, ndim(indices) - 1] : shape(indices, i) = shape(updates, i)
+>>
+Rule 62 (Indices must be int32 or int64 and of valid rank. No bools)
+{indices : tensor} |= (dtype_(indices) = 3 ∨ dtype_(indices) = 4) ∧ dtype_(indices) ≠ 0 ∧ ndim(indices) ≥ 1
+>>
+Rule 63 (If bad_indices_policy is specified as ERROR, indices' last dimension must not exceed tensor rank.)
+{tensor: tensor, indices: tensor} |= shape(indices, ndim(indices)-1) ≤ ndim(tensor)
+>>
+Rule 64 (Tensor and Updates should have same dtype. And Tensor must not be a string)
+{tensor: tensor, updates: tensor} |= dtype_(tensor) = dtype_(updates) ∧ dtype_(tensor) ≠ 11
+>>
+Rule 67 (Indices must be int32 or int64 and of valid rank, no bools.)
+{indices : tensor} |= (dtype_(indices) = 3 ∨ dtype_(indices) = 4) ∧ dtype_(indices) ≠ 0
+>>
+Rule 71 (Updates must have compatible shape given tensor and indices)
+{tensor : tensor, indices : tensor, updates : tensor} |= if ndim(tensor) < 1 ∨ ndim(indices) < 1 ∨ ndim(updates) < 1 then false else (∀i ∈ [0, ndim(indices) - 1 - 1] : shape(indices, i) = shape(updates, i)) ∧ (shape(indices, ndim(indices)-1) <= ndim(tensor))
+>>
+Rule 75 (indices must have at least rank 1)
+{indices: tensor} |= ndim(indices) >= 1
+>>
+Rule 76 (Updates and indices shapes should be well-formed and tensor and indices must have rank at least 1)
+{tensor : tensor, indices : tensor, updates : tensor} |= (ndim(tensor) > 0) ∧ (ndim(indices) > 0) ∧ (ndim(updates) > 0) ∧ (∀i ∈ [0, ndim(indices) - 1 - 1] : shape(indices, i) = shape(updates, i))
+>>
+Rule 77 (Indices must be int32 or int64)
+{indices : tensor} |= (dtype_(indices) = 3 ∨ dtype_(indices) = 4)
+>>
+Rule 88 (Check that the shape of updates is correctly constructed with respect to indices and the base tensor, handles scalar updates )
+{tensor : tensor, indices : tensor, updates : tensor} |= if ndim(indices) < 1 then false else if ndim(updates) = 0 then true else (∀i ∈ [0, ndim(indices) - 1 - 1] : shape(indices, i) = shape(updates, i)) ∧ (shape(indices, ndim(indices)-1) <= ndim(tensor))
+>>
+Rule 89 (Ensure the last dimension of indices is not bool)
+{indices : tensor} |= dtype_(indices) ≠ 0
+>>
+Rule 92 (Updates and indices shapes should be well-formed, tensor and indices need to have dimension, and handle scalar updates correctly)
+{tensor : tensor, indices : tensor, updates : tensor} |= (ndim(tensor) > 0) ∧ (ndim(indices) > 0) ∧ (ndim(updates) >= 0) ∧ if ndim(updates) = 0 then true else (∀i ∈ [0, if ndim(indices) > 1 then ndim(indices) - 1 - 1 else 0] : shape(indices, i) = shape(updates, i))
+>>
+Rule 96 (If indices has bool dtype, raise error, otherwise Indices must be int32 or int64)
+{indices : tensor} |= if dtype_(indices) = 0 then false else (dtype_(indices) = 3 ∨ dtype_(indices) = 4)
+>>
+Rule 97 (Check that updates is well formed given indices and source, and also ensure ranks are fine)
+{tensor : tensor, indices : tensor, updates : tensor} |= (ndim(tensor) > 0) ∧ (ndim(indices) > 0) ∧ (ndim(updates) >= 0) ∧ (∀i ∈ [0, if ndim(indices) > 1 then ndim(indices) - 1 - 1 else 0] : shape(indices, i) = shape(updates, i)) ∧ (shape(indices, ndim(indices)-1) <= ndim(tensor))
+>>
+Rule 101 (Ensure Indices must be int32 or int64 and Updates shape is compatible and indices is valid for the tensor)
+{tensor : tensor, indices : tensor, updates : tensor} |= (dtype_(indices) = 3 ∨ dtype_(indices) = 4) ∧ (ndim(tensor) > 0) ∧ (ndim(indices) > 0) ∧ (ndim(updates) >= 0) ∧ if ndim(updates) = 0 then true else (∀i ∈ [0, if ndim(indices) > 1 then ndim(indices) - 1 - 1 else 0] : shape(indices, i) = shape(updates, i)) ∧ (shape(indices, ndim(indices)-1) <= ndim(tensor))
+>>
+Rule 104 (Check Indices Properties: dtype, rank >= 1, also handles the shape of the update)
+{tensor : tensor, indices : tensor, updates : tensor} |= (dtype_(indices) = 3 ∨ dtype_(indices) = 4) ∧ (ndim(indices) > 0) ∧ if ndim(tensor) < 1 ∨ ndim(indices) < 1 ∨ ndim(updates) < 0 then false else if ndim(updates) = 0 then true else (∀i ∈ [0, if ndim(indices) > 1 then ndim(indices) - 1 - 1 else 0] : shape(indices, i) = shape(updates, i)) ∧ (shape(indices, ndim(indices)-1) ≤ ndim(tensor))

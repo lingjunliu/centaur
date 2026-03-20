@@ -1,0 +1,66 @@
+>>
+Rule 1 (Indices must have at least two axes)
+{indices : tensor} |= ndim(indices) ≥ 2
+>>
+Rule 2 (Index depth should be less than or equal to the rank of tensor)
+{tensor : tensor, indices : tensor} |= shape(indices, ndim(indices)-1) ≤ ndim(tensor)
+>>
+Rule 3 (Updates shape should match batch_shape + inner_shape)
+{tensor : tensor, indices : tensor, updates : tensor} |= if ndim(indices) ≥ 2 then (∀i ∈ [0, ndim(indices) - 2] : shape(indices, i) = shape(updates, i)) ∧ (if shape(indices, ndim(indices)-1) < ndim(tensor) then (∀i ∈ [shape(indices, ndim(indices)-1), ndim(tensor)-1] : shape(tensor, i) = shape(updates, ndim(indices)-1 + (i - shape(indices, ndim(indices)-1)))) else ndim(updates) = ndim(indices) -1 )
+>>
+Rule 4 (The number of updates must match the number of indices when index_depth equals tensor rank.)
+{tensor : tensor, indices : tensor, updates : tensor} |= if shape(indices, ndim(indices) - 1) = ndim(tensor) then shape(indices, ndim(indices) - 2) = shape(updates, 0)
+>>
+Rule 5 (Indices must be integer type)
+{indices : tensor} |= dtype_(indices) = 2 ∨ dtype_(indices) = 3 ∨ dtype_(indices) = 4 ∨ dtype_(indices) = 6 ∨ dtype_(indices) = 16 ∨ dtype_(indices) = 17
+>>
+Rule 6 (Tensor and Updates must have the same dtype)
+{tensor : tensor, updates : tensor} |= dtype_(tensor) = dtype_(updates)
+>>
+Rule 7 (indices tensor cannot have a zero dimension)
+{indices : tensor} |= ∀i ∈ [0, ndim(indices) - 1] : shape(indices, i) > 0
+>>
+Rule 8 (tensor cannot have a zero dimension)
+{tensor : tensor} |= ∀i ∈ [0, ndim(tensor) - 1] : shape(tensor, i) > 0
+>>
+Rule 9 (updates tensor cannot have a zero dimension)
+{updates : tensor} |= ∀i ∈ [0, ndim(updates) - 1] : shape(updates, i) > 0
+>>
+Rule 10 (Indices dtype should be in allowed list)
+{indices : tensor} |= dtype_(indices) = 2 ∨ dtype_(indices) = 3 ∨ dtype_(indices) = 4 ∨ dtype_(indices) = 16
+>>
+Rule 11 (If the tensor is empty, the updates and indices cannot specify values)
+{tensor : tensor} |= if ndim(tensor) = 0 then false
+>>
+Rule 14 (Indices dtype should be in allowed list based on tensor dtype)
+{tensor : tensor, indices : tensor} |= if dtype_(tensor) = 0 then (dtype_(indices) = 3 ∨ dtype_(indices) = 4)
+>>
+Rule 20 (indices tensor should have at least one element when tensor is not empty)
+{tensor : tensor, indices: tensor} |= if ndim(tensor) > 0 then ∃i ∈ [0, ndim(indices) - 1] : shape(indices, i) > 0
+>>
+Rule 29 (indices and updates tensors should be of compatible types depending on the hardware)
+{tensor: tensor, indices: tensor, updates: tensor} |= (dtype_(tensor) = 0 ∧ (dtype_(indices) = 3 ∨ dtype_(indices) = 4) ∧ dtype_(updates) = 0) ∨ (dtype_(tensor) ≠ 0)
+>>
+Rule 30 (For boolean tensors, indices must be int32 or int64, and updates should be boolean)
+{tensor : tensor, indices : tensor, updates : tensor} |= if dtype_(tensor) = 0 then (dtype_(indices) = 3 ∨ dtype_(indices) = 4) ∧ dtype_(updates) = 0
+>>
+Rule 31 (If tensor and indices have data specified and indices is int16, then device not found)
+{tensor : tensor, indices : tensor} |= if ndim(tensor) > 0 ∧ ndim(indices) > 0 then dtype_(indices) ≠ 2
+>>
+Rule 33 (If tensor is of type bool, indices must be of a supported integer type)
+{tensor : tensor, indices : tensor} |= if dtype_(tensor) = 0 then (dtype_(indices) = 3 ∨ dtype_(indices) = 4 ∨ dtype_(indices) = 16)
+>>
+Rule 34 (If the tensor is boolean, updates should also be boolean)
+{tensor : tensor, updates : tensor} |= if dtype_(tensor) = 0 then dtype_(updates) = 0
+>>
+Rule 35 (If Tindices is int16, then T must be in allowed list on XLA_GPU_JIT and XLA_CPU_JIT devices)
+{tensor : tensor, indices : tensor} |= if dtype_(indices) = 2 then (dtype_(tensor) = 6 ∨ dtype_(tensor) = 7 ∨ dtype_(tensor) = 3 ∨ dtype_(tensor) = 5 ∨ dtype_(tensor) = 2 ∨ dtype_(tensor) = 1 ∨ dtype_(tensor) = 0 ∨ dtype_(tensor) = 16 ∨ dtype_(tensor) = 17)
+>>
+Rule 37 (If indices is int16 and tensor is boolean, updates must be boolean as well)
+{tensor : tensor, indices : tensor, updates : tensor} |= if dtype_(indices) = 2 ∧ dtype_(tensor) = 0 then dtype_(updates) = 0
+>>
+Rule 39 (Valid Tindices depends on T)
+{tensor : tensor, indices: tensor} |= if dtype_(tensor) = 11 then (dtype_(indices) = 3 ∨ dtype_(indices) = 4) else if dtype_(tensor) = 0 then (dtype_(indices) = 3 ∨ dtype_(indices) = 4)
+>>
+Rule 40 (If Tindices is int16 then T must be in allowed list)
+{tensor : tensor, indices: tensor} |= if dtype_(indices) = 2 then (dtype_(tensor) = 7 ∨ dtype_(tensor) = 8 ∨ dtype_(tensor) = 3 ∨ dtype_(tensor) = 5 ∨ dtype_(tensor) = 2 ∨ dtype_(tensor) = 1 ∨ dtype_(tensor) = 0 ∨ dtype_(tensor) = 6 ∨ dtype_(tensor) = 16)

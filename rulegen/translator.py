@@ -130,7 +130,7 @@ def main():
     llm = sys.argv[2] if len(sys.argv) > 2 else "gemini"
 
     if llm == "gemini":
-        base_dir = os.path.abspath(f"../rules-{lib}")
+        base_dir = os.path.abspath(f"gemini/rules-{lib}")
     elif llm == "openai":
         base_dir = os.path.abspath(f"{llm}/rules-{lib}")
     else:

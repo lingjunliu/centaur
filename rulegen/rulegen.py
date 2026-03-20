@@ -14,6 +14,10 @@ with open("grammar.lark", "r", encoding="utf-8") as f:
     grammar = f.read()
 parser = Lark(grammar)
 
+def load_apis_from_file(path):
+    with open(path, "r") as f:
+        return [line.strip() for line in f if line.strip()]
+
 def list_all_apis(signature_path="../signatures.json"):
     def strip_suffix(api_name):
         parts = api_name.split(".")
@@ -122,7 +126,7 @@ def generate_rules(api, lib, max_failures=100, timeout=60, llm="gemini"):
 
     if llm == "gemini":
         genai.configure(api_key=os.getenv("gemini_key"))
-        model = genai.GenerativeModel(model_name="gemini-3.0-flash-preview")
+        model = genai.GenerativeModel(model_name="gemini-2.0-flash")
         chat = model.start_chat(history=[])
     elif llm == "openai":
         chat = OAChatWrapper()
@@ -347,7 +351,7 @@ def main():
     if lib == "torch":
         lib_apis = [api for api in api_list if api.startswith("torch.")]
     else:
-        lib_apis = [api for api in api_list if api.startswith("tf.")]
+        lib_apis = load_apis_from_file("no_rule_api_tf.txt")
     
     for api in lib_apis:
         generate_rules(api, lib, llm=llm)
