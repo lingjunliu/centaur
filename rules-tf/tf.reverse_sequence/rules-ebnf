@@ -1,132 +1,60 @@
 >>
-Rule 1 (seq_lengths must be 1-D tensor)
+Rule 1 (seq_lengths must be a 1-D tensor)
 {v_2 : tensor} |= ndim(v_2) = 1
 >>
-Rule 2 (seq_lengths must be int32 or int64)
-{v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
->>
-Rule 3 (seq_lengths length must match input's batch_axis dimension)
+Rule 3 (seq_lengths length must equal input's batch_axis dimension)
 {v_1 : tensor, v_2 : tensor, v_4 : int} |= shape(v_2, 0) = shape(v_1, v_4)
 >>
-Rule 4 (seq_lengths elements must be less than or equal to input's seq_axis dimension)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≤ shape(v_1, v_3)
+Rule 4 (seq_axis and batch_axis should be non-negative)
+{v_3 : int, v_4 : int} |= v_3 ≥ 0 ∧ v_4 ≥ 0
 >>
-Rule 5 (seq_axis must be a non-negative integer)
-{v_3 : int} |= v_3 ≥ 0
+Rule 5 (seq_axis and batch_axis should be less than input ndim)
+{v_1 : tensor, v_3 : int, v_4 : int} |= v_3 < ndim(v_1) ∧ v_4 < ndim(v_1)
 >>
-Rule 6 (batch_axis must be a non-negative integer)
-{v_4 : int} |= v_4 ≥ 0
+Rule 6 (max of seq_lengths should be less than or equal to input's seq_axis dimension)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= max(v_2) ≤ shape(v_1, v_3)
 >>
-Rule 7 (seq_axis must be less than the number of dimensions of input)
-{v_1 : tensor, v_3 : int} |= v_3 < ndim(v_1)
+Rule 10 (seq_lengths values must be non-negative)
+{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ 0
 >>
-Rule 8 (batch_axis must be less than the number of dimensions of input)
-{v_1 : tensor, v_4 : int} |= v_4 < ndim(v_1)
->>
-Rule 9 (seq_axis cannot equal batch_axis)
+Rule 15 (seq_axis should not be equal to batch_axis)
 {v_3 : int, v_4 : int} |= v_3 ≠ v_4
 >>
-Rule 10 (seq_axis must be a valid dimension index for the input tensor)
+Rule 20 (seq_axis should be less than or equal to the rank of the input tensor minus 1)
+{v_1 : tensor, v_3 : int} |= v_3 ≤ ndim(v_1) - 1
+>>
+Rule 21 (batch_axis should be less than or equal to the rank of the input tensor minus 1)
+{v_1 : tensor, v_4 : int} |= v_4 ≤ ndim(v_1) - 1
+>>
+Rule 22 (seq_lengths must be a tensor of int32 or int64)
+{v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+>>
+Rule 23 (seq_axis must be within the valid range)
 {v_1 : tensor, v_3 : int} |= v_3 ≥ 0 ∧ v_3 < ndim(v_1)
 >>
-Rule 11 (batch_axis must be a valid dimension index for the input tensor)
+Rule 24 (batch_axis must be within the valid range)
 {v_1 : tensor, v_4 : int} |= v_4 ≥ 0 ∧ v_4 < ndim(v_1)
 >>
-Rule 12 (batch_axis should not be greater than or equal to zero when seq_lengths is given)
-{v_2 : tensor, v_4 : int} |= if ndim(v_2) > 0 then v_4 ≥ 0
+Rule 25 (seq_lengths should have a valid shape[0])
+{v_2 : tensor} |= shape(v_2, 0) > 0
 >>
-Rule 13 (seq_axis should not be greater than or equal to zero when seq_lengths is given)
-{v_2 : tensor, v_3 : int} |= if ndim(v_2) > 0 then v_3 ≥ 0
+Rule 31 (seq_lengths values must be less than or equal to the seq_axis dimension of input)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≤ shape(v_1, v_3)
 >>
-Rule 14 (batch_axis must be a valid dimension index if specified)
-{v_1 : tensor, v_4 : int} |= if v_4 ≥ 0 then v_4 < ndim(v_1)
+Rule 41 (input tensor should have rank >= 1)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 15 (seq_axis must be a valid dimension index if specified)
-{v_1 : tensor, v_3 : int} |= if v_3 ≥ 0 then v_3 < ndim(v_1)
+Rule 55 (the length of seq_lengths must match the batch dimension of input)
+{v_1 : tensor, v_2 : tensor, v_4 : int} |= if ndim(v_1) > v_4 then shape(v_2, 0) = shape(v_1, v_4) else false
 >>
-Rule 16 (seq_axis should be within the valid range for int32)
-{v_3 : int} |= v_3 > -2147483648 ∧ v_3 < 2147483647
+Rule 60 (the length of seq_lengths must match the batch dimension of input)
+{v_1 : tensor, v_2 : tensor, v_4 : int} |= if ndim(v_1) > v_4 then shape(v_2, 0) = shape(v_1, v_4) else shape(v_2,0) = 0
 >>
-Rule 17 (batch_axis should be within the valid range for int32)
-{v_4 : int} |= v_4 > -2147483648 ∧ v_4 < 2147483647
+Rule 65 (if input tensor has dimension along batch_axis, length of seq_lengths must match shape of input tensor along that dimension)
+{v_1 : tensor, v_2 : tensor, v_4 : int} |= if ndim(v_1) > v_4 then shape(v_2, 0) = shape(v_1, v_4)
 >>
-Rule 18 (if batch_axis is specified, seq_lengths must have a first dimension equal to input's batch_axis shape)
-{v_1 : tensor, v_2 : tensor, v_4 : int} |= if v_4 ≥ 0 then shape(v_2, 0) = shape(v_1, v_4)
+Rule 66 (each value in seq_lengths must be <= shape[seq_axis] of input)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) > v_3 then ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≤ shape(v_1, v_3)
 >>
-Rule 19 (if seq_axis is specified, seq_lengths elements must be less than or equal to input's seq_axis shape)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 ≥ 0 then ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≤ shape(v_1, v_3)
->>
-Rule 20 (If seq_lengths is provided, it's maximum value must be less or equal to input's seq_axis dimension)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_2) > 0 then max(v_2) ≤ shape(v_1, v_3)
->>
-Rule 21 (seq_axis must be within allowed range for int32)
-{v_3 : int} |= v_3 ≥ -2147483648 ∧ v_3 ≤ 2147483647
->>
-Rule 22 (batch_axis must be within allowed range for int32)
-{v_4 : int} |= v_4 ≥ -2147483648 ∧ v_4 ≤ 2147483647
->>
-Rule 23 (If input is a scalar, seq_lengths should be empty)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = -1
->>
-Rule 25 (If input is a scalar, no other validation is required)
-{v_1 : tensor} |= if ndim(v_1) = 0 then true else ndim(v_1) ≥ 0
->>
-Rule 26 (If input is not a scalar, it must have a valid seq_axis and batch_axis)
-{v_1 : tensor, v_3 : int, v_4 : int} |= if ndim(v_1) ≠ 0 then v_3 ≥ -2147483648 ∧ v_3 ≤ 2147483647 ∧ v_4 ≥ -2147483648 ∧ v_4 ≤ 2147483647
->>
-Rule 27 (Either seq_axis and batch_axis are valid, or input is scalar.)
-{v_1 : tensor, v_3 : int, v_4 : int} |= (ndim(v_1) = 0) ∨ (v_3 ≥ 0 ∧ v_3 < ndim(v_1) ∧ v_4 ≥ 0 ∧ v_4 < ndim(v_1))
->>
-Rule 28 (If seq_lengths is specified, it's maximum value must be less or equal to input's seq_axis dimension and it is a valid int32/int64 tensor)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_2) > 0 then max(v_2) ≤ shape(v_1, v_3) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4)
->>
-Rule 29 (If seq_lengths is specified, it must be a 1D tensor and input must have seq_axis and batch_axis within range)
-{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= if ndim(v_2) > 0 then ndim(v_2) = 1 ∧ v_3 ≥ 0 ∧ v_3 < ndim(v_1) ∧ v_4 ≥ 0 ∧ v_4 < ndim(v_1)
->>
-Rule 30 (If seq_lengths is present, its length must match the batch_axis dimension of input)
-{v_1 : tensor, v_2 : tensor, v_4 : int} |= if ndim(v_2) > 0 then shape(v_2, 0) = shape(v_1, v_4)
->>
-Rule 32 (Either seq_axis and batch_axis are valid dimensions and distinct, or input is scalar.)
-{v_1 : tensor, v_3 : int, v_4 : int} |= (ndim(v_1) = 0) ∨ (v_3 ≥ 0 ∧ v_3 < ndim(v_1) ∧ v_4 ≥ 0 ∧ v_4 < ndim(v_1) ∧ v_3 ≠ v_4)
->>
-Rule 33 (If seq_lengths are given, they must be int32 or int64 tensors)
-{v_2 : tensor} |= if ndim(v_2) > 0 then (dtype_(v_2) = 3) ∨ (dtype_(v_2) = 4)
->>
-Rule 34 (if seq_lengths is defined, each seq_lengths[i] must be less or equal to shape(input, seq_axis))
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_2) > 0 then ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≤ shape(v_1, v_3)
->>
-Rule 37 (seq_axis must be within the valid range, considering potential negative indexing)
-{v_1 : tensor, v_3 : int} |= v_3 ≥ (-1 * ndim(v_1)) ∧ v_3 < ndim(v_1)
->>
-Rule 38 (batch_axis must be within the valid range, considering potential negative indexing)
-{v_1 : tensor, v_4 : int} |= v_4 ≥ (-1 * ndim(v_1)) ∧ v_4 < ndim(v_1)
->>
-Rule 41 (combining seq/batch axis into one rule)
-{v_1 : tensor, v_3 : int, v_4 : int} |= (v_3 ≥ (-1 * ndim(v_1)) ∧ v_3 < ndim(v_1)) ∧ (v_4 ≥ (-1 * ndim(v_1)) ∧ v_4 < ndim(v_1))
->>
-Rule 42 (seq_axis and batch_axis must be integers and within the valid range, and must be distinct)
-{v_1 : tensor, v_3 : int, v_4 : int} |= (v_3 ≥ (-1 * ndim(v_1)) ∧ v_3 < ndim(v_1)) ∧ (v_4 ≥ (-1 * ndim(v_1)) ∧ v_4 < ndim(v_1)) ∧ (v_3 ≠ v_4)
->>
-Rule 43 (Enforce int32 range and dimension validity)
-{v_1 : tensor, v_3 : int, v_4 : int} |= (v_3 >= -2147483648) ∧ (v_3 <= 2147483647) ∧ (v_4 >= -2147483648) ∧ (v_4 <= 2147483647) ∧ (v_3 >= (-1 * ndim(v_1)) ∧ v_3 < ndim(v_1)) ∧ (v_4 >= (-1 * ndim(v_1)) ∧ v_4 < ndim(v_1)) ∧ (v_3 ≠ v_4)
->>
-Rule 44 (Complete rule for seq_axis and batch_axis range and int validity, considering the tensor's rank)
-{v_1 : tensor, v_3 : int, v_4 : int} |= if ndim(v_1) > 0 then (v_3 >= -2147483648) ∧ (v_3 <= 2147483647) ∧ (v_4 >= -2147483648) ∧ (v_4 <= 2147483647) ∧ (v_3 >= (-1 * ndim(v_1)) ∧ v_3 < ndim(v_1)) ∧ (v_4 >= (-1 * ndim(v_1)) ∧ v_4 < ndim(v_1)) ∧ (v_3 ≠ v_4)
->>
-Rule 45 (seq_axis and batch_axis: integer, int32 range, dimension validity, and distinctness)
-{v_1 : tensor, v_3 : int, v_4 : int} |= if ndim(v_1) > 0 then (v_3 ≥ -2147483648) ∧ (v_3 ≤ 2147483647) ∧ (v_4 ≥ -2147483648) ∧ (v_4 ≤ 2147483647) ∧ (v_3 ≥ (-1 * ndim(v_1)) ∧ v_3 < ndim(v_1)) ∧ (v_4 ≥ (-1 * ndim(v_1)) ∧ v_4 < ndim(v_1)) ∧ (v_3 ≠ v_4)
->>
-Rule 46 (If seq_lengths are given, its length must match the batch_axis dimension of input and they must be int32 or int64 tensors and seq, batch axis are valid and distinct and input must have rank > 0 )
-{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |=  if ndim(v_2) > 0 then ndim(v_1) > 0 ∧ shape(v_2, 0) = shape(v_1, v_4) ∧ ((dtype_(v_2) = 3) ∨ (dtype_(v_2) = 4)) ∧ (v_3 ≥ -2147483648) ∧ (v_3 ≤ 2147483647) ∧ (v_4 ≥ -2147483648) ∧ (v_4 ≤ 2147483647) ∧ (v_3 ≥ (-1 * ndim(v_1)) ∧ v_3 < ndim(v_1)) ∧ (v_4 ≥ (-1 * ndim(v_1)) ∧ v_4 < ndim(v_1)) ∧ (v_3 ≠ v_4)
->>
-Rule 47 (Comprehensive rule covering seq_lengths, axis validity, and integer constraints)
-{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= (ndim(v_1) = 0) ∨ (ndim(v_1) > 0 ∧ (v_3 >= -2147483648) ∧ (v_3 <= 2147483647) ∧ (v_4 >= -2147483648) ∧ (v_4 <= 2147483647) ∧ (v_3 >= (-1 * ndim(v_1)) ∧ v_3 < ndim(v_1)) ∧ (v_4 >= (-1 * ndim(v_1)) ∧ v_4 < ndim(v_1)) ∧ (v_3 ≠ v_4) ∧ (if ndim(v_2) > 0 then ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_1, v_4) ∧ ((dtype_(v_2) = 3) ∨ (dtype_(v_2) = 4)) ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≤ shape(v_1, v_3)))
->>
-Rule 48 (Even more comprehensive: all constraints, including the scalar input case)
-{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= (ndim(v_1) = 0 ∧ ndim(v_2) < 0) ∨ (ndim(v_1) > 0 ∧ (v_3 >= -2147483648) ∧ (v_3 <= 2147483647) ∧ (v_4 >= -2147483648) ∧ (v_4 <= 2147483647) ∧ (v_3 >= (-1 * ndim(v_1)) ∧ v_3 < ndim(v_1)) ∧ (v_4 >= (-1 * ndim(v_1)) ∧ v_4 < ndim(v_1)) ∧ (v_3 ≠ v_4) ∧ (if ndim(v_2) > 0 then ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_1, v_4) ∧ ((dtype_(v_2) = 3) ∨ (dtype_(v_2) = 4)) ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≤ shape(v_1, v_3)))
->>
-Rule 49 (Ultimate comprehensive rule)
-{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= (ndim(v_1) = 0 ∧ ndim(v_2) < 0) ∨ (ndim(v_1) > 0 ∧ (v_3 >= -2147483648) ∧ (v_3 <= 2147483647) ∧ (v_4 >= -2147483648) ∧ (v_4 <= 2147483647) ∧ (v_3 >= (-1 * ndim(v_1)) ∧ v_3 < ndim(v_1)) ∧ (v_4 >= (-1 * ndim(v_1)) ∧ v_4 < ndim(v_1)) ∧ (v_3 ≠ v_4) ∧ (if ndim(v_2) > 0 then ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_1, v_4) ∧ ((dtype_(v_2) = 3) ∨ (dtype_(v_2) = 4)) ∧ ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≤ shape(v_1, if v_3 < 0 then v_3 + ndim(v_1) else v_3)))
->>
-Rule 52 (Focus on element-wise validity of seq_lengths, assumes basic type and range validity of axes are covered elsewhere)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_2) > 0 then ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≤ shape(v_1, if v_3 < 0 then v_3 + ndim(v_1) else v_3)
+Rule 100 (each value in seq_lengths must be <= shape[seq_axis] of input, only if seq_axis and batch axis are different)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= if v_3 ≠ v_4 ∧ ndim(v_1) > v_3 then ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≤ shape(v_1, v_3)

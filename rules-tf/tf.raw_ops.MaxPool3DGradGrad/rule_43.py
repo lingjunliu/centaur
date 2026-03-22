@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If strides is specified, then it must be greater or equal to 1 for at least one dimension (excluding batch and channel dimensions (Rule 43)
+# Channel of output tensor should be positive (Rule 43)
 
 rule_43 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Select(v["arg1_values"], 1) >= 1, Select(v["arg1_values"], 2) >= 1), Select(v["arg1_values"], 3) >= 1)) if n else
-          Or(Or(Select(v["arg1_values"], 1) >= 1, Select(v["arg1_values"], 2) >= 1), Select(v["arg1_values"], 3) >= 1))
+    s.add(Not(Select(v["arg1_shape"], 4) > 0) if n else
+          Select(v["arg1_shape"], 4) > 0)
 )
 
 def rule_43_func(arg1, solver=None, neg=False):
@@ -17,21 +17,21 @@ def rule_43_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_values = Array('arg1_values', IntSort(), IntSort())
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 43
-        rule_43(solver, {'arg1_values': arg1_values})
+        rule_43(solver, {'arg1_shape': arg1_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_43(solver, {'arg1_values': arg1['values']}, neg)
+        rule_43(solver, {'arg1_shape': arg1['shape']}, neg)

@@ -1,105 +1,162 @@
 >>
-Rule 1 (data tensor must be of allowed type)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 15 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 17 ∨ dtype_(v_1) = 18
+Rule 1 (data type of data tensor must be allowed)
+{data : tensor} |= dtype_(data) = 7 ∨ dtype_(data) = 9 ∨ dtype_(data) = 4 ∨ dtype_(data) = 6 ∨ dtype_(data) = 3 ∨ dtype_(data) = 2 ∨ dtype_(data) = 10 ∨ dtype_(data) = 5 ∨ dtype_(data) = 1 ∨ dtype_(data) = 17 ∨ dtype_(data) = 16 ∨ dtype_(data) = 18 ∨ dtype_(data) = 20 ∨ dtype_(data) = 8 ∨ dtype_(data) = 15 ∨ dtype_(data) = 19
 >>
-Rule 2 (segment_ids tensor must be of allowed type)
-{v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+Rule 2 (data type of segment_ids tensor must be int32 or int64)
+{segment_ids : tensor} |= dtype_(segment_ids) = 4 ∨ dtype_(segment_ids) = 5
 >>
-Rule 3 (num_segments must be a scalar)
-{v_3 : tensor} |= ndim(v_3) = 0
+Rule 3 (data type of num_segments tensor must be int32 or int64)
+{num_segments : tensor} |= dtype_(num_segments) = 4 ∨ dtype_(num_segments) = 5
 >>
-Rule 4 (segment_ids must be a prefix of data's shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≤ ndim(v_1)
+Rule 4 (num_segments should be a scalar)
+{num_segments : tensor} |= ndim(num_segments) = 0
 >>
-Rule 5 (num_segments must be of allowed type)
-{v_3 : tensor} |= dtype_(v_3) = 3 ∨ dtype_(v_3) = 4
+Rule 5 (segment_ids's shape must be a prefix of data's shape)
+{data : tensor, segment_ids : tensor} |= ndim(segment_ids) ≤ ndim(data)
 >>
 Rule 6 (num_segments must be non-negative)
-{v_3 : tensor} |= min(v_3) ≥ 0
+{num_segments : tensor} |= min(num_segments) ≥ 0
 >>
-Rule 7 (data and segment_ids must have compatible shapes)
-{v_1 : tensor, v_2 : tensor} |= ∀ i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 7 (segment_ids are validated to be less than num_segments)
+{segment_ids : tensor, num_segments : tensor} |= max(segment_ids) < min(num_segments)
 >>
-Rule 8 (segment_ids must be less than num_segments)
-{v_2 : tensor, v_3 : tensor} |= max(v_2) < min(v_3)
+Rule 8 (data type of data tensor must be allowed - bool not allowed)
+{data : tensor} |= dtype_(data) ≠ 0
 >>
-Rule 9 (data tensor must not be of boolean type)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 9 (segment_ids values should be non-negative)
+{segment_ids : tensor} |= min(segment_ids) ≥ 0
 >>
-Rule 10 (segment_ids values must be non-negative)
-{v_2 : tensor} |= min(v_2) ≥ 0
+Rule 10 (segment_ids's shape should have the same dimensions as the first part of data shape)
+{data : tensor, segment_ids : tensor} |= ∀i ∈ [0, ndim(segment_ids) - 1]: shape(data, i) = shape(segment_ids, i)
 >>
-Rule 11 (segment_ids and num_segments should have int32 or int64 type)
-{v_2 : tensor, v_3 : tensor} |= (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4)
+Rule 14 (segment_ids max value must be less than num_segments)
+{segment_ids : tensor, num_segments : tensor} |= max(segment_ids) < shape(num_segments, 0) + 1
 >>
-Rule 12 (num_segments must be a positive scalar)
-{v_3 : tensor} |= ndim(v_3) = 0 ∧ min(v_3) > 0
+Rule 16 (num_segments must be a scalar)
+{v_1 : tensor} |= ndim(v_1) = 0
 >>
-Rule 13 (segment ids must be less than or equal to num_segments)
-{v_2 : tensor, v_3 : tensor} |= max(v_2) ≤ max(v_3)
+Rule 17 (segment_ids's shape must be a prefix of data's shape, or equal to data's shape when num_segments is a scalar)
+{data : tensor, segment_ids : tensor, num_segments : tensor} |= (ndim(segment_ids) ≤ ndim(data) ∧ ∀i ∈ [0, ndim(segment_ids) - 1]: shape(data, i) = shape(segment_ids, i)) ∨ (ndim(num_segments) = 0 ∧ ndim(segment_ids) = ndim(data) ∧  ∀i ∈ [0, ndim(data) - 1]: shape(data, i) = shape(segment_ids, i))
 >>
-Rule 14 (data tensor must be a valid type)
-{v_1 : tensor} |= dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 14 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 17 ∨ dtype_(v_1) = 11 ∨ dtype_(v_1) = 15
+Rule 18 (data type of the data tensor must be one of the allowed numerical types)
+{data : tensor} |= dtype_(data) = 8 ∨ dtype_(data) = 9 ∨ dtype_(data) = 3 ∨ dtype_(data) = 5 ∨ dtype_(data) = 2 ∨ dtype_(data) = 1 ∨ dtype_(data) = 10 ∨ dtype_(data) = 4 ∨ dtype_(data) = 17 ∨ dtype_(data) = 6 ∨ dtype_(data) = 16 ∨ dtype_(data) = 18 ∨ dtype_(data) = 20 ∨ dtype_(data) = 7 ∨ dtype_(data) = 15 ∨ dtype_(data) = 19
 >>
-Rule 15 (segment_ids must be of integer type and non-empty)
-{v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∧ ndim(v_2) ≥ 0
+Rule 19 (segment_ids must be a tensor of int32 or int64)
+{segment_ids : tensor} |= dtype_(segment_ids) = 3 ∨ dtype_(segment_ids) = 4
 >>
-Rule 16 (num_segments must have int32 or int64 type and be non-negative)
-{v_3 : tensor} |= (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4) ∧ min(v_3) ≥ 0
+Rule 20 (num_segments must be a tensor of int32 or int64)
+{num_segments : tensor} |= dtype_(num_segments) = 3 ∨ dtype_(num_segments) = 4
 >>
-Rule 17 (If num_segments is a tensor, its values must be less than or equal to a reasonable upper bound to prevent excessive memory allocation.)
-{v_3 : tensor} |= max(v_3) < 100000000
+Rule 29 (Data tensor's dtype is valid)
+{data : tensor} |= dtype_(data) = 8 ∨ dtype_(data) = 9 ∨ dtype_(data) = 3 ∨ dtype_(data) = 5 ∨ dtype_(data) = 2 ∨ dtype_(data) = 1 ∨ dtype_(data) = 6 ∨ dtype_(data) = 4 ∨ dtype_(data) = 16 ∨ dtype_(data) = 17 ∨ dtype_(data) = 18 ∨ dtype_(data) = 19 ∨ dtype_(data) = 20 ∨ dtype_(data) = 7 ∨ dtype_(data) = 15
 >>
-Rule 24 (Complete set of rules for valid data tensor dtype)
-{v_1: tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 15 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 17 ∨ dtype_(v_1) = 18
+Rule 33 (Data tensor must be a numerical type excluding boolean)
+{data : tensor} |=  dtype_(data) ≠ 0
 >>
-Rule 25 (Complete set of rules for valid segment_ids dtype)
-{v_2: tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+Rule 35 (Number of segments must be an integer and represented as scalar tensor)
+{num_segments : tensor} |= ndim(num_segments) = 0 ∧ (dtype_(num_segments) = 3 ∨ dtype_(num_segments) = 4)
 >>
-Rule 26 (Complete set of rules for valid num_segments dtype)
-{v_3: tensor} |= dtype_(v_3) = 3 ∨ dtype_(v_3) = 4
+Rule 37 (Segment_ids tensor cannot be float, complex or bool)
+{segment_ids : tensor} |= dtype_(segment_ids) ≠ 6 ∧ dtype_(segment_ids) ≠ 7 ∧ dtype_(segment_ids) ≠ 8 ∧ dtype_(segment_ids) ≠ 9 ∧ dtype_(segment_ids) ≠ 10 ∧ dtype_(segment_ids) ≠ 0
 >>
-Rule 27 (Avoid num_segments with large values causing memory issues)
-{v_3 : tensor} |= max(v_3) ≤ 2147483647
+Rule 38 (Num_segments tensor cannot be float, complex or bool and must be scalar)
+{num_segments : tensor} |= ndim(num_segments) = 0 ∧ (dtype_(num_segments) ≠ 6 ∧ dtype_(num_segments) ≠ 7 ∧ dtype_(num_segments) ≠ 8 ∧ dtype_(num_segments) ≠ 9 ∧ dtype_(num_segments) ≠ 10 ∧ dtype_(num_segments) ≠ 0)
 >>
-Rule 29 (All rules covered - data, segment_ids, num_segments, name)
-{v_1: tensor, v_2: tensor, v_3: tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 15 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 17 ∨ dtype_(v_1) = 18) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4) ∧ ndim(v_3) = 0
+Rule 42 (Combination of valid dtypes for data, segment_ids, and num_segments)
+{data : tensor, segment_ids : tensor, num_segments : tensor} |= (dtype_(data) = 8 ∨ dtype_(data) = 9 ∨ dtype_(data) = 3 ∨ dtype_(data) = 5 ∨ dtype_(data) = 2 ∨ dtype_(data) = 1 ∨ dtype_(data) = 6 ∨ dtype_(data) = 4 ∨ dtype_(data) = 16 ∨ dtype_(data) = 17 ∨ dtype_(data) = 18 ∨ dtype_(data) = 19 ∨ dtype_(data) = 20 ∨ dtype_(data) = 7 ∨ dtype_(data) = 15) ∧ (dtype_(segment_ids) = 3 ∨ dtype_(segment_ids) = 4) ∧ (dtype_(num_segments) = 3 ∨ dtype_(num_segments) = 4)
 >>
-Rule 30 (data tensor must be of allowed type)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 15 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 17 ∨ dtype_(v_1) = 18
+Rule 44 (If segment_ids is int32, num_segments must also be int32)
+{segment_ids : tensor, num_segments : tensor} |= if dtype_(segment_ids) = 3 then dtype_(num_segments) = 3
 >>
-Rule 33 (Complete set of rules covering all parameters)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 15 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 17 ∨ dtype_(v_1) = 18) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ ndim(v_3) = 0
+Rule 45 (If data is float32, segment_ids cannot be int64)
+{data : tensor, segment_ids : tensor} |= if dtype_(data) = 7 then dtype_(segment_ids) ≠ 4
 >>
-Rule 34 (Combined constraints for data, segment_ids, and num_segments)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 15 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 17 ∨ dtype_(v_1) = 18) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4) ∧ ndim(v_3) = 0 ∧ min(v_3) ≥ 0 ∧ max(v_2) ≤ max(v_3)
+Rule 46 (The product of the shapes of segment_ids must be less than or equal to the product of the shapes of data)
+{data : tensor, segment_ids : tensor} |= ∃i ∈ [0, 100] : (∀j ∈ [0, ndim(segment_ids)-1]: shape(segment_ids,j) * i =1) ≤ (∀k ∈ [0, ndim(data)-1]: shape(data,k) * i = 1)
 >>
-Rule 35 (Combined and Refined Constraints)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 15 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 17 ∨ dtype_(v_1) = 18) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4) ∧ ndim(v_3) = 0 ∧ min(v_3) ≥ 0 ∧ max(v_2) ≤ max(v_3) ∧ ndim(v_2) ≤ ndim(v_1) ∧ ∀ i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 47 (If the first element of shape of segment_ids is 1, num_segments must also be 1)
+{segment_ids : tensor, num_segments: tensor} |= if shape(segment_ids, 0) = 1 then min(num_segments) = 1
 >>
-Rule 36 (Final Combined and Refined Constraints)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 15 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 17 ∨ dtype_(v_1) = 18) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4) ∧ ndim(v_3) = 0 ∧ min(v_3) ≥ 0 ∧ ∀ i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i) ∧ max(v_2) < max(v_3)
+Rule 48 (If num_segments is int64, then data must be int64 or float64 or complex128)
+{data : tensor, num_segments : tensor} |= if dtype_(num_segments) = 4 then dtype_(data) = 5 ∨ dtype_(data) = 8 ∨ dtype_(data) = 10
 >>
-Rule 37 (Final and Corrected Combined Constraints)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 15 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 17 ∨ dtype_(v_1) = 18) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4) ∧ ndim(v_3) = 0 ∧ min(v_3) ≥ 0 ∧ ∀ i ∈ [0, if ndim(v_2) < 0 then 0 else ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i) ∧ max(v_2) < max(v_3)
+Rule 49 (If ndim(data) > 1, then num_segments can not have a value equal to zero)
+{data : tensor, num_segments : tensor} |= if ndim(data) > 1 then min(num_segments) > 0
 >>
-Rule 38 (Final and Improved Combined Constraints)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 15 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 17 ∨ dtype_(v_1) = 18) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4) ∧ ndim(v_3) = 0 ∧ min(v_3) ≥ 0 ∧ ndim(v_2) ≤ ndim(v_1) ∧ (∀ i ∈ [0, if ndim(v_2) -1 < 0 then 0 else ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i)) ∧ max(v_2) < max(v_3)
+Rule 50 (if segment_ids has a shape of [], then num_segments must be >=0)
+{segment_ids: tensor, num_segments: tensor} |= if ndim(segment_ids) = 0 then min(num_segments) >= 0
 >>
-Rule 41 (Comprehensive Rule for UnsortedSegmentProd - Attempt 2)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 15 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 17 ∨ dtype_(v_1) = 18) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4) ∧ ndim(v_3) = 0 ∧ ∃ primvar_min_v3 ∈ [0, 0] : v_3[0] ≥ 0 ∧ (∀ i ∈ [0, if ndim(v_2) - 1 < 0 then 0 else ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i)) ∧ ∃ primvar_max_v2 ∈ [0, 0] : ∃ primvar_max_v3 ∈ [0, 0] : v_2[0] < v_3[0]
+Rule 51 (If data is complex type, then segment_ids must be int64)
+{data : tensor, segment_ids : tensor} |= if dtype_(data) = 6 ∨ dtype_(data) = 10 then dtype_(segment_ids) = 4
 >>
-Rule 42 (Final and Corrected Combined Constraints - Attempt 3)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 15 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 17 ∨ dtype_(v_1) = 18) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4) ∧ ndim(v_3) = 0 ∧ ∃ primvar_min_v3 ∈ [0, 0] : v_3[0] ≥ 0 ∧ ndim(v_2) ≤ ndim(v_1) ∧ (∀ i ∈ [0, if ndim(v_2) - 1 < 0 then 0 else ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i)) ∧ ∃ primvar_some_v2 ∈ [0, if ndim(v_2) - 1 < 0 then 0 else ndim(v_2) - 1]: ∃ primvar_some_v3 ∈ [0, 0] : v_2[primvar_some_v2] < v_3[0]
+Rule 52 (The number of elements in segment_ids must be less than or equal to the number of elements in data)
+{data : tensor, segment_ids : tensor} |= ∀i ∈ [0, 100]: (∀j ∈ [0, ndim(segment_ids)-1]: shape(segment_ids,j) * i = 1) <=  (∀k ∈ [0, ndim(data)-1]: shape(data,k) * i = 1)
 >>
-Rule 43 (Final and Corrected Combined Constraints - Attempt 4 - Addressing the case where v_2 may have 0 dimensions)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 15 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 17 ∨ dtype_(v_1) = 18) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4) ∧ ndim(v_3) = 0 ∧ ∃ primvar_min_v3 ∈ [0, 0] : v_3[0] ≥ 0 ∧ ndim(v_2) ≤ ndim(v_1) ∧ (if ndim(v_2) > 0 then (∀ i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i))) ∧ ∃ primvar_some_v3 ∈ [0, 0] : if ndim(v_2) > 0 then (∃ primvar_some_v2 ∈ [0, ndim(v_2) - 1] : v_2[primvar_some_v2] < v_3[0])
+Rule 53 (if segment_ids is a scalar, the data should also be scalar)
+{data : tensor, segment_ids: tensor} |= if ndim(segment_ids) = 0 then ndim(data) = 0
 >>
-Rule 44 (Final and Absolutely Correct Combined Constraints - Attempt 5 - Addressing edge cases)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 15 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 17 ∨ dtype_(v_1) = 18) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4) ∧ ndim(v_3) = 0 ∧ ∃ primvar_min_v3 ∈ [0, if ndim(v_3) - 1 < 0 then 0 else ndim(v_3) - 1]: v_3[0] ≥ 0 ∧ ndim(v_2) ≤ ndim(v_1) ∧ (if ndim(v_2) > 0 then (∀ i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i))) ∧ (if ndim(v_2) > 0 then (∃ primvar_some_v2 ∈ [0, ndim(v_2) - 1] : ∃ primvar_some_v3 ∈ [0, if ndim(v_3) - 1 < 0 then 0 else ndim(v_3) - 1] : v_2[primvar_some_v2] < v_3[0]))
+Rule 54 (The size of segment_ids must be less than or equal to the size of data, given that data is not scalar)
+{data: tensor, segment_ids: tensor} |= if ndim(data) > 0 then (∀i ∈ [0, 100]: (∀j ∈ [0, ndim(segment_ids) -1]: shape(segment_ids, j) * i=1) <= (∀k ∈ [0, ndim(data)-1]: shape(data, k) * i=1))
 >>
-Rule 45 (Final and Absolutely Correct Combined Constraints - Attempt 6 - Addressing if conditions in Exists quantifiers for tensors with potentially 0 dimensions)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 15 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 17 ∨ dtype_(v_1) = 18) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4) ∧ ndim(v_3) = 0 ∧ ∃ primvar_min_v3 ∈ [0, if ndim(v_3) - 1 < 0 then 0 else ndim(v_3) - 1]: v_3[0] ≥ 0 ∧ ndim(v_2) ≤ ndim(v_1) ∧ (if ndim(v_2) > 0 then (∀ i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i))) ∧ (if ndim(v_2) > 0 then (∃ primvar_some_v2 ∈ [0, ndim(v_2) - 1] : ∃ primvar_some_v3 ∈ [0, if ndim(v_3) - 1 < 0 then 0 else ndim(v_3) - 1] : v_2[primvar_some_v2] < v_3[0]) else (∃ primvar_some_v3 ∈ [0, if ndim(v_3) - 1 < 0 then 0 else ndim(v_3) - 1]: v_3[0] > -1))
+Rule 55 (if shape of data is [x,y,z], then the product of shape of segment_ids must be no greater than x*y*z)
+{data: tensor, segment_ids: tensor} |= (shape(data,0) * shape(data,1) * shape(data,2)) >= (shape(segment_ids, 0) * shape(segment_ids, 1))
 >>
-Rule 46 (Final and Super Correct Combined Constraints - Attempt 7 - Simplifying to handle empty v_2 tensors better.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 13 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 15 ∨ dtype_(v_1) = 16 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 17 ∨ dtype_(v_1) = 18) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4) ∧ (dtype_(v_3) = 3 ∨ dtype_(v_3) = 4) ∧ ndim(v_3) = 0 ∧ ∃ primvar_min_v3 ∈ [0, if ndim(v_3) - 1 < 0 then 0 else ndim(v_3) - 1]: v_3[0] ≥ 0 ∧ ndim(v_2) ≤ ndim(v_1) ∧ (if ndim(v_2) > 0 then (∀ i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i))) ∧ (if ndim(v_2) > 0 then (∃ primvar_some_v2 ∈ [0, ndim(v_2) - 1] : v_2[primvar_some_v2] < v_3[0] ) else v_3[0] > -1)
+Rule 56 (If any dimension in segment_ids shape is zero, data should be zero too)
+{data: tensor, segment_ids: tensor} |= if (∃i ∈ [0, ndim(segment_ids)-1] : shape(segment_ids, i) = 0 ) then (∃j ∈ [0, ndim(data)-1] : shape(data, j) = 0)
+>>
+Rule 57 (If segment_ids has only one element and data has more than one dimension, then number of segments must be greater than 1)
+{data: tensor, segment_ids: tensor, num_segments:tensor} |= if (∀i ∈ [0, ndim(segment_ids) - 1]: shape(segment_ids,i) = 1) ∧ ndim(segment_ids) = 1 ∧ ndim(data) > 1 then min(num_segments) > 1
+>>
+Rule 58 (If data has a shape of (x,y) and segments ids has shape (x), then num_segments value should be less than or equal to y)
+{data: tensor, segment_ids: tensor, num_segments : tensor} |= if ndim(data) = 2 ∧ ndim(segment_ids) = 1 ∧ shape(data, 0) = shape(segment_ids, 0) then min(num_segments) <= shape(data,1)
+>>
+Rule 59 (if data's shape has a zero, then number of segments also should have 0)
+{data : tensor, num_segments : tensor} |= if (∃i ∈ [0, ndim(data)-1] : shape(data, i) = 0) then min(num_segments) = 0
+>>
+Rule 62 (if data is a vector and segment_ids is a matrix then num_segments must be 1)
+{data: tensor, segment_ids: tensor, num_segments: tensor} |= if ndim(data) = 1 ∧ ndim(segment_ids) = 2 then min(num_segments) = 1
+>>
+Rule 63 (If data is scalar then segment_ids must also be scalar)
+{data: tensor, segment_ids: tensor} |= if ndim(data) = 0 then ndim(segment_ids) = 0
+>>
+Rule 64 (If num_segments is 0, the shape of data and segment_ids should not be greater than 1)
+{data : tensor, segment_ids: tensor, num_segments: tensor} |= if min(num_segments) = 0 then ndim(data) ≤ 1 ∧ ndim(segment_ids) ≤ 1
+>>
+Rule 66 (If data and segment_ids are matrices, then num_segments must be greater than 0)
+{data: tensor, segment_ids: tensor, num_segments: tensor} |= if ndim(data) = 2 ∧ ndim(segment_ids) = 2 then min(num_segments) > 0
+>>
+Rule 67 (If the product of data shape is zero, then num_segments should not be greater than zero)
+{data: tensor, num_segments: tensor} |= if (∃i ∈ [0, ndim(data)-1] : shape(data, i) = 0) then min(num_segments) ≤ 0
+>>
+Rule 68 (If the max value of segment_ids is greater than 1, then num_segments cannot be scalar 0)
+{segment_ids: tensor, num_segments: tensor} |= if max(segment_ids) > 1 then min(num_segments) ≠ 0
+>>
+Rule 69 (If the shape of data tensor contains only 1, the segment_ids tensor must have at least one element)
+{data: tensor, segment_ids: tensor} |= if (∀i ∈ [0, ndim(data) - 1] : shape(data, i) = 1) then ndim(segment_ids) > 0
+>>
+Rule 70 (If the data tensor is a scalar and segment_ids is also a scalar, then num_segments must be greater than or equal to 0)
+{data: tensor, segment_ids: tensor, num_segments: tensor} |= if ndim(data) = 0 ∧ ndim(segment_ids) = 0 then min(num_segments) ≥ 0
+>>
+Rule 71 (If the data has shape [x] and segment_ids is scalar with dtype int32, then num_segments has to be greater than max value of data elements divided by 2)
+{data: tensor, segment_ids: tensor, num_segments: tensor} |= if ndim(data) = 1 ∧ ndim(segment_ids) = 0 ∧ dtype_(segment_ids) = 3 then min(num_segments) > max(data) / 2
+>>
+Rule 72 (If data shape has zero value, then num_segments has to be a scalar with value of 0 or 1)
+{data: tensor, num_segments: tensor} |= if (∃i ∈ [0, ndim(data)-1] : shape(data, i) = 0) then (min(num_segments) = 0 ∨ min(num_segments) = 1)
+>>
+Rule 73 (if segment_ids is not a scalar, then the minimum value of the shape of num_segments has to be greater than zero)
+{segment_ids: tensor, num_segments: tensor} |= if ndim(segment_ids) > 0 then min(num_segments) > 0
+>>
+Rule 74 (if data and segment_ids both are scalar of dtype int32, the minimum of num_segments cannot be greater than maximum of the same)
+{data: tensor, segment_ids: tensor, num_segments: tensor} |= if ndim(data) = 0 ∧ ndim(segment_ids) = 0 ∧ dtype_(data) = 3 ∧ dtype_(segment_ids) = 3 then min(num_segments) <= max(num_segments)
+>>
+Rule 75 (If the data tensor is of type float, then number of segment can not be negative.)
+{data : tensor,  num_segments: tensor} |= if (dtype_(data) = 7) then min(num_segments) >= 0
+>>
+Rule 76 (If the shape of segment_ids has more than 1 dimension, num_segments cannot be equal to shape of the first dimension of the data)
+{data : tensor, segment_ids: tensor, num_segments: tensor} |= if (ndim(segment_ids) > 1) then min(num_segments) ≠ shape(data, 0)
+>>
+Rule 78 (If the data tensor is of type float, then number of segments cannot be negative)
+{data : tensor, num_segments: tensor} |= if (dtype_(data) = 7) then min(num_segments) ≥ 0
+>>
+Rule 80 (If data has shape (x,y,z) and segment_ids is scalar, then num_segments <=x or num_segments <=y or num_segments <=z)
+{data : tensor, segment_ids: tensor, num_segments: tensor} |= if (ndim(data) = 3 ∧ ndim(segment_ids)=0) then (min(num_segments) ≤ shape(data, 0) ∨ min(num_segments) ≤ shape(data, 1) ∨ min(num_segments) ≤ shape(data, 2))

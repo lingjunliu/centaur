@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# inner-most dimension of rhs must match matrix's inner-most dimension -1 (Rule 6)
+# rhs should have the same first M-1 dimension sizes as matrix (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], v["arg1_ndim"] - 2) == Select(v["arg2_shape"], v["arg2_ndim"] - 2)) if n else
-          Select(v["arg1_shape"], v["arg1_ndim"] - 2) == Select(v["arg2_shape"], v["arg2_ndim"] - 2))
+    s.add(Not(And((v["arg1_ndim"] == v["arg2_ndim"]), (And([Implies(i < (v["arg1_ndim"] - 2 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])))) if n else
+          And((v["arg1_ndim"] == v["arg2_ndim"]), (And([Implies(i < (v["arg1_ndim"] - 2 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]))))
 )
 
 def rule_6_func(arg1, arg2, solver=None, neg=False):

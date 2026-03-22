@@ -2,122 +2,116 @@
 Rule 1 (data_format should be either 'NDHWC' or 'NCDHW')
 {v_1 : str} |= v_1 = "NDHWC" ∨ v_1 = "NCDHW"
 >>
-Rule 2 (dilations should be of length 1, 3 or 5)
-{v_1 : list(int)} |= v_1.len = 1 ∨ v_1.len = 3 ∨ v_1.len = 5
+Rule 2 (strides should be of length 1, 3 or 5)
+{v_1 : list(int)} |= shape(v_1, 0) = 1 ∨ shape(v_1, 0) = 3 ∨ shape(v_1, 0) = 5
 >>
 Rule 4 (padding should be either 'VALID' or 'SAME')
 {v_1 : str} |= v_1 = "VALID" ∨ v_1 = "SAME"
 >>
-Rule 5 (input and filters should have the same dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 5 (input tensor must have more than 0 dimensions)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 6 (output_shape should have positive values)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 9 (strides must be non-negative if it is an integer)
+{v_1 : int} |= v_1 ≥ 0
 >>
-Rule 7 (input tensor should be 5-D)
+Rule 10 (dilations must be greater than 0 if it is an integer)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 12 (input tensor has a valid shape with data_format being NDHWC)
+{v_1 : tensor, v_2 : str} |= if v_2 = "NDHWC" then ndim(v_1) = 5
+>>
+Rule 13 (input tensor has a valid shape with data_format being NCDHW)
+{v_1 : tensor, v_2 : str} |= if v_2 = "NCDHW" then ndim(v_1) = 5
+>>
+Rule 14 (filter tensor has a valid shape)
 {v_1 : tensor} |= ndim(v_1) = 5
 >>
-Rule 9 (strides values should be positive)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
->>
-Rule 11 (strides should not be empty if it's a list)
-{v_1 : list(int)} |= v_1.len > 0
->>
-Rule 13 (output_shape should be 1-D)
+Rule 15 (output_shape tensor has a valid shape)
 {v_1 : tensor} |= ndim(v_1) = 1
 >>
-Rule 14 (input's in_channels must match filter's in_channels)
-{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NDHWC" then shape(v_1, 4) = shape(v_2, 4) else shape(v_1, 1) = shape(v_2, 4)
+Rule 16 (dilations in the batch and depth dimensions if a 5-d tensor must be 1 using data_format NDHWC)
+{v_1 : list(int), v_2 : str} |= if v_2 = "NDHWC" ∧ shape(v_1, 0) = 5 then v_1[0] = 1 ∧ v_1[1] = 1
 >>
-Rule 15 (padding must be a valid string)
-{v_1 : str} |= v_1 = "valid" ∨ v_1 = "same"
+Rule 17 (dilations in the batch and depth dimensions if a 5-d tensor must be 1 using data_format NCDHW)
+{v_1 : list(int), v_2 : str} |= if v_2 = "NCDHW" ∧ shape(v_1, 0) = 5 then v_1[0] = 1 ∧ v_1[1] = 1
 >>
-Rule 17 (output shape's length must match input dimensionality)
-{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 0) = 5
+Rule 19 (strides list should have positive elements)
+{v_1 : list(int)} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
 >>
-Rule 18 (output shape's elements must be positive)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : shape(v_1, i) > 0
+Rule 22 (output_shape tensor must have elements greater than zero)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 19 (When data_format is NCDHW, the input shape must satisfy this condition)
-{v_1: tensor, v_2: str, v_3: tensor} |= if v_2 = "NCDHW" then shape(v_1,1) = shape(v_3, 0)
+Rule 23 (strides should be of length 1, 3 or 5)
+{v_1 : list(int)} |= (shape(v_1, 0) = 1) ∨ (shape(v_1, 0) = 3) ∨ (shape(v_1, 0) = 5)
 >>
-Rule 20 (input and filter should have compatible shapes with NDHWC)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 4) = shape(v_2, 4)
+Rule 25 (filters in_channels dimension must match input's in_channels dimension when data format is NDHWC)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NDHWC" then shape(v_1, 4) = shape(v_2, 4)
 >>
-Rule 21 (input and filter should have compatible shapes with NCDHW)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) = shape(v_2, 4)
+Rule 26 (filters in_channels dimension must match input's in_channels dimension when data format is NCDHW)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "NCDHW" then shape(v_1, 1) = shape(v_2, 4)
 >>
-Rule 22 (strides are either all 1 or match input dimensions except batch and channel)
-{v_1 : list(int), v_2 : tensor, v_3 : str} |= (v_1.len = 1 ∧ v_1[0] = 1) ∨ (v_1.len = 3 ∧ shape(v_2, 1) > 0 ∧ shape(v_2, 2) > 0 ∧ shape(v_2, 3) > 0) ∨ (v_1.len = 5 ∧ v_3="NDHWC" ∧ shape(v_2,1) > 0 ∧ shape(v_2,2) > 0 ∧ shape(v_2,3) > 0) ∨ (v_1.len = 5 ∧ v_3="NCDHW" ∧ shape(v_2,2) > 0 ∧ shape(v_2,3) > 0 ∧ shape(v_2,4) > 0)
+Rule 27 (name cannot be an empty string)
+{v_1 : str} |= v_1 ≠ ""
 >>
-Rule 24 (Strides list elements must be greater than zero)
-{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1]: v_1[i] > 0
+Rule 28 (output shape must have length 5)
+{v_1: tensor} |= shape(v_1, 0) = 5
 >>
-Rule 27 (output_shape should have the correct number of dimensions)
-{v_1 : tensor, v_2 : str} |= if v_2 = "NDHWC" then shape(v_1, 0) = 3 else shape(v_1, 0) = 3
+Rule 29 (filters depth dimension must be positive)
+{v_1 : tensor} |= shape(v_1, 0) > 0
 >>
-Rule 28 (Filter's channel size must match input's channel size when data_format is NDHWC)
-{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "NDHWC" then shape(v_1, 4) = shape(v_2, 4)
+Rule 30 (filters height dimension must be positive)
+{v_1 : tensor} |= shape(v_1, 1) > 0
 >>
-Rule 29 (Filter's channel size must match input's channel size when data_format is NCDHW)
-{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "NCDHW" then shape(v_1, 1) = shape(v_2, 4)
+Rule 31 (filters width dimension must be positive)
+{v_1 : tensor} |= shape(v_1, 2) > 0
 >>
-Rule 30 (output_shape tensor should have dimension size 3 if data_format is NDHWC)
-{v_1: tensor, v_2: str} |= if v_2 = "NDHWC" then shape(v_1, 0) = 3
+Rule 32 (filters output_channels dimension must be positive)
+{v_1 : tensor} |= shape(v_1, 3) > 0
 >>
-Rule 31 (output_shape tensor should have dimension size 3 if data_format is NCDHW)
-{v_1: tensor, v_2: str} |= if v_2 = "NCDHW" then shape(v_1, 0) = 3
+Rule 33 (filters in_channels dimension must be positive)
+{v_1 : tensor} |= shape(v_1, 4) > 0
 >>
-Rule 34 (If data format is NDHWC, output shape should have 3 dimensions)
-{v_1 : tensor, v_2 : str} |= if v_2 = "NDHWC" then ndim(v_1) = 1 ∧ shape(v_1, 0) = 3
+Rule 34 (output_shape has a valid length)
+{v_1 : tensor} |= shape(v_1, 0) = 1
 >>
-Rule 35 (If data format is NCDHW, output shape should have 3 dimensions)
-{v_1 : tensor, v_2 : str} |= if v_2 = "NCDHW" then ndim(v_1) = 1 ∧ shape(v_1, 0) = 3
+Rule 35 (output_shape must contain positive elements)
+{v_1 : tensor} |= shape(v_1,0) > 0
 >>
-Rule 36 (output shape size 1 should be related to input and filter size with NDHWC)
-{v_1: tensor, v_2: tensor, v_3: tensor, v_4: list(int), v_5: str} |= if v_5 = "NDHWC" then shape(v_3, 1) = (shape(v_1, 1) - 1) * v_4[1] + shape(v_2, 0)
+Rule 38 (input has a valid dtype)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6
 >>
-Rule 37 (output shape size 2 should be related to input and filter size with NDHWC)
-{v_1: tensor, v_2: tensor, v_3: tensor, v_4: list(int), v_5: str} |= if v_5 = "NDHWC" then shape(v_3, 2) = (shape(v_1, 2) - 1) * v_4[2] + shape(v_2, 1)
+Rule 39 (output_shape is a 1D tensor with integer elements)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ dtype_(v_1) = 3
 >>
-Rule 38 (output shape size 3 should be related to input and filter size with NDHWC)
-{v_1: tensor, v_2: tensor, v_3: tensor, v_4: list(int), v_5: str} |= if v_5 = "NDHWC" then shape(v_3, 3) = (shape(v_1, 3) - 1) * v_4[3] + shape(v_2, 2)
+Rule 45 (data_format should be either 'NDHWC' or 'NCDHW')
+{v_1 : str} |= (v_1 = "NDHWC") ∨ (v_1 = "NCDHW")
 >>
-Rule 39 (Output shape size 1 should be related to input and filter size with NCDHW)
-{v_1: tensor, v_2: tensor, v_3: tensor, v_4: list(int), v_5: str} |= if v_5 = "NCDHW" then shape(v_3, 1) = (shape(v_1, 2) - 1) * v_4[2] + shape(v_2, 0)
+Rule 46 (padding should be either 'VALID' or 'SAME')
+{v_1 : str} |= (v_1 = "VALID") ∨ (v_1 = "SAME")
 >>
-Rule 40 (Output shape size 2 should be related to input and filter size with NCDHW)
-{v_1: tensor, v_2: tensor, v_3: tensor, v_4: list(int), v_5: str} |= if v_5 = "NCDHW" then shape(v_3, 2) = (shape(v_1, 3) - 1) * v_4[3] + shape(v_2, 1)
+Rule 59 (input and filter must have a valid dtype)
+{v_1 : tensor, v_2: tensor} |= (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∧ (dtype_(v_2) = 6) ∨ (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8)
 >>
-Rule 41 (Output shape size 3 should be related to input and filter size with NCDHW)
-{v_1: tensor, v_2: tensor, v_3: tensor, v_4: list(int), v_5: str} |= if v_5 = "NCDHW" then shape(v_3, 3) = (shape(v_1, 4) - 1) * v_4[4] + shape(v_2, 2)
+Rule 61 (output_shape elements must be positive)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
 >>
-Rule 46 (If strides length is 5, the first and last element must be 1)
-{v_1 : list(int)} |= if v_1.len = 5 then v_1[0] = 1 ∧ v_1[4] = 1
+Rule 63 (name must be string with length greater or equal to 0)
+{v_1 : str} |= v_1.len ≥ 0
 >>
-Rule 50 (If the length of dilations is 1, it is replicated in the D, H and W dimensions)
-{v_1: list(int), v_2: tensor} |= if v_1.len = 1 then v_1[0] = shape(v_2,1) ∧ v_1[0] = shape(v_2,2) ∧ v_1[0] = shape(v_2,3)
+Rule 66 (input shape first two elements positive)
+{v_1 : tensor} |= shape(v_1,0) > 0 ∧ shape(v_1,1) > 0
 >>
-Rule 51 (When the data_format is NDHWC, the filter shape must satisfy certain requirements)
-{v_1: tensor, v_2: tensor, v_3: str} |= if v_3 = "NDHWC" then shape(v_1,4) = shape(v_2,4)
+Rule 67 (If data_format is NDHWC the input should be 5D)
+{v_1: tensor, v_2: str} |= if v_2 = "NDHWC" then ndim(v_1) = 5
 >>
-Rule 52 (if length of strides is 5 and data format is NCDHW, then first and last strides values must be 1)
-{v_1: list(int), v_2: str} |= if v_1.len = 5 ∧ v_2 = "NCDHW" then v_1[0] = 1 ∧ v_1[4] = 1
+Rule 68 (If data_format is NCDHW the input should be 5D)
+{v_1: tensor, v_2: str} |= if v_2 = "NCDHW" then ndim(v_1) = 5
 >>
-Rule 60 (If the length of dilations is not 1 and data_format is NDHWC, dilations dim should match input dim size except Batch and Channel)
-{v_1: list(int), v_2: tensor, v_3: str} |= if v_1.len ≠ 1 ∧ v_3 = "NDHWC" then v_1.len = 3 ∧ shape(v_2,1) > 0 ∧ shape(v_2,2) > 0 ∧ shape(v_2,3) > 0 ∨ v_1.len = 5 ∧ shape(v_2,1) > 0 ∧ shape(v_2,2) > 0 ∧ shape(v_2,3) > 0
+Rule 69 (strides is int and it is greater than 0)
+{v_1: int} |= v_1 > 0
 >>
-Rule 61 (If the length of dilations is not 1 and data_format is NCDHW, dilations dim should match input dim size except Batch and Channel)
-{v_1: list(int), v_2: tensor, v_3: str} |= if v_1.len ≠ 1 ∧ v_3 = "NCDHW" then v_1.len = 3 ∧ shape(v_2,2) > 0 ∧ shape(v_2,3) > 0 ∧ shape(v_2,4) > 0 ∨ v_1.len = 5 ∧ shape(v_2,2) > 0 ∧ shape(v_2,3) > 0 ∧ shape(v_2,4) > 0
+Rule 70 (strides is a list and has length 1 or 3 or 5.)
+{v_1: list(int)} |= (shape(v_1, 0) = 1) ∨ (shape(v_1, 0) = 3) ∨ (shape(v_1, 0) = 5)
 >>
-Rule 62 (If length of strides is 3, then strides[0] is for Depth, strides[1] for Height, strides[2] for Width. data_format = NDHWC)
-{v_1: list(int), v_2: tensor, v_3: str} |= if v_1.len = 3 ∧ v_3 = "NDHWC" then shape(v_2,1) = v_1[0] ∧ shape(v_2,2) = v_1[1] ∧ shape(v_2,3) = v_1[2]
->>
-Rule 63 (If length of strides is 3, then strides[0] is for Depth, strides[1] for Height, strides[2] for Width. data_format = NCDHW)
-{v_1: list(int), v_2: tensor, v_3: str} |= if v_1.len = 3 ∧ v_3 = "NCDHW" then shape(v_2,2) = v_1[0] ∧ shape(v_2,3) = v_1[1] ∧ shape(v_2,4) = v_1[2]
->>
-Rule 64 (If data_format is NCDHW, then dilations dim should match input dim size except Batch and Channel, and dim values at 0 and 1 position must be 1)
-{v_1: list(int), v_2: tensor, v_3: str} |= if v_1.len = 5 ∧ v_3 = "NCDHW" then shape(v_2,2) > 0 ∧ shape(v_2,3) > 0 ∧ shape(v_2,4) > 0 ∧ v_1[0] = 1 ∧ v_1[1] = 1
->>
-Rule 65 (If data_format is NDHWC, then dilations dim should match input dim size except Batch and Channel, and dim values at 0 and 4 position must be 1)
-{v_1: list(int), v_2: tensor, v_3: str} |= if v_1.len = 5 ∧ v_3 = "NDHWC" then shape(v_2,1) > 0 ∧ shape(v_2,2) > 0 ∧ shape(v_2,3) > 0 ∧ v_1[0] = 1 ∧ v_1[4] = 1
+Rule 72 (If data_format is NCDHW the input should be 5D)
+{v_1: tensor, v_2: str} |= if v_2 = "NCDHW" then ndim(v_1) = 5 else if v_2="NDHWC" then true else false

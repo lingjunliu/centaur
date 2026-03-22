@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The number of bits must be a reasonable positive integer (Rule 70)
+# num_bits needs to be in a plausible range (Rule 70)
 
 rule_70 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] >= 2, v["arg1_value"] <= 24)) if n else
-          And(v["arg1_value"] >= 2, v["arg1_value"] <= 24))
+    s.add(Not(And(v["arg1_value"] >= 1, v["arg1_value"] <= 32)) if n else
+          And(v["arg1_value"] >= 1, v["arg1_value"] <= 32))
 )
 
 def rule_70_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# X and Y must be a tensor (Rule 43)
+# If x and y are provided, then either both of x and y should be provided or neither (Rule 43)
 
 rule_43 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0)) if n else
-          And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0))
+    s.add(Not(And(v["arg1_ndim"] >= 0, v["arg2_ndim"] >= 0)) if n else
+          And(v["arg1_ndim"] >= 0, v["arg2_ndim"] >= 0))
 )
 
 def rule_43_func(arg1, arg2, solver=None, neg=False):

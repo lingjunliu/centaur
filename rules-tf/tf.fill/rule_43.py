@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# dims entries should be integers rather than strings (Rule 43)
+# Check if elements in Dims List are integers. (Rule 43)
 
 rule_43 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), (Select(v["arg1_values"], i) != 11)) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_length"] - 1 + 1), (Select(v["arg1_values"], i) != 11)) for i in range(6)]))
+    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), And((Select(v["arg1_values"], i) < 2147483647), (Select(v["arg1_values"], i) > -2147483648))) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_length"] - 1 + 1), And((Select(v["arg1_values"], i) < 2147483647), (Select(v["arg1_values"], i) > -2147483648))) for i in range(6)]))
 )
 
 def rule_43_func(arg1, solver=None, neg=False):

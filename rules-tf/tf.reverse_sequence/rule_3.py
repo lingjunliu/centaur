@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# seq_lengths length must match input's batch_axis dimension (Rule 3)
+# seq_lengths length must equal input's batch_axis dimension (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
     s.add(Not(Select(v["arg2_shape"], 0) == Select(v["arg1_shape"], v["arg3_value"])) if n else

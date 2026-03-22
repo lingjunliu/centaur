@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if narrow_range is true, num_bits should be at least 2 (Rule 23)
+# If num_bits is 1, narrow_range must be false. (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, v["arg2_value"] >= 2, True)) if n else
-          If(v["arg1_value"] == True, v["arg2_value"] >= 2, True))
+    s.add(Not(If(v["arg1_value"] == 1, v["arg2_value"] == False, True)) if n else
+          If(v["arg1_value"] == 1, v["arg2_value"] == False, True))
 )
 
 def rule_23_func(arg1, arg2, solver=None, neg=False):
@@ -18,19 +18,19 @@ def rule_23_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_value = Int('arg2_value')
+        arg1_value = Int('arg1_value')
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg1_value == int(arg1))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 23
         rule_23(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})

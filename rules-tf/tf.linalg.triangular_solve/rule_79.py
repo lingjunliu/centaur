@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# matrix shape is valid (Rule 79)
+# The last two dimensions of matrix should be same and greater than zero. Also Matrix should have at least 2 dimensions. (Rule 79)
 
 rule_79 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_ndim"] < 2, (And(And(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 2) == Select(v["arg1_shape"], v["arg1_ndim"] - 1)), Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0)))) if n else
-          Or(v["arg1_ndim"] < 2, (And(And(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 2) == Select(v["arg1_shape"], v["arg1_ndim"] - 1)), Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0))))
+    s.add(Not(And(And((Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2)), (Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0)), (v["arg1_ndim"] >= 2))) if n else
+          And(And((Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2)), (Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0)), (v["arg1_ndim"] >= 2)))
 )
 
 def rule_79_func(arg1, solver=None, neg=False):

@@ -5,55 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If range_given is true and axis is specified, the first dimension of input_min and input_max should match the axis dimension of the input tensor (Rule 22)
+# num_bits should be small enough to prevent overflow, considering the data type (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg4_value"], v["arg5_value"] != -1), And(Select(v["arg2_shape"], 0) == Select(v["arg1_shape"], v["arg5_value"]), Select(v["arg3_shape"], 0) == Select(v["arg1_shape"], v["arg5_value"])), True)) if n else
-          If(And(v["arg4_value"], v["arg5_value"] != -1), And(Select(v["arg2_shape"], 0) == Select(v["arg1_shape"], v["arg5_value"]), Select(v["arg3_shape"], 0) == Select(v["arg1_shape"], v["arg5_value"])), True))
+    s.add(Not(If(v["arg2_value"] == 1, v["arg1_value"] <= 8, If(v["arg2_value"] == 2, v["arg1_value"] <= 16, If(v["arg2_value"] == 3, v["arg1_value"] <= 32, If(v["arg2_value"] == 4, v["arg1_value"] <= 64, If(v["arg2_value"] == 5, v["arg1_value"] <= 8, If(v["arg2_value"] == 6, v["arg1_value"] <= 16, If(v["arg2_value"] == 7, v["arg1_value"] <= 32, If(v["arg2_value"] == 8, v["arg1_value"] <= 64, If(v["arg2_value"] == 9, v["arg1_value"] <= 32, If(v["arg2_value"] == 10, v["arg1_value"] <= 64, True))))))))))) if n else
+          If(v["arg2_value"] == 1, v["arg1_value"] <= 8, If(v["arg2_value"] == 2, v["arg1_value"] <= 16, If(v["arg2_value"] == 3, v["arg1_value"] <= 32, If(v["arg2_value"] == 4, v["arg1_value"] <= 64, If(v["arg2_value"] == 5, v["arg1_value"] <= 8, If(v["arg2_value"] == 6, v["arg1_value"] <= 16, If(v["arg2_value"] == 7, v["arg1_value"] <= 32, If(v["arg2_value"] == 8, v["arg1_value"] <= 64, If(v["arg2_value"] == 9, v["arg1_value"] <= 32, If(v["arg2_value"] == 10, v["arg1_value"] <= 64, True)))))))))))
 )
 
-def rule_22_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):
+def rule_22_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
-    arg4 = next(iter(arg4.values()))
-    arg5 = next(iter(arg5.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
-        if not isinstance(arg2, np.ndarray):
-            return False
-        if not isinstance(arg3, np.ndarray):
-            return False
-        if not isinstance(arg4, bool):
-            return False
-        if not (isinstance(arg5, (int, np.integer)) and not isinstance(arg5, bool)):
+        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
-        arg3_shape = Array('arg3_shape', IntSort(), IntSort())
-        arg4_value = Bool('arg4_value')
-        arg5_value = Int('arg5_value')
+        arg1_value = Int('arg1_value')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
-        for i in range(arg3.ndim):
-            arg3_shape = Store(arg3_shape, i, arg3.shape[i])
-        solver.add(arg4_value == arg4)
-        solver.add(arg5_value == int(arg5))
+        solver.add(arg1_value == int(arg1))
+        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
 
         # Constraints for rule 22
-        rule_22(solver, {'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape, 'arg3_shape': arg3_shape, 'arg4_value': arg4_value, 'arg5_value': arg5_value})
+        rule_22(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_22(solver, {'arg1_shape': arg1['shape'], 'arg2_shape': arg2['shape'], 'arg3_shape': arg3['shape'], 'arg4_value': arg4['value'], 'arg5_value': arg5['value']}, neg)
+        rule_22(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

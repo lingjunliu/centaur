@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If x and y are provided, then the shapes of condition, x and y must be broadcastable. If condition is scalar (Rule 83)
+# Shape of condition, X, Y can be either equal or at least one entry should be equal to 1. (Rule 83)
 
 rule_83 = lambda s, v, n=False: (
-    s.add(Not(Or((v["arg1_ndim"] == 0), (And([Implies(i < (If(v["arg2_ndim"] >= v["arg3_ndim"], v["arg2_ndim"] - 1, v["arg3_ndim"] - 1) + 1), Or(Or(Or((Select(v["arg1_shape"], i) == 1), (Select(v["arg2_shape"], i) == 1)), (Select(v["arg3_shape"], i) == 1)), (Select(v["arg2_shape"], i) == Select(v["arg3_shape"], i)))) for i in range(6)])))) if n else
-          Or((v["arg1_ndim"] == 0), (And([Implies(i < (If(v["arg2_ndim"] >= v["arg3_ndim"], v["arg2_ndim"] - 1, v["arg3_ndim"] - 1) + 1), Or(Or(Or((Select(v["arg1_shape"], i) == 1), (Select(v["arg2_shape"], i) == 1)), (Select(v["arg3_shape"], i) == 1)), (Select(v["arg2_shape"], i) == Select(v["arg3_shape"], i)))) for i in range(6)]))))
+    s.add(Not(If(And(v["arg1_ndim"] == v["arg2_ndim"], v["arg1_ndim"] == v["arg3_ndim"]), (And([Implies(i < (v["arg1_ndim"] - 1 + 1), (Or(Or(Or(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), Select(v["arg1_shape"], i) == Select(v["arg3_shape"], i)), Select(v["arg2_shape"], i) == 1), Select(v["arg3_shape"], i) == 1))) for i in range(6)])), True)) if n else
+          If(And(v["arg1_ndim"] == v["arg2_ndim"], v["arg1_ndim"] == v["arg3_ndim"]), (And([Implies(i < (v["arg1_ndim"] - 1 + 1), (Or(Or(Or(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), Select(v["arg1_shape"], i) == Select(v["arg3_shape"], i)), Select(v["arg2_shape"], i) == 1), Select(v["arg3_shape"], i) == 1))) for i in range(6)])), True))
 )
 
 def rule_83_func(arg1, arg2, arg3, solver=None, neg=False):

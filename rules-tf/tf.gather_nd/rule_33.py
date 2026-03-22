@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# batch_dims must be non-negative and less than or equal to the rank of both params and indices. (Rule 33)
+# If batch_dims is greater than 0, it should be less or equal than the minimum of ranks of params and indices. Fix the parser error. (Rule 33)
 
 rule_33 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg3_value"] >= 0, v["arg3_value"] <= v["arg1_ndim"]), v["arg3_value"] <= v["arg2_ndim"])) if n else
-          And(And(v["arg3_value"] >= 0, v["arg3_value"] <= v["arg1_ndim"]), v["arg3_value"] <= v["arg2_ndim"]))
+    s.add(Not(If(v["arg3_value"] > 0, And(v["arg3_value"] <= v["arg1_ndim"], v["arg3_value"] <= v["arg2_ndim"]), True)) if n else
+          If(v["arg3_value"] > 0, And(v["arg3_value"] <= v["arg1_ndim"], v["arg3_value"] <= v["arg2_ndim"]), True))
 )
 
 def rule_33_func(arg1, arg2, arg3, solver=None, neg=False):

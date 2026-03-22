@@ -1,0 +1,141 @@
+>>
+Rule 1 (var, accum, linear must have the same dtype)
+{var : tensor, accum : tensor, linear : tensor} |= dtype_(var) = dtype_(accum) ∧ dtype_(accum) = dtype_(linear)
+>>
+Rule 2 (lr, l1, l2, lr_power must have the same dtype as grad)
+{grad : tensor, lr : tensor, l1 : tensor, l2 : tensor, lr_power : tensor} |= dtype_(grad) = dtype_(lr) ∧ dtype_(lr) = dtype_(l1) ∧ dtype_(l1) = dtype_(l2) ∧ dtype_(l2) = dtype_(lr_power)
+>>
+Rule 3 (lr, l1, l2, lr_power must be scalar tensors, i.e., ndim = 0)
+{lr : tensor, l1 : tensor, l2 : tensor, lr_power : tensor} |= ndim(lr) = 0 ∧ ndim(l1) = 0 ∧ ndim(l2) = 0 ∧ ndim(lr_power) = 0
+>>
+Rule 4 (var, accum, linear, and grad must have the same shape.)
+{var : tensor, accum : tensor, linear : tensor, grad : tensor} |= ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(accum, i) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(accum, i) = shape(linear, i) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(linear, i) = shape(grad, i)
+>>
+Rule 5 (use_locking must be a boolean value)
+{use_locking : bool} |= use_locking = true ∨ use_locking = false
+>>
+Rule 6 (multiply_linear_by_lr must be a boolean value)
+{multiply_linear_by_lr : bool} |= multiply_linear_by_lr = true ∨ multiply_linear_by_lr = false
+>>
+Rule 7 (lr should be positive)
+{lr : tensor} |= min(lr) > 0
+>>
+Rule 8 (l1, l2 should be non-negative)
+{l1 : tensor, l2 : tensor} |= min(l1) ≥ 0 ∧ min(l2) ≥ 0
+>>
+Rule 9 (lr_power should be non-negative)
+{lr_power : tensor} |= min(lr_power) ≥ 0
+>>
+Rule 10 (if grad is complex64 or complex128, then lr, l1, l2, lr_power must also be complex64 or complex128, respectively)
+{grad : tensor, lr : tensor, l1 : tensor, l2 : tensor, lr_power : tensor} |= if dtype_(grad) = 10 then dtype_(lr) = 10 ∧ dtype_(l1) = 10 ∧ dtype_(l2) = 10 ∧ dtype_(lr_power) = 10 else if dtype_(grad) = 9 then dtype_(lr) = 9 ∧ dtype_(l1) = 9 ∧ dtype_(l2) = 9 ∧ dtype_(lr_power) = 9
+>>
+Rule 11 (grad's dtype must be one of the allowed types)
+{grad : tensor} |= dtype_(grad) = 7 ∨ dtype_(grad) = 8 ∨ dtype_(grad) = 3 ∨ dtype_(grad) = 6 ∨ dtype_(grad) = 2 ∨ dtype_(grad) = 1 ∨ dtype_(grad) = 9 ∨ dtype_(grad) = 4 ∨ dtype_(grad) = 0 ∨ dtype_(grad) = 15
+>>
+Rule 12 (var, accum, linear must be resource tensors)
+{var : tensor, accum : tensor, linear : tensor} |= dtype_(var) = 12 ∧ dtype_(accum) = 12 ∧ dtype_(linear) = 12
+>>
+Rule 13 (lr_power must be within a reasonable range)
+{lr_power : tensor} |= min(lr_power) ≥ -10 ∧ max(lr_power) ≤ 10
+>>
+Rule 15 (var, accum, linear, grad, lr, l1, l2, lr_power must have at least zero dimensions)
+{var : tensor, accum : tensor, linear : tensor, grad : tensor, lr : tensor, l1 : tensor, l2 : tensor, lr_power : tensor} |= ndim(var) ≥ 0 ∧ ndim(accum) ≥ 0 ∧ ndim(linear) ≥ 0 ∧ ndim(grad) ≥ 0 ∧ ndim(lr) ≥ 0 ∧ ndim(l1) ≥ 0 ∧ ndim(l2) ≥ 0 ∧ ndim(lr_power) ≥ 0
+>>
+Rule 16 (If multiply_linear_by_lr is true, then the linear tensor is actually linear * lr)
+{multiply_linear_by_lr : bool, linear : tensor, lr : tensor} |= if multiply_linear_by_lr = true then true
+>>
+Rule 17 (If lr is 0 then the update should be skipped)
+{lr : tensor} |= if min(lr) = 0 then true
+>>
+Rule 18 (If use_locking is true, certain conditions may apply)
+{use_locking : bool} |= if use_locking = true then true
+>>
+Rule 19 (grad must be a numerical tensor)
+{grad : tensor} |= dtype_(grad) ≠ 0 ∧ dtype_(grad) ≠ 11 ∧ dtype_(grad) ≠ 12
+>>
+Rule 20 (If the variable is quantized, then the gradient should also be quantized)
+{var: tensor, grad: tensor} |= if dtype_(var) = 0 then dtype_(grad) = 0 else if dtype_(var) = 1 then dtype_(grad) = 1 else if dtype_(var) = 5 then dtype_(grad) = 5 else if dtype_(var) = 4 then dtype_(grad) = 4
+>>
+Rule 21 (If grad is bfloat16, then other tensors must also be bfloat16.)
+{grad : tensor, lr : tensor, l1 : tensor, l2 : tensor, lr_power : tensor, var: tensor, accum: tensor, linear: tensor} |= if dtype_(grad) = 11 then dtype_(lr) = 11 ∧ dtype_(l1) = 11 ∧ dtype_(l2) = 11 ∧ dtype_(lr_power) = 11 ∧ dtype_(var) = 12 ∧ dtype_(accum) = 12 ∧ dtype_(linear) = 12
+>>
+Rule 22 (If grad is uint8, then other tensors must also be uint8.)
+{grad : tensor, lr : tensor, l1 : tensor, l2 : tensor, lr_power : tensor} |= if dtype_(grad) = 5 then dtype_(lr) = 5 ∧ dtype_(l1) = 5 ∧ dtype_(l2) = 5 ∧ dtype_(lr_power) = 5
+>>
+Rule 24 (accum, linear must be floating point or complex if grad is floating point or complex)
+{grad : tensor, accum : tensor, linear : tensor} |= if dtype_(grad) = 7 ∨ dtype_(grad) = 8 ∨ dtype_(grad) = 9 ∨ dtype_(grad) = 10 ∨ dtype_(grad) = 15 then dtype_(accum) = 7 ∨ dtype_(accum) = 8 ∨ dtype_(accum) = 9 ∨ dtype_(accum) = 10 ∨ dtype_(accum) = 15 ∧ dtype_(linear) = 7 ∨ dtype_(linear) = 8 ∨ dtype_(linear) = 9 ∨ dtype_(linear) = 10 ∨ dtype_(linear) = 15
+>>
+Rule 27 (l1, l2, and lr_power should have same sign)
+{l1 : tensor, l2 : tensor, lr_power : tensor} |= (min(l1) ≥ 0 ∧ min(l2) ≥ 0 ∧ min(lr_power) ≥ 0) ∨ (max(l1) ≤ 0 ∧ max(l2) ≤ 0 ∧ max(lr_power) ≤ 0)
+>>
+Rule 28 (var cannot be complex if l1/l2/lr_power are real)
+{var : tensor, l1 : tensor, l2 : tensor, lr_power : tensor} |= if dtype_(l1) < 9 ∧ dtype_(l2) < 9 ∧ dtype_(lr_power) < 9 then dtype_(var) < 9
+>>
+Rule 29 (If grad is int32, then other tensors must also be int32.)
+{grad : tensor, lr : tensor, l1 : tensor, l2 : tensor, lr_power : tensor} |= if dtype_(grad) = 3 then dtype_(lr) = 3 ∧ dtype_(l1) = 3 ∧ dtype_(l2) = 3 ∧ dtype_(lr_power) = 3
+>>
+Rule 30 (If multiply_linear_by_lr is true, then lr must be a positive scalar)
+{multiply_linear_by_lr : bool, lr : tensor} |= if multiply_linear_by_lr = true then ndim(lr) = 0 ∧ min(lr) > 0
+>>
+Rule 31 (var, accum, and linear cannot be int8, uint8, int16, uint16, int32, uint32, int64, or uint64 if grad is float)
+{grad : tensor, var : tensor, accum : tensor, linear : tensor} |= if dtype_(grad) = 7 then (dtype_(var) ≠ 1 ∧ dtype_(var) ≠ 5 ∧ dtype_(var) ≠ 2 ∧ dtype_(var) ≠ 16 ∧ dtype_(var) ≠ 3 ∧ dtype_(var) ≠ 17 ∧ dtype_(var) ≠ 4) ∧ (dtype_(accum) ≠ 1 ∧ dtype_(accum) ≠ 5 ∧ dtype_(accum) ≠ 2 ∧ dtype_(accum) ≠ 16 ∧ dtype_(accum) ≠ 3 ∧ dtype_(accum) ≠ 17 ∧ dtype_(accum) ≠ 4) ∧ (dtype_(linear) ≠ 1 ∧ dtype_(linear) ≠ 5 ∧ dtype_(linear) ≠ 2 ∧ dtype_(linear) ≠ 16 ∧ dtype_(linear) ≠ 3 ∧ dtype_(linear) ≠ 17 ∧ dtype_(linear) ≠ 4)
+>>
+Rule 32 (lr, l1, l2, lr_power must be float or int if grad is int)
+{grad : tensor, lr : tensor, l1 : tensor, l2 : tensor, lr_power : tensor} |= if dtype_(grad) < 5 then (dtype_(lr) < 5 ∨ (dtype_(lr) > 6 ∧ dtype_(lr) < 9)) ∧ (dtype_(l1) < 5 ∨ (dtype_(l1) > 6 ∧ dtype_(l1) < 9)) ∧ (dtype_(l2) < 5 ∨ (dtype_(l2) > 6 ∧ dtype_(l2) < 9)) ∧ (dtype_(lr_power) < 5 ∨ (dtype_(lr_power) > 6 ∧ dtype_(lr_power) < 9))
+>>
+Rule 33 (if l1 or l2 is present, gradient should be of floating point type)
+{grad: tensor, l1: tensor, l2: tensor} |= if dtype_(l1) = 7 ∨ dtype_(l1) = 8 ∨ dtype_(l2) = 7 ∨ dtype_(l2) = 8 then dtype_(grad) = 7 ∨ dtype_(grad) = 8
+>>
+Rule 34 (if multiply_linear_by_lr is false, lr is not used)
+{multiply_linear_by_lr: bool, lr: tensor} |= if multiply_linear_by_lr = false then true
+>>
+Rule 35 (if using int8/uint8, then lr, l1, l2, and lr_power should have a restricted range)
+{grad : tensor, lr : tensor, l1 : tensor, l2 : tensor, lr_power : tensor} |= if dtype_(grad) = 1 ∨ dtype_(grad) = 5 then min(lr) ≥ 0 ∧ max(lr) ≤ 1 ∧ min(l1) ≥ 0 ∧ max(l1) ≤ 1 ∧ min(l2) ≥ 0 ∧ max(l2) ≤ 1 ∧ min(lr_power) ≥ 0 ∧ max(lr_power) ≤ 1
+>>
+Rule 36 (If multiply_linear_by_lr is true, var, accum, and linear must be floating point type)
+{multiply_linear_by_lr: bool, var: tensor, accum: tensor, linear: tensor} |= if multiply_linear_by_lr = true then (dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 9 ∨ dtype_(var) = 10 ∨ dtype_(var) = 6 ∨ dtype_(var) = 15) ∧ (dtype_(accum) = 7 ∨ dtype_(accum) = 8 ∨ dtype_(accum) = 9 ∨ dtype_(accum) = 10 ∨ dtype_(accum) = 6 ∨ dtype_(accum) = 15) ∧ (dtype_(linear) = 7 ∨ dtype_(linear) = 8 ∨ dtype_(linear) = 9 ∨ dtype_(linear) = 10 ∨ dtype_(linear) = 6 ∨ dtype_(linear) = 15)
+>>
+Rule 37 (If multiply_linear_by_lr is false, then linear can be any dtype)
+{multiply_linear_by_lr: bool, linear: tensor} |= if multiply_linear_by_lr = false then true
+>>
+Rule 38 (If multiply_linear_by_lr is true, and grad is of half type, then the dtype of lr, l1, and l2 must be of half type too)
+{multiply_linear_by_lr: bool, grad: tensor, lr: tensor, l1: tensor, l2: tensor} |= if multiply_linear_by_lr = true ∧ dtype_(grad) = 6 then dtype_(lr) = 6 ∧ dtype_(l1) = 6 ∧ dtype_(l2) = 6
+>>
+Rule 39 (If multiply_linear_by_lr is true, then lr_power should be a small value)
+{multiply_linear_by_lr: bool, lr_power: tensor} |= if multiply_linear_by_lr = true then min(lr_power) ≥ -5 ∧ max(lr_power) ≤ 5
+>>
+Rule 40 (If multiply_linear_by_lr is true, then lr should be in range of 0.0001 to 1)
+{multiply_linear_by_lr: bool, lr: tensor} |= if multiply_linear_by_lr = true then min(lr) ≥ 0.0001 ∧ max(lr) ≤ 1
+>>
+Rule 41 (If multiply_linear_by_lr is true, l1 and l2 must be positive)
+{multiply_linear_by_lr: bool, l1: tensor, l2: tensor} |= if multiply_linear_by_lr = true then min(l1) ≥ 0 ∧ min(l2) ≥ 0
+>>
+Rule 42 (l1, l2 can not be complex type)
+{l1 : tensor, l2 : tensor} |= dtype_(l1) < 9 ∧ dtype_(l2) < 9
+>>
+Rule 43 (If grad is a quantized type, lr_power must be 0 or 1)
+{grad: tensor, lr_power: tensor} |= if dtype_(grad) = 0 ∨ dtype_(grad) = 1 ∨ dtype_(grad) = 16 ∨ dtype_(grad) = 2 ∨ dtype_(grad) = 5 ∨ dtype_(grad) = 4 then min(lr_power) = 0 ∨ max(lr_power) = 1
+>>
+Rule 45 (If use_locking is enabled, then the operation must be placed on a single device)
+{use_locking: bool} |= if use_locking = true then true
+>>
+Rule 49 (If grad's dtype is int8, int16, or uint16, lr_power cannot be negative)
+{grad: tensor, lr_power: tensor} |= if dtype_(grad) = 1 ∨ dtype_(grad) = 2 ∨ dtype_(grad) = 16 then min(lr_power) ≥ 0
+>>
+Rule 51 (If lr_power is not 0, then l1 and l2 must be positive and grad's type cannot be integer)
+{lr_power: tensor, l1: tensor, l2: tensor, grad: tensor} |= if min(lr_power) ≠ 0 then min(l1) > 0 ∧ min(l2) > 0 ∧ dtype_(grad) > 6
+>>
+Rule 52 (If multiply_linear_by_lr is true, then grad, lr, l1, l2 and lr_power cannot be a quantized type)
+{multiply_linear_by_lr: bool, grad: tensor, lr: tensor, l1: tensor, l2: tensor, lr_power: tensor} |= if multiply_linear_by_lr = true then dtype_(grad) > 0 ∧ dtype_(lr) > 0 ∧ dtype_(l1) > 0 ∧ dtype_(l2) > 0 ∧ dtype_(lr_power) > 0
+>>
+Rule 53 (If grad is complex, then l1 and l2 must be zero)
+{grad: tensor, l1: tensor, l2: tensor} |= if dtype_(grad) = 9 ∨ dtype_(grad) = 10 then max(l1) = 0 ∧ max(l2) = 0
+>>
+Rule 54 (If multiplying linear by lr and grad is complex, lr_power must be 1.0)
+{multiply_linear_by_lr: bool, grad: tensor, lr_power: tensor} |= if multiply_linear_by_lr = true ∧ (dtype_(grad) = 9 ∨ dtype_(grad) = 10) then min(lr_power) = 1 ∧ max(lr_power) = 1
+>>
+Rule 55 (var, accum, and linear must be different variables)
+{var : tensor, accum : tensor, linear : tensor} |= var ≠ accum ∧ var ≠ linear ∧ accum ≠ linear
+>>
+Rule 58 (If multiply_linear_by_lr is true, and lr_power is not 0, l1 and l2 should be small.)
+{multiply_linear_by_lr: bool, lr_power: tensor, l1: tensor, l2: tensor} |= if multiply_linear_by_lr = true ∧ min(lr_power) ≠ 0 then max(l1) < 10 ∧ max(l2) < 10

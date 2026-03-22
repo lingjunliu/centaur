@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# The shape along the provided axis cannot be zero. (Rule 64)
+# If the number of splits is inferred, it has to be greater than 0 (Rule 64)
 
 rule_64 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], v["arg2_value"]) > 0) if n else
-          Select(v["arg1_shape"], v["arg2_value"]) > 0)
+    s.add(Not(If(Select(v["arg1_shape"], v["arg2_value"]) > 0, True, False)) if n else
+          If(Select(v["arg1_shape"], v["arg2_value"]) > 0, True, False))
 )
 
 def rule_64_func(arg1, arg2, solver=None, neg=False):

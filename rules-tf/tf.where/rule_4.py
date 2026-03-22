@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# broadcasting compatibility between condition, x, and y (Rule 4)
+# The shapes of condition, x and y must be broadcastable, comparing shape elements when dimensions match (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), v["arg3_ndim"] > 0), And([Implies(i < (If(And(v["arg1_ndim"] >= v["arg2_ndim"], v["arg1_ndim"] >= v["arg3_ndim"]), v["arg1_ndim"] - 1, If(v["arg2_ndim"] >= v["arg3_ndim"], v["arg2_ndim"] - 1, v["arg3_ndim"] - 1)) + 1), Or(Or(Or(Or(Or(Or((v["arg1_ndim"] - i - 1 < 0), (v["arg2_ndim"] - i - 1 < 0)), (v["arg3_ndim"] - i - 1 < 0)), (Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == 1)), (Select(v["arg2_shape"], v["arg2_ndim"] - i - 1) == 1)), (Select(v["arg3_shape"], v["arg3_ndim"] - i - 1) == 1)), (And(Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - i - 1), Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == Select(v["arg3_shape"], v["arg3_ndim"] - i - 1))))) for i in range(6)]))) if n else
-          And(And(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), v["arg3_ndim"] > 0), And([Implies(i < (If(And(v["arg1_ndim"] >= v["arg2_ndim"], v["arg1_ndim"] >= v["arg3_ndim"]), v["arg1_ndim"] - 1, If(v["arg2_ndim"] >= v["arg3_ndim"], v["arg2_ndim"] - 1, v["arg3_ndim"] - 1)) + 1), Or(Or(Or(Or(Or(Or((v["arg1_ndim"] - i - 1 < 0), (v["arg2_ndim"] - i - 1 < 0)), (v["arg3_ndim"] - i - 1 < 0)), (Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == 1)), (Select(v["arg2_shape"], v["arg2_ndim"] - i - 1) == 1)), (Select(v["arg3_shape"], v["arg3_ndim"] - i - 1) == 1)), (And(Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - i - 1), Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == Select(v["arg3_shape"], v["arg3_ndim"] - i - 1))))) for i in range(6)])))
+    s.add(Not(If(And(v["arg1_ndim"] == v["arg2_ndim"], v["arg1_ndim"] == v["arg3_ndim"]), (And([Implies(i < (v["arg1_ndim"] - 1 + 1), (Or(Or(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), Select(v["arg1_shape"], i) == 1), Select(v["arg2_shape"], i) == 1))) for i in range(6)])), True)) if n else
+          If(And(v["arg1_ndim"] == v["arg2_ndim"], v["arg1_ndim"] == v["arg3_ndim"]), (And([Implies(i < (v["arg1_ndim"] - 1 + 1), (Or(Or(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), Select(v["arg1_shape"], i) == 1), Select(v["arg2_shape"], i) == 1))) for i in range(6)])), True))
 )
 
 def rule_4_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -33,7 +33,6 @@ def rule_4_func(arg1, arg2, arg3, solver=None, neg=False):
         arg2_ndim = Int('arg2_ndim')
         arg2_shape = Array('arg2_shape', IntSort(), IntSort())
         arg3_ndim = Int('arg3_ndim')
-        arg3_shape = Array('arg3_shape', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
@@ -43,13 +42,11 @@ def rule_4_func(arg1, arg2, arg3, solver=None, neg=False):
         for i in range(arg2.ndim):
             arg2_shape = Store(arg2_shape, i, arg2.shape[i])
         solver.add(arg3_ndim == arg3.ndim)
-        for i in range(arg3.ndim):
-            arg3_shape = Store(arg3_shape, i, arg3.shape[i])
 
         # Constraints for rule 4
-        rule_4(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape, 'arg3_ndim': arg3_ndim, 'arg3_shape': arg3_shape})
+        rule_4(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape, 'arg3_ndim': arg3_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_4(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape'], 'arg3_ndim': arg3['ndim'], 'arg3_shape': arg3['shape']}, neg)
+        rule_4(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape'], 'arg3_ndim': arg3['ndim']}, neg)

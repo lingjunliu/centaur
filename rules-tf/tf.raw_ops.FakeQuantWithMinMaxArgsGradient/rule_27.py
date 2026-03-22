@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# num_bits cannot be a negative value (Rule 27)
+# num_bits must be a positive integer less than or equal to 32 (Rule 27)
 
 rule_27 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] >= 0) if n else
-          v["arg1_value"] >= 0)
+    s.add(Not(And(v["arg1_value"] > 0, v["arg1_value"] <= 32)) if n else
+          And(v["arg1_value"] > 0, v["arg1_value"] <= 32))
 )
 
 def rule_27_func(arg1, solver=None, neg=False):

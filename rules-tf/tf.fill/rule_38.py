@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# if value is complex, dims must be int and non-negative (Rule 38)
+# If value is int, dim entries can only be int32 or int64 (Rule 38)
 
 rule_38 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), And([Implies(i < (v["arg1_length"] - 1 + 1), And(Select(v["arg1_values"], i) >= 0, Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 4))) for i in range(6)]), True)) if n else
-          If(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), And([Implies(i < (v["arg1_length"] - 1 + 1), And(Select(v["arg1_values"], i) >= 0, Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 4))) for i in range(6)]), True))
+    s.add(Not(If(Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 4), And([Implies(i < (v["arg1_length"] - 1 + 1), And((Select(v["arg1_values"], i) < 2147483647), (Select(v["arg1_values"], i) > -2147483648))) for i in range(6)]), True)) if n else
+          If(Or(v["arg2_dtype"] == 3, v["arg2_dtype"] == 4), And([Implies(i < (v["arg1_length"] - 1 + 1), And((Select(v["arg1_values"], i) < 2147483647), (Select(v["arg1_values"], i) > -2147483648))) for i in range(6)]), True))
 )
 
 def rule_38_func(arg1, arg2, solver=None, neg=False):

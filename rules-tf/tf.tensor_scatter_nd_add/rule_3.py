@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# indices shape[-1] must be less than or equal to tensor rank (Rule 3)
+# indices.shape[-1] <= tensor.shape.rank (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
     s.add(Not(Select(v["arg2_shape"], v["arg2_ndim"] - 1) <= v["arg1_ndim"]) if n else

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# condition tensor should have bool dtype when x and y are provided (Rule 8)
+# Condition can have a dtype of tf.bool, or any numeric dtype, focusing on int condition (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == 0) if n else
-          v["arg1_dtype"] == 0)
+    s.add(Not(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)) if n else
+          And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5))
 )
 
 def rule_8_func(arg1, solver=None, neg=False):

@@ -1,72 +1,93 @@
 >>
-Rule 1 (matrix must be float64, float32, half, complex64, or complex128)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 6
->>
-Rule 2 (rhs must have the same type as matrix)
+Rule 1 (matrix and rhs must have the same type)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 3 (matrix shape must be at least 2D)
+Rule 2 (matrix must be one of the allowed types)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 3 (matrix must have at least two dimensions)
 {v_1 : tensor} |= ndim(v_1) ≥ 2
+>>
+Rule 4 (rhs must have at least two dimensions)
+{v_2 : tensor} |= ndim(v_2) ≥ 2
 >>
 Rule 5 (inner-most 2 dimensions of matrix must form square matrices)
 {v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
 >>
-Rule 6 (inner-most dimension of rhs must match matrix's inner-most dimension -1)
+Rule 6 (rhs should have the same first M-1 dimension sizes as matrix)
+{v_1 : tensor, v_2 : tensor} |=  (ndim(v_1) = ndim(v_2)) ∧ (∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 7 (rhs second to last dim should match matrix)
 {v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 2)
 >>
-Rule 7 (output shape matches rhs shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Rule 8 (lower must be boolean)
+{v_3 : bool} |= v_3 = true ∨ v_3 = false
 >>
-Rule 9 (lower is boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 9 (adjoint must be boolean)
+{v_4 : bool} |= v_4 = true ∨ v_4 = false
 >>
-Rule 13 (If matrix is half type, the device must support half)
+Rule 10 (matrix and rhs must have compatible shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ (∀i ∈ [0, if ndim(v_1) - 2 > ndim(v_2) - 2 then ndim(v_1) - 2 else ndim(v_2) - 2] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 11 (matrix dtype must be in allowed list)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 13
+>>
+Rule 12 (rhs dtype must be in allowed list)
+{v_2 : tensor} |= dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 13
+>>
+Rule 15 (The last but one dimension of rhs should be same as the last dimension of matrix)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 2)
+>>
+Rule 16 (matrix and rhs must have compatible shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ (∀i ∈ [0, if ndim(v_1) - 2 > ndim(v_2) - 2 then ndim(v_1) - 2 else ndim(v_2) - 2] : (i < 0) ∨ (shape(v_1, i) = shape(v_2, i)))
+>>
+Rule 18 (rhs dtype must be in allowed list)
+{v_2 : tensor} |= dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+>>
+Rule 20 (matrix and rhs dimensions should differ by at most 1)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) - ndim(v_2)) ≤ 1 ∧ (ndim(v_2) - ndim(v_1)) ≤ 1
+>>
+Rule 24 (If matrix is half type, device should support it)
 {v_1 : tensor} |= if dtype_(v_1) = 6 then true
 >>
-Rule 19 (name is string and not empty)
-{v_1 : str} |= v_1 ≠ ""
+Rule 34 (If matrix is half type, device should support it)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then ∃s ∈ ["XLA_CPU_JIT", "XLA_GPU_JIT"] : true
 >>
-Rule 23 (if matrix is half type, and device is not xla_cpu_jit or xla_gpu_jit)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then false
+Rule 51 (The datatype of matrix and rhs should be in the allowed list and the same)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ dtype_(v_1) = dtype_(v_2)
 >>
-Rule 31 (If matrix is half type, solve on specific devices)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then ∃device ∈ ["XLA_CPU_JIT", "XLA_GPU_JIT"] : true
+Rule 52 (Matrix and rhs must have at least 2 dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2
 >>
-Rule 37 (if matrix is half type, don't use this API)
-{v_1 : tensor} |= dtype_(v_1) ≠ 6
+Rule 65 (The last but one dimension of rhs should be same as the last dimension of matrix and should be valid.)
+{v_1 : tensor, v_2 : tensor} |= (shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 2)) ∧ (shape(v_1, ndim(v_1) - 2) > 0)
 >>
-Rule 47 (If matrix is half type, and not on supported devices, promote to float32)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_1) = 7
+Rule 66 (The datatype of matrix and rhs should be same and must be a valid type)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = dtype_(v_2)) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
 >>
-Rule 55 (Check matrix's shape is valid)
-{v_1 : tensor} |= shape(v_1, ndim(v_1)-1) > 0 ∧ shape(v_1, ndim(v_1)-2) > 0
+Rule 69 (The last two dimensions of matrix should be same and greater than zero)
+{v_1 : tensor} |= (shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)) ∧ (shape(v_1, ndim(v_1) - 1) > 0)
 >>
-Rule 57 (Matrices in the last dimensions must be square)
-{v_1 : tensor} |= shape(v_1, ndim(v_1)-2) = shape(v_1, ndim(v_1)-1)
+Rule 70 (The last but one dimension of rhs should be same as the last dimension of matrix and the type should match)
+{v_1 : tensor, v_2 : tensor} |= (shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 2)) ∧ (dtype_(v_1) = dtype_(v_2))
 >>
-Rule 59 (Matrices in the last dimensions must be square and positive)
-{v_1 : tensor} |= shape(v_1, ndim(v_1)-2) = shape(v_1, ndim(v_1)-1) ∧ shape(v_1, ndim(v_1)-1) > 0
+Rule 79 (The last two dimensions of matrix should be same and greater than zero. Also Matrix should have at least 2 dimensions.)
+{v_1 : tensor} |= (shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)) ∧ (shape(v_1, ndim(v_1) - 1) > 0) ∧ (ndim(v_1) ≥ 2)
 >>
-Rule 61 (Matrices in the last dimensions must be square and have positive size)
-{v_1 : tensor} |= ndim(v_1) >= 2 ∧ shape(v_1, ndim(v_1)-2) = shape(v_1, ndim(v_1)-1) ∧ shape(v_1, ndim(v_1)-1) > 0
+Rule 84 (The last two dimensions of matrix should be same and the Matrix dimensions should be greater than or equal to 2)
+{v_1 : tensor} |= (shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)) ∧ (ndim(v_1) ≥ 2)
 >>
-Rule 65 (Matrices in the last dimensions must be square and have positive size)
-{v_1 : tensor} |= ndim(v_1) >= 2 ∧ shape(v_1, ndim(v_1)-2) = shape(v_1, ndim(v_1)-1) ∧ shape(v_1, ndim(v_1)-1) > 0 ∧ shape(v_1, ndim(v_1)-2) > 0
+Rule 89 (The last two dimensions of matrix should be same and greater than zero. And matrix should have a valid dtype.)
+{v_1 : tensor} |= (shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)) ∧ (shape(v_1, ndim(v_1) - 1) > 0) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
 >>
-Rule 71 (Matrices in the last dimensions must be square and have positive size, covering last dimensions for non square)
-{v_1 : tensor} |= if ndim(v_1) < 2 then true else shape(v_1, ndim(v_1)-2) = shape(v_1, ndim(v_1)-1) ∧ shape(v_1, ndim(v_1)-1) > 0
+Rule 90 (The last but one dimension of rhs should be same as the last dimension of matrix. Also, matrix and rhs should have atleast two dimensions.)
+{v_1 : tensor, v_2 : tensor} |= (shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 2)) ∧ (ndim(v_1) ≥ 2) ∧ (ndim(v_2) ≥ 2)
 >>
-Rule 73 (Last two dimensions must be equal and the size must be greater than 0, check also ndim>2)
-{v_1 : tensor} |= ndim(v_1) < 2 ∨ (shape(v_1, ndim(v_1)-2) = shape(v_1, ndim(v_1)-1) ∧ shape(v_1, ndim(v_1)-1) > 0)
+Rule 92 (The last two dimensions should not be zero)
+{v_1: tensor} |= shape(v_1, ndim(v_1) - 1) ≠ 0 ∧ shape(v_1, ndim(v_1) - 2) ≠ 0
 >>
-Rule 75 (Inner matrices must be square)
-{v_1 : tensor} |= if ndim(v_1) >= 2 then shape(v_1, ndim(v_1)-2) = shape(v_1, ndim(v_1)-1)
+Rule 97 (The last but one dimension of rhs should be same as the last dimension of matrix and both must have more or equal to 2 dimensions)
+{v_1 : tensor, v_2 : tensor} |= (shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 2)) ∧ (ndim(v_1) >= 2) ∧ (ndim(v_2) >= 2)
 >>
-Rule 77 (Matrix shape check to ensure dimensions to perform matmul)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) >= 2 ∧ ndim(v_2) >= 2 then shape(v_1, ndim(v_1)-2) = shape(v_1, ndim(v_1)-1) ∧ shape(v_1, ndim(v_1)-2) = shape(v_2, ndim(v_2)-2)
->>
-Rule 78 (rhs innermost dimensions match matrix shape requirements)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) >= 2 ∧ ndim(v_2) >= 2 then shape(v_1, ndim(v_1)-2) = shape(v_2, ndim(v_2)-2)
->>
-Rule 79 (matrix shape is valid)
-{v_1 : tensor} |= ndim(v_1) < 2 ∨ (ndim(v_1) >= 2 ∧ shape(v_1, ndim(v_1)-2) = shape(v_1, ndim(v_1)-1) ∧ shape(v_1, ndim(v_1)-1) > 0)
+Rule 99 (The last two dimensions of matrix should be same and greater than zero and the complete matrix must have appropriate dimensions)
+{v_1 : tensor} |= (shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)) ∧ (shape(v_1, ndim(v_1) - 1) > 0) ∧ (ndim(v_1) >= 2)

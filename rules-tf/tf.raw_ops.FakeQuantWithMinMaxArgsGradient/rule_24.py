@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# shape of gradients and inputs should be at least rank 1 (Rule 24)
+# inputs and gradients tensors must have a rank greater than 0 (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] >= 1, v["arg2_ndim"] >= 1)) if n else
-          And(v["arg1_ndim"] >= 1, v["arg2_ndim"] >= 1))
+    s.add(Not(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0)) if n else
+          And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0))
 )
 
 def rule_24_func(arg1, arg2, solver=None, neg=False):

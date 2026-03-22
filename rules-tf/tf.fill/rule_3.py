@@ -5,34 +5,38 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# entries of dims should be integer (Rule 3)
+# Value's datatype must be consistent with dims (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 4)) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_ndim"] - 1 + 1), Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 4)) for i in range(6)]))
+    s.add(Not(Select(v["arg2_shape"], 0) == v["arg1_length"]) if n else
+          Select(v["arg2_shape"], 0) == v["arg1_length"])
 )
 
-def rule_3_func(arg1, solver=None, neg=False):
+def rule_3_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+            return False
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_dtype = Int('arg1_dtype')
+        arg1_length = Int('arg1_length')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg1_length == len(arg1))
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 3
-        rule_3(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype})
+        rule_3(solver, {'arg1_length': arg1_length, 'arg2_shape': arg2_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_3(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype']}, neg)
+        rule_3(solver, {'arg1_length': arg1['length'], 'arg2_shape': arg2['shape']}, neg)

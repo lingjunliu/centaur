@@ -5,42 +5,35 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
-# If x and y are provided, then condition must be a boolean tensor. Also x and y cannot be string, and they must have the same dtype. (Rule 62)
+# If only condition is given, the minimum and maximum value within that tensor should not be equal when tensor data type is float (Rule 62)
 
 rule_62 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(v["arg1_dtype"] == 0, v["arg2_dtype"] != 11), v["arg3_dtype"] != 11), v["arg2_dtype"] == v["arg3_dtype"])) if n else
-          And(And(And(v["arg1_dtype"] == 0, v["arg2_dtype"] != 11), v["arg3_dtype"] != 11), v["arg2_dtype"] == v["arg3_dtype"]))
+    s.add(Not(If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), Select(v["arg1_range"], 0) != Select(v["arg1_range"], 1), True)) if n else
+          If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), Select(v["arg1_range"], 0) != Select(v["arg1_range"], 1), True))
 )
 
-def rule_62_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_62_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
-            return False
-        if not isinstance(arg3, np.ndarray):
-            return False
 
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
-        arg3_dtype = Int('arg3_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
-        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 62
-        rule_62(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype})
+        rule_62(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_62(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype']}, neg)
+        rule_62(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
